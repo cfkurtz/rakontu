@@ -15,7 +15,7 @@ from google.appengine.ext.db import polymodel
 # Articles
 # --------------------------------------------------------------------------------------------
 
-ATTRIBUTION_CHOICES = ["creator", "anonymous", "personification"]
+ATTRIBUTION_CHOICES = ["member", "anonymous", "personification"]
 ARTICLE_TYPES = ["stories", "patterns", "constructs", "invitations", "resources"]
 
 class Article(db.PolyModel):
@@ -23,7 +23,8 @@ class Article(db.PolyModel):
 	
 	Properties
 		title:				A name for the article. Appears in the interface.
-		text:				Main body of content. What is read. Will be expanded later.
+		text:				Main body of content. What is read. 
+		attachments:		Any non-text content. Can be uploaded from PDF, MP3, PNG, JPG, etc.
 
 		creator: 			Member who contributed the story. May be online or offline.
 		collectedOffline:	Whether it was contributed by an offline member.
@@ -40,9 +41,7 @@ class Article(db.PolyModel):
 	"""
 	title = db.StringProperty(default="Untitled")
 	text = db.TextProperty(multiline=True)
-	audio = db.BlobProperty()
-	video = db.BlobProperty()
-	image = db.BlobProperty()
+	attachments = db.ListProperty(Blob)
 
 	creator = db.UserProperty()
 	collectedOffline = db.BooleanProperty(default=false)
@@ -298,7 +297,7 @@ class CommunityAnswer(Annotation):
 # Queries
 # --------------------------------------------------------------------------------------------
 
-QUERY_TYPES = ["words", "tags", "answers", "members", "activities", "links"]
+QUERY_TYPES = ["free text", "tags", "answers", "members", "activities", "links"]
 QUERY_TARGETS = ["stories", "patterns", "constructs", "invitations", "resources", "articles", "interpretations", "tags", "comments", "requests", "nudge comments"]
 BOOLEAN_CHOICES = ["ALL", "ANY"]
 ACTIVITIES = ["told", "retold", "reminded", "related", "included", "annotated", "interpreted", "commented on", "nudged", "tagged", "requested", "read"]
