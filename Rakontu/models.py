@@ -22,6 +22,7 @@ class Article(db.PolyModel):
 	""" Main element of the system. 
 	
 	Properties
+		community:			The Rakontu community this article belongs to.
 		title:				A name for the article. Appears in the interface.
 		text:				Main body of content. What is read. 
 		attachments:		Any non-text content. Can be uploaded from PDF, MP3, PNG, JPG, etc.
@@ -35,24 +36,25 @@ class Article(db.PolyModel):
 		tookPlace:			When the events the article is about took place.
 		collected:			When article was collected, usually from an off-line member.
 		entered:			When article was added to database.
-		lastEdited:			When the text or title was last changed.
+		lastChanged:			When the text or title was last changed.
 		lastRead:			When it was last accessed by anyone.
 		lastAnnotated:		The last time any annotation was added.
 	"""
+	community = db.ReferenceProperty(Community)
 	title = db.StringProperty(default="Untitled")
 	text = db.TextProperty(multiline=True)
 	attachments = db.ListProperty(Blob)
 
-	creator = db.UserProperty()
+	creator = db.ReferenceProperty(Member)
 	collectedOffline = db.BooleanProperty(default=false)
-	liaison = db.UserProperty(default=None)
+	liaison = db.ReferenceProperty(Member, default=None)
 	attribution = db.StringProperty(choices=ATTRIBUTION_CHOICES)
 	personification = db.ReferenceProperty(Personification, default=None)
 
 	tookPlace = db.DateTimeProperty()
 	collected = db.DateTimeProperty()
 	entered = db.DateTimeProperty(auto_now_add=True)
-	lastEdited = db.DateTimeProperty()
+	lastChanged = db.DateTimeProperty()
 	lastRead = db.DateTimeProperty()
 	lastAnnotated = db.DateTimeProperty()
 	
@@ -114,11 +116,13 @@ class Link(db.Model):
 	""" For holding on to links between articles.
 	
 	Properties
+		community:			The Rakontu community this link belongs to.
 		articleFrom:		Where the link originated. Story read first, or pattern/construct.
 		articleTo:			Article referred to. Usually story.
 		type:				One of retold, reminded, related, included.
 		comment:			Optional user comment about the linkage, written when link made.
 	"""
+	community = db.ReferenceProperty(Community)
 	articleFrom = db.ReferenceProperty(Article, collection_name="Article_reference_set1")
 	articleTo = db.ReferenceProperty(Article, collection_name="Article_reference_set2")
 	type = db.StringProperty(choices=LINK_TYPES)
@@ -133,6 +137,9 @@ class Annotation(CollectedItem):
 	
 	Properties
 		article:			The thing being annotated.
+		community:			The Rakontu community this annotation belongs to.
+							Maybe not necessary, but if you wanted to get a list of these without going through
+							articles, this would be useful.
 
 		creator: 			Member who contributed the story. May be online or offline.
 		collectedOffline:	Whether it was contributed by an offline member.
@@ -146,10 +153,11 @@ class Annotation(CollectedItem):
 		inappropriateMarks:	A list of user comments marking the annotation as inappropriate.
 	"""
 	article = db.ReferenceProperty(Article)
+	community = db.ReferenceProperty(Community)
 
-	creator = db.UserProperty()
+	creator = db.ReferenceProperty(Member)
 	collectedOffline = db.BooleanProperty(default=false)
-	liaison = db.UserProperty(default=None)
+	liaison = db.ReferenceProperty(Member, default=None)
 	attribution = db.StringProperty(choices=ATTRIBUTION_CHOICES)
 	personification = db.ReferenceProperty(Personification, default=None)
 
@@ -160,14 +168,13 @@ class Annotation(CollectedItem):
 	
 class AnnotationAnswer(Annotation):
 	""" Answer to annotation question with reference to article. 
-		Can have more than one per question, if question allows it.
 	
 	Properties
 		question:			Refers to annotation question, for display.
-		answer:				Text string. If numerical choice, this is converted on use.
+		answer:				Text string. If numerical choice, this is converted on use. Can be multiple.
 	"""
 	question = db.ReferenceProperty(AnnotationQuestion)
-	answer = db.StringProperty()
+	answer = db.StringListProperty()
 	
 class Tag(Annotation):
 	""" Member tag to describe article.
@@ -217,83 +224,6 @@ class Nudge(Annotation):
 	comment = db.TextProperty(multiline=True)
 	
 # --------------------------------------------------------------------------------------------
-# Question generating system
-# --------------------------------------------------------------------------------------------
-
-QUESTION_TYPES = ["boolean", "text", "ordinal", "nominal", "value"]
-
-class Question(db.PolyModel):
-	""" Questions asked about either the community or an article.
-	
-	Properties
-		type:				One of boolean, text, ordinal, nominal, value.
-		name:				Name to display in viewer or wherever a short handle is needed.
-		text:				The actual text question asked. May be much longer.
-		help:				Explanatory text about how to answer the question.
-	"""
-	type = db.StringProperty(choices=QUESTION_TYPES)
-	name = db.StringProperty()
-	text = db.TextProperty(multiline=True)
-	help = db.TextProperty(multiline=True)
-	
-class AnnotationQuestion(Question):
-	""" Questions asked about an article.
-	
-	Properties
-		articleType:		Which type of article this question refers to.
-	"""
-	articleType = db.StringProperty(choices=ARTICLE_TYPES)
-
-class CommunityQuestion(Question):
-	pass
-
-class MemberQuestion(Question):
-	pass
-
-RULE_TESTS = ["same as", "<", "<=", ">", ">=", "=", "includes"]
-
-class Rule(db.Model):
-	""" Simple if-then statement to choose annotation questions based on community questions.
-	
-	Properties
-		communityQuestion:	What question about the community the rule is based on.
-		test:				The operation used to compare the community answer to the test value.
-		testValues:			The thing(s) compared to the community answer.
-		includeIf:			Whether the test should be true or false to include the annotation question. 
-		annotationQuestion: What question about articles is affected by the rule.
-
-	Usage
-		In the abstract:
-			For the community question <communityQuestion>, 
-			IF the evaluation of (<CommunityAnswer> <test> <testValues>) = includeIf, 
-			THEN include <annotationQuestion>.
-		Examples:
-			For the community question "Is this community united by a geographic place?",
-		  	IF the evaluation of (<CommunityAnswer> "=" ["yes"]) = true, 
-		  	THEN include "Where did this story take place?".
-		  	
-		  	For the community question "Do people want to talk about social issues?",
-		  	IF the evaluation of (<CommunityAnswer> "includes" ["no!", "maybe not", "not sure"] = false,
-		  	THEN include "Who needs to hear this story?".
-	"""
-	communityQuestion = db.ReferenceProperty(CommunityQuestion)
-	test = db.StringProperty(choices=RULE_TESTS)
-	testValues = db.StringListProperty()
-	includeIf = db.BooleanProperty(default=true)
-	annotationQuestion = db.ReferenceProperty(AnnotationQuestion)
-	
-class CommunityAnswer(Annotation):
-	""" Answer to annotation question with reference to article. 
-		Can have more than one per question, if question allows it.
-	
-	Properties
-		question:			Refers to annotation question, for display.
-		answer:				Text string. If numerical choice, this is converted on use.
-	"""
-	question = db.ReferenceProperty(CommunityQuestion)
-	answer = db.StringProperty()
-	
-# --------------------------------------------------------------------------------------------
 # Queries
 # --------------------------------------------------------------------------------------------
 
@@ -307,15 +237,17 @@ class Query(db.Model):
 	""" Choice to show subsets of items in main viewer.
 
 	Properties (common to all types):
+		owner:			Who this query belongs to.
+		created:			When it was created.
+
 		type:				One of free text, tags, answers, members, activities, links. 
 		targets:			All searches return articles, annotations, or members (no combinations). 
-		creator:			Who this query belongs to.
-		created:			When it was created.
 	"""
+	owner = db.ReferenceProperty(Member)
+	created = db.DateTimeProperty(auto_now_add=True)
+
 	type = db.StringProperty(choices=QUERY_TYPES)
 	targets = db.StringListProperty(choices=QUERY_TARGETS)
-	creator = db.UserProperty()
-	created = db.DateTimeProperty(auto_now_add=True)
 	
 	""" Free text search
 	
@@ -409,26 +341,20 @@ class Query(db.Model):
 	typeLinkedTo = db.StringProperty(choices=ARTICLE_TYPES)
 	
 # --------------------------------------------------------------------------------------------
-# Users
+# Members
 # --------------------------------------------------------------------------------------------
-
-class Personification(db.Model):
-	""" Used to anonymize entries but provide some information about intent. Optional.
-	
-	Properties
-		name:				The fictional name of the personification, like "Coyote".
-	"""
-	name = db.StringProperty(required=true)
-	description = db.TextProperty(multiline=True)
 
 MEMBER_TYPES = ["members", "on-line members", "off-line members", "liaisons", "curators", "sustainers", "facilitators", "administrators"]
 HELPING_ROLE_TYPES = ["curators", "sustainers", "liaisons"]
 MANAGING_ROLE_TYPES = ["facilitator", "administrator"]
 
 class Member(db.PolyModel):
-	""" A user account. 
+	""" A member is essentially the combination of a Google user and a Rakontu community,
+		since a Google user can belong to more than one Rakontu community.
+		Though members can also exist without Google accounts (those are off-line members).
 	
 	Properties
+		community:			The community this member belongs to. 
 		nickname:			The member's "handle" in the system. Cannot be changed.
 		nicknameIsRealName:	Whether their nickname is their real name. For display only.
 		googleAccountID:	UserID field from Google account. None if offline.
@@ -436,12 +362,14 @@ class Member(db.PolyModel):
 							Can include URLs which are converted to links.
 		profileImage:		Thumbnail picture. Optional.
 
-		isOnline:			Whether the member is online or offline.
+		isOnline:			Whether the member is online (and has a Google account).
 		liaisonAccountID:	Can be permanently linked to a liaison. This just sets the 
 							default when entries are recorded, to save liaisons time.
 	"""
+	community = db.ReferenceProperty(Community)
 	nickname = db.StringProperty()
 	nicknameIsRealName = db.BooleanProperty()
+	user = db.UserProperty() # need this ?
 	googleAccountID = db.StringProperty()
 	profileText = db.TextProperty(multiline=True)
 	profileImage = db.BlobProperty()
@@ -470,6 +398,7 @@ class Member(db.PolyModel):
 		return ViewingPreferences.all().filter("owner = ", self.key())
 	
 class Curator(Member):
+	# there will be lots of stuff in these later
 	pass
 
 class Sustainer(Member):
@@ -497,9 +426,12 @@ VERTICAL_PLACEMENTS = ["time", \
 						 "nudging - utility custom 1", "nudging - utility custom 2", "nudging - utility custom 3"]
 
 class ViewingPreferences(db.Model):
-	""" Preferences for the main viewer. Each user has these, and there is a global set as well for defaulting.
+	""" Preferences for the main viewer. Each user has these, and there is a community-wide set as well for defaulting.
 	
 	Properties
+		owner:				The member these preferences belong to.
+		communityIfCommon:	If these are common default options for the community, which community they are for.
+		
 		xTimeStep:			What time unit to show in grid columns (day, week, month, etc).
 		xTimeStepMultiplier:How many days, weeks, etc to show in one column.
 		xStart:				What time to show in the first column.
@@ -518,7 +450,9 @@ class ViewingPreferences(db.Model):
 		numInappropriateMarksToHideAnnotations: If annotations have this many inappropriate markings, they are hidden.
 							Used mainly at the community level, though users could set a different level for themselves.
 	"""
-	owner = db.UserProperty()
+	owner = db.ReferenceProperty(Member)
+	communityIfCommon = db.ReferenceProperty(Community)
+	
 	xTimeStep = db.StringProperty(choices=TIME_STEPS)
 	xTimeStepMultiplier = db.IntegerProperty()
 	xStart = db.DateTimeProperty()
@@ -533,16 +467,37 @@ class ViewingPreferences(db.Model):
 	basement = db.IntegerProperty()
 	numInappropriateMarksToHideAnnotations = db.IntegerProperty()
 	
+class Personification(db.Model):
+	""" Used to anonymize entries but provide some information about intent. Optional.
+	
+	Properties
+		community:			The Rakontu community this personification belongs to.
+		name:				The fictional name of the personification, like "Coyote".
+		description:		Simple text description of the personification
+		image:				Optional image.
+	"""
+	community = db.ReferenceProperty(Community)
+	name = db.StringProperty(required=true)
+	description = db.TextProperty(multiline=True)
+	image = db.BlobProperty()
+
+# --------------------------------------------------------------------------------------------
+# Community
+# --------------------------------------------------------------------------------------------
+
 ROLE_ASSIGNMENT_TYPES = ["available", "moderated", "invited"]
 
-class GlobalOptions(db.Model):
-	""" Preferences for the whole system (community).
+class Community(db.Model):
+	""" Preferences and settings for the whole community.
+	    There can be multiple communities within one Rakontu installation.
 	
 	Properties
 		nudgePointsPerActivity:	A number for each type of activity (VERTICAL_PLACEMENTS) denoting how many
 								points the member accumulates for doing it.
 		nudgePointsPerArticle:	How many nudge points a member is allowed to place (maximally) on any article.
-		helperRoleAssignmentTypes:	For each of HELPING_ROLE_TYPES, available, moderated or invited
+		helperRoleAssignmentTypes:	For each of HELPING_ROLE_TYPES, available, moderated or invited.
+									Facilitators and admins must be assigned by the primary administrator
+									(who sets up the site).
 		allowAnonymousEntry:	Whether members are allowed to enter articles and annotations with only
 								"anonymous" marked. Different from personification system.
 		utilityNudgeCategories:	Names of custom nudge categories. Up to three allowed.
@@ -552,19 +507,206 @@ class GlobalOptions(db.Model):
 	helperRoleAssignmentTypes = db.StringListProperty(choices=ROLE_ASSIGNMENT_TYPES)
 	allowAnonymousEntry = db.BooleanProperty()
 	utilityNudgeCategories = db.StringListProperty()
-
-	def getViewingPreferences(self):
-		return ViewingPreferences.all().filter("owner = ", self.key())
 	
-	def getMemberQuestions(self):
-		return MemberQuestion.all()
+	# articles
+	
+	def getArticles(self):
+		return Article.all().filter("community = ", self.key())
+	
+	def getStories(self):
+		return Story.all().filter("community = ", self.key())
+	
+	def getPatterns(self):
+		return Pattern.all().filter("community = ", self.key())
+	
+	def getConstructs(self):
+		return Construct.all().filter("community = ", self.key())
+	
+	def getInvitations(self):
+		return Invitation.all().filter("community = ", self.key())
+	
+	def getResources(self):
+		return Resource.all().filter("community = ", self.key())
+	
+	def getLinks(self):
+		return Link.all().filter("community = ", self.key())
+	
+	# community level questions and answers
+
+	def getCommunityQuestions(self):
+		return CommunityQuestion.all().filter("community = ", self.key())
 	
 	def getAnnotationQuestions(self, articleType):
-		return AnnotationQuestion.all().filter("articleType = ", articleType)
+		return AnnotationQuestion.all().filter("community = ", self.key()).filter("articleType = ", articleType)
 		
-	def getCommunitQuestions(self):
-		return CommunityQuestion.all()
+	def getMemberQuestions(self):
+		return MemberQuestion.all().filter("community = ", self.key())
 	
+	def getCommunityAnswers(self):
+		return CommunityAnswer.all().filter("community = ", self.key())
+	
+	# members
+	
+	def getMembers(self):
+		return Member.all().filter("community = ", self.key())
+	
+	def getCurators(self):
+		return Curator.all().filter("community = ", self.key())
+	
+	def getSustainers(self):
+		return Sustainer.all().filter("community = ", self.key())
+	
+	def getLiaisons(self):
+		return Liaison.all().filter("community = ", self.key())
+	
+	def getFacilitators(self):
+		return Facilitator.all().filter("community = ", self.key())
+	
+	def getAdministrators(self):
+		return Administrator.all().filter("community = ", self.key())
+	
+	# options
+	
+	def getCommunityLevelViewingPreferences(self):
+		return ViewingPreferences.all().filter("community = ", self.key()).filter("owner = ", self.key())
+
 	def getPersonifications(self):
-		return Personification.all()
+		return Personification.all().filter("community = ", self.key())
 	
+# --------------------------------------------------------------------------------------------
+# Question generating system
+# --------------------------------------------------------------------------------------------
+
+QUESTION_TYPES = ["boolean", "text", "ordinal", "nominal", "value"]
+
+class Question(db.PolyModel):
+	""" Questions asked about either the community or an article.
+	
+	Properties
+		community:			The Rakontu community this question belongs to.
+							If None, is in a global list communities can copy from.
+		type:				One of boolean, text, ordinal, nominal, value.
+		name:				Name to display in viewer or wherever a short handle is needed.
+		text:				The actual text question asked. May be much longer.
+		help:				Explanatory text about how to answer the question.
+	"""
+	community = db.ReferenceProperty(Community)
+	type = db.StringProperty(choices=QUESTION_TYPES)
+	name = db.StringProperty()
+	text = db.TextProperty(multiline=True)
+	help = db.TextProperty(multiline=True)
+	
+class AnnotationQuestion(Question):
+	""" Questions asked about an article.
+	
+	Properties
+		articleType:		Which type of article this question refers to.
+	"""
+	articleType = db.StringProperty(choices=ARTICLE_TYPES)
+
+class CommunityQuestion(Question):
+	pass
+
+class MemberQuestion(Question):
+	pass
+
+RULE_TESTS = ["same as", "<", "<=", ">", ">=", "=", "includes"]
+
+class Rule(db.Model):
+	""" Simple if-then statement to choose annotation questions based on community questions.
+	
+	Properties
+		community:			The Rakontu community this rule belongs to.
+							If None, is in a global list communities can copy from.
+		communityQuestion:	What question about the community the rule is based on.
+		test:				The operation used to compare the community answer to the test value.
+		testValues:			The thing(s) compared to the community answer.
+		includeIf:			Whether the test should be true or false to include the annotation question. 
+		annotationQuestion: What question about articles is affected by the rule.
+
+	Usage
+		In the abstract:
+			For the community question <communityQuestion>, 
+			IF the evaluation of (<CommunityAnswer> <test> <testValues>) = includeIf, 
+			THEN include <annotationQuestion>.
+		Examples:
+			For the community question "Is this community united by a geographic place?",
+		  	IF the evaluation of (<CommunityAnswer> "=" ["yes"]) = true, 
+		  	THEN include "Where did this story take place?".
+		  	
+		  	For the community question "Do people want to talk about social issues?",
+		  	IF the evaluation of (<CommunityAnswer> "includes" ["no!", "maybe not", "not sure"] = false,
+		  	THEN include "Who needs to hear this story?".
+	"""
+	community = db.ReferenceProperty(Community)
+	communityQuestion = db.ReferenceProperty(CommunityQuestion)
+	test = db.StringProperty(choices=RULE_TESTS)
+	testValues = db.StringListProperty()
+	includeIf = db.BooleanProperty(default=true)
+	annotationQuestion = db.ReferenceProperty(AnnotationQuestion)
+	
+# --------------------------------------------------------------------------------------------
+# Non-annotation answers
+# --------------------------------------------------------------------------------------------
+
+class CommunityAnswer(db.Model):
+	""" Answer to community question with reference to community. 
+	
+	Properties
+		community: 			The Rakontu community this answer belongs to.
+		question: 			Refers to annotation question, for display.
+		answer:				Text string. If numerical choice, this is converted on use. Can be multiple.
+		
+		entered: 			When entered.
+		lastChanged: 		When last changed.
+	"""
+	community = db.ReferenceProperty(Community)
+	question = db.ReferenceProperty(CommunityQuestion)
+	answer = db.StringListProperty()
+	
+	entered = db.DateTimeProperty(auto_now_add=True)
+	lastChanged = db.DateTimeProperty()
+	
+class MemberAnswer(db.Model):
+	""" Answer to member question with reference to member. 
+	
+	Properties
+		member:				The member this answer refers to.
+		question: 			Refers to member question, for display.
+		answer:	 			Text string. If numerical choice, this is converted on use. Can be multiple.
+		entered: 			When entered.
+		lastChanged: 		When last changed.
+	"""
+	member = db.ReferenceProperty(Member)
+	question = db.ReferenceProperty(MemberQuestion)
+	answer = db.StringListProperty()
+	
+	entered = db.DateTimeProperty(auto_now_add=True)
+	lastChanged = db.DateTimeProperty()
+	
+# --------------------------------------------------------------------------------------------
+# System
+# --------------------------------------------------------------------------------------------
+
+class System(db.Model):
+	""" Stores system-wide (above the community level) info
+	
+	Properties
+		centralAdministrator: 	Not sure you really need this, just wanted a field to start with.
+	"""
+	centralAdministrator = db.UserProperty()
+	
+	def getCommunities(self):
+		return Community.all()
+	
+	def getGlobalCommunityQuestions(self):
+		return CommunityQuestion.all().filter("community = ", None)
+	
+	def getGlobalAnnotationQuestions(self, articleType):
+		return AnnotationQuestion.all().filter("community = ", None).filter("articleType = ", articleType)
+	
+	def getGlobalMemberQuestions(self):
+		return MemberQuestion.all().filter("community = ", None)
+	
+	def getGlobalRules(self):
+		return Rule.all().filter("community = ", None)
