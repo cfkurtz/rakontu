@@ -1,0 +1,15 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+	</head>
+	<body>
+	{% if members %}
+    	{% for member in members %}
+      	<blockquote>{{ member.nickname|escape }} belongs to {{ member.community.name|escape }}</blockquote>
+    	{% endfor %}
+    {% else %}
+    	No members.
+    {% endif %}	
+    <p><a href="/">Main page</a>
+	</body>
+</html>

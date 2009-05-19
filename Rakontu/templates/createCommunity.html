@@ -1,0 +1,25 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+	</head>
+	<body>
+		<form action="/createCommunity" method="post">
+		
+			Community name:
+			<div><input type="text" name="name" value=""/></div>
+			Community description:
+			<div><textarea name="description" rows="3" cols="60"></textarea></div>
+			You, {{ user.nickname|escape }}, will be the community's first owner.
+			<p>
+			Please choose a nickname for your presence in this community.
+			<div><input type="text" name="nickname" value=""/></div>
+			<div><label><input type="checkbox" name="nickname_is_real_name" value="yes" checked>Nickname is real name</label></div>
+			Profile text (optional):
+			<div><textarea name="profile_text" rows="3" cols="60"></textarea></div>
+			
+			
+			<div><input type="submit" value="Create Rakontu Community"></div>
+		</form>
+	<a href="{{ url }}">{{ url_linktext }}</a>
+	</body>
+</html>

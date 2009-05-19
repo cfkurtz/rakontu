@@ -1,0 +1,22 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+	</head>
+	<body>
+		<form action="/chooseCommunityToManage" method="post">
+			{% if communities %}
+				Which community do you want to manage?
+				<div><select name="community_key" size=5>
+				{% for community in communities %}
+					<option value="{{ community.key }}">{{ community.name }}</option>
+				{% endfor %}
+				</select></div>
+				<div><input type="submit" value="Manage Selected Rakontu Community"></div>
+			{% else %}
+				You are not a manager or owner in any communities.
+			{% endif %}
+		</form>
+    <a href="{{ url }}">{{ url_linktext }}</a>
+    <p><a href="/">Main page</a>
+	</body>
+</html>

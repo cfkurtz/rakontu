@@ -1,0 +1,16 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+	</head>
+	<body>
+	Welcome to Rakontu, {{ user.nickname }} !
+	<p>
+	<a href="createCommunity">Create a Community</a><p>
+	<a href="chooseCommunityToManage">Manage a Community</a><p>
+	{% if user_is_admin %}
+		<a href="showAllCommunities">Show All Communities</a><p>
+		<a href="showAllMembers">Show All Members</a><p>
+	{% endif %}
+    <a href="{{ url }}">{{ url_linktext }}</a>
+	</body>
+</html>

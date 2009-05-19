@@ -1,0 +1,21 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+	</head>
+	<body>
+	{% if communities %}
+    	{% for community in communities %}
+      	<p>{{ community.name|escape }}<p>
+      	&nbsp; &nbsp; members:<br>
+      		{% for member in members %}
+      			{% ifequal member.community.key community.key %}
+      				&nbsp; &nbsp; &nbsp; &nbsp; {{ member.nickname }}<br>
+      			{% endifequal %}
+      		{% endfor %}
+    	{% endfor %}
+    {% else %}
+    	No communities.
+    {% endif %}	
+	<a href="/">Main page</a>
+	</body>
+</html>

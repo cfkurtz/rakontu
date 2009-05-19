@@ -1,5 +1,5 @@
-application: Rakontu
-version: 0-0-1
+application: rakontu
+version: 0_0_1
 runtime: python
 api_version: 1
 
