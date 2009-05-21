@@ -3,8 +3,12 @@
 		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
 	</head>
 	<body>
-		You are {{ user.nickname }}<p>
+		You are {{ current_user.nickname }}<p>
       	<p>{{ community.name|escape }}<p>
+      	<a href="/manageCommunity_Members">Manage Memberships</a><p>
+      	<a href="/manageCommunity_Settings">Manage Community-wide Settings</a><p>
+      	<a href="/manageCommunity_Technical">Manage Technical Aspects</a><p>
+      	
       	&nbsp; &nbsp; members:<br>
       		{% for member in members %}
       			{% ifequal member.community.key community.key %}

@@ -1,4 +1,15 @@
 body {
   font-family: Verdana, Helvetica, sans-serif;
+  font-size: 70%;
   background-color: #DDDDDD;
 }
+
+td {
+	font-size: 70%;
+	}
+th {
+	font-size: 80%;
+	font-style: plain;
+	font-weight: normal;
+	background: #FFEECC;
+	}

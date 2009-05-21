@@ -108,3 +108,35 @@ class CouldNotJoinPage(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'templates/couldNotJoin.html')
         self.response.out.write(template.render(path, template_values))
 
+# ------------------------------- NOT USING
+
+                      <td>
+                      {% if aMember.isManager %} 
+                          <form action="/manageCommunity_Members" method="post">
+                          <input type="submit" name="removeManager|{{aMember.googleAccountID}}" value="Remove as Manager">
+                          </form>
+                      {% else %}
+                          <form action="/manageCommunity_Members" method="post">
+                          <input type="submit" name="addManager|{{aMember.googleAccountID}}" value="Make Manager">
+                          </form>
+                      {% endif %}
+                      {% ifequal current_member.googleAccountID aMember.googleAccountID %}
+                          {% if current_member.isOwner %}
+                              <P>Owner
+                          {% else %}
+                              <p>(not Owner)
+                          {% endif %}
+                      {% else %}
+                          {% if current_member.isOwner %}
+                              {% if aMember.isOwner %} 
+                                  <form action="/manageCommunity_Members" method="post">
+                                  <input type="submit" name="removeOwner|{{aMember.googleAccountID}}" value="Remove as Owner">
+                                  </form>
+                              {% else %}
+                                  <form action="/manageCommunity_Members" method="post">
+                                  <input type="submit" name="addOwner|{{aMember.googleAccountID}}" value="Make Owner">
+                                  </form>
+                              {% endif %}
+                          {% endif %}
+                      {% endifequal %}
+                      </td>

@@ -1,0 +1,56 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+	</head>
+	<body>
+		<form action="/manageCommunity_Members" method="post">
+		<h2>{{ community.name|escape }} Community</h2>
+		<p>
+		<h3>Add New Members</h3>
+		<div><textarea name="newMemberEmails" rows="6" cols="40"></textarea></div>
+		<p>Instructions: Add email adddresses (linked to valid Google Accounts) for each member you want to add.
+		Place each email address on a separate line.</p>
+		<p>
+		<input type="submit" name="addMembers" value="Add Emails as New Members">	
+		<hr size="1">
+		<h3>Change Memberships</h3>
+      	<table border="1" cellpadding="4" cellspacing="0">
+      	<tr>
+      		<th>Community nickname</th>
+      		<th>Online?</th>
+      		<th>Member since</th>
+      		<th>Google info (nickname, email, ID)</th>
+      		<th>Type</th>
+      		<th>Helping roles</th>
+      		<th>Remove</th>
+      		</tr>
+      		{% for aMember in community_members %}
+      			{% ifequal aMember.community.key community.key %}
+      				<tr>
+      				<td>{{ aMember.nickname }} {% ifequal aMember.key current_member.key %} <i>(This is you)</i> {% endifequal %} </td>
+      				<td>{{ aMember.isOnlineMember|yesno:"yes, no, maybe" }}</td>
+      				<td>{{ aMember.joined }}</td>
+      				<td>{{ aMember.googleUserNicknameOrNotOnline }}<br>{{ aMember.googleUserEmailOrNotOnline}}<br>{{ aMember.googleAccountID}}</td>
+      				<td>
+      					<input type="radio" name="governanceType|{{ aMember.googleAccountID }}" value="member|{{ aMember.googleAccountID }}" {{aMember.checkedIfRegularMember}}/>Member<br>
+      					<input type="radio" name="governanceType|{{ aMember.googleAccountID }}" value="manager|{{ aMember.googleAccountID }}" {{aMember.checkedIfManager}}/>Manager<br>
+      					<input type="radio" name="governanceType|{{ aMember.googleAccountID }}" value="owner|{{ aMember.googleAccountID }}" {{aMember.checkedIfOwner}}/>Owner
+      					</td>
+      				<td>
+      					{{ aMember.helpingRoles|join:", "|default:"(none)" }}
+      					</td>
+      				<td>
+      					<input type="checkbox" name="remove|{{ aMember.googleAccountID }}" />Remove
+      					</td>
+      				</tr>
+      			{% endifequal %}
+      		{% endfor %}
+      	</table>
+      	<p>
+    <input type="submit" name="changeMemberships" value="Change Memberships">	
+	</form>	
+	<p>
+    <a href="{{ url }}">{{ url_linktext }}</a>
+	</body>
+	<p><a href="/">Main page</a>
+</html>

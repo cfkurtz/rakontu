@@ -17,8 +17,7 @@ from google.appengine.ext.db import polymodel
 # Constants
 # --------------------------------------------------------------------------------------------
 
-# community level
-ROLE_ASSIGNMENT_TYPES = ["available", "moderated", "invited"]
+# community
 DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE = 10
 DEFAULT_NUDGE_POINT_ACCUMULATIONS = [
 									0, # time (doesn't apply here)
@@ -43,10 +42,11 @@ DEFAULT_NUDGE_POINT_ACCUMULATIONS = [
 					 				8, # nudging - utility custom 3
 					 				]
 
-# member level
+# member
+NO_NICKNAME_SET = "No nickname set"
 MEMBER_TYPES = ["member", "on-line member", "off-line member", "liaison", "curator", "booster", "manager", "owner"]
 HELPING_ROLE_TYPES = ["curator", "booster", "liaison"]
-GOVERNANCE_ROLE_TYPES = ["manager", "owner"]
+GOVERNANCE_ROLE_TYPES = ["member", "manager", "owner"]
 GOVERNANCE_VIEWS = ["settings", "members", "watch", "technical"]
 ACTIVITIES_GERUND = ["time", \
 					   	 "browsing", "reading", \
@@ -178,22 +178,35 @@ class Community(db.Model):
 	# members
 	
 	def getMembers(self):
-		return Member.all().filter("community = ", self.key())
+		return Member.all().filter("community = ", self.key()).fetch(1000)
+	
+	def hasMemberWithUserID(self, userID):
+		members = self.getMembers()
+		for member in members:
+			if member.googleAccountID == userID:
+				return True
+		return False
 	
 	def getCurators(self):
-		return Member.all().filter("community = ", self.key()).filter("role = ", "curator")
+		return Member.all().filter("community = ", self.key()).filter("helpingRoles IN ", "curator").fetch(1000)
 	
 	def getBoosters(self):
-		return Member.all().filter("community = ", self.key()).filter("role = ", "booster")
+		return Member.all().filter("community = ", self.key()).filter("helpingRoles IN ", "booster").fetch(1000)
 	
 	def getLiaisons(self):
-		return Member.all().filter("community = ", self.key()).filter("role = ", "liaison")
+		return Member.all().filter("community = ", self.key()).filter("helpingRoles IN ", "liaison").fetch(1000)
 	
 	def getManagers(self):
-		return Member.all().filter("community = ", self.key()).filter("role = ", "manager")
+		return Member.all().filter("community = ", self.key()).filter("governanceType = ", "manager").fetch(1000)
 	
 	def getOwners(self):
-		return Member.all().filter("community = ", self.key()).filter("role = ", "owner")
+		return Member.all().filter("community = ", self.key()).filter("governanceType = ", "owner").fetch(1000)
+	
+	def memberIsOnlyOwner(self, member):
+		owners = self.getOwners()
+		if len(owners) == 1 and owners[0].key() == member.key():
+			return True
+		return False
 	
 	# options
 	
@@ -307,17 +320,19 @@ class Member(db.Model):
 	
 	Properties
 		community:			The community this member belongs to. 
+		nickname:			The member's "handle" in the system. 
+		googleUser:			User object from Google account. None if offline.
 		googleAccountID:	UserID field from Google account. None if offline.
-		nickname:			The member's "handle" in the system. Cannot be changed.
-		roles:				Helping and/or governance roles the member has chosen or been assigned.
-		governanceView:		What views (of GOVERNANCE_VIEWS) the member wants to see if they 
-							are a manager or owner.
-		
-		isOnlineMember:		Whether the member is online (and has a Google account).
-							Note that offline members cannot have roles.
+		isOnlineMember:		Whether the member is online (has a Google account).
+							Note that offline members cannot have helping roles or be managers or owners.
 		liaisonAccountID:	Can be permanently linked to a liaison. This is to help
 							liaisons manage the offline members they have responsibility for.
 							
+		governanceType:		Whether they are a member, manager or owner.
+		governanceView:		What views (of GOVERNANCE_VIEWS) the member wants to see if they 
+							are a manager or owner.
+		roles:				Helping roles the member has chosen (curator, booster, liaison).
+		
 		nicknameIsRealName:	Whether their nickname is their real name. For display only.
 		profileText:		Small amount of member-submitted info about themselves.
 							Can include URLs which are converted to links.
@@ -330,13 +345,15 @@ class Member(db.Model):
 
 	"""
 	community = db.ReferenceProperty(Community, required=True)
+	nickname = db.StringProperty(default=NO_NICKNAME_SET)
+	googleUser = db.UserProperty(auto_current_user=True)
 	googleAccountID = db.StringProperty(required=True)
-	nickname = db.StringProperty(required=True)
-	roles = db.StringListProperty(default=None)
-	governanceView = db.StringListProperty(default=None)
-	
 	isOnlineMember = db.BooleanProperty(default=True)
 	liaisonAccountID = db.StringProperty(default=None)
+	
+	governanceType = db.StringProperty(choices=GOVERNANCE_ROLE_TYPES, default="member")
+	governanceView = db.StringListProperty(default=None)
+	helpingRoles = db.StringListProperty()
 	
 	nicknameIsRealName = db.BooleanProperty(default=False)
 	profileText = db.TextProperty(default="No profile information.")
@@ -349,13 +366,23 @@ class Member(db.Model):
 	nudgePoints = db.IntegerProperty(default=0)
 
 	def getHistory(self):
-		articles = Article.all().filter("creator =", self.key()).order("-date")
-		annotations = Annotation.all().filter("creator =", self.key()).order("-date")
-		links = Link.all().filter("creator =", self.key()).order("-date")
+		articles = Article.all().filter("creator =", self.key()).order("-date").fetch(1000)
+		annotations = Annotation.all().filter("creator =", self.key()).order("-date").fetch(1000)
+		links = Link.all().filter("creator =", self.key()).order("-date").fetch(1000)
 		return articles, annotations, links
 	
 	def getViewingPreferences(self):
-		return ViewingPreferences.all().filter("owner = ", self.key())
+		return ViewingPreferences.all().filter("owner = ", self.key()).fetch(1000)
+	
+	def googleUserNicknameOrNotOnline(self):
+		if self.isOnlineMember:
+			return self.googleUser.nickname()
+		return "Offline member"
+	
+	def googleUserEmailOrNotOnline(self):
+		if self.isOnlineMember:
+			return self.googleUser.nickname()
+		return "Offline member"
 	
 	def isCurator(self):
 		return "curator" in self.roles
@@ -366,14 +393,38 @@ class Member(db.Model):
 	def isLiaison(self):
 		return "liaison" in self.roles
 	
+	def setGovernanceType(self, type):
+		self.governanceType = type
+		
+	def isRegularMember(self):
+		return self.governanceType == "member"
+	
+	def checkedIfRegularMember(self):
+		if self.isRegularMember():
+			return "checked"
+		return ""
+	
 	def isManager(self):
-		return "manager" in self.roles
+		return self.governanceType == "manager"
+	
+	def checkedIfManager(self):
+		if self.isManager():
+			return "checked"
+		return ""
 	
 	def isOwner(self):
-		return "owner" in self.roles
+		return self.governanceType == "owner"
+	
+	def checkedIfOwner(self):
+		if self.isOwner():
+			return "checked"
+		return ""
 	
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key())
+	
+class TempUser(db.Model):
+	user = db.UserProperty(required=True)
 	
 # --------------------------------------------------------------------------------------------
 # Personification
@@ -441,28 +492,28 @@ class Article(polymodel.PolyModel):
 	numReads = db.IntegerProperty(default=0)
 	
 	def getAttachments(self):
-		return Attachment.all().filter("article =", self.key())
+		return Attachment.all().filter("article =", self.key()).fetch(1000)
 
 	def getAnnotations(self):
-		return Annotation.all().filter("article =", self.key())
+		return Annotation.all().filter("article =", self.key()).fetch(1000)
 	
 	def getComments(self):
-		return Comment.all().filter("article =", self.key())
+		return Comment.all().filter("article =", self.key()).fetch(1000)
 	
 	def getAnswerSets(self):
-		return AnswerSet.all().filter("article =", self.key())
+		return AnswerSet.all().filter("article =", self.key()).fetch(1000)
 	
 	def getTags(self):
-		return Tag.all().filter("article =", self.key())
+		return Tag.all().filter("article =", self.key()).fetch(1000)
 	
 	def getNudges(self):
-		return Nudge.all().filter("article =", self.key())
+		return Nudge.all().filter("article =", self.key()).fetch(1000)
 	
 	def getRequests(self):
-		return Request.all().filter("article =", self.key())
+		return Request.all().filter("article =", self.key()).fetch(1000)
 		
 	def getOutgoingLinks(self):
-		return Link.all().filter("articleFrom =", self.key())
+		return Link.all().filter("articleFrom =", self.key()).fetch(1000)
 		
 class Story(Article):
 	pass
@@ -785,13 +836,13 @@ class System(db.Model):
 		return Community.all()
 	
 	def getGlobalCommunityQuestions(self):
-		return Question.all().filter("community = ", None).filter("refersTo = ", "community")
+		return Question.all().filter("community = ", None).filter("refersTo = ", "community").fetch(1000)
 	
 	def getGlobalAnnotationQuestions(self, articleType):
-		return Question.all().filter("community = ", None).filter("refersTo = ", articleType)
+		return Question.all().filter("community = ", None).filter("refersTo = ", articleType).fetch(1000)
 	
 	def getGlobalMemberQuestions(self):
-		return Question.all().filter("community = ", None).filter("refersTo = ", "member")
+		return Question.all().filter("community = ", None).filter("refersTo = ", "member").fetch(1000)
 	
 	def getGlobalRules(self):
-		return Rule.all().filter("community = ", None)
+		return Rule.all().filter("community = ", None).fetch(1000)

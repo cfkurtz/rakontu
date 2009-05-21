@@ -5,7 +5,7 @@
 	<body>
 	{% if members %}
     	{% for member in members %}
-      	<blockquote>{{ member.nickname|escape }} belongs to {{ member.community.name|escape }}</blockquote>
+      	<blockquote>{{ member.nickname|escape }} has email {{ member.user.email}} and belongs to {{ member.community.name|escape }} and is a {{ member.governanceType }} and has these helping roles: {{ member.helpingRoles|join:", "|default:"none" }}</blockquote>
     	{% endfor %}
     {% else %}
     	No members.

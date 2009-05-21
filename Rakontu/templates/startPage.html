@@ -5,11 +5,15 @@
 	<body>
 	Welcome to Rakontu, {{ user.nickname }} !
 	<p>
+	Members:<p>
+	<a href="chooseCommunityToVisit">Visit a Community</a><p>
+	Managers/owners:<p>
 	<a href="createCommunity">Create a Community</a><p>
 	<a href="chooseCommunityToManage">Manage a Community</a><p>
 	{% if user_is_admin %}
-		<a href="showAllCommunities">Show All Communities</a><p>
-		<a href="showAllMembers">Show All Members</a><p>
+		Site administrator:<p>
+		<a href="admin/showAllCommunities">Show All Communities</a><p>
+		<a href="admin/showAllMembers">Show All Members</a><p>
 	{% endif %}
     <a href="{{ url }}">{{ url_linktext }}</a>
 	</body>

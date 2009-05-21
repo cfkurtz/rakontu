@@ -4,8 +4,14 @@ runtime: python
 api_version: 1
 
 handlers:
+
+- url: /admin/.*
+  script: main.py
+  login: admin
+
 - url: /stylesheets
   static_dir: stylesheets
 
 - url: /.*
   script: main.py
+  login: required

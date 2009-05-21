@@ -1,0 +1,15 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+	</head>
+	<body>
+		You are {{ current_user.nickname }}<p>
+      	<p>{{ community.name|escape }}<p>
+      	<a href="/visitCommunity_EditProfile">Edit your profile</a><p>
+      	<a href="/visitCommunity_Tell">Tell a story</a><p>
+      	<a href="/visitCommunity_Look">Look at stories</a><p>
+      	
+    <a href="{{ url }}">{{ url_linktext }}</a>
+	</body>
+	<p><a href="/">Main page</a>
+</html>
