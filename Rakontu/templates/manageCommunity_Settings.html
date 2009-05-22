@@ -1,0 +1,58 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+	</head>
+	<body>
+		<form action="/manageCommunity_Settings" method="post">
+		<h2>{{ community.name|escape }} Community</h2>
+		<h3>Name and description</h3>
+		<p>Community name</p>
+		<div><input type="text" name="name" value="{{ community.name }}"/></div>
+		<p>Community description</p>
+		<div><textarea name="description" rows="3" cols="60" value="{{ community.description }}"></textarea></div>
+		<h3>Data entry</h3>
+		<div><label><input type="checkbox" name="allowAnonymousEntry" checked="{{ community.allowAnonymousEntry}}"/>Allow anonymous entry</label></div>	
+		<h3>Nudge system</h3>
+		<p>Maximum nudge points per article
+		<input type="text" name="maxNudgePointsPerArticle" size="4" value="{{community.maxNudgePointsPerArticle}}"/></p>
+		<p>Custom utility nudge category names (leave blank to not include)</p>
+		First <input type="text" name="nudgeCategory1" size="20" value="{{community.utilityNudgeCategories.0}}"/>
+		Second <input type="text" name="nudgeCategory2" size="20" value="{{community.utilityNudgeCategories.1}}"/>
+		Third <input type="text" name="nudgeCategory3" size="20" value="{{community.utilityNudgeCategories.2}}"/>
+		<p>Nudge point accumulations</p>
+		{% for text in nudge_point_includes %}
+			<p>{{ text }}</p>
+		{% endfor %}
+		<h3>Roles</h3>
+		<p>Role readmes</p>
+		Curator
+		<div><textarea name="readme|curator" rows="3" cols="60" value="{{ community.roleReadmes.0 }}"></textarea></div>
+		Booster
+		<div><textarea name="readme|booster" rows="3" cols="60" value="{{ community.roleReadmes.1 }}"></textarea></div>
+		Liaison
+		<div><textarea name="readme|liaison" rows="3" cols="60" value="{{ community.roleReadmes.2 }}"></textarea></div>
+		{% for refer_type in question_refer_types %}
+			<h3>{{refer_type|capfirst}} questions</h3>
+				{% for question in system_questions %}
+					{% ifequal question.refersTo refer_type %}
+						<label><input type="checkbox" name="member|{{question.name}}" 
+						{% if community.hasQuestion.question %}
+							checked="checked"/>
+						{% else %}
+							/>
+						{% endif %}
+						{{question.text}} ({{question.type}}) </label></div><br>
+					{% endifequal %}
+				{% endfor %}
+		{% endfor %}
+			
+			
+			
+      	<p>
+    <input type="submit" name="changeSettings" value="Change Settings">	
+	</form>	
+	<p>
+    <a href="{{ url }}">{{ url_linktext }}</a>
+	</body>
+	<p><a href="/">Main page</a>
+</html>

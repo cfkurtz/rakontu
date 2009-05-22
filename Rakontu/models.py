@@ -104,7 +104,7 @@ BOOLEAN_CHOICES = ["ALL", "ANY"]
 RECENT_TIME_FRAMES = ["last hour", "last day", "last week", "last month", "last six months", "last year", "ever"]
 
 # questions and question generating system
-QUESTION_REFERS_TO = ["story", "pattern", "construct", "invitation", "resource", "commmunity", "member"]
+QUESTION_REFERS_TO = ["story", "pattern", "construct", "invitation", "resource", "community", "member"]
 QUESTION_TYPES = ["boolean", "text", "ordinal", "nominal", "value"]
 RULE_TESTS = ["same as", "<", "<=", ">", ">=", "=", "includes"]
 
@@ -135,8 +135,8 @@ class Community(db.Model):
 	nudgePointAccumulations = db.ListProperty(int, default=DEFAULT_NUDGE_POINT_ACCUMULATIONS)
 	maxNudgePointsPerArticle = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE)
 	allowAnonymousEntry = db.ListProperty(bool)
-	utilityNudgeCategories = db.StringListProperty(default=None)
-	roleReadmes = db.StringListProperty(default=None)
+	utilityNudgeCategories = db.StringListProperty(default="")
+	roleReadmes = db.StringListProperty(default="")
 	
 	# articles
 	
@@ -164,18 +164,26 @@ class Community(db.Model):
 	# community level questions and answers
 
 	def getCommunityQuestions(self):
-		return Question.all().filter("community = ", self.key()).filter("refersTo = ", "community")
+		return Question.all().filter("community = ", self.key()).filter("refersTo = ", "community").fetch(1000)
 	
 	def getCommunityAnswers(self):
-		return Answer.all().filter("referent = ", self.key())
+		return Answer.all().filter("referent = ", self.key()).fetch(1000)
 	
 	def getAnnotationQuestions(self, articleType):
-		return Question.all().filter("community = ", self.key()).filter("refersTo = ", articleType)
+		return Question.all().filter("community = ", self.key()).filter("refersTo = ", articleType).fetch(1000)
 		
 	def getMemberQuestions(self):
-		return Question.all().filter("community = ", self.key()).filter("refersTo = ", "member")
+		return Question.all().filter("community = ", self.key()).filter("refersTo = ", "member").fetch(1000)
 	
-	# members
+	def getQuestions(self):
+		return Question.all().filter("community = ", self.key()).fetch(1000)
+	
+	def hasQuestion(self, question):
+		allQuestions = self.getQuestions()
+		for aQuestion in allQuestions:
+			if aQuestion.name == question.name:
+				return True
+		return False
 	
 	def getMembers(self):
 		return Member.all().filter("community = ", self.key()).fetch(1000)
@@ -207,7 +215,7 @@ class Community(db.Model):
 		if len(owners) == 1 and owners[0].key() == member.key():
 			return True
 		return False
-	
+
 	# options
 	
 	def getCommunityLevelViewingPreferences(self):
@@ -228,6 +236,7 @@ class Question(db.Model):
 							If None, is in a global list communities can copy from. (??)
 		refersTo:			What the question is in reference to: an article (story, pattern, construct, invitation, resource), 
 							community, or member.
+		systemic:			Belongs to the system rather than to any community.
 		
 		type:				One of boolean, text, ordinal, nominal, value.
 		required:			Whether an answer is required.
@@ -241,18 +250,19 @@ class Question(db.Model):
 		useHelp:			Appears to manager choosing question. Helps them decide when to use it.
 	"""
 	community = db.ReferenceProperty(Community)
-	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO)
+	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO, required=True)
+	systemic = db.BooleanProperty(default=False)
 	
 	type = db.StringProperty(choices=QUESTION_TYPES)
-	required = db.BooleanProperty()
-	multiple = db.BooleanProperty()
-	name = db.StringProperty()
-	text = db.TextProperty()
+	required = db.BooleanProperty(default=False)
+	multiple = db.BooleanProperty(default=False)
+	name = db.StringProperty(required=True)
+	text = db.TextProperty(required=True)
 	choices = db.StringListProperty()
 	
 	help = db.TextProperty()
 	useHelp = db.TextProperty()
-	
+		
 class Answer(db.Model):
 	""" Answer to community question with reference to community. 
 	
@@ -823,26 +833,4 @@ class ViewingPreferences(db.Model):
 	basement = db.IntegerProperty(default=0)
 	numInappropriateMarksToHideAnnotations = db.IntegerProperty(default=5)
 	
-# --------------------------------------------------------------------------------------------
-# System
-# --------------------------------------------------------------------------------------------
 
-class System(db.Model):
-	""" Stores system-wide (above the community level) info
-	"""
-	pass
-
-	def getCommunities(self):
-		return Community.all()
-	
-	def getGlobalCommunityQuestions(self):
-		return Question.all().filter("community = ", None).filter("refersTo = ", "community").fetch(1000)
-	
-	def getGlobalAnnotationQuestions(self, articleType):
-		return Question.all().filter("community = ", None).filter("refersTo = ", articleType).fetch(1000)
-	
-	def getGlobalMemberQuestions(self):
-		return Question.all().filter("community = ", None).filter("refersTo = ", "member").fetch(1000)
-	
-	def getGlobalRules(self):
-		return Rule.all().filter("community = ", None).fetch(1000)

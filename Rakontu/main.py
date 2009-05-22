@@ -26,6 +26,7 @@ from appengine_utilities.sessions import Session
 
 # local file imports
 from models import *
+import systemquestions
 
 # --------------------------------------------------------------------------------------------
 # Utility functions
@@ -214,13 +215,14 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
             community = db.get(community_key) 
             if community:
                 currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(1000)[0]
+                communityMembers = Member.all().filter("community = ", community).fetch(1000)
                 template_values = {
                                    'url': url, 
                                    'url_linktext': url_linktext, 
                                    'community': community, 
                                    'current_user': user, 
                                    'current_member': currentMember,
-                                   'community_members': Member.all().filter("community = ", community).fetch(1000)}
+                                   'community_members': communityMembers}
                 path = os.path.join(os.path.dirname(__file__), 'templates/manageCommunity_Members.html')
                 self.response.out.write(template.render(path, template_values))
             else:
@@ -282,7 +284,43 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
             
                 
 class ManageCommunitySettingsPage(webapp.RequestHandler):
-    pass
+    """ Page where user sets global options for the community.
+    """
+    @RequireLogin 
+    def get(self):
+        user = users.get_current_user()
+        url, url_linktext = GenerateURLs(self.request)
+        session = Session()
+        community_key = None
+        if session.has_key('community_key'):
+            community_key = session['community_key']
+        if community_key:
+            community = db.get(community_key) 
+            if community:
+                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(1000)[0]
+                nudgePointIncludes = []
+                i = 0
+                for pointType in ACTIVITIES_GERUND:
+                    if DEFAULT_NUDGE_POINT_ACCUMULATIONS[i] != 0: # if zero, not appropriate for nudge point accumulation
+                        nudgePointIncludes.append('%s <input type="text" name="%s" size="4" value="%s"/><br>' \
+                            % (pointType, pointType, community.nudgePointAccumulations[i]))
+                    i += 1
+                communityMemberQuestions = community.getMemberQuestions()
+                systemQuestions = Question.all().filter("community = ", None).fetch(1000)
+                template_values = {
+                                   'url': url, 
+                                   'url_linktext': url_linktext, 
+                                   'community': community, 
+                                   'current_user': user, 
+                                   'current_member': currentMember,
+                                   'nudge_point_includes': nudgePointIncludes,
+                                   'system_questions': systemQuestions,
+                                   'question_refer_types': QUESTION_REFERS_TO,
+                                   }
+                path = os.path.join(os.path.dirname(__file__), 'templates/manageCommunity_Settings.html')
+                self.response.out.write(template.render(path, template_values))
+        else:
+            self.redirect("/")
     
 class ManageCommunityTechnicalPage(webapp.RequestHandler):
     pass
@@ -372,4 +410,5 @@ def main():
     run_wsgi_app(application)
 
 if __name__ == "__main__":
+    systemquestions.AddSystemQuestionsToDataStore()
     main()

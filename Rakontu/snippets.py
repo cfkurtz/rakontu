@@ -140,3 +140,74 @@ class CouldNotJoinPage(webapp.RequestHandler):
                           {% endif %}
                       {% endifequal %}
                       </td>
+                      
+# ------------------------------- NOT USING
+
+                      
+# --------------------------------------------------------------------------------------------
+# System
+# --------------------------------------------------------------------------------------------
+
+class System(db.Model):
+    """ Stores system-wide (above the community level) info
+    """
+    pass
+
+    def getCommunities(self):
+        return Community.all()
+    
+    def getGlobalCommunityQuestions(self):
+        return Question.all().filter("community = ", None).filter("refersTo = ", "community").fetch(1000)
+    
+    def getGlobalAnnotationQuestions(self, articleType):
+        return Question.all().filter("community = ", None).filter("refersTo = ", articleType).fetch(1000)
+    
+    def getGlobalMemberQuestions(self):
+        return Question.all().filter("community = ", None).filter("refersTo = ", "member").fetch(1000)
+    
+    def getGlobalRules(self):
+        return Rule.all().filter("community = ", None).fetch(1000)
+    
+# ----------------------------- NOT USING
+
+    config = ConfigParser.RawConfigParser()
+    config.read('rakontu_installation.cfg')
+    configSections = config.sections()
+    systemQuestions = {}
+    for refersToConstant in QUESTION_REFERS_TO:
+        for section in configSections:
+            (refersToInCFG, name) = section.split(" - ")
+            if refersToInCFG == refersToConstant:
+                if not systemQuestions.has_key(refersToConstant):
+                    systemQuestions[refersToConstant] = []
+                newQuestion = Question(
+                                       community=None,
+                                       type=config.get(section, "Type")
+                
+                
+
+    
+                systemQuestions[refersToConstant].append(config.)
+
+# ----------------------------- NOT USING
+
+"""
+# Note, In this early version the rules and community questions are not used, and community managers/owners
+# just choose from lists of questions about things. These will be used later.
+
+[community - Geographic]
+Text=Is this a geographic community?
+Type=nominal
+Choices=yes|no
+Multiple=false
+
+[Rule]
+Name=Where if geographic
+CommunityQuestion=Geographic
+Test=same as
+TestValues=yes
+IncludeIf=true
+AnnotationQuestion=Where took place
+MemberQuestion=Where live
+"""
+
