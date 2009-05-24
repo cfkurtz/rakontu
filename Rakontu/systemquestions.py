@@ -54,7 +54,7 @@ def AddSystemQuestionsToDataStore():
 					"nominal", ["great", "okay", "bad"],
 					"What was your reaction when you read the story?",
 					"This is a very useful question and should almost always be included.",
-					False])
+					True])
 	
 	# pattern questions
 	AddSystemQuestionIfNotThere(["pattern", 

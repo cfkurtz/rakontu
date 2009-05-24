@@ -4,50 +4,38 @@
 	</head>
 	<body>
 		<form action="/manageCommunity_Settings" method="post">
-		<h2>{{ community.name|escape }} Community</h2>
+		<h2>Changing Settings for Rakontu Community "{{ community.name|escape }}"</h2>
 		<h3>Name and description</h3>
 		<p>Community name</p>
-		<div><input type="text" name="name" value="{{ community.name }}"/></div>
+		<div><input type="text" name="name" value="{{ community.name|escape }}"/></div>
 		<p>Community description</p>
-		<div><textarea name="description" rows="3" cols="60" value="{{ community.description }}"></textarea></div>
-		<h3>Data entry</h3>
-		<div><label><input type="checkbox" name="allowAnonymousEntry" checked="{{ community.allowAnonymousEntry}}"/>Allow anonymous entry</label></div>	
+		<div><textarea name="description" rows="10" cols="60">{{ community.description|escape }}</textarea></div>
+		<i>Full URLs in the community description will be converted to links in what is shown.</i>
+		<p>Community ID number (database key): {{community.key}}</p>
+		
+		<h3>Anonymity</h3>
+		Is anonymous entry allowed for each of these entry types?
+		{% for text in anonIncludes %}
+			{{ text }}
+		{% endfor %}
+		</table>
+		
 		<h3>Nudge system</h3>
-		<p>Maximum nudge points per article
+		<p>How many nudge points can be asssigned (maximum) per article?
 		<input type="text" name="maxNudgePointsPerArticle" size="4" value="{{community.maxNudgePointsPerArticle}}"/></p>
-		<p>Custom utility nudge category names (leave blank to not include)</p>
-		First <input type="text" name="nudgeCategory1" size="20" value="{{community.utilityNudgeCategories.0}}"/>
-		Second <input type="text" name="nudgeCategory2" size="20" value="{{community.utilityNudgeCategories.1}}"/>
-		Third <input type="text" name="nudgeCategory3" size="20" value="{{community.utilityNudgeCategories.2}}"/>
-		<p>Nudge point accumulations</p>
+		<p>Enter custom utility nudge category names here. To use the simple
+		"utility" category, leave all of these blank.</p>
+		<input type="text" name="nudgeCategory0" size="20" value="{{community.utilityNudgeCategories.0}}"/>
+		<input type="text" name="nudgeCategory1" size="20" value="{{community.utilityNudgeCategories.1}}"/>
+		<input type="text" name="nudgeCategory2" size="20" value="{{community.utilityNudgeCategories.2}}"/>
+		<input type="text" name="nudgeCategory3" size="20" value="{{community.utilityNudgeCategories.3}}"/>
+		<input type="text" name="nudgeCategory4" size="20" value="{{community.utilityNudgeCategories.4}}"/>
+		<p>How many nudge points do members accumulate by participating?</p>
+		<table  border="1" cellpadding="4" cellspacing="0"><tr><th>Activity</th><th>Nudge points accumulated</th></tr>
 		{% for text in nudge_point_includes %}
-			<p>{{ text }}</p>
+			{{ text }}
 		{% endfor %}
-		<h3>Roles</h3>
-		<p>Role readmes</p>
-		Curator
-		<div><textarea name="readme|curator" rows="3" cols="60" value="{{ community.roleReadmes.0 }}"></textarea></div>
-		Booster
-		<div><textarea name="readme|booster" rows="3" cols="60" value="{{ community.roleReadmes.1 }}"></textarea></div>
-		Liaison
-		<div><textarea name="readme|liaison" rows="3" cols="60" value="{{ community.roleReadmes.2 }}"></textarea></div>
-		{% for refer_type in question_refer_types %}
-			<h3>{{refer_type|capfirst}} questions</h3>
-				{% for question in system_questions %}
-					{% ifequal question.refersTo refer_type %}
-						<label><input type="checkbox" name="member|{{question.name}}" 
-						{% if community.hasQuestion.question %}
-							checked="checked"/>
-						{% else %}
-							/>
-						{% endif %}
-						{{question.text}} ({{question.type}}) </label></div><br>
-					{% endifequal %}
-				{% endfor %}
-		{% endfor %}
-			
-			
-			
+		</table>
       	<p>
     <input type="submit" name="changeSettings" value="Change Settings">	
 	</form>	

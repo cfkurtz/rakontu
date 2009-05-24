@@ -4,14 +4,13 @@
 	</head>
 	<body>
 		<form action="/manageCommunity_Members" method="post">
-		<h2>{{ community.name|escape }} Community</h2>
+		<h2>Changing Memberships for Rakontu Community "{{ community.name|escape }}"</h2>
 		<p>
 		<h3>Add New Members</h3>
 		<div><textarea name="newMemberEmails" rows="6" cols="40"></textarea></div>
 		<p>Instructions: Add email adddresses (linked to valid Google Accounts) for each member you want to add.
 		Place each email address on a separate line.</p>
 		<p>
-		<input type="submit" name="addMembers" value="Add Emails as New Members">	
 		<hr size="1">
 		<h3>Change Memberships</h3>
       	<table border="1" cellpadding="4" cellspacing="0">
@@ -47,7 +46,38 @@
       		{% endfor %}
       	</table>
       	<p>
-    <input type="submit" name="changeMemberships" value="Change Memberships">	
+		<h3>Helping Roles</h3>
+		<p>These texts are shown to members before they take on voluntary roles.</p>
+		Curator read-before text
+		<div><textarea name="readme0" rows="3" cols="60">{{ community.roleReadmes.0|escape }}</textarea></div>
+		<p><label><input type="checkbox" name="agreement0" value="agreement0"
+			{% if community.roleAgreements.0 %}
+				checked="checked"/>
+			{% else %}
+				/>
+			{% endif %}
+			Members must check box to agree to terms before becoming curator</label></div></p>
+		Booster read-before text
+		<div><textarea name="readme1" rows="3" cols="60">{{ community.roleReadmes.1|escape }}</textarea></div>
+		<p><label><input type="checkbox" name="agreement1"  value="agreement1"
+			{% if community.roleAgreements.1 %}
+				checked="checked"/>
+			{% else %}
+				/>
+			{% endif %}
+			Members must check box to agree to terms before becoming booster</label></div></p>
+		Liaison read-before text
+		<div><textarea name="readme2" rows="3" cols="60">{{ community.roleReadmes.2|escape }}</textarea></div>
+		<p><label><input type="checkbox" name="agreement2"  value="agreement2"
+			{% if community.roleAgreements.2 %}
+				checked="checked"/>
+			{% else %}
+				/>
+			{% endif %}
+			Members must check box to agree to terms before becoming liaison</label></div></p>
+
+
+    <input type="submit" name="submitChanges" value="Submit Changes">	
 	</form>	
 	<p>
     <a href="{{ url }}">{{ url_linktext }}</a>

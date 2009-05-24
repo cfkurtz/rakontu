@@ -9,7 +9,6 @@
 # python imports
 import cgi
 import os
-import logging
 
 # GAE imports
 from google.appengine.ext.webapp import template
@@ -27,41 +26,6 @@ from appengine_utilities.sessions import Session
 # local file imports
 from models import *
 import systemquestions
-
-# --------------------------------------------------------------------------------------------
-# Utility functions
-# --------------------------------------------------------------------------------------------
-        
-def GenerateURLs(request):
-    """ Used to make login/logout link on every page.
-        Probably some better way to do this.
-    """
-    if users.get_current_user():
-        url = users.create_logout_url(request.uri)
-        url_linktext = 'Logout'
-    else:
-        url = users.create_login_url(request.uri)
-        url_linktext = 'Login'
-    return url, url_linktext
-
-def RequireLogin(func):
-    def check_login(request):
-        if not users.get_current_user():
-            request.redirect('/login')
-            return
-        func(request)
-    return check_login 
-
-def GoogleUserIDForEmail(email):
-    """Return a stable user_id string based on an email address, or None if
-    the address is not a valid/existing google account."""
-    newUser = users.User(email)
-    key = TempUser(user=newUser).put()
-    obj = TempUser.get(key)
-    return obj.user.user_id() 
-
-def MyDebug(text, msg="print"):
-    logging.debug(">>>>>>>> %s >>>>>>>> %s" %(msg, text))
 
 # --------------------------------------------------------------------------------------------
 # Startup and creation
@@ -161,7 +125,10 @@ class ChooseCommunityToManagePage(webapp.RequestHandler):
             members = Member.all().filter("googleAccountID = ", user.user_id()).fetch(1000)
             for member in members:
                 if member.isManager() or member.isOwner():
-                    communities.append(member.community)
+                    try:
+                        communities.append(member.community)
+                    except:
+                        pass # if the community doesn't exist, don't use it
         template_values = {'url': url, 'url_linktext': url_linktext, 'communities': communities}
         path = os.path.join(os.path.dirname(__file__), 'templates/chooseCommunityToManage.html')
         self.response.out.write(template.render(path, template_values))
@@ -186,7 +153,10 @@ class ManageCommunityPage(webapp.RequestHandler):
         user = users.get_current_user()
         url, url_linktext = GenerateURLs(self.request)
         session = Session()
-        community_key = session['community_key']
+        if session and session.has_key('community_key'):
+            community_key = session['community_key']
+        else:
+            community_key = None
         if community_key:
             community = db.get(community_key) 
             if community:
@@ -210,7 +180,10 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
         user = users.get_current_user()
         url, url_linktext = GenerateURLs(self.request)
         session = Session()
-        community_key = session['community_key']
+        if session and session.has_key('community_key'):
+            community_key = session['community_key']
+        else:
+            community_key = None
         if community_key:
             community = db.get(community_key) 
             if community:
@@ -230,7 +203,6 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
                 
     @RequireLogin 
     def post(self):
-        MyDebug(self.request.arguments())
         """Process new and removed members."""
         user = users.get_current_user()
         url, url_linktext = GenerateURLs(self.request)
@@ -242,45 +214,47 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
         if community_key:
             community = db.get(community_key) 
             if community:
-                if "changeMemberships" in self.request.arguments():
-                    communityMembers = Member.all().filter("community = ", community).fetch(1000)
-                    for member in communityMembers:
-                        for name, value in self.request.params.items():
-                            if value.find(member.googleAccountID) >= 0:
-                                (newType, id) = value.split("|") 
-                                okayToSet = False
-                                if newType != member.governanceType:
-                                    if newType == "member":
-                                        if not member.isOwner() or not community.memberIsOnlyOwner(member):
-                                            okayToSet = True
-                                    elif newType == "manager":
-                                        if not member.isOwner() or not community.memberIsOnlyOwner(member):
-                                            okayToSet = True
-                                    elif newType == "owner":
+                communityMembers = Member.all().filter("community = ", community).fetch(1000)
+                for member in communityMembers:
+                    for name, value in self.request.params.items():
+                        if value.find(member.googleAccountID) >= 0:
+                            (newType, id) = value.split("|") 
+                            okayToSet = False
+                            if newType != member.governanceType:
+                                if newType == "member":
+                                    if not member.isOwner() or not community.memberIsOnlyOwner(member):
                                         okayToSet = True
-                                if okayToSet:
-                                    member.governanceType = newType
-                                    member.put()
-                    membersToRemove = []
-                    for member in communityMembers:
-                        if self.request.get("remove|%s" % member.googleAccountID):
-                            membersToRemove.append(member)
-                    if membersToRemove:
-                        for member in membersToRemove:
-                            db.delete(member)
-                elif self.request.arguments()[0] == "addMembers":
-                    memberEmailsToAdd = self.request.get("newMemberEmails").split('\n')
-                    for email in memberEmailsToAdd:
-                        if email.strip():
-                            userID = GoogleUserIDForEmail(email)
-                            if userID:
-                                if not community.hasMemberWithUserID(userID):
-                                    member = Member(
-                                        googleAccountID=userID,
-                                        community=community,
-                                        governanceType="member")
-                                    member.put()
-        self.redirect('/manageCommunity_Members')
+                                elif newType == "manager":
+                                    if not member.isOwner() or not community.memberIsOnlyOwner(member):
+                                        okayToSet = True
+                                elif newType == "owner":
+                                    okayToSet = True
+                            if okayToSet:
+                                member.governanceType = newType
+                                member.put()
+                membersToRemove = []
+                for member in communityMembers:
+                    if self.request.get("remove|%s" % member.googleAccountID):
+                        membersToRemove.append(member)
+                if membersToRemove:
+                    for member in membersToRemove:
+                        db.delete(member)
+                memberEmailsToAdd = self.request.get("newMemberEmails").split('\n')
+                for email in memberEmailsToAdd:
+                    if email.strip():
+                        userID = GoogleUserIDForEmail(email)
+                        if userID:
+                            if not community.hasMemberWithUserID(userID):
+                                member = Member(
+                                    googleAccountID=userID,
+                                    community=community,
+                                    governanceType="member")
+                                member.put()
+                for i in range(3):
+                    community.roleReadmes[i] = self.request.get("readme%s" % i)
+                    community.roleAgreements[i] = self.request.get("agreement%s" % i) == ("agreement%s" % i)
+                community.put()
+        self.redirect('/manageCommunity')
             
                 
 class ManageCommunitySettingsPage(webapp.RequestHandler):
@@ -292,7 +266,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
         url, url_linktext = GenerateURLs(self.request)
         session = Session()
         community_key = None
-        if session.has_key('community_key'):
+        if session and session.has_key('community_key'):
             community_key = session['community_key']
         if community_key:
             community = db.get(community_key) 
@@ -302,9 +276,82 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
                 i = 0
                 for pointType in ACTIVITIES_GERUND:
                     if DEFAULT_NUDGE_POINT_ACCUMULATIONS[i] != 0: # if zero, not appropriate for nudge point accumulation
-                        nudgePointIncludes.append('%s <input type="text" name="%s" size="4" value="%s"/><br>' \
-                            % (pointType, pointType, community.nudgePointAccumulations[i]))
+                        nudgePointIncludes.append('<tr><td>%s</td><td align="right"><input type="text" name="%s" size="4" value="%s"/></td></tr>' \
+                            % (pointType, pointType, community.nudgePointsPerActivity[i]))
                     i += 1
+                anonIncludes = []
+                i = 0
+                for entryType in ENTRY_TYPES:
+                    anonIncludes.append('<p><label><input type="checkbox" name="%s" value="%s" %s/>%s</label></p>' \
+                            % (entryType, entryType, checkedBlank(community.allowAnonymousEntry[i]), entryType))
+                    i += 1
+                template_values = {
+                                   'url': url, 
+                                   'url_linktext': url_linktext, 
+                                   'community': community, 
+                                   'current_user': user, 
+                                   'current_member': currentMember,
+                                   'anonIncludes': anonIncludes,
+                                   'nudge_point_includes': nudgePointIncludes,
+                                   }
+                path = os.path.join(os.path.dirname(__file__), 'templates/manageCommunity_Settings.html')
+                self.response.out.write(template.render(path, template_values))
+        else:
+            self.redirect("/")
+    
+    @RequireLogin 
+    def post(self):
+        """Process changes to community-wide settings."""
+        user = users.get_current_user()
+        url, url_linktext = GenerateURLs(self.request)
+        session = Session()
+        if session and session.has_key('community_key'):
+            community_key = session['community_key']
+        else:
+            community_key = None
+        if community_key:
+            community = db.get(community_key) 
+            if community:
+                community.name = self.request.get("name")
+                community.description = self.request.get("description")
+                i = 0
+                for entryType in ENTRY_TYPES:
+                    community.allowAnonymousEntry[i] = self.request.get(entryType) == entryType
+                    i += 1
+                oldValue = community.maxNudgePointsPerArticle
+                try:
+                    community.maxNudgePointsPerArticle = int(self.request.get("maxNudgePointsPerArticle"))
+                except:
+                    community.maxNudgePointsPerArticle = oldValue
+                for i in range(5):
+                    community.utilityNudgeCategories[i] = self.request.get("nudgeCategory%s" % i)
+                i = 0
+                for pointType in ACTIVITIES_GERUND:
+                    if DEFAULT_NUDGE_POINT_ACCUMULATIONS[i] != 0: # if zero, not appropriate for nudge point accumulation
+                        oldValue = community.nudgePointsPerActivity[i]
+                        try:
+                            community.nudgePointsPerActivity[i] = int(self.request.get(pointType))
+                        except:
+                            community.nudgePointsPerActivity[i] = oldValue
+                    i += 1
+                community.put()
+        self.redirect('/manageCommunity')
+        
+class ManageCommunityQuestionsPage(webapp.RequestHandler):
+    """ Page where user sets questions.
+    """
+    @RequireLogin 
+    def get(self):
+        user = users.get_current_user()
+        url, url_linktext = GenerateURLs(self.request)
+        session = Session()
+        community_key = None
+        if session and session.has_key('community_key'):
+            community_key = session['community_key']
+        if community_key:
+            community = db.get(community_key) 
+            if community:
+                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(1000)[0]
                 communityMemberQuestions = community.getMemberQuestions()
                 systemQuestions = Question.all().filter("community = ", None).fetch(1000)
                 template_values = {
@@ -313,15 +360,99 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
                                    'community': community, 
                                    'current_user': user, 
                                    'current_member': currentMember,
-                                   'nudge_point_includes': nudgePointIncludes,
                                    'system_questions': systemQuestions,
                                    'question_refer_types': QUESTION_REFERS_TO,
                                    }
-                path = os.path.join(os.path.dirname(__file__), 'templates/manageCommunity_Settings.html')
+                path = os.path.join(os.path.dirname(__file__), 'templates/manageCommunity_Questions.html')
                 self.response.out.write(template.render(path, template_values))
         else:
             self.redirect("/")
     
+    @RequireLogin 
+    def post(self):
+        """Process changes to community-wide settings."""
+        user = users.get_current_user()
+        url, url_linktext = GenerateURLs(self.request)
+        session = Session()
+        if session and session.has_key('community_key'):
+            community_key = session['community_key']
+        else:
+            community_key = None
+        if community_key:
+            community = db.get(community_key) 
+            if community:
+                systemQuestions = Question.all().filter("community = ", None).fetch(1000)
+                for question in systemQuestions:
+                    reference = "%s|%s" % (question.refersTo, question.name)
+                    shouldHaveQuestion = self.request.get(reference) == reference
+                    community.AddOrRemoveSystemQuestion(question, shouldHaveQuestion)
+                community.put()
+        self.redirect('/manageCommunity_Questions')
+
+class ManageCommunityPersonificationsPage(webapp.RequestHandler):
+    """ Review, add, remove personifications.
+    """
+    @RequireLogin 
+    def get(self):
+        """Show info about community members."""
+        user = users.get_current_user()
+        url, url_linktext = GenerateURLs(self.request)
+        session = Session()
+        if session and session.has_key('community_key'):
+            community_key = session['community_key']
+        else:
+            community_key = None
+        if community_key:
+            community = db.get(community_key) 
+            if community:
+                personifications = Personification.all().filter("community = ", community).fetch(1000)
+                template_values = {
+                                   'url': url, 
+                                   'url_linktext': url_linktext, 
+                                   'community': community, 
+                                   'community_personifications': personifications,
+                                   }
+                path = os.path.join(os.path.dirname(__file__), 'templates/manageCommunity_Personifications.html')
+                self.response.out.write(template.render(path, template_values))
+            else:
+                self.redirect('/')
+                
+    @RequireLogin 
+    def post(self):
+        """Process new and removed personifications."""
+        user = users.get_current_user()
+        url, url_linktext = GenerateURLs(self.request)
+        session = Session()
+        if session and session.has_key('community_key'):
+            community_key = session['community_key']
+        else:
+            community_key = None
+        if community_key:
+            community = db.get(community_key) 
+            if community:
+                personifications = Personification.all().filter("community = ", community).fetch(1000)
+                psToRemove = []
+                for personification in personifications:
+                    personification.name = self.request.get("name|%s" % personification.key())
+                    personification.description = self.request.get("description|%s" % personification.key())
+                    personification.put()
+                    if self.request.get("remove|%s" % personification.key()):
+                        psToRemove.append(personification)
+                if psToRemove:
+                    for personification in psToRemove:
+                        db.delete(personification)
+                namesToAdd = self.request.get("newPersonificationNames").split('\n')
+                for name in namesToAdd:
+                    if name.strip():
+                        newPersonification = Personification(
+                            name=name,
+                            community=community,
+                            )
+                        newPersonification.put()
+                community.put()
+        self.redirect('/manageCommunity_Personifications')
+            
+                
 class ManageCommunityTechnicalPage(webapp.RequestHandler):
     pass
     
@@ -367,7 +498,10 @@ class VisitCommunityPage(webapp.RequestHandler):
         user = users.get_current_user()
         url, url_linktext = GenerateURLs(self.request)
         session = Session()
-        community_key = session['community_key']
+        if session and session.has_key('community_key'):
+            community_key = session['community_key']
+        else:
+            community_key = None
         if community_key:
             community = db.get(community_key) 
             if community:
@@ -399,6 +533,8 @@ application = webapp.WSGIApplication(
                                       ('/manageCommunity', ManageCommunityPage),
                                       ('/manageCommunity_Members', ManageCommunityMembersPage),
                                       ('/manageCommunity_Settings', ManageCommunitySettingsPage),
+                                      ('/manageCommunity_Questions', ManageCommunityQuestionsPage),
+                                      ('/manageCommunity_Personifications', ManageCommunityPersonificationsPage),
                                       ('/manageCommunity_Technical', ManageCommunityTechnicalPage),
                                       
                                       # sys admin

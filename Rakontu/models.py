@@ -7,11 +7,52 @@
 # --------------------------------------------------------------------------------------------
 
 import datetime
+import logging
 
 from google.appengine.ext import db
 from google.appengine.api import memcache
 from google.appengine.api import users
 from google.appengine.ext.db import polymodel
+
+# --------------------------------------------------------------------------------------------
+# Utility functions
+# --------------------------------------------------------------------------------------------
+        
+def GenerateURLs(request):
+    """ Used to make login/logout link on every page.
+        Probably some better way to do this.
+    """
+    if users.get_current_user():
+        url = users.create_logout_url(request.uri)
+        url_linktext = 'Logout'
+    else:
+        url = users.create_login_url(request.uri)
+        url_linktext = 'Login'
+    return url, url_linktext
+
+def RequireLogin(func):
+    def check_login(request):
+        if not users.get_current_user():
+            request.redirect('/login')
+            return
+        func(request)
+    return check_login 
+
+def GoogleUserIDForEmail(email):
+    """Return a stable user_id string based on an email address, or None if
+    the address is not a valid/existing google account."""
+    newUser = users.User(email)
+    key = TempUser(user=newUser).put()
+    obj = TempUser.get(key)
+    return obj.user.user_id()
+
+def MyDebug(text, msg="print"):
+    logging.debug(">>>>>>>> %s >>>>>>>> %s" %(msg, text))
+    
+def checkedBlank(value):
+    if value:
+        return "checked"
+    return ""
 
 # --------------------------------------------------------------------------------------------
 # Constants
@@ -120,23 +161,26 @@ class Community(db.Model):
 		name:					The name that appears on all pages.
 		description:			Some text that describes the community. Can contain links. (simple markup?)
 		
-		nudgePointAccumulations:	A number for each type of activity (ACTIVITIES_GERUND) denoting how many
+		nudgePointsPerActivity:	A number for each type of activity (ACTIVITIES_GERUND) denoting how many
 								points the member accumulates for doing it.
 		maxNudgePointsPerArticle:	How many nudge points a member is allowed to place (maximally) on any article.
 		allowAnonymousEntry:	Whether members are allowed to enter things with only
 								"anonymous" marked. One entry per type of thing (ENTRY_TYPES)
 		utilityNudgeCategories:	Names of custom nudge categories. Up to three allowed.
 		roleReadmes:			Texts all role members read before taking on a role.
-								One text per
+								One text per helping role type.
+		roleAgreements:			Whether the user is asked to click a checkbox before taking on a role
+								to show that they agree with the terms of the role. (Social obligation only.)
 	"""
-	name = db.StringProperty(default="Rakontu Community")
-	description = db.TextProperty(default="This is a Rakontu community story sharing site.")
+	name = db.StringProperty()
+	description = db.TextProperty()
 	
-	nudgePointAccumulations = db.ListProperty(int, default=DEFAULT_NUDGE_POINT_ACCUMULATIONS)
+	nudgePointsPerActivity = db.ListProperty(int, default=DEFAULT_NUDGE_POINT_ACCUMULATIONS)
 	maxNudgePointsPerArticle = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE)
-	allowAnonymousEntry = db.ListProperty(bool)
-	utilityNudgeCategories = db.StringListProperty(default="")
-	roleReadmes = db.StringListProperty(default="")
+	allowAnonymousEntry = db.ListProperty(bool, default=[False,False,False,False,False,False,False,False,False,False])
+	utilityNudgeCategories = db.StringListProperty(default=["", "", "", "", ""])
+	roleReadmes = db.StringListProperty(default=["", "", ""])
+	roleAgreements = db.ListProperty(bool, default=[False, False, False])
 	
 	# articles
 	
@@ -178,12 +222,39 @@ class Community(db.Model):
 	def getQuestions(self):
 		return Question.all().filter("community = ", self.key()).fetch(1000)
 	
-	def hasQuestion(self, question):
+	def hasQuestionWithSameTypeAndName(self, question):
 		allQuestions = self.getQuestions()
 		for aQuestion in allQuestions:
-			if aQuestion.name == question.name:
+			if aQuestion.refersTo == question.refersTo and aQuestion.name == question.name:
 				return True
 		return False
+	
+	def AddOrRemoveSystemQuestion(self, question, shouldHaveQuestion):
+		haveQuestion = self.hasQuestionWithSameTypeAndName(question)
+		if haveQuestion and not shouldHaveQuestion:
+			self.RemoveMatchingQuestion(question)
+		if not haveQuestion and shouldHaveQuestion:
+			self.AddCopyOfQuestion(question)
+			
+	def RemoveMatchingQuestion(self, question):
+		questions = self.getQuestions()
+		for aQuestion in questions: 
+			if aQuestion.refersTo == question.refersTo and aQuestion.name == question.name:
+				db.delete(aQuestion)
+				break
+			
+	def AddCopyOfQuestion(self, question):
+		newQuestion = Question(
+							   refersTo=question.refersTo,
+							   name=question.name,
+							   text=question.text,
+							   type=question.type,
+							   choices=question.choices,
+							   help=question.help,
+							   useHelp=question.useHelp,
+							   multiple=question.multiple,
+							   community=self)
+		newQuestion.put()
 	
 	def getMembers(self):
 		return Member.all().filter("community = ", self.key()).fetch(1000)
