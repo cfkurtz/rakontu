@@ -3,7 +3,7 @@
 		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
 	</head>
 	<body>
-		<form action="/manage/settings" method="post">
+		<form action="/manage/settings" method="post" enctype="multipart/form-data">
 		<h2>Changing Settings for Rakontu Community "{{ community.name|escape }}"</h2>
 		<h3>Name and description</h3>
 		<p>Community name</p>
@@ -11,6 +11,8 @@
 		<p>Community description</p>
 		<div><textarea name="description" rows="10" cols="60">{{ community.description|escape }}</textarea></div>
 		<i>Full URLs in the community description will be converted to links in what is shown.</i>
+		<p>Community image</p>
+		<div><input type="file" name="img"/></div>
 		<p>Community ID number (database key): {{community.key}}</p>
 		
 		<h3>Anonymity</h3>

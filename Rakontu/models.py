@@ -132,6 +132,7 @@ class Community(db.Model):
 	Properties
 		name:					The name that appears on all pages.
 		description:			Some text that describes the community. Can contain links. (simple markup?)
+		image:					Picture to show on community page.
 		
 		nudgePointsPerActivity:	A number for each type of activity (ACTIVITIES_GERUND) denoting how many
 								points the member accumulates for doing it.
@@ -146,6 +147,7 @@ class Community(db.Model):
 	"""
 	name = db.StringProperty()
 	description = db.TextProperty()
+	image = db.BlobProperty(default=None)
 	
 	nudgePointsPerActivity = db.ListProperty(int, default=DEFAULT_NUDGE_POINT_ACCUMULATIONS)
 	maxNudgePointsPerArticle = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE)

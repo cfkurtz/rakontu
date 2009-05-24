@@ -4,7 +4,17 @@
 	</head>
 	<body>
 	<h2>Welcome to the {{ community.name }} community.</h2>
-	<h4>You are logged in to the community as member "{{ current_member.nickname }}". </h4>
+	{% if community.image %}
+		<div><img src="img?community_id={{community.key}}"></img>
+	{% endif %}
+	<h4>You are logged in to the community as member "{{ current_member.nickname }}"
+	{% if current_member.nicknameIsRealName %}
+		<i>(real name)</i>
+	{% endif %}
+	. </h4>
+	{% if current_member.profileImage %}
+		<div><img src="img?member_id={{current_member.key}}"></img>
+	{% endif %}
 	
 	<p>Member options:<p>
   	<p>&nbsp; &nbsp; <a href="/visit/profile">Edit your member profile</a></p>

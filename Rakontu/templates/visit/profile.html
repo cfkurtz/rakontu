@@ -3,7 +3,7 @@
 		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
 	</head>
 	<body>
-		<form action="/visit/profile" method="post">
+		<form action="/visit/profile" method="post" enctype="multipart/form-data">
 		<h2>Changing Profile for Rakontu Community "{{ community.name|escape }}" member "{{ member.nickname }}"</h2>
 		
 		<h3>Member information</h3>
@@ -30,6 +30,8 @@
 		<p>Please describe yourself to other members.</p>
 		<div><textarea name="description" rows="10" cols="60">{{ member.profileText|escape }}</textarea></div>
 		<i>Full URLs in the profile text will be converted to links in what is shown.</i>
+		<p>Profile image</p>
+		<div><input type="file" name="img"/></div>
 		
 		<h3>Member questions</h3>
 		

@@ -17,6 +17,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext import db
 from google.appengine.api import memcache
+from google.appengine.api import images
 
 # third party imports
 import sys
@@ -213,7 +214,23 @@ class MemberProfilePage(webapp.RequestHandler):
             else:
                 self.redirect('/')
                              
-
+    @RequireLogin 
+    def post(self):
+        """Process new and removed members."""
+        user = users.get_current_user()
+        url, url_linktext = GenerateURLs(self.request)
+        session = Session()
+        if session and session.has_key('community_key'):
+            community_key = session['community_key']
+        else:
+            community_key = None
+        if community_key:
+            community = db.get(community_key) 
+            if community:
+                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(1000)[0]
+                currentMember.profileImage = db.Blob(images.resize(str(self.request.get("img")), 64, 64))
+                currentMember.put()
+        self.redirect('/visitCommunity')
                                 
 # --------------------------------------------------------------------------------------------
 # Manage community
@@ -362,6 +379,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
             if community:
                 community.name = self.request.get("name")
                 community.description = self.request.get("description")
+                community.image = db.Blob(images.resize(str(self.request.get("img")), 64, 64))
                 i = 0
                 for entryType in ENTRY_TYPES:
                     community.allowAnonymousEntry[i] = self.request.get(entryType) == entryType
@@ -533,6 +551,23 @@ class ShowAllMembers(webapp.RequestHandler):
             self.response.out.write(template.render(path, template_values))
         else:
             self.redirect('/')
+            
+class Image (webapp.RequestHandler):
+    def get(self):
+        if self.request.get("member_id"):
+            member = db.get(self.request.get("member_id"))
+            if member and member.profileImage:
+                self.response.headers['Content-Type'] = "image/jpg"
+                self.response.out.write(member.profileImage)
+            else:
+                self.error(404)
+        elif self.request.get("community_id"):
+            community = db.get(self.request.get("community_id"))
+            if community and community.image:
+                self.response.headers['Content-Type'] = "image/jpg"
+                self.response.out.write(community.image)
+            else:
+                self.error(404)
 
 # --------------------------------------------------------------------------------------------
 # Application and main
@@ -544,6 +579,7 @@ application = webapp.WSGIApplication(
                                       # visiting
                                       ('/visitCommunity', VisitCommunityPage),
                                       ('/visit/profile', MemberProfilePage),
+                                      ('/img', Image),
                                       
                                       # managing
                                       ('/createCommunity', CreateCommunityPage),
