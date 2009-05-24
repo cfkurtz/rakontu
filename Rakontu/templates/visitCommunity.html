@@ -3,12 +3,29 @@
 		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
 	</head>
 	<body>
-		You are {{ current_user.nickname }}<p>
-      	<p>{{ community.name|escape }}<p>
-      	<a href="/visitCommunity_EditProfile">Edit your profile</a><p>
-      	<a href="/visitCommunity_Tell">Tell a story</a><p>
-      	<a href="/visitCommunity_Look">Look at stories</a><p>
+	<h2>Welcome to the {{ community.name }} community.</h2>
+	<h4>You are logged in to the community as member "{{ current_member.nickname }}". </h4>
+	
+	<p>Member options:<p>
+  	<p>&nbsp; &nbsp; <a href="/visit/profile">Edit your member profile</a></p>
+  	<p>&nbsp; &nbsp; <a href="/visit/tell">Tell a story</a></p>
+  	<p>&nbsp; &nbsp; <a href="/visit/look">Look at stories</a></p>
       	
+  	{% if current_member.isManager or current_member.isOwner %}
+      	<p>Management options:</p>
+      	<p>&nbsp; &nbsp; <a href="/manage/members">Memberships</a></p>
+      	<p>&nbsp; &nbsp; <a href="/manage/settings">Settings</a></p>
+      	<p>&nbsp; &nbsp; <a href="/manage/questions">Questions</a></p>
+      	<p>&nbsp; &nbsp; <a href="/manage/personifications">Personifications</a></p>
+      	<p>&nbsp; &nbsp; <a href="/manage/technical">Backup</a></p>
+    {% endif %}
+
+	{% if user_is_admin %}
+		<p>Site administration options:</p>
+		<p>&nbsp; &nbsp; <a href="admin/showAllCommunities">Show All Communities</a></p>
+		<p>&nbsp; &nbsp; <a href="admin/showAllMembers">Show All Members</a></p>
+	{% endif %}
+
     <a href="{{ url }}">{{ url_linktext }}</a>
 	</body>
 	<p><a href="/">Main page</a>

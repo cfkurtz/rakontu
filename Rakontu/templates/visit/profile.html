@@ -1,0 +1,169 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+	</head>
+	<body>
+		<form action="/visit/profile" method="post">
+		<h2>Changing Profile for Rakontu Community "{{ community.name|escape }}" member "{{ member.nickname }}"</h2>
+		
+		<h3>Member information</h3>
+      	<table border="1" cellpadding="4" cellspacing="0">
+      	<tr>
+		<td>Member ID number (database key) for this community</td><td>{{member.key}}</td></tr>
+		<td>Google account ID number in general</td><td>{{member.googleAccountID}}</td></tr>
+		<td>Is owner or manager</td><td>{{member.governanceType}}</td></tr>
+		<td>Online member</td><td>{{member.isOnlineMember|yesno:"yes, no, maybe"}}</td></tr>
+		{% if not member.isOnlineMember %}
+			<td>Liaison</td><td>{{liaison.nickname}}</td></tr>
+		{% endif %}
+		<td>Joined</td><td>{{member.joined}}</td></tr>
+		<td>Last entered article</td><td>{{member.lastEnteredArticle}}</td></tr>
+		<td>Last entered annotation</td><td>{{member.lastEnteredAnnotation}}</td></tr>
+		<td>Last read anything</td><td>{{member.lastReadAnything}}</td></tr>
+		<td>Accumulated nudge points</td><td>{{member.nudgePoints}}</td></tr>
+		</table>
+		
+		<h3>Nickname and description</h3>
+		<p>Nickname</p>
+		<div><input type="text" name="nickname" value="{{ member.nickname }}"/></div>
+		<div><label><input type="checkbox" name="nickname_is_real_name" value="yes" checked>This nickname is my real name</label></div>
+		<p>Please describe yourself to other members.</p>
+		<div><textarea name="description" rows="10" cols="60">{{ member.profileText|escape }}</textarea></div>
+		<i>Full URLs in the profile text will be converted to links in what is shown.</i>
+		
+		<h3>Member questions</h3>
+		
+		{% for question in community.getMemberQuestions %}
+			<h4>{{ question.text }}</h4>
+			{% if question.help %}
+				<p><i>&nbsp; &nbsp; {{question.help}}</i></p>
+			{% endif %}
+			
+			
+			{% ifequal question.type "text" %}
+				<div><input type="text" size="{{question.lengthIfText}}" name="{{question.name}}" value="
+				{% for answer in member.getAnswers %}
+					{% ifequal answer.question question %}
+						{{answer.answerTexts}}
+					{% endifequal %}
+				{% endfor %}
+				"/></div>
+			{% endifequal %}
+			
+			{% if question.isOrdinalOrNominal %}
+				{% if question.multiple %}
+					{% for choice in question.choices %}
+						<p><label><input type="checkbox" name="{{question.name}}" value="{{choice}}" 
+							{% for answerText in answer.answerTexts %}
+								{% ifequal answerText choice %}
+									checked="checked"
+								{% endifequal %}
+							{% endfor %}
+						/>{{choice}}</label></p>
+					{% endfor %}
+				{% else %}
+					{% for choice in question.choices %}
+						<p><label><input type="radio" name="{{question.name}}" value="{{choice}}" 
+							{% for answerText in answer.answerTexts %}
+								{% ifequal answerText choice %}
+									checked
+								{% endifequal %}
+							{% endfor %}
+						/>{{choice}}</label></p>
+					{% endfor %}				
+				{% endif %}
+			{% endif %}
+			
+			{% ifequal question.type "boolean" %}
+				<p><label><input type="radio" name="{{question.name}}" value="yes" 
+							{% for answerText in answer.answerTexts %}
+								{% ifequal answerText "yes" %}
+									checked
+								{% endifequal %}
+							{% endfor %}
+						/>yes</label></p>
+				<p><label><input type="radio" name="{{question.name}}" value="no" 
+							{% for answerText in answer.answerTexts %}
+								{% ifequal answerText "no" %}
+									checked
+								{% endifequal %}
+							{% endfor %}
+						/>no</label></p>
+			{% endifequal %}
+			
+			{% comment %}
+			I am just using a simple text field for values, this will be replaced with a slider later.
+			{% endcomment %}
+			
+			{% ifequal question.type "value" %}
+				<div><input type="text" size="{{question.lengthIfText}}" name="{{question.name}}" value="
+				{% for answer in member.getAnswers %}
+					{% ifequal answer.question question %}
+						{{answer.answerTexts}}
+					{% endifequal %}
+				{% endfor %}
+				"/></div>
+				<p><i>Please enter a number between {{question.minIfValue}} and {{question.maxIfValue}}.</i></p>
+			{% endifequal %}
+			
+		{% endfor %}
+		
+		<h3>Helping roles</h3>
+		
+			<p><label><input type="checkbox" name="helpingRole0" value="helpingRole0"
+				{% if member.helpingRoles.0 %}
+					checked="checked"/>
+				{% else %}
+					/>
+				{% endif %}
+				I am a {{helping_role_names.0}} in this community.</label></div></p>
+			{% if community.roleReadmes.0 %}
+				<table border="1" cellpadding="4" cellspacing="0"><tr><th>Information about the {{helping_role_names.0}} role:</th></tr>
+				<tr><td> {{ community.roleReadmes.0 }} </td></tr>
+				{% if community.roleAgreements.0 %}
+					<tr><td><i>Clicking the "I am a {{helping_role_names.2}}" box implies that you agree to these terms.</i></td></tr>
+				{% endif %}
+				</table>
+			{% endif %}
+		
+			<p><label><input type="checkbox" name="helpingRole1" value="helpingRole1"
+				{% if member.helpingRoles.1 %}
+					checked="checked"/>
+				{% else %}
+					/>
+				{% endif %}
+				I am a {{helping_role_names.1}} in this community.</label></div></p>
+			{% if community.roleReadmes.1 %}
+				<table border="1" cellpadding="4" cellspacing="0"><tr><th>Information about the {{helping_role_names.1}} role:</th></tr>
+				<tr><td> {{ community.roleReadmes.1 }} </td></tr>
+				{% if community.roleAgreements.1 %}
+					<tr><td><i>Clicking the "I am a {{helping_role_names.2}}" box implies that you agree to these terms.</i></td></tr>
+				{% endif %}
+				</table>
+			{% endif %}
+		
+			<p><label><input type="checkbox" name="helpingRole2" value="helpingRole2"
+				{% if member.helpingRoles.2 %}
+					checked="checked"/>
+				{% else %}
+					/>
+				{% endif %}
+				I am a {{helping_role_names.2}} in this community.</label></div></p>
+			{% if community.roleReadmes.2 %}
+				<table border="1" cellpadding="4" cellspacing="0"><tr><th>Information about the {{helping_role_names.2}} role:</th></tr>
+				<tr><td> {{ community.roleReadmes.2 }} </td></tr>
+				{% if community.roleAgreements.2 %}
+					<tr><td><i>Clicking the "I am a {{helping_role_names.2}}" box implies that you agree to these terms.</i></td></tr>
+				{% endif %}
+				</table>
+			{% endif %}
+		
+		
+      	<p>
+    <input type="submit" name="changeSettings" value="Change Settings">	
+	</form>	
+	<p>
+    <a href="{{ url }}">{{ url_linktext }}</a>
+	</body>
+	<p><a href="/">Main page</a>
+</html>

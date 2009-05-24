@@ -1,15 +1,19 @@
 body {
   font-family: Verdana, Helvetica, sans-serif;
-  font-size: 70%;
-  background-color: #DDDDDD;
+  font-size: 80%;
+  background-color: #FFFFFF;
 }
 
 td {
-	font-size: 70%;
+	font-size: 80%;
 	}
 th {
 	font-size: 80%;
 	font-style: plain;
 	font-weight: normal;
 	background: #FFEECC;
+	}
+	
+div.select {
+	margin: 8px;
 	}

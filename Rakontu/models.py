@@ -18,34 +18,6 @@ from google.appengine.ext.db import polymodel
 # Utility functions
 # --------------------------------------------------------------------------------------------
         
-def GenerateURLs(request):
-    """ Used to make login/logout link on every page.
-        Probably some better way to do this.
-    """
-    if users.get_current_user():
-        url = users.create_logout_url(request.uri)
-        url_linktext = 'Logout'
-    else:
-        url = users.create_login_url(request.uri)
-        url_linktext = 'Login'
-    return url, url_linktext
-
-def RequireLogin(func):
-    def check_login(request):
-        if not users.get_current_user():
-            request.redirect('/login')
-            return
-        func(request)
-    return check_login 
-
-def GoogleUserIDForEmail(email):
-    """Return a stable user_id string based on an email address, or None if
-    the address is not a valid/existing google account."""
-    newUser = users.User(email)
-    key = TempUser(user=newUser).put()
-    obj = TempUser.get(key)
-    return obj.user.user_id()
-
 def MyDebug(text, msg="print"):
     logging.debug(">>>>>>>> %s >>>>>>>> %s" %(msg, text))
     
@@ -310,6 +282,9 @@ class Question(db.Model):
 		systemic:			Belongs to the system rather than to any community.
 		
 		type:				One of boolean, text, ordinal, nominal, value.
+		lengthIftext:		How long is allowed for a text answer.
+		minIfValue:			Minimum value allowed, if value.
+		maxIfValue:			Maximum value allowed, if value.
 		required:			Whether an answer is required.
 		multiple:			Whether multiple answers are allowed.
 		name:				Name to display in viewer or wherever a short handle is needed.
@@ -325,6 +300,9 @@ class Question(db.Model):
 	systemic = db.BooleanProperty(default=False)
 	
 	type = db.StringProperty(choices=QUESTION_TYPES)
+	lengthIftext = db.IntegerProperty(default=40)
+	minIfValue = db.IntegerProperty(default=0)
+	maxIfValue = db.IntegerProperty(default=1000)
 	required = db.BooleanProperty(default=False)
 	multiple = db.BooleanProperty(default=False)
 	name = db.StringProperty(required=True)
@@ -333,6 +311,9 @@ class Question(db.Model):
 	
 	help = db.TextProperty()
 	useHelp = db.TextProperty()
+	
+	def isOrdinalOrNominal(self):
+		return self.type == "ordinal" or self.type == "nominal"
 		
 class Answer(db.Model):
 	""" Answer to community question with reference to community. 
@@ -434,7 +415,7 @@ class Member(db.Model):
 	
 	governanceType = db.StringProperty(choices=GOVERNANCE_ROLE_TYPES, default="member")
 	governanceView = db.StringListProperty(default=None)
-	helpingRoles = db.StringListProperty()
+	helpingRoles = db.StringListProperty(default=["", "", ""])
 	
 	nicknameIsRealName = db.BooleanProperty(default=False)
 	profileText = db.TextProperty(default="No profile information.")

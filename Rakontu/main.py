@@ -28,24 +28,83 @@ from models import *
 import systemquestions
 
 # --------------------------------------------------------------------------------------------
-# Startup and creation
+# Utility functions
+# --------------------------------------------------------------------------------------------
+        
+def GenerateURLs(request):
+    """ Used to make login/logout link on every page.
+        Probably some better way to do this.
+    """
+    if users.get_current_user():
+        url = users.create_logout_url(request.uri)
+        url_linktext = 'Logout'
+    else:
+        url = users.create_login_url(request.uri)
+        url_linktext = 'Login'
+    return url, url_linktext
+
+def RequireLogin(func):
+    def check_login(request):
+        if not users.get_current_user():
+            request.redirect('/login')
+            return
+        func(request)
+    return check_login 
+
+def GoogleUserIDForEmail(email):
+    """Return a stable user_id string based on an email address, or None if
+    the address is not a valid/existing google account."""
+    newUser = users.User(email)
+    key = TempUser(user=newUser).put()
+    obj = TempUser.get(key)
+    return obj.user.user_id()
+
+# --------------------------------------------------------------------------------------------
+# Startup page
 # --------------------------------------------------------------------------------------------
         
 class StartPage(webapp.RequestHandler):
     """ What users see when they come to the main site, outside of any community (but logged in to Google).
     """
-    @RequireLogin 
     def get(self):
-        """Just a bunch of links at this point. If the user is a sys admin (for the GAE app) they get more links."""
         url, url_linktext = GenerateURLs(self.request)
+        user = users.get_current_user()
+        communities = []
+        if user:
+            members = Member.all().filter("googleAccountID = ", user.user_id()).fetch(1000)
+            for member in members:
+                try:
+                    communities.append(member.community)
+                except:
+                    pass # if can't link to community don't use it
         template_values = {
                            'url': url, 
                            'url_linktext': url_linktext, 
                            'user': users.get_current_user(), 
-                           'user_is_admin': users.is_current_user_admin()}
+                           'communities': communities,
+                           }
         path = os.path.join(os.path.dirname(__file__), 'templates/startPage.html')
         self.response.out.write(template.render(path, template_values))
 
+    @RequireLogin 
+    def post(self):
+        MyDebug("in startpage post!")
+        MyDebug(self.request.arguments())
+        if "visitCommunity" in self.request.arguments():
+            community_key = self.request.get('community_key')
+            if community_key:
+                session = Session()
+                session['community_key'] = community_key
+                self.redirect('/visitCommunity')
+            else:
+                self.redirect('/')
+        elif "createCommunity" in self.request.arguments():
+            self.redirect("/createCommunity")
+
+# --------------------------------------------------------------------------------------------
+# Create new community
+# --------------------------------------------------------------------------------------------
+        
 class CreateCommunityPage(webapp.RequestHandler):
     """ Page to make a new community.
     """
@@ -58,6 +117,8 @@ class CreateCommunityPage(webapp.RequestHandler):
             template_values = {'user': users.get_current_user()}
             path = os.path.join(os.path.dirname(__file__), 'templates/createCommunity.html')
             self.response.out.write(template.render(path, template_values))
+        else:
+            self.redirect("/")
             
     @RequireLogin 
     def post(self):
@@ -78,74 +139,11 @@ class CreateCommunityPage(webapp.RequestHandler):
         self.redirect('/')
         
 # --------------------------------------------------------------------------------------------
-# Pages for sys admin
+# Visit community
 # --------------------------------------------------------------------------------------------
         
-class ShowAllCommunities(webapp.RequestHandler):
-    """For sys admin, to review all communities."""
-    @RequireLogin 
-    def get(self):
-        """Show info on all communities."""
-        if users.is_current_user_admin():
-            url, url_linktext = GenerateURLs(self.request)
-            template_values = {'url': url, 'url_linktext': url_linktext, 'communities': Community.all().fetch(1000), 'members': Member.all().fetch(1000)}
-            path = os.path.join(os.path.dirname(__file__), 'templates/showAllCommunities.html')
-            self.response.out.write(template.render(path, template_values))
-        else:
-            self.redirect('/')
-
-class ShowAllMembers(webapp.RequestHandler):
-    """For sys admin, to review all members."""
-    @RequireLogin 
-    def get(self):
-        """Show info on all members."""
-        if users.is_current_user_admin():
-            url, url_linktext = GenerateURLs(self.request)
-            template_values = {'url': url, 'url_linktext': url_linktext,'members': Member.all().fetch(1000)}
-            path = os.path.join(os.path.dirname(__file__), 'templates/showAllMembers.html')
-            self.response.out.write(template.render(path, template_values))
-        else:
-            self.redirect('/')
-
-# --------------------------------------------------------------------------------------------
-# Pages for managers and owners
-# --------------------------------------------------------------------------------------------
-        
-class ChooseCommunityToManagePage(webapp.RequestHandler):
-    """ Page where user chooses a community to manage. 
-        Checks to see what communities the user is an owner or manager of.
-    """
-    @RequireLogin 
-    def get(self):
-        """"Show user list of communities they can manage."""
-        user = users.get_current_user()
-        url, url_linktext = GenerateURLs(self.request)
-        communities = []
-        if user:
-            members = Member.all().filter("googleAccountID = ", user.user_id()).fetch(1000)
-            for member in members:
-                if member.isManager() or member.isOwner():
-                    try:
-                        communities.append(member.community)
-                    except:
-                        pass # if the community doesn't exist, don't use it
-        template_values = {'url': url, 'url_linktext': url_linktext, 'communities': communities}
-        path = os.path.join(os.path.dirname(__file__), 'templates/chooseCommunityToManage.html')
-        self.response.out.write(template.render(path, template_values))
-        
-    @RequireLogin 
-    def post(self):
-        """Process choice of community to manage."""
-        community_key = self.request.get('community_key')
-        if community_key:
-            session = Session()
-            session['community_key'] = community_key
-            self.redirect('/manageCommunity')
-        else:
-            self.redirect('/')
-        
-class ManageCommunityPage(webapp.RequestHandler):
-    """ Page where user manages a community. 
+class VisitCommunityPage(webapp.RequestHandler):
+    """ Page where user visits a community. 
     """
     @RequireLogin 
     def get(self):
@@ -160,17 +158,67 @@ class ManageCommunityPage(webapp.RequestHandler):
         if community_key:
             community = db.get(community_key) 
             if community:
+                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(1000)[0]
                 template_values = {
                                    'url': url, 
                                    'url_linktext': url_linktext, 
                                    'community': community, 
                                    'current_user': user, 
-                                   'members': Member.all().fetch(1000)}
-                path = os.path.join(os.path.dirname(__file__), 'templates/manageCommunity.html')
+                                   'current_member': currentMember,
+                                   'members': Member.all().fetch(1000),
+                                   'user_is_admin': users.is_current_user_admin(),
+                                   }
+                path = os.path.join(os.path.dirname(__file__), 'templates/visitCommunity.html')
                 self.response.out.write(template.render(path, template_values))
             else:
                 self.redirect('/')
                 
+# --------------------------------------------------------------------------------------------
+# Manage memberhip
+# --------------------------------------------------------------------------------------------
+   
+class MemberProfilePage(webapp.RequestHandler):
+    """ Change elements of member profile for community.
+    """
+    @RequireLogin 
+    def get(self):
+        user = users.get_current_user()
+        url, url_linktext = GenerateURLs(self.request)
+        session = Session()
+        if session and session.has_key('community_key'):
+            community_key = session['community_key']
+        else:
+            community_key = None
+        if community_key:
+            community = db.get(community_key) 
+            if community:
+                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(1000)[0]
+                liaison = None
+                if not currentMember.isOnlineMember:
+                    try:
+                        liaison = db.get(currentMember.liaisonAccountID)
+                    except:
+                        liaison = None
+                template_values = {
+                                   'url': url, 
+                                   'url_linktext': url_linktext, 
+                                   'community': community, 
+                                   'current_user': user, 
+                                   'member': currentMember,
+                                   'liaison': liaison,
+                                   'helping_role_names': HELPING_ROLE_TYPES,
+                                   }
+                path = os.path.join(os.path.dirname(__file__), 'templates/visit/profile.html')
+                self.response.out.write(template.render(path, template_values))
+            else:
+                self.redirect('/')
+                             
+
+                                
+# --------------------------------------------------------------------------------------------
+# Manage community
+# --------------------------------------------------------------------------------------------
+                                
 class ManageCommunityMembersPage(webapp.RequestHandler):
     """ Review, add, remove members.
     """
@@ -196,7 +244,7 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
                                    'current_user': user, 
                                    'current_member': currentMember,
                                    'community_members': communityMembers}
-                path = os.path.join(os.path.dirname(__file__), 'templates/manageCommunity_Members.html')
+                path = os.path.join(os.path.dirname(__file__), 'templates/manage/members.html')
                 self.response.out.write(template.render(path, template_values))
             else:
                 self.redirect('/')
@@ -254,7 +302,7 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
                     community.roleReadmes[i] = self.request.get("readme%s" % i)
                     community.roleAgreements[i] = self.request.get("agreement%s" % i) == ("agreement%s" % i)
                 community.put()
-        self.redirect('/manageCommunity')
+        self.redirect('/visitCommunity')
             
                 
 class ManageCommunitySettingsPage(webapp.RequestHandler):
@@ -294,7 +342,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
                                    'anonIncludes': anonIncludes,
                                    'nudge_point_includes': nudgePointIncludes,
                                    }
-                path = os.path.join(os.path.dirname(__file__), 'templates/manageCommunity_Settings.html')
+                path = os.path.join(os.path.dirname(__file__), 'templates/manage/settings.html')
                 self.response.out.write(template.render(path, template_values))
         else:
             self.redirect("/")
@@ -335,7 +383,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
                             community.nudgePointsPerActivity[i] = oldValue
                     i += 1
                 community.put()
-        self.redirect('/manageCommunity')
+        self.redirect('/visitCommunity')
         
 class ManageCommunityQuestionsPage(webapp.RequestHandler):
     """ Page where user sets questions.
@@ -363,7 +411,7 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
                                    'system_questions': systemQuestions,
                                    'question_refer_types': QUESTION_REFERS_TO,
                                    }
-                path = os.path.join(os.path.dirname(__file__), 'templates/manageCommunity_Questions.html')
+                path = os.path.join(os.path.dirname(__file__), 'templates/manage/questions.html')
                 self.response.out.write(template.render(path, template_values))
         else:
             self.redirect("/")
@@ -387,7 +435,7 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
                     shouldHaveQuestion = self.request.get(reference) == reference
                     community.AddOrRemoveSystemQuestion(question, shouldHaveQuestion)
                 community.put()
-        self.redirect('/manageCommunity_Questions')
+        self.redirect('/visitCommunity')
 
 class ManageCommunityPersonificationsPage(webapp.RequestHandler):
     """ Review, add, remove personifications.
@@ -412,7 +460,7 @@ class ManageCommunityPersonificationsPage(webapp.RequestHandler):
                                    'community': community, 
                                    'community_personifications': personifications,
                                    }
-                path = os.path.join(os.path.dirname(__file__), 'templates/manageCommunity_Personifications.html')
+                path = os.path.join(os.path.dirname(__file__), 'templates/manage/personifications.html')
                 self.response.out.write(template.render(path, template_values))
             else:
                 self.redirect('/')
@@ -450,72 +498,42 @@ class ManageCommunityPersonificationsPage(webapp.RequestHandler):
                             )
                         newPersonification.put()
                 community.put()
-        self.redirect('/manageCommunity_Personifications')
+        self.redirect('/visitCommunity')
             
                 
 class ManageCommunityTechnicalPage(webapp.RequestHandler):
     pass
     
 # --------------------------------------------------------------------------------------------
-# Pages for members
+# Site admin
 # --------------------------------------------------------------------------------------------
         
-class ChooseCommunityToVisitPage(webapp.RequestHandler):
-    """ Page where user chooses a community to visit. 
-        Checks to see what communities the user is a member of.
-    """
+class ShowAllCommunities(webapp.RequestHandler):
+    """For sys admin, to review all communities."""
     @RequireLogin 
     def get(self):
-        """"Show user list of communities they belong to."""
-        user = users.get_current_user()
-        url, url_linktext = GenerateURLs(self.request)
-        communities = []
-        if user:
-            members = Member.all().filter("googleAccountID = ", user.user_id()).fetch(1000)
-            for member in members:
-                communities.append(member.community)
-        template_values = {'url': url, 'url_linktext': url_linktext, 'communities': communities}
-        path = os.path.join(os.path.dirname(__file__), 'templates/chooseCommunityToVisit.html')
-        self.response.out.write(template.render(path, template_values))
-        
-    @RequireLogin 
-    def post(self):
-        """Process choice of community to visit."""
-        community_key = self.request.get('community_key')
-        if community_key:
-            session = Session()
-            session['community_key'] = community_key
-            self.redirect('/visitCommunity')
+        """Show info on all communities."""
+        if users.is_current_user_admin():
+            url, url_linktext = GenerateURLs(self.request)
+            template_values = {'url': url, 'url_linktext': url_linktext, 'communities': Community.all().fetch(1000), 'members': Member.all().fetch(1000)}
+            path = os.path.join(os.path.dirname(__file__), 'templates/admin/showAllCommunities.html')
+            self.response.out.write(template.render(path, template_values))
         else:
             self.redirect('/')
-        
-class VisitCommunityPage(webapp.RequestHandler):
-    """ Page where user visits a community. 
-    """
+
+class ShowAllMembers(webapp.RequestHandler):
+    """For sys admin, to review all members."""
     @RequireLogin 
     def get(self):
-        """Show info about community."""
-        user = users.get_current_user()
-        url, url_linktext = GenerateURLs(self.request)
-        session = Session()
-        if session and session.has_key('community_key'):
-            community_key = session['community_key']
+        """Show info on all members."""
+        if users.is_current_user_admin():
+            url, url_linktext = GenerateURLs(self.request)
+            template_values = {'url': url, 'url_linktext': url_linktext,'members': Member.all().fetch(1000)}
+            path = os.path.join(os.path.dirname(__file__), 'templates/admin/showAllMembers.html')
+            self.response.out.write(template.render(path, template_values))
         else:
-            community_key = None
-        if community_key:
-            community = db.get(community_key) 
-            if community:
-                template_values = {
-                                   'url': url, 
-                                   'url_linktext': url_linktext, 
-                                   'community': community, 
-                                   'current_user': user, 
-                                   'members': Member.all().fetch(1000)}
-                path = os.path.join(os.path.dirname(__file__), 'templates/visitCommunity.html')
-                self.response.out.write(template.render(path, template_values))
-            else:
-                self.redirect('/')
-                
+            self.redirect('/')
+
 # --------------------------------------------------------------------------------------------
 # Application and main
 # --------------------------------------------------------------------------------------------
@@ -523,21 +541,19 @@ class VisitCommunityPage(webapp.RequestHandler):
 application = webapp.WSGIApplication(
                                      [('/', StartPage),
                                       
-                                      # members
-                                      ('/chooseCommunityToVisit', ChooseCommunityToVisitPage),
+                                      # visiting
                                       ('/visitCommunity', VisitCommunityPage),
+                                      ('/visit/profile', MemberProfilePage),
                                       
-                                      # managers, owners
+                                      # managing
                                       ('/createCommunity', CreateCommunityPage),
-                                      ('/chooseCommunityToManage', ChooseCommunityToManagePage),
-                                      ('/manageCommunity', ManageCommunityPage),
-                                      ('/manageCommunity_Members', ManageCommunityMembersPage),
-                                      ('/manageCommunity_Settings', ManageCommunitySettingsPage),
-                                      ('/manageCommunity_Questions', ManageCommunityQuestionsPage),
-                                      ('/manageCommunity_Personifications', ManageCommunityPersonificationsPage),
-                                      ('/manageCommunity_Technical', ManageCommunityTechnicalPage),
+                                      ('/manage/members', ManageCommunityMembersPage),
+                                      ('/manage/settings', ManageCommunitySettingsPage),
+                                      ('/manage/questions', ManageCommunityQuestionsPage),
+                                      ('/manage/personifications', ManageCommunityPersonificationsPage),
+                                      ('/manage/technical', ManageCommunityTechnicalPage),
                                       
-                                      # sys admin
+                                      # site admin
                                       ('/admin/showAllCommunities', ShowAllCommunities),
                                       ('/admin/showAllMembers', ShowAllMembers)],
                                      debug=True)

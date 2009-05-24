@@ -211,3 +211,88 @@ AnnotationQuestion=Where took place
 MemberQuestion=Where live
 """
 
+# ---------------------------- NOT USING - was chooseCommunityToManage.html
+
+<html>
+    <head>
+        <link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+    </head>
+    <body>
+        <form action="/chooseCommunityToManage" method="post">
+            {% if communities %}
+                Which community do you want to manage?
+                <div><select name="community_key" size=5>
+                {% for community in communities %}
+                    <option value="{{ community.key }}">{{ community.name }}</option>
+                {% endfor %}
+                </select></div>
+                <div><input type="submit" value="Manage Selected Rakontu Community"></div>
+            {% else %}
+                You are not a manager or owner in any communities.
+            {% endif %}
+        </form>
+    <a href="{{ url }}">{{ url_linktext }}</a>
+    <p><a href="/">Main page</a>
+    </body>
+</html>
+
+# ------------------------ NOT USING - was chooseCommunityToVisit.html
+
+<html>
+    <head>
+        <link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+    </head>
+    <body>
+        <form action="/chooseCommunityToVisit" method="post">
+            {% if communities %}
+                Which community do you want to visit?
+                <div><select name="community_key" size=5>
+                {% for community in communities %}
+                    <option value="{{ community.key }}">{{ community.name }}</option>
+                {% endfor %}
+                </select></div>
+                <div><input type="submit" value="Visit Selected Rakontu Community"></div>
+            {% else %}
+                You are not a member of any communities.
+            {% endif %}
+        </form>
+    <a href="{{ url }}">{{ url_linktext }}</a>
+    <p><a href="/">Main page</a>
+    </body>
+</html>
+
+# ---------------------- NOT USING - was manageCommunity.html
+
+<html>
+    <head>
+        <link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+    </head>
+    <body>
+        You are {{ current_user.nickname }}<p>
+          <p>Options for managing the community "{{ community.name|escape }}" are:<p>
+          <a href="/manageCommunity_Members">Memberships</a><p>
+          <a href="/manageCommunity_Settings">Settings</a><p>
+          <a href="/manageCommunity_Questions">Questions</a><p>
+          <a href="/manageCommunity_Personifications">Personifications</a><p>
+          <a href="/manageCommunity_Technical">Backup</a><p>
+    <a href="{{ url }}">{{ url_linktext }}</a>
+    </body>
+    <p><a href="/">Main page</a>
+</html>
+
+# --------------------- NOT USING - was notLoggedIn.html
+
+<html>
+    <head>
+        <link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+    </head>
+    <body>
+    Welcome to Rakontu! 
+    <p>
+    You are not logged in. Log in to your Google account to proceed.
+    <a href="{{ url }}">{{ url_linktext }}</a>
+    </body>
+</html>
+
+
+

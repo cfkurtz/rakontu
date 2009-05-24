@@ -28,6 +28,18 @@ def AddSystemQuestionIfNotThere(info):
 							   community=None,
 							   )
 		newQuestion.put()
+	else:
+		matchingQuestion = matchingQuestions[0]
+		# this is so you can make changes to existing questions
+		matchingQuestion.refersTo = info[0]
+		matchingQuestion.name = info[1]
+		matchingQuestion.text = info[2]
+		matchingQuestion.type = info[3]
+		matchingQuestion.choices = info[4]
+		matchingQuestion.help = info[5]
+		matchingQuestion.useHelp = info[6]
+		matchingQuestion.multiple = info[7]
+		matchingQuestion.put()
 	
 def AddSystemQuestionsToDataStore():
 	# member questions
@@ -36,9 +48,29 @@ def AddSystemQuestionsToDataStore():
 		"Please choose an age range.",
 		"Connecting which stories are told by people of what ages can be a useful way to look at stories.",
 		False])
+	AddSystemQuestionIfNotThere(["member", "How feel about community", "How do you feel about our community?",
+		"nominal", ["I love it!", "It could be better.", "It's as good a place as any.", "I hate it here."],
+		"Describe how you feel about this place.",
+		"Connecting which stories are told by people of what ages can be a useful way to look at stories.",
+		True])
 	AddSystemQuestionIfNotThere(["member", "Location", "Where do you live?",
 		"text", [],
 		"Enter any sort of location you like, specific or vague.",
+		"This question is most useful when your community is geographic.",
+		False])
+	AddSystemQuestionIfNotThere(["member", "Full time", "Do you live here all the time?",
+		"boolean", [],
+		"Some people just live here in the summers.",
+		"This question is most useful when your community fluctuates.",
+		False])
+	AddSystemQuestionIfNotThere(["member", "Location", "Where do you live?",
+		"text", [],
+		"Enter any sort of location you like, specific or vague.",
+		"This question is most useful when your community is geographic.",
+		False])
+	AddSystemQuestionIfNotThere(["member", "How long lived here", "How many years have you been here?",
+		"value", [],
+		"If less than one, just put one.",
 		"This question is most useful when your community is geographic.",
 		False])
 	

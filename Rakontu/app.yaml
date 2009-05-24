@@ -9,9 +9,12 @@ handlers:
   script: main.py
   login: admin
 
+- url: /images
+  static_dir: images
+
 - url: /stylesheets
   static_dir: stylesheets
-
+  
 - url: /.*
   script: main.py
   login: required
