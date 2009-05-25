@@ -254,10 +254,13 @@ class Community(db.Model):
 	# options
 	
 	def getCommunityLevelViewingPreferences(self):
-		return ViewingPreferences.all().filter("community = ", self.key()).filter("owner = ", self.key())
+		return ViewingPreferences.all().filter("community = ", self.key()).filter("owner = ", self.key()).fetch(FETCH_NUMBER)
 
 	def getPersonifications(self):
-		return Personification.all().filter("community = ", self.key())
+		return Personification.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+	
+	def hasAtLeastOnePersonificationOrAnonEntryAllowed(self, entryTypeIndex):
+		return len(self.getPersonifications()) > 0 or self.allowAnonymousEntry[entryTypeIndex]
 	
 # --------------------------------------------------------------------------------------------
 # Question generating system
@@ -485,6 +488,7 @@ class Article(polymodel.PolyModel):
 	Properties
 		title:				A name for the article. Appears in the interface.
 		text:				Main body of content. What is read. 
+		type:				Whether it is a story, pattern, construct, invitation or resource.
 
 		creator: 			Member who contributed the story. May be online or offline.
 		community:			The Rakontu community this article belongs to.
@@ -492,6 +496,9 @@ class Article(polymodel.PolyModel):
 		liaison:			Person who entered the article for off-line member. None if not offline.
 		attribution: 		Whether to show the creator's nickname, "anonymous" or a personification.
 		personification: 	Reference to fictional member name (from global list).
+		
+		instructionsIfPattern:	If this is a pattern, instructions on how to reproduce it.
+		screenshotIfPattern:	If this is a pattern, an uploaded picture of it.
 
 		tookPlace:			When the events the article is about took place.
 		collected:			When article was collected, usually from an off-line member.
@@ -505,6 +512,7 @@ class Article(polymodel.PolyModel):
 	"""
 	title = db.StringProperty(required=True)
 	text = db.TextProperty(default="No text")
+	type = db.StringProperty(choices=ARTICLE_TYPES, required=True)
 
 	creator = db.ReferenceProperty(Member, required=True, collection_name="articles")
 	community = db.ReferenceProperty(Community, required=True)
@@ -512,6 +520,9 @@ class Article(polymodel.PolyModel):
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="articles_liaisoned")
 	attribution = db.StringProperty(choices=ATTRIBUTION_CHOICES, default="member")
 	personification = db.ReferenceProperty(Personification, default=None)
+	
+	instructionsIfPattern = db.TextProperty(default="No instructions")
+	screenshotIfPattern = db.BlobProperty(default=None)
 
 	tookPlace = db.DateTimeProperty(default=None)
 	collected = db.DateTimeProperty(default=None)
@@ -546,40 +557,36 @@ class Article(polymodel.PolyModel):
 	def getOutgoingLinks(self):
 		return Link.all().filter("articleFrom =", self.key()).fetch(FETCH_NUMBER)
 		
-class Story(Article):
-	pass
-	
-class Invitation(Article):
-	pass
-
-class Resource(Article):
-	pass
-
-class ArticleWithListOfLinksToStories(Article):
-	""" This type of article includes a list of links to other articles.
+class Link(db.Model):
+	""" For holding on to links between articles.
 	
 	Properties
-		linksList:			A list of links to other articles. 
-							Note these are link objects, not direct links,
-							so that comments can be included.
+		community:			The Rakontu community this link belongs to.
+		articleFrom:		Where the link originated. Story read first, or pattern/construct.
+		articleTo:			Article referred to. Usually story.
+		creator: 			Member who created the link. May be online or offline.
+		type:				One of retold, reminded, related, included.
+		comment:			Optional user comment about the linkage, written when link made.
 	"""
-	linksList = db.ListProperty(db.Key, default=None)
-
-class Pattern(ArticleWithListOfLinksToStories):
-	""" This type of article includes a screenshot (uploaded by the member)
-		and instructions on how to get the screen to look that way.
-		To be made better in later versions.
-		
-	Properties
-		instructions:		Text telling other users how to set viewer properties.
-		screenshot:			JPG uploaded by user.
-	"""
-	instructions = db.TextProperty(default="No instructions")
-	screenshot = db.BlobProperty(default=None)
+	community = db.ReferenceProperty(Community, required=True)
+	articleFrom = db.ReferenceProperty(Article, collection_name="linksFrom", required=True)
+	articleTo = db.ReferenceProperty(Article, collection_name="linksTo", required=True)
+	creator = db.ReferenceProperty(Member, required=True, collection_name="links")
+	type = db.StringProperty(choices=LINK_TYPES, required=True)
+	comment = db.StringProperty(default="")
 	
-class Construct(ArticleWithListOfLinksToStories):
-	pass
-
+class Attachment(db.Model):
+	""" For binary attachments to articles.
+	
+	Properties:
+		name:		Name of the attachment
+		data:		Binary data.
+		article:	Which artice it is associated with. (Only one allowed.)
+	"""
+	name = db.StringProperty()
+	data = db.BlobProperty()
+	article = db.ReferenceProperty(Article, collection_name="attachments")
+	
 # --------------------------------------------------------------------------------------------
 # Annotations
 # --------------------------------------------------------------------------------------------
@@ -666,36 +673,6 @@ class Nudge(Annotation):
 	value = db.IntegerProperty(default=0)
 	type = db.StringProperty(choices=NUDGE_TYPES)
 	comment = db.TextProperty()
-	
-class Link(db.Model):
-	""" For holding on to links between articles.
-	
-	Properties
-		community:			The Rakontu community this link belongs to.
-		articleFrom:		Where the link originated. Story read first, or pattern/construct.
-		articleTo:			Article referred to. Usually story.
-		creator: 			Member who created the link. May be online or offline.
-		type:				One of retold, reminded, related, included.
-		comment:			Optional user comment about the linkage, written when link made.
-	"""
-	community = db.ReferenceProperty(Community, required=True)
-	articleFrom = db.ReferenceProperty(Article, collection_name="linksFrom", required=True)
-	articleTo = db.ReferenceProperty(Article, collection_name="linksTo", required=True)
-	creator = db.ReferenceProperty(Member, required=True, collection_name="links")
-	type = db.StringProperty(choices=LINK_TYPES, required=True)
-	comment = db.StringProperty(default="")
-	
-class Attachment(db.Model):
-	""" For binary attachments to articles.
-	
-	Properties:
-		name:		Name of the attachment
-		data:		Binary data.
-		article:	Which artice it is associated with. (Only one allowed.)
-	"""
-	name = db.StringProperty()
-	data = db.BlobProperty()
-	article = db.ReferenceProperty(Article, collection_name="attachments")
 	
 # --------------------------------------------------------------------------------------------
 # Queries

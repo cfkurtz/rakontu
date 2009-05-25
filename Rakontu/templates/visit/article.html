@@ -1,0 +1,77 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+	</head>
+	<body>
+		<form action="/createCommunity" method="post" enctype="multipart/form-data">
+		
+			{{article_type|capfirst}} title:
+			<div><input type="text" name="title" value="{% if article %} {{article.title}} {% endif %}"/></div>
+			
+			{{article_type|capfirst}} text:
+			<div><textarea name="text" rows="20" cols="60">{% if article %} {{article.text}} {% endif %}</textarea></div>
+			
+			{% if member.isLiaison %}
+				<div><label><input type="checkbox" name="collectedOffline" value="yes" checked>This {{article_type}} was collected offline.</label></div>
+				<p>If this {{article_type}} was collected offline, please choose a member to assign it to.</p>
+				<select>
+					{% for member in community_members %}
+						<option value="{{member.key}}">{{member.nickname}}
+						{% if article %}
+							{% ifequal member.key article.creator.key %}
+								selected="selected"
+							{% endifequal %}
+						{% endif %}
+						</option>
+					{% endfor %}
+				</select>
+			{% endif %}
+			
+			{% if show_attribution_choice %}
+				<p>Who do you want to say contributed this {{article_type}}?</p>
+				<select>
+					<option value="attributeToMember">Me ({{member.nickname}})</option>
+					{% if anon_entry_allowed %}
+						<option value="attributeToAnonymous">Anonymous</option>
+					{% endif %}
+					{% if community.getPersonifications %}
+						<option value="attributeToPersonification">A personification</option>
+					{% endif %}
+					</option>
+				</select>
+				{% if community.getPersonifications %}
+					<p>If you want to attribute this to a personification, which one?</p>
+					<select>
+					{% for personification in community.getPersonifications %}
+						<option value="personification|{{personification.key}}">{{personification.name}}</option>
+					{% endfor %}
+					</select>
+				{% endif %}
+			{% endif %}
+			
+			{% ifequal article_type "pattern" %}
+				<h3>Extra Pattern Information</h3>
+				<fieldset>
+				<p>Instructions to recreate pattern:</p>
+				<div><textarea name="instructionsIfPattern" rows="3" cols="60">{% if article %} {{article.instructionsIfPattern}} {% endif %}</textarea></div>
+				<p>Pattern screenshot:</p>
+				{% if article %}
+					{% if article.screenshotIfPattern %}
+						<div><img src="img?article_id={{article.key}}"></img></div>
+					{% endif %}
+				{% endif %}
+				<p><div><input type="file" name="img"/></div></p>
+				</fieldset>
+			{% endifequal %}
+			
+			<p>
+			{% if article %}
+				<div><input type="submit" name="change|{{article_type}}|{{article.key}}" value="Change {{article_type|capfirst}}"></div>
+			{% else %}
+				<div><input type="submit" name="add|{{article_type}}" value="Add {{article_type|capfirst}}"></div>
+			{% endif %}
+			
+		</form>
+	<a href="{{ url }}">{{ url_linktext }}</a>
+	</body>
+</html>

@@ -111,13 +111,9 @@ class CreateCommunityPage(webapp.RequestHandler):
     def get(self):
         """Show fields to create community."""
         url, url_linktext = GenerateURLs(self.request)
-        template_values = {'url': url, 'url_linktext': url_linktext}
-        if users.get_current_user(): 
-            template_values = {'user': users.get_current_user()}
-            path = os.path.join(os.path.dirname(__file__), 'templates/createCommunity.html')
-            self.response.out.write(template.render(path, template_values))
-        else:
-            self.redirect("/")
+        template_values = {'url': url, 'url_linktext': url_linktext, 'user': users.get_current_user()}
+        path = os.path.join(os.path.dirname(__file__), 'templates/createCommunity.html')
+        self.response.out.write(template.render(path, template_values))
             
     @RequireLogin 
     def post(self):
@@ -173,10 +169,78 @@ class VisitCommunityPage(webapp.RequestHandler):
                 self.redirect('/')
                 
 # --------------------------------------------------------------------------------------------
+# Add article
+# --------------------------------------------------------------------------------------------
+   
+class EnterArticlePage(webapp.RequestHandler):
+    """ Page to make a new article.
+    """
+    @RequireLogin 
+    def get(self):
+        user = users.get_current_user()
+        url, url_linktext = GenerateURLs(self.request)
+        i = 0
+        for aType in ARTICLE_TYPES:
+            if self.request.uri.find(aType) >= 0:
+                type = aType
+                entryTypeIndexForAnonymity = i
+                break
+            i += 1
+        session = Session()
+        if session and session.has_key('community_key'):
+            community_key = session['community_key']
+        else:
+            community_key = None
+        if community_key:
+            community = db.get(community_key) 
+            if community:
+                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(FETCH_NUMBER)[0]
+                template_values = {'url': url, 'url_linktext': url_linktext,
+                                   'user': users.get_current_user(),
+                                   'member': currentMember,
+                                   'community': community, 
+                                   'article_type': type,
+                                   'article': None,
+                                   'community_members': community.getMembers(),
+                                   'anon_entry_allowed': community.allowAnonymousEntry[entryTypeIndexForAnonymity],
+                                   'show_attribution_choice': community.hasAtLeastOnePersonificationOrAnonEntryAllowed(entryTypeIndexForAnonymity)
+                                   }
+                path = os.path.join(os.path.dirname(__file__), 'templates/visit/article.html')
+                self.response.out.write(template.render(path, template_values))
+            else:
+                self.redirect("/")
+            # NOTE: MUST ALSO DO ATTACHMENTS !!
+            
+    @RequireLogin 
+    def post(self):
+        user = users.get_current_user()
+        for aType in ARTICLE_TYPES:
+            for argument in self.request.arguments():
+                if argument.find(aType) >= 0:
+                    type = aType
+                    break
+        session = Session()
+        if session and session.has_key('community_key'):
+            community_key = session['community_key']
+        else:
+            community_key = None
+        if community_key:
+            community = db.get(community_key) 
+            if community:
+                member = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(FETCH_NUMBER)[0]
+                newArticle=Article(
+                                   community=community,
+                                   type=type,
+                                   creator=member,
+                                   )
+                # THIS NEEDS TO BE FINISHED
+        
+                
+# --------------------------------------------------------------------------------------------
 # Manage memberhip
 # --------------------------------------------------------------------------------------------
    
-class MemberProfilePage(webapp.RequestHandler):
+class ChangeMemberProfilePage(webapp.RequestHandler):
     """ Change elements of member profile for community.
     """
     @RequireLogin 
@@ -217,7 +281,6 @@ class MemberProfilePage(webapp.RequestHandler):
     def post(self):
         """Process changes to member profile."""
         user = users.get_current_user()
-        url, url_linktext = GenerateURLs(self.request)
         session = Session()
         if session and session.has_key('community_key'):
             community_key = session['community_key']
@@ -286,7 +349,6 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
         if community_key:
             community = db.get(community_key) 
             if community:
-                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(FETCH_NUMBER)[0]
                 communityMembers = Member.all().filter("community = ", community).fetch(FETCH_NUMBER)
                 template_values = {
                                    'url': url, 
@@ -294,7 +356,7 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
                                    'community': community, 
                                    'current_user': user, 
                                    'current_member': currentMember,
-                                   'community_members': communityMembers}
+                                   'community_members': community.getMembers()}
                 path = os.path.join(os.path.dirname(__file__), 'templates/manage/members.html')
                 self.response.out.write(template.render(path, template_values))
             else:
@@ -673,7 +735,13 @@ application = webapp.WSGIApplication(
                                       
                                       # visiting
                                       ('/visitCommunity', VisitCommunityPage),
-                                      ('/visit/profile', MemberProfilePage),
+                                      ('/visit/story', EnterArticlePage),
+                                      ('/visit/pattern', EnterArticlePage),
+                                      ('/visit/construct', EnterArticlePage),
+                                      ('/visit/invitation', EnterArticlePage),
+                                      ('/visit/resource', EnterArticlePage),
+                                      ('/visit/article', EnterArticlePage),
+                                      ('/visit/profile', ChangeMemberProfilePage),
                                       ('/img', Image),
                                       ('/visit/img', Image),
                                       ('/manage/img', Image),

@@ -17,11 +17,18 @@
 	{% endif %}
 	
 	<p>Visit:<p>
-  	<p>&nbsp; &nbsp; <a href="/visit/tell">Tell a story</a></p>
-  	<p>&nbsp; &nbsp; <a href="/visit/look">Look at stories</a></p>
+  	<p>&nbsp; &nbsp; <a href="/visit/look">Look at stories and other information</a></p>
+	<p>&nbsp; &nbsp; Contribute to the community</p>
+  	<p>&nbsp; &nbsp; &nbsp; &nbsp; <a href="/visit/story">Tell a story</a></p>
+  	<p>&nbsp; &nbsp; &nbsp; &nbsp; <a href="/visit/pattern">Describe a pattern</a></p>
+  	<p>&nbsp; &nbsp; &nbsp; &nbsp; <a href="/visit/construct">Build a construct</a></p>
+  	<p>&nbsp; &nbsp; &nbsp; &nbsp; <a href="/visit/invitation">Send out an invitation</a></p>
+  	<p>&nbsp; &nbsp; &nbsp; &nbsp; <a href="/visit/resource">Add a resource</a></p>
+  	
   	<p>&nbsp; &nbsp; <a href="/visit/profile">Change your member profile</a></p>
-      	
+     
   	{% if current_member.isManager or current_member.isOwner %}
+  	<hr size="1">
       	<p>Manage:</p>
       	<p>&nbsp; &nbsp; <a href="/manage/members">Memberships</a></p>
       	<p>&nbsp; &nbsp; <a href="/manage/settings">Settings</a></p>
@@ -37,6 +44,7 @@
     {% endif %}
 
 	{% if user_is_admin %}
+	<hr size="1">
 		<p>Site administration options:</p>
 		<p>&nbsp; &nbsp; <a href="admin/showAllCommunities">Show All Communities</a></p>
 		<p>&nbsp; &nbsp; <a href="admin/showAllMembers">Show All Members</a></p>
