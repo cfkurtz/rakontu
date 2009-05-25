@@ -7,7 +7,7 @@
 		<h2>Changing Settings for Rakontu Community "{{ community.name|escape }}"</h2>
 		<h3>Name and description</h3>
 		<p>Community name</p>
-		<div><input type="text" name="name" value="{{ community.name|escape }}"/></div>
+		<div><input type="text" name="name" value="{{ community.name }}"/></div>
 		<p>Community description</p>
 		<div><textarea name="description" rows="10" cols="60">{{ community.description|escape }}</textarea></div>
 		<i>Full URLs in the community description will be converted to links in what is shown.</i>

@@ -16,16 +16,22 @@
 		<div><img src="img?member_id={{current_member.key}}"></img>
 	{% endif %}
 	
-	<p>Member options:<p>
-  	<p>&nbsp; &nbsp; <a href="/visit/profile">Edit your member profile</a></p>
+	<p>Visit:<p>
   	<p>&nbsp; &nbsp; <a href="/visit/tell">Tell a story</a></p>
   	<p>&nbsp; &nbsp; <a href="/visit/look">Look at stories</a></p>
+  	<p>&nbsp; &nbsp; <a href="/visit/profile">Change your member profile</a></p>
       	
   	{% if current_member.isManager or current_member.isOwner %}
-      	<p>Management options:</p>
+      	<p>Manage:</p>
       	<p>&nbsp; &nbsp; <a href="/manage/members">Memberships</a></p>
       	<p>&nbsp; &nbsp; <a href="/manage/settings">Settings</a></p>
-      	<p>&nbsp; &nbsp; <a href="/manage/questions">Questions</a></p>
+      	<p>&nbsp; &nbsp; Questions about</p>
+      	<p>&nbsp; &nbsp; &nbsp; &nbsp; <a href="/manage/questions/stories">stories</a></p>
+      	<p>&nbsp; &nbsp; &nbsp; &nbsp; <a href="/manage/questions/patterns">patterns</a></p>
+      	<p>&nbsp; &nbsp; &nbsp; &nbsp; <a href="/manage/questions/constructs">constructs</a></p>
+      	<p>&nbsp; &nbsp; &nbsp; &nbsp; <a href="/manage/questions/invitations">invitations</a></p>
+      	<p>&nbsp; &nbsp; &nbsp; &nbsp; <a href="/manage/questions/resources">resources</a></p>
+      	<p>&nbsp; &nbsp; &nbsp; &nbsp; <a href="/manage/questions/members">members</a></p>
       	<p>&nbsp; &nbsp; <a href="/manage/personifications">Personifications</a></p>
       	<p>&nbsp; &nbsp; <a href="/manage/technical">Backup</a></p>
     {% endif %}

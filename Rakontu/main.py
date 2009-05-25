@@ -228,7 +228,8 @@ class MemberProfilePage(webapp.RequestHandler):
             community = db.get(community_key) 
             if community:
                 currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(1000)[0]
-                currentMember.profileImage = db.Blob(images.resize(str(self.request.get("img")), 64, 64))
+                if self.request.get("img"):
+                    currentMember.profileImage = db.Blob(images.resize(str(self.request.get("img")), 64, 64))
                 currentMember.put()
         self.redirect('/visitCommunity')
                                 
@@ -379,7 +380,8 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
             if community:
                 community.name = self.request.get("name")
                 community.description = self.request.get("description")
-                community.image = db.Blob(images.resize(str(self.request.get("img")), 64, 64))
+                if self.request.get("img"):
+                    community.image = db.Blob(images.resize(str(self.request.get("img")), 64, 64))
                 i = 0
                 for entryType in ENTRY_TYPES:
                     community.allowAnonymousEntry[i] = self.request.get(entryType) == entryType
@@ -454,6 +456,114 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
                     community.AddOrRemoveSystemQuestion(question, shouldHaveQuestion)
                 community.put()
         self.redirect('/visitCommunity')
+        
+class ManageStoryQuestionsPage(webapp.RequestHandler):
+    """ Page where user sets questions.
+    """
+    @RequireLogin 
+    def get(self):
+        user = users.get_current_user()
+        url, url_linktext = GenerateURLs(self.request)
+        session = Session()
+        community_key = None
+        if session and session.has_key('community_key'):
+            community_key = session['community_key']
+        if community_key:
+            community = db.get(community_key) 
+            if community:
+                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(1000)[0]
+                communityStoryQuestions = community.getQuestionsOfType("story")
+                systemStoryQuestions = Question.all().filter("community = ", None).filter("refersTo = ", "story").fetch(1000)
+                template_values = {
+                                   'url': url, 
+                                   'url_linktext': url_linktext, 
+                                   'community': community, 
+                                   'current_user': user, 
+                                   'current_member': currentMember,
+                                   'questions': communityStoryQuestions,
+                                   'question_types': QUESTION_TYPES,
+                                   'system_questions': systemStoryQuestions,
+                                   'question_refer_types': QUESTION_REFERS_TO,
+                                   }
+                path = os.path.join(os.path.dirname(__file__), 'templates/manage/questions/stories.html')
+                self.response.out.write(template.render(path, template_values))
+        else:
+            self.redirect("/")
+    
+    @RequireLogin 
+    def post(self):
+        """Process changes to community-wide settings."""
+        user = users.get_current_user()
+        url, url_linktext = GenerateURLs(self.request)
+        session = Session()
+        if session and session.has_key('community_key'):
+            community_key = session['community_key']
+        else:
+            community_key = None
+        if community_key:
+            community = db.get(community_key) 
+            if community:
+                communityStoryQuestions = community.getQuestionsOfType("story")
+                for question in communityStoryQuestions:
+                    question.name = self.request.get("name|%s" % question.key())
+                    question.text = self.request.get("text|%s" % question.key())
+                    question.help = self.request.get("help|%s" % question.key())
+                    question.type = self.request.get("type|%s" % question.key())
+                    question.choices = []
+                    for i in range(10):
+                        question.choices.append(self.request.get("choice%s|%s" % (i, question.key())))
+                    oldValue = question.lengthIfText
+                    try:
+                        question.lengthIfText = self.request.get("lengthIfText|%s" % question.key())
+                    except:
+                        question.lengthIfText = oldValue
+                    oldValue = question.minIfValue
+                    try:
+                        question.minIfValue = self.request.get("minIfValue|%s" % question.key())
+                    except:
+                        question.minIfValue = oldValue
+                    oldValue = question.maxIfValue
+                    try:
+                        question.maxIfValue = self.request.get("maxIfValue|%s" % question.key())
+                    except:
+                        question.maxIfValue = oldValue
+                    question.required = self.request.get("required|%s" % question.key()) == "required|%s" % question.key()
+                    question.multiple = self.request.get("multiple|%s" % question.key()) == "multiple|%s" % question.key()
+                    question.put()
+                questionsToRemove = []
+                for question in communityStoryQuestions:
+                    if self.request.get("remove|%s" % question.key()):
+                        questionsToRemove.append(question)
+                if questionsToRemove:
+                    for question in questionsToRemove:
+                        db.delete(question)
+                questionNamesToAdd = self.request.get("newQuestionNames").split('\n')
+                for name in questionNamesToAdd:
+                    if name.strip():
+                        question = Question(name=name, refersTo="story", community=community)
+                        question.put()
+                systemQuestions = Question.all().filter("community = ", None).filter("refersTo = ", "story").fetch(1000)
+                for sysQuestion in systemQuestions:
+                    MyDebug(self.request.get("copy|%s" % sysQuestion.key()), sysQuestion.name)
+                    if self.request.get("copy|%s" % sysQuestion.key()) == "copy|%s" % sysQuestion.key():
+                        community.AddCopyOfQuestion(sysQuestion)
+        self.redirect('/visitCommunity')
+
+class ManagePatternQuestionsPage(webapp.RequestHandler):
+    pass
+
+class ManageConstructQuestionsPage(webapp.RequestHandler):
+    pass
+
+class ManageInvitationQuestionsPage(webapp.RequestHandler):
+    pass
+
+class ManageResourceQuestionsPage(webapp.RequestHandler):
+    pass
+
+class ManageMemberQuestionsPage(webapp.RequestHandler):
+    pass
+
 
 class ManageCommunityPersonificationsPage(webapp.RequestHandler):
     """ Review, add, remove personifications.
@@ -585,7 +695,12 @@ application = webapp.WSGIApplication(
                                       ('/createCommunity', CreateCommunityPage),
                                       ('/manage/members', ManageCommunityMembersPage),
                                       ('/manage/settings', ManageCommunitySettingsPage),
-                                      ('/manage/questions', ManageCommunityQuestionsPage),
+                                      ('/manage/questions/stories', ManageStoryQuestionsPage),
+                                      ('/manage/questions/patterns', ManagePatternQuestionsPage),
+                                      ('/manage/questions/constructs', ManageConstructQuestionsPage),
+                                      ('/manage/questions/invitations', ManageInvitationQuestionsPage),
+                                      ('/manage/questions/resources', ManageResourceQuestionsPage),
+                                      ('/manage/questions/members', ManageMemberQuestionsPage),
                                       ('/manage/personifications', ManageCommunityPersonificationsPage),
                                       ('/manage/technical', ManageCommunityTechnicalPage),
                                       

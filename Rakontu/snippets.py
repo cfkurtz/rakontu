@@ -294,5 +294,75 @@ MemberQuestion=Where live
     </body>
 </html>
 
+# --------------------- NOT USING - decided to save community questions for later, too confusing now
+
+
+    # community questions
+    AddSystemQuestionIfNotThere(["community", 
+                    "Geographic",
+                    "Is this a geographic community?",
+                    "boolean", [],
+                    "Does this community represent a place or a group of people?",
+                    "",
+                    False])
+    AddSystemQuestionIfNotThere(["community", 
+                    "Why created",
+                    "Why was this community created?",
+                    "text", [],
+                    "Explain why the community was created.",
+                    "",
+                    False])
+    
+    def getCommunityQuestions(self):
+        return Question.all().filter("community = ", self.key()).filter("refersTo = ", "community").fetch(1000)
+    
+    def getCommunityAnswers(self):
+        return Answer.all().filter("referent = ", self.key()).fetch(1000)
+    
+
+
+# -------------------- NOT USING - decided to save rules for later, should not have non-working classes in now
+
+RULE_TESTS = ["same as", "<", "<=", ">", ">=", "=", "includes"]
+
+class Rule(db.Model):
+    """ Simple if-then statement to choose annotation questions based on community questions.
+    
+    Properties
+        community:            The Rakontu community this rule belongs to.
+                            If None, is in a global list communities can copy from.
+        communityQuestion:    What question about the community the rule is based on.
+        annotationQuestion: What question about articles is affected by the rule.
+        memberQuestion:     What question about members is affected by the rule.
+                            The same rule can affect both annotation and member questions.
+
+        test:                The operation used to compare the community answer to the test value.
+        testValues:            The thing(s) compared to the community answer.
+        includeIf:            Whether the test should be true or false to include the annotation question. 
+
+    Usage
+        In the abstract:
+            For the community question <communityQuestion>, 
+            IF the evaluation of (<Answer> <test> <testValues>) = includeIf, 
+            THEN include <annotationOrMemberQuestion>.
+        Examples:
+            For the community question "Is this community united by a geographic place?",
+              IF the evaluation of (<Answer> "=" ["yes"]) = true, 
+              THEN include "Where do you live?" in member questions.
+              
+              For the community question "Do people want to talk about social issues?",
+              IF the evaluation of (<Answer> "includes" ["no!", "maybe not", "not sure"] = false,
+              THEN include "Who needs to hear this story?" in annotation questions.
+    """
+    community = db.ReferenceProperty(Community)
+    communityQuestion = db.ReferenceProperty(Question, collection_name="rules pointing to community questions")
+    annotationQuestion = db.ReferenceProperty(Question, collection_name="rules pointing to annotation questions")
+    memberQuestion = db.ReferenceProperty(Question, collection_name="rules pointing to member questions")
+
+    test = db.StringProperty(choices=RULE_TESTS)
+    testValues = db.StringListProperty()
+    includeIf = db.BooleanProperty(default=True)
+
+
 
 

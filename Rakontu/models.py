@@ -116,10 +116,9 @@ QUERY_TARGETS = ["stories", "patterns", "constructs", "invitations", "resources"
 BOOLEAN_CHOICES = ["ALL", "ANY"]
 RECENT_TIME_FRAMES = ["last hour", "last day", "last week", "last month", "last six months", "last year", "ever"]
 
-# questions and question generating system
-QUESTION_REFERS_TO = ["story", "pattern", "construct", "invitation", "resource", "community", "member"]
+# questions 
+QUESTION_REFERS_TO = ["story", "pattern", "construct", "invitation", "resource", "member"]
 QUESTION_TYPES = ["boolean", "text", "ordinal", "nominal", "value"]
-RULE_TESTS = ["same as", "<", "<=", ">", ">=", "=", "includes"]
 
 # --------------------------------------------------------------------------------------------
 # Community
@@ -181,12 +180,6 @@ class Community(db.Model):
 	
 	# community level questions and answers
 
-	def getCommunityQuestions(self):
-		return Question.all().filter("community = ", self.key()).filter("refersTo = ", "community").fetch(1000)
-	
-	def getCommunityAnswers(self):
-		return Answer.all().filter("referent = ", self.key()).fetch(1000)
-	
 	def getAnnotationQuestions(self, articleType):
 		return Question.all().filter("community = ", self.key()).filter("refersTo = ", articleType).fetch(1000)
 		
@@ -196,6 +189,9 @@ class Community(db.Model):
 	def getQuestions(self):
 		return Question.all().filter("community = ", self.key()).fetch(1000)
 	
+	def getQuestionsOfType(self, type):
+		return Question.all().filter("community = ", self.key()).filter("refersTo = ", type).fetch(1000)
+	
 	def hasQuestionWithSameTypeAndName(self, question):
 		allQuestions = self.getQuestions()
 		for aQuestion in allQuestions:
@@ -203,20 +199,6 @@ class Community(db.Model):
 				return True
 		return False
 	
-	def AddOrRemoveSystemQuestion(self, question, shouldHaveQuestion):
-		haveQuestion = self.hasQuestionWithSameTypeAndName(question)
-		if haveQuestion and not shouldHaveQuestion:
-			self.RemoveMatchingQuestion(question)
-		if not haveQuestion and shouldHaveQuestion:
-			self.AddCopyOfQuestion(question)
-			
-	def RemoveMatchingQuestion(self, question):
-		questions = self.getQuestions()
-		for aQuestion in questions: 
-			if aQuestion.refersTo == question.refersTo and aQuestion.name == question.name:
-				db.delete(aQuestion)
-				break
-			
 	def AddCopyOfQuestion(self, question):
 		newQuestion = Question(
 							   refersTo=question.refersTo,
@@ -281,10 +263,9 @@ class Question(db.Model):
 							If None, is in a global list communities can copy from. (??)
 		refersTo:			What the question is in reference to: an article (story, pattern, construct, invitation, resource), 
 							community, or member.
-		systemic:			Belongs to the system rather than to any community.
 		
 		type:				One of boolean, text, ordinal, nominal, value.
-		lengthIftext:		How long is allowed for a text answer.
+		lengthIfText:		How long is allowed for a text answer.
 		minIfValue:			Minimum value allowed, if value.
 		maxIfValue:			Maximum value allowed, if value.
 		required:			Whether an answer is required.
@@ -299,17 +280,16 @@ class Question(db.Model):
 	"""
 	community = db.ReferenceProperty(Community)
 	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO, required=True)
-	systemic = db.BooleanProperty(default=False)
 	
-	type = db.StringProperty(choices=QUESTION_TYPES)
-	lengthIftext = db.IntegerProperty(default=40)
+	name = db.StringProperty(required=True, default="No name")
+	text = db.TextProperty(required=True, default="No question text yet.")
+	type = db.StringProperty(choices=QUESTION_TYPES, default="text")
+	lengthIfText = db.IntegerProperty(default=40)
 	minIfValue = db.IntegerProperty(default=0)
 	maxIfValue = db.IntegerProperty(default=1000)
 	required = db.BooleanProperty(default=False)
 	multiple = db.BooleanProperty(default=False)
-	name = db.StringProperty(required=True)
-	text = db.TextProperty(required=True)
-	choices = db.StringListProperty()
+	choices = db.StringListProperty(default=["", "", "", "", "", "", "", "", "", ""])
 	
 	help = db.TextProperty()
 	useHelp = db.TextProperty()
@@ -334,44 +314,6 @@ class Answer(db.Model):
 	
 	entered = db.DateTimeProperty(auto_now_add=True)
 	lastChanged = db.DateTimeProperty()
-	
-class Rule(db.Model):
-	""" Simple if-then statement to choose annotation questions based on community questions.
-	
-	Properties
-		community:			The Rakontu community this rule belongs to.
-							If None, is in a global list communities can copy from.
-		communityQuestion:	What question about the community the rule is based on.
-		annotationQuestion: What question about articles is affected by the rule.
-		memberQuestion: 	What question about members is affected by the rule.
-							The same rule can affect both annotation and member questions.
-
-		test:				The operation used to compare the community answer to the test value.
-		testValues:			The thing(s) compared to the community answer.
-		includeIf:			Whether the test should be true or false to include the annotation question. 
-
-	Usage
-		In the abstract:
-			For the community question <communityQuestion>, 
-			IF the evaluation of (<Answer> <test> <testValues>) = includeIf, 
-			THEN include <annotationOrMemberQuestion>.
-		Examples:
-			For the community question "Is this community united by a geographic place?",
-		  	IF the evaluation of (<Answer> "=" ["yes"]) = true, 
-		  	THEN include "Where do you live?" in member questions.
-		  	
-		  	For the community question "Do people want to talk about social issues?",
-		  	IF the evaluation of (<Answer> "includes" ["no!", "maybe not", "not sure"] = false,
-		  	THEN include "Who needs to hear this story?" in annotation questions.
-	"""
-	community = db.ReferenceProperty(Community)
-	communityQuestion = db.ReferenceProperty(Question, collection_name="rules pointing to community questions")
-	annotationQuestion = db.ReferenceProperty(Question, collection_name="rules pointing to annotation questions")
-	memberQuestion = db.ReferenceProperty(Question, collection_name="rules pointing to member questions")
-
-	test = db.StringProperty(choices=RULE_TESTS)
-	testValues = db.StringListProperty()
-	includeIf = db.BooleanProperty(default=True)
 	
 # --------------------------------------------------------------------------------------------
 # Member

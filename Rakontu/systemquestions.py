@@ -159,21 +159,5 @@ def AddSystemQuestionsToDataStore():
 					"",
 					False])
 
-	# community questions
-	AddSystemQuestionIfNotThere(["community", 
-					"Geographic",
-					"Is this a geographic community?",
-					"boolean", [],
-					"Does this community represent a place or a group of people?",
-					"",
-					False])
-	AddSystemQuestionIfNotThere(["community", 
-					"Why created",
-					"Why was this community created?",
-					"text", [],
-					"Explain why the community was created.",
-					"",
-					False])
-
 
 
