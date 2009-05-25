@@ -402,59 +402,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
                     i += 1
                 community.put()
         self.redirect('/visitCommunity')
-        
-class ManageCommunityQuestionsPage(webapp.RequestHandler):
-    """ Page where user sets questions.
-    """
-    @RequireLogin 
-    def get(self):
-        user = users.get_current_user()
-        url, url_linktext = GenerateURLs(self.request)
-        session = Session()
-        community_key = None
-        if session and session.has_key('community_key'):
-            community_key = session['community_key']
-        if community_key:
-            community = db.get(community_key) 
-            if community:
-                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(1000)[0]
-                communityMemberQuestions = community.getMemberQuestions()
-                systemQuestions = Question.all().filter("community = ", None).fetch(1000)
-                template_values = {
-                                   'url': url, 
-                                   'url_linktext': url_linktext, 
-                                   'community': community, 
-                                   'current_user': user, 
-                                   'current_member': currentMember,
-                                   'system_questions': systemQuestions,
-                                   'question_refer_types': QUESTION_REFERS_TO,
-                                   }
-                path = os.path.join(os.path.dirname(__file__), 'templates/manage/questions.html')
-                self.response.out.write(template.render(path, template_values))
-        else:
-            self.redirect("/")
-    
-    @RequireLogin 
-    def post(self):
-        """Process changes to community-wide settings."""
-        user = users.get_current_user()
-        url, url_linktext = GenerateURLs(self.request)
-        session = Session()
-        if session and session.has_key('community_key'):
-            community_key = session['community_key']
-        else:
-            community_key = None
-        if community_key:
-            community = db.get(community_key) 
-            if community:
-                systemQuestions = Question.all().filter("community = ", None).fetch(1000)
-                for question in systemQuestions:
-                    reference = "%s|%s" % (question.refersTo, question.name)
-                    shouldHaveQuestion = self.request.get(reference) == reference
-                    community.AddOrRemoveSystemQuestion(question, shouldHaveQuestion)
-                community.put()
-        self.redirect('/visitCommunity')
-        
+                
 class ManageQuestionsPage(webapp.RequestHandler):
     """ Page where user sets questions.
     """
@@ -562,22 +510,6 @@ class ManageQuestionsPage(webapp.RequestHandler):
                     if self.request.get("copy|%s" % sysQuestion.key()) == "copy|%s" % sysQuestion.key():
                         community.AddCopyOfQuestion(sysQuestion)
         self.redirect('/visitCommunity')
-
-class ManagePatternQuestionsPage(webapp.RequestHandler):
-    pass
-
-class ManageConstructQuestionsPage(webapp.RequestHandler):
-    pass
-
-class ManageInvitationQuestionsPage(webapp.RequestHandler):
-    pass
-
-class ManageResourceQuestionsPage(webapp.RequestHandler):
-    pass
-
-class ManageMemberQuestionsPage(webapp.RequestHandler):
-    pass
-
 
 class ManageCommunityPersonificationsPage(webapp.RequestHandler):
     """ Review, add, remove personifications.
