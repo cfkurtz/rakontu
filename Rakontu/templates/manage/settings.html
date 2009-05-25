@@ -5,6 +5,9 @@
 	<body>
 		<form action="/manage/settings" method="post" enctype="multipart/form-data">
 		<h2>Changing Settings for Rakontu Community "{{ community.name|escape }}"</h2>
+		<p>Community ID number (database key): {{community.key}}</p>
+		<p>Created: {{community.created}}</p>
+
 		<h3>Name and description</h3>
 		<p>Community name</p>
 		<div><input type="text" name="name" value="{{ community.name }}"/></div>
@@ -12,8 +15,10 @@
 		<div><textarea name="description" rows="10" cols="60">{{ community.description|escape }}</textarea></div>
 		<i>Full URLs in the community description will be converted to links in what is shown.</i>
 		<p>Community image</p>
-		<div><input type="file" name="img"/></div>
-		<p>Community ID number (database key): {{community.key}}</p>
+		{% if community.image %}
+			<div><img src="img?community_id={{community.key}}"></img></div>
+		{% endif %}
+		<p><div><input type="file" name="img"/></div></p>
 		
 		<h3>Anonymity</h3>
 		Is anonymous entry allowed for each of these entry types?
@@ -39,6 +44,37 @@
 		{% endfor %}
 		</table>
       	<p>
+
+		<h3>Helping Roles</h3>
+		<p>These texts are shown to members before they take on voluntary roles.</p>
+		Curator read-before text
+		<div><textarea name="readme0" rows="3" cols="60">{{ community.roleReadmes.0|escape }}</textarea></div>
+		<p><label><input type="checkbox" name="agreement0" value="agreement0"
+			{% if community.roleAgreements.0 %}
+				checked="checked"/>
+			{% else %}
+				/>
+			{% endif %}
+			Members must check box to agree to terms before becoming curator</label></div></p>
+		Booster read-before text
+		<div><textarea name="readme1" rows="3" cols="60">{{ community.roleReadmes.1|escape }}</textarea></div>
+		<p><label><input type="checkbox" name="agreement1"  value="agreement1"
+			{% if community.roleAgreements.1 %}
+				checked="checked"/>
+			{% else %}
+				/>
+			{% endif %}
+			Members must check box to agree to terms before becoming booster</label></div></p>
+		Liaison read-before text
+		<div><textarea name="readme2" rows="3" cols="60">{{ community.roleReadmes.2|escape }}</textarea></div>
+		<p><label><input type="checkbox" name="agreement2"  value="agreement2"
+			{% if community.roleAgreements.2 %}
+				checked="checked"/>
+			{% else %}
+				/>
+			{% endif %}
+			Members must check box to agree to terms before becoming liaison</label></div></p>
+
     <input type="submit" name="changeSettings" value="Change Settings">	
 	</form>	
 	<p>

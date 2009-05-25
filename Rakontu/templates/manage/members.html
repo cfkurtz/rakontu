@@ -46,36 +46,6 @@
       		{% endfor %}
       	</table>
       	<p>
-		<h3>Helping Roles</h3>
-		<p>These texts are shown to members before they take on voluntary roles.</p>
-		Curator read-before text
-		<div><textarea name="readme0" rows="3" cols="60">{{ community.roleReadmes.0|escape }}</textarea></div>
-		<p><label><input type="checkbox" name="agreement0" value="agreement0"
-			{% if community.roleAgreements.0 %}
-				checked="checked"/>
-			{% else %}
-				/>
-			{% endif %}
-			Members must check box to agree to terms before becoming curator</label></div></p>
-		Booster read-before text
-		<div><textarea name="readme1" rows="3" cols="60">{{ community.roleReadmes.1|escape }}</textarea></div>
-		<p><label><input type="checkbox" name="agreement1"  value="agreement1"
-			{% if community.roleAgreements.1 %}
-				checked="checked"/>
-			{% else %}
-				/>
-			{% endif %}
-			Members must check box to agree to terms before becoming booster</label></div></p>
-		Liaison read-before text
-		<div><textarea name="readme2" rows="3" cols="60">{{ community.roleReadmes.2|escape }}</textarea></div>
-		<p><label><input type="checkbox" name="agreement2"  value="agreement2"
-			{% if community.roleAgreements.2 %}
-				checked="checked"/>
-			{% else %}
-				/>
-			{% endif %}
-			Members must check box to agree to terms before becoming liaison</label></div></p>
-
 
     <input type="submit" name="submitChanges" value="Submit Changes">	
 	</form>	

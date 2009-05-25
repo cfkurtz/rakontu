@@ -12,7 +12,7 @@
 		<td>Member ID number (database key) for this community</td><td>{{member.key}}</td></tr>
 		<td>Google account ID number in general</td><td>{{member.googleAccountID}}</td></tr>
 		<td>Is owner or manager</td><td>{{member.governanceType}}</td></tr>
-		<td>Online member</td><td>{{member.isOnlineMember|yesno:"yes, no, maybe"}}</td></tr>
+		<td>Is online member</td><td>{{member.isOnlineMember|yesno:"yes, no, maybe"}}</td></tr>
 		{% if not member.isOnlineMember %}
 			<td>Liaison</td><td>{{liaison.nickname}}</td></tr>
 		{% endif %}
@@ -24,93 +24,26 @@
 		</table>
 		
 		<h3>Nickname and description</h3>
+		<fieldset>
 		<p>Nickname</p>
 		<div><input type="text" name="nickname" value="{{ member.nickname }}"/></div>
-		<div><label><input type="checkbox" name="nickname_is_real_name" value="yes" checked>This nickname is my real name</label></div>
+		<div><label><input type="checkbox" name="nickname_is_real_name" value="yes" 
+			{% if member.nicknameIsRealName %}
+				checked
+			{% endif %}
+			>This nickname is my real name</label></div>
 		<p>Please describe yourself to other members.</p>
-		<div><textarea name="description" rows="10" cols="60">{{ member.profileText|escape }}</textarea></div>
+		<div><textarea name="description" rows="10" cols="60">{{ member.profileText }}</textarea></div>
 		<i>Full URLs in the profile text will be converted to links in what is shown.</i>
 		<p>Profile image</p>
-		<div><input type="file" name="img"/></div>
-		
-		<h3>Member questions</h3>
-		
-		{% for question in community.getMemberQuestions %}
-			<h4>{{ question.text }}</h4>
-			{% if question.help %}
-				<p><i>&nbsp; &nbsp; {{question.help}}</i></p>
-			{% endif %}
-			
-			
-			{% ifequal question.type "text" %}
-				<div><input type="text" size="{{question.lengthIfText}}" name="{{question.name}}" value="
-				{% for answer in member.getAnswers %}
-					{% ifequal answer.question question %}
-						{{answer.answerTexts}}
-					{% endifequal %}
-				{% endfor %}
-				"/></div>
-			{% endifequal %}
-			
-			{% if question.isOrdinalOrNominal %}
-				{% if question.multiple %}
-					{% for choice in question.choices %}
-						<p><label><input type="checkbox" name="{{question.name}}" value="{{choice}}" 
-							{% for answerText in answer.answerTexts %}
-								{% ifequal answerText choice %}
-									checked="checked"
-								{% endifequal %}
-							{% endfor %}
-						/>{{choice}}</label></p>
-					{% endfor %}
-				{% else %}
-					{% for choice in question.choices %}
-						<p><label><input type="radio" name="{{question.name}}" value="{{choice}}" 
-							{% for answerText in answer.answerTexts %}
-								{% ifequal answerText choice %}
-									checked
-								{% endifequal %}
-							{% endfor %}
-						/>{{choice}}</label></p>
-					{% endfor %}				
-				{% endif %}
-			{% endif %}
-			
-			{% ifequal question.type "boolean" %}
-				<p><label><input type="radio" name="{{question.name}}" value="yes" 
-							{% for answerText in answer.answerTexts %}
-								{% ifequal answerText "yes" %}
-									checked
-								{% endifequal %}
-							{% endfor %}
-						/>yes</label></p>
-				<p><label><input type="radio" name="{{question.name}}" value="no" 
-							{% for answerText in answer.answerTexts %}
-								{% ifequal answerText "no" %}
-									checked
-								{% endifequal %}
-							{% endfor %}
-						/>no</label></p>
-			{% endifequal %}
-			
-			{% comment %}
-			I am just using a simple text field for values, this will be replaced with a slider later.
-			{% endcomment %}
-			
-			{% ifequal question.type "value" %}
-				<div><input type="text" size="{{question.lengthIfText}}" name="{{question.name}}" value="
-				{% for answer in member.getAnswers %}
-					{% ifequal answer.question question %}
-						{{answer.answerTexts}}
-					{% endifequal %}
-				{% endfor %}
-				"/></div>
-				<p><i>Please enter a number between {{question.minIfValue}} and {{question.maxIfValue}}.</i></p>
-			{% endifequal %}
-			
-		{% endfor %}
+		{% if member.profileImage %}
+			<div><img src="img?member_id={{member.key}}"></img></div>
+		{% endif %}
+		<p><div><input type="file" name="img"/></div></p>
+		</fieldset>
 		
 		<h3>Helping roles</h3>
+		<fieldset>
 		
 			<p><label><input type="checkbox" name="helpingRole0" value="helpingRole0"
 				{% if member.helpingRoles.0 %}
@@ -118,12 +51,12 @@
 				{% else %}
 					/>
 				{% endif %}
-				I am a {{helping_role_names.0}} in this community.</label></div></p>
+				I am a <b> {{helping_role_names.0}} </b> in this community.</label></div></p>
 			{% if community.roleReadmes.0 %}
-				<table border="1" cellpadding="4" cellspacing="0"><tr><th>Information about the {{helping_role_names.0}} role:</th></tr>
-				<tr><td> {{ community.roleReadmes.0 }} </td></tr>
+				<table border="1" cellpadding="4" cellspacing="0">
+				<tr><td bgcolor="#FFEECC"> {{ community.roleReadmes.0 }} </td></tr>
 				{% if community.roleAgreements.0 %}
-					<tr><td><i>Clicking the "I am a {{helping_role_names.2}}" box implies that you agree to these terms.</i></td></tr>
+					<tr><td><i>Clicking the "I am a {{helping_role_names.0}}" box implies that you agree to these terms.</i></td></tr>
 				{% endif %}
 				</table>
 			{% endif %}
@@ -134,12 +67,12 @@
 				{% else %}
 					/>
 				{% endif %}
-				I am a {{helping_role_names.1}} in this community.</label></div></p>
+				I am a <b>{{helping_role_names.1}}</b> in this community.</label></div></p>
 			{% if community.roleReadmes.1 %}
-				<table border="1" cellpadding="4" cellspacing="0"><tr><th>Information about the {{helping_role_names.1}} role:</th></tr>
-				<tr><td> {{ community.roleReadmes.1 }} </td></tr>
+				<table border="1" cellpadding="4" cellspacing="0"><tr>
+				<tr><td bgcolor="#FFEECC"> {{ community.roleReadmes.1 }} </td></tr>
 				{% if community.roleAgreements.1 %}
-					<tr><td><i>Clicking the "I am a {{helping_role_names.2}}" box implies that you agree to these terms.</i></td></tr>
+					<tr><td><i>Clicking the "I am a {{helping_role_names.1}}" box implies that you agree to these terms.</i></td></tr>
 				{% endif %}
 				</table>
 			{% endif %}
@@ -150,16 +83,94 @@
 				{% else %}
 					/>
 				{% endif %}
-				I am a {{helping_role_names.2}} in this community.</label></div></p>
+				I am a <b>{{helping_role_names.2}}</b> in this community.</label></div></p>
 			{% if community.roleReadmes.2 %}
-				<table border="1" cellpadding="4" cellspacing="0"><tr><th>Information about the {{helping_role_names.2}} role:</th></tr>
-				<tr><td> {{ community.roleReadmes.2 }} </td></tr>
+				<table border="1" cellpadding="4" cellspacing="0">
+				<tr><td bgcolor="#FFEECC"> {{ community.roleReadmes.2 }} </td></tr>
 				{% if community.roleAgreements.2 %}
 					<tr><td><i>Clicking the "I am a {{helping_role_names.2}}" box implies that you agree to these terms.</i></td></tr>
 				{% endif %}
 				</table>
 			{% endif %}
+		</fieldset>
 		
+		<h3>Member questions</h3>
+		<fieldset>
+		{% for question in community.getMemberQuestions %}
+			<h4>{{ question.text }}</h4>
+			{% if question.help %}
+				<p><i>&nbsp; &nbsp; {{question.help}}</i></p>
+			{% endif %}
+			
+			{% ifequal question.type "text" %}
+				<div><input type="text" size="{{question.lengthIfText}}" name="{{question.key}}" value="
+				{% for answer in member_answers %}
+					{% ifequal answer.questionKey question.key %}
+						{{ answer.answerIfText }}
+					{% endifequal %}
+				{% endfor %}
+				"/></div>
+			{% endifequal %}
+			
+			{% if question.isOrdinalOrNominal %}
+				{% if question.multiple %}
+					{% for choice in question.choices %}
+						{% if choice|slugify %}
+							<p><label><input type="checkbox" name="{{question.key}}|{{choice}}" value="{{question.key}}|{{choice}}" 
+							{% for answer in member_answers %}
+								{% ifequal answer.questionKey question.key %}
+									{% for answerText in answer.answerIfMultiple %}
+										{% ifequal answerText choice %}
+											checked="checked"
+										{% endifequal %}
+									{% endfor %}
+								{% endifequal %}
+							{% endfor %}
+							/>{{choice}}</label></p>
+						{% endif %}
+					{% endfor %}
+				{% else %}
+					{% for choice in question.choices %}
+						{% if choice|slugify %}
+						<p><label><input type="radio" name="{{question.key}}" value="{{choice}}" 
+							{% for answer in member_answers %}
+								{% ifequal answer.questionKey question.key %}
+									{% ifequal answer.answerIfText choice %}
+										checked
+									{% endifequal %}
+								{% endifequal %}
+							{% endfor %}
+						/>{{choice}}</label></p>
+						{% endif %}
+					{% endfor %}				
+				{% endif %}
+			{% endif %}
+			
+			{% ifequal question.type "boolean" %}
+				<p><label><input type="checkbox" name="{{question.key}}" value="{{question.key}}" 
+				{% for answer in member_answers %}
+					{% ifequal answer.questionKey question.key %}
+						{% if answer.answerIfBoolean %}
+							checked="checked"
+						{% endif %}
+					{% endifequal %}
+				{% endfor %}
+				/>{{question.responseIfBoolean}}</label></p>
+			{% endifequal %}
+			
+			{% ifequal question.type "value" %}
+				<div><input type="text" size="{{question.lengthIfText}}" name="{{question.key}}" value="
+				{% for answer in member_answers %}
+					{% ifequal answer.questionKey question.key %}
+						{{ answer.answerIfValue }}
+					{% endifequal %}
+				{% endfor %}
+				"/></div>
+				<p><i>Please enter a number between {{question.minIfValue}} and {{question.maxIfValue}}.</i></p>
+			{% endifequal %}
+			
+		{% endfor %}
+		</fieldset>
 		
       	<p>
     <input type="submit" name="changeSettings" value="Change Settings">	

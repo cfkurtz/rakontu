@@ -72,7 +72,7 @@ class StartPage(webapp.RequestHandler):
         user = users.get_current_user()
         communities = []
         if user:
-            members = Member.all().filter("googleAccountID = ", user.user_id()).fetch(1000)
+            members = Member.all().filter("googleAccountID = ", user.user_id()).fetch(FETCH_NUMBER)
             for member in members:
                 try:
                     communities.append(member.community)
@@ -132,7 +132,7 @@ class CreateCommunityPage(webapp.RequestHandler):
             community=community,
             governanceType="owner",
             nickname = self.request.get('nickname'),
-            nicknameIsRealName = self.request.get('nickname_is_real_name')=="yes",
+            nicknameIsRealName = self.request.get('nickname_is_real_name') =="yes",
             profileText = self.request.get('profile_text)'))
         member.put()
         self.redirect('/')
@@ -157,14 +157,14 @@ class VisitCommunityPage(webapp.RequestHandler):
         if community_key:
             community = db.get(community_key) 
             if community:
-                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(1000)[0]
+                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(FETCH_NUMBER)[0]
                 template_values = {
                                    'url': url, 
                                    'url_linktext': url_linktext, 
                                    'community': community, 
                                    'current_user': user, 
                                    'current_member': currentMember,
-                                   'members': Member.all().fetch(1000),
+                                   'members': Member.all().fetch(FETCH_NUMBER),
                                    'user_is_admin': users.is_current_user_admin(),
                                    }
                 path = os.path.join(os.path.dirname(__file__), 'templates/visitCommunity.html')
@@ -191,7 +191,7 @@ class MemberProfilePage(webapp.RequestHandler):
         if community_key:
             community = db.get(community_key) 
             if community:
-                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(1000)[0]
+                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(FETCH_NUMBER)[0]
                 liaison = None
                 if not currentMember.isOnlineMember:
                     try:
@@ -204,6 +204,7 @@ class MemberProfilePage(webapp.RequestHandler):
                                    'community': community, 
                                    'current_user': user, 
                                    'member': currentMember,
+                                   'member_answers': currentMember.getAnswers(),
                                    'liaison': liaison,
                                    'helping_role_names': HELPING_ROLE_TYPES,
                                    }
@@ -214,7 +215,7 @@ class MemberProfilePage(webapp.RequestHandler):
                              
     @RequireLogin 
     def post(self):
-        """Process new and removed members."""
+        """Process changes to member profile."""
         user = users.get_current_user()
         url, url_linktext = GenerateURLs(self.request)
         session = Session()
@@ -225,10 +226,44 @@ class MemberProfilePage(webapp.RequestHandler):
         if community_key:
             community = db.get(community_key) 
             if community:
-                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(1000)[0]
+                member = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(FETCH_NUMBER)[0]
+                member.nickname = self.request.get("nickname")
+                member.nicknameIsRealName = self.request.get('nickname_is_real_name') =="yes"
+                member.profileText = self.request.get("description")
                 if self.request.get("img"):
-                    currentMember.profileImage = db.Blob(images.resize(str(self.request.get("img")), 64, 64))
-                currentMember.put()
+                    member.profileImage = db.Blob(images.resize(str(self.request.get("img")), 64, 64))
+                i = 0
+                for role in HELPING_ROLE_TYPES:
+                    if self.request.get("helpingRole%s" % i):
+                        member.addHelpingRole(i)
+                        i += 1
+                member.put()
+                communityMemberQuestions = Question.all().filter("community = ", community).filter("refersTo = ", "member").fetch(FETCH_NUMBER)
+                for question in communityMemberQuestions:
+                    foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", member.key()).fetch(FETCH_NUMBER)
+                    if foundAnswers:
+                        answerToEdit = foundAnswers[0]
+                    else:
+                        answerToEdit = Answer(question=question, referent=member)
+                    if question.type == "text":
+                        answerToEdit.answerIfText = self.request.get("%s" % question.key())
+                    elif question.type == "value":
+                        oldValue = answerToEdit.answerIfValue
+                        try:
+                            answerToEdit.answerIfValue = int(self.request.get("%s" % question.key()))
+                        except:
+                            answerToEdit.answerIfValue = oldValue
+                    elif question.type == "boolean":
+                        answerToEdit.answerIfBoolean = self.request.get("%s" % question.key()) == "%s" % question.key()
+                    elif question.type == "nominal" or question.type == "ordinal":
+                        if question.multiple:
+                            answerToEdit.answerIfMultiple = []
+                            for choice in question.choices:
+                                if self.request.get("%s|%s" % (question.key(), choice)):
+                                    answerToEdit.answerIfMultiple.append(choice)
+                        else:
+                            answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
+                    answerToEdit.put()
         self.redirect('/visitCommunity')
                                 
 # --------------------------------------------------------------------------------------------
@@ -251,8 +286,8 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
         if community_key:
             community = db.get(community_key) 
             if community:
-                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(1000)[0]
-                communityMembers = Member.all().filter("community = ", community).fetch(1000)
+                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(FETCH_NUMBER)[0]
+                communityMembers = Member.all().filter("community = ", community).fetch(FETCH_NUMBER)
                 template_values = {
                                    'url': url, 
                                    'url_linktext': url_linktext, 
@@ -278,7 +313,7 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
         if community_key:
             community = db.get(community_key) 
             if community:
-                communityMembers = Member.all().filter("community = ", community).fetch(1000)
+                communityMembers = Member.all().filter("community = ", community).fetch(FETCH_NUMBER)
                 for member in communityMembers:
                     for name, value in self.request.params.items():
                         if value.find(member.googleAccountID) >= 0:
@@ -314,10 +349,6 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
                                     community=community,
                                     governanceType="member")
                                 member.put()
-                for i in range(3):
-                    community.roleReadmes[i] = self.request.get("readme%s" % i)
-                    community.roleAgreements[i] = self.request.get("agreement%s" % i) == ("agreement%s" % i)
-                community.put()
         self.redirect('/visitCommunity')
             
                 
@@ -335,7 +366,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
         if community_key:
             community = db.get(community_key) 
             if community:
-                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(1000)[0]
+                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(FETCH_NUMBER)[0]
                 nudgePointIncludes = []
                 i = 0
                 for pointType in ACTIVITIES_GERUND:
@@ -400,10 +431,13 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
                         except:
                             community.nudgePointsPerActivity[i] = oldValue
                     i += 1
+                for i in range(3):
+                    community.roleReadmes[i] = self.request.get("readme%s" % i)
+                    community.roleAgreements[i] = self.request.get("agreement%s" % i) == ("agreement%s" % i)
                 community.put()
         self.redirect('/visitCommunity')
                 
-class ManageQuestionsPage(webapp.RequestHandler):
+class ManageCommunityQuestionsPage(webapp.RequestHandler):
     """ Page where user sets questions.
     """
     @RequireLogin 
@@ -424,9 +458,9 @@ class ManageQuestionsPage(webapp.RequestHandler):
         if community_key:
             community = db.get(community_key) 
             if community:
-                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(1000)[0]
+                currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(FETCH_NUMBER)[0]
                 communityQuestionsOfType = community.getQuestionsOfType(type)
-                systemQuestionsOfType = Question.all().filter("community = ", None).filter("refersTo = ", type).fetch(1000)
+                systemQuestionsOfType = Question.all().filter("community = ", None).filter("refersTo = ", type).fetch(FETCH_NUMBER)
                 template_values = {
                                    'url': url, 
                                    'url_linktext': url_linktext, 
@@ -464,7 +498,7 @@ class ManageQuestionsPage(webapp.RequestHandler):
             community = db.get(community_key) 
             if community:
                 communityQuestionsOfType = community.getQuestionsOfType(type)
-                systemQuestionsOfType = Question.all().filter("community = ", None).filter("refersTo = ", type).fetch(1000)
+                systemQuestionsOfType = Question.all().filter("community = ", None).filter("refersTo = ", type).fetch(FETCH_NUMBER)
                 for question in communityQuestionsOfType:
                     question.name = self.request.get("name|%s" % question.key())
                     question.text = self.request.get("text|%s" % question.key())
@@ -488,6 +522,7 @@ class ManageQuestionsPage(webapp.RequestHandler):
                         question.maxIfValue = self.request.get("maxIfValue|%s" % question.key())
                     except:
                         question.maxIfValue = oldValue
+                    question.responseIfBoolean = self.request.get("responseIfBoolean|%s" % question.key())
                     question.required = self.request.get("required|%s" % question.key()) == "required|%s" % question.key()
                     question.multiple = self.request.get("multiple|%s" % question.key()) == "multiple|%s" % question.key()
                     question.put()
@@ -497,7 +532,7 @@ class ManageQuestionsPage(webapp.RequestHandler):
                         questionsToRemove.append(question)
                 if questionsToRemove:
                     for question in questionsToRemove:
-                        answersWithThisQuestion = Answer().all().filter("question = ", question.key()).fetch(1000)
+                        answersWithThisQuestion = Answer().all().filter("question = ", question.key()).fetch(FETCH_NUMBER)
                         for answer in answersWithThisQuestion:
                             db.delete(answer)
                         db.delete(question)
@@ -527,7 +562,7 @@ class ManageCommunityPersonificationsPage(webapp.RequestHandler):
         if community_key:
             community = db.get(community_key) 
             if community:
-                personifications = Personification.all().filter("community = ", community).fetch(1000)
+                personifications = Personification.all().filter("community = ", community).fetch(FETCH_NUMBER)
                 template_values = {
                                    'url': url, 
                                    'url_linktext': url_linktext, 
@@ -552,7 +587,7 @@ class ManageCommunityPersonificationsPage(webapp.RequestHandler):
         if community_key:
             community = db.get(community_key) 
             if community:
-                personifications = Personification.all().filter("community = ", community).fetch(1000)
+                personifications = Personification.all().filter("community = ", community).fetch(FETCH_NUMBER)
                 psToRemove = []
                 for personification in personifications:
                     personification.name = self.request.get("name|%s" % personification.key())
@@ -589,7 +624,7 @@ class ShowAllCommunities(webapp.RequestHandler):
         """Show info on all communities."""
         if users.is_current_user_admin():
             url, url_linktext = GenerateURLs(self.request)
-            template_values = {'url': url, 'url_linktext': url_linktext, 'communities': Community.all().fetch(1000), 'members': Member.all().fetch(1000)}
+            template_values = {'url': url, 'url_linktext': url_linktext, 'communities': Community.all().fetch(FETCH_NUMBER), 'members': Member.all().fetch(FETCH_NUMBER)}
             path = os.path.join(os.path.dirname(__file__), 'templates/admin/showAllCommunities.html')
             self.response.out.write(template.render(path, template_values))
         else:
@@ -602,12 +637,16 @@ class ShowAllMembers(webapp.RequestHandler):
         """Show info on all members."""
         if users.is_current_user_admin():
             url, url_linktext = GenerateURLs(self.request)
-            template_values = {'url': url, 'url_linktext': url_linktext,'members': Member.all().fetch(1000)}
+            template_values = {'url': url, 'url_linktext': url_linktext,'members': Member.all().fetch(FETCH_NUMBER)}
             path = os.path.join(os.path.dirname(__file__), 'templates/admin/showAllMembers.html')
             self.response.out.write(template.render(path, template_values))
         else:
             self.redirect('/')
             
+# --------------------------------------------------------------------------------------------
+# Non-text handling
+# --------------------------------------------------------------------------------------------
+        
 class Image (webapp.RequestHandler):
     def get(self):
         if self.request.get("member_id"):
@@ -636,18 +675,20 @@ application = webapp.WSGIApplication(
                                       ('/visitCommunity', VisitCommunityPage),
                                       ('/visit/profile', MemberProfilePage),
                                       ('/img', Image),
+                                      ('/visit/img', Image),
+                                      ('/manage/img', Image),
                                       
                                       # managing
                                       ('/createCommunity', CreateCommunityPage),
                                       ('/manage/members', ManageCommunityMembersPage),
                                       ('/manage/settings', ManageCommunitySettingsPage),
-                                      ('/manage/questions/story', ManageQuestionsPage),
-                                      ('/manage/questions/pattern', ManageQuestionsPage),
-                                      ('/manage/questions/construct', ManageQuestionsPage),
-                                      ('/manage/questions/invitation', ManageQuestionsPage),
-                                      ('/manage/questions/resource', ManageQuestionsPage),
-                                      ('/manage/questions/member', ManageQuestionsPage),
-                                      ('/manage/questions/questions', ManageQuestionsPage),
+                                      ('/manage/questions/story', ManageCommunityQuestionsPage),
+                                      ('/manage/questions/pattern', ManageCommunityQuestionsPage),
+                                      ('/manage/questions/construct', ManageCommunityQuestionsPage),
+                                      ('/manage/questions/invitation', ManageCommunityQuestionsPage),
+                                      ('/manage/questions/resource', ManageCommunityQuestionsPage),
+                                      ('/manage/questions/member', ManageCommunityQuestionsPage),
+                                      ('/manage/questions/questions', ManageCommunityQuestionsPage),
                                       ('/manage/personifications', ManageCommunityPersonificationsPage),
                                       ('/manage/technical', ManageCommunityTechnicalPage),
                                       

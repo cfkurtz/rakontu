@@ -20,6 +20,7 @@
       		<th>Required?</th>
       		<th>Maximum characters<br><i>if text</i></th>
       		<th>Minimum and maximum<br><i>if value</i></th>
+      		<th>Response<br><i>if boolean</i></th>
       		<th>Choices<br><i>if ordinal or nominal</i></i></th>
       		<th>Multiple answers allowed?<br><i>if ordinal or nominal</i></th>
       		<th>Remove</th>
@@ -47,6 +48,7 @@
       			 <td valign="top"><div><input type="text" name="minIfValue|{{question.key}}" size="4" value="{{question.minIfValue}}"></div>
       			 	<div><input type="text" name="maxIfValue|{{question.key}}" size="4" value="{{question.maxIfValue}}"></div>
       			 	</td>
+      			 <td valign="top"><div><input type="text" name="responseIfBoolean|{{question.key}}" size="20" value="{{question.responseIfBoolean}}"></div></td>
       			 <td valign="top">
       			 	<div><input type="text" name="choice0|{{question.key}}" size="12" value="{{question.choices.0}}"></div>
       			 	<div><input type="text" name="choice1|{{question.key}}" size="12" value="{{question.choices.1}}"></div>
@@ -80,6 +82,7 @@
       		<th>Type</th>
       		<th>Maximum characters<br><i>if text</i></th>
       		<th>Minimum and maximum<br><i>if value</i></th>
+      		<th>Response<br><i>if boolean</i></th>
       		<th>Choices<br><i>if ordinal or nominal</i></i></th>
       		<th>Multiple answers allowed?<br><i>if ordinal or nominal</i></th>
       		</tr>
@@ -92,6 +95,7 @@
 				<td valign="top">{% ifequal sys_question.type "text" %} {{sys_question.lengthIfText}} {% else %} &nbsp; {% endifequal %}</td>
 				<td valign="top">{% ifequal sys_question.type "value" %} {{sys_question.minIfValue}} {% else %} &nbsp; {% endifequal %}<br>
 				{% ifequal sys_question.type "value" %} {{sys_question.maxIfValue}} {% else %} &nbsp; {% endifequal %}</td>
+				<td valign="top">{% ifequal sys_question.type "boolean" %} {{sys_question.responseIfBoolean}} {% else %} &nbsp; {% endifequal %}</td>
 				<td valign="top">{% if sys_question.choices %} {{sys_question.choices|join:"<br>"}}  {% else %} &nbsp; {% endif %}</td>
 				<td valign="top">{{sys_question.multiple|yesno:"yes, no, maybe"}}</td>
 				</tr>

@@ -30,6 +30,8 @@ def checkedBlank(value):
 # Constants
 # --------------------------------------------------------------------------------------------
 
+FETCH_NUMBER = 1000
+
 # community
 DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE = 10
 DEFAULT_NUDGE_POINT_ACCUMULATIONS = [
@@ -59,6 +61,10 @@ DEFAULT_NUDGE_POINT_ACCUMULATIONS = [
 NO_NICKNAME_SET = "No nickname set"
 MEMBER_TYPES = ["member", "on-line member", "off-line member", "liaison", "curator", "booster", "manager", "owner"]
 HELPING_ROLE_TYPES = ["curator", "booster", "liaison"]
+DEFAULT_ROLE_READMES = [
+					    "A curator pays attention to Rakontu's accumulated data. Curators add information, check for problems, create links, and in general maintain the vitality of the story bank.",
+					    "A booster pays attention to the Rakontu's on-line human community. Boosters answer questions, write tutorials, encourage people to tell and use stories, create patterns, write and respond to requests, set up and run exercises, and in general maintain the vitality of the on-line member community.",
+					    "A liaison guides stories and other information over the barrier between on-line and off-line worlds. Liaisons conduct external interviews and add the stories people tell in them, read stories to people and gather comments, nudges, and other annotations, and in general make the system work for both on-line and off-line community members."]
 GOVERNANCE_ROLE_TYPES = ["member", "manager", "owner"]
 GOVERNANCE_VIEWS = ["settings", "members", "watch", "technical"]
 ACTIVITIES_GERUND = ["time", \
@@ -148,12 +154,13 @@ class Community(db.Model):
 	name = db.StringProperty()
 	description = db.TextProperty()
 	image = db.BlobProperty(default=None)
+	created = db.DateTimeProperty(auto_now_add=True)
 	
 	nudgePointsPerActivity = db.ListProperty(int, default=DEFAULT_NUDGE_POINT_ACCUMULATIONS)
 	maxNudgePointsPerArticle = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE)
 	allowAnonymousEntry = db.ListProperty(bool, default=[False,False,False,False,False,False,False,False,False,False])
 	utilityNudgeCategories = db.StringListProperty(default=["", "", "", "", ""])
-	roleReadmes = db.StringListProperty(default=["", "", ""])
+	roleReadmes = db.StringListProperty(default=DEFAULT_ROLE_READMES)
 	roleAgreements = db.ListProperty(bool, default=[False, False, False])
 	
 	# articles
@@ -182,16 +189,16 @@ class Community(db.Model):
 	# community level questions and answers
 
 	def getAnnotationQuestions(self, articleType):
-		return Question.all().filter("community = ", self.key()).filter("refersTo = ", articleType).fetch(1000)
+		return Question.all().filter("community = ", self.key()).filter("refersTo = ", articleType).fetch(FETCH_NUMBER)
 		
 	def getMemberQuestions(self):
-		return Question.all().filter("community = ", self.key()).filter("refersTo = ", "member").fetch(1000)
+		return Question.all().filter("community = ", self.key()).filter("refersTo = ", "member").fetch(FETCH_NUMBER)
 	
 	def getQuestions(self):
-		return Question.all().filter("community = ", self.key()).fetch(1000)
+		return Question.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
 	
 	def getQuestionsOfType(self, type):
-		return Question.all().filter("community = ", self.key()).filter("refersTo = ", type).fetch(1000)
+		return Question.all().filter("community = ", self.key()).filter("refersTo = ", type).fetch(FETCH_NUMBER)
 	
 	def hasQuestionWithSameTypeAndName(self, question):
 		allQuestions = self.getQuestions()
@@ -214,7 +221,7 @@ class Community(db.Model):
 		newQuestion.put()
 	
 	def getMembers(self):
-		return Member.all().filter("community = ", self.key()).fetch(1000)
+		return Member.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
 	
 	def hasMemberWithUserID(self, userID):
 		members = self.getMembers()
@@ -224,19 +231,19 @@ class Community(db.Model):
 		return False
 	
 	def getCurators(self):
-		return Member.all().filter("community = ", self.key()).filter("helpingRoles IN ", "curator").fetch(1000)
+		return Member.all().filter("community = ", self.key()).filter("helpingRoles IN ", "curator").fetch(FETCH_NUMBER)
 	
 	def getBoosters(self):
-		return Member.all().filter("community = ", self.key()).filter("helpingRoles IN ", "booster").fetch(1000)
+		return Member.all().filter("community = ", self.key()).filter("helpingRoles IN ", "booster").fetch(FETCH_NUMBER)
 	
 	def getLiaisons(self):
-		return Member.all().filter("community = ", self.key()).filter("helpingRoles IN ", "liaison").fetch(1000)
+		return Member.all().filter("community = ", self.key()).filter("helpingRoles IN ", "liaison").fetch(FETCH_NUMBER)
 	
 	def getManagers(self):
-		return Member.all().filter("community = ", self.key()).filter("governanceType = ", "manager").fetch(1000)
+		return Member.all().filter("community = ", self.key()).filter("governanceType = ", "manager").fetch(FETCH_NUMBER)
 	
 	def getOwners(self):
-		return Member.all().filter("community = ", self.key()).filter("governanceType = ", "owner").fetch(1000)
+		return Member.all().filter("community = ", self.key()).filter("governanceType = ", "owner").fetch(FETCH_NUMBER)
 	
 	def memberIsOnlyOwner(self, member):
 		owners = self.getOwners()
@@ -269,12 +276,12 @@ class Question(db.Model):
 		lengthIfText:		How long is allowed for a text answer.
 		minIfValue:			Minimum value allowed, if value.
 		maxIfValue:			Maximum value allowed, if value.
+		responseIfBoolean:	What the checkbox should say if the response is positive.
 		required:			Whether an answer is required.
 		multiple:			Whether multiple answers are allowed.
 		name:				Name to display in viewer or wherever a short handle is needed.
 		text:				The actual text question asked. May be much longer.
 		choices:			A list of strings with possible answers.
-							If the type is value, these are converted to ints.
 		
 		help:				Explanatory text about how to answer the question.
 		useHelp:			Appears to manager choosing question. Helps them decide when to use it.
@@ -288,6 +295,7 @@ class Question(db.Model):
 	lengthIfText = db.IntegerProperty(default=40)
 	minIfValue = db.IntegerProperty(default=0)
 	maxIfValue = db.IntegerProperty(default=1000)
+	responseIfBoolean = db.StringProperty(default="Yes")
 	required = db.BooleanProperty(default=False)
 	multiple = db.BooleanProperty(default=False)
 	choices = db.StringListProperty(default=["", "", "", "", "", "", "", "", "", ""])
@@ -295,26 +303,38 @@ class Question(db.Model):
 	help = db.TextProperty()
 	useHelp = db.TextProperty()
 	
+	created = db.DateTimeProperty(auto_now_add=True)
+	
 	def isOrdinalOrNominal(self):
 		return self.type == "ordinal" or self.type == "nominal"
 		
 class Answer(db.Model):
-	""" Answer to community question with reference to community. 
+	""" Answer to question. 
 	
 	Properties
 		question: 			Refers to annotation question, for display.
-		referent:			The community, member, or annotation (answer set) the answer refers to.
-		answerTexts:		Text string. If numerical choice, this is converted on use. Can be multiple.
+		referent:			Whatever the answer refers to.
+		answerIfBoolean:	True or false. Only used if question type is boolean.
+		answerIfText:		String. Only used if question type is text.
+		answerIfMultiple:	List of strings. Only used if question type is ordinal or nominal and multiple flag is set.
+		answerIfValue:		Integer. Only used if question type is value.
+							(Note we are leaving float values out.)
 		
 		entered: 			When entered.
 		lastChanged: 		When last changed.
 	"""
 	question = db.ReferenceProperty(Question, collection_name="answers referring to questions")
-	referent = db.Key
-	answerTexts = db.StringListProperty()
+	referent = db.ReferenceProperty(None, collection_name="answers referring to objects they are about")
+	answerIfBoolean = db.BooleanProperty(default=False)
+	answerIfText = db.StringProperty(default="")
+	answerIfMultiple = db.StringListProperty(default=["", "", "", "", "", "", "", "", "", ""])
+	answerIfValue = db.IntegerProperty(default=0)
 	
 	entered = db.DateTimeProperty(auto_now_add=True)
-	lastChanged = db.DateTimeProperty()
+	lastChanged = db.DateTimeProperty(auto_now_add=True)
+	
+	def questionKey(self):
+		return self.question.key()
 	
 # --------------------------------------------------------------------------------------------
 # Member
@@ -338,7 +358,7 @@ class Member(db.Model):
 		governanceType:		Whether they are a member, manager or owner.
 		governanceView:		What views (of GOVERNANCE_VIEWS) the member wants to see if they 
 							are a manager or owner.
-		roles:				Helping roles the member has chosen (curator, booster, liaison).
+		helpingRoles:		Helping roles the member has chosen (curator, booster, liaison).
 		
 		nicknameIsRealName:	Whether their nickname is their real name. For display only.
 		profileText:		Small amount of member-submitted info about themselves.
@@ -373,13 +393,13 @@ class Member(db.Model):
 	nudgePoints = db.IntegerProperty(default=0)
 
 	def getHistory(self):
-		articles = Article.all().filter("creator =", self.key()).order("-date").fetch(1000)
-		annotations = Annotation.all().filter("creator =", self.key()).order("-date").fetch(1000)
-		links = Link.all().filter("creator =", self.key()).order("-date").fetch(1000)
+		articles = Article.all().filter("creator =", self.key()).order("-date").fetch(FETCH_NUMBER)
+		annotations = Annotation.all().filter("creator =", self.key()).order("-date").fetch(FETCH_NUMBER)
+		links = Link.all().filter("creator =", self.key()).order("-date").fetch(FETCH_NUMBER)
 		return articles, annotations, links
 	
 	def getViewingPreferences(self):
-		return ViewingPreferences.all().filter("owner = ", self.key()).fetch(1000)
+		return ViewingPreferences.all().filter("owner = ", self.key()).fetch(FETCH_NUMBER)
 	
 	def googleUserNicknameOrNotOnline(self):
 		if self.isOnlineMember:
@@ -392,13 +412,17 @@ class Member(db.Model):
 		return "Offline member"
 	
 	def isCurator(self):
-		return "curator" in self.roles
+		return "curator" in self.helpingRoles
 	
 	def isBooster(self):
-		return "booster" in self.roles
+		return "booster" in self.helpingRoles
 	
 	def isLiaison(self):
-		return "liaison" in self.roles
+		return "liaison" in self.helpingRoles
+	
+	def addHelpingRole(self, index):
+		if not self.helpingRoles[index]:
+			self.helpingRoles[index] = HELPING_ROLE_TYPES[index]
 	
 	def setGovernanceType(self, type):
 		self.governanceType = type
@@ -428,7 +452,7 @@ class Member(db.Model):
 		return ""
 	
 	def getAnswers(self):
-		return Answer.all().filter("referent = ", self.key())
+		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
 	
 class TempUser(db.Model):
 	user = db.UserProperty(required=True)
@@ -499,28 +523,28 @@ class Article(polymodel.PolyModel):
 	numReads = db.IntegerProperty(default=0)
 	
 	def getAttachments(self):
-		return Attachment.all().filter("article =", self.key()).fetch(1000)
+		return Attachment.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
 
 	def getAnnotations(self):
-		return Annotation.all().filter("article =", self.key()).fetch(1000)
+		return Annotation.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
 	
 	def getComments(self):
-		return Comment.all().filter("article =", self.key()).fetch(1000)
+		return Comment.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
 	
 	def getAnswerSets(self):
-		return AnswerSet.all().filter("article =", self.key()).fetch(1000)
+		return AnswerSet.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
 	
 	def getTags(self):
-		return Tag.all().filter("article =", self.key()).fetch(1000)
+		return Tag.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
 	
 	def getNudges(self):
-		return Nudge.all().filter("article =", self.key()).fetch(1000)
+		return Nudge.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
 	
 	def getRequests(self):
-		return Request.all().filter("article =", self.key()).fetch(1000)
+		return Request.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
 		
 	def getOutgoingLinks(self):
-		return Link.all().filter("articleFrom =", self.key()).fetch(1000)
+		return Link.all().filter("articleFrom =", self.key()).fetch(FETCH_NUMBER)
 		
 class Story(Article):
 	pass
