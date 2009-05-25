@@ -89,8 +89,6 @@ class StartPage(webapp.RequestHandler):
 
     @RequireLogin 
     def post(self):
-        MyDebug("in startpage post!")
-        MyDebug(self.request.arguments())
         if "visitCommunity" in self.request.arguments():
             community_key = self.request.get('community_key')
             if community_key:
@@ -457,13 +455,20 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
                 community.put()
         self.redirect('/visitCommunity')
         
-class ManageStoryQuestionsPage(webapp.RequestHandler):
+class ManageQuestionsPage(webapp.RequestHandler):
     """ Page where user sets questions.
     """
     @RequireLogin 
     def get(self):
         user = users.get_current_user()
         url, url_linktext = GenerateURLs(self.request)
+        i = 0
+        for aType in QUESTION_REFERS_TO:
+            if self.request.uri.find(aType) >= 0:
+                type = aType
+                typePlural = QUESTION_REFERS_TO_PLURAL[i]
+                break
+            i += 1
         session = Session()
         community_key = None
         if session and session.has_key('community_key'):
@@ -472,20 +477,22 @@ class ManageStoryQuestionsPage(webapp.RequestHandler):
             community = db.get(community_key) 
             if community:
                 currentMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(1000)[0]
-                communityStoryQuestions = community.getQuestionsOfType("story")
-                systemStoryQuestions = Question.all().filter("community = ", None).filter("refersTo = ", "story").fetch(1000)
+                communityQuestionsOfType = community.getQuestionsOfType(type)
+                systemQuestionsOfType = Question.all().filter("community = ", None).filter("refersTo = ", type).fetch(1000)
                 template_values = {
                                    'url': url, 
                                    'url_linktext': url_linktext, 
                                    'community': community, 
                                    'current_user': user, 
                                    'current_member': currentMember,
-                                   'questions': communityStoryQuestions,
+                                   'questions': communityQuestionsOfType,
                                    'question_types': QUESTION_TYPES,
-                                   'system_questions': systemStoryQuestions,
+                                   'system_questions': systemQuestionsOfType,
+                                   'refer_type': type,
+                                   'refer_type_plural': typePlural,
                                    'question_refer_types': QUESTION_REFERS_TO,
                                    }
-                path = os.path.join(os.path.dirname(__file__), 'templates/manage/questions/stories.html')
+                path = os.path.join(os.path.dirname(__file__), 'templates/manage/questions/questions.html')
                 self.response.out.write(template.render(path, template_values))
         else:
             self.redirect("/")
@@ -495,6 +502,11 @@ class ManageStoryQuestionsPage(webapp.RequestHandler):
         """Process changes to community-wide settings."""
         user = users.get_current_user()
         url, url_linktext = GenerateURLs(self.request)
+        for aType in QUESTION_REFERS_TO:
+            for argument in self.request.arguments():
+                if argument == "changesTo|%s" % aType:
+                    type = aType
+                    break
         session = Session()
         if session and session.has_key('community_key'):
             community_key = session['community_key']
@@ -503,8 +515,9 @@ class ManageStoryQuestionsPage(webapp.RequestHandler):
         if community_key:
             community = db.get(community_key) 
             if community:
-                communityStoryQuestions = community.getQuestionsOfType("story")
-                for question in communityStoryQuestions:
+                communityQuestionsOfType = community.getQuestionsOfType(type)
+                systemQuestionsOfType = Question.all().filter("community = ", None).filter("refersTo = ", type).fetch(1000)
+                for question in communityQuestionsOfType:
                     question.name = self.request.get("name|%s" % question.key())
                     question.text = self.request.get("text|%s" % question.key())
                     question.help = self.request.get("help|%s" % question.key())
@@ -531,20 +544,21 @@ class ManageStoryQuestionsPage(webapp.RequestHandler):
                     question.multiple = self.request.get("multiple|%s" % question.key()) == "multiple|%s" % question.key()
                     question.put()
                 questionsToRemove = []
-                for question in communityStoryQuestions:
+                for question in communityQuestionsOfType:
                     if self.request.get("remove|%s" % question.key()):
                         questionsToRemove.append(question)
                 if questionsToRemove:
                     for question in questionsToRemove:
+                        answersWithThisQuestion = Answer().all().filter("question = ", question.key()).fetch(1000)
+                        for answer in answersWithThisQuestion:
+                            db.delete(answer)
                         db.delete(question)
                 questionNamesToAdd = self.request.get("newQuestionNames").split('\n')
                 for name in questionNamesToAdd:
                     if name.strip():
-                        question = Question(name=name, refersTo="story", community=community)
+                        question = Question(name=name, refersTo=type, community=community)
                         question.put()
-                systemQuestions = Question.all().filter("community = ", None).filter("refersTo = ", "story").fetch(1000)
-                for sysQuestion in systemQuestions:
-                    MyDebug(self.request.get("copy|%s" % sysQuestion.key()), sysQuestion.name)
+                for sysQuestion in systemQuestionsOfType:
                     if self.request.get("copy|%s" % sysQuestion.key()) == "copy|%s" % sysQuestion.key():
                         community.AddCopyOfQuestion(sysQuestion)
         self.redirect('/visitCommunity')
@@ -695,12 +709,13 @@ application = webapp.WSGIApplication(
                                       ('/createCommunity', CreateCommunityPage),
                                       ('/manage/members', ManageCommunityMembersPage),
                                       ('/manage/settings', ManageCommunitySettingsPage),
-                                      ('/manage/questions/stories', ManageStoryQuestionsPage),
-                                      ('/manage/questions/patterns', ManagePatternQuestionsPage),
-                                      ('/manage/questions/constructs', ManageConstructQuestionsPage),
-                                      ('/manage/questions/invitations', ManageInvitationQuestionsPage),
-                                      ('/manage/questions/resources', ManageResourceQuestionsPage),
-                                      ('/manage/questions/members', ManageMemberQuestionsPage),
+                                      ('/manage/questions/story', ManageQuestionsPage),
+                                      ('/manage/questions/pattern', ManageQuestionsPage),
+                                      ('/manage/questions/construct', ManageQuestionsPage),
+                                      ('/manage/questions/invitation', ManageQuestionsPage),
+                                      ('/manage/questions/resource', ManageQuestionsPage),
+                                      ('/manage/questions/member', ManageQuestionsPage),
+                                      ('/manage/questions/questions', ManageQuestionsPage),
                                       ('/manage/personifications', ManageCommunityPersonificationsPage),
                                       ('/manage/technical', ManageCommunityTechnicalPage),
                                       

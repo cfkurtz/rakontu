@@ -3,8 +3,8 @@
 		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
 	</head>
 	<body>
-		<form action="/manage/questions/stories" method="post" enctype="multipart/form-data">
-		<h2>Changing Questions about Stories for Rakontu Community "{{ community.name|escape }}"</h2>
+		<form action="/manage/questions/questions" method="post" enctype="multipart/form-data">
+		<h2>Changing Questions about {{refer_type_plural|capfirst}} for Rakontu Community "{{ community.name|escape }}"</h2>
 		
 		<h3>Add New Questions</h3>
 		<div><textarea name="newQuestionNames" rows="6" cols="40"></textarea></div>
@@ -68,6 +68,9 @@
       				</tr>
       		{% endfor %}
       	</table>
+      	<p><i>Note: Removing a question from the community also removes <b>all</b> answers people have made
+      		to it. If people have answered the question already, you should make a backup of your data
+      		before removing the question, so that the information is not completely gone.</i></p>
       	
 		<h3>Copy Questions from Samples</h3>
       	<table border="1" cellpadding="4" cellspacing="0">
@@ -94,9 +97,10 @@
 				</tr>
 			{% endfor %}
 			</table>
+			<p><i>Note: You can copy the same question multiple times.</i></p>
 
 		<p>
-    <input type="submit" name="changeQuestions" value="Change Questions">	
+    <input type="submit" name="changesTo|{{refer_type}}" value="Change Questions"/>
 	</form>	
 	<p>
     <a href="{{ url }}">{{ url_linktext }}</a>

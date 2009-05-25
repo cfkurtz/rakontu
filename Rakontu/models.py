@@ -18,7 +18,7 @@ from google.appengine.ext.db import polymodel
 # Utility functions
 # --------------------------------------------------------------------------------------------
         
-def MyDebug(text, msg="print"):
+def DebugPrint(text, msg="print"):
     logging.debug(">>>>>>>> %s >>>>>>>> %s" %(msg, text))
     
 def checkedBlank(value):
@@ -118,6 +118,7 @@ RECENT_TIME_FRAMES = ["last hour", "last day", "last week", "last month", "last 
 
 # questions 
 QUESTION_REFERS_TO = ["story", "pattern", "construct", "invitation", "resource", "member"]
+QUESTION_REFERS_TO_PLURAL = ["stories", "patterns", "constructs", "invitations", "resources", "members"]
 QUESTION_TYPES = ["boolean", "text", "ordinal", "nominal", "value"]
 
 # --------------------------------------------------------------------------------------------

@@ -363,6 +363,55 @@ class Rule(db.Model):
     testValues = db.StringListProperty()
     includeIf = db.BooleanProperty(default=True)
 
+# --------------------- I took a quick look at making a Javscript confirm dialog, but am not allowing myself
+# --------------------- to get further into it right now. So saving this for later
 
+    <input type="submit" name="changesTo|{{refer_type}}" value="Change Questions" onClick="javascript:return confirm('Save changes?')">
+
+# -------------------- NOT USING - was questions.html before improving
+
+<html>
+    <head>
+        <link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+    </head>
+    <body>
+        <form action="/manage/questions" method="post">
+        <h2>Changing Settings for Rakontu Community "{{ community.name|escape }}"</h2>
+        <h3>Questions</h3>
+        {% for refer_type in question_refer_types %}
+            <h4>{{refer_type|capfirst}} questions</h4>
+                {% for question in system_questions %}
+                    {% ifequal question.refersTo refer_type %}
+                        <label><input type="checkbox" name="{{refer_type}}|{{question.name}}" value="{{refer_type}}|{{question.name}}" 
+                        {% for commQuestion in community.getQuestions %}
+                            {% ifequal commQuestion.refersTo question.refersTo %}
+                                {% ifequal commQuestion.name question.name %}
+                                    checked="checked"
+                                {% endifequal %}
+                            {% endifequal %}
+                        {% endfor %}
+                            />
+                        {{question.text}} - {{question.type}} 
+                            {% ifequal question.type "nominal" %}
+                                - {{question.choices|join:", "}}
+                            {% endifequal %}
+                            {% ifequal question.type "ordinal" %}
+                                - {{question.choices|join:", "}}
+                            {% endifequal %}
+                            {% if question.multiple %}
+                                - multiple
+                            {% endif %}
+                            </label></div><br>
+                    {% endifequal %}
+                {% endfor %}
+        {% endfor %}
+        <p>
+    <input type="submit" name="changeQuestions" value="Change Questions">    
+    </form>    
+    <p>
+    <a href="{{ url }}">{{ url_linktext }}</a>
+    </body>
+    <p><a href="/">Main page</a>
+</html>
 
 
