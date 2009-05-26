@@ -17,3 +17,7 @@ th {
 div.select {
 	margin: 8px;
 	}
+	
+fieldset {
+	background: #FFEECC;
+	}

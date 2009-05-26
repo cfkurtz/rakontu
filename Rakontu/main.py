@@ -199,8 +199,16 @@ class EnterArticlePage(webapp.RequestHandler):
                                    'user': users.get_current_user(),
                                    'member': currentMember,
                                    'community': community, 
+                                   'refer_type': type,
                                    'article_type': type,
                                    'article': None,
+                                   'questions': community.getQuestionsOfType(type),
+                                   'answers': None,
+                                   'attachments': None,
+                                   'tags': None,
+                                   'comment': None,
+                                   'request': None,
+                                   'request_types': REQUEST_TYPES,
                                    'community_members': community.getMembers(),
                                    'anon_entry_allowed': community.allowAnonymousEntry[entryTypeIndexForAnonymity],
                                    'show_attribution_choice': community.hasAtLeastOnePersonificationOrAnonEntryAllowed(entryTypeIndexForAnonymity)
@@ -209,7 +217,6 @@ class EnterArticlePage(webapp.RequestHandler):
                 self.response.out.write(template.render(path, template_values))
             else:
                 self.redirect("/")
-            # NOTE: MUST ALSO DO ATTACHMENTS !!
             
     @RequireLogin 
     def post(self):
@@ -228,12 +235,63 @@ class EnterArticlePage(webapp.RequestHandler):
             community = db.get(community_key) 
             if community:
                 member = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(FETCH_NUMBER)[0]
-                newArticle=Article(
-                                   community=community,
-                                   type=type,
-                                   creator=member,
-                                   )
-                # THIS NEEDS TO BE FINISHED
+                article=Article(community=community, type=type, creator=member, title="Untitled")
+                article.title = title=self.request.get("title")
+                article.text = self.request.get("text")
+                article.collectedOffline = self.request.get("collectedOffline") == "yes"
+                if member.isLiaison():
+                    for aMember in community.getMembers():
+                        if self.request.get("offlineSource") == aMember.key():
+                            article.creator = aMember
+                            article.liaison = member
+                            break
+                article.attribution = self.request.get("attribution")
+                if article.attribution == "personification":
+                    article.personification = self.request.get("personification")
+                article.put()
+                questions = Question.all().filter("community = ", community).filter("refersTo = ", type).fetch(FETCH_NUMBER)
+                for question in questions:
+                    foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", article.key()).fetch(FETCH_NUMBER)
+                    if foundAnswers:
+                        answerToEdit = foundAnswers[0]
+                    else:
+                        answerToEdit = Answer(question=question, referent=article)
+                    if question.type == "text":
+                        answerToEdit.answerIfText = self.request.get("%s" % question.key())
+                    elif question.type == "value":
+                        oldValue = answerToEdit.answerIfValue
+                        try:
+                            answerToEdit.answerIfValue = int(self.request.get("%s" % question.key()))
+                        except:
+                            answerToEdit.answerIfValue = oldValue
+                    elif question.type == "boolean":
+                        answerToEdit.answerIfBoolean = self.request.get("%s" % question.key()) == "%s" % question.key()
+                    elif question.type == "nominal" or question.type == "ordinal":
+                        if question.multiple:
+                            answerToEdit.answerIfMultiple = []
+                            for choice in question.choices:
+                                if self.request.get("%s|%s" % (question.key(), choice)):
+                                    answerToEdit.answerIfMultiple.append(choice)
+                        else:
+                            answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
+                    answerToEdit.put()
+                # LEFT TO DO:
+                # answers is not right. what to do about answer sets?
+                # attachments
+                # tags
+                # comment
+                # request
+                """
+                if self.request.get("attachment0"):
+                    foundAttachments = Attachment.all().filter("article = ", article.key()).fetch(FETCH_NUMBER)
+                    for i in range(3):
+                        if len(foundAttachments) > i:
+                            attachmentToEdit = foundAttachments[i]
+                        else:
+                            attachmentToEdit = Attachment(article=article)
+                """
+        self.redirect("/visitCommunity")
+                    
         
                 
 # --------------------------------------------------------------------------------------------
@@ -268,9 +326,11 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
                                    'community': community, 
                                    'current_user': user, 
                                    'member': currentMember,
-                                   'member_answers': currentMember.getAnswers(),
+                                   'questions': community.getMemberQuestions(),
+                                   'answers': currentMember.getAnswers(),
                                    'liaison': liaison,
                                    'helping_role_names': HELPING_ROLE_TYPES,
+                                   'refer_type': "member",
                                    }
                 path = os.path.join(os.path.dirname(__file__), 'templates/visit/profile.html')
                 self.response.out.write(template.render(path, template_values))
@@ -301,8 +361,8 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
                         member.addHelpingRole(i)
                         i += 1
                 member.put()
-                communityMemberQuestions = Question.all().filter("community = ", community).filter("refersTo = ", "member").fetch(FETCH_NUMBER)
-                for question in communityMemberQuestions:
+                questions = Question.all().filter("community = ", community).filter("refersTo = ", "member").fetch(FETCH_NUMBER)
+                for question in questions:
                     foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", member.key()).fetch(FETCH_NUMBER)
                     if foundAnswers:
                         answerToEdit = foundAnswers[0]
@@ -328,7 +388,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
                             answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
                     answerToEdit.put()
         self.redirect('/visitCommunity')
-                                
+        
 # --------------------------------------------------------------------------------------------
 # Manage community
 # --------------------------------------------------------------------------------------------

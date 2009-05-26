@@ -1,0 +1,83 @@
+		<h3>
+			{% ifequal refer_type "member" %}
+				Please answer these questions about yourself.
+			{% else %}
+				Please answer these questions about this {{ refer_type }}.
+			{% endifequal %}
+			</h3>
+		<fieldset>
+		{% for question in questions %}
+			<h4>{{ question.text }}</h4>
+			{% if question.help %}
+				<p><i>&nbsp; &nbsp; &nbsp; &nbsp; {{question.help}}</i></p>
+			{% endif %}
+			
+			{% ifequal question.type "text" %}
+				<div><input type="text" size="{{question.lengthIfText}}" name="{{question.key}}" value="
+				{% for answer in answers %}
+					{% ifequal answer.questionKey question.key %}
+						{{ answer.answerIfText }}
+					{% endifequal %}
+				{% endfor %}
+				"/></div>
+			{% endifequal %}
+			
+			{% if question.isOrdinalOrNominal %}
+				{% if question.multiple %}
+					{% for choice in question.choices %}
+						{% if choice|slugify %}
+							<p><label><input type="checkbox" name="{{question.key}}|{{choice}}" value="{{question.key}}|{{choice}}" 
+							{% for answer in answers %}
+								{% ifequal answer.questionKey question.key %}
+									{% for answerText in answer.answerIfMultiple %}
+										{% ifequal answerText choice %}
+											checked="checked"
+										{% endifequal %}
+									{% endfor %}
+								{% endifequal %}
+							{% endfor %}
+							/>{{choice}}</label></p>
+						{% endif %}
+					{% endfor %}
+				{% else %}
+					{% for choice in question.choices %}
+						{% if choice|slugify %}
+						<p><label><input type="radio" name="{{question.key}}" value="{{choice}}" 
+							{% for answer in answers %}
+								{% ifequal answer.questionKey question.key %}
+									{% ifequal answer.answerIfText choice %}
+										checked
+									{% endifequal %}
+								{% endifequal %}
+							{% endfor %}
+						/>{{choice}}</label></p>
+						{% endif %}
+					{% endfor %}				
+				{% endif %}
+			{% endif %}
+			
+			{% ifequal question.type "boolean" %}
+				<p><label><input type="checkbox" name="{{question.key}}" value="{{question.key}}" 
+				{% for answer in answers %}
+					{% ifequal answer.questionKey question.key %}
+						{% if answer.answerIfBoolean %}
+							checked="checked"
+						{% endif %}
+					{% endifequal %}
+				{% endfor %}
+				/>{{question.responseIfBoolean}}</label></p>
+			{% endifequal %}
+			
+			{% ifequal question.type "value" %}
+				<div><input type="text" size="{{question.lengthIfText}}" name="{{question.key}}" value="
+				{% for answer in answers %}
+					{% ifequal answer.questionKey question.key %}
+						{{ answer.answerIfValue }}
+					{% endifequal %}
+				{% endfor %}
+				"/></div>
+				<p><i>Please enter a number between {{question.minIfValue}} and {{question.maxIfValue}}.</i></p>
+			{% endifequal %}
+			
+		{% endfor %}
+		</fieldset>
