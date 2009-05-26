@@ -44,7 +44,7 @@ DEFAULT_NUDGE_POINT_ACCUMULATIONS = [
 					 				10, # relating
 					 				15, # including
 					 				0, # annotating (subclasses)
-					 				20, # interpreting
+					 				20, # answering questios
 					 				4, # tagging
 					 				5, # commenting
 					 				8, # requesting
@@ -70,13 +70,13 @@ GOVERNANCE_VIEWS = ["settings", "members", "watch", "technical"]
 ACTIVITIES_GERUND = ["time", \
 					   	 "browsing", "reading", \
 						 "telling", "retelling", "reminding", "relating", "including", \
-						 "annotating", "interpreting", "tagging", "commenting", "requesting", "nudging", \
+						 "annotating", "answering questions", "tagging", "commenting", "requesting", "nudging", \
 						 "nudging - appropriateness", "nudging - importance", "nudging - utility", \
 						 "nudging - utility custom 1", "nudging - utility custom 2", "nudging - utility custom 3"]
 ACTIVITIES_VERB = ["time", \
 					   	 "browsed", "read", \
 						 "told", "retold", "reminded", "related", "included", \
-						 "annotated", "interpreted", "tagged", "commented", "requested", "nudged", \
+						 "annotated", "questions answered about", "tagged", "commented", "requested", "nudged", \
 						 "nudged - appropriateness", "nudged - importance", "nudged - utility", \
 						 "nudged - utility custom 1", "nudged - utility custom 2", "nudged - utility custom 3"]
 
@@ -86,7 +86,7 @@ ATTRIBUTION_CHOICES = ["member", "anonymous", "personification"]
 LINK_TYPES = ["retold", "reminded", "related", "included"]
 
 # annotations
-ANNOTATION_TYPES = ["answer", "tag", "comment", "request", "nudge"]
+ANNOTATION_TYPES = ["tag", "comment", "request", "nudge"]
 REQUEST_TYPES = ["edit text", "clean up audio/video", "add comments", "nudge", "add tags", "translate", "transcribe", "read aloud", "contact me"]
 NUDGE_TYPES = ["appropriateness", "importance", "utility", "utility custom 1", "utility custom 2", "utility custom 3"]
 ENTRY_TYPES = ["story", "pattern", "construct", "invitation", "resource", "answer", "tag", "comment", "request", "nudge"]
@@ -103,7 +103,7 @@ DEFAULT_VERTICAL_MOVEMENT_POINTS_PER_EVENT = [
 					 				0, # relating (doesn't really apply here)
 					 				0, # including (doesn't really apply here)
 					 				0, # annotating (subclasses)
-					 				20, # interpreting
+					 				20, # answering questions
 					 				10, # tagging
 					 				10, # commenting
 					 				20, # requesting
@@ -118,7 +118,7 @@ DEFAULT_VERTICAL_MOVEMENT_POINTS_PER_EVENT = [
 
 # querying
 QUERY_TYPES = ["free text", "tags", "answers", "members", "activities", "links"]
-QUERY_TARGETS = ["stories", "patterns", "constructs", "invitations", "resources", "articles", "interpretations", "tags", "comments", "requests", "nudge comments"]
+QUERY_TARGETS = ["stories", "patterns", "constructs", "invitations", "resources", "articles", "answers", "tags", "comments", "requests", "nudge comments"]
 BOOLEAN_CHOICES = ["ALL", "ANY"]
 RECENT_TIME_FRAMES = ["last hour", "last day", "last week", "last month", "last six months", "last year", "ever"]
 
@@ -482,7 +482,7 @@ class Personification(db.Model):
 # Article
 # --------------------------------------------------------------------------------------------
 
-class Article(polymodel.PolyModel):
+class Article(db.Model):
 	""" Main element of the system. 
 	
 	Properties
@@ -591,7 +591,7 @@ class Attachment(db.Model):
 # Annotations
 # --------------------------------------------------------------------------------------------
 
-class Annotation(polymodel.PolyModel):
+class Annotation(db.Model):
 	""" Additions to articles.
 	
 	Properties
@@ -600,6 +600,12 @@ class Annotation(polymodel.PolyModel):
 		community:			The Rakontu community this annotation belongs to.
 							Maybe not necessary, but if you wanted to get a list of these without going through
 							articles, this would be useful.
+		type:				One of tag, comment, request or nudge.
+		
+		shortString:		A short string, usually used as a title, but could also be a tag or comment.
+		longString:			A text property, used for the comment or request body.
+		typeIfRequest:		Which type of request it is.
+		valueIfNudge:		The number of nudge points (+ or -) this adds to the article.
 
 		collectedOffline:	Whether it was contributed by an offline member.
 		liaison:			Person who entered the article for off-line member. None if not offline.
@@ -614,6 +620,12 @@ class Annotation(polymodel.PolyModel):
 	article = db.ReferenceProperty(Article, required=True, collection_name="annotations")
 	creator = db.ReferenceProperty(Member, required=True, collection_name="annotations")
 	community = db.ReferenceProperty(Community, required=True)
+	type = db.StringProperty(choices=ANNOTATION_TYPES)
+	
+	shortString = db.StringProperty(default="Untitled")
+	longString = db.TextProperty()
+	typeIfRequest = db.StringProperty(choices=REQUEST_TYPES, required=True)
+	valueIfNudge = db.IntegerProperty(default=0)
 
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="annotations_liaisoned")
@@ -624,55 +636,6 @@ class Annotation(polymodel.PolyModel):
 	entered = db.DateTimeProperty(auto_now_add=True)
 	
 	inappropriateMarks = db.StringListProperty(default=None)
-	
-class AnswerSet(Annotation):
-	""" A set of answers to annotation questions with reference to an article. 
-	"""
-	def getAnswers(self):
-		return Answer.all().filter("referent =", self.key())
-	
-class Tag(Annotation):
-	""" Member tag to describe article.
-	
-	Properties
-		tag:				Short text.
-	"""
-	tag = db.StringProperty(required=True)
-
-class Comment(Annotation):
-	""" Member comment on article.
-	
-	Properties
-		subject:			Subject line of post. 
-		post:				Text. Can contain URLs which are converted to links.
-	"""
-	subject = db.StringProperty(required=True)
-	post = db.TextProperty(required=True)
-
-class Request(Annotation):
-	""" Member communication to other members about article, asking them to do something.
-	
-	Properties
-		title:				What displays in shortened version.
-		text:				Message body.
-		type:				What the other members are being asked to do. 
-							For display and grouping/sorting/filtering.
-	"""
-	title = db.StringProperty(required=True)
-	text = db.TextProperty(required=True)
-	type = db.StringProperty(choices=REQUEST_TYPES, required=True)
-
-class Nudge(Annotation):
-	""" Member rating of article up or down, in any of 3-5 dimensions.
-	
-	Properties
-		value:				Some number of nudge points up (positive) or down (negative).
-		type:				One of the nudge categories: appropriateness, importance,
-							or utility (either plain or in up to three sub-categories).
-	"""
-	value = db.IntegerProperty(default=0)
-	type = db.StringProperty(choices=NUDGE_TYPES)
-	comment = db.TextProperty()
 	
 # --------------------------------------------------------------------------------------------
 # Queries

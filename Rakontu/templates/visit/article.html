@@ -106,7 +106,7 @@
 			{% else %}
 				<p>You can attach some files to this {{article_type}} here.
 			{% endif %}
-			<i>You can attach up to three files (PDF, JPG, PNG only). No uploaded file can be larger
+			<i>You can attach up to three files (PDF, TXT, DOC, JPG, PNG only). No uploaded file can be larger
 			than 10 megabytes.</i></p>
 			<h4>First attachment</h4>
 			<p>Name</p>
@@ -116,7 +116,7 @@
 			{% else %}
 				<p>Click Browse to choose a first attachment for this {{article_type}}.</p>
 			{% endif %}
-			<div><input type="file" name="attachment0" accept="jpg/png/pdf"/></div></p>
+			<div><input type="file" name="attachment0" accept="jpg/png/pdf/txt/doc"/></div></p>
 
 			<h4>Second attachment</h4>
 			<p>Name</p>
@@ -126,7 +126,7 @@
 			{% else %}
 				<p>Click Browse to choose a second attachment for this {{article_type}}.</p>
 			{% endif %}
-			<div><input type="file" name="attachment1" accept="jpg/png/pdf"/></div></p>
+			<div><input type="file" name="attachment1" accept="jpg/png/pdf/txt/docf"/></div></p>
 			
 			<h4>Third attachment</h4>
 			<p>Name</p>
@@ -136,88 +136,9 @@
 			{% else %}
 				<p>Click Browse to choose a third attachment for this {{article_type}}.</p>
 			{% endif %}
-			<div><input type="file" name="attachment2" accept="jpg/png/pdf"/></div>
+			<div><input type="file" name="attachment2" accept="jpg/png/pdf/txt/doc"/></div>
 			</fieldset>
 			
-			<h3>Annotations</h3>
-			<fieldset>
-			{% if article %}
-				<p>Your annotations for this {{article_type}}</p>
-			{% else %}
-				<p>If you like, you can enter some annotations for this {{article_type}}.</p>
-			{% endif %}
-			
-			<h4>Tags</h4>
-			<p><input type="text" name="tag0" size="20" value="{% if tags %} {{tags.0}} {% endif %}"/>
-			<input type="text" name="tag1" size="20" value="{% if tags %} {{tags.1}} {% endif %}"/>
-			<input type="text" name="tag2" size="20" value="{% if tags %} {{tags.2}} {% endif %}"/>
-			<input type="text" name="tag3" size="20" value="{% if tags %} {{tags.3}} {% endif %}"/>
-			<input type="text" name="tag4" size="20" value="{% if tags %} {{tags.4}} {% endif %}"/></p>
-			
-			<h4>Comment</h4>
-			<p>Subject</p>
-			<div><input type="commentSubject" name="tag0" size="60" value="
-				{% if comment %}
-					{{comment.subject}} 
-				{% endif %}
-				"/></div>
-			<p>Text</p>
-			<div><textarea name="commentPost" rows="3" cols="60">
-				{% if comment %} 
-					{{comment.post}} 
-				{% endif %}
-				</textarea></div>
-			
-			<h4>Request</h4>
-			<p>Title</p>
-			<div><input type="requestTitle" name="tag0" size="60" value="
-				{% if request %}
-					{{request.title}} 
-				{% endif %}
-				"/></div>
-			<p>Text</p>
-			<div><textarea name="requestText" rows="3" cols="60">
-				{% if request %} 
-					{{request.text}} 
-				{% endif %}
-				</textarea></div>
-			<p>Type</p>
-			<div><select>
-				{% for aType in request_types %}
-					<option value="request|{{aType}}" 
-						{% if request %} 
-							{% ifequal request.type aType %}
-								selected="selected"
-							{% endifequal %}
-						{% endif %}
-						>{{aType}}</option>
-				{% endfor %}
-				</select></div>
-			</fieldset>
-			
-			{% ifequal article_type "pattern" %}
-				<h3>Extra Pattern Information</h3>
-				<fieldset>
-				{% if article %}
-					<p>Instructions to recreate pattern</p>
-				{% else %}
-					<p>Please enter some instructions to recreate the pattern you observed.</p>
-				{% endif %}
-				<div><textarea name="instructionsIfPattern" rows="3" cols="60">{% if article %} {{article.instructionsIfPattern}} {% endif %}</textarea></div>
-				{% if article %}
-					<p>Pattern screenshot</p>
-				{% else %}
-					<p>Please upload a screenshot showing the pattern.</p>
-				{% endif %}
-				{% if article %}
-					{% if article.screenshotIfPattern %}
-						<div><img src="img?article_id={{article.key}}"></img></div>
-					{% endif %}
-				{% endif %}
-				<p><div><input type="file" name="img"/></div></p>
-				</fieldset>
-			{% endifequal %}
-			</fieldset>
 			
 			<p>
 			<center>
@@ -229,6 +150,5 @@
 			</center>
 			
 		</form>
-	<a href="{{ url }}">{{ url_linktext }}</a>
 	</body>
 </html>

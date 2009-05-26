@@ -414,4 +414,101 @@ class Rule(db.Model):
     <p><a href="/">Main page</a>
 </html>
 
+# ---------------------- SAVE FOR LATER - had annotations editing in article.html but moving it
+
+            <h3>Annotations</h3>
+            <fieldset>
+            {% if article %}
+                <p>Your annotations for this {{article_type}}</p>
+            {% else %}
+                <p>If you like, you can enter some annotations for this {{article_type}}.</p>
+            {% endif %}
+            
+            <h4>Tags</h4>
+            <p><input type="text" name="tag0" size="20" value="{% if tags %} {{tags.0}} {% endif %}"/>
+            <input type="text" name="tag1" size="20" value="{% if tags %} {{tags.1}} {% endif %}"/>
+            <input type="text" name="tag2" size="20" value="{% if tags %} {{tags.2}} {% endif %}"/>
+            <input type="text" name="tag3" size="20" value="{% if tags %} {{tags.3}} {% endif %}"/>
+            <input type="text" name="tag4" size="20" value="{% if tags %} {{tags.4}} {% endif %}"/></p>
+            
+            <h4>Comment</h4>
+            <p>Subject</p>
+            <div><input type="commentSubject" name="tag0" size="60" value="
+                {% if comment %}
+                    {{comment.subject}} 
+                {% endif %}
+                "/></div>
+            <p>Text</p>
+            <div><textarea name="commentPost" rows="3" cols="60">
+                {% if comment %} 
+                    {{comment.post}} 
+                {% endif %}
+                </textarea></div>
+            
+            <h4>Request</h4>
+            <p>Title</p>
+            <div><input type="requestTitle" name="tag0" size="60" value="
+                {% if request %}
+                    {{request.title}} 
+                {% endif %}
+                "/></div>
+            <p>Text</p>
+            <div><textarea name="requestText" rows="3" cols="60">
+                {% if request %} 
+                    {{request.text}} 
+                {% endif %}
+                </textarea></div>
+            <p>Type</p>
+            <div><select>
+                {% for aType in request_types %}
+                    <option value="request|{{aType}}" 
+                        {% if request %} 
+                            {% ifequal request.type aType %}
+                                selected="selected"
+                            {% endifequal %}
+                        {% endif %}
+                        >{{aType}}</option>
+                {% endfor %}
+                </select></div>
+            </fieldset>
+            
+            {% ifequal article_type "pattern" %}
+                <h3>Extra Pattern Information</h3>
+                <fieldset>
+                {% if article %}
+                    <p>Instructions to recreate pattern</p>
+                {% else %}
+                    <p>Please enter some instructions to recreate the pattern you observed.</p>
+                {% endif %}
+                <div><textarea name="instructionsIfPattern" rows="3" cols="60">{% if article %} {{article.instructionsIfPattern}} {% endif %}</textarea></div>
+                {% if article %}
+                    <p>Pattern screenshot</p>
+                {% else %}
+                    <p>Please upload a screenshot showing the pattern.</p>
+                {% endif %}
+                {% if article %}
+                    {% if article.screenshotIfPattern %}
+                        <div><img src="img?article_id={{article.key}}"></img></div>
+                    {% endif %}
+                {% endif %}
+                <p><div><input type="file" name="img"/></div></p>
+                </fieldset>
+            {% endifequal %}
+            </fieldset>
+
+# ---------------------------------------- NOT USING - whether they are logged in to Google is not really that relevant
+
+def GenerateURLs(request):
+    """ Used to make login/logout link on every page.
+        Probably some better way to do this.
+    """
+    if users.get_current_user():
+        url = users.create_logout_url(request.uri)
+        url_linktext = 'Logout'
+    else:
+        url = users.create_login_url(request.uri)
+        url_linktext = 'Login'
+    return url, url_linktext
+
+
 
