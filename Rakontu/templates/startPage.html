@@ -5,7 +5,7 @@
 	<body>
 	<center>
 	<h1>Welcome to Rakontu!</h1>
-	<p><img src="/images/Rakontu.jpg" alt="Rakontu logo"></p>
+	<p><img src="/images/Rakontu.jpg" alt="Rakontu logo" border="1"></p>
 	{% if user %}
 		You are logged in to your Google account "{{ user.nickname }}".</p>
 	{% endif %}
@@ -26,6 +26,7 @@
 	<p>
 	<div><input type="submit" name="createCommunity" value="Create a New Rakontu Community"></div>
 	<p>
+	<a href="{{logout_url}}">Logout</a>
 	</form>
 	
 	</body>

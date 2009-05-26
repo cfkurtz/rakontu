@@ -12,11 +12,7 @@
 		<h3>{{type|capfirst}}</h3>
 		{% for article in articles %}
 			{% ifequal article.type type %}
-				<p>&nbsp; <a href="/visit/read?{{article.key}}">{{article.title}}</a> &nbsp;
-				{% ifequal article.creator.key current_member.key %}
-					&nbsp; <a href="/visit/{{article.type}}?{{article.key}}">(Change)</a>
-				{% endifequal %}
-				</p>
+				<p>&nbsp; <a href="/visit/read?{{article.key}}">{{article.title}}</a></p>
 			{% endifequal %}
 		{% endfor %}
 	{% endfor %}	

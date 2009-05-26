@@ -29,6 +29,48 @@
 	{% if article.collectedOffline %}
 		<p>It was collected off-line and entered by {{article.liaison.nickname}}.</p>
 	{% endif %}
+	
+	{% ifequal article.creator.key current_member.key %}
+		<p><b>This is your {{article.type}}. You can <a href="/visit/{{article.type}}?{{article.key}}">change</a> it.</b></p>
+	{% endifequal %}
+	
+	{% if answers %}
+		<p>Answers to questions about this {{article.type}}:</p>
+		{% for answer in answers %}
+			<p>&nbsp; <b>{{answer.question.text}}</b>
+			{% ifequal answer.question.type "text" %}
+				{{answer.answerIfText}}
+			{% endifequal %}
+			{% ifequal answer.question.type "boolean" %}
+				{{answer.answerIfBoolean|yesno:"Yes, No, Maybe"}}
+			{% endifequal %}
+			{% ifequal answer.question.type "ordinal" %}
+				{% if answer.question.multiple %}
+					{{answer.answerIfMultiple|join:", "}}
+				{% else %}
+					{{answer.answerIfText}}
+				{% endif %}
+			{% endifequal %}
+			{% ifequal answer.question.type "nominal" %}
+				{% if answer.question.multiple %}
+					{{answer.answerIfMultiple|join:", "}}
+				{% else %}
+					{{answer.answerIfText}}
+				{% endif %}
+			{% endifequal %}
+			{% ifequal answer.question.type "value" %}
+				{{answer.answerIfValue}}
+			{% endifequal %}
+			({{answer.creator.nickname}})
+		{% endfor %}
+	{% endif %}
+	
+	{% if attachments %}
+		<b>Attachments</b>
+		{% for attachment in attachments %}
+			<div><a href="attachment?attachment_id={{attachment.key}}">{{attachment.name}} - {{attachment.mimeType}}</a></div>
+		{% endfor %}
+	{% endif %}
 
 	</div>
 	</body>

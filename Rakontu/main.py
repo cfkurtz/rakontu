@@ -9,6 +9,7 @@
 # python imports
 import cgi
 import os
+import string
 
 # GAE imports
 from google.appengine.ext.webapp import template
@@ -120,7 +121,6 @@ class StartPage(webapp.RequestHandler):
 class CreateCommunityPage(webapp.RequestHandler):
     @RequireLogin 
     def get(self):
-        url, url_linktext = GenerateURLs(self.request)
         template_values = {
                            'user': users.get_current_user(),
                            'logout_url': users.create_logout_url(self.request.uri),
@@ -181,6 +181,8 @@ class ReadArticlePage(webapp.RequestHandler):
                                    'article': article,
                                    'user_is_admin': users.is_current_user_admin(),
                                    'logout_url': users.create_logout_url(self.request.uri),
+                                   'answers': article.getAnswers(),
+                                   'attachments': article.getAttachments(),
                                    }
                 path = os.path.join(os.path.dirname(__file__), 'templates/visit/read.html')
                 self.response.out.write(template.render(path, template_values))
@@ -208,6 +210,12 @@ class EnterArticlePage(webapp.RequestHandler):
             else:
                 articleKey = self.request.uri[self.request.uri.find("?")+1:]
                 article = db.get(articleKey)
+            if article:
+                answers = article.getAnswers()
+                attachments = article.getAttachments()
+            else:
+                answers = None
+                attachments = None
             template_values = {
                                'user': users.get_current_user(),
                                'current_member': member,
@@ -216,12 +224,8 @@ class EnterArticlePage(webapp.RequestHandler):
                                'article_type': type,
                                'article': article,
                                'questions': community.getQuestionsOfType(type),
-                               'answers': None,
-                               'attachments': None,
-                               'tags': None,
-                               'comment': None,
-                               'request': None,
-                               'request_types': REQUEST_TYPES,
+                               'answers': answers,
+                               'attachments': attachments,
                                'community_members': community.getMembers(),
                                'anon_entry_allowed': community.allowAnonymousEntry[entryTypeIndexForAnonymity],
                                'show_attribution_choice': community.hasAtLeastOnePersonificationOrAnonEntryAllowed(entryTypeIndexForAnonymity),
@@ -245,11 +249,12 @@ class EnterArticlePage(webapp.RequestHandler):
             if not self.request.uri.find("?") >= 0:
                 article = None
             else:
-                articleKey = self.request.uri[self.request.uri.find("?")+1:]
+                articleKey = self.request.query_string
                 article = db.get(articleKey)
             if not article:
                 article=Article(community=community, type=type, creator=member, title="Untitled")
-            article.title = title=self.request.get("title")
+            if self.request.get("title"):
+                article.title = self.request.get("title")
             article.text = self.request.get("text")
             article.collectedOffline = self.request.get("collectedOffline") == "yes"
             if article.collectedOffline and member.isLiaison():
@@ -289,21 +294,32 @@ class EnterArticlePage(webapp.RequestHandler):
                                 answerToEdit.answerIfMultiple.append(choice)
                     else:
                         answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
+                answerToEdit.creator = member
                 answerToEdit.put()
             foundAttachments = Attachment.all().filter("article = ", article.key()).fetch(FETCH_NUMBER)
-            # need some way to make attachments downloadable in article.html
             for i in range(3):
-                if self.request.get("attachment%s" % i):
-                    if len(foundAttachments) > i:
-                        attachmentToEdit = foundAttachments[i]
-                    else:
-                        attachmentToEdit = Attachment(article=article)
-                    attachmentToEdit.name = self.request.get("attachmentName%s" % i)
-                    attachmentToEdit.data = db.Blob(self.request.get("attachment%s" % i))
-                    attachmentToEdit.put()
+                for name, value in self.request.params.items():
+                    if name == "attachment%s" % i:
+                        if value != None and value != "":
+                            filename = value.filename
+                            if len(foundAttachments) > i:
+                                attachmentToEdit = foundAttachments[i]
+                            else:
+                                attachmentToEdit = Attachment(article=article)
+                            j = 0
+                            mimeType = None
+                            for type in ACCEPTED_ATTACHMENT_FILE_TYPES:
+                                if filename.find(".%s" % type) >= 0:
+                                    mimeType = ACCEPTED_ATTACHMENT_MIME_TYPES[j]
+                                j += 1
+                            if mimeType:
+                                attachmentToEdit.mimeType = mimeType
+                                attachmentToEdit.filename = filename
+                                attachmentToEdit.name = self.request.get("attachmentName%s" % i)
+                                attachmentToEdit.data = db.Blob(str(self.request.get("attachment%s" % i)))
+                                attachmentToEdit.put()
         self.redirect("/visit/look")
-        
-                
+           
 # --------------------------------------------------------------------------------------------
 # Manage memberhip
 # --------------------------------------------------------------------------------------------
@@ -344,7 +360,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
             member.nicknameIsRealName = self.request.get('nickname_is_real_name') =="yes"
             member.profileText = self.request.get("description")
             if self.request.get("img"):
-                member.profileImage = db.Blob(images.resize(str(self.request.get("img")), 64, 64))
+                member.profileImage = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
             i = 0
             for role in HELPING_ROLE_TYPES:
                 if self.request.get("helpingRole%s" % i):
@@ -376,6 +392,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
                                 answerToEdit.answerIfMultiple.append(choice)
                     else:
                         answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
+                answerToEdit.creator = member
                 answerToEdit.put()
         self.redirect('/visit/look')
         
@@ -484,7 +501,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
             community.name = self.request.get("name")
             community.description = self.request.get("description")
             if self.request.get("img"):
-                community.image = db.Blob(images.resize(str(self.request.get("img")), 64, 64))
+                community.image = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
             i = 0
             for entryType in ENTRY_TYPES:
                 community.allowAnonymousEntry[i] = self.request.get(entryType) == entryType
@@ -578,7 +595,6 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
                 except:
                     question.maxIfValue = oldValue
                 question.responseIfBoolean = self.request.get("responseIfBoolean|%s" % question.key())
-                question.required = self.request.get("required|%s" % question.key()) == "required|%s" % question.key()
                 question.multiple = self.request.get("multiple|%s" % question.key()) == "multiple|%s" % question.key()
                 question.put()
             questionsToRemove = []
@@ -685,7 +701,7 @@ class ShowAllMembers(webapp.RequestHandler):
 # Non-text handling
 # --------------------------------------------------------------------------------------------
         
-class Image (webapp.RequestHandler):
+class ImageHandler(webapp.RequestHandler):
     def get(self):
         if self.request.get("member_id"):
             member = db.get(self.request.get("member_id"))
@@ -706,6 +722,16 @@ class Image (webapp.RequestHandler):
             if article and article.type == "pattern" and article.screenshotIfPattern:
                 self.response.headers['Content-Type'] = "image/jpg"
                 self.response.out.write(article.screenshotIfPattern)
+                
+class AttachmentHandler(webapp.RequestHandler):
+    def get(self):
+        if self.request.get("attachment_id"):
+            attachment = db.get(self.request.get("attachment_id"))
+            if attachment and attachment.data:
+                self.response.headers['Content-Type'] = attachment.mimeType
+                self.response.out.write(attachment.data)
+            else:
+                self.error(404)
 
 # --------------------------------------------------------------------------------------------
 # Application and main
@@ -724,9 +750,10 @@ application = webapp.WSGIApplication(
                                       ('/visit/resource', EnterArticlePage),
                                       ('/visit/article', EnterArticlePage),
                                       ('/visit/profile', ChangeMemberProfilePage),
-                                      ('/img', Image),
-                                      ('/visit/img', Image),
-                                      ('/manage/img', Image),
+                                      ('/img', ImageHandler),
+                                      ('/visit/img', ImageHandler),
+                                      ('/manage/img', ImageHandler),
+                                      ('/visit/attachment', AttachmentHandler),
                                       
                                       # managing
                                       ('/createCommunity', CreateCommunityPage),

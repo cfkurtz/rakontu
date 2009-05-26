@@ -2,7 +2,11 @@
 			{% ifequal refer_type "member" %}
 				Please answer these questions about yourself.
 			{% else %}
-				Please answer these questions about this {{ refer_type }}.
+				{% if article %}
+					Answers to questions about this {{ refer_type }}
+				{% else %}
+					Please answer these questions about this {{ refer_type }}.
+				{% endif %}
 			{% endifequal %}
 			</h3>
 		<fieldset>

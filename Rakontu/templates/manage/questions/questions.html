@@ -11,8 +11,8 @@
 		
 		<h3>Add New Questions</h3>
 		<div><textarea name="newQuestionNames" rows="6" cols="40"></textarea></div>
-		<p>Instructions: Add names for each question you want to add.
-		Place each name on a separate line. Then return to this page and add details for the questions.</p>
+		<p><i>Add names here for each question you want to add.
+		Place each name on a separate line. Then return to this page and add details for the questions.</i></p>
 		<p>
 
 		<h3>Change Questions</h3>
@@ -20,7 +20,6 @@
       	<tr>
       		<th>Name, question, and explanation</th>
       		<th>Type</th>
-      		<th>Required?</th>
       		<th>Maximum characters<br><i>if text</i></th>
       		<th>Minimum and maximum<br><i>if value</i></th>
       		<th>Response<br><i>if boolean</i></th>
@@ -31,8 +30,8 @@
       		{% for question in questions %}
       			<tr>
       			<td valign="top">Name<div><input type="text" name="name|{{question.key}}" size="20" value="{{question.name}}"></div>
-      				<br>Question<div><input type="text" name="text|{{question.key}}" size="40" value="{{question.text}}"></div>
-      				<br>Explanation<div><input type="text" name="help|{{question.key}}" size="40" value="{{question.help}}"></div></td>
+      				<br>Question<div><input type="text" name="text|{{question.key}}" size="20" value="{{question.text}}"></div>
+      				<br>Explanation<div><input type="text" name="help|{{question.key}}" size="20" value="{{question.help}}"></div></td>
       			<td valign="top"><div><select name="type|{{question.key}}">
       				{% for type in question_types %}
       			 		<option value="{{type}}"
@@ -42,34 +41,29 @@
       			 		>{{type}}</option>
       			 	{% endfor %}
       			 	</select></div></td>
-     			 <td valign="top"><label><input type="checkbox" name="required|{{question.key}}" value="required|{{question.key}}"
-     			 	{% if question.required %}
-     			 		checked="checked"
-     			 	{% endif %}
-     			 	>Required</label></div></td>
-      			 <td valign="top"><div><input type="text" name="lengthIfText|{{question.key}}" size="4" value="{{question.lengthIfText}}"></div></td>
-      			 <td valign="top"><div><input type="text" name="minIfValue|{{question.key}}" size="4" value="{{question.minIfValue}}"></div>
+      			 <td valign="top" align="center"><div><input type="text" name="lengthIfText|{{question.key}}" size="4" value="{{question.lengthIfText}}"></div></td>
+      			 <td valign="top" align="center"><div><input type="text" name="minIfValue|{{question.key}}" size="4" value="{{question.minIfValue}}"></div>
       			 	<div><input type="text" name="maxIfValue|{{question.key}}" size="4" value="{{question.maxIfValue}}"></div>
       			 	</td>
-      			 <td valign="top"><div><input type="text" name="responseIfBoolean|{{question.key}}" size="20" value="{{question.responseIfBoolean}}"></div></td>
-      			 <td valign="top">
-      			 	<div><input type="text" name="choice0|{{question.key}}" size="12" value="{{question.choices.0}}"></div>
-      			 	<div><input type="text" name="choice1|{{question.key}}" size="12" value="{{question.choices.1}}"></div>
-      			 	<div><input type="text" name="choice2|{{question.key}}" size="12" value="{{question.choices.2}}"></div>
-      			 	<div><input type="text" name="choice3|{{question.key}}" size="12" value="{{question.choices.3}}"></div>
-      			 	<div><input type="text" name="choice4|{{question.key}}" size="12" value="{{question.choices.4}}"></div>
-      			 	<div><input type="text" name="choice5|{{question.key}}" size="12" value="{{question.choices.5}}"></div>
-      			 	<div><input type="text" name="choice6|{{question.key}}" size="12" value="{{question.choices.6}}"></div>
-      			 	<div><input type="text" name="choice7|{{question.key}}" size="12" value="{{question.choices.7}}"></div>
-      			 	<div><input type="text" name="choice8|{{question.key}}" size="12" value="{{question.choices.8}}"></div>
-      			 	<div><input type="text" name="choice9|{{question.key}}" size="12" value="{{question.choices.9}}"></div>
+      			 <td valign="top" align="center"><div><input type="text" name="responseIfBoolean|{{question.key}}" size="10" value="{{question.responseIfBoolean}}"></div></td>
+      			 <td valign="top" align="center">
+      			 	<div><input type="text" name="choice0|{{question.key}}" size="8" value="{{question.choices.0}}"></div>
+      			 	<div><input type="text" name="choice1|{{question.key}}" size="8" value="{{question.choices.1}}"></div>
+      			 	<div><input type="text" name="choice2|{{question.key}}" size="8" value="{{question.choices.2}}"></div>
+      			 	<div><input type="text" name="choice3|{{question.key}}" size="8" value="{{question.choices.3}}"></div>
+      			 	<div><input type="text" name="choice4|{{question.key}}" size="8" value="{{question.choices.4}}"></div>
+      			 	<div><input type="text" name="choice5|{{question.key}}" size="8" value="{{question.choices.5}}"></div>
+      			 	<div><input type="text" name="choice6|{{question.key}}" size="8" value="{{question.choices.6}}"></div>
+      			 	<div><input type="text" name="choice7|{{question.key}}" size="8" value="{{question.choices.7}}"></div>
+      			 	<div><input type="text" name="choice8|{{question.key}}" size="8" value="{{question.choices.8}}"></div>
+      			 	<div><input type="text" name="choice9|{{question.key}}" size="8" value="{{question.choices.9}}"></div>
       			 	</td>
-     			 <td valign="top"><label><input type="checkbox" name="multiple|{{question.key}}" value="multiple|{{question.key}}"
+     			 <td valign="top" align="center"><label><input type="checkbox" name="multiple|{{question.key}}" value="multiple|{{question.key}}"
      			 	{% if question.multiple %}
      			 		checked="checked"
      			 	{% endif %}
      			 	>Multiple</label></div></td>
-      			 <td valign="top"><input type="checkbox" name="remove|{{question.key}}" />Remove</td>
+      			 <td valign="top" align="center"><input type="checkbox" name="remove|{{question.key}}" />Remove</td>
       				</tr>
       		{% endfor %}
       	</table>

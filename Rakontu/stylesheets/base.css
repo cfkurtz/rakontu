@@ -1,9 +1,16 @@
+/* ----------- elements ----------- */
 body {
-  font-family: Verdana, Helvetica, sans-serif;
-  font-size: 80%;
-  background-color: #FFFFFF;
-}
-
+  	!font-family: Verdana, Helvetica, sans-serif;
+  	font-family: Georgia, "Times New Roman", Times, serif;
+  	font-size: 80%;
+  	background-color: #FAEBD7;
+	}
+b {
+	font-size: 110%;
+	}
+a {
+	color: 8B4500;
+	}
 td {
 	font-size: 80%;
 	}
@@ -14,63 +21,144 @@ th {
 	background: #FFEECC;
 	}
 	
-div.select {
+fieldset {
+	background: #FFE4C4;
+	}
+
+/* ----------- division classes ----------- */
+.select {
 	margin: 8px;
 	}
 	
-fieldset {
-	background: #FFEECC;
+.button {
+	align: center;
 	}
 	
+/* ----------- page areas ----------- */
 #header {
-	background: #FFEECC;
+	background: #FFE4C4;
 	font-family: Verdana, Arial, Helvetica, sans-serif;
 	font-size: 100%;
+	border: 1px solid #993300;
 	}
 	
 #sidebar {
-	float: left;
+	float: right;
 	height: auto;
 	top: 130px;
 	bottom: 4px;
 	width: 190px;
-	border-right: 1px solid #666666;
+	border: 1px solid #993300;
+	}
+	
+#sidebar h1 {
+	color: #993300;
+	font-size: 120%;
+	border-bottom: 1px solid #993300;
+	padding: 0px 4px 0px 8px;
 	}
 	
 #sidebar p {
-	color: #993300;
-	font-size: 130%;
-	border-bottom: 1px solid #993300;
-	padding: 2px;
-}
-
-#sidebar ul li {
-	color: #993300;
-	display: block;
-	line-height: 16px;
-	list-style: none;
-	padding: 2px;
-}
-#sidebar ul li a {
 	color: #616161;
-	display: block;
+	font-size: 100%;
+	padding: 0px 4px 0px 8px;
+	}
+	
+#sidebar ul li {
+	color: #616161;
+	font-size: 100%;
+	margin-left: 2px;
+	display: compact;
+	list-style: none;
+	}
+	
+#sidebar a {
+	color: #8B4500;
 	text-decoration: none;
-	width: 160px;
-}
-
-#sidebar li a:hover {
+	}
+	
+#sidebar a:hover {
 	background: #993300;
-	color: #fff;
-}
+	color: #FFFFFF;
+	}
 
 #content {
     float: none;
     top: 130px;
     bottom: 4px;
-	margin-left: 190px;
+	margin-right: 190px;
 	height: auto;
 	width: auto;
 	padding-left : 6px;
 	padding-right: 6px;
-	border-left: 1px solid #666666;
+	}
+
+/* ----------- forms ----------- */
+
+.rakontu_form_centered{
+	margin: 0 auto;
+	width: 400px;
+	padding: 14px;
+	}
+	
+.rakontu_form{
+	margin: 0 auto;
+	padding: 2px;
+	}
+	
+#stylized {
+	!border: solid 2px #FF7F00;
+	background: #FFEECC;
+	}
+	
+#stylized h1 {
+	font-size: 14px;
+	font-weight: bold;
+	margin-bottom: 8px;
+	}
+	
+#stylized p{
+	font-size: 12px;
+	color: #666666;
+	margin-bottom: 8px;
+	padding-bottom: 4px;
+	}
+	
+#stylized label{
+	font-weight: plain;
+	text-align: right;
+	width: auto;
+	margin-left: 4px;
+	padding-bottom: 0px;
+	margin-bottom: 2px;
+	}
+	
+#stylized input{
+	font-size: 12px;
+	padding: 4px 2px;
+	border: solid 1px #FF7F00;
+	width: 200px;
+	margin: 2px 0 10px 10px;
+	}
+	
+#stylized textarea{
+	font-family: Verdana, Helvetica, sans-serif;
+	font-size: 12px;
+	padding: 4px 2px;
+	border: solid 1px #FF7F00;
+	width: 95%;
+	margin: 2px 0 10px 10px;
+	}
+	
+#stylized input.button{
+	clear: both;
+	align: center;
+	width: auto;
+	height: 32px;
+	line-height: 32px;
+	background: #FFD39B;
+	text-align: center;
+	font-size: 12px;
+	font-weight: bold;
+	border: solid 2px #FF7F00;
 	}

@@ -2,7 +2,7 @@
 
 <div id="header">
 
-	<table border="0" width="100%">
+	<table border="0" width="100%" cellpadding="2">
 	<tr><td align="left" valign="center" width="70">
 	{% if community.image %}
 		<div><img src="img?community_id={{community.key}}"></img>
@@ -16,46 +16,50 @@
 	<a href="/visit/profile">Profile</a> 
 	<a href="xxx">Help</a> 
 	<a href="{{logout_url}}">Logout</a>
+	</td><td align="right" width="50">
+		{% if current_member.profileImage %}
+			<div><img src="img?member_id={{current_member.key}}"></img></div>
+		{% endif %}
 	</td></tr></table>
 
 </div>
 
 <div id="sidebar">
 
-	<p>Visit</p>
-	<ul>
-  	<li><a href="/visit/look">Look at stories and other information</a></li>
-  	<li><a href="/visit/story">Tell a story</a></li>
-  	<li><a href="/visit/pattern">Describe a pattern</a></li>
-  	<li><a href="/visit/construct">Build a construct</a></li>
-  	<li><a href="/visit/invitation">Invite people to tell stories</a></li>
-  	<li><a href="/visit/resource">Add a resource</a></li>
-  	<li><a href="/visit/profile">Change your member profile</a></li>
-  	</ul>
+	<h1>Visit</h1>
+  	<p><a href="/visit/look">Look at stories</a></p>
+  	<p><a href="/visit/story">Tell a story</a></p>
+  	<p><a href="/visit/pattern">Describe a pattern</a></p>
+  	<p><a href="/visit/construct">Build a construct</a></p>
+  	<p><a href="/visit/invitation">Issue an invitation</a></p>
+  	<p><a href="/visit/resource">File a resource</a></p>
+  	<p><a href="/visit/profile">Change your profile</a></p>
   	
   	{% if current_member.isManager or current_member.isOwner %}
-      	<p>Manage</p>
+      	<h1>Manage</h1>
+      	<p><a href="/manage/members">Memberships</a></p>
+      	<p><a href="/manage/settings">Settings</a></p>
+      	<p><a href="/manage/personifications">Personifications</a></p>
+      	
+      	<p>Manage questions about</p>
       	<ul>
-      	<li><a href="/manage/members">Memberships</a></li>
-      	<li><a href="/manage/settings">Settings</a></li>
-      	<li><a href="/manage/questions/story">Questions about stories</a></li>
-      	<li><a href="/manage/questions/pattern">Questions about patterns</a></li>
-      	<li><a href="/manage/questions/construct">Questions about constructs</a></li>
-      	<li><a href="/manage/questions/invitation">Questions about invitations</a></li>
-      	<li><a href="/manage/questions/resource">Questions about resources</a></li>
-      	<li><a href="/manage/questions/member">Questions about members</a></li>
-      	<li><a href="/manage/personifications">Personifications</a></li>
-      	<li><a href="/manage/technical">Backup</a></li>
+      	<li><a href="/manage/questions/story">stories</a></li>
+      	<li><a href="/manage/questions/pattern">patterns</a></li>
+      	<li><a href="/manage/questions/construct">constructs</a></li>
+      	<li><a href="/manage/questions/invitation">invitations</a></li>
+      	<li><a href="/manage/questions/resource">resources</a></li>
+      	<li><a href="/manage/questions/member">members</a></li>
       	</ul>
+      	
+      	<p><a href="/manage/technical">Export data</a></p>
     {% endif %}
 
 	{% if user_is_admin %}
-		<p>Administer site</p>
-		<ul>
-		<li><a href="/admin/showAllCommunities">Show All Communities</a></li>
-		<li><a href="/admin/showAllMembers">Show All Members</a></li>
-		</ul>
+		<h1>Administer</h1>
+		<p><a href="/admin/showAllCommunities">Show all communities</a></p>
+		<p><a href="/admin/showAllMembers">Show all members</a></p>
 	{% endif %}
-
+	
+	<p><a href="/">Start page</a></p>
 
 </div>

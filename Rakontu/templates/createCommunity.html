@@ -4,22 +4,30 @@
 	</head>
 	<body>
 	
+		<center>
+		<table border="0" width="400"><tr><td>
+		<div id="stylized" class="rakontu_form_centered">
 		<form action="/createCommunity" method="post">
-		
-			Community name:
-			<div><input type="text" name="name" value=""/></div>
-			Community description:
-			<div><textarea name="description" rows="3" cols="60"></textarea></div>
-			You, {{ user.nickname|escape }}, will be the community's first owner.
-			<p>
-			Please choose a nickname for your presence in this community.
+			<p>Please <b>name</b> the new Rakontu community.</p>
+			<input type="text" name="name" value="" maxlength="40" size="30"/>
+			<p>Please enter a brief <b>description</b> of the community. <i>You can change the name and description later.</i></p>
+			<div><textarea name="description" rows="8"></textarea></div>
+			<p><i>You, {{ user.nickname|escape }}, will be the community's first <b>member</b>. You will also be an <b>owner</b>
+			of the community, which means you can add and remove members, change community settings, and make 
+			other people owners and managers of the community.</i></p>
+			<p>Please choose a <b>nickname</b> to represent yourself in the community, either your real name or a "screen name."
+			<i>You can change your nickname later.</i></p>
 			<div><input type="text" name="nickname" value=""/></div>
-			<div><label><input type="checkbox" name="nickname_is_real_name" value="yes" checked>Nickname is real name</label></div>
-			Profile text (optional):
-			<div><textarea name="profile_text" rows="3" cols="60"></textarea></div>
-			
-			
-			<div><input type="submit" value="Create Rakontu Community"></div>
+			<p>Is this your real name?</p>
+			<div><label><input type="checkbox" name="nickname_is_real_name" value="yes" checked> Yes, this is my real name</label></div>
+			<p></p>
+			<center>
+			<input type="submit" value="Create a New Rakontu Community" class="button">
+			</center>
 		</form>
+		</div>
+		</td></tr></table>
+		<p><a href="/">Return to the Main Page</a></p>
+		</center>
 	</body>
 </html>

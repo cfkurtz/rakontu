@@ -19,14 +19,14 @@
 			{% else %}
 				Please type your {{article_type}} here.
 			{% endif %}
-			<div><textarea name="text" rows="20" cols="60">{% if article %} {{article.text}} {% endif %}</textarea></div>
+			<div><textarea name="text" rows="20" cols="60">{% if article %}{{article.text}}{% endif %}</textarea></div>
 			
 			{% if article %}
 				You can change the name of your {{article_type}} here.
 			{% else %}
 				Please give your {{article_type}} a name.
 			{% endif %}
-			<div><input type="text" name="title" size="60" value="{% if article %} {{article.title}} {% endif %}"/></div>
+			<div><input type="text" name="title" size="60" value="{% if article %}{{article.title}}{% endif %}"/></div>
 			
 			{% if current_member.isLiaison %}
 				<div><label><input type="checkbox" name="collectedOffline" value="yes" checked>This {{article_type}} was collected offline.</label></div>
@@ -50,10 +50,11 @@
 			
 			{% if show_attribution_choice %}
 				{% if article %}
-					<p>This {{article_type}} is attributed to:</p>
+					<p>You can change who this {{article_type}} is attributed to here.</p>
 				{% else %}
 					<p>To whom would you like to attribute this {{article_type}}?</p>
 				{% endif %}
+				
 				<select name="attribution">
 					<option value="member"
 						{% if article %}
@@ -72,39 +73,24 @@
 						>Anonymous</option>
 					{% endif %}
 					{% if community.getPersonifications %}
-						<option value="personification"
-						{% if article %}
-							{% ifequal article.attribution "personification" %}
-								selected="selected"
-							{% endifequal %}
-						{% endif %}
-						>A personification</option>
+						{% for personification in community.getPersonifications %}
+							<option value="{{personification.key}}"
+							{% if article %}
+								{% ifequal article.personification.key personification.key %}
+									selected="selected"
+								{% endifequal %}
+							{% endif %}
+							>{{personification.name}}</option>
+						{% endfor %}
 					{% endif %}
-					</option>
 				</select>
-				{% if community.getPersonifications %}
-					{% if article %}
-						<p>&nbsp; &nbsp; This shows which personification this {{article_type}} is attributed to, if it is.</p>
-					{% else %}
-						<p>&nbsp; &nbsp; If you want to attribute this to a personification, which one?</p>
-					{% endif %}
-					&nbsp; &nbsp; <select name="personification">
-					{% for personification in community.getPersonifications %}
-						<option value="{{personification.key}}"
-						{% if article %}
-							{% ifequal article.personification.key personification.key %}
-								selected="selected"
-							{% endifequal %}
-						{% endif %}
-						>{{personification.name}}</option>
-					{% endfor %}
-					</select>
-				{% endif %}
 			{% endif %}
 			</fieldset>
 			
 			<p>
-			{% include "questions.html" %}
+			{% if questions %}
+				{% include "questions.html" %}
+			{% endif %}
 			
 			<h3>Attachments</h3>
 			<fieldset>
@@ -117,41 +103,41 @@
 			than 10 megabytes.</i></p>
 			<h4>First attachment</h4>
 			<p>Name</p>
-			<div><input type="text" name="attachmentName0"/></div></p>
+			<div><input type="text" name="attachmentName0" value="{{attachments.0.name}}"/></div></p>
 			{% if article %}
 				<p>Click Browse to replace the first attachment for this {{article_type}}.</p>
 			{% else %}
 				<p>Click Browse to choose a first attachment for this {{article_type}}.</p>
 			{% endif %}
-			<div><input type="file" name="attachment0" accept="jpg/png/pdf/txt/doc"/></div></p>
+			<p><input type="file" name="attachment0"/></p>
 
 			<h4>Second attachment</h4>
 			<p>Name</p>
-			<div><input type="text" name="attachmentName1"/></div></p>
+			<div><input type="text" name="attachmentName1" value="{{attachments.1.name}}"/></div></p>
 			{% if article %}
 				<p>Click Browse to replace the second attachment for this {{article_type}}.</p>
 			{% else %}
 				<p>Click Browse to choose a second attachment for this {{article_type}}.</p>
 			{% endif %}
-			<div><input type="file" name="attachment1" accept="jpg/png/pdf/txt/docf"/></div></p>
+			<p><input type="file" name="attachment1"/></p>
 			
 			<h4>Third attachment</h4>
 			<p>Name</p>
-			<div><input type="text" name="attachmentName2"/></div></p>
+			<div><input type="text" name="attachmentName2" value="{{attachments.2.name}}"/></div></p>
 			{% if article %}
 				<p>Click Browse to replace the third attachment for this {{article_type}}.</p>
 			{% else %}
 				<p>Click Browse to choose a third attachment for this {{article_type}}.</p>
 			{% endif %}
-			<div><input type="file" name="attachment2" accept="jpg/png/pdf/txt/doc"/></div>
+			<p><input type="file" name="attachment2"/></p>
 			</fieldset>
 			
 			<p>
 			<center>
 			{% if article %}
-				<div><input type="submit" name="change|{{article_type}}|{{article.key}}" value="Change {{article_type|capfirst}}"></div>
+				<input type="submit" name="change|{{article_type}}|{{article.key}}" value="Change {{article_type|capfirst}}">
 			{% else %}
-				<div><input type="submit" name="add|{{article_type}}" value="Add {{article_type|capfirst}}"></div>
+				<input type="submit" name="add|{{article_type}}" value="Add {{article_type|capfirst}}">
 			{% endif %}
 			</center>
 			

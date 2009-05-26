@@ -45,6 +45,7 @@
 			<div><img src="img?member_id={{current_member.key}}"></img></div>
 		{% endif %}
 		<p><div><input type="file" name="img" accept="jpg/png"/></div></p>
+		<p><i>The best picture size is width 100, height 60.</i></p>
 		</fieldset>
 		
 		<h3>Helping roles</h3>
@@ -99,7 +100,9 @@
 			{% endif %}
 		</fieldset>
 		
-		{% include "questions.html" %}
+		{% if questions %}
+			{% include "questions.html" %}
+		{% endif %}
 		
       	<p>
     <input type="submit" name="changeSettings" value="Change Settings">	

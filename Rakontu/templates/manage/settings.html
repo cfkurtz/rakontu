@@ -6,14 +6,16 @@
 		{% include "../menus.html" %}
 		<div id="content">
 		
+		<div id="stylized" class="rakontu_form">
 		<form action="/manage/settings" method="post" enctype="multipart/form-data">
 		<h2>Changing Settings for Rakontu Community "{{ community.name|escape }}"</h2>
 		<p>Community ID number (database key): {{community.key}}</p>
 		<p>Created: {{community.created}}</p>
 
 		<h3>Name and description</h3>
+		<fieldset>
 		<p>Community name</p>
-		<div><input type="text" name="name" value="{{ community.name }}"/></div>
+		<div><input type="text" name="name" value="{{ community.name }}" maxlength="40" size="30"/></div>
 		<p>Community description</p>
 		<div><textarea name="description" rows="10" cols="60">{{ community.description|escape }}</textarea></div>
 		<i>Full URLs in the community description will be converted to links in what is shown.</i>
@@ -22,64 +24,72 @@
 			<div><img src="img?community_id={{community.key}}"></img></div>
 		{% endif %}
 		<p><div><input type="file" name="img" accept="jpg/png"/></div></p>
+		<p><i>The best picture size is width 100, height 60.</i></p>
+		</fieldset>
 		
 		<h3>Anonymity</h3>
+		<fieldset>
 		Is anonymous entry allowed for each of these entry types?
 		{% for text in anonIncludes %}
 			{{ text }}
 		{% endfor %}
 		</table>
+		</fieldset>
 		
 		<h3>Nudge system</h3>
+		<fieldset>
 		<p>How many nudge points can be asssigned (maximum) per article?
 		<input type="text" name="maxNudgePointsPerArticle" size="4" value="{{community.maxNudgePointsPerArticle}}"/></p>
 		<p>Enter custom utility nudge category names here. To use the simple
 		"utility" category, leave all of these blank.</p>
-		<input type="text" name="nudgeCategory0" size="20" value="{{community.utilityNudgeCategories.0}}"/>
-		<input type="text" name="nudgeCategory1" size="20" value="{{community.utilityNudgeCategories.1}}"/>
-		<input type="text" name="nudgeCategory2" size="20" value="{{community.utilityNudgeCategories.2}}"/>
-		<input type="text" name="nudgeCategory3" size="20" value="{{community.utilityNudgeCategories.3}}"/>
-		<input type="text" name="nudgeCategory4" size="20" value="{{community.utilityNudgeCategories.4}}"/>
+		<input type="text" name="nudgeCategory0" size="15" value="{{community.utilityNudgeCategories.0}}"/>
+		<input type="text" name="nudgeCategory1" size="15" value="{{community.utilityNudgeCategories.1}}"/>
+		<input type="text" name="nudgeCategory2" size="15" value="{{community.utilityNudgeCategories.2}}"/>
+		<input type="text" name="nudgeCategory3" size="15" value="{{community.utilityNudgeCategories.3}}"/>
+		<input type="text" name="nudgeCategory4" size="15" value="{{community.utilityNudgeCategories.4}}"/>
 		<p>How many nudge points do members accumulate by participating?</p>
 		<table  border="1" cellpadding="4" cellspacing="0"><tr><th>Activity</th><th>Nudge points accumulated</th></tr>
 		{% for text in nudge_point_includes %}
 			{{ text }}
 		{% endfor %}
 		</table>
-      	<p>
+      	</fieldset>
 
 		<h3>Helping Roles</h3>
+		<fieldset>
 		<p>These texts are shown to members before they take on voluntary roles.</p>
 		Curator read-before text
-		<div><textarea name="readme0" rows="3" cols="60">{{ community.roleReadmes.0|escape }}</textarea></div>
+		<textarea name="readme0" rows="3" cols="60">{{ community.roleReadmes.0|escape }}</textarea>
 		<p><label><input type="checkbox" name="agreement0" value="agreement0"
 			{% if community.roleAgreements.0 %}
 				checked="checked"/>
 			{% else %}
 				/>
 			{% endif %}
-			Members must check box to agree to terms before becoming curator</label></div></p>
+			Members must check box to agree to terms before becoming curator</label></p>
 		Booster read-before text
-		<div><textarea name="readme1" rows="3" cols="60">{{ community.roleReadmes.1|escape }}</textarea></div>
+		<textarea name="readme1" rows="3" cols="60">{{ community.roleReadmes.1|escape }}</textarea>
 		<p><label><input type="checkbox" name="agreement1"  value="agreement1"
 			{% if community.roleAgreements.1 %}
 				checked="checked"/>
 			{% else %}
 				/>
 			{% endif %}
-			Members must check box to agree to terms before becoming booster</label></div></p>
+			Members must check box to agree to terms before becoming booster</label></p>
 		Liaison read-before text
-		<div><textarea name="readme2" rows="3" cols="60">{{ community.roleReadmes.2|escape }}</textarea></div>
+		<textarea name="readme2" rows="3" cols="60">{{ community.roleReadmes.2|escape }}</textarea>
 		<p><label><input type="checkbox" name="agreement2"  value="agreement2"
 			{% if community.roleAgreements.2 %}
 				checked="checked"/>
 			{% else %}
 				/>
 			{% endif %}
-			Members must check box to agree to terms before becoming liaison</label></div></p>
-
+			Members must check box to agree to terms before becoming liaison</label></p>
+		</fieldset>
+	<p></p>
     <input type="submit" name="changeSettings" value="Change Settings">	
 	</form>
+	</div>
 	</div>	
 	</body>
 </html>

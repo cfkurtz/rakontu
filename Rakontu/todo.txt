@@ -4,6 +4,8 @@ MAJOR TO-DOs:
 
 - finish top/side menus
 - make a BIT prettier with CSS
+- how do you remove a story? an answer? an annotation?
+- need "show members" page and page for each member (to show other people, like "read")
 
 PROBLEMS RIGHT NOW:
 

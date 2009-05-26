@@ -84,6 +84,8 @@ ACTIVITIES_VERB = ["time", \
 ARTICLE_TYPES = ["story", "pattern", "construct", "invitation", "resource"]
 ATTRIBUTION_CHOICES = ["member", "anonymous", "personification"]
 LINK_TYPES = ["retold", "reminded", "related", "included"]
+ACCEPTED_ATTACHMENT_FILE_TYPES = ["jpg", "png", "pdf", "doc", "txt", "mpg", "mp3", "html", "zip"]
+ACCEPTED_ATTACHMENT_MIME_TYPES = ["image/jpeg", "image/png", "application/pdf", "application/msword", "text/plain", "video/mpeg", "audio/mpeg", "text/html", "application/zip"]
 
 # annotations
 ANNOTATION_TYPES = ["tag", "comment", "request", "nudge"]
@@ -280,7 +282,8 @@ class Question(db.Model):
 		minIfValue:			Minimum value allowed, if value.
 		maxIfValue:			Maximum value allowed, if value.
 		responseIfBoolean:	What the checkbox should say if the response is positive.
-		required:			Whether an answer is required.
+		options:			Options for display. Not using this field, saving in case of need later.
+							Replaced "required" field which I got rid of.
 		multiple:			Whether multiple answers are allowed.
 		name:				Name to display in viewer or wherever a short handle is needed.
 		text:				The actual text question asked. May be much longer.
@@ -299,7 +302,7 @@ class Question(db.Model):
 	minIfValue = db.IntegerProperty(default=0)
 	maxIfValue = db.IntegerProperty(default=1000)
 	responseIfBoolean = db.StringProperty(default="Yes")
-	required = db.BooleanProperty(default=False)
+	options = db.StringProperty(default="")
 	multiple = db.BooleanProperty(default=False)
 	choices = db.StringListProperty(default=["", "", "", "", "", "", "", "", "", ""])
 	
@@ -311,34 +314,6 @@ class Question(db.Model):
 	def isOrdinalOrNominal(self):
 		return self.type == "ordinal" or self.type == "nominal"
 		
-class Answer(db.Model):
-	""" Answer to question. 
-	
-	Properties
-		question: 			Refers to annotation question, for display.
-		referent:			Whatever the answer refers to.
-		answerIfBoolean:	True or false. Only used if question type is boolean.
-		answerIfText:		String. Only used if question type is text.
-		answerIfMultiple:	List of strings. Only used if question type is ordinal or nominal and multiple flag is set.
-		answerIfValue:		Integer. Only used if question type is value.
-							(Note we are leaving float values out.)
-		
-		entered: 			When entered.
-		lastChanged: 		When last changed.
-	"""
-	question = db.ReferenceProperty(Question, collection_name="answers referring to questions")
-	referent = db.ReferenceProperty(None, collection_name="answers referring to objects they are about")
-	answerIfBoolean = db.BooleanProperty(default=False)
-	answerIfText = db.StringProperty(default="")
-	answerIfMultiple = db.StringListProperty(default=["", "", "", "", "", "", "", "", "", ""])
-	answerIfValue = db.IntegerProperty(default=0)
-	
-	entered = db.DateTimeProperty(auto_now_add=True)
-	lastChanged = db.DateTimeProperty(auto_now_add=True)
-	
-	def questionKey(self):
-		return self.question.key()
-	
 # --------------------------------------------------------------------------------------------
 # Member
 # --------------------------------------------------------------------------------------------
@@ -461,6 +436,42 @@ class TempUser(db.Model):
 	user = db.UserProperty(required=True)
 	
 # --------------------------------------------------------------------------------------------
+# Answer
+# --------------------------------------------------------------------------------------------
+
+class Answer(db.Model):
+	""" Answer to question. 
+	
+	Properties
+		question: 			Refers to annotation question, for display.
+		referent:			Whatever the answer refers to.
+		creator:			Who answered the question.
+		
+		answerIfBoolean:	True or false. Only used if question type is boolean.
+		answerIfText:		String. Only used if question type is text.
+		answerIfMultiple:	List of strings. Only used if question type is ordinal or nominal and multiple flag is set.
+		answerIfValue:		Integer. Only used if question type is value.
+							(Note we are leaving float values out.)
+		
+		entered: 			When entered.
+		lastChanged: 		When last changed.
+	"""
+	question = db.ReferenceProperty(Question, collection_name="answers referring to questions")
+	referent = db.ReferenceProperty(None, collection_name="answers referring to objects they are about")
+	creator = db.ReferenceProperty(Member, collection_name="answers referring to their creators")
+	
+	answerIfBoolean = db.BooleanProperty(default=False)
+	answerIfText = db.StringProperty(default="")
+	answerIfMultiple = db.StringListProperty(default=["", "", "", "", "", "", "", "", "", ""])
+	answerIfValue = db.IntegerProperty(default=0)
+	
+	entered = db.DateTimeProperty(auto_now_add=True)
+	lastChanged = db.DateTimeProperty(auto_now_add=True)
+	
+	def questionKey(self):
+		return self.question.key()
+	
+# --------------------------------------------------------------------------------------------
 # Personification
 # --------------------------------------------------------------------------------------------
 
@@ -532,15 +543,15 @@ class Article(db.Model):
 	
 	def getAttachments(self):
 		return Attachment.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
+	
+	def getAnswers(self):
+		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
 
 	def getAnnotations(self):
 		return Annotation.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
 	
 	def getComments(self):
 		return Comment.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
-	
-	def getAnswerSets(self):
-		return AnswerSet.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
 	
 	def getTags(self):
 		return Tag.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
@@ -576,11 +587,16 @@ class Attachment(db.Model):
 	""" For binary attachments to articles.
 	
 	Properties:
-		name:		Name of the attachment
+		name:		Name of the attachment.
+		mimeType:	Determines how it is shown/downloaded.
+		filename:	The name of the file that was uploaded.
+		
 		data:		Binary data.
 		article:	Which artice it is associated with. (Only one allowed.)
 	"""
 	name = db.StringProperty()
+	mimeType = db.StringProperty()
+	filename = db.StringProperty()
 	data = db.BlobProperty()
 	article = db.ReferenceProperty(Article, collection_name="attachments")
 	
