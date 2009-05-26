@@ -3,6 +3,9 @@
 		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
 	</head>
 	<body>
+		{% include "../menus.html" %}
+		<div id="content">
+	
 		<form action="/manage/personifications" method="post">
 		<h2>Changing Personifications for Rakontu Community "{{ community.name|escape }}"</h2>
 		<p>
@@ -34,7 +37,7 @@
       	</table>
 	<p>
     <input type="submit" name="submitChanges" value="Submit Changes">	
-	</form>	
+	</form>
+	</div>	
 	</body>
-	<p><a href="/">Main page</a>
 </html>

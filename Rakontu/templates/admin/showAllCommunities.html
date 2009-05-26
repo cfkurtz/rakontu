@@ -3,6 +3,9 @@
 		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
 	</head>
 	<body>
+	{% include "../menus.html" %}
+	<div id="content">
+
 	{% if communities %}
     	{% for community in communities %}
       	<p>{{ community.name|escape }}<p>
@@ -16,6 +19,6 @@
     {% else %}
     	No communities.
     {% endif %}	
-	<a href="/">Main page</a>
+	</div>
 	</body>
 </html>

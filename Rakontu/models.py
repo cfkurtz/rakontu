@@ -166,25 +166,25 @@ class Community(db.Model):
 	# articles
 	
 	def getArticles(self):
-		return Article.all().filter("community = ", self.key())
+		return Article.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
 	
 	def getStories(self):
-		return Story.all().filter("community = ", self.key())
+		return Story.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
 	
 	def getPatterns(self):
-		return Pattern.all().filter("community = ", self.key())
+		return Pattern.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
 	
 	def getConstructs(self):
-		return Construct.all().filter("community = ", self.key())
+		return Construct.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
 	
 	def getInvitations(self):
-		return Invitation.all().filter("community = ", self.key())
+		return Invitation.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
 	
 	def getResources(self):
-		return Resource.all().filter("community = ", self.key())
+		return Resource.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
 	
 	def getLinks(self):
-		return Link.all().filter("community = ", self.key())
+		return Link.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
 	
 	# community level questions and answers
 
@@ -521,9 +521,6 @@ class Article(db.Model):
 	attribution = db.StringProperty(choices=ATTRIBUTION_CHOICES, default="member")
 	personification = db.ReferenceProperty(Personification, default=None)
 	
-	instructionsIfPattern = db.TextProperty(default="No instructions")
-	screenshotIfPattern = db.BlobProperty(default=None)
-
 	tookPlace = db.DateTimeProperty(default=None)
 	collected = db.DateTimeProperty(default=None)
 	entered = db.DateTimeProperty(auto_now_add=True)

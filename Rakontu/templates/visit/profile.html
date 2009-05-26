@@ -3,41 +3,46 @@
 		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
 	</head>
 	<body>
+	{% include "../menus.html" %}
+	
+	
+	<div id="content">
+	
 		<form action="/visit/profile" method="post" enctype="multipart/form-data">
-		<h2>Changing Profile for Rakontu Community "{{ community.name|escape }}" member "{{ member.nickname }}"</h2>
+		<h2>Changing Profile for Rakontu Community "{{ community.name|escape }}" member "{{ current_member.nickname }}"</h2>
 		
 		<h3>Member information</h3>
       	<table border="1" cellpadding="4" cellspacing="0">
       	<tr>
-		<td>Member ID number (database key) for this community</td><td>{{member.key}}</td></tr>
-		<td>Google account ID number in general</td><td>{{member.googleAccountID}}</td></tr>
-		<td>Is owner or manager</td><td>{{member.governanceType}}</td></tr>
-		<td>Is online member</td><td>{{member.isOnlineMember|yesno:"yes, no, maybe"}}</td></tr>
-		{% if not member.isOnlineMember %}
+		<td>Member ID number (database key) for this community</td><td>{{current_member.key}}</td></tr>
+		<td>Google account ID number in general</td><td>{{current_member.googleAccountID}}</td></tr>
+		<td>Is owner or manager</td><td>{{current_member.governanceType}}</td></tr>
+		<td>Is online member</td><td>{{current_member.isOnlineMember|yesno:"yes, no, maybe"}}</td></tr>
+		{% if not current_member.isOnlineMember %}
 			<td>Liaison</td><td>{{liaison.nickname}}</td></tr>
 		{% endif %}
-		<td>Joined</td><td>{{member.joined}}</td></tr>
-		<td>Last entered article</td><td>{{member.lastEnteredArticle}}</td></tr>
-		<td>Last entered annotation</td><td>{{member.lastEnteredAnnotation}}</td></tr>
-		<td>Last read anything</td><td>{{member.lastReadAnything}}</td></tr>
-		<td>Accumulated nudge points</td><td>{{member.nudgePoints}}</td></tr>
+		<td>Joined</td><td>{{current_member.joined}}</td></tr>
+		<td>Last entered article</td><td>{{current_member.lastEnteredArticle}}</td></tr>
+		<td>Last entered annotation</td><td>{{current_member.lastEnteredAnnotation}}</td></tr>
+		<td>Last read anything</td><td>{{current_member.lastReadAnything}}</td></tr>
+		<td>Accumulated nudge points</td><td>{{current_member.nudgePoints}}</td></tr>
 		</table>
 		
 		<h3>Nickname and description</h3>
 		<fieldset>
 		<p>Nickname</p>
-		<div><input type="text" name="nickname" value="{{ member.nickname }}"/></div>
+		<div><input type="text" name="nickname" value="{{ current_member.nickname }}"/></div>
 		<div><label><input type="checkbox" name="nickname_is_real_name" value="yes" 
-			{% if member.nicknameIsRealName %}
+			{% if current_member.nicknameIsRealName %}
 				checked
 			{% endif %}
 			>This nickname is my real name</label></div>
 		<p>Please describe yourself to other members.</p>
-		<div><textarea name="description" rows="10" cols="60">{{ member.profileText }}</textarea></div>
+		<div><textarea name="description" rows="10" cols="60">{{ current_member.profileText }}</textarea></div>
 		<i>Full URLs in the profile text will be converted to links in what is shown.</i>
 		<p>Profile image</p>
-		{% if member.profileImage %}
-			<div><img src="img?member_id={{member.key}}"></img></div>
+		{% if current_member.profileImage %}
+			<div><img src="img?member_id={{current_member.key}}"></img></div>
 		{% endif %}
 		<p><div><input type="file" name="img" accept="jpg/png"/></div></p>
 		</fieldset>
@@ -46,12 +51,12 @@
 		<fieldset>
 		
 			<p><label><input type="checkbox" name="helpingRole0" value="helpingRole0"
-				{% if member.helpingRoles.0 %}
+				{% if current_member.helpingRoles.0 %}
 					checked="checked"/>
 				{% else %}
 					/>
 				{% endif %}
-				I am a <b> {{helping_role_names.0}} </b> in this community.</label></div></p>
+				I am a <b> {{helping_role_names.0}} </b> in this community.</label></p>
 			{% if community.roleReadmes.0 %}
 				<table border="1" cellpadding="4" cellspacing="0">
 				<tr><td bgcolor="#FFFFFF"> {{ community.roleReadmes.0 }} </td></tr>
@@ -62,12 +67,12 @@
 			{% endif %}
 		
 			<p><label><input type="checkbox" name="helpingRole1" value="helpingRole1"
-				{% if member.helpingRoles.1 %}
+				{% if current_member.helpingRoles.1 %}
 					checked="checked"/>
 				{% else %}
 					/>
 				{% endif %}
-				I am a <b>{{helping_role_names.1}}</b> in this community.</label></div></p>
+				I am a <b>{{helping_role_names.1}}</b> in this community.</label></p>
 			{% if community.roleReadmes.1 %}
 				<table border="1" cellpadding="4" cellspacing="0"><tr>
 				<tr><td bgcolor="#FFFFFF"> {{ community.roleReadmes.1 }} </td></tr>
@@ -78,12 +83,12 @@
 			{% endif %}
 		
 			<p><label><input type="checkbox" name="helpingRole2" value="helpingRole2"
-				{% if member.helpingRoles.2 %}
+				{% if current_member.helpingRoles.2 %}
 					checked="checked"/>
 				{% else %}
 					/>
 				{% endif %}
-				I am a <b>{{helping_role_names.2}}</b> in this community.</label></div></p>
+				I am a <b>{{helping_role_names.2}}</b> in this community.</label></p>
 			{% if community.roleReadmes.2 %}
 				<table border="1" cellpadding="4" cellspacing="0">
 				<tr><td bgcolor="#FFFFFF"> {{ community.roleReadmes.2 }} </td></tr>
@@ -99,6 +104,6 @@
       	<p>
     <input type="submit" name="changeSettings" value="Change Settings">	
 	</form>	
+	</div>
 	</body>
-	<p><a href="/">Main page</a>
 </html>

@@ -3,6 +3,9 @@
 		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
 	</head>
 	<body>
+	{% include "../../menus.html" %}
+	<div id="content">
+	
 		<form action="/manage/questions/questions" method="post" enctype="multipart/form-data">
 		<h2>Changing Questions about {{refer_type_plural|capfirst}} for Rakontu Community "{{ community.name|escape }}"</h2>
 		
@@ -106,6 +109,6 @@
 		<p>
     <input type="submit" name="changesTo|{{refer_type}}" value="Change Questions"/>
 	</form>	
+	</div>
 	</body>
-	<p><a href="/">Main page</a>
 </html>

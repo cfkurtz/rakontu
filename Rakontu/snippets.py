@@ -472,6 +472,23 @@ class Rule(db.Model):
                 </select></div>
             </fieldset>
             
+# ---------------------------------------- NOT USING - whether they are logged in to Google is not really that relevant
+
+def GenerateURLs(request):
+    """ Used to make login/logout link on every page.
+        Probably some better way to do this.
+    """
+    if users.get_current_user():
+        url = users.create_logout_url(request.uri)
+        url_linktext = 'Logout'
+    else:
+        url = users.create_login_url(request.uri)
+        url_linktext = 'Login'
+    return url, url_linktext
+
+# -------------------------------- NOT USING - decided to get rid of extra pattern info. 
+# --------------------------------- instructions can be question, screenshot can be attachment
+
             {% ifequal article_type "pattern" %}
                 <h3>Extra Pattern Information</h3>
                 <fieldset>
@@ -496,19 +513,6 @@ class Rule(db.Model):
             {% endifequal %}
             </fieldset>
 
-# ---------------------------------------- NOT USING - whether they are logged in to Google is not really that relevant
-
-def GenerateURLs(request):
-    """ Used to make login/logout link on every page.
-        Probably some better way to do this.
-    """
-    if users.get_current_user():
-        url = users.create_logout_url(request.uri)
-        url_linktext = 'Logout'
-    else:
-        url = users.create_login_url(request.uri)
-        url_linktext = 'Login'
-    return url, url_linktext
 
 
 

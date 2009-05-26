@@ -74,7 +74,6 @@ def GetCurrentCommunityAndMemberFromSession():
         
 class StartPage(webapp.RequestHandler):
     def get(self):
-        url, url_linktext = GenerateURLs(self.request)
         user = users.get_current_user()
         communities = []
         if user:
@@ -85,8 +84,9 @@ class StartPage(webapp.RequestHandler):
                 except:
                     pass # if can't link to community don't use it
         template_values = {
-                           'user': users.get_current_user(), 
+                           'user': user, 
                            'communities': communities,
+                           'logout_url': users.create_logout_url(self.request.uri),
                            }
         path = os.path.join(os.path.dirname(__file__), 'templates/startPage.html')
         self.response.out.write(template.render(path, template_values))
@@ -105,7 +105,7 @@ class StartPage(webapp.RequestHandler):
                         session['member_key'] = members[0].key()
                     else:
                         self.redirect('/')
-                    self.redirect('/visitCommunity')
+                    self.redirect('/visit/look')
                 else:
                     self.redirect('/')
             else:
@@ -121,7 +121,10 @@ class CreateCommunityPage(webapp.RequestHandler):
     @RequireLogin 
     def get(self):
         url, url_linktext = GenerateURLs(self.request)
-        template_values = {'user': users.get_current_user()}
+        template_values = {
+                           'user': users.get_current_user(),
+                           'logout_url': users.create_logout_url(self.request.uri),
+                           }
         path = os.path.join(os.path.dirname(__file__), 'templates/createCommunity.html')
         self.response.out.write(template.render(path, template_values))
             
@@ -143,26 +146,9 @@ class CreateCommunityPage(webapp.RequestHandler):
         self.redirect('/')
         
 # --------------------------------------------------------------------------------------------
-# Visit community
+# Browse and read
 # --------------------------------------------------------------------------------------------
-        
-class VisitCommunityPage(webapp.RequestHandler):
-    @RequireLogin 
-    def get(self):
-        community, member = GetCurrentCommunityAndMemberFromSession()
-        if community and member:
-            template_values = {
-                               'community': community, 
-                               'current_user': users.get_current_user(), 
-                               'current_member': member,
-                               'members': Member.all().fetch(FETCH_NUMBER),
-                               'user_is_admin': users.is_current_user_admin(),
-                               }
-            path = os.path.join(os.path.dirname(__file__), 'templates/visitCommunity.html')
-            self.response.out.write(template.render(path, template_values))
-        else:
-            self.redirect('/')
-                
+                        
 class BrowseArticlesPage(webapp.RequestHandler):
     @RequireLogin 
     def get(self):
@@ -170,16 +156,37 @@ class BrowseArticlesPage(webapp.RequestHandler):
         if community and member:
             template_values = {
                                'community': community, 
-                               'current_user': users.get_current_user(), 
                                'current_member': member,
-                               'members': Member.all().fetch(FETCH_NUMBER),
+                               'articles': community.getArticles(),
+                               'article_types': ARTICLE_TYPES,
                                'user_is_admin': users.is_current_user_admin(),
+                               'logout_url': users.create_logout_url(self.request.uri),
                                }
-            path = os.path.join(os.path.dirname(__file__), 'templates/visitCommunity.html')
+            path = os.path.join(os.path.dirname(__file__), 'templates/visit/look.html')
             self.response.out.write(template.render(path, template_values))
         else:
             self.redirect('/')
-                
+            
+class ReadArticlePage(webapp.RequestHandler):
+    @RequireLogin 
+    def get(self):
+        community, member = GetCurrentCommunityAndMemberFromSession()
+        if community and member:
+            articleKey = self.request.uri[self.request.uri.find("?")+1:]
+            article = db.get(articleKey)
+            if article:
+                template_values = {
+                                   'community': community, 
+                                   'current_member': member,
+                                   'article': article,
+                                   'user_is_admin': users.is_current_user_admin(),
+                                   'logout_url': users.create_logout_url(self.request.uri),
+                                   }
+                path = os.path.join(os.path.dirname(__file__), 'templates/visit/read.html')
+                self.response.out.write(template.render(path, template_values))
+        else:
+            self.redirect('/')
+   
 # --------------------------------------------------------------------------------------------
 # Add article
 # --------------------------------------------------------------------------------------------
@@ -196,13 +203,18 @@ class EnterArticlePage(webapp.RequestHandler):
                     entryTypeIndexForAnonymity = i
                     break
                 i += 1
+            if not self.request.uri.find("?") >= 0:
+                article = None
+            else:
+                articleKey = self.request.uri[self.request.uri.find("?")+1:]
+                article = db.get(articleKey)
             template_values = {
                                'user': users.get_current_user(),
-                               'member': member,
+                               'current_member': member,
                                'community': community, 
                                'refer_type': type,
                                'article_type': type,
-                               'article': None,
+                               'article': article,
                                'questions': community.getQuestionsOfType(type),
                                'answers': None,
                                'attachments': None,
@@ -212,7 +224,9 @@ class EnterArticlePage(webapp.RequestHandler):
                                'request_types': REQUEST_TYPES,
                                'community_members': community.getMembers(),
                                'anon_entry_allowed': community.allowAnonymousEntry[entryTypeIndexForAnonymity],
-                               'show_attribution_choice': community.hasAtLeastOnePersonificationOrAnonEntryAllowed(entryTypeIndexForAnonymity)
+                               'show_attribution_choice': community.hasAtLeastOnePersonificationOrAnonEntryAllowed(entryTypeIndexForAnonymity),
+                               'user_is_admin': users.is_current_user_admin(),
+                               'logout_url': users.create_logout_url(self.request.uri),
                                }
             path = os.path.join(os.path.dirname(__file__), 'templates/visit/article.html')
             self.response.out.write(template.render(path, template_values))
@@ -228,7 +242,13 @@ class EnterArticlePage(webapp.RequestHandler):
                     if argument.find(aType) >= 0:
                         type = aType
                         break
-            article=Article(community=community, type=type, creator=member, title="Untitled")
+            if not self.request.uri.find("?") >= 0:
+                article = None
+            else:
+                articleKey = self.request.uri[self.request.uri.find("?")+1:]
+                article = db.get(articleKey)
+            if not article:
+                article=Article(community=community, type=type, creator=member, title="Untitled")
             article.title = title=self.request.get("title")
             article.text = self.request.get("text")
             article.collectedOffline = self.request.get("collectedOffline") == "yes"
@@ -281,7 +301,7 @@ class EnterArticlePage(webapp.RequestHandler):
                     attachmentToEdit.name = self.request.get("attachmentName%s" % i)
                     attachmentToEdit.data = db.Blob(self.request.get("attachment%s" % i))
                     attachmentToEdit.put()
-        self.redirect("/visitCommunity")
+        self.redirect("/visit/look")
         
                 
 # --------------------------------------------------------------------------------------------
@@ -302,12 +322,14 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
             template_values = {
                                'community': community, 
                                'current_user': users.get_current_user(), 
-                               'member': member,
+                               'current_member': member,
                                'questions': community.getMemberQuestions(),
                                'answers': member.getAnswers(),
                                'liaison': liaison,
                                'helping_role_names': HELPING_ROLE_TYPES,
                                'refer_type': "member",
+                               'user_is_admin': users.is_current_user_admin(),
+                               'logout_url': users.create_logout_url(self.request.uri),
                                }
             path = os.path.join(os.path.dirname(__file__), 'templates/visit/profile.html')
             self.response.out.write(template.render(path, template_values))
@@ -355,7 +377,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
                     else:
                         answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
                 answerToEdit.put()
-        self.redirect('/visitCommunity')
+        self.redirect('/visit/look')
         
 # --------------------------------------------------------------------------------------------
 # Manage community
@@ -371,7 +393,10 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
                                'community': community, 
                                'current_user': user, 
                                'current_member': currentMember,
-                               'community_members': community.getMembers()}
+                               'community_members': community.getMembers(),
+                               'user_is_admin': users.is_current_user_admin(),
+                               'logout_url': users.create_logout_url(self.request.uri),
+                               }
             path = os.path.join(os.path.dirname(__file__), 'templates/manage/members.html')
             self.response.out.write(template.render(path, template_values))
         else:
@@ -417,7 +442,7 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
                                 community=community,
                                 governanceType="member")
                             newMember.put()
-        self.redirect('/visitCommunity')
+        self.redirect('/visit/look')
             
                 
 class ManageCommunitySettingsPage(webapp.RequestHandler):
@@ -444,6 +469,8 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
                                'current_member': member,
                                'anonIncludes': anonIncludes,
                                'nudge_point_includes': nudgePointIncludes,
+                               'user_is_admin': users.is_current_user_admin(),
+                               'logout_url': users.create_logout_url(self.request.uri),
                                }
             path = os.path.join(os.path.dirname(__file__), 'templates/manage/settings.html')
             self.response.out.write(template.render(path, template_values))
@@ -482,7 +509,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
                 community.roleReadmes[i] = self.request.get("readme%s" % i)
                 community.roleAgreements[i] = self.request.get("agreement%s" % i) == ("agreement%s" % i)
             community.put()
-        self.redirect('/visitCommunity')
+        self.redirect('/visit/look')
                 
 class ManageCommunityQuestionsPage(webapp.RequestHandler):
     @RequireLogin 
@@ -500,7 +527,7 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
             systemQuestionsOfType = Question.all().filter("community = ", None).filter("refersTo = ", type).fetch(FETCH_NUMBER)
             template_values = {
                                'community': community, 
-                               'current_user': user, 
+                               'current_user': users.get_current_user(), 
                                'current_member': member,
                                'questions': communityQuestionsOfType,
                                'question_types': QUESTION_TYPES,
@@ -508,6 +535,8 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
                                'refer_type': type,
                                'refer_type_plural': typePlural,
                                'question_refer_types': QUESTION_REFERS_TO,
+                               'user_is_admin': users.is_current_user_admin(),
+                               'logout_url': users.create_logout_url(self.request.uri),
                                }
             path = os.path.join(os.path.dirname(__file__), 'templates/manage/questions/questions.html')
             self.response.out.write(template.render(path, template_values))
@@ -570,7 +599,7 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
             for sysQuestion in systemQuestionsOfType:
                 if self.request.get("copy|%s" % sysQuestion.key()) == "copy|%s" % sysQuestion.key():
                     community.AddCopyOfQuestion(sysQuestion)
-        self.redirect('/visitCommunity')
+        self.redirect('/visit/look')
 
 class ManageCommunityPersonificationsPage(webapp.RequestHandler):
     @RequireLogin 
@@ -581,6 +610,8 @@ class ManageCommunityPersonificationsPage(webapp.RequestHandler):
             template_values = {
                                'community': community, 
                                'community_personifications': personifications,
+                               'user_is_admin': users.is_current_user_admin(),
+                               'logout_url': users.create_logout_url(self.request.uri),
                                }
             path = os.path.join(os.path.dirname(__file__), 'templates/manage/personifications.html')
             self.response.out.write(template.render(path, template_values))
@@ -611,7 +642,7 @@ class ManageCommunityPersonificationsPage(webapp.RequestHandler):
                         )
                     newPersonification.put()
             community.put()
-        self.redirect('/visitCommunity')
+        self.redirect('/visit/look')
             
                 
 class ManageCommunityTechnicalPage(webapp.RequestHandler):
@@ -625,7 +656,12 @@ class ShowAllCommunities(webapp.RequestHandler):
     @RequireLogin 
     def get(self):
         if users.is_current_user_admin():
-            template_values = {'communities': Community.all().fetch(FETCH_NUMBER), 'members': Member.all().fetch(FETCH_NUMBER)}
+            template_values = {
+                               'communities': Community.all().fetch(FETCH_NUMBER), 
+                               'members': Member.all().fetch(FETCH_NUMBER),
+                               'user_is_admin': users.is_current_user_admin(),
+                               'logout_url': users.create_logout_url(self.request.uri),
+                               }
             path = os.path.join(os.path.dirname(__file__), 'templates/admin/showAllCommunities.html')
             self.response.out.write(template.render(path, template_values))
         else:
@@ -635,7 +671,11 @@ class ShowAllMembers(webapp.RequestHandler):
     @RequireLogin 
     def get(self):
         if users.is_current_user_admin():
-            template_values = {'members': Member.all().fetch(FETCH_NUMBER)}
+            template_values = {
+                               'members': Member.all().fetch(FETCH_NUMBER),
+                               'user_is_admin': users.is_current_user_admin(),
+                               'logout_url': users.create_logout_url(self.request.uri),
+                               }
             path = os.path.join(os.path.dirname(__file__), 'templates/admin/showAllMembers.html')
             self.response.out.write(template.render(path, template_values))
         else:
@@ -661,6 +701,11 @@ class Image (webapp.RequestHandler):
                 self.response.out.write(community.image)
             else:
                 self.error(404)
+        elif self.request.get("article_id"):
+            article = db.get(self.request.get("article_id"))
+            if article and article.type == "pattern" and article.screenshotIfPattern:
+                self.response.headers['Content-Type'] = "image/jpg"
+                self.response.out.write(article.screenshotIfPattern)
 
 # --------------------------------------------------------------------------------------------
 # Application and main
@@ -670,8 +715,8 @@ application = webapp.WSGIApplication(
                                      [('/', StartPage),
                                       
                                       # visiting
-                                      ('/visitCommunity', VisitCommunityPage),
                                       ('/visit/look', BrowseArticlesPage),
+                                      ('/visit/read', ReadArticlePage),
                                       ('/visit/story', EnterArticlePage),
                                       ('/visit/pattern', EnterArticlePage),
                                       ('/visit/construct', EnterArticlePage),

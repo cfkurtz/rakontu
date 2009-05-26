@@ -3,6 +3,9 @@
 		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
 	</head>
 	<body>
+		{% include "../menus.html" %}
+		<div id="content">
+	
 		<form action="/manage/members" method="post">
 		<h2>Changing Memberships for Rakontu Community "{{ community.name|escape }}"</h2>
 		<p>
@@ -49,6 +52,6 @@
 
     <input type="submit" name="submitChanges" value="Submit Changes">	
 	</form>	
+	</div>
 	</body>
-	<p><a href="/">Main page</a>
 </html>

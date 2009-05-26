@@ -21,3 +21,56 @@ div.select {
 fieldset {
 	background: #FFEECC;
 	}
+	
+#header {
+	background: #FFEECC;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 100%;
+	}
+	
+#sidebar {
+	float: left;
+	height: auto;
+	top: 130px;
+	bottom: 4px;
+	width: 190px;
+	border-right: 1px solid #666666;
+	}
+	
+#sidebar p {
+	color: #993300;
+	font-size: 130%;
+	border-bottom: 1px solid #993300;
+	padding: 2px;
+}
+
+#sidebar ul li {
+	color: #993300;
+	display: block;
+	line-height: 16px;
+	list-style: none;
+	padding: 2px;
+}
+#sidebar ul li a {
+	color: #616161;
+	display: block;
+	text-decoration: none;
+	width: 160px;
+}
+
+#sidebar li a:hover {
+	background: #993300;
+	color: #fff;
+}
+
+#content {
+    float: none;
+    top: 130px;
+    bottom: 4px;
+	margin-left: 190px;
+	height: auto;
+	width: auto;
+	padding-left : 6px;
+	padding-right: 6px;
+	border-left: 1px solid #666666;
+	}

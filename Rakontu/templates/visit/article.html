@@ -3,7 +3,14 @@
 		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
 	</head>
 	<body>
-		<form action="/visit/article" method="post" enctype="multipart/form-data">
+		{% include "../menus.html" %}
+		<div id="content">
+		
+		<form action="/visit/article
+		{% if article %}
+		?{{article.key}}
+		{% endif %}
+		" method="post" enctype="multipart/form-data">
 		
 			<h3>{{article_type|capfirst}}</h3>
 			<fieldset>
@@ -21,7 +28,7 @@
 			{% endif %}
 			<div><input type="text" name="title" size="60" value="{% if article %} {{article.title}} {% endif %}"/></div>
 			
-			{% if member.isLiaison %}
+			{% if current_member.isLiaison %}
 				<div><label><input type="checkbox" name="collectedOffline" value="yes" checked>This {{article_type}} was collected offline.</label></div>
 				{% if article %}
 					<p>This off-line {{article_type}} was collected from:</p>
@@ -54,7 +61,7 @@
 								selected="selected"
 							{% endifequal %}
 						{% endif %}
-						>Me ({{member.nickname}})</option>
+						>Me ({{current_member.nickname}})</option>
 					{% if anon_entry_allowed %}
 						<option value="anonymous"
 						{% if article %}
@@ -139,7 +146,6 @@
 			<div><input type="file" name="attachment2" accept="jpg/png/pdf/txt/doc"/></div>
 			</fieldset>
 			
-			
 			<p>
 			<center>
 			{% if article %}
@@ -150,5 +156,6 @@
 			</center>
 			
 		</form>
+		</div>
 	</body>
 </html>

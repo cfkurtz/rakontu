@@ -1,0 +1,61 @@
+
+
+<div id="header">
+
+	<table border="0" width="100%">
+	<tr><td align="left" valign="center" width="70">
+	{% if community.image %}
+		<div><img src="img?community_id={{community.key}}"></img>
+	{% endif %}
+	</td><td align="left" valign="center">
+	<b>{{ community.name }}</b>
+	</td><td align="right" valign="center">
+	{{current_member.governanceType|capfirst}} <b>{{ current_member.nickname }}</b><br>
+	<a href="/visit/look">Look</a> 
+	<a href="/visit/story">Tell</a> 
+	<a href="/visit/profile">Profile</a> 
+	<a href="xxx">Help</a> 
+	<a href="{{logout_url}}">Logout</a>
+	</td></tr></table>
+
+</div>
+
+<div id="sidebar">
+
+	<p>Visit</p>
+	<ul>
+  	<li><a href="/visit/look">Look at stories and other information</a></li>
+  	<li><a href="/visit/story">Tell a story</a></li>
+  	<li><a href="/visit/pattern">Describe a pattern</a></li>
+  	<li><a href="/visit/construct">Build a construct</a></li>
+  	<li><a href="/visit/invitation">Invite people to tell stories</a></li>
+  	<li><a href="/visit/resource">Add a resource</a></li>
+  	<li><a href="/visit/profile">Change your member profile</a></li>
+  	</ul>
+  	
+  	{% if current_member.isManager or current_member.isOwner %}
+      	<p>Manage</p>
+      	<ul>
+      	<li><a href="/manage/members">Memberships</a></li>
+      	<li><a href="/manage/settings">Settings</a></li>
+      	<li><a href="/manage/questions/story">Questions about stories</a></li>
+      	<li><a href="/manage/questions/pattern">Questions about patterns</a></li>
+      	<li><a href="/manage/questions/construct">Questions about constructs</a></li>
+      	<li><a href="/manage/questions/invitation">Questions about invitations</a></li>
+      	<li><a href="/manage/questions/resource">Questions about resources</a></li>
+      	<li><a href="/manage/questions/member">Questions about members</a></li>
+      	<li><a href="/manage/personifications">Personifications</a></li>
+      	<li><a href="/manage/technical">Backup</a></li>
+      	</ul>
+    {% endif %}
+
+	{% if user_is_admin %}
+		<p>Administer site</p>
+		<ul>
+		<li><a href="/admin/showAllCommunities">Show All Communities</a></li>
+		<li><a href="/admin/showAllMembers">Show All Members</a></li>
+		</ul>
+	{% endif %}
+
+
+</div>

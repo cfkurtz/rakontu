@@ -1,0 +1,26 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+	</head>
+	<body>
+	{% include "../menus.html" %}
+	<div id="content">
+	
+	<p>Browsing all articles in the {{ community.name }} community.</p>
+	
+	{% for type in article_types %}
+		<h3>{{type|capfirst}}</h3>
+		{% for article in articles %}
+			{% ifequal article.type type %}
+				<p>&nbsp; <a href="/visit/read?{{article.key}}">{{article.title}}</a> &nbsp;
+				{% ifequal article.creator.key current_member.key %}
+					&nbsp; <a href="/visit/{{article.type}}?{{article.key}}">(Change)</a>
+				{% endifequal %}
+				</p>
+			{% endifequal %}
+		{% endfor %}
+	{% endfor %}	
+
+	</div>
+	</body>
+</html>

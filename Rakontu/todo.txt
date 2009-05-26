@@ -1,0 +1,14 @@
+Things to do before v0.1 is complete
+
+MAJOR TO-DOs:
+
+- finish top/side menus
+- make a BIT prettier with CSS
+
+PROBLEMS RIGHT NOW:
+
+- articles not showing answer values
+
+REMEMBER TO:
+
+- xxx

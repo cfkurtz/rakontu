@@ -1,0 +1,35 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+	</head>
+	<body>
+	{% include "../menus.html" %}
+	<div id="content">
+	
+	<h2>Reading {{article.type}} "{{article.title}}"</h2>
+	
+	<table border="1" cellpadding="4" cellspacing="0">
+	<tr><td>{{article.text}}</td></tr></table>
+	
+	<p>
+	This {{article.type}} was entered by 
+	
+	{% ifequal article.attribution "member" %}
+		{{article.creator.nickname}}
+	{% endifequal %}
+	{% ifequal article.attribution "anonymous" %}
+		an anonymous member
+	{% endifequal %}
+	{% ifequal article.attribution "personification" %}
+		{{article.personification.name}}
+	{% endifequal %}
+	
+	on {{article.entered.date}}.
+	
+	{% if article.collectedOffline %}
+		<p>It was collected off-line and entered by {{article.liaison.nickname}}.</p>
+	{% endif %}
+
+	</div>
+	</body>
+</html>
