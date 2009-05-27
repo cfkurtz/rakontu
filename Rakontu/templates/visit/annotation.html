@@ -6,16 +6,33 @@
 		{% include "../menus.html" %}
 		<div id="content">
 		
-		<form action="/visit/article
-		{% if article %}
-		?{{article.key}}
+		<form action="/visit/annotation
+		{% if annotation %}
+		?{{annotation.key}}
 		{% endif %}
 		" method="post" enctype="multipart/form-data">
 		
-			<h3>{{article_type|capfirst}}</h3>
+			<h3>{{annotation_type|capfirst}}</h3>
 			<fieldset>
-			{% if article %}
-				You can change the text of your {{article_type}} here.
+			
+	type = db.StringProperty(choices=ANNOTATION_TYPES)
+	
+	shortString = db.StringProperty(default="Untitled")
+	longString = db.TextProperty()
+	typeIfRequest = db.StringProperty(choices=REQUEST_TYPES, required=True)
+	valueIfNudge = db.IntegerProperty(default=0)
+
+	collectedOffline = db.BooleanProperty(default=False)
+	liaison = db.ReferenceProperty(Member, default=None, collection_name="annotations_liaisoned")
+	attribution = db.StringProperty(choices=ATTRIBUTION_CHOICES, default="member")
+	personification = db.ReferenceProperty(Personification, default=None)
+
+
+			
+			
+			
+			{% if annotation %}
+				You can change the text of your {{annotation_type}} here.
 			{% else %}
 				Please type your {{article_type}} here.
 			{% endif %}

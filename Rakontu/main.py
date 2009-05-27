@@ -182,7 +182,9 @@ class ReadArticlePage(webapp.RequestHandler):
                                    'user_is_admin': users.is_current_user_admin(),
                                    'logout_url': users.create_logout_url(self.request.uri),
                                    'answers': article.getAnswers(),
+                                   'questions': community.getQuestionsOfType(article.type),
                                    'attachments': article.getAttachments(),
+                                   'actions': ACTIONS_AFTER_READING,
                                    }
                 path = os.path.join(os.path.dirname(__file__), 'templates/visit/read.html')
                 self.response.out.write(template.render(path, template_values))
@@ -190,7 +192,7 @@ class ReadArticlePage(webapp.RequestHandler):
             self.redirect('/')
    
 # --------------------------------------------------------------------------------------------
-# Add article
+# Add or change article
 # --------------------------------------------------------------------------------------------
    
 class EnterArticlePage(webapp.RequestHandler):
@@ -253,6 +255,11 @@ class EnterArticlePage(webapp.RequestHandler):
                 article = db.get(articleKey)
             if not article:
                 article=Article(community=community, type=type, creator=member, title="Untitled")
+            else:
+                if "remove|%s|%s" % (type, articleKey) in self.request.arguments():
+                    db.delete(article)
+                    self.redirect("/visit/look")
+                    return
             if self.request.get("title"):
                 article.title = self.request.get("title")
             article.text = self.request.get("text")
@@ -263,10 +270,9 @@ class EnterArticlePage(webapp.RequestHandler):
                         article.creator = aMember
                         article.liaison = member
                         break
-            else:
-                article.creator = member
             article.attribution = self.request.get("attribution")
-            if article.attribution == "personification":
+            if article.attribution != "member" and article.attribution != "anonymous":
+                article.attribution = "personification"
                 article.personification = self.request.get("personification")
             article.put()
             questions = Question.all().filter("community = ", community).filter("refersTo = ", type).fetch(FETCH_NUMBER)
@@ -297,6 +303,16 @@ class EnterArticlePage(webapp.RequestHandler):
                 answerToEdit.creator = member
                 answerToEdit.put()
             foundAttachments = Attachment.all().filter("article = ", article.key()).fetch(FETCH_NUMBER)
+            attachmentsToRemove = []
+            DebugPrint(self.request.params.items())
+            for attachment in foundAttachments:
+                for name, value in self.request.params.items():
+                    if value == "removeAttachment|%s" % attachment.key():
+                        attachmentsToRemove.append(attachment)
+            if attachmentsToRemove:
+                for attachment in attachmentsToRemove:
+                    db.delete(attachment)
+            foundAttachments = Attachment.all().filter("article = ", article.key()).fetch(FETCH_NUMBER)
             for i in range(3):
                 for name, value in self.request.params.items():
                     if name == "attachment%s" % i:
@@ -314,7 +330,7 @@ class EnterArticlePage(webapp.RequestHandler):
                                 j += 1
                             if mimeType:
                                 attachmentToEdit.mimeType = mimeType
-                                attachmentToEdit.filename = filename
+                                attachmentToEdit.fileName = filename
                                 attachmentToEdit.name = self.request.get("attachmentName%s" % i)
                                 attachmentToEdit.data = db.Blob(str(self.request.get("attachment%s" % i)))
                                 attachmentToEdit.put()
@@ -408,8 +424,8 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
             communityMembers = Member.all().filter("community = ", community).fetch(FETCH_NUMBER)
             template_values = {
                                'community': community, 
-                               'current_user': user, 
-                               'current_member': currentMember,
+                               'current_user': users.get_current_user(), 
+                               'current_member': member,
                                'community_members': community.getMembers(),
                                'user_is_admin': users.is_current_user_admin(),
                                'logout_url': users.create_logout_url(self.request.uri),
@@ -728,7 +744,11 @@ class AttachmentHandler(webapp.RequestHandler):
         if self.request.get("attachment_id"):
             attachment = db.get(self.request.get("attachment_id"))
             if attachment and attachment.data:
-                self.response.headers['Content-Type'] = attachment.mimeType
+                if attachment.mimeType in ["image/jpeg", "image/png", "text/html", "text/plain"]:
+                    self.response.headers.add_header('Content-Disposition', 'filename="%s"' % attachment.fileName)
+                else:
+                    self.response.headers.add_header('Content-Disposition', 'attachment; filename="%s"' % attachment.fileName)
+                self.response.headers.add_header('Content-Type', attachment.mimeType)
                 self.response.out.write(attachment.data)
             else:
                 self.error(404)

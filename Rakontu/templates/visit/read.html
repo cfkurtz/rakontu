@@ -6,9 +6,9 @@
 	{% include "../menus.html" %}
 	<div id="content">
 	
-	<h2>Reading {{article.type}} "{{article.title}}"</h2>
+	<h2>{{article.title}} ({{article.type}})</h2>
 	
-	<table border="1" cellpadding="4" cellspacing="0">
+	<table border="1" cellpadding="4" cellspacing="0" width="95%">
 	<tr><td>{{article.text}}</td></tr></table>
 	
 	<p>
@@ -16,6 +16,9 @@
 	
 	{% ifequal article.attribution "member" %}
 		{{article.creator.nickname}}
+		{% ifequal article.creator.key current_member.key %}
+			 (you)
+		{% endifequal %}
 	{% endifequal %}
 	{% ifequal article.attribution "anonymous" %}
 		an anonymous member
@@ -24,54 +27,74 @@
 		{{article.personification.name}}
 	{% endifequal %}
 	
-	on {{article.entered.date}}.
+	on {{article.entered.date}} at {{article.entered.time}}.
 	
 	{% if article.collectedOffline %}
 		<p>It was collected off-line and entered by {{article.liaison.nickname}}.</p>
+	{% endif %}
+	
+	{% if attachments %}
+		<b>Attachments</b>
+		{% for attachment in attachments %}
+			<p>&nbsp; &nbsp; 
+			{% if attachment.name %}
+			{{attachment.name}} -
+			{% endif %}
+			<a href="attachment?attachment_id={{attachment.key}}">{{attachment.fileName}}</a> ({{attachment.mimeType}})<p>
+		{% endfor %}
+	{% endif %}
+	
+	{% if answers %}
+		<h3>Answers to questions about this {{article.type}}</h3>
+		<fieldset>
+		{% for question in questions %}
+			<p>&nbsp; <b>{{question.text}}</b></p>
+			{% for answer in answers %}
+				{% ifequal question.key answer.question.key %}
+					{% ifequal answer.question.type "text" %}
+						<p>&nbsp; &nbsp; {{answer.answerIfText}}
+					{% endifequal %}
+					{% ifequal answer.question.type "boolean" %}
+						<p>&nbsp; &nbsp; {{answer.answerIfBoolean|yesno:"Yes, No, Maybe"}}
+					{% endifequal %}
+					{% ifequal answer.question.type "ordinal" %}
+						{% if answer.question.multiple %}
+							<p>&nbsp; &nbsp; {{answer.answerIfMultiple|join:", "}}
+						{% else %}
+							<p>&nbsp; &nbsp; {{answer.answerIfText}}
+						{% endif %}
+					{% endifequal %}
+					{% ifequal answer.question.type "nominal" %}
+						{% if answer.question.multiple %}
+							<p>&nbsp; &nbsp; {{answer.answerIfMultiple|join:", "}}
+						{% else %}
+							<p>&nbsp; &nbsp; {{answer.answerIfText}}
+						{% endif %}
+					{% endifequal %}
+					{% ifequal answer.question.type "value" %}
+						<p>&nbsp; &nbsp; {{answer.answerIfValue}}
+					{% endifequal %}
+					({{answer.creator.nickname}})</p>
+				{% endifequal %}
+			{% endfor %}
+		{% endfor %}
+		</fieldset>
+	{% endif %}
+	
+	{% if actions %}
+		<p>What would you like to do next?</p>
+		<p>I'd like to <select name="action">
+		{% for action in actions %}
+			<option value="{{action}}">{{action}}</option>
+		{% endfor %}
+		</select>
+		<input type="submit" name="action|{{article.key}}" value="Go"/></p>
 	{% endif %}
 	
 	{% ifequal article.creator.key current_member.key %}
 		<p><b>This is your {{article.type}}. You can <a href="/visit/{{article.type}}?{{article.key}}">change</a> it.</b></p>
 	{% endifequal %}
 	
-	{% if answers %}
-		<p>Answers to questions about this {{article.type}}:</p>
-		{% for answer in answers %}
-			<p>&nbsp; <b>{{answer.question.text}}</b>
-			{% ifequal answer.question.type "text" %}
-				{{answer.answerIfText}}
-			{% endifequal %}
-			{% ifequal answer.question.type "boolean" %}
-				{{answer.answerIfBoolean|yesno:"Yes, No, Maybe"}}
-			{% endifequal %}
-			{% ifequal answer.question.type "ordinal" %}
-				{% if answer.question.multiple %}
-					{{answer.answerIfMultiple|join:", "}}
-				{% else %}
-					{{answer.answerIfText}}
-				{% endif %}
-			{% endifequal %}
-			{% ifequal answer.question.type "nominal" %}
-				{% if answer.question.multiple %}
-					{{answer.answerIfMultiple|join:", "}}
-				{% else %}
-					{{answer.answerIfText}}
-				{% endif %}
-			{% endifequal %}
-			{% ifequal answer.question.type "value" %}
-				{{answer.answerIfValue}}
-			{% endifequal %}
-			({{answer.creator.nickname}})
-		{% endfor %}
-	{% endif %}
-	
-	{% if attachments %}
-		<b>Attachments</b>
-		{% for attachment in attachments %}
-			<div><a href="attachment?attachment_id={{attachment.key}}">{{attachment.name}} - {{attachment.mimeType}}</a></div>
-		{% endfor %}
-	{% endif %}
-
 	</div>
 	</body>
 </html>

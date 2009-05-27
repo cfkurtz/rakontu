@@ -79,6 +79,16 @@ ACTIVITIES_VERB = ["time", \
 						 "annotated", "questions answered about", "tagged", "commented", "requested", "nudged", \
 						 "nudged - appropriateness", "nudged - importance", "nudged - utility", \
 						 "nudged - utility custom 1", "nudged - utility custom 2", "nudged - utility custom 3"]
+ACTIONS_AFTER_READING = [
+						 "tell my own version of this story",
+						 "tell another story that this one reminds me of",
+						 "answer some questions about this story",
+						 "comment on this story",
+						 "add some tags to this story",
+						 "nudge this story up or down",
+						 "include this story in a pattern",
+						 "include this story in a construct",
+						 ]
 
 # articles
 ARTICLE_TYPES = ["story", "pattern", "construct", "invitation", "resource"]
@@ -589,14 +599,14 @@ class Attachment(db.Model):
 	Properties:
 		name:		Name of the attachment.
 		mimeType:	Determines how it is shown/downloaded.
-		filename:	The name of the file that was uploaded.
+		fileName:	The name of the file that was uploaded.
 		
 		data:		Binary data.
 		article:	Which artice it is associated with. (Only one allowed.)
 	"""
 	name = db.StringProperty()
 	mimeType = db.StringProperty()
-	filename = db.StringProperty()
+	fileName = db.StringProperty()
 	data = db.BlobProperty()
 	article = db.ReferenceProperty(Article, collection_name="attachments")
 	
