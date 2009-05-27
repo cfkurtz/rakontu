@@ -175,6 +175,13 @@ class ReadArticlePage(webapp.RequestHandler):
             articleKey = self.request.uri[self.request.uri.find("?")+1:]
             article = db.get(articleKey)
             if article:
+                actions = []
+                for action in ACTIONS_AFTER_READING_ALL:
+                    actions.append(action.replace("ITEM", article.type))
+                extraActionsForType = ACTIONS_AFTER_READING_ADD_FOR_TYPE[article.type]
+                if extraActionsForType:
+                    for extraAction in extraActionsForType:
+                        actions.insert(0, extraAction)
                 template_values = {
                                    'community': community, 
                                    'current_member': member,
@@ -184,7 +191,7 @@ class ReadArticlePage(webapp.RequestHandler):
                                    'answers': article.getAnswers(),
                                    'questions': community.getQuestionsOfType(article.type),
                                    'attachments': article.getAttachments(),
-                                   'actions': ACTIONS_AFTER_READING,
+                                   'actions': actions,
                                    }
                 path = os.path.join(os.path.dirname(__file__), 'templates/visit/read.html')
                 self.response.out.write(template.render(path, template_values))
@@ -529,6 +536,17 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
                 community.maxNudgePointsPerArticle = oldValue
             for i in range(5):
                 community.utilityNudgeCategories[i] = self.request.get("nudgeCategory%s" % i)
+            community.autoPrune = self.request.get("autoPrune") == "yes"
+            oldValue = community.autoPruneStrength
+            try:
+                community.autoPruneStrength = int(self.request.get("autoPruneStrength"))
+            except:
+                community.autoPruneStrength = oldValue
+            oldValue = community.maxNumAttachments
+            try:
+                community.maxNumAttachments = int(self.request.get("maxNumAttachments"))
+            except:
+                community.maxNumAttachments = oldValue
             i = 0
             for pointType in ACTIVITIES_GERUND:
                 if DEFAULT_NUDGE_POINT_ACCUMULATIONS[i] != 0: # if zero, not appropriate for nudge point accumulation

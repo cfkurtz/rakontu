@@ -79,17 +79,25 @@ ACTIVITIES_VERB = ["time", \
 						 "annotated", "questions answered about", "tagged", "commented", "requested", "nudged", \
 						 "nudged - appropriateness", "nudged - importance", "nudged - utility", \
 						 "nudged - utility custom 1", "nudged - utility custom 2", "nudged - utility custom 3"]
-ACTIONS_AFTER_READING = [
-						 "tell my own version of this story",
-						 "tell another story that this one reminds me of",
-						 "answer some questions about this story",
-						 "comment on this story",
-						 "add some tags to this story",
-						 "nudge this story up or down",
-						 "include this story in a pattern",
-						 "include this story in a construct",
-						 ]
-
+ACTIONS_AFTER_READING_ALL = [
+							"answer some questions about this ITEM",
+						 	"comment on this ITEM",
+						 	"add some tags to this ITEM",
+						 	"nudge this ITEM up or down",
+						 	"make a request about this ITEM",
+						 	]
+ACTIONS_AFTER_READING_ADD_FOR_TYPE = {
+						 "story": [
+						 	"include this story in a pattern",
+						 	"include this story in a construct",
+						 	"tell another story that this one reminds me of",
+							"tell my own version of this story",
+						 	],
+						 "pattern": [],
+						 "construct": [],
+						 "invitation": ["respond to this invitation with a story",],
+						 "resource": [],
+						 }
 # articles
 ARTICLE_TYPES = ["story", "pattern", "construct", "invitation", "resource"]
 ATTRIBUTION_CHOICES = ["member", "anonymous", "personification"]
@@ -98,10 +106,12 @@ ACCEPTED_ATTACHMENT_FILE_TYPES = ["jpg", "png", "pdf", "doc", "txt", "mpg", "mp3
 ACCEPTED_ATTACHMENT_MIME_TYPES = ["image/jpeg", "image/png", "application/pdf", "application/msword", "text/plain", "video/mpeg", "audio/mpeg", "text/html", "application/zip"]
 
 # annotations
-ANNOTATION_TYPES = ["tag", "comment", "request", "nudge"]
+ANNOTATION_TYPES = ["tag set", "comment", "request", "nudge"]
 REQUEST_TYPES = ["edit text", "clean up audio/video", "add comments", "nudge", "add tags", "translate", "transcribe", "read aloud", "contact me"]
 NUDGE_TYPES = ["appropriateness", "importance", "utility", "utility custom 1", "utility custom 2", "utility custom 3"]
 ENTRY_TYPES = ["story", "pattern", "construct", "invitation", "resource", "answer", "tag", "comment", "request", "nudge"]
+PRUNE_STRENGTH_NAMES = ["weak", "medium", "strong"]
+PRUNE_STRENGTHS = [1, 2, 3]
 
 # browsing
 TIME_STEPS = ["hour", "day", "week", "month", "year"]
@@ -162,6 +172,15 @@ class Community(db.Model):
 								One text per helping role type.
 		roleAgreements:			Whether the user is asked to click a checkbox before taking on a role
 								to show that they agree with the terms of the role. (Social obligation only.)
+		autoPrune:				Whether items (article, annotations, answers) marked with a prune flag
+								by curators, managers and owners should be pruned automatically
+								or shown to managers and owners for removal.
+		autoPruneStrength:		What strength level of pruning (and above) will be removed automatically
+								(levels below this only show up in a prune flag list seen only
+								by managers and owners). Combination of numbers allocated by
+								different prune flags. 
+		maxNumAttachments:		How many attachments are allowed per article.
+								May be useful to keep the database from getting out of hand.
 	"""
 	name = db.StringProperty()
 	description = db.TextProperty()
@@ -174,6 +193,10 @@ class Community(db.Model):
 	utilityNudgeCategories = db.StringListProperty(default=["", "", "", "", ""])
 	roleReadmes = db.StringListProperty(default=DEFAULT_ROLE_READMES)
 	roleAgreements = db.ListProperty(bool, default=[False, False, False])
+	
+	autoPrune = db.BooleanProperty(default=False)
+	autoPruneStrength = db.IntegerProperty(default=6)
+	maxNumAttachments = db.IntegerProperty(choices=[0,1,2,3,4,5], default=3)
 	
 	# articles
 	
@@ -197,6 +220,30 @@ class Community(db.Model):
 	
 	def getLinks(self):
 		return Link.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+	
+	def allowsAtLeastTwoAttachments(self):
+		return self.maxNumAttachments >= 2
+	
+	def allowsAtLeastThreeAttachments(self):
+		return self.maxNumAttachments >= 3
+	
+	def allowsAtLeastFourAttachments(self):
+		return self.maxNumAttachments >= 4
+	
+	def allowsFiveAttachments(self):
+		return self.maxNumAttachments == 5
+	
+	def maxNumAttachmentsAsText(self):
+		if self.maxNumAttachments == 1:
+			return "one"
+		elif self.maxNumAttachments == 2:
+			return "two"
+		elif self.maxNumAttachments == 3:
+			return "three"
+		elif self.maxNumAttachments == 4:
+			return "four"
+		elif self.maxNumAttachments == 5:
+			return "five"
 	
 	# community level questions and answers
 
@@ -560,18 +607,9 @@ class Article(db.Model):
 	def getAnnotations(self):
 		return Annotation.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
 	
-	def getComments(self):
-		return Comment.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
+	def getAnnotationsOfType(self, type):
+		return Annotation.all().filter("article =", self.key()).filter("type = ", type).fetch(FETCH_NUMBER)
 	
-	def getTags(self):
-		return Tag.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
-	
-	def getNudges(self):
-		return Nudge.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
-	
-	def getRequests(self):
-		return Request.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
-		
 	def getOutgoingLinks(self):
 		return Link.all().filter("articleFrom =", self.key()).fetch(FETCH_NUMBER)
 		
@@ -625,8 +663,9 @@ class Annotation(db.Model):
 							articles, this would be useful.
 		type:				One of tag, comment, request or nudge.
 		
-		shortString:		A short string, usually used as a title, but could also be a tag or comment.
+		shortString:		A short string, usually used as a title
 		longString:			A text property, used for the comment or request body.
+		tagsIfTagSet:		A set of five tags, any or all of which might be blank.
 		typeIfRequest:		Which type of request it is.
 		valueIfNudge:		The number of nudge points (+ or -) this adds to the article.
 
@@ -647,6 +686,7 @@ class Annotation(db.Model):
 	
 	shortString = db.StringProperty(default="Untitled")
 	longString = db.TextProperty()
+	tagsIfTagSet = db.StringListProperty(default=["", "", "", "", ""])
 	typeIfRequest = db.StringProperty(choices=REQUEST_TYPES, required=True)
 	valueIfNudge = db.IntegerProperty(default=0)
 
@@ -657,8 +697,32 @@ class Annotation(db.Model):
 
 	collected = db.DateTimeProperty(default=None)
 	entered = db.DateTimeProperty(auto_now_add=True)
+
+# --------------------------------------------------------------------------------------------
+# Pruning
+# --------------------------------------------------------------------------------------------
+
+class PruneFlag(db.Model):
+	""" Flags that say anything is inappropriate and should be removed.
+		Can only be added by curators, managers or owners. 
+		Items can only be removed by managers, owners, or their creators.
 	
-	inappropriateMarks = db.StringListProperty(default=None)
+	Properties
+		referent:			What object is recommended for pruning: article, annotation or answer.
+		creator:			Who recommended pruning the object.
+		
+		comment:			An optional comment on why pruning is recommended.
+		strength:			How strong the pruning recommendation is.
+		
+		entered:			When the flag was created.
+	"""
+	referent = db.ReferenceProperty(None, required=True)
+	creator = db.ReferenceProperty(Member, required=True, collection_name="prune flags")
+	
+	comment = db.StringProperty(default="")
+	strength = db.StringProperty(choices=PRUNE_STRENGTH_NAMES, default=PRUNE_STRENGTH_NAMES[0])
+
+	entered = db.DateTimeProperty(auto_now_add=True)
 	
 # --------------------------------------------------------------------------------------------
 # Queries
@@ -797,7 +861,7 @@ class ViewingPreferences(db.Model):
 		basement:			A number of points below which articles are not displayed, no matter what yBottom users pick.
 							Used mainly at the community level, though users could set a different basement for themselves.
 							
-		numInappropriateMarksToHideAnnotations: If annotations have this many inappropriate markings, they are hidden.
+		combinedPruneStrengthToHideItems: If items have this many prune flags, they are hidden.
 							Used mainly at the community level, though users could set a different level for themselves.
 	"""
 	owner = db.ReferenceProperty(Member, required=True, collection_name="viewing_preferences")
@@ -815,6 +879,6 @@ class ViewingPreferences(db.Model):
 	verticalPoints = db.ListProperty(int, default=DEFAULT_VERTICAL_MOVEMENT_POINTS_PER_EVENT)
 	
 	basement = db.IntegerProperty(default=0)
-	numInappropriateMarksToHideAnnotations = db.IntegerProperty(default=5)
+	combinedPruneStrengthToHideItems = db.IntegerProperty(default=5)
 	
 

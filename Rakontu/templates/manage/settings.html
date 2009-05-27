@@ -54,6 +54,47 @@
 		{% endfor %}
 		</table>
       	</fieldset>
+      	
+		<h3>Pruning and limitations</h3>
+		<fieldset>
+		<p>Should articles, annotations and answers ever be deleted automatically?
+		<input type="checkbox" name="autoPrune" size="4" value="yes"
+			{% if community.autoPrune %}
+				checked="checked"
+			{% endif %}
+			/>Yes, activate auto pruning</p>
+		<p>If auto pruning happens, at what combined strength should an item be deleted?
+			(Pruning strengths are 1: weak, 2: medium, 3: strong; these are added to create the combined prune strength value.)
+		<input type="text" name="autoPruneStrength" size="4" value="{{community.autoPruneStrength}}"/></p>
+		<p>How many attachments are allowed per article? 
+			<select name="maxNumAttachments">
+			<option value="1"
+				{% ifequal community.maxNumAttachments 1 %}
+					selected="selected"
+				{% endifequal %}
+				>1</option>
+			<option value="2"
+				{% ifequal community.maxNumAttachments 2 %}
+					selected="selected"
+				{% endifequal %}
+				>2</option>
+			<option value="3"
+				{% ifequal community.maxNumAttachments 3 %}
+					selected="selected"
+				{% endifequal %}
+				>3</option>
+			<option value="4"
+				{% ifequal community.maxNumAttachments 4 %}
+					selected="selected"
+				{% endifequal %}
+				>4</option>
+			<option value="5"
+				{% ifequal community.maxNumAttachments 5 %}
+					selected="selected"
+				{% endifequal %}
+				>5</option>
+			</select></p>
+		</fieldset>
 
 		<h3>Helping Roles</h3>
 		<fieldset>
@@ -62,10 +103,9 @@
 		<textarea name="readme0" rows="3" cols="60">{{ community.roleReadmes.0|escape }}</textarea>
 		<p><label><input type="checkbox" name="agreement0" value="agreement0"
 			{% if community.roleAgreements.0 %}
-				checked="checked"/>
-			{% else %}
-				/>
+				checked="checked"
 			{% endif %}
+			/>
 			Members must check box to agree to terms before becoming curator</label></p>
 		Booster read-before text
 		<textarea name="readme1" rows="3" cols="60">{{ community.roleReadmes.1|escape }}</textarea>
