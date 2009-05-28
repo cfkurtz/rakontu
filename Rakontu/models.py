@@ -59,11 +59,11 @@ DEFAULT_NUDGE_POINT_ACCUMULATIONS = [
 
 # member
 NO_NICKNAME_SET = "No nickname set"
-MEMBER_TYPES = ["member", "on-line member", "off-line member", "liaison", "curator", "booster", "manager", "owner"]
-HELPING_ROLE_TYPES = ["curator", "booster", "liaison"]
+MEMBER_TYPES = ["member", "on-line member", "off-line member", "liaison", "curator", "guide", "manager", "owner"]
+HELPING_ROLE_TYPES = ["curator", "guide", "liaison"]
 DEFAULT_ROLE_READMES = [
 					    "A curator pays attention to Rakontu's accumulated data. Curators add information, check for problems, create links, and in general maintain the vitality of the story bank.",
-					    "A booster pays attention to the Rakontu's on-line human community. Boosters answer questions, write tutorials, encourage people to tell and use stories, create patterns, write and respond to requests, set up and run exercises, and in general maintain the vitality of the on-line member community.",
+					    "A guide pays attention to the Rakontu's on-line human community. Guides answer questions, write tutorials, encourage people to tell and use stories, create patterns, write and respond to requests, set up and run exercises, and in general maintain the vitality of the on-line member community.",
 					    "A liaison guides stories and other information over the barrier between on-line and off-line worlds. Liaisons conduct external interviews and add the stories people tell in them, read stories to people and gather comments, nudges, and other annotations, and in general make the system work for both on-line and off-line community members."]
 GOVERNANCE_ROLE_TYPES = ["member", "manager", "owner"]
 GOVERNANCE_VIEWS = ["settings", "members", "watch", "technical"]
@@ -79,25 +79,7 @@ ACTIVITIES_VERB = ["time", \
 						 "annotated", "questions answered about", "tagged", "commented", "requested", "nudged", \
 						 "nudged - appropriateness", "nudged - importance", "nudged - utility", \
 						 "nudged - utility custom 1", "nudged - utility custom 2", "nudged - utility custom 3"]
-ACTIONS_AFTER_READING_ALL = [
-							"answer some questions about this ITEM",
-						 	"comment on this ITEM",
-						 	"add some tags to this ITEM",
-						 	"nudge this ITEM up or down",
-						 	"make a request about this ITEM",
-						 	]
-ACTIONS_AFTER_READING_ADD_FOR_TYPE = {
-						 "story": [
-						 	"include this story in a pattern",
-						 	"include this story in a construct",
-						 	"tell another story that this one reminds me of",
-							"tell my own version of this story",
-						 	],
-						 "pattern": [],
-						 "construct": [],
-						 "invitation": ["respond to this invitation with a story",],
-						 "resource": [],
-						 }
+
 # articles
 ARTICLE_TYPES = ["story", "pattern", "construct", "invitation", "resource"]
 ATTRIBUTION_CHOICES = ["member", "anonymous", "personification"]
@@ -107,7 +89,8 @@ ACCEPTED_ATTACHMENT_MIME_TYPES = ["image/jpeg", "image/png", "application/pdf", 
 
 # annotations
 ANNOTATION_TYPES = ["tag set", "comment", "request", "nudge"]
-REQUEST_TYPES = ["edit text", "clean up audio/video", "add comments", "nudge", "add tags", "translate", "transcribe", "read aloud", "contact me"]
+ANNOTATION_TYPES_URLS = ["tagset", "comment", "request", "nudge"]
+REQUEST_TYPES = ["edit text", "clean up audio/video", "add comments", "nudge", "add tags", "translate", "transcribe", "read aloud", "contact me", "other"]
 NUDGE_TYPES = ["appropriateness", "importance", "utility", "utility custom 1", "utility custom 2", "utility custom 3"]
 ENTRY_TYPES = ["story", "pattern", "construct", "invitation", "resource", "answer", "tag", "comment", "request", "nudge"]
 PRUNE_STRENGTH_NAMES = ["weak", "medium", "strong"]
@@ -167,7 +150,7 @@ class Community(db.Model):
 		maxNudgePointsPerArticle:	How many nudge points a member is allowed to place (maximally) on any article.
 		allowAnonymousEntry:	Whether members are allowed to enter things with only
 								"anonymous" marked. One entry per type of thing (ENTRY_TYPES)
-		utilityNudgeCategories:	Names of custom nudge categories. Up to three allowed.
+		nudgeCategories:		Names of nudge categories. Up to five allowed.
 		roleReadmes:			Texts all role members read before taking on a role.
 								One text per helping role type.
 		roleAgreements:			Whether the user is asked to click a checkbox before taking on a role
@@ -190,7 +173,7 @@ class Community(db.Model):
 	nudgePointsPerActivity = db.ListProperty(int, default=DEFAULT_NUDGE_POINT_ACCUMULATIONS)
 	maxNudgePointsPerArticle = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE)
 	allowAnonymousEntry = db.ListProperty(bool, default=[False,False,False,False,False,False,False,False,False,False])
-	utilityNudgeCategories = db.StringListProperty(default=["", "", "", "", ""])
+	nudgeCategories = db.StringListProperty(default=["appropriateness", "importance", "usefulness for new members", "usefulness for resolving conflicts", "usefulness for learning our group's history"])
 	roleReadmes = db.StringListProperty(default=DEFAULT_ROLE_READMES)
 	roleAgreements = db.ListProperty(bool, default=[False, False, False])
 	
@@ -220,7 +203,7 @@ class Community(db.Model):
 	
 	def getLinks(self):
 		return Link.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
-	
+		
 	def allowsAtLeastTwoAttachments(self):
 		return self.maxNumAttachments >= 2
 	
@@ -247,9 +230,6 @@ class Community(db.Model):
 	
 	# community level questions and answers
 
-	def getAnnotationQuestions(self, articleType):
-		return Question.all().filter("community = ", self.key()).filter("refersTo = ", articleType).fetch(FETCH_NUMBER)
-		
 	def getMemberQuestions(self):
 		return Question.all().filter("community = ", self.key()).filter("refersTo = ", "member").fetch(FETCH_NUMBER)
 	
@@ -258,7 +238,7 @@ class Community(db.Model):
 	
 	def getQuestionsOfType(self, type):
 		return Question.all().filter("community = ", self.key()).filter("refersTo = ", type).fetch(FETCH_NUMBER)
-	
+		
 	def hasQuestionWithSameTypeAndName(self, question):
 		allQuestions = self.getQuestions()
 		for aQuestion in allQuestions:
@@ -292,8 +272,8 @@ class Community(db.Model):
 	def getCurators(self):
 		return Member.all().filter("community = ", self.key()).filter("helpingRoles IN ", "curator").fetch(FETCH_NUMBER)
 	
-	def getBoosters(self):
-		return Member.all().filter("community = ", self.key()).filter("helpingRoles IN ", "booster").fetch(FETCH_NUMBER)
+	def getGuides(self):
+		return Member.all().filter("community = ", self.key()).filter("helpingRoles IN ", "guide").fetch(FETCH_NUMBER)
 	
 	def getLiaisons(self):
 		return Member.all().filter("community = ", self.key()).filter("helpingRoles IN ", "liaison").fetch(FETCH_NUMBER)
@@ -393,7 +373,7 @@ class Member(db.Model):
 		governanceType:		Whether they are a member, manager or owner.
 		governanceView:		What views (of GOVERNANCE_VIEWS) the member wants to see if they 
 							are a manager or owner.
-		helpingRoles:		Helping roles the member has chosen (curator, booster, liaison).
+		helpingRoles:		Helping roles the member has chosen (curator, guide, liaison).
 		
 		nicknameIsRealName:	Whether their nickname is their real name. For display only.
 		profileText:		Small amount of member-submitted info about themselves.
@@ -425,7 +405,7 @@ class Member(db.Model):
 	lastEnteredArticle = db.DateTimeProperty()
 	lastEnteredAnnotation = db.DateTimeProperty()
 	lastReadAnything = db.DateTimeProperty()
-	nudgePoints = db.IntegerProperty(default=0)
+	nudgePoints = db.IntegerProperty(default=50)
 
 	def getHistory(self):
 		articles = Article.all().filter("creator =", self.key()).order("-date").fetch(FETCH_NUMBER)
@@ -449,8 +429,8 @@ class Member(db.Model):
 	def isCurator(self):
 		return "curator" in self.helpingRoles
 	
-	def isBooster(self):
-		return "booster" in self.helpingRoles
+	def isGuide(self):
+		return "guide" in self.helpingRoles
 	
 	def isLiaison(self):
 		return "liaison" in self.helpingRoles
@@ -492,6 +472,20 @@ class Member(db.Model):
 class TempUser(db.Model):
 	user = db.UserProperty(required=True)
 	
+class Personification(db.Model):
+	""" Used to anonymize entries but provide some information about intent. Optional.
+	
+	Properties
+		community:			The Rakontu community this personification belongs to.
+		name:				The fictional name of the personification, like "Coyote".
+		description:		Simple text description of the personification
+		image:				Optional image.
+	"""
+	community = db.ReferenceProperty(Community)
+	name = db.StringProperty(required=True)
+	description = db.TextProperty()
+	image = db.BlobProperty()
+	
 # --------------------------------------------------------------------------------------------
 # Answer
 # --------------------------------------------------------------------------------------------
@@ -513,9 +507,14 @@ class Answer(db.Model):
 		entered: 			When entered.
 		lastChanged: 		When last changed.
 	"""
-	question = db.ReferenceProperty(Question, collection_name="answers referring to questions")
-	referent = db.ReferenceProperty(None, collection_name="answers referring to objects they are about")
-	creator = db.ReferenceProperty(Member, collection_name="answers referring to their creators")
+	question = db.ReferenceProperty(Question, collection_name="answers to questions")
+	referent = db.ReferenceProperty(None, collection_name="answers to objects")
+	creator = db.ReferenceProperty(Member, collection_name="answers to creators")
+	
+	collectedOffline = db.BooleanProperty(default=False)
+	liaison = db.ReferenceProperty(Member, default=None, collection_name="answers_liaisoned")
+	attribution = db.StringProperty(choices=ATTRIBUTION_CHOICES, default="member")
+	personification = db.ReferenceProperty(Personification, default=None)
 	
 	answerIfBoolean = db.BooleanProperty(default=False)
 	answerIfText = db.StringProperty(default="")
@@ -527,24 +526,6 @@ class Answer(db.Model):
 	
 	def questionKey(self):
 		return self.question.key()
-	
-# --------------------------------------------------------------------------------------------
-# Personification
-# --------------------------------------------------------------------------------------------
-
-class Personification(db.Model):
-	""" Used to anonymize entries but provide some information about intent. Optional.
-	
-	Properties
-		community:			The Rakontu community this personification belongs to.
-		name:				The fictional name of the personification, like "Coyote".
-		description:		Simple text description of the personification
-		image:				Optional image.
-	"""
-	community = db.ReferenceProperty(Community)
-	name = db.StringProperty(required=True)
-	description = db.TextProperty()
-	image = db.BlobProperty()
 	
 # --------------------------------------------------------------------------------------------
 # Article
@@ -612,7 +593,10 @@ class Article(db.Model):
 	
 	def getOutgoingLinks(self):
 		return Link.all().filter("articleFrom =", self.key()).fetch(FETCH_NUMBER)
-		
+	
+	def getAnswersForMember(self, member):
+		return Answer.all().filter("referent = ", self.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
+	
 class Link(db.Model):
 	""" For holding on to links between articles.
 	
@@ -667,7 +651,8 @@ class Annotation(db.Model):
 		longString:			A text property, used for the comment or request body.
 		tagsIfTagSet:		A set of five tags, any or all of which might be blank.
 		typeIfRequest:		Which type of request it is.
-		valueIfNudge:		The number of nudge points (+ or -) this adds to the article.
+		valuesIfNudge:		The number of nudge points (+ or -) this adds to the article.
+							One value per category (up to 5).
 
 		collectedOffline:	Whether it was contributed by an offline member.
 		liaison:			Person who entered the article for off-line member. None if not offline.
@@ -682,13 +667,13 @@ class Annotation(db.Model):
 	article = db.ReferenceProperty(Article, required=True, collection_name="annotations")
 	creator = db.ReferenceProperty(Member, required=True, collection_name="annotations")
 	community = db.ReferenceProperty(Community, required=True)
-	type = db.StringProperty(choices=ANNOTATION_TYPES)
+	type = db.StringProperty(choices=ANNOTATION_TYPES, required=True)
 	
-	shortString = db.StringProperty(default="Untitled")
+	shortString = db.StringProperty()
 	longString = db.TextProperty()
 	tagsIfTagSet = db.StringListProperty(default=["", "", "", "", ""])
-	typeIfRequest = db.StringProperty(choices=REQUEST_TYPES, required=True)
-	valueIfNudge = db.IntegerProperty(default=0)
+	typeIfRequest = db.StringProperty(choices=REQUEST_TYPES)
+	valuesIfNudge = db.ListProperty(int, default=[0,0,0,0,0])
 
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="annotations_liaisoned")
@@ -697,6 +682,12 @@ class Annotation(db.Model):
 
 	collected = db.DateTimeProperty(default=None)
 	entered = db.DateTimeProperty(auto_now_add=True)
+	
+	def totalNudgePointsAbsolute(self):
+		result = 0
+		for value in self.valuesIfNudge:
+			result += abs(value)
+		return result
 
 # --------------------------------------------------------------------------------------------
 # Pruning

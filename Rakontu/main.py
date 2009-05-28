@@ -87,7 +87,7 @@ class StartPage(webapp.RequestHandler):
         template_values = {
                            'user': user, 
                            'communities': communities,
-                           'logout_url': users.create_logout_url(self.request.uri),
+                           'logout_url': users.create_logout_url("/"),
                            }
         path = os.path.join(os.path.dirname(__file__), 'templates/startPage.html')
         self.response.out.write(template.render(path, template_values))
@@ -123,7 +123,7 @@ class CreateCommunityPage(webapp.RequestHandler):
     def get(self):
         template_values = {
                            'user': users.get_current_user(),
-                           'logout_url': users.create_logout_url(self.request.uri),
+                           'logout_url': users.create_logout_url("/"),
                            }
         path = os.path.join(os.path.dirname(__file__), 'templates/createCommunity.html')
         self.response.out.write(template.render(path, template_values))
@@ -160,7 +160,7 @@ class BrowseArticlesPage(webapp.RequestHandler):
                                'articles': community.getArticles(),
                                'article_types': ARTICLE_TYPES,
                                'user_is_admin': users.is_current_user_admin(),
-                               'logout_url': users.create_logout_url(self.request.uri),
+                               'logout_url': users.create_logout_url("/"),
                                }
             path = os.path.join(os.path.dirname(__file__), 'templates/visit/look.html')
             self.response.out.write(template.render(path, template_values))
@@ -172,31 +172,34 @@ class ReadArticlePage(webapp.RequestHandler):
     def get(self):
         community, member = GetCurrentCommunityAndMemberFromSession()
         if community and member:
-            articleKey = self.request.uri[self.request.uri.find("?")+1:]
-            article = db.get(articleKey)
+            article = db.get(self.request.query_string)
             if article:
-                actions = []
-                for action in ACTIONS_AFTER_READING_ALL:
-                    actions.append(action.replace("ITEM", article.type))
-                extraActionsForType = ACTIONS_AFTER_READING_ADD_FOR_TYPE[article.type]
-                if extraActionsForType:
-                    for extraAction in extraActionsForType:
-                        actions.insert(0, extraAction)
                 template_values = {
                                    'community': community, 
                                    'current_member': member,
                                    'article': article,
+                                   'member_can_answer_questions': len(article.getAnswersForMember(member)) == 0,
+                                   'community_has_questions_for_this_article_type': len(community.getQuestionsOfType(article.type)) > 0,
                                    'user_is_admin': users.is_current_user_admin(),
-                                   'logout_url': users.create_logout_url(self.request.uri),
+                                   'logout_url': users.create_logout_url("/"),
                                    'answers': article.getAnswers(),
                                    'questions': community.getQuestionsOfType(article.type),
                                    'attachments': article.getAttachments(),
-                                   'actions': actions,
+                                   'requests': article.getAnnotationsOfType("request"),
+                                   'comments': article.getAnnotationsOfType("comment"),
+                                   'tag_sets': article.getAnnotationsOfType("tag set"),
+                                   'nudges': article.getAnnotationsOfType("nudge"),
                                    }
                 path = os.path.join(os.path.dirname(__file__), 'templates/visit/read.html')
                 self.response.out.write(template.render(path, template_values))
         else:
             self.redirect('/')
+            
+    @RequireLogin
+    def post(self):
+        community, member = GetCurrentCommunityAndMemberFromSession()
+        if community and member:
+            pass
    
 # --------------------------------------------------------------------------------------------
 # Add or change article
@@ -217,7 +220,7 @@ class EnterArticlePage(webapp.RequestHandler):
             if not self.request.uri.find("?") >= 0:
                 article = None
             else:
-                articleKey = self.request.uri[self.request.uri.find("?")+1:]
+                articleKey = self.request.query_string
                 article = db.get(articleKey)
             if article:
                 answers = article.getAnswers()
@@ -235,11 +238,12 @@ class EnterArticlePage(webapp.RequestHandler):
                                'questions': community.getQuestionsOfType(type),
                                'answers': answers,
                                'attachments': attachments,
+                               'zero_to_five': range(5),
                                'community_members': community.getMembers(),
                                'anon_entry_allowed': community.allowAnonymousEntry[entryTypeIndexForAnonymity],
                                'show_attribution_choice': community.hasAtLeastOnePersonificationOrAnonEntryAllowed(entryTypeIndexForAnonymity),
                                'user_is_admin': users.is_current_user_admin(),
-                               'logout_url': users.create_logout_url(self.request.uri),
+                               'logout_url': users.create_logout_url("/"),
                                }
             path = os.path.join(os.path.dirname(__file__), 'templates/visit/article.html')
             self.response.out.write(template.render(path, template_values))
@@ -264,6 +268,15 @@ class EnterArticlePage(webapp.RequestHandler):
                 article=Article(community=community, type=type, creator=member, title="Untitled")
             else:
                 if "remove|%s|%s" % (type, articleKey) in self.request.arguments():
+                    annotations = Annotation.all().filter("article = ", article.key()).fetch(FETCH_NUMBER)
+                    for annotation in annotations:
+                        db.delete(annotation)
+                    linksFrom = Link.all().filter("articleFrom = ", article.key()).fetch(FETCH_NUMBER)
+                    for link in linksFrom:
+                        db.delete(link)
+                    linksTo = Link.all().filter("articleTo = ", article.key()).fetch(FETCH_NUMBER)
+                    for link in linksTo:
+                        db.delete(link)
                     db.delete(article)
                     self.redirect("/visit/look")
                     return
@@ -277,14 +290,18 @@ class EnterArticlePage(webapp.RequestHandler):
                         article.creator = aMember
                         article.liaison = member
                         break
-            article.attribution = self.request.get("attribution")
-            if article.attribution != "member" and article.attribution != "anonymous":
-                article.attribution = "personification"
-                article.personification = self.request.get("personification")
+            if self.request.get("attribution"):
+                article.attribution = self.request.get("attribution")
+                if article.attribution and article.attribution != "member" and article.attribution != "anonymous":
+                    article.attribution = "personification"
+                    personificationKey = self.request.get("personification")
+                    article.personification = db.get(personificationKey)
+            else:
+                article.attribution = "member"
             article.put()
             questions = Question.all().filter("community = ", community).filter("refersTo = ", type).fetch(FETCH_NUMBER)
             for question in questions:
-                foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", article.key()).fetch(FETCH_NUMBER)
+                foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", article.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
                 if foundAnswers:
                     answerToEdit = foundAnswers[0]
                 else:
@@ -341,7 +358,229 @@ class EnterArticlePage(webapp.RequestHandler):
                                 attachmentToEdit.name = self.request.get("attachmentName%s" % i)
                                 attachmentToEdit.data = db.Blob(str(self.request.get("attachment%s" % i)))
                                 attachmentToEdit.put()
-        self.redirect("/visit/look")
+            self.redirect("/visit/read?%s" % article.key())
+        else:
+            self.redirect("/visit/look")
+            
+class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
+    @RequireLogin 
+    def get(self):
+        community, member = GetCurrentCommunityAndMemberFromSession()
+        if community and member:
+            article = None
+            if self.request.query_string:
+                article = Article.get(self.request.query_string)
+            anonEntryAllowed = True # CFK FIX
+            if article:
+                template_values = {
+                                   'user': users.get_current_user(),
+                                   'current_member': member,
+                                   'community': community, 
+                                   'article': article,
+                                   'article_type': article.type,
+                                   'questions': community.getQuestionsOfType(article.type),
+                                   'answers': article.getAnswersForMember(member),
+                                   'anon_entry_allowed': anonEntryAllowed,
+                                   'show_attribution_choice': True, #community.hasAtLeastOnePersonificationOrAnonEntryAllowed(anonEntryAllowed),
+                                   'user_is_admin': users.is_current_user_admin(),
+                                   'logout_url': users.create_logout_url("/"),
+                                   }
+                path = os.path.join(os.path.dirname(__file__), 'templates/visit/answers.html')
+                self.response.out.write(template.render(path, template_values))
+            else:
+                self.redirect("/visit/look")
+        else:
+            self.redirect("/")
+                
+    @RequireLogin 
+    def post(self):
+        community, member = GetCurrentCommunityAndMemberFromSession()
+        if community and member:
+            articleKey = self.request.query_string
+            article = db.get(articleKey)
+            if article:
+                attribution = "member"
+                personification = None
+                if self.request.get("attribution"):
+                    attribution = self.request.get("attribution")
+                    if attribution and attribution != "member" and attribution != "anonymous":
+                        attribution = "personification"
+                        personificationKey = self.request.get("personification")
+                        personification = db.get(personificationKey)
+                questions = Question.all().filter("community = ", community).filter("refersTo = ", article.type).fetch(FETCH_NUMBER)
+                for question in questions:
+                    foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", article.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
+                    if foundAnswers:
+                        answerToEdit = foundAnswers[0]
+                    else:
+                        answerToEdit = Answer(question=question, referent=article)
+                    answerToEdit.attribution = attribution
+                    answerToEdit.personification = personification
+                    if question.type == "text":
+                        answerToEdit.answerIfText = self.request.get("%s" % question.key())
+                    elif question.type == "value":
+                        oldValue = answerToEdit.answerIfValue
+                        try:
+                            answerToEdit.answerIfValue = int(self.request.get("%s" % question.key()))
+                        except:
+                            answerToEdit.answerIfValue = oldValue
+                    elif question.type == "boolean":
+                        answerToEdit.answerIfBoolean = self.request.get("%s" % question.key()) == "%s" % question.key()
+                    elif question.type == "nominal" or question.type == "ordinal":
+                        if question.multiple:
+                            answerToEdit.answerIfMultiple = []
+                            for choice in question.choices:
+                                if self.request.get("%s|%s" % (question.key(), choice)):
+                                    answerToEdit.answerIfMultiple.append(choice)
+                        else:
+                            answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
+                    answerToEdit.creator = member
+                    answerToEdit.put()
+            self.redirect("/visit/read?%s" % article.key())
+        else:
+            self.redirect("/visit/look")
+            
+class EnterAnnotationPage(webapp.RequestHandler):
+    @RequireLogin 
+    def get(self):
+        community, member = GetCurrentCommunityAndMemberFromSession()
+        if community and member:
+            i = 0
+            for aType in ANNOTATION_TYPES_URLS:
+                if self.request.uri.find(aType) >= 0:
+                    type = ANNOTATION_TYPES[i]
+                    # CFK FIX
+                    anonEntryAllowed = True #community.getAnonymousEntrySettingForItem(ANNOTATION_TYPES[type])
+                    break
+                i += 1
+            article = None
+            annotation = None
+            if self.request.query_string:
+                try:
+                    article = Article.get(self.request.query_string)
+                except:
+                    annotation = Annotation.get(self.request.query_string)
+                    article = annotation.article
+            if article:
+                template_values = {
+                                   'user': users.get_current_user(),
+                                   'current_member': member,
+                                   'community': community, 
+                                   'annotation_type': type,
+                                   'annotation': annotation,
+                                   'article': article,
+                                   'request_types': REQUEST_TYPES,
+                                   'nudge_categories': community.nudgeCategories,
+                                   'anon_entry_allowed': anonEntryAllowed,
+                                   'show_attribution_choice': True, #community.hasAtLeastOnePersonificationOrAnonEntryAllowed(anonEntryAllowed),
+                                   'user_is_admin': users.is_current_user_admin(),
+                                   'logout_url': users.create_logout_url("/"),
+                                   }
+                path = os.path.join(os.path.dirname(__file__), 'templates/visit/annotation.html')
+                self.response.out.write(template.render(path, template_values))
+            else:
+                self.redirect("/visit/look")
+        else:
+            self.redirect("/")
+            
+    @RequireLogin 
+    def post(self):
+        community, member = GetCurrentCommunityAndMemberFromSession()
+        if community and member:
+            for aType in ANNOTATION_TYPES:
+                for argument in self.request.arguments():
+                    if argument.find(aType) >= 0:
+                        type = aType
+                        break
+            article = None
+            annotation = None
+            if self.request.query_string:
+                try:
+                    article = Article.get(self.request.query_string)
+                except:
+                    annotation = Annotation.get(self.request.query_string)
+                    article = annotation.article
+            if article:
+                if not annotation:
+                    annotation=Annotation(community=community, type=type, creator=member, article=article)
+                else:
+                    if "remove|%s|%s" % (type, annotation.key()) in self.request.arguments():
+                        if annotation.type == "nudge":
+                            member.nudgePoints += annotation.totalNudgePointsAbsolute
+                            member.put()
+                        db.delete(annotation)
+                        self.redirect("/visit/read?%s" % article.key())
+                        return
+                annotation.collectedOffline = self.request.get("collectedOffline") == "yes"
+                if annotation.collectedOffline and member.isLiaison():
+                    for aMember in community.getMembers():
+                        if self.request.get("offlineSource") == aMember.key():
+                            annotation.creator = aMember
+                            annotation.liaison = member
+                            break
+                annotation.attribution = self.request.get("attribution")
+                if annotation.attribution != "member" and annotation.attribution != "anonymous":
+                    annotation.attribution = "personification"
+                    annotation.personification = self.request.get("personification")
+                if type == "tag set":
+                    annotation.tagsIfTagSet = []
+                    for i in range (5):
+                        if self.request.get("tag%s" % i):
+                            annotation.tagsIfTagSet.append(self.request.get("tag%s" % i))
+                elif type == "comment":
+                    annotation.shortString = self.request.get("shortString")
+                    annotation.longString = self.request.get("longString")
+                elif type == "request":
+                    annotation.shortString = self.request.get("shortString")
+                    annotation.longString = self.request.get("longString")
+                    annotation.typeIfRequest = self.request.get("typeIfRequest")
+                elif type == "nudge":
+                    oldTotalNudgePointsInThisNudge = annotation.totalNudgePointsAbsolute()
+                    nudgeValuesTheyWantToSet = []
+                    totalNudgeValuesTheyWantToSet = 0
+                    for i in range(5):
+                        category = community.nudgeCategories[i]
+                        if category:
+                            oldValue = annotation.valuesIfNudge[i]
+                            try:
+                                nudgeValuesTheyWantToSet.append(int(self.request.get("nudge%s" % i)))
+                            except:
+                                nudgeValuesTheyWantToSet.append(oldValue)
+                            totalNudgeValuesTheyWantToSet += abs(nudgeValuesTheyWantToSet[i])
+                    adjustedValues = []
+                    maximumAllowedInThisInstance = min(member.nudgePoints, community.maxNudgePointsPerArticle)
+                    if totalNudgeValuesTheyWantToSet > maximumAllowedInThisInstance:
+                        totalNudgePointsAllocated = 0
+                        for i in range(5):
+                            category = community.nudgeCategories[i]
+                            if category:
+                                overLimit = totalNudgePointsAllocated + nudgeValuesTheyWantToSet[i] > maximumAllowedInThisInstance
+                                if not overLimit:
+                                    adjustedValues.append(nudgeValuesTheyWantToSet[i])
+                                    totalNudgePointsAllocated += abs(nudgeValuesTheyWantToSet[i])
+                                else:
+                                    break
+                    else:
+                        adjustedValues.extend(nudgeValuesTheyWantToSet)
+                    annotation.valuesIfNudge = [0,0,0,0,0]
+                    i = 0
+                    for value in adjustedValues:
+                        annotation.valuesIfNudge[i] = value
+                        i += 1
+                    annotation.shortString = self.request.get("shortString")
+                    newTotalNudgePointsInThisNudge = annotation.totalNudgePointsAbsolute()
+                    member.nudgePoints += oldTotalNudgePointsInThisNudge
+                    member.nudgePoints -= newTotalNudgePointsInThisNudge
+                    member.put()
+                annotation.put()
+                self.redirect("/visit/read?%s" % article.key())
+            else:
+                self.redirect("/visit/look")
+        else:
+            self.redirect("/")
+        
+class EnterAnswersPage(webapp.RequestHandler):
+    pass
            
 # --------------------------------------------------------------------------------------------
 # Manage memberhip
@@ -368,7 +607,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
                                'helping_role_names': HELPING_ROLE_TYPES,
                                'refer_type': "member",
                                'user_is_admin': users.is_current_user_admin(),
-                               'logout_url': users.create_logout_url(self.request.uri),
+                               'logout_url': users.create_logout_url("/"),
                                }
             path = os.path.join(os.path.dirname(__file__), 'templates/visit/profile.html')
             self.response.out.write(template.render(path, template_values))
@@ -424,6 +663,8 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 # --------------------------------------------------------------------------------------------
                                 
 class ManageCommunityMembersPage(webapp.RequestHandler):
+    # CFK FIX - need to add thing where you ban members from being helper roles
+    # also need to change those radio buttons to select boxes on governance type
     @RequireLogin 
     def get(self):
         community, member = GetCurrentCommunityAndMemberFromSession()
@@ -435,7 +676,7 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
                                'current_member': member,
                                'community_members': community.getMembers(),
                                'user_is_admin': users.is_current_user_admin(),
-                               'logout_url': users.create_logout_url(self.request.uri),
+                               'logout_url': users.create_logout_url("/"),
                                }
             path = os.path.join(os.path.dirname(__file__), 'templates/manage/members.html')
             self.response.out.write(template.render(path, template_values))
@@ -494,14 +735,14 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
             i = 0
             for pointType in ACTIVITIES_GERUND:
                 if DEFAULT_NUDGE_POINT_ACCUMULATIONS[i] != 0: # if zero, not appropriate for nudge point accumulation
-                    nudgePointIncludes.append('<tr><td>%s</td><td align="right"><input type="text" name="%s" size="4" value="%s"/></td></tr>' \
+                    nudgePointIncludes.append('<tr><td align="right">%s</td><td align="left"><input type="text" name="%s" size="4" value="%s"/></td></tr>' \
                         % (pointType, pointType, community.nudgePointsPerActivity[i]))
                 i += 1
             anonIncludes = []
             i = 0
             for entryType in ENTRY_TYPES:
-                anonIncludes.append('<p><label><input type="checkbox" name="%s" value="%s" %s/>%s</label></p>' \
-                        % (entryType, entryType, checkedBlank(community.allowAnonymousEntry[i]), entryType))
+                anonIncludes.append('<input type="checkbox" name="%s" value="%s" %s id="%s"/><label for="%s">%s</label>' \
+                        % (entryType, entryType, checkedBlank(community.allowAnonymousEntry[i]), entryType, entryType, entryType))
                 i += 1
             template_values = {
                                'community': community, 
@@ -510,7 +751,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
                                'anonIncludes': anonIncludes,
                                'nudge_point_includes': nudgePointIncludes,
                                'user_is_admin': users.is_current_user_admin(),
-                               'logout_url': users.create_logout_url(self.request.uri),
+                               'logout_url': users.create_logout_url("/"),
                                }
             path = os.path.join(os.path.dirname(__file__), 'templates/manage/settings.html')
             self.response.out.write(template.render(path, template_values))
@@ -535,7 +776,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
             except:
                 community.maxNudgePointsPerArticle = oldValue
             for i in range(5):
-                community.utilityNudgeCategories[i] = self.request.get("nudgeCategory%s" % i)
+                community.nudgeCategories[i] = self.request.get("nudgeCategory%s" % i)
             community.autoPrune = self.request.get("autoPrune") == "yes"
             oldValue = community.autoPruneStrength
             try:
@@ -587,7 +828,7 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
                                'refer_type_plural': typePlural,
                                'question_refer_types': QUESTION_REFERS_TO,
                                'user_is_admin': users.is_current_user_admin(),
-                               'logout_url': users.create_logout_url(self.request.uri),
+                               'logout_url': users.create_logout_url("/"),
                                }
             path = os.path.join(os.path.dirname(__file__), 'templates/manage/questions/questions.html')
             self.response.out.write(template.render(path, template_values))
@@ -661,7 +902,7 @@ class ManageCommunityPersonificationsPage(webapp.RequestHandler):
                                'community': community, 
                                'community_personifications': personifications,
                                'user_is_admin': users.is_current_user_admin(),
-                               'logout_url': users.create_logout_url(self.request.uri),
+                               'logout_url': users.create_logout_url("/"),
                                }
             path = os.path.join(os.path.dirname(__file__), 'templates/manage/personifications.html')
             self.response.out.write(template.render(path, template_values))
@@ -710,7 +951,7 @@ class ShowAllCommunities(webapp.RequestHandler):
                                'communities': Community.all().fetch(FETCH_NUMBER), 
                                'members': Member.all().fetch(FETCH_NUMBER),
                                'user_is_admin': users.is_current_user_admin(),
-                               'logout_url': users.create_logout_url(self.request.uri),
+                               'logout_url': users.create_logout_url("/"),
                                }
             path = os.path.join(os.path.dirname(__file__), 'templates/admin/showAllCommunities.html')
             self.response.out.write(template.render(path, template_values))
@@ -724,7 +965,7 @@ class ShowAllMembers(webapp.RequestHandler):
             template_values = {
                                'members': Member.all().fetch(FETCH_NUMBER),
                                'user_is_admin': users.is_current_user_admin(),
-                               'logout_url': users.create_logout_url(self.request.uri),
+                               'logout_url': users.create_logout_url("/"),
                                }
             path = os.path.join(os.path.dirname(__file__), 'templates/admin/showAllMembers.html')
             self.response.out.write(template.render(path, template_values))
@@ -774,7 +1015,7 @@ class AttachmentHandler(webapp.RequestHandler):
 # --------------------------------------------------------------------------------------------
 # Application and main
 # --------------------------------------------------------------------------------------------
-        
+
 application = webapp.WSGIApplication(
                                      [('/', StartPage),
                                       
@@ -787,11 +1028,22 @@ application = webapp.WSGIApplication(
                                       ('/visit/invitation', EnterArticlePage),
                                       ('/visit/resource', EnterArticlePage),
                                       ('/visit/article', EnterArticlePage),
+                                      ('/visit/answers', AnswerQuestionsAboutArticlePage),
+                                      
+                                      ('/visit/request', EnterAnnotationPage),
+                                      ('/visit/tagset', EnterAnnotationPage),
+                                      ('/visit/comment', EnterAnnotationPage),
+                                      ('/visit/nudge', EnterAnnotationPage),
+                                      ('/visit/annotation', EnterAnnotationPage),
+                                      
+                                      ('/visit/answers', EnterAnswersPage),
+                                      
                                       ('/visit/profile', ChangeMemberProfilePage),
                                       ('/img', ImageHandler),
                                       ('/visit/img', ImageHandler),
                                       ('/manage/img', ImageHandler),
                                       ('/visit/attachment', AttachmentHandler),
+                                      
                                       
                                       # managing
                                       ('/createCommunity', CreateCommunityPage),

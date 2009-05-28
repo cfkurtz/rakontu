@@ -5,29 +5,29 @@
 	<body>
 	<center>
 	<h1>Welcome to Rakontu!</h1>
-	<p><img src="/images/Rakontu.jpg" alt="Rakontu logo" border="1"></p>
+	<p><img src="/images/Rakontu.jpg" alt="Rakontu logo" class="bordered"></p>
 	{% if user %}
-		You are logged in to your Google account "{{ user.nickname }}".</p>
+		<p>You are logged in to your Google account <b>{{ user.nickname }}</b>. <a href="{{logout_url}}">Log out</a></p>
+	{% else %}
+		<p>You are not logged in to a Google account. Please log in at Google and return.</p>
 	{% endif %}
 	
+	<div id="stylized" class="rakontu_form_centered">
 	<form action="/" method="post">
-	
 	{% if communities %}
 		<p>Which Rakontu community would you like to visit?</p>
-		<div class="select"><select name="community_key">
+		<select name="community_key" class="select">
 		{% for community in communities %}
 			<option value="{{ community.key }}">{{ community.name }}</option>
 		{% endfor %}
-		</select></div>
-		<div><input type="submit" name="visitCommunity" value="Visit Community"></div>
+		</select>
+		<div><input type="submit" name="visitCommunity" value="Visit Community" class="button"></div>
 	{% else %}
 		<p>You are not a member of any Rakontu communities.</p>
 	{% endif %}
-	<p>
-	<div><input type="submit" name="createCommunity" value="Create a New Rakontu Community"></div>
-	<p>
-	<a href="{{logout_url}}">Logout</a>
+	<div><input type="submit" name="createCommunity" value="Create a New Rakontu Community" class="button"></div>
 	</form>
+	</div>
 	
 	</body>
 </html>

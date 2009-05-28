@@ -8,6 +8,7 @@
 	
 	<div id="content">
 	
+		<div id="stylized" class="rakontu_form">
 		<form action="/visit/profile" method="post" enctype="multipart/form-data">
 		<h2>Changing Profile for Rakontu Community "{{ community.name|escape }}" member "{{ current_member.nickname }}"</h2>
 		
@@ -31,12 +32,12 @@
 		<h3>Nickname and description</h3>
 		<fieldset>
 		<p>Nickname</p>
-		<div><input type="text" name="nickname" value="{{ current_member.nickname }}"/></div>
-		<div><label><input type="checkbox" name="nickname_is_real_name" value="yes" 
+		<input type="text" name="nickname" value="{{ current_member.nickname }}"/>
+		<p><input type="checkbox" name="nickname_is_real_name" value="yes" id="nickname_is_real_name"
 			{% if current_member.nicknameIsRealName %}
 				checked
 			{% endif %}
-			>This nickname is my real name</label></div>
+			><label for="nickname_is_real_name">This nickname is my real name</label></p>
 		<p>Please describe yourself to other members.</p>
 		<div><textarea name="description" rows="10" cols="60">{{ current_member.profileText }}</textarea></div>
 		<i>Full URLs in the profile text will be converted to links in what is shown.</i>
@@ -105,8 +106,9 @@
 		{% endif %}
 		
       	<p>
-    <input type="submit" name="changeSettings" value="Change Settings">	
+    <center><input type="submit" name="changeSettings" value="Change Settings" class="button"></center>
 	</form>	
+	</div>
 	</div>
 	</body>
 </html>

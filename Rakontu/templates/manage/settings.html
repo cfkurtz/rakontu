@@ -18,18 +18,24 @@
 		<div><input type="text" name="name" value="{{ community.name }}" maxlength="40" size="30"/></div>
 		<p>Community description</p>
 		<div><textarea name="description" rows="10" cols="60">{{ community.description|escape }}</textarea></div>
-		<i>Full URLs in the community description will be converted to links in what is shown.</i>
+		<i>Full URLs (starting with http://) in the community description will be converted to links in what is shown.</i>
 		<p>Community image</p>
 		{% if community.image %}
-			<div><img src="img?community_id={{community.key}}"></img></div>
+			<img src="img?community_id={{community.key}}" class="bordered"></img>
+			<input type="checkbox" name="removeImage" value="removeImage" id="removeImage"><label for="removeImage">Remove</label>
 		{% endif %}
-		<p><div><input type="file" name="img" accept="jpg/png"/></div></p>
-		<p><i>The best picture size is width 100, height 60.</i></p>
+		{% if community.image %}
+			<p>Click Browse to replace this image with a new one.
+		{% else %}
+			<p>Click Browse to choose a community image. This will display on the top of all screens.
+		{% endif %}
+		<i>The best image size is width 100, height 60.</i></p>
+		<p><input type="file" name="img" accept="jpg/png"/></p>
 		</fieldset>
 		
 		<h3>Anonymity</h3>
 		<fieldset>
-		Is anonymous entry allowed for each of these entry types?
+		<p>Is anonymous entry allowed for each of these entry types?</p>
 		{% for text in anonIncludes %}
 			{{ text }}
 		{% endfor %}
@@ -38,15 +44,14 @@
 		
 		<h3>Nudge system</h3>
 		<fieldset>
-		<p>How many nudge points can be asssigned (maximum) per article?
-		<input type="text" name="maxNudgePointsPerArticle" size="4" value="{{community.maxNudgePointsPerArticle}}"/></p>
-		<p>Enter custom utility nudge category names here. To use the simple
-		"utility" category, leave all of these blank.</p>
-		<input type="text" name="nudgeCategory0" size="15" value="{{community.utilityNudgeCategories.0}}"/>
-		<input type="text" name="nudgeCategory1" size="15" value="{{community.utilityNudgeCategories.1}}"/>
-		<input type="text" name="nudgeCategory2" size="15" value="{{community.utilityNudgeCategories.2}}"/>
-		<input type="text" name="nudgeCategory3" size="15" value="{{community.utilityNudgeCategories.3}}"/>
-		<input type="text" name="nudgeCategory4" size="15" value="{{community.utilityNudgeCategories.4}}"/>
+		<p>How many nudge points can be asssigned (maximum) per article?</p>
+		<input type="text" name="maxNudgePointsPerArticle" size="4" value="{{community.maxNudgePointsPerArticle}}"/>
+		<p>Enter your nudge category names here. <i>Recommended names for some are added.</i></p>
+		<p><input type="text" name="nudgeCategory0" size="50" value="{{community.nudgeCategories.0}}"/></p>
+		<p><input type="text" name="nudgeCategory1" size="50" value="{{community.nudgeCategories.1}}"/></p>
+		<p><input type="text" name="nudgeCategory2" size="50" value="{{community.nudgeCategories.2}}"/></p>
+		<p><input type="text" name="nudgeCategory3" size="50" value="{{community.nudgeCategories.3}}"/></p>
+		<p><input type="text" name="nudgeCategory4" size="50" value="{{community.nudgeCategories.4}}"/></p>
 		<p>How many nudge points do members accumulate by participating?</p>
 		<table  border="1" cellpadding="4" cellspacing="0"><tr><th>Activity</th><th>Nudge points accumulated</th></tr>
 		{% for text in nudge_point_includes %}
@@ -57,17 +62,17 @@
       	
 		<h3>Pruning and limitations</h3>
 		<fieldset>
-		<p>Should articles, annotations and answers ever be deleted automatically?
-		<input type="checkbox" name="autoPrune" size="4" value="yes"
+		<p>Should articles, annotations and answers ever be deleted automatically?</p>
+		<input type="checkbox" name="autoPrune" size="4" value="yes" id="autoPrune"
 			{% if community.autoPrune %}
 				checked="checked"
 			{% endif %}
-			/>Yes, activate auto pruning</p>
+			/><label for="autoPrune">Yes, activate auto pruning</label>
 		<p>If auto pruning happens, at what combined strength should an item be deleted?
-			(Pruning strengths are 1: weak, 2: medium, 3: strong; these are added to create the combined prune strength value.)
-		<input type="text" name="autoPruneStrength" size="4" value="{{community.autoPruneStrength}}"/></p>
-		<p>How many attachments are allowed per article? 
-			<select name="maxNumAttachments">
+			<i>Pruning strengths are 1: weak, 2: medium, 3: strong; these are added to create the combined prune strength value.</i></p>
+		<input type="text" name="autoPruneStrength" size="4" value="{{community.autoPruneStrength}}"/>
+		<p>How many attachments are allowed per article?</p>
+			<select name="maxNumAttachments" style="width: 60px;">
 			<option value="1"
 				{% ifequal community.maxNumAttachments 1 %}
 					selected="selected"
@@ -93,41 +98,43 @@
 					selected="selected"
 				{% endifequal %}
 				>5</option>
-			</select></p>
+			</select>
 		</fieldset>
 
 		<h3>Helping Roles</h3>
 		<fieldset>
-		<p>These texts are shown to members before they take on voluntary roles.</p>
-		Curator read-before text
+		<p><b>Curator read-before text</b></p>
 		<textarea name="readme0" rows="3" cols="60">{{ community.roleReadmes.0|escape }}</textarea>
-		<p><label><input type="checkbox" name="agreement0" value="agreement0"
+		<input type="checkbox" name="agreement0" value="agreement0" id="agreement0"
 			{% if community.roleAgreements.0 %}
 				checked="checked"
 			{% endif %}
 			/>
-			Members must check box to agree to terms before becoming curator</label></p>
-		Booster read-before text
+			<label for="agreement0">Members must check box to agree to terms before becoming curator</label>
+		<p></p>
+		<p><b>Guide read-before text</b></p>
 		<textarea name="readme1" rows="3" cols="60">{{ community.roleReadmes.1|escape }}</textarea>
-		<p><label><input type="checkbox" name="agreement1"  value="agreement1"
+		<input type="checkbox" name="agreement1"  value="agreement1" id="agreement1"
 			{% if community.roleAgreements.1 %}
 				checked="checked"/>
 			{% else %}
 				/>
 			{% endif %}
-			Members must check box to agree to terms before becoming booster</label></p>
-		Liaison read-before text
+			<label for="agreement1">Members must check box to agree to terms before becoming guide</label>
+		<p></p>
+		<p><b>Liaison read-before text</b></p>
 		<textarea name="readme2" rows="3" cols="60">{{ community.roleReadmes.2|escape }}</textarea>
-		<p><label><input type="checkbox" name="agreement2"  value="agreement2"
+		<input type="checkbox" name="agreement2"  value="agreement2" id="agreement2"
 			{% if community.roleAgreements.2 %}
 				checked="checked"/>
 			{% else %}
 				/>
 			{% endif %}
-			Members must check box to agree to terms before becoming liaison</label></p>
+			<label for="agreement2">Members must check box to agree to terms before becoming liaison</label>
+		<p><i>These texts are shown to members before they take on voluntary roles.</i></p>
 		</fieldset>
 	<p></p>
-    <input type="submit" name="changeSettings" value="Change Settings">	
+    <center><input type="submit" name="changeSettings" value="Change Settings" class="button"></center>
 	</form>
 	</div>
 	</div>	

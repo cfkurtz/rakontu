@@ -8,92 +8,289 @@
 	
 	<h2>{{article.title}} ({{article.type}})</h2>
 	
-	<table border="1" cellpadding="4" cellspacing="0" width="95%">
-	<tr><td>{{article.text}}</td></tr></table>
+	<div class="article_text">{{article.text}}</div>
 	
-	<p>
-	This {{article.type}} was entered by 
+	{% if attachments %}
+		{% for attachment in attachments %}
+			<p>&nbsp; &nbsp; 
+			{% if attachment.name %}
+			{{attachment.name}} -
+			{% endif %}
+			<a href="attachment?attachment_id={{attachment.key}}">{{attachment.fileName}}</a><p>
+		{% endfor %}
+	{% endif %}
+	
+	<p>This {{article.type}} was entered by 
 	
 	{% ifequal article.attribution "member" %}
-		{{article.creator.nickname}}
+			<a href="memberInfo|{{article.creator.key}}">{{article.creator.nickname}}</a>
 		{% ifequal article.creator.key current_member.key %}
 			 (you)
 		{% endifequal %}
 	{% endifequal %}
 	{% ifequal article.attribution "anonymous" %}
 		an anonymous member
+			{% ifequal article.creator.key current_member.key %}
+				(actually, you)
+			{% endifequal %}
 	{% endifequal %}
 	{% ifequal article.attribution "personification" %}
 		{{article.personification.name}}
 	{% endifequal %}
 	
-	on {{article.entered.date}} at {{article.entered.time}}.
-	
+	on {{article.entered.date}} at {{article.entered.time}}.</p>
+
 	{% if article.collectedOffline %}
 		<p>It was collected off-line and entered by {{article.liaison.nickname}}.</p>
 	{% endif %}
 	
-	{% if attachments %}
-		<b>Attachments</b>
-		{% for attachment in attachments %}
-			<p>&nbsp; &nbsp; 
-			{% if attachment.name %}
-			{{attachment.name}} -
-			{% endif %}
-			<a href="attachment?attachment_id={{attachment.key}}">{{attachment.fileName}}</a> ({{attachment.mimeType}})<p>
+	<p>I'd like to</p>
+	<ul>
+		{% ifequal article.creator.key current_member.key %}
+			<li class="nobullet"><a href="/visit/{{article.type}}?{{article.key}}">change this story</a></li>
+		{% endifequal %}
+		{% ifequal article.type "story" %}
+			<li class="nobullet"><a href="retell|{{article.key}}">tell my own version of this story</a></li>
+			<li class="nobullet"><a href="remind|{{article.key}}">tell another story that this one reminds me of</a></li>
+			<li class="nobullet"><a href="include_pattern|{{article.key}}">include this story in a pattern</a></li>
+			<li class="nobullet"><a href="include_construct|{{article.key}}">include this story in a construct</a></li>
+			</ul>
+		{% endifequal %}
+		{% ifequal article.type "invitation" %}
+			<li class="nobullet"><a href="respond|{{article.key}}">respond to this invitation by telling a story</a></li>
+		{% endifequal %}
+	</ul>
+
+	<hr>
+	
+	<h4>Requests</h4>
+	{% if requests %}
+		<ul>
+		{% for request in requests %}
+			<li class="nobullet"><b>{{request.shortString}}</b> - 
+			
+		{% ifequal request.attribution "member" %}
+			<a href="memberInfo|{{request.creator.key}}">{{request.creator.nickname}}</a>
+			{% ifequal request.creator.key current_member.key %}
+			(<a href="request?{{request.key}}">Change</a>)
+			{% endifequal %}
+		{% endifequal %}
+		{% ifequal request.attribution "anonymous" %}
+			An anonymous member
+			{% ifequal request.creator.key current_member.key %}
+				(actually, you)
+			{% endifequal %}
+			{% ifequal request.creator.key current_member.key %}
+			(<a href="request?{{request.key}}">Change</a>)
+			{% endifequal %}
+		{% endifequal %}
+		{% ifequal request.attribution "personification" %}
+			<a href="personificationInfo|{{request.personification.key}}">{{request.personification.name}}</a>
+			{% ifequal request.creator.key current_member.key %}
+			(<a href="request?{{request.key}}">Change</a>)
+			{% endifequal %}
+		{% endifequal %}
+
+			</li>
+			<ul><li class="nobullet">{{request.longString|escape}}</li></ul>
+			</li>		
 		{% endfor %}
+		</ul>
+		<ul><li class="nobullet"><a href="/visit/request?{{article.key}}">Add another request</a></li></ul>
+	{% else %}
+		<ul><li class="nobullet">none yet - <a href="/visit/request?{{article.key}}">Add one</a></li></ul>
 	{% endif %}
 	
-	{% if answers %}
-		<h3>Answers to questions about this {{article.type}}</h3>
-		<fieldset>
-		{% for question in questions %}
-			<p>&nbsp; <b>{{question.text}}</b></p>
-			{% for answer in answers %}
-				{% ifequal question.key answer.question.key %}
-					{% ifequal answer.question.type "text" %}
-						<p>&nbsp; &nbsp; {{answer.answerIfText}}
-					{% endifequal %}
-					{% ifequal answer.question.type "boolean" %}
-						<p>&nbsp; &nbsp; {{answer.answerIfBoolean|yesno:"Yes, No, Maybe"}}
-					{% endifequal %}
-					{% ifequal answer.question.type "ordinal" %}
-						{% if answer.question.multiple %}
-							<p>&nbsp; &nbsp; {{answer.answerIfMultiple|join:", "}}
-						{% else %}
-							<p>&nbsp; &nbsp; {{answer.answerIfText}}
-						{% endif %}
-					{% endifequal %}
-					{% ifequal answer.question.type "nominal" %}
-						{% if answer.question.multiple %}
-							<p>&nbsp; &nbsp; {{answer.answerIfMultiple|join:", "}}
-						{% else %}
-							<p>&nbsp; &nbsp; {{answer.answerIfText}}
-						{% endif %}
-					{% endifequal %}
-					{% ifequal answer.question.type "value" %}
-						<p>&nbsp; &nbsp; {{answer.answerIfValue}}
-					{% endifequal %}
-					({{answer.creator.nickname}})</p>
-				{% endifequal %}
+	{% if community_has_questions_for_this_article_type %}
+		<h4>Answers</h4>
+		{% if answers %}
+			<ul>
+			{% for question in questions %}
+				<li class="nobullet"><b>{{question.text}}</b></li>
+				{% if answers %}
+					<ul>
+					{% for answer in answers %}
+						{% ifequal question.key answer.question.key %}
+							{% ifequal answer.question.type "text" %}
+								<li class="nobullet">{{answer.answerIfText}}
+							{% endifequal %}
+							{% ifequal answer.question.type "boolean" %}
+								<li class="nobullet">{{answer.answerIfBoolean|yesno:"Yes, No, Maybe"}}
+							{% endifequal %}
+							{% ifequal answer.question.type "ordinal" %}
+								{% if answer.question.multiple %}
+									<li class="nobullet">{{answer.answerIfMultiple|join:", "}}
+								{% else %}
+									<li class="nobullet">{{answer.answerIfText}}
+								{% endif %}
+							{% endifequal %}
+							{% ifequal answer.question.type "nominal" %}
+								{% if answer.question.multiple %}
+									<li class="nobullet">{{answer.answerIfMultiple|join:", "}}
+								{% else %}
+									<li class="nobullet">{{answer.answerIfText}}
+								{% endif %}
+							{% endifequal %}
+							{% ifequal answer.question.type "value" %}
+								<li class="nobullet">{{answer.answerIfValue}}
+							{% endifequal %}
+							- 
+
+							{% ifequal answer.attribution "member" %}
+								<a href="memberInfo|{{answer.creator.key}}">{{answer.creator.nickname}}</a>
+								{% ifequal answer.creator.key current_member.key %}
+								(<a href="answers?{{article.key}}">Change</a>)
+								{% endifequal %}
+							{% endifequal %}
+							{% ifequal answer.attribution "anonymous" %}
+								An anonymous member
+								{% ifequal answer.creator.key current_member.key %}
+									(actually, you)
+								{% endifequal %}
+								{% ifequal answer.creator.key current_member.key %}
+								(<a href="answers?{{article.key}}">Change</a>)
+								{% endifequal %}
+							{% endifequal %}
+							{% ifequal answer.attribution "personification" %}
+								<a href="personificationInfo|{{answer.personification.key}}">{{answer.personification.name}}</a>
+								{% ifequal answer.creator.key current_member.key %}
+								(<a href="answers?{{article.key}}">Change</a>)
+								{% endifequal %}
+							{% endifequal %}
+						
+						{% endifequal %}
+					{% endfor %}
+					</ul>
+				{% endif %}
 			{% endfor %}
-		{% endfor %}
-		</fieldset>
+			</ul>
+			{% if member_can_answer_questions %}
+				<ul><li class="nobullet"><a href="/visit/answers?{{article.key}}">Answer questions about this {{article.type}} yourself</a></li></ul>
+			{% endif %}
+		{% else %}
+			<ul><li class="nobullet">none yet - <a href="/visit/answers?{{article.key}}">Add some</a></li></ul>
+		{% endif %}
 	{% endif %}
 	
-	{% if actions %}
-		<p>What would you like to do next?</p>
-		<p>I'd like to <select name="action">
-		{% for action in actions %}
-			<option value="{{action}}">{{action}}</option>
+	<h4>Tags</h4>
+	{% if tag_sets %}
+		<ul>
+		{% for tag_set in tag_sets %}
+		<li class="nobullet">{{tag_set.tagsIfTagSet|join:", "}} - 
+
+		{% ifequal tag_set.attribution "member" %}
+			<a href="memberInfo|{{tag_set.creator.key}}">{{tag_set.creator.nickname}}</a>
+			{% ifequal tag_set.creator.key current_member.key %}
+			(<a href="tagset?{{tag_set.key}}">Change</a>)
+			{% endifequal %}
+		{% endifequal %}
+		{% ifequal tag_set.attribution "anonymous" %}
+			An anonymous member
+			{% ifequal tag_set.creator.key current_member.key %}
+				(actually, you)
+			{% endifequal %}
+			{% ifequal tag_set.creator.key current_member.key %}
+			(<a href="tagset?{{tag_set.key}}">Change</a>)
+			{% endifequal %}
+		{% endifequal %}
+		{% ifequal tag_set.attribution "personification" %}
+			<a href="personificationInfo|{{tag_set.personification.key}}">{{tag_set.personification.name}}</a>
+			{% ifequal tag_set.creator.key current_member.key %}
+			(<a href="tagset?{{tag_set.key}}">Change</a>)
+			{% endifequal %}
+		{% endifequal %}
+
+			</li>
 		{% endfor %}
-		</select>
-		<input type="submit" name="action|{{article.key}}" value="Go"/></p>
+		</ul>
+		<ul><li class="nobullet"><a href="/visit/tagset?{{article.key}}">Add more tags</a></li></ul>
+	{% else %}
+	<ul><li class="nobullet">none yet - <a href="/visit/tagset?{{article.key}}">Add some</a></li></ul>
 	{% endif %}
 	
-	{% ifequal article.creator.key current_member.key %}
-		<p><b>This is your {{article.type}}. You can <a href="/visit/{{article.type}}?{{article.key}}">change</a> it.</b></p>
-	{% endifequal %}
+	
+	<h4>Comments</h4>
+	{% if comments %}
+		<ul>
+		{% for comment in comments %}
+		<li class="nobullet"><b>{{comment.shortString}}</b> - 
+		
+		{% ifequal comment.attribution "member" %}
+			<a href="memberInfo|{{comment.creator.key}}">{{comment.creator.nickname}}</a>
+			{% ifequal comment.creator.key current_member.key %}
+			(<a href="comment?{{comment.key}}">Change</a>)
+			{% endifequal %}
+		{% endifequal %}
+		{% ifequal comment.attribution "anonymous" %}
+			An anonymous member
+			{% ifequal comment.creator.key current_member.key %}
+				(actually, you)
+			{% endifequal %}
+			{% ifequal comment.creator.key current_member.key %}
+			(<a href="comment?{{comment.key}}">Change</a>)
+			{% endifequal %}
+		{% endifequal %}
+		{% ifequal comment.attribution "personification" %}
+			<a href="personificationInfo|{{comment.personification.key}}">{{comment.personification.name}}</a>
+			{% ifequal comment.creator.key current_member.key %}
+			(<a href="comment?{{comment.key}}">Change</a>)
+			{% endifequal %}
+		{% endifequal %}
+		
+		</li>
+		<ul><li class="nobullet">{{comment.longString|escape}}</li></ul>
+		</li>
+		{% endfor %}
+		</ul>
+		<ul><li class="nobullet"><a href="/visit/comment?{{article.key}}">Add another comment</a></li></ul>
+	{% else %}
+	<ul><li class="nobullet">none yet - <a href="/visit/comment?{{article.key}}">Add one</a></li></ul>
+	{% endif %}
+	
+	
+	<h4>Nudges</h4>
+	{% if nudges %}
+		<ul>
+		{% for nudge in nudges %}
+		<li class="nobullet"><b>
+			{% if nudge.valuesIfNudge.0 %}{{community.nudgeCategories.0}} {{nudge.valuesIfNudge.0}} {% endif %}
+			{% if nudge.valuesIfNudge.1 %}{{community.nudgeCategories.1}} {{nudge.valuesIfNudge.1}} {% endif %}
+			{% if nudge.valuesIfNudge.2 %}{{community.nudgeCategories.2}} {{nudge.valuesIfNudge.2}} {% endif %}
+			{% if nudge.valuesIfNudge.3 %}{{community.nudgeCategories.3}} {{nudge.valuesIfNudge.3}} {% endif %}
+			{% if nudge.valuesIfNudge.4 %}{{community.nudgeCategories.4}} {{nudge.valuesIfNudge.4}} {% endif %}
+			</b>
+			- 
+		{% ifequal nudge.attribution "member" %}
+			<a href="memberInfo|{{nudge.creator.key}}">{{nudge.creator.nickname}}</a>
+			{% ifequal nudge.creator.key current_member.key %}
+			(<a href="nudge?{{nudge.key}}">Change</a>)
+			{% endifequal %}
+		{% endifequal %}
+		{% ifequal nudge.attribution "anonymous" %}
+			An anonymous member
+			{% ifequal nudge.creator.key current_member.key %}
+				(actually, you)
+			{% endifequal %}
+			{% ifequal nudge.creator.key current_member.key %}
+			(<a href="nudge?{{nudge.key}}">Change</a>)
+			{% endifequal %}
+		{% endifequal %}
+		{% ifequal nudge.attribution "personification" %}
+			<a href="personificationInfo|{{nudge.personification.key}}">{{nudge.personification.name}}</a>
+			{% ifequal nudge.creator.key current_member.key %}
+			(<a href="nudge?{{nudge.key}}">Change</a>)
+			{% endifequal %}
+		{% endifequal %}
+
+		</li>
+		<ul><li class="nobullet">{{nudge.shortString}}</li></ul>
+		</li>
+		{% endfor %}
+		</ul>
+		<ul><li class="nobullet"><a href="/visit/nudge?{{article.key}}">Add another nudge</a></li></ul>
+	{% else %}
+	<ul><li class="nobullet">none yet - <a href="/visit/nudge?{{article.key}}">Add one</a></li></ul>
+	{% endif %}
 	
 	</div>
 	</body>
