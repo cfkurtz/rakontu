@@ -66,7 +66,6 @@ DEFAULT_ROLE_READMES = [
 					    "A guide pays attention to the Rakontu's on-line human community. Guides answer questions, write tutorials, encourage people to tell and use stories, create patterns, write and respond to requests, set up and run exercises, and in general maintain the vitality of the on-line member community.",
 					    "A liaison guides stories and other information over the barrier between on-line and off-line worlds. Liaisons conduct external interviews and add the stories people tell in them, read stories to people and gather comments, nudges, and other annotations, and in general make the system work for both on-line and off-line community members."]
 GOVERNANCE_ROLE_TYPES = ["member", "manager", "owner"]
-GOVERNANCE_VIEWS = ["settings", "members", "watch", "technical"]
 ACTIVITIES_GERUND = ["time", \
 					   	 "browsing", "reading", \
 						 "telling", "retelling", "reminding", "relating", "including", \
@@ -93,6 +92,8 @@ ANNOTATION_TYPES_URLS = ["tagset", "comment", "request", "nudge"]
 REQUEST_TYPES = ["edit text", "clean up audio/video", "add comments", "nudge", "add tags", "translate", "transcribe", "read aloud", "contact me", "other"]
 NUDGE_TYPES = ["appropriateness", "importance", "utility", "utility custom 1", "utility custom 2", "utility custom 3"]
 ENTRY_TYPES = ["story", "pattern", "construct", "invitation", "resource", "answer", "tag", "comment", "request", "nudge"]
+STORY_ENTRY_TYPE_INDEX = 0
+ANSWERS_ENTRY_TYPE_INDEX = 5
 PRUNE_STRENGTH_NAMES = ["weak", "medium", "strong"]
 PRUNE_STRENGTHS = [1, 2, 3]
 
@@ -229,6 +230,9 @@ class Community(db.Model):
 			return "five"
 	
 	# community level questions and answers
+	
+	def getPendingMembers(self):
+		return PendingMember.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
 
 	def getMemberQuestions(self):
 		return Question.all().filter("community = ", self.key()).filter("refersTo = ", "member").fetch(FETCH_NUMBER)
@@ -268,15 +272,6 @@ class Community(db.Model):
 			if member.googleAccountID == userID:
 				return True
 		return False
-	
-	def getCurators(self):
-		return Member.all().filter("community = ", self.key()).filter("helpingRoles IN ", "curator").fetch(FETCH_NUMBER)
-	
-	def getGuides(self):
-		return Member.all().filter("community = ", self.key()).filter("helpingRoles IN ", "guide").fetch(FETCH_NUMBER)
-	
-	def getLiaisons(self):
-		return Member.all().filter("community = ", self.key()).filter("helpingRoles IN ", "liaison").fetch(FETCH_NUMBER)
 	
 	def getManagers(self):
 		return Member.all().filter("community = ", self.key()).filter("governanceType = ", "manager").fetch(FETCH_NUMBER)
@@ -363,8 +358,8 @@ class Member(db.Model):
 	Properties
 		community:			The community this member belongs to. 
 		nickname:			The member's "handle" in the system. 
-		googleUser:			User object from Google account. None if offline.
 		googleAccountID:	UserID field from Google account. None if offline.
+		googleAccountEmail:	The email with which the account was created. For display only.
 		isOnlineMember:		Whether the member is online (has a Google account).
 							Note that offline members cannot have helping roles or be managers or owners.
 		liaisonAccountID:	Can be permanently linked to a liaison. This is to help
@@ -374,6 +369,8 @@ class Member(db.Model):
 		governanceView:		What views (of GOVERNANCE_VIEWS) the member wants to see if they 
 							are a manager or owner.
 		helpingRoles:		Helping roles the member has chosen (curator, guide, liaison).
+		helpingRolesAvailable:	A manager/owner can ban a member from taking on these roles in future
+							(this is for if people abuse them).
 		
 		nicknameIsRealName:	Whether their nickname is their real name. For display only.
 		profileText:		Small amount of member-submitted info about themselves.
@@ -388,14 +385,15 @@ class Member(db.Model):
 	"""
 	community = db.ReferenceProperty(Community, required=True)
 	nickname = db.StringProperty(default=NO_NICKNAME_SET)
-	googleUser = db.UserProperty(auto_current_user=True)
 	googleAccountID = db.StringProperty(required=True)
+	googleAccountEmail = db.StringProperty(required=True)
 	isOnlineMember = db.BooleanProperty(default=True)
 	liaisonAccountID = db.StringProperty(default=None)
 	
 	governanceType = db.StringProperty(choices=GOVERNANCE_ROLE_TYPES, default="member")
 	governanceView = db.StringListProperty(default=None)
-	helpingRoles = db.StringListProperty(default=["", "", ""])
+	helpingRoles = db.ListProperty(bool, default=[False, False, False])
+	helpingRolesAvailable = db.ListProperty(bool, default=[True, True, True])
 	
 	nicknameIsRealName = db.BooleanProperty(default=False)
 	profileText = db.TextProperty(default="No profile information.")
@@ -416,28 +414,22 @@ class Member(db.Model):
 	def getViewingPreferences(self):
 		return ViewingPreferences.all().filter("owner = ", self.key()).fetch(FETCH_NUMBER)
 	
-	def googleUserNicknameOrNotOnline(self):
-		if self.isOnlineMember:
-			return self.googleUser.nickname()
-		return "Offline member"
-	
 	def googleUserEmailOrNotOnline(self):
 		if self.isOnlineMember:
-			return self.googleUser.nickname()
+			return self.googleAccountEmail
 		return "Offline member"
 	
 	def isCurator(self):
-		return "curator" in self.helpingRoles
+		return self.helpingRoles[0]
 	
 	def isGuide(self):
-		return "guide" in self.helpingRoles
+		return self.helpingRoles[1]
 	
 	def isLiaison(self):
-		return "liaison" in self.helpingRoles
+		return self.helpingRoles[2]
 	
-	def addHelpingRole(self, index):
-		if not self.helpingRoles[index]:
-			self.helpingRoles[index] = HELPING_ROLE_TYPES[index]
+	def canTakeOnAnyHelpingRole(self):
+		return self.helpingRolesAvailable[0] or self.helpingRolesAvailable[1] or self.helpingRolesAvailable[2]
 	
 	def setGovernanceType(self, type):
 		self.governanceType = type
@@ -452,6 +444,9 @@ class Member(db.Model):
 	
 	def isManager(self):
 		return self.governanceType == "manager"
+	
+	def isManagerOrOwner(self):
+		return self.governanceType == "manager" or self.governanceType == "owner"
 	
 	def checkedIfManager(self):
 		if self.isManager():
@@ -469,8 +464,17 @@ class Member(db.Model):
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
 	
-class TempUser(db.Model):
-	user = db.UserProperty(required=True)
+class PendingMember(db.Model):
+	""" A person who has been invited to join a community but who has not yet logged in.
+		
+	Properties
+		community:			Which community they have been invited to join.
+		email:				An email address related to a Google account.
+		invited:			When invited.
+	"""
+	community = db.ReferenceProperty(Community, required=True)
+	email = db.StringProperty(required=True)
+	invited = db.DateTimeProperty(auto_now_add=True)
 	
 class Personification(db.Model):
 	""" Used to anonymize entries but provide some information about intent. Optional.
@@ -481,7 +485,7 @@ class Personification(db.Model):
 		description:		Simple text description of the personification
 		image:				Optional image.
 	"""
-	community = db.ReferenceProperty(Community)
+	community = db.ReferenceProperty(Community, required=True)
 	name = db.StringProperty(required=True)
 	description = db.TextProperty()
 	image = db.BlobProperty()
@@ -579,36 +583,59 @@ class Article(db.Model):
 	numBrowses = db.IntegerProperty(default=0)
 	numReads = db.IntegerProperty(default=0)
 	
+	def isInvitation(self):
+		return self.type == "invitation"
+	
+	def isPatternOrConstruct(self):
+		return self.type == "pattern" or self.type == "construct"
+	
 	def getAttachments(self):
 		return Attachment.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
 	
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
 
-	def getAnnotations(self):
-		return Annotation.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
-	
 	def getAnnotationsOfType(self, type):
 		return Annotation.all().filter("article =", self.key()).filter("type = ", type).fetch(FETCH_NUMBER)
 	
-	def getOutgoingLinks(self):
-		return Link.all().filter("articleFrom =", self.key()).fetch(FETCH_NUMBER)
+	def getLinksOfType(self, type):
+		result = []
+		outgoingLinks = self.getOutgoingLinksOfType(type)
+		incomingLinks = self.getIncomingLinksOfType(type)
+		result.extend(outgoingLinks)
+		result.extend(incomingLinks)
+		return result
+	
+	def getOutgoingLinksOfType(self, type):
+		return Link.all().filter("articleFrom =", self.key()).filter("type = ", type).fetch(FETCH_NUMBER)
+	
+	def getIncomingLinksOfType(self, type):
+		return Link.all().filter("articleTo =", self.key()).filter("type = ", type).fetch(FETCH_NUMBER)
+	
+	def getIncomingLinksOfTypeFromType(self, type, fromType):
+		result = []
+		incomingLinks = self.getIncomingLinksOfType(type)
+		for link in incomingLinks:
+			if link.articleFrom.type == fromType:
+				result.append(link)
+		return result
 	
 	def getAnswersForMember(self, member):
 		return Answer.all().filter("referent = ", self.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
+	
+	def getNudgesForMember(self, member):
+		return Annotation.all().filter("article = ", self.key()).filter("type = ", "nudge").filter("creator = ", member.key()).fetch(FETCH_NUMBER)
 	
 class Link(db.Model):
 	""" For holding on to links between articles.
 	
 	Properties
-		community:			The Rakontu community this link belongs to.
 		articleFrom:		Where the link originated. Story read first, or pattern/construct.
 		articleTo:			Article referred to. Usually story.
 		creator: 			Member who created the link. May be online or offline.
 		type:				One of retold, reminded, related, included.
 		comment:			Optional user comment about the linkage, written when link made.
 	"""
-	community = db.ReferenceProperty(Community, required=True)
 	articleFrom = db.ReferenceProperty(Article, collection_name="linksFrom", required=True)
 	articleTo = db.ReferenceProperty(Article, collection_name="linksTo", required=True)
 	creator = db.ReferenceProperty(Member, required=True, collection_name="links")

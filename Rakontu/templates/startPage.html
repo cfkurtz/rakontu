@@ -16,16 +16,17 @@
 	<form action="/" method="post">
 	{% if communities %}
 		<p>Which Rakontu community would you like to visit?</p>
-		<select name="community_key" class="select">
+		<p><select name="community_key" class="select">
 		{% for community in communities %}
 			<option value="{{ community.key }}">{{ community.name }}</option>
 		{% endfor %}
-		</select>
-		<div><input type="submit" name="visitCommunity" value="Visit Community" class="button"></div>
+		</select></p>
+		<input type="submit" name="visitCommunity" value="Visit Community" class="button">
 	{% else %}
 		<p>You are not a member of any Rakontu communities.</p>
 	{% endif %}
-	<div><input type="submit" name="createCommunity" value="Create a New Rakontu Community" class="button"></div>
+	<p></p>
+	<input type="submit" name="createCommunity" value="Create a New Rakontu Community" class="button">
 	</form>
 	</div>
 	

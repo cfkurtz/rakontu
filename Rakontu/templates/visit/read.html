@@ -20,6 +20,15 @@
 		{% endfor %}
 	{% endif %}
 	
+	{% ifequal article.creator.key current_member.key %}
+		<p>You wrote this {{article.type}}; you can <a href="/visit/{{article.type}}?{{article.key}}">change</a> it.</p>
+	{% endifequal %}
+	{% ifequal article.type "invitation" %}
+		<p>You can <a href="/visit/respond?{{article.key}}">respond</a> to this invitation with a story.</p>
+	{% endifequal %}
+	
+	<hr>
+	
 	<p>This {{article.type}} was entered by 
 	
 	{% ifequal article.attribution "member" %}
@@ -42,63 +51,6 @@
 
 	{% if article.collectedOffline %}
 		<p>It was collected off-line and entered by {{article.liaison.nickname}}.</p>
-	{% endif %}
-	
-	<p>I'd like to</p>
-	<ul>
-		{% ifequal article.creator.key current_member.key %}
-			<li class="nobullet"><a href="/visit/{{article.type}}?{{article.key}}">change this story</a></li>
-		{% endifequal %}
-		{% ifequal article.type "story" %}
-			<li class="nobullet"><a href="retell|{{article.key}}">tell my own version of this story</a></li>
-			<li class="nobullet"><a href="remind|{{article.key}}">tell another story that this one reminds me of</a></li>
-			<li class="nobullet"><a href="include_pattern|{{article.key}}">include this story in a pattern</a></li>
-			<li class="nobullet"><a href="include_construct|{{article.key}}">include this story in a construct</a></li>
-			</ul>
-		{% endifequal %}
-		{% ifequal article.type "invitation" %}
-			<li class="nobullet"><a href="respond|{{article.key}}">respond to this invitation by telling a story</a></li>
-		{% endifequal %}
-	</ul>
-
-	<hr>
-	
-	<h4>Requests</h4>
-	{% if requests %}
-		<ul>
-		{% for request in requests %}
-			<li class="nobullet"><b>{{request.shortString}}</b> - 
-			
-		{% ifequal request.attribution "member" %}
-			<a href="memberInfo|{{request.creator.key}}">{{request.creator.nickname}}</a>
-			{% ifequal request.creator.key current_member.key %}
-			(<a href="request?{{request.key}}">Change</a>)
-			{% endifequal %}
-		{% endifequal %}
-		{% ifequal request.attribution "anonymous" %}
-			An anonymous member
-			{% ifequal request.creator.key current_member.key %}
-				(actually, you)
-			{% endifequal %}
-			{% ifequal request.creator.key current_member.key %}
-			(<a href="request?{{request.key}}">Change</a>)
-			{% endifequal %}
-		{% endifequal %}
-		{% ifequal request.attribution "personification" %}
-			<a href="personificationInfo|{{request.personification.key}}">{{request.personification.name}}</a>
-			{% ifequal request.creator.key current_member.key %}
-			(<a href="request?{{request.key}}">Change</a>)
-			{% endifequal %}
-		{% endifequal %}
-
-			</li>
-			<ul><li class="nobullet">{{request.longString|escape}}</li></ul>
-			</li>		
-		{% endfor %}
-		</ul>
-		<ul><li class="nobullet"><a href="/visit/request?{{article.key}}">Add another request</a></li></ul>
-	{% else %}
-		<ul><li class="nobullet">none yet - <a href="/visit/request?{{article.key}}">Add one</a></li></ul>
 	{% endif %}
 	
 	{% if community_has_questions_for_this_article_type %}
@@ -172,43 +124,6 @@
 		{% endif %}
 	{% endif %}
 	
-	<h4>Tags</h4>
-	{% if tag_sets %}
-		<ul>
-		{% for tag_set in tag_sets %}
-		<li class="nobullet">{{tag_set.tagsIfTagSet|join:", "}} - 
-
-		{% ifequal tag_set.attribution "member" %}
-			<a href="memberInfo|{{tag_set.creator.key}}">{{tag_set.creator.nickname}}</a>
-			{% ifequal tag_set.creator.key current_member.key %}
-			(<a href="tagset?{{tag_set.key}}">Change</a>)
-			{% endifequal %}
-		{% endifequal %}
-		{% ifequal tag_set.attribution "anonymous" %}
-			An anonymous member
-			{% ifequal tag_set.creator.key current_member.key %}
-				(actually, you)
-			{% endifequal %}
-			{% ifequal tag_set.creator.key current_member.key %}
-			(<a href="tagset?{{tag_set.key}}">Change</a>)
-			{% endifequal %}
-		{% endifequal %}
-		{% ifequal tag_set.attribution "personification" %}
-			<a href="personificationInfo|{{tag_set.personification.key}}">{{tag_set.personification.name}}</a>
-			{% ifequal tag_set.creator.key current_member.key %}
-			(<a href="tagset?{{tag_set.key}}">Change</a>)
-			{% endifequal %}
-		{% endifequal %}
-
-			</li>
-		{% endfor %}
-		</ul>
-		<ul><li class="nobullet"><a href="/visit/tagset?{{article.key}}">Add more tags</a></li></ul>
-	{% else %}
-	<ul><li class="nobullet">none yet - <a href="/visit/tagset?{{article.key}}">Add some</a></li></ul>
-	{% endif %}
-	
-	
 	<h4>Comments</h4>
 	{% if comments %}
 		<ul>
@@ -247,6 +162,41 @@
 	<ul><li class="nobullet">none yet - <a href="/visit/comment?{{article.key}}">Add one</a></li></ul>
 	{% endif %}
 	
+	<h4>Tags</h4>
+	{% if tag_sets %}
+		<ul>
+		{% for tag_set in tag_sets %}
+		<li class="nobullet">{{tag_set.tagsIfTagSet|join:", "}} - 
+
+		{% ifequal tag_set.attribution "member" %}
+			<a href="memberInfo|{{tag_set.creator.key}}">{{tag_set.creator.nickname}}</a>
+			{% ifequal tag_set.creator.key current_member.key %}
+			(<a href="tagset?{{tag_set.key}}">Change</a>)
+			{% endifequal %}
+		{% endifequal %}
+		{% ifequal tag_set.attribution "anonymous" %}
+			An anonymous member
+			{% ifequal tag_set.creator.key current_member.key %}
+				(actually, you)
+			{% endifequal %}
+			{% ifequal tag_set.creator.key current_member.key %}
+			(<a href="tagset?{{tag_set.key}}">Change</a>)
+			{% endifequal %}
+		{% endifequal %}
+		{% ifequal tag_set.attribution "personification" %}
+			<a href="personificationInfo|{{tag_set.personification.key}}">{{tag_set.personification.name}}</a>
+			{% ifequal tag_set.creator.key current_member.key %}
+			(<a href="tagset?{{tag_set.key}}">Change</a>)
+			{% endifequal %}
+		{% endifequal %}
+
+			</li>
+		{% endfor %}
+		</ul>
+		<ul><li class="nobullet"><a href="/visit/tagset?{{article.key}}">Add more tags</a></li></ul>
+	{% else %}
+	<ul><li class="nobullet">none yet - <a href="/visit/tagset?{{article.key}}">Add some</a></li></ul>
+	{% endif %}
 	
 	<h4>Nudges</h4>
 	{% if nudges %}
@@ -287,10 +237,216 @@
 		</li>
 		{% endfor %}
 		</ul>
-		<ul><li class="nobullet"><a href="/visit/nudge?{{article.key}}">Add another nudge</a></li></ul>
+		{% if member_can_add_nudge %}
+			<ul><li class="nobullet"><a href="/visit/nudge?{{article.key}}">Add another nudge</a></li></ul>
+		{% endif %}
 	{% else %}
-	<ul><li class="nobullet">none yet - <a href="/visit/nudge?{{article.key}}">Add one</a></li></ul>
+		<ul><li class="nobullet">none yet - <a href="/visit/nudge?{{article.key}}">Add one</a></li></ul>
 	{% endif %}
+	
+	<h4>Requests</h4>
+	{% if requests %}
+		<ul>
+		{% for request in requests %}
+			<li class="nobullet"><b>{{request.shortString}}</b> - 
+			
+		{% ifequal request.attribution "member" %}
+			<a href="memberInfo|{{request.creator.key}}">{{request.creator.nickname}}</a>
+			{% ifequal request.creator.key current_member.key %}
+			(<a href="request?{{request.key}}">Change</a>)
+			{% endifequal %}
+		{% endifequal %}
+		{% ifequal request.attribution "anonymous" %}
+			An anonymous member
+			{% ifequal request.creator.key current_member.key %}
+				(actually, you)
+			{% endifequal %}
+			{% ifequal request.creator.key current_member.key %}
+			(<a href="request?{{request.key}}">Change</a>)
+			{% endifequal %}
+		{% endifequal %}
+		{% ifequal request.attribution "personification" %}
+			<a href="personificationInfo|{{request.personification.key}}">{{request.personification.name}}</a>
+			{% ifequal request.creator.key current_member.key %}
+			(<a href="request?{{request.key}}">Change</a>)
+			{% endifequal %}
+		{% endifequal %}
+			</li>
+			<ul><li class="nobullet">{{request.longString|escape}}</li></ul>
+			</li>		
+		{% endfor %}
+		</ul>
+		<ul><li class="nobullet"><a href="/visit/request?{{article.key}}">Add another request</a></li></ul>
+	{% else %}
+		<ul><li class="nobullet">none yet - <a href="/visit/request?{{article.key}}">Add one</a></li></ul>
+	{% endif %}
+	
+	<h4>Relations</h4>
+	<ul>
+	{% if relate_links %}
+		{% for link in relate_links %}
+			{% ifequal link.articleFrom.key article.key %}
+				<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a></li>
+			{% endifequal %}
+			{% ifequal link.articleTo.key article.key %}
+				<li class="nobullet"><a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a></li>
+			{% endifequal %}
+		{% endfor %}
+		<li class="nobullet"><a href="/visit/relate?{{article.key}}">Add another relation</a></li>
+	{% else %}
+		<li class="nobullet">none yet - <a href="/visit/relate?{{article.key}}">Add one</a></li>
+	{% endif %}
+	</ul>
+	
+	<h4>Incoming links</h4>
+	<ul>
+
+	{% ifequal article.type "story" %}
+		{% if retold_links_incoming %}
+			<li class="nobullet">
+			{% for link in retold_links_incoming %}
+				<p>This story is a retelling of <a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>.</p>
+			{% endfor %}
+			</li>
+		{% endif %}
+		{% if reminded_links_incoming %}
+			<li class="nobullet">
+			{% for link in reminded_links_incoming %}
+				<p>This story was told because <a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>
+				reminded its teller of something.</p>
+			{% endfor %}
+			</li>
+		{% endif %}
+		{% if included_links_incoming_from_invitations %}
+			<li class="nobullet">
+			<p>This {{article.type}} was told in response to the invitation
+			{% for link in included_links_incoming_from_invitations %}
+				<a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>.</p>
+			{% endfor %}
+			</li>
+		{% endif %}
+	{% endifequal %}
+	
+	{% if included_links_incoming_from_patterns %}
+		<li class="nobullet">
+		<p>This {{article.type}} is included in the patterns
+		<ul>
+		{% for link in included_links_to_patterns %}
+			<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a></li>
+		{% endfor %}
+		</ul>
+		</li>
+	{% endif %}
+	
+	{% if included_links_incoming_from_constructs %}
+		<li class="nobullet">
+		<p>This {{article.type}} is included in the constructs
+		<ul>
+		{% for link in included_links_to_constructs %}
+			<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a></li>
+		{% endfor %}
+		</ul>
+		</li>
+	{% endif %}
+	</ul>
+	
+	<h4>Outgoing links</h4>
+	<ul>
+
+	{% ifequal article.type "story" %}
+		<li class="nobullet">Stories about the same <b>events</b> as this one
+		{% if retold_links_outgoing %}
+			<ul>
+			{% for link in retold_links_outgoing %}
+				<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a>
+				{% if link.comment %}
+					because "{{link.comment}}"
+				{% endif %}
+				</li>
+			{% endfor %}
+			</ul>
+			<ul><li class="nobullet">Would you like to tell <a href="/visit/retell?{{article.key}}">your version</a> of what happened in this story?</li></ul>
+		{% else %}
+			<ul><li class="nobullet">none yet - Would you like to tell <a href="/visit/retell?{{article.key}}">your version</a> of what happened in this story?</li></ul>
+		{% endif %}
+		</li><li class="nobullet">&nbsp; </li>
+	{% endifequal %}
+
+	{% ifequal article.type "story" %}
+		<li class="nobullet">Stories this one <b>reminded</b> people of
+		{% if reminded_links_outgoing %}
+			<ul>
+			{% for link in reminded_links_outgoing %}
+				<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a>
+				{% if link.comment %}
+					because "{{link.comment}}"
+				{% endif %}
+				</li>
+			{% endfor %}
+			</ul>
+			<ul><li class="nobullet">Does this story <a href="/visit/remind?{{article.key}}">remind you</a> of a story you would like to tell?</li></ul>
+		{% else %}
+			<ul><li class="nobullet">none yet - Does this story <a href="/visit/remind?{{article.key}}">remind you</a> of a story you would like to tell?</li></ul>
+		{% endif %}
+		</li><li class="nobullet">&nbsp; </li>
+	{% endifequal %}
+	
+	{% if article.isInvitation %}
+		<li class="nobullet">Stories told in <b>response</b> to this invitation
+		{% if included_links_outgoing %}
+			<ul>
+			{% for link in included_links_outgoing %}
+				<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a></li>
+			{% endfor %}
+			</ul>
+			<ul><li class="nobullet"><a href="/visit/respond?{{article.key}}">Respond</a> to this invitation with a story</li></ul>
+		{% else %}
+			<ul><li class="nobullet">none yet - <a href="/visit/respond?{{article.key}}">Respond</a> to this invitation with a story</li></ul>
+		{% endif %}
+		</li><li class="nobullet">&nbsp; </li>
+	{% endif %}
+		
+	{% if article.isPatternOrConstruct %}
+		<li class="nobullet">Articles <b>included</b> in this {{article.type}}
+		{% if included_links_outgoing %}
+			<ul>
+			{% for link in included_links_outgoing %}
+				<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a> ({{link.articleTo.type}})</li>
+			{% endfor %}
+			</ul>
+			<ul><li class="nobullet"><a href="/visit/includeArticle?{{article.key}}">Include another</a></li></ul>
+		{% else %}
+			<ul><li class="nobullet">none yet - <a href="/visit/includeArticle?{{article.key}}">Include one</a></li></ul>
+		{% endif %}
+	{% endif %}
+	
+	{% if not article.isPatternOrConstruct %}
+		<li class="nobullet">Patterns this {{article.type}} is <b>included</b> in
+		{% if included_links_incoming_from_patterns %}
+			<ul>
+			{% for link in include_links %}
+				<li class="nobullet"><a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a></li>
+			{% endfor %}
+			</ul>
+			<ul><li class="nobullet"><a href="/visit/includeInPattern?{{article.key}}">Include in another</a></li></ul>
+		{% else %}
+			<ul><li class="nobullet">none yet - <a href="/visit/includeInPattern?{{article.key}}">Include</a> this {{article.type}} in a pattern</li></ul>
+		{% endif %}
+		</li><li class="nobullet">&nbsp; </li>
+		<li class="nobullet">Constructs this {{article.type}} is <b>included</b> in
+		{% if included_links_incoming_from_patterns %}
+			<ul>
+			{% for link in include_links %}
+				<li class="nobullet"><a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a></li>
+			{% endfor %}
+			</ul>
+			<ul><li class="nobullet"><a href="/visit/includeInConstruct?{{article.key}}">Include in another</a></li></ul>
+		{% else %}
+			<ul><li class="nobullet">none yet - <a href="/visit/includeInConstruct?{{article.key}}">Include</a> this {{article.type}} in a construct</li></ul>
+		{% endif %}
+	{% endif %}
+	</li>
+	</ul>
 	
 	</div>
 	</body>

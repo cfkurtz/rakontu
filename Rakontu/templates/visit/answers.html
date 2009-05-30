@@ -47,7 +47,7 @@
 				
 				<select name="attribution">
 					<option value="member"
-						{% if answers.0 %}
+						{% if answers %}
 							{% ifequal answers.0.attribution "member" %}
 								selected="selected"
 							{% endifequal %}
@@ -65,7 +65,7 @@
 					{% if community.getPersonifications %}
 						{% for personification in community.getPersonifications %}
 							<option value="{{personification.key}}"
-							{% if answers.0 %}
+							{% if answers %}
 								{% ifequal answers.0.personification.key personification.key %}
 									selected="selected"
 								{% endifequal %}
@@ -79,7 +79,14 @@
 			
 			<p>
 			<center>
-				<input type="submit" name="answers|{{article.key}}" value="Change {{article_type}}" class="button">
+			{% if answers %}
+				<input type="submit" name="answers|{{article.key}}" value="Change answers about {{article_type}}" class="button">
+				<p>&nbsp; </p>
+				<input type="submit" name="remove|answers|{{article.key}}" value="I would like to PERMANENTLY REMOVE these answers"
+					onClick="javascript:return confirm('Are you REALLY ABSOLUTELY sure you want to delete these answers?\n\nThere will be NO way to get them back.')"" class="button">
+			{% else %}
+				<input type="submit" name="answers|{{article.key}}" value="Add answers about {{article_type}}" class="button">
+			{% endif %}
 			</center>
 			
 		</form>

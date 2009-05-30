@@ -6,52 +6,111 @@
 		{% include "../menus.html" %}
 		<div id="content">
 	
+		<div id="stylized" class="rakontu_form">
 		<form action="/manage/members" method="post">
-		<h2>Changing Memberships for Rakontu Community "{{ community.name|escape }}"</h2>
-		<p>
-		<h3>Add New Members</h3>
+		
+		<h3>Members</h3>
+      	<table border="1" cellpadding="4" cellspacing="0">
+      	<tr>
+      		<th>Nickname</th>
+      		<th>Online member?</th>
+      		<th>Google account<br>(email and ID)</th>
+      		<th>Type</th>
+      		<th>Helping roles and availability</th>
+      		<th>Remove? </th>
+      		</tr>
+      		{% for aMember in community_members %}
+  				<tr>
+  				<td>{{ aMember.nickname }} {% ifequal aMember.key current_member.key %}<br><i>(This is you)</i> {% endifequal %} </td>
+  				<td>{{ aMember.isOnlineMember|yesno:"yes, no, maybe" }}</td>
+  				<td>{{ aMember.googleUserEmailOrNotOnline}}<br>{{ aMember.googleAccountID}}</td>
+  				<td>
+  					<select name="governanceType" class="select">
+  						<option value="member|{{ aMember.googleAccountID }}"
+  							{% if aMember.isRegularMember %}
+  								selected="selected"
+  							{% endif %}
+  							>Member</option>
+  						<option value="manager|{{ aMember.googleAccountID }}"
+  							{% if aMember.isManager %}
+  								selected="selected"
+  							{% endif %}
+  							>Manager</option>
+  						<option value="owner|{{ aMember.googleAccountID }}"
+  							{% if aMember.isOwner %}
+  								selected="selected"
+  							{% endif %}
+  							>Owner</option>
+					</select>
+  					</td>
+  				<td>
+  					Curator: {{aMember.helpingRoles.0|yesno:"yes, no, maybe"}}
+  					{% if not aMember.isManagerOrOwner %}
+      					<input type="checkbox" name="curatorAvailable|{{aMember.key}}" value="yes" id="curatorAvailable"
+      					{% if aMember.helpingRolesAvailable.0 %}
+      						checked="checked"
+      					{% endif %}
+      					><label for="curatorAvailable">Available</label>
+      				{% endif %}
+      				</p>
+  					
+  					Guide: {{aMember.helpingRoles.1|yesno:"yes, no, maybe"}}
+  					{% if not aMember.isManagerOrOwner %}
+      					<input type="checkbox" name="guideAvailable|{{aMember.key}}" value="yes" id="guideAvailable"
+     					{% if aMember.helpingRolesAvailable.1 %}
+      						checked="checked"
+      					{% endif %}
+      					><label for="guideAvailable">Available</label>
+					{% endif %}
+					</p>
+					
+  					Liaison: {{aMember.helpingRoles.2|yesno:"yes, no, maybe"}}
+  					{% if not aMember.isManagerOrOwner %}
+      					<input type="checkbox" name="liaisonAvailable|{{aMember.key}}" value="yes" id="liaisonAvailable"
+     					{% if aMember.helpingRolesAvailable.2 %}
+      						checked="checked"
+      					{% endif %}
+      					><label for="liaisonAvailable">Available</label>
+      				{% endif %}
+      				</p>
+      				
+  					</td>
+  				<td>
+  					<input type="checkbox" name="remove|{{ aMember.googleAccountID }}" id="remove|{{ aMember.googleAccountID }}"/>
+					<label for="remove|{{ aMember.googleAccountID }}">Remove</label>
+  					</td>
+  				</tr>
+      		{% endfor %}
+      	</table>
+		
+		<h3>Pending members</h3>
+      	<table border="1" cellpadding="4" cellspacing="0">
+      	<tr>
+      		<th>Email</th>
+      		<th>Invited</th>
+      		<th>Remove? </th>
+      		</tr>
+      		{% for pending_member in pending_members %}
+  				<tr>
+  				<td><input type="text" name="email|{{pending_member.key}}" size="20" value="{{pending_member.email}}"/></td>
+  				<td>{{pending_member.invited.date}}</td>
+  				<td><input type="checkbox" name="removePendingMember|{{pending_member.key}}" id="removePendingMember|{{pending_member.key}}"/>
+  				<label for="removePendingMember|{{pending_member.key}}">Remove</label></td>
+  				</tr>
+      		{% endfor %}
+      	</table>
+		
+ 		<h3>New emails to add</h3>
+		<fieldset>
 		<div><textarea name="newMemberEmails" rows="6" cols="40"></textarea></div>
 		<p>Instructions: Add email adddresses (linked to valid Google Accounts) for each member you want to add.
 		Place each email address on a separate line.</p>
-		<p>
-		<hr size="1">
-		<h3>Change Memberships</h3>
-      	<table border="1" cellpadding="4" cellspacing="0">
-      	<tr>
-      		<th>Community nickname</th>
-      		<th>Online?</th>
-      		<th>Member since</th>
-      		<th>Google info (nickname, email, ID)</th>
-      		<th>Type</th>
-      		<th>Helping roles</th>
-      		<th>Remove</th>
-      		</tr>
-      		{% for aMember in community_members %}
-      			{% ifequal aMember.community.key community.key %}
-      				<tr>
-      				<td>{{ aMember.nickname }} {% ifequal aMember.key current_member.key %} <i>(This is you)</i> {% endifequal %} </td>
-      				<td>{{ aMember.isOnlineMember|yesno:"yes, no, maybe" }}</td>
-      				<td>{{ aMember.joined }}</td>
-      				<td>{{ aMember.googleUserNicknameOrNotOnline }}<br>{{ aMember.googleUserEmailOrNotOnline}}<br>{{ aMember.googleAccountID}}</td>
-      				<td>
-      					<input type="radio" name="governanceType|{{ aMember.googleAccountID }}" value="member|{{ aMember.googleAccountID }}" {{aMember.checkedIfRegularMember}}/>Member<br>
-      					<input type="radio" name="governanceType|{{ aMember.googleAccountID }}" value="manager|{{ aMember.googleAccountID }}" {{aMember.checkedIfManager}}/>Manager<br>
-      					<input type="radio" name="governanceType|{{ aMember.googleAccountID }}" value="owner|{{ aMember.googleAccountID }}" {{aMember.checkedIfOwner}}/>Owner
-      					</td>
-      				<td>
-      					{{ aMember.helpingRoles|join:", "|default:"(none)" }}
-      					</td>
-      				<td>
-      					<input type="checkbox" name="remove|{{ aMember.googleAccountID }}" />Remove
-      					</td>
-      				</tr>
-      			{% endifequal %}
-      		{% endfor %}
-      	</table>
-      	<p>
+		</fieldset>
 
-    <input type="submit" name="submitChanges" value="Submit Changes">	
+	<p></p>
+    <center><input type="submit" name="submitChanges" value="Submit Changes" class="button"></center>	
 	</form>	
+	</div>
 	</div>
 	</body>
 </html>

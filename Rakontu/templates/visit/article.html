@@ -90,6 +90,34 @@
 					{% endif %}
 				</select>
 			{% endif %}
+
+			{% if article_from %}
+				<p>You created this story 
+				{% ifequal link_type "retell" %}
+					as your own version of the story "{{article_from.title}}."
+				{% endifequal %}
+				{% ifequal link_type "remind" %}
+					because the story "{{article_from.title}}" reminded you of it.
+				{% endifequal %}
+				{% ifequal link_type "respond" %}
+					in response to the invitation "{{article_from.title}}."
+				{% endifequal %}
+				Would you like to comment on 
+				{% ifequal link_type "retell" %}
+					why you retold the original story?
+				{% endifequal %}
+				{% ifequal link_type "remind" %}
+					what reminded you of this story?
+				{% endifequal %}
+				{% ifequal link_type "respond" %}
+					why you responded to the invitation?
+				{% endifequal %}
+				</p>
+				<input type="text" name="link_comment" value="" size="60">
+				<input type="hidden" name="link_type" value="{{link_type}}">
+				<input type="hidden" name="article_from" value="{{article_from.key}}">
+			{% endif %}
+			
 			</fieldset>
 			
 			<p>
@@ -203,7 +231,7 @@
 			{% if article %}
 				<input type="submit" name="change|{{article_type}}|{{article.key}}" value="Change {{article_type}}" class="button">
 				<p>&nbsp; </p>
-				<input type="submit" name="remove|{{article_type}}|{{article.key}}" value="I would like to PERMANENTLY REMOVE this {{article_type|capfirst}}"
+				<input type="submit" name="remove|{{article_type}}|{{article.key}}" value="I would like to PERMANENTLY REMOVE this {{article_type}}"
 					onClick="javascript:return confirm('Are you REALLY ABSOLUTELY sure you want to delete this item?\n\nThere will be NO way to get it back.')"" class="button">
 			{% else %}
 				<input type="submit" name="add|{{article_type}}" value="Add {{article_type}}" class="button">

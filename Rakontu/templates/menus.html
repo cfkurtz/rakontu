@@ -13,13 +13,11 @@
 	<b>{{ community.name }}</b>
 	</td><td align="right" valign="center" class="noborder">
 	{{current_member.governanceType|capfirst}} <b>{{ current_member.nickname }}</b><br>
-	<a href="/visit/look">Look</a> 
-	<a href="/visit/story">Tell</a> 
-	<a href="/visit/profile">Profile</a> 
-	<a href="xxx">Help</a> 
+	<a href="/visit/profile">Profile</a> |
+	<a href="xxx">Help</a> |
 	<a href="{{logout_url}}">Logout</a>
 		{% if current_member.profileImage %}
-		</td><td align="right" width="50" class="noborder">
+		</td><td align="right" width="70" class="noborder">
 			<div><img src="img?member_id={{current_member.key}}"></img></div>
 		{% endif %}
 	</td></tr></table>
@@ -29,15 +27,18 @@
 <div id="sidebar">
 
 	<h1>Visit</h1>
-  	<p><a href="/visit/look">Look at stories</a></p>
+  	<p><a href="/visit/look">Home</a></p>
   	<p><a href="/visit/story">Tell a story</a></p>
-  	<p><a href="/visit/pattern">Describe a pattern</a></p>
-  	<p><a href="/visit/construct">Build a construct</a></p>
-  	<p><a href="/visit/invitation">Issue an invitation</a></p>
-  	<p><a href="/visit/resource">File a resource</a></p>
-  	<p><a href="/visit/profile">Change your profile</a></p>
+  	<p>Add a<p>
+  		<ul>
+	  	<li><a href="/visit/pattern">pattern</a></li>
+	  	<li><a href="/visit/construct">construct</a></li>
+	  	<li><a href="/visit/invitation">invitation</a></li>
+	  	<li><a href="/visit/resource">resource</a></li>
+	  	</ul>
+	<p><a href="/visit/members">Members</a></p>
   	
-  	{% if current_member.isManager or current_member.isOwner %}
+  	{% if current_member.isManagerOrOwner %}
       	<h1>Manage</h1>
       	<p><a href="/manage/members">Memberships</a></p>
       	<p><a href="/manage/settings">Settings</a></p>
@@ -53,13 +54,16 @@
       	<li><a href="/manage/questions/member">members</a></li>
       	</ul>
       	
-      	<p><a href="/manage/technical">Export data</a></p>
+      	<p><a href="/manage/technical">Backup / export</a></p>
     {% endif %}
 
 	{% if user_is_admin %}
 		<h1>Administer</h1>
-		<p><a href="/admin/showAllCommunities">Show all communities</a></p>
-		<p><a href="/admin/showAllMembers">Show all members</a></p>
+		<p>Show</p>
+			<ul>
+			<li><a href="/admin/showAllCommunities">communities</a></li>
+			<li><a href="/admin/showAllMembers">members</a></li>
+			</ul>
 	{% endif %}
 	
 	<p><a href="/">Start page</a></p>

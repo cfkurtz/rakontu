@@ -41,14 +41,6 @@ def RequireLogin(func):
         func(request)
     return check_login 
 
-def GoogleUserIDForEmail(email):
-    """Return a stable user_id string based on an email address, or None if
-    the address is not a valid/existing google account."""
-    newUser = users.User(email)
-    key = TempUser(user=newUser).put()
-    obj = TempUser.get(key)
-    return obj.user.user_id()
-
 def GetCurrentCommunityAndMemberFromSession():
     session = Session()
     if session and session.has_key('community_key'):
@@ -84,6 +76,12 @@ class StartPage(webapp.RequestHandler):
                     communities.append(member.community)
                 except:
                     pass # if can't link to community don't use it
+            pendingMembers = PendingMember.all().filter("email = ", user.email()).fetch(FETCH_NUMBER)
+            for pendingMember in pendingMembers:
+                try:
+                    communities.append(pendingMember.community)
+                except:
+                    pass
         template_values = {
                            'user': user, 
                            'communities': communities,
@@ -94,6 +92,7 @@ class StartPage(webapp.RequestHandler):
 
     @RequireLogin 
     def post(self):
+        user = users.get_current_user()
         if "visitCommunity" in self.request.arguments():
             community_key = self.request.get('community_key')
             if community_key:
@@ -105,7 +104,19 @@ class StartPage(webapp.RequestHandler):
                     if members:
                         session['member_key'] = members[0].key()
                     else:
-                        self.redirect('/')
+                        pendingMembers = PendingMember.all().filter("community = ", community.key()).filter("email = ", user.email()).fetch(FETCH_NUMBER)
+                        if pendingMembers:
+                            newMember = Member(
+                                nickname=user.email(),
+                                googleAccountID=user.user_id(),
+                                googleAccountEmail=user.email(),
+                                community=community,
+                                governanceType="member")
+                            newMember.put()
+                            db.delete(pendingMembers[0])
+                            session['member_key'] = newMember.key()
+                        else:
+                            self.redirect('/')
                     self.redirect('/visit/look')
                 else:
                     self.redirect('/')
@@ -137,6 +148,7 @@ class CreateCommunityPage(webapp.RequestHandler):
         community.put()
         member = Member(
             googleAccountID=user.user_id(),
+            googleAccountEmail=user.email(),
             community=community,
             governanceType="owner",
             nickname = self.request.get('nickname'),
@@ -179,6 +191,7 @@ class ReadArticlePage(webapp.RequestHandler):
                                    'current_member': member,
                                    'article': article,
                                    'member_can_answer_questions': len(article.getAnswersForMember(member)) == 0,
+                                   'member_can_add_nudge': len(article.getNudgesForMember(member)) == 0,
                                    'community_has_questions_for_this_article_type': len(community.getQuestionsOfType(article.type)) > 0,
                                    'user_is_admin': users.is_current_user_admin(),
                                    'logout_url': users.create_logout_url("/"),
@@ -189,6 +202,15 @@ class ReadArticlePage(webapp.RequestHandler):
                                    'comments': article.getAnnotationsOfType("comment"),
                                    'tag_sets': article.getAnnotationsOfType("tag set"),
                                    'nudges': article.getAnnotationsOfType("nudge"),
+                                   'retold_links_incoming': article.getIncomingLinksOfType("retold"),
+                                   'retold_links_outgoing': article.getOutgoingLinksOfType("retold"),
+                                   'reminded_links_incoming': article.getIncomingLinksOfType("reminded"),
+                                   'reminded_links_outgoing': article.getOutgoingLinksOfType("reminded"),
+                                   'related_links': article.getLinksOfType("related"),
+                                   'included_links_incoming_from_invitations': article.getIncomingLinksOfTypeFromType("included", "invitation"),
+                                   'included_links_incoming_from_patterns': article.getIncomingLinksOfTypeFromType("included", "pattern"),
+                                   'included_links_incoming_from_constructs': article.getIncomingLinksOfTypeFromType("included", "construct"),
+                                   'included_links_outgoing': article.getOutgoingLinksOfType("included"),
                                    }
                 path = os.path.join(os.path.dirname(__file__), 'templates/visit/read.html')
                 self.response.out.write(template.render(path, template_values))
@@ -210,18 +232,42 @@ class EnterArticlePage(webapp.RequestHandler):
     def get(self):
         community, member = GetCurrentCommunityAndMemberFromSession()
         if community and member:
-            i = 0
-            for aType in ARTICLE_TYPES:
-                if self.request.uri.find(aType) >= 0:
-                    type = aType
-                    entryTypeIndexForAnonymity = i
-                    break
-                i += 1
-            if not self.request.uri.find("?") >= 0:
+            if self.request.uri.find("retell") >= 0:
+                type = "story"
+                linkType = "retell"
+                articleFromKey = self.request.query_string
+                articleFrom = db.get(articleFromKey)
                 article = None
+                entryTypeIndexForAnonymity = STORY_ENTRY_TYPE_INDEX
+            elif self.request.uri.find("remind") >= 0:
+                type = "story"
+                linkType = "remind"
+                articleFromKey = self.request.query_string
+                articleFrom = db.get(articleFromKey)
+                article = None
+                entryTypeIndexForAnonymity = STORY_ENTRY_TYPE_INDEX
+            elif self.request.uri.find("respond") >= 0:
+                type = "story"
+                linkType = "respond"
+                articleFromKey = self.request.query_string
+                articleFrom = db.get(articleFromKey)
+                article = None
+                entryTypeIndexForAnonymity = STORY_ENTRY_TYPE_INDEX
             else:
-                articleKey = self.request.query_string
-                article = db.get(articleKey)
+                linkType = ""
+                articleFrom = None
+                i = 0
+                for aType in ARTICLE_TYPES:
+                    if self.request.uri.find(aType) >= 0:
+                        type = aType
+                        entryTypeIndexForAnonymity = i
+                        break
+                    i += 1
+                if not self.request.uri.find("?") >= 0:
+                    article = None
+                else:
+                    articleKey = self.request.query_string
+                    article = db.get(articleKey)
             if article:
                 answers = article.getAnswers()
                 attachments = article.getAttachments()
@@ -232,16 +278,16 @@ class EnterArticlePage(webapp.RequestHandler):
                                'user': users.get_current_user(),
                                'current_member': member,
                                'community': community, 
-                               'refer_type': type,
                                'article_type': type,
                                'article': article,
                                'questions': community.getQuestionsOfType(type),
                                'answers': answers,
                                'attachments': attachments,
-                               'zero_to_five': range(5),
                                'community_members': community.getMembers(),
                                'anon_entry_allowed': community.allowAnonymousEntry[entryTypeIndexForAnonymity],
                                'show_attribution_choice': community.hasAtLeastOnePersonificationOrAnonEntryAllowed(entryTypeIndexForAnonymity),
+                               'link_type': linkType,
+                               'article_from': articleFrom,
                                'user_is_admin': users.is_current_user_admin(),
                                'logout_url': users.create_logout_url("/"),
                                }
@@ -299,6 +345,22 @@ class EnterArticlePage(webapp.RequestHandler):
             else:
                 article.attribution = "member"
             article.put()
+            if self.request.get("article_from"):
+                articleFrom = db.get(self.request.get("article_from"))
+                if articleFrom:
+                    if self.request.get("link_type") == "retell":
+                        linkType = "retold"
+                    elif self.request.get("link_type") == "remind":
+                        linkType = "reminded"
+                    elif self.request.get("link_type") == "respond":
+                        linkType = "included"
+                    elif self.request.get("link_type") == "relate":
+                        linkType = "related"
+                    elif self.request.get("link_type") == "include":
+                        linkType = "included"
+                    link = Link(articleFrom=articleFrom, articleTo=article, type=linkType, \
+                                creator=member, comment=self.request.get("link_comment"))
+                    link.put()
             questions = Question.all().filter("community = ", community).filter("refersTo = ", type).fetch(FETCH_NUMBER)
             for question in questions:
                 foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", article.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
@@ -328,7 +390,6 @@ class EnterArticlePage(webapp.RequestHandler):
                 answerToEdit.put()
             foundAttachments = Attachment.all().filter("article = ", article.key()).fetch(FETCH_NUMBER)
             attachmentsToRemove = []
-            DebugPrint(self.request.params.items())
             for attachment in foundAttachments:
                 for name, value in self.request.params.items():
                     if value == "removeAttachment|%s" % attachment.key():
@@ -370,7 +431,7 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
             article = None
             if self.request.query_string:
                 article = Article.get(self.request.query_string)
-            anonEntryAllowed = True # CFK FIX
+            anonEntryAllowed = community.allowAnonymousEntry[ANSWERS_ENTRY_TYPE_INDEX]
             if article:
                 template_values = {
                                    'user': users.get_current_user(),
@@ -381,7 +442,7 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
                                    'questions': community.getQuestionsOfType(article.type),
                                    'answers': article.getAnswersForMember(member),
                                    'anon_entry_allowed': anonEntryAllowed,
-                                   'show_attribution_choice': True, #community.hasAtLeastOnePersonificationOrAnonEntryAllowed(anonEntryAllowed),
+                                   'show_attribution_choice': community.hasAtLeastOnePersonificationOrAnonEntryAllowed(ANSWERS_ENTRY_TYPE_INDEX),
                                    'user_is_admin': users.is_current_user_admin(),
                                    'logout_url': users.create_logout_url("/"),
                                    }
@@ -398,6 +459,12 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
         if community and member:
             articleKey = self.request.query_string
             article = db.get(articleKey)
+            if "remove|answers|%s" % articleKey in self.request.arguments():
+                answers = Answer.all().filter("referent = ", article.key()).fetch(FETCH_NUMBER)
+                for answer in answers:
+                    db.delete(answer)
+                self.redirect("/visit/read?%s" % article.key())
+                return
             if article:
                 attribution = "member"
                 personification = None
@@ -623,11 +690,8 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
             member.profileText = self.request.get("description")
             if self.request.get("img"):
                 member.profileImage = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
-            i = 0
-            for role in HELPING_ROLE_TYPES:
-                if self.request.get("helpingRole%s" % i):
-                    member.addHelpingRole(i)
-                    i += 1
+            for i in range(3):
+                member.helpingRoles[i] = self.request.get("helpingRole%s" % i) == "helpingRole%s" % i
             member.put()
             questions = Question.all().filter("community = ", community).filter("refersTo = ", "member").fetch(FETCH_NUMBER)
             for question in questions:
@@ -663,8 +727,6 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 # --------------------------------------------------------------------------------------------
                                 
 class ManageCommunityMembersPage(webapp.RequestHandler):
-    # CFK FIX - need to add thing where you ban members from being helper roles
-    # also need to change those radio buttons to select boxes on governance type
     @RequireLogin 
     def get(self):
         community, member = GetCurrentCommunityAndMemberFromSession()
@@ -675,6 +737,7 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
                                'current_user': users.get_current_user(), 
                                'current_member': member,
                                'community_members': community.getMembers(),
+                               'pending_members': community.getPendingMembers(),
                                'user_is_admin': users.is_current_user_admin(),
                                'logout_url': users.create_logout_url("/"),
                                }
@@ -705,6 +768,9 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
                         if okayToSet:
                             aMember.governanceType = newType
                             aMember.put()
+                for i in range(3):
+                    aMember.helpingRolesAvailable[i] = self.request.get("%sAvailable|%s" % (HELPING_ROLE_TYPES[i], aMember.key())) == "yes"
+                aMember.put()
             membersToRemove = []
             for aMember in communityMembers:
                 if self.request.get("remove|%s" % aMember.googleAccountID):
@@ -712,18 +778,17 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
             if membersToRemove:
                 for aMember in membersToRemove:
                     db.delete(aMember)
+            for pendingMember in community.getPendingMembers():
+                pendingMember.email = self.request.get("email|%s" % pendingMember.key())
+                pendingMember.put()
+                if self.request.get("removePendingMember|%s" % pendingMember.key()):
+                    db.delete(pendingMember)
             memberEmailsToAdd = self.request.get("newMemberEmails").split('\n')
             for email in memberEmailsToAdd:
                 if email.strip():
-                    userID = GoogleUserIDForEmail(email)
-                    if userID:
-                        if not community.hasMemberWithUserID(userID):
-                            newMember = Member(
-                                googleAccountID=userID,
-                                community=community,
-                                governanceType="member")
-                            newMember.put()
-        self.redirect('/visit/look')
+                    pendingMember = PendingMember(community=community, email=email)
+                    pendingMember.put()
+        self.redirect('/manage/members')
             
                 
 class ManageCommunitySettingsPage(webapp.RequestHandler):
@@ -1020,9 +1085,15 @@ application = webapp.WSGIApplication(
                                      [('/', StartPage),
                                       
                                       # visiting
+                                      ('/visit', BrowseArticlesPage),
+                                      ('/visit/', BrowseArticlesPage),
                                       ('/visit/look', BrowseArticlesPage),
                                       ('/visit/read', ReadArticlePage),
                                       ('/visit/story', EnterArticlePage),
+                                      ('/visit/retell', EnterArticlePage),
+                                      ('/visit/remind', EnterArticlePage),
+                                      ('/visit/respond', EnterArticlePage),
+                                      
                                       ('/visit/pattern', EnterArticlePage),
                                       ('/visit/construct', EnterArticlePage),
                                       ('/visit/invitation', EnterArticlePage),
@@ -1043,7 +1114,6 @@ application = webapp.WSGIApplication(
                                       ('/visit/img', ImageHandler),
                                       ('/manage/img', ImageHandler),
                                       ('/visit/attachment', AttachmentHandler),
-                                      
                                       
                                       # managing
                                       ('/createCommunity', CreateCommunityPage),
