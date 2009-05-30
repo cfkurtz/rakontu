@@ -36,25 +36,17 @@ FETCH_NUMBER = 1000
 DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE = 10
 DEFAULT_NUDGE_POINT_ACCUMULATIONS = [
 									0, # time (doesn't apply here)
-					 				2, # browsing
 					 				4, # reading
 					 				20, # telling
 					 				30, # retelling
 					 				25, # reminding
 					 				10, # relating
 					 				15, # including
-					 				0, # annotating (subclasses)
-					 				20, # answering questios
+					 				20, # answering
 					 				4, # tagging
 					 				5, # commenting
 					 				8, # requesting
-					 				0, # nudging (subclasses)
-					 				8, # nudging - appropriateness
-					 				8, # nudging - importance
-					 				8, # nudging - utility
-					 				8, # nudging - utility custom 1
-					 				8, # nudging - utility custom 2
-					 				8, # nudging - utility custom 3
+					 				20, # nudging 
 					 				]
 
 # member
@@ -67,17 +59,13 @@ DEFAULT_ROLE_READMES = [
 					    "A liaison guides stories and other information over the barrier between on-line and off-line worlds. Liaisons conduct external interviews and add the stories people tell in them, read stories to people and gather comments, nudges, and other annotations, and in general make the system work for both on-line and off-line community members."]
 GOVERNANCE_ROLE_TYPES = ["member", "manager", "owner"]
 ACTIVITIES_GERUND = ["time", \
-					   	 "browsing", "reading", \
+					   	 "reading", \
 						 "telling", "retelling", "reminding", "relating", "including", \
-						 "annotating", "answering questions", "tagging", "commenting", "requesting", "nudging", \
-						 "nudging - appropriateness", "nudging - importance", "nudging - utility", \
-						 "nudging - utility custom 1", "nudging - utility custom 2", "nudging - utility custom 3"]
+						 "answering questions", "tagging", "commenting", "requesting", "nudging"]
 ACTIVITIES_VERB = ["time", \
-					   	 "browsed", "read", \
+					   	 "read", \
 						 "told", "retold", "reminded", "related", "included", \
-						 "annotated", "questions answered about", "tagged", "commented", "requested", "nudged", \
-						 "nudged - appropriateness", "nudged - importance", "nudged - utility", \
-						 "nudged - utility custom 1", "nudged - utility custom 2", "nudged - utility custom 3"]
+						 "questions answered about", "tagged", "commented", "requested", "nudged"]
 
 # articles
 ARTICLE_TYPES = ["story", "pattern", "construct", "invitation", "resource"]
@@ -101,26 +89,24 @@ PRUNE_STRENGTHS = [1, 2, 3]
 TIME_STEPS = ["hour", "day", "week", "month", "year"]
 DEFAULT_VERTICAL_MOVEMENT_POINTS_PER_EVENT = [
 									-1, # time
-					 				2, # browsing
 					 				5, # reading
-					 				0, # telling  (doesn't apply here)
-					 				0, # retelling (doesn't really apply here)
-					 				0, # reminding (doesn't really apply here)
-					 				0, # relating (doesn't really apply here)
-					 				0, # including (doesn't really apply here)
-					 				0, # annotating (subclasses)
-					 				20, # answering questions
+					 				2, # telling  
+					 				2, # retelling 
+					 				2, # reminding 
+					 				2, # relating
+					 				2, # including 
+					 				20, # answering
 					 				10, # tagging
 					 				10, # commenting
 					 				20, # requesting
-					 				0, # nudging (subclasses)
-					 				15, # nudging - appropriateness
-					 				10, # nudging - importance
-					 				8, # nudging - utility
-					 				8, # nudging - utility custom 1
-					 				8, # nudging - utility custom 2
-					 				8, # nudging - utility custom 3
+					 				6, # nudging 
 					 				]
+
+# history
+HISTORY_ACTION_TYPES = ["read", "created", "changed", "removed"]
+HISTORY_REFERENT_TYPES = ["story", "pattern", "construct", "invitation", "request", \
+						  "retold link", "reminded link", "related link", "included link", \
+						  "answer set", "tag set", "comment", "request", "nudge"]
 
 # querying
 QUERY_TYPES = ["free text", "tags", "answers", "members", "activities", "links"]
@@ -297,7 +283,7 @@ class Community(db.Model):
 		return len(self.getPersonifications()) > 0 or self.allowAnonymousEntry[entryTypeIndex]
 	
 # --------------------------------------------------------------------------------------------
-# Question generating system
+# Question 
 # --------------------------------------------------------------------------------------------
 
 class Question(db.Model):
@@ -405,12 +391,6 @@ class Member(db.Model):
 	lastReadAnything = db.DateTimeProperty()
 	nudgePoints = db.IntegerProperty(default=50)
 
-	def getHistory(self):
-		articles = Article.all().filter("creator =", self.key()).order("-date").fetch(FETCH_NUMBER)
-		annotations = Annotation.all().filter("creator =", self.key()).order("-date").fetch(FETCH_NUMBER)
-		links = Link.all().filter("creator =", self.key()).order("-date").fetch(FETCH_NUMBER)
-		return articles, annotations, links
-	
 	def getViewingPreferences(self):
 		return ViewingPreferences.all().filter("owner = ", self.key()).fetch(FETCH_NUMBER)
 	
@@ -428,6 +408,9 @@ class Member(db.Model):
 	def isLiaison(self):
 		return self.helpingRoles[2]
 	
+	def hasAnyHelpingRole(self):
+		return self.helpingRoles[0] or self.helpingRoles[1] or self.helpingRoles[2]
+
 	def canTakeOnAnyHelpingRole(self):
 		return self.helpingRolesAvailable[0] or self.helpingRolesAvailable[1] or self.helpingRolesAvailable[2]
 	
@@ -463,6 +446,9 @@ class Member(db.Model):
 	
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
+	
+	def getHistory(self):
+		return ArticleHistoryItem.all().filter("member = ", self.key()).order("-timeStamp")
 	
 class PendingMember(db.Model):
 	""" A person who has been invited to join a community but who has not yet logged in.
@@ -626,6 +612,37 @@ class Article(db.Model):
 	def getNudgesForMember(self, member):
 		return Annotation.all().filter("article = ", self.key()).filter("type = ", "nudge").filter("creator = ", member.key()).fetch(FETCH_NUMBER)
 	
+	def getHistory(self):
+		return ArticleHistoryItem.all().filter("article = ", self.key()).order("-timeStamp")
+	
+	def addHistoryItem(self, member, action, referent):
+		item = ArticleHistoryItem(member=member, actionType=action, referent=referent)
+		item.article = self
+		if not referent.__class__.__name__ == "Link":
+			if referent.attribution == "personification":
+				item.attributionToShow = referent.personification.name
+			elif referent.attribution == "anonymous":
+				item.attributionToShow = "An anonymous member"
+			else:
+				item.attributionToShow = member.nickname
+		if referent.__class__.__name__ == "Article":
+			item.referentType = referent.type
+			item.textToShow = referent.title
+		elif referent.__class__.__name__ == "Annotation":
+			item.referentType = referent.type
+			if referent.type == "tag set":
+				item.textToShow = ", ".join(referent.tagsIfTagSet)
+			else:
+				item.textToShow = referent.shortString
+		elif referent.__class__.__name__ == "Answer":
+			item.referentType = "answer set"
+			item.textToShow = answer.question.text
+		elif referent.__class__.__name__ == "Link":
+			item.referentType = referent.type + " link"
+			item.textToShow = referent.comment
+			item.attributionToShow = member.nickname
+		item.put()
+				
 class Link(db.Model):
 	""" For holding on to links between articles.
 	
@@ -646,18 +663,40 @@ class Attachment(db.Model):
 	""" For binary attachments to articles.
 	
 	Properties:
-		name:		Name of the attachment.
-		mimeType:	Determines how it is shown/downloaded.
-		fileName:	The name of the file that was uploaded.
-		
-		data:		Binary data.
-		article:	Which artice it is associated with. (Only one allowed.)
+		name:				Name of the attachment.
+		mimeType:			Determines how it is shown/downloaded.
+		fileName:			The name of the file that was uploaded.
+		data:				Binary data.
+		article:			Which article it is associated with. (Only one allowed.)
 	"""
 	name = db.StringProperty()
 	mimeType = db.StringProperty()
 	fileName = db.StringProperty()
 	data = db.BlobProperty()
 	article = db.ReferenceProperty(Article, collection_name="attachments")
+	
+class ArticleHistoryItem(db.Model):
+	""" To keep a record of changes made to articles.
+	
+	Properties
+		timeStamp:			When the action happened.
+		member:				Which member did it.
+		actionType:			What was done - create, change or remove.
+		article:			What article the change relates to (may be same as referent).
+		referent:			What object it was done to.
+		referentType:		What type of object it was. 
+							This is here mainly if the object is removed and can no longer
+							be asked what type it was.
+		textToShow:			How to report on what this was called.
+	"""
+	timeStamp = db.DateTimeProperty(auto_now_add=True)
+	member = db.ReferenceProperty(Member, collection_name="history members", required=True)
+	attributionToShow = db.StringProperty()
+	actionType = db.StringProperty(choices=HISTORY_ACTION_TYPES, required=True)
+	article = db.ReferenceProperty(Article, collection_name="history articles")
+	referent = db.ReferenceProperty(None, collection_name="history", required=True)
+	referentType = db.StringProperty(choices=HISTORY_REFERENT_TYPES)
+	textToShow = db.StringProperty()
 	
 # --------------------------------------------------------------------------------------------
 # Annotations
@@ -893,7 +932,7 @@ class ViewingPreferences(db.Model):
 	yPointStep = db.IntegerProperty(default=10)
 	yTop = db.IntegerProperty(default=100)
 	yBottom = db.IntegerProperty(default=0)
-	yArrangement = db.StringListProperty(choices=ACTIVITIES_GERUND, default=["time", "browsing", "reading", "nudging"])
+	yArrangement = db.StringListProperty(choices=ACTIVITIES_GERUND, default=["time", "reading", "nudging"])
 	verticalPoints = db.ListProperty(int, default=DEFAULT_VERTICAL_MOVEMENT_POINTS_PER_EVENT)
 	
 	basement = db.IntegerProperty(default=0)

@@ -34,7 +34,11 @@
 			<div><input type="text" name="title" size="60" value="{% if article %}{{article.title}}{% endif %}"/></div>
 			
 			{% if current_member.isLiaison %}
-				<div><label><input type="checkbox" name="collectedOffline" value="yes" checked>This {{article_type}} was collected offline.</label></div>
+				<div><label><input type="checkbox" name="collectedOffline" value="yes" 
+					{% if article.collectedOffline %}
+					checked
+					{% endif %}
+				>This {{article_type}} was collected offline.</label></div>
 				{% if article %}
 					<p>This off-line {{article_type}} was collected from:</p>
 				{% else %}

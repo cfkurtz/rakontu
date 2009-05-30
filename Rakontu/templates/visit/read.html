@@ -32,7 +32,7 @@
 	<p>This {{article.type}} was entered by 
 	
 	{% ifequal article.attribution "member" %}
-			<a href="memberInfo|{{article.creator.key}}">{{article.creator.nickname}}</a>
+			<a href="member?{{article.creator.key}}">{{article.creator.nickname}}</a>
 		{% ifequal article.creator.key current_member.key %}
 			 (you)
 		{% endifequal %}
@@ -89,7 +89,7 @@
 							- 
 
 							{% ifequal answer.attribution "member" %}
-								<a href="memberInfo|{{answer.creator.key}}">{{answer.creator.nickname}}</a>
+								<a href="member?{{answer.creator.key}}">{{answer.creator.nickname}}</a>
 								{% ifequal answer.creator.key current_member.key %}
 								(<a href="answers?{{article.key}}">Change</a>)
 								{% endifequal %}
@@ -131,7 +131,7 @@
 		<li class="nobullet"><b>{{comment.shortString}}</b> - 
 		
 		{% ifequal comment.attribution "member" %}
-			<a href="memberInfo|{{comment.creator.key}}">{{comment.creator.nickname}}</a>
+			<a href="member?{{comment.creator.key}}">{{comment.creator.nickname}}</a>
 			{% ifequal comment.creator.key current_member.key %}
 			(<a href="comment?{{comment.key}}">Change</a>)
 			{% endifequal %}
@@ -169,7 +169,7 @@
 		<li class="nobullet">{{tag_set.tagsIfTagSet|join:", "}} - 
 
 		{% ifequal tag_set.attribution "member" %}
-			<a href="memberInfo|{{tag_set.creator.key}}">{{tag_set.creator.nickname}}</a>
+			<a href="member?{{tag_set.creator.key}}">{{tag_set.creator.nickname}}</a>
 			{% ifequal tag_set.creator.key current_member.key %}
 			(<a href="tagset?{{tag_set.key}}">Change</a>)
 			{% endifequal %}
@@ -211,7 +211,7 @@
 			</b>
 			- 
 		{% ifequal nudge.attribution "member" %}
-			<a href="memberInfo|{{nudge.creator.key}}">{{nudge.creator.nickname}}</a>
+			<a href="member?{{nudge.creator.key}}">{{nudge.creator.nickname}}</a>
 			{% ifequal nudge.creator.key current_member.key %}
 			(<a href="nudge?{{nudge.key}}">Change</a>)
 			{% endifequal %}
@@ -251,7 +251,7 @@
 			<li class="nobullet"><b>{{request.shortString}}</b> - 
 			
 		{% ifequal request.attribution "member" %}
-			<a href="memberInfo|{{request.creator.key}}">{{request.creator.nickname}}</a>
+			<a href="member?{{request.creator.key}}">{{request.creator.nickname}}</a>
 			{% ifequal request.creator.key current_member.key %}
 			(<a href="request?{{request.key}}">Change</a>)
 			{% endifequal %}
@@ -447,6 +447,17 @@
 	{% endif %}
 	</li>
 	</ul>
+	
+	{% if history %}
+		<h4>History</h4>
+		<ul>
+		{% for item in history %}
+			<li class="nobullet">
+				{{item.attributionToShow}} <b>{{item.actionType}}</b>
+				the {{item.referentType}} "{{item.textToShow}}" on {{item.timeStamp.date|date:"F j, Y"}} at {{item.timeStamp.time|time:"f"}}.</li>
+		{% endfor %}
+		</ul>
+	{% endif %}
 	
 	</div>
 	</body>

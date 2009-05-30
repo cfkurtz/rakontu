@@ -124,7 +124,11 @@
 			{% endifequal %}
 			
 			{% if current_member.isLiaison %}
-				<div><label><input type="checkbox" name="collectedOffline" value="yes" checked>This {{annotation_type}} was collected offline.</label></div>
+				<div><label><input type="checkbox" name="collectedOffline" value="yes" 
+					{% if annotation.collectedOffline %}
+					checked
+					{% endif %}
+				>This {{annotation_type}} was collected offline.</label></div>
 				{% if annotation %}
 					<p>This off-line {{annotation_type}} was collected from:</p>
 				{% else %}

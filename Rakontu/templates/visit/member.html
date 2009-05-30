@@ -1,0 +1,47 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+	</head>
+	<body>
+		{% include "../menus.html" %}
+		<div id="content">
+	
+		<h3>Information about {{member.nickname}}</h3>
+		
+		 		{% if member.profileImage %}
+					<div><img src="img?member_id={{member.key}}" ></img></div>
+				{% endif %}
+				<p>
+				{{member.nickname}}
+  				{% ifequal member.key current_member.key %}<i>(this is you)</i> {% endifequal %} 
+  				is {% ifequal member.governanceType "member" %}
+  					{% else %}
+  						an <b>{{ member.governanceType }}</b> of this community,
+  					{% endifequal %}
+  				is an <b>{{ member.isOnlineMember|yesno:"on-line, off-line" }}</b> member,
+  				and 
+  					{% if not member.hasAnyHelpingRole %}
+  						has no helping role in particular.
+  					{% else %}
+  						is a
+	  					{% if member.helpingRoles.0 %} <b>curator</b>{% if member.helpingRoles.1 or member.helpingRoles.2 %} and{% else %}. {% endif %}{% endif %}
+	  					{% if member.helpingRoles.1 %} <b>guide</b>{% if member.helpingRoles.2 %} and{% else %}. {% endif %} {% endif %}
+	  					{% if member.helpingRoles.2 %} <b>liaison</b>.{% endif %}
+	  				{% endif %}
+	  			</p>
+  				{% if member.profileText %}<p>Says {{member.nickname}}: <ul><li class="nobullet">{{member.profileText}}</li></ul>{% endif %}
+	
+	{% if history %}
+		<h4>History</h4>
+		<ul>
+		{% for item in history %}
+			<li class="nobullet">
+				{{item.attributionToShow}} <b>{{item.actionType}}</b>
+				the {{item.referentType}} "{{item.textToShow}}" on {{item.timeStamp.date|date:"F j, Y"}} at {{item.timeStamp.time|time:"f"}}.</li>
+		{% endfor %}
+		</ul>
+	{% endif %}
+		 
+	</div>
+	</body>
+</html>

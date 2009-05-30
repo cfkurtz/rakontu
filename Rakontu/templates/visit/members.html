@@ -1,0 +1,39 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+	</head>
+	<body>
+		{% include "../menus.html" %}
+		<div id="content">
+	
+		<h3>Members</h3>
+      	<table border="1" cellpadding="4" cellspacing="0">
+      		{% for aMember in community_members %}
+  				<tr><td>
+		 		{% if aMember.profileImage %}
+					<div><img src="img?member_id={{aMember.key}}" align="right"></img></div>
+				{% endif %}
+  				<a href="member?{{aMember.key}}">{{ aMember.nickname }}</a> 
+  				{% ifequal aMember.key current_member.key %}<i>(that's you)</i> {% endifequal %} 
+  				is {% ifequal aMember.governanceType "member" %}
+  					{% else %}
+  						an <b>{{ aMember.governanceType }}</b> of this community,
+  					{% endifequal %}
+  				is an <b>{{ aMember.isOnlineMember|yesno:"on-line, off-line" }}</b> member,
+  				and 
+  					{% if not aMember.hasAnyHelpingRole %}
+  						has no helping role in particular.
+  					{% else %}
+  						is a
+	  					{% if aMember.helpingRoles.0 %} <b>curator</b>{% if aMember.helpingRoles.1 or aMember.helpingRoles.2 %} and{% else %}. {% endif %}{% endif %}
+	  					{% if aMember.helpingRoles.1 %} <b>guide</b>{% if aMember.helpingRoles.2 %} and{% else %}. {% endif %} {% endif %}
+	  					{% if aMember.helpingRoles.2 %} <b>liaison</b>.{% endif %}
+	  				{% endif %}
+  				{% if aMember.profileText %}<p>Says {{aMember.nickname}}: <ul><li class="nobullet">{{aMember.profileText}}</li></ul>{% endif %}
+  				</td>
+  				</tr>
+      		{% endfor %}
+      	</table>
+	</div>
+	</body>
+</html>
