@@ -12,7 +12,9 @@
 	</td><td align="left" valign="center" class="noborder">
 	<b>{{ community.name }}</b>
 	</td><td align="right" valign="center" class="noborder">
-	{{current_member.governanceType|capfirst}} <b>{{ current_member.nickname }}</b><br>
+	{{current_member.governanceType|capfirst}} <b>{{ current_member.nickname }}</b>
+	{% if user_is_admin %} (site admin) {% endif %}
+	<br>
 	<a href="/visit/profile">Profile</a> |
 	<a href="xxx">Help</a> |
 	<a href="{{logout_url}}">Logout</a>
@@ -54,9 +56,9 @@
       	<p>Questions about</p>
       	<ul>
       	<li><a href="/manage/questions/story">stories</a></li>
-      	<li><a href="/manage/questions/pattern">patterns</a></li>
-      	<li><a href="/manage/questions/collage">collages</a></li>
       	<li><a href="/manage/questions/invitation">invitations</a></li>
+      	<li><a href="/manage/questions/collage">collages</a></li>
+      	<li><a href="/manage/questions/pattern">patterns</a></li>
       	<li><a href="/manage/questions/resource">resources</a></li>
       	<li><a href="/manage/questions/member">members</a></li>
       	</ul>

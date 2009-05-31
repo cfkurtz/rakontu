@@ -6,137 +6,134 @@
 		{% include "../menus.html" %}
 		<div id="content">
 		
-		<div id="stylized" class="rakontu_form">
-		<form action="/manage/settings" method="post" enctype="multipart/form-data">
-		<h2>Changing Settings for Rakontu Community "{{ community.name|escape }}"</h2>
-		<p>Community ID number (database key): {{community.key}}</p>
-		<p>Created: {{community.created}}</p>
-
-		<h3>Name and description</h3>
-		<fieldset>
-		<p>Community name</p>
-		<div><input type="text" name="name" value="{{ community.name }}" maxlength="40" size="30"/></div>
-		<p>Community description</p>
-		<div><textarea name="description" rows="10" cols="60">{{ community.description|escape }}</textarea></div>
-		<i>Full URLs (starting with http://) in the community description will be converted to links in what is shown.</i>
-		<p>Community image</p>
-		{% if community.image %}
-			<img src="img?community_id={{community.key}}" class="bordered"></img>
-			<input type="checkbox" name="removeImage" value="removeImage" id="removeImage"><label for="removeImage">Remove</label>
-		{% endif %}
-		{% if community.image %}
-			<p>Click Browse to replace this image with a new one.
-		{% else %}
-			<p>Click Browse to choose a community image. This will display on the top of all screens.
-		{% endif %}
-		<i>The best image size is width 100, height 60.</i></p>
-		<p><input type="file" name="img" accept="jpg/png"/></p>
-		</fieldset>
-		
-		<h3>Anonymity</h3>
-		<fieldset>
-		<p>Is entry via fictional character allowed for each of these entry types?</p>
-		{% for text in character_includes %}
-			{{ text }}
-		{% endfor %}
-		</table>
-		</fieldset>
-		
-		<h3>Nudge system</h3>
-		<fieldset>
-		<p>How many nudge points can be asssigned (maximum) per article?</p>
-		<input type="text" name="maxNudgePointsPerArticle" size="4" value="{{community.maxNudgePointsPerArticle}}"/>
-		<p>Enter your nudge category names here. <i>Recommended names for some are added.</i></p>
-		<p><input type="text" name="nudgeCategory0" size="50" value="{{community.nudgeCategories.0}}"/></p>
-		<p><input type="text" name="nudgeCategory1" size="50" value="{{community.nudgeCategories.1}}"/></p>
-		<p><input type="text" name="nudgeCategory2" size="50" value="{{community.nudgeCategories.2}}"/></p>
-		<p><input type="text" name="nudgeCategory3" size="50" value="{{community.nudgeCategories.3}}"/></p>
-		<p><input type="text" name="nudgeCategory4" size="50" value="{{community.nudgeCategories.4}}"/></p>
-		<p>How many nudge points do members accumulate by participating?</p>
-		<table  border="1" cellpadding="4" cellspacing="0"><tr><th>Activity</th><th>Nudge points accumulated</th></tr>
-		{% for text in nudge_point_includes %}
-			{{ text }}
-		{% endfor %}
-		</table>
-      	</fieldset>
-      	
-		<h3>Pruning and limitations</h3>
-		<fieldset>
-		<p>Should articles, annotations and answers ever be deleted automatically?</p>
-		<input type="checkbox" name="autoPrune" size="4" value="yes" id="autoPrune"
-			{% if community.autoPrune %}
-				checked="checked"
+		{% if current_member.isManagerOrOwner %}
+			<div id="stylized" class="rakontu_form">
+			<form action="/manage/settings" method="post" enctype="multipart/form-data">
+			<h2>Changing Settings for Rakontu Community "{{ community.name|escape }}"</h2>
+			<p>Community ID number (database key): {{community.key}}</p>
+			<p>Created: {{community.created}}</p>
+	
+			<h3>Name and description</h3>
+			<fieldset>
+			<p>Community name</p>
+			<div><input type="text" name="name" value="{{ community.name }}" maxlength="40" size="30"/></div>
+			<p>Community description</p>
+			<div><textarea name="description" rows="10" cols="60">{{ community.description|escape }}</textarea></div>
+			<i>Full URLs (starting with http://) in the community description will be converted to links in what is shown.</i>
+			<p>Community image</p>
+			{% if community.image %}
+				<img src="img?community_id={{community.key}}" class="bordered"></img>
+				<input type="checkbox" name="removeImage" value="removeImage" id="removeImage"><label for="removeImage">Remove</label>
 			{% endif %}
-			/><label for="autoPrune">Yes, activate auto pruning</label>
-		<p>If auto pruning happens, at what combined strength should an item be deleted?
-			<i>Pruning strengths are 1: weak, 2: medium, 3: strong; these are added to create the combined prune strength value.</i></p>
-		<input type="text" name="autoPruneStrength" size="4" value="{{community.autoPruneStrength}}"/>
-		<p>How many attachments are allowed per article?</p>
-			<select name="maxNumAttachments" style="width: 60px;">
-			<option value="1"
-				{% ifequal community.maxNumAttachments 1 %}
-					selected="selected"
-				{% endifequal %}
-				>1</option>
-			<option value="2"
-				{% ifequal community.maxNumAttachments 2 %}
-					selected="selected"
-				{% endifequal %}
-				>2</option>
-			<option value="3"
-				{% ifequal community.maxNumAttachments 3 %}
-					selected="selected"
-				{% endifequal %}
-				>3</option>
-			<option value="4"
-				{% ifequal community.maxNumAttachments 4 %}
-					selected="selected"
-				{% endifequal %}
-				>4</option>
-			<option value="5"
-				{% ifequal community.maxNumAttachments 5 %}
-					selected="selected"
-				{% endifequal %}
-				>5</option>
-			</select>
-		</fieldset>
-
-		<h3>Helping Roles</h3>
-		<fieldset>
-		<p><b>Curator read-before text</b></p>
-		<textarea name="readme0" rows="3" cols="60">{{ community.roleReadmes.0|escape }}</textarea>
-		<input type="checkbox" name="agreement0" value="agreement0" id="agreement0"
-			{% if community.roleAgreements.0 %}
-				checked="checked"
-			{% endif %}
-			/>
-			<label for="agreement0">Members must check box to agree to terms before becoming curator</label>
-		<p></p>
-		<p><b>Guide read-before text</b></p>
-		<textarea name="readme1" rows="3" cols="60">{{ community.roleReadmes.1|escape }}</textarea>
-		<input type="checkbox" name="agreement1"  value="agreement1" id="agreement1"
-			{% if community.roleAgreements.1 %}
-				checked="checked"/>
+			{% if community.image %}
+				<p>Click Browse to replace this image with a new one.
 			{% else %}
-				/>
+				<p>Click Browse to choose a community image. This will display on the top of all screens.
 			{% endif %}
-			<label for="agreement1">Members must check box to agree to terms before becoming guide</label>
+			<i>The best image size is width 100, height 60.</i></p>
+			<p><input type="file" name="img" accept="jpg/png"/></p>
+			</fieldset>
+			
+			<h3>Attachments</h3>
+			<fieldset>
+			<p>How many attachments are allowed per article?</p>
+				<select name="maxNumAttachments" style="width: 60px;">
+				<option value="1"
+					{% ifequal community.maxNumAttachments 1 %}
+						selected="selected"
+					{% endifequal %}
+					>1</option>
+				<option value="2"
+					{% ifequal community.maxNumAttachments 2 %}
+						selected="selected"
+					{% endifequal %}
+					>2</option>
+				<option value="3"
+					{% ifequal community.maxNumAttachments 3 %}
+						selected="selected"
+					{% endifequal %}
+					>3</option>
+				<option value="4"
+					{% ifequal community.maxNumAttachments 4 %}
+						selected="selected"
+					{% endifequal %}
+					>4</option>
+				<option value="5"
+					{% ifequal community.maxNumAttachments 5 %}
+						selected="selected"
+					{% endifequal %}
+					>5</option>
+				</select>
+			</fieldset>
+	
+			<h3>Characters</h3>
+			<fieldset>
+			<p>Is entry via fictional character allowed for each of these entry types?</p>
+			{% for text in character_includes %}
+				{{ text }}
+			{% endfor %}
+			</table>
+			</fieldset>
+			
+			<h3>Nudge system</h3>
+			<fieldset>
+			<p>How many nudge points can be asssigned (maximum) per article?</p>
+			<input type="text" name="maxNudgePointsPerArticle" size="4" value="{{community.maxNudgePointsPerArticle}}"/>
+			<p>Enter your nudge category names here. </p>
+			<p><input type="text" name="nudgeCategory0" size="50" value="{{community.nudgeCategories.0}}"/></p>
+			<p><input type="text" name="nudgeCategory1" size="50" value="{{community.nudgeCategories.1}}"/></p>
+			<p><input type="text" name="nudgeCategory2" size="50" value="{{community.nudgeCategories.2}}"/></p>
+			<p><input type="text" name="nudgeCategory3" size="50" value="{{community.nudgeCategories.3}}"/></p>
+			<p><input type="text" name="nudgeCategory4" size="50" value="{{community.nudgeCategories.4}}"/></p>
+			<p>How many nudge points do members accumulate by participating?</p>
+			<table  border="1" cellpadding="4" cellspacing="0"><tr><th>Activity</th><th>Nudge points accumulated</th></tr>
+			{% for text in nudge_point_includes %}
+				{{ text }}
+			{% endfor %}
+			</table>
+	      	</fieldset>
+	      	
+			<h3>Helping Roles</h3>
+			<fieldset>
+			<p><b>Curator read-before text</b></p>
+			<textarea name="readme0" rows="3" cols="60">{{ community.roleReadmes.0|escape }}</textarea>
+			<input type="checkbox" name="agreement0" value="agreement0" id="agreement0"
+				{% if community.roleAgreements.0 %}
+					checked="checked"
+				{% endif %}
+				/>
+				<label for="agreement0">Members must check box to agree to terms before becoming curator</label>
+			<p></p>
+			<p><b>Guide read-before text</b></p>
+			<textarea name="readme1" rows="3" cols="60">{{ community.roleReadmes.1|escape }}</textarea>
+			<input type="checkbox" name="agreement1"  value="agreement1" id="agreement1"
+				{% if community.roleAgreements.1 %}
+					checked="checked"/>
+				{% else %}
+					/>
+				{% endif %}
+				<label for="agreement1">Members must check box to agree to terms before becoming guide</label>
+			<p></p>
+			<p><b>Liaison read-before text</b></p>
+			<textarea name="readme2" rows="3" cols="60">{{ community.roleReadmes.2|escape }}</textarea>
+			<input type="checkbox" name="agreement2"  value="agreement2" id="agreement2"
+				{% if community.roleAgreements.2 %}
+					checked="checked"/>
+				{% else %}
+					/>
+				{% endif %}
+				<label for="agreement2">Members must check box to agree to terms before becoming liaison</label>
+			<p><i>These texts are shown to members before they take on voluntary roles.</i></p>
+			</fieldset>
 		<p></p>
-		<p><b>Liaison read-before text</b></p>
-		<textarea name="readme2" rows="3" cols="60">{{ community.roleReadmes.2|escape }}</textarea>
-		<input type="checkbox" name="agreement2"  value="agreement2" id="agreement2"
-			{% if community.roleAgreements.2 %}
-				checked="checked"/>
-			{% else %}
-				/>
-			{% endif %}
-			<label for="agreement2">Members must check box to agree to terms before becoming liaison</label>
-		<p><i>These texts are shown to members before they take on voluntary roles.</i></p>
-		</fieldset>
-	<p></p>
-    <center><input type="submit" name="changeSettings" value="Change Settings" class="button"></center>
-	</form>
-	</div>
+	    <center><input type="submit" name="changeSettings" value="Change Settings" class="button"></center>
+		</form>
+		</div>
+	{% else %}
+		<p>You are not a manager or owner of this community and cannot change its settings.
+		Please ask a manager or owner to make any changes you would like to see made.</p>
+	{% endif %}
+	
 	</div>	
 	</body>
 </html>

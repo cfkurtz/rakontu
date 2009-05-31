@@ -1,0 +1,19 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+	</head>
+	<body>
+		{% include "../menus.html" %}
+		<div id="content">
+	
+		<h3>About the {{community.name}} community</h3>
+		
+		<ul><li class="nobullet">{{community.description}}</li></ul>
+		<p>Created: {{community.created}}</p>
+		
+      	{% if current_member.isManagerOrOwner %}
+      		<center><p><a href="/manage/settings">Make changes to community-level settings</a></p></center>
+      	{% endif %}
+	</div>
+	</body>
+</html>

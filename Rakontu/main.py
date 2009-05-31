@@ -63,6 +63,49 @@ def GetCurrentCommunityAndMemberFromSession():
         member = None
     return community, member
 
+def SetAllMemberEntriesToFormerMemberNickname(member):
+    articles = Article.all().filter("creator = ", member.key()).fetch(FETCH_NUMBER)
+    for article in articles:
+        article.formerMemberNickname = member.nickname
+        article.creator = None
+        article.put()
+    annotations = Annotation.all().filter("creator = ", member.key()).fetch(FETCH_NUMBER)
+    for annotation in annotations:
+        annotation.formerMemberNickname = member.nickname
+        annotation.creator = None
+        annotation.put()
+    answers = Answer.all().filter("creator = ", member.key()).fetch(FETCH_NUMBER)
+    for answer in answers:
+        answer.formerMemberNickname = member.nickname
+        answer.creator = None
+        answer.put()
+    links = Link.all().filter("creator = ", member.key()).fetch(FETCH_NUMBER)
+    for link in links:
+        link.formerMemberNickname = member.nickname
+        link.creator = None
+        link.put()
+    flags = InappropriateFlag.all().filter("creator = ", member.key()).fetch(FETCH_NUMBER)
+    for flag in flags:
+        flag.formerMemberNickname = member.nickname
+        flag.creator = None
+        flag.put()
+    if member.isLiaison():
+        articles = Article.all().filter("liaison = ", member.key()).fetch(FETCH_NUMBER)
+        for article in articles:
+            article.formerLiaisonNickname = member.nickname
+            article.liaison = None
+            article.put()
+        annotations = Annotation.all().filter("liaison = ", member.key()).fetch(FETCH_NUMBER)
+        for annotation in annotations:
+            annotation.formerLiaisonNickname = member.nickname
+            annotation.liaison = None
+            annotation.put()
+        answers = Answer.all().filter("liaison = ", member.key()).fetch(FETCH_NUMBER)
+        for answer in answers:
+            answer.formerLiaisonNickname = member.nickname
+            answer.liaison = None
+            answer.put()
+
 # --------------------------------------------------------------------------------------------
 # Startup page
 # --------------------------------------------------------------------------------------------
@@ -216,6 +259,23 @@ class ReadArticlePage(webapp.RequestHandler):
                                    'history': article.getHistory(),
                                    }
                 path = os.path.join(os.path.dirname(__file__), 'templates/visit/read.html')
+                self.response.out.write(template.render(path, template_values))
+        else:
+            self.redirect('/')
+            
+class SeeCommunityPage(webapp.RequestHandler):
+    @RequireLogin 
+    def get(self):
+        community, member = GetCurrentCommunityAndMemberFromSession()
+        if community and member:
+                template_values = {
+                                   'community': community, 
+                                   'current_member': member,
+                                   'community_members': community.getMembers(),
+                                   'user_is_admin': users.is_current_user_admin(),
+                                   'logout_url': users.create_logout_url("/"),                                   
+                                   }
+                path = os.path.join(os.path.dirname(__file__), 'templates/visit/community.html')
                 self.response.out.write(template.render(path, template_values))
         else:
             self.redirect('/')
@@ -880,6 +940,7 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
                     membersToRemove.append(aMember)
             if membersToRemove:
                 for aMember in membersToRemove:
+                    SetAllMemberEntriesToFormerMemberNickname(aMember)
                     db.delete(aMember)
             for pendingMember in community.getPendingMembers():
                 pendingMember.email = self.request.get("email|%s" % pendingMember.key())
@@ -944,12 +1005,6 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
                 community.maxNudgePointsPerArticle = oldValue
             for i in range(5):
                 community.nudgeCategories[i] = self.request.get("nudgeCategory%s" % i)
-            community.autoPrune = self.request.get("autoPrune") == "yes"
-            oldValue = community.autoPruneStrength
-            try:
-                community.autoPruneStrength = int(self.request.get("autoPruneStrength"))
-            except:
-                community.autoPruneStrength = oldValue
             oldValue = community.maxNumAttachments
             try:
                 community.maxNumAttachments = int(self.request.get("maxNumAttachments"))
@@ -1102,7 +1157,7 @@ class ManageCommunityCharactersPage(webapp.RequestHandler):
                     newCharacter = Character(name=name, community=community)
                     newCharacter.put()
             community.put()
-        self.redirect('/visit/look')
+        self.redirect('/visit/characters')
                 
 class ManageCommunityTechnicalPage(webapp.RequestHandler):
     pass
@@ -1114,31 +1169,41 @@ class ManageCommunityTechnicalPage(webapp.RequestHandler):
 class ShowAllCommunities(webapp.RequestHandler):
     @RequireLogin 
     def get(self):
-        if users.is_current_user_admin():
-            template_values = {
-                               'communities': Community.all().fetch(FETCH_NUMBER), 
-                               'members': Member.all().fetch(FETCH_NUMBER),
-                               'user_is_admin': users.is_current_user_admin(),
-                               'logout_url': users.create_logout_url("/"),
-                               }
-            path = os.path.join(os.path.dirname(__file__), 'templates/admin/showAllCommunities.html')
-            self.response.out.write(template.render(path, template_values))
-        else:
-            self.redirect('/')
+        community, member = GetCurrentCommunityAndMemberFromSession()
+        if community and member:
+            if users.is_current_user_admin():
+                template_values = {
+                                   'communities': Community.all().fetch(FETCH_NUMBER), 
+                                   'members': Member.all().fetch(FETCH_NUMBER),
+                                   'community': community, 
+                                   'current_user': users.get_current_user(), 
+                                   'current_member': member,
+                                   'user_is_admin': users.is_current_user_admin(),
+                                   'logout_url': users.create_logout_url("/"),
+                                   }
+                path = os.path.join(os.path.dirname(__file__), 'templates/admin/showAllCommunities.html')
+                self.response.out.write(template.render(path, template_values))
+            else:
+                self.redirect('/')
 
 class ShowAllMembers(webapp.RequestHandler):
     @RequireLogin 
     def get(self):
-        if users.is_current_user_admin():
-            template_values = {
-                               'members': Member.all().fetch(FETCH_NUMBER),
-                               'user_is_admin': users.is_current_user_admin(),
-                               'logout_url': users.create_logout_url("/"),
-                               }
-            path = os.path.join(os.path.dirname(__file__), 'templates/admin/showAllMembers.html')
-            self.response.out.write(template.render(path, template_values))
-        else:
-            self.redirect('/')
+        community, member = GetCurrentCommunityAndMemberFromSession()
+        if community and member:
+            if users.is_current_user_admin():
+                template_values = {
+                                   'members': Member.all().fetch(FETCH_NUMBER),
+                                   'community': community, 
+                                   'current_user': users.get_current_user(), 
+                                   'current_member': member,
+                                   'user_is_admin': users.is_current_user_admin(),
+                                   'logout_url': users.create_logout_url("/"),
+                                   }
+                path = os.path.join(os.path.dirname(__file__), 'templates/admin/showAllMembers.html')
+                self.response.out.write(template.render(path, template_values))
+            else:
+                self.redirect('/')
             
 # --------------------------------------------------------------------------------------------
 # Non-text handling
@@ -1221,6 +1286,7 @@ application = webapp.WSGIApplication(
                                       ('/visit/member', SeeMemberPage),
                                       ('/visit/characters', SeeCommunityCharactersPage),
                                       ('/visit/character', SeeCharacterPage),
+                                      ('/visit/community', SeeCommunityPage),
                                       
                                       ('/visit/profile', ChangeMemberProfilePage),
                                       ('/img', ImageHandler),

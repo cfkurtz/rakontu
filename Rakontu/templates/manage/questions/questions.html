@@ -6,6 +6,8 @@
 	{% include "../../menus.html" %}
 	<div id="content">
 	
+	{% if current_member.isManagerOrOwner %}
+		<div id="stylized" class="rakontu_form">
 		<form action="/manage/questions/questions" method="post" enctype="multipart/form-data">
 		<h2>Changing Questions about {{refer_type_plural|capfirst}} for Rakontu Community "{{ community.name|escape }}"</h2>
 		
@@ -101,8 +103,14 @@
 			<p><i>Note: You can copy the same question multiple times.</i></p>
 
 		<p>
-    <input type="submit" name="changesTo|{{refer_type}}" value="Change Questions"/>
+    <center><input type="submit" name="changesTo|{{refer_type}}" value="Change Questions About {{refer_type_plural|capfirst}}" class="button"/></center>
 	</form>	
+	</div>
+	{% else %}
+		<p>You are not a manager or owner of this community and cannot change its questions.
+		Please ask a manager or owner to make any changes you would like to see made.</p>
+	{% endif %}
+
 	</div>
 	</body>
 </html>

@@ -82,8 +82,6 @@ ENTRY_TYPES = ["story", "pattern", "collage", "invitation", "resource", "answer"
 ENTRY_TYPES_URLS = ["story", "pattern", "collage", "invitation", "resource", "answer", "tagset", "comment", "request", "nudge"]
 STORY_ENTRY_TYPE_INDEX = 0
 ANSWERS_ENTRY_TYPE_INDEX = 5
-PRUNE_STRENGTH_NAMES = ["weak", "medium", "strong"]
-PRUNE_STRENGTHS = [1, 2, 3]
 
 # browsing
 TIME_STEPS = ["hour", "day", "week", "month", "year"]
@@ -142,13 +140,6 @@ class Community(db.Model):
 								One text per helping role type.
 		roleAgreements:			Whether the user is asked to click a checkbox before taking on a role
 								to show that they agree with the terms of the role. (Social obligation only.)
-		autoPrune:				Whether items (article, annotations, answers) marked with a prune flag
-								by curators, managers and owners should be pruned automatically
-								or shown to managers and owners for removal.
-		autoPruneStrength:		What strength level of pruning (and above) will be removed automatically
-								(levels below this only show up in a prune flag list seen only
-								by managers and owners). Combination of numbers allocated by
-								different prune flags. 
 		maxNumAttachments:		How many attachments are allowed per article.
 								May be useful to keep the database from getting out of hand.
 	"""
@@ -160,12 +151,9 @@ class Community(db.Model):
 	nudgePointsPerActivity = db.ListProperty(int, default=DEFAULT_NUDGE_POINT_ACCUMULATIONS)
 	maxNudgePointsPerArticle = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE)
 	allowCharacter = db.ListProperty(bool, default=[False,False,False,False,False,False,False,False,False,False])
-	nudgeCategories = db.StringListProperty(default=["appropriateness", "importance", "usefulness for new members", "usefulness for resolving conflicts", "usefulness for learning our group's history"])
+	nudgeCategories = db.StringListProperty(default=["appropriateness", "importance", "usefulness for new members", "usefulness for resolving conflicts", "usefulness for understanding our community"])
 	roleReadmes = db.StringListProperty(default=DEFAULT_ROLE_READMES)
 	roleAgreements = db.ListProperty(bool, default=[False, False, False])
-	
-	autoPrune = db.BooleanProperty(default=False)
-	autoPruneStrength = db.IntegerProperty(default=6)
 	maxNumAttachments = db.IntegerProperty(choices=[0,1,2,3,4,5], default=3)
 	
 	# articles
@@ -490,6 +478,8 @@ class Answer(db.Model):
 		question: 			Refers to annotation question, for display.
 		referent:			Whatever the answer refers to.
 		creator:			Who answered the question.
+		formerMemberNickname:	This is only used if the member who created it has 
+								been deleted, so there is still something to display.
 		
 		answerIfBoolean:	True or false. Only used if question type is boolean.
 		answerIfText:		String. Only used if question type is text.
@@ -503,9 +493,11 @@ class Answer(db.Model):
 	question = db.ReferenceProperty(Question, collection_name="answers to questions")
 	referent = db.ReferenceProperty(None, collection_name="answers to objects")
 	creator = db.ReferenceProperty(Member, collection_name="answers to creators")
+	formerMemberNickname = db.StringProperty(default="")
 	
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="answers_liaisoned")
+	formerLiaisonNickname = db.StringProperty(default="")
 	character = db.ReferenceProperty(Character, default=None)
 	
 	answerIfBoolean = db.BooleanProperty(default=False)
@@ -526,7 +518,10 @@ class Answer(db.Model):
 		if self.character:
 			return self.character.name
 		else:
-			return self.creator.nickname
+			if self.creator:
+				return self.creator.nickname
+			else:
+				return self.formerMemberNickname
 				
 # --------------------------------------------------------------------------------------------
 # Article
@@ -541,6 +536,8 @@ class Article(db.Model):
 		type:				Whether it is a story, pattern, collage, invitation or resource.
 
 		creator: 			Member who contributed the story. May be online or offline.
+		formerMemberNickname:	This is only used if the member who created it has 
+								been deleted, so there is still something to display.
 		community:			The Rakontu community this article belongs to.
 		collectedOffline:	Whether it was contributed by an offline member.
 		liaison:			Person who entered the article for off-line member. None if not offline.
@@ -563,10 +560,12 @@ class Article(db.Model):
 	text = db.TextProperty(default="No text")
 	type = db.StringProperty(choices=ARTICLE_TYPES, required=True)
 
-	creator = db.ReferenceProperty(Member, required=True, collection_name="articles")
+	creator = db.ReferenceProperty(Member, collection_name="articles")
+	formerMemberNickname = db.StringProperty(default="")
 	community = db.ReferenceProperty(Community, required=True)
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="articles_liaisoned")
+	formerLiaisonNickname = db.StringProperty(default="")
 	character = db.ReferenceProperty(Character, default=None)
 	
 	tookPlace = db.DateTimeProperty(default=None)
@@ -577,6 +576,14 @@ class Article(db.Model):
 	lastAnnotated = db.DateTimeProperty(default=None)
 	numBrowses = db.IntegerProperty(default=0)
 	numReads = db.IntegerProperty(default=0)
+	
+	def creatorExists(self): # didn't need this but handy so I'll keep it around just in case
+		try:
+			if self.creator != None:
+				return True
+			return False
+		except db.Error:
+			return False
 	
 	def attributedToMember(self):
 		return self.character == None
@@ -651,7 +658,10 @@ class Article(db.Model):
 		if self.character:
 			return self.character.name
 		else:
-			return self.creator.nickname
+			if self.creator:
+				return self.creator.nickname
+			else:
+				return self.formerMemberNickname
 				
 class Link(db.Model):
 	""" For holding on to links between articles.
@@ -665,7 +675,8 @@ class Link(db.Model):
 	"""
 	articleFrom = db.ReferenceProperty(Article, collection_name="linksFrom", required=True)
 	articleTo = db.ReferenceProperty(Article, collection_name="linksTo", required=True)
-	creator = db.ReferenceProperty(Member, required=True, collection_name="links")
+	creator = db.ReferenceProperty(Member, collection_name="links")
+	formerMemberNickname = db.StringProperty(default="")
 	type = db.StringProperty(choices=LINK_TYPES, required=True)
 	comment = db.StringProperty(default="")
 	
@@ -738,7 +749,8 @@ class Annotation(db.Model):
 		inappropriateMarks:	A list of user comments marking the annotation as inappropriate.
 	"""
 	article = db.ReferenceProperty(Article, required=True, collection_name="annotations")
-	creator = db.ReferenceProperty(Member, required=True, collection_name="annotations")
+	creator = db.ReferenceProperty(Member, collection_name="annotations")
+	formerMemberNickname = db.StringProperty(default="")
 	community = db.ReferenceProperty(Community, required=True)
 	type = db.StringProperty(choices=ANNOTATION_TYPES, required=True)
 	
@@ -750,6 +762,7 @@ class Annotation(db.Model):
 
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="annotations_liaisoned")
+	formerLiaisonNickname = db.StringProperty(default="")
 	character = db.ReferenceProperty(Character, default=None)
 
 	collected = db.DateTimeProperty(default=None)
@@ -768,32 +781,26 @@ class Annotation(db.Model):
 		if self.character:
 			return self.character.name
 		else:
-			return self.creator.nickname
+			if self.creator:
+				return self.creator.nickname
+			else:
+				return self.formerMemberNickname
 				
-# --------------------------------------------------------------------------------------------
-# Pruning
-# --------------------------------------------------------------------------------------------
-
-class PruneFlag(db.Model):
+class InappropriateFlag(db.Model):
 	""" Flags that say anything is inappropriate and should be removed.
 		Can only be added by curators, managers or owners. 
 		Items can only be removed by managers, owners, or their creators.
 	
 	Properties
-		referent:			What object is recommended for pruning: article, annotation or answer.
-		creator:			Who recommended pruning the object.
-		
-		comment:			An optional comment on why pruning is recommended.
-		strength:			How strong the pruning recommendation is.
-		
+		referent:			What object is recommended for removal: article, annotation or answer.
+		creator:			Who recommended removing the object.
+		comment:			An optional comment on why removal is recommended.
 		entered:			When the flag was created.
 	"""
 	referent = db.ReferenceProperty(None, required=True)
-	creator = db.ReferenceProperty(Member, required=True, collection_name="prune flags")
-	
+	creator = db.ReferenceProperty(Member, collection_name="inappropriate flags")
+	formerMemberNickname = db.StringProperty(default="")
 	comment = db.StringProperty(default="")
-	strength = db.StringProperty(choices=PRUNE_STRENGTH_NAMES, default=PRUNE_STRENGTH_NAMES[0])
-
 	entered = db.DateTimeProperty(auto_now_add=True)
 	
 # --------------------------------------------------------------------------------------------
@@ -930,10 +937,7 @@ class ViewingPreferences(db.Model):
 		verticalPoints:		A number for each type of placement denoting how many points (+ or -) an article moves
 							each time something happens. For time the unit is one day; all other placements are events.
 							
-		basement:			A number of points below which articles are not displayed, no matter what yBottom users pick.
-							Used mainly at the community level, though users could set a different basement for themselves.
-							
-		combinedPruneStrengthToHideItems: If items have this many prune flags, they are hidden.
+		deepFreeze:		A number of points below which articles are not displayed, no matter what yBottom users pick.
 							Used mainly at the community level, though users could set a different level for themselves.
 	"""
 	owner = db.ReferenceProperty(Member, required=True, collection_name="viewing_preferences")
@@ -950,7 +954,6 @@ class ViewingPreferences(db.Model):
 	yArrangement = db.StringListProperty(choices=ACTIVITIES_GERUND, default=["time", "reading", "nudging"])
 	verticalPoints = db.ListProperty(int, default=DEFAULT_VERTICAL_MOVEMENT_POINTS_PER_EVENT)
 	
-	basement = db.IntegerProperty(default=0)
-	combinedPruneStrengthToHideItems = db.IntegerProperty(default=5)
+	deepFreeze = db.IntegerProperty(default=0)
 	
 

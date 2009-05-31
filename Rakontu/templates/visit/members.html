@@ -34,6 +34,9 @@
   				</tr>
       		{% endfor %}
       	</table>
+      	{% if current_member.isManagerOrOwner %}
+      		<center><p><a href="/manage/members">Make changes to memberships</a></p></center>
+      	{% endif %}
 	</div>
 	</body>
 </html>

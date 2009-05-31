@@ -1,16 +1,80 @@
 Things to do before v0.1 is complete
 
-MAJOR TO-DOs:
+- resources should also be able to create remind links to stories
 
-- finish top/side menus
-- make a BIT prettier with CSS
-- how do you remove a story? an answer? an annotation?
-- need "show members" page and page for each member (to show other people, like "read")
+- save as draft, preview, publish
+no access after published
+can save drafts forever
+can delete drafts
+what to do if have a draft annotation/answer
+and the article is deleted?
+must delete the draft too
+how would the user know?
+wouldn't that be confusing?
+keep it? flag for "article removed"?
+then they would just have to delete it,
+you can't do anything with it
+but it's confusing if it just disappears
 
-PROBLEMS RIGHT NOW:
+- need to add "send this member a note" thing
+in member page
 
-- articles not showing answer values
+- guide note goes to all guides?
+or choose one?
 
-REMEMBER TO:
+- mgrs/owners can get emails
+sent to them when new inappropriate flags are set
+by curators
+(what other times?)
 
-- xxx
+- mgrs/owners need deep freeze view page (was basement)
+where you can see and delete articles
+
+- does the article nudge value start at zero?
+
+-character items only anonymous in display
+mgrs/owners cannot see who wrote them
+but site admins can (by querying database,
+info is in there, in creator field)
+
+-curator page:
+	data centric - see how data is shaped and linked   
+    deep freeze view
+    entry web?
+    attachments list (to review for noxious stuff)
+    faster/easier way to add relate links?
+    faster/easier way to build observations?
+
+guides can enter resources
+guide page:
+	people centric - what people are doing
+    invitations with no responses
+    stories with no annotations
+    resources
+    not full member histories, but
+        some shorter kind of summary
+        of member activity
+        # stories, comments, etc
+    also that guides are shown in help (as before)
+
+how add offline members?
+maybe only liaisons can add offline members?
+maybe managers/owners cannot?
+would that be a problem?
+it's not like the offline members can get on the
+system and DO anything
+and if a liaison does rude things with fake offline members
+the mgrs can just ban them from being a liaison
+
+liaison page:
+    your offline members
+    their histories
+    add offline member / remove
+    quick ways to output things for them
+    stories, comments about their stories, etc
+    
+finish relate, include links
+
+
+
+

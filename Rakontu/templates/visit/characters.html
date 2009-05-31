@@ -19,6 +19,10 @@
   				</tr>
       		{% endfor %}
       	</table>
+      	
+      	{% if current_member.isManagerOrOwner %}
+      		<center><p><a href="/manage/characters">Change these characters</a></p></center>
+      	{% endif %}
 	</div>
 	</body>
 </html>
