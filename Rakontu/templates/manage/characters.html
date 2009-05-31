@@ -1,0 +1,51 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+	</head>
+	<body>
+		{% include "../menus.html" %}
+		<div id="content">
+	
+		<div id="stylized" class="rakontu_form">
+		<form action="/manage/characters" method="post" enctype="multipart/form-data">
+		<h2>Changing Characters for Rakontu Community "{{ community.name|escape }}"</h2>
+		<p>
+		<h3>Add New Characters</h3>
+		<div><textarea name="newCharacterNames" rows="6" cols="40"></textarea></div>
+		<p>Instructions: Add names on separate lines.</p>
+		<p>
+		<hr size="1">
+		<h3>Change Characters</h3>
+      	<table border="1" cellpadding="4" cellspacing="0">
+      	<tr>
+      		<th>Name</th>
+      		<th>Description</th>
+      		<th>Image</th>
+      		<th>Remove</th>
+      		</tr>
+      		{% for character in characters %}
+  				<tr>
+  				<td><div><input type="text" name="name|{{character.key}}" value="{{ character.name }}"/></div></td>
+  				<td>
+  					<div><textarea name="description|{{character.key}}" rows="3" cols="60">{{ character.description }}</textarea></div>
+  					</td>
+				<td>
+					{% if character.image %}
+						<img src="img?character_id={{character.key}}"></img>
+					{% endif %}
+					<p><input type="file" name="image|{{character.key}}" accept="jpg/png"></p>
+					<p><i>The best picture size is width 100, height 60.</i></p>
+					</td>
+  				<td>
+  					<input type="checkbox" name="remove|{{character.key}}" />Remove
+  					</td>
+  				</tr>
+      		{% endfor %}
+      	</table>
+	<p>
+    <center><input type="submit" name="submitChanges" value="Submit Changes"></center>
+	</form>
+	</div>	
+	</div>
+	</body>
+</html>

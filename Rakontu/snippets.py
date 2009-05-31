@@ -7,52 +7,6 @@ authors = [db.get(key) for key in book.authors]
 # change property of Model
 p.properties()[s].get_value_for_datastore(p) 
 
-#---------------------------------------- NOT USING
-
-FAKE_STORY_DATA = {
-                   "My day at the zoo": "I lost my freeze pop, and the lion ate my cousin. Pretty fun day.",
-                   "Let's all be friends": "It was my first day of school, and the teacher sat on me.",
-                   "The tree fell on my house": "It was my second best tiny stick house, and a branch fell on it and squashed it.",
-                   "My foot hurts": "Don't trust salespeople in shoe stores.",
-                   "The newt turned back": "So I filled up the little pond, and a newt didn't like it, so he climbed out. Then the dog sniffed him and he climbed back in. (true story!)",
-                   "There it is": "Every time I give up on finding something, there it is! What's up with that?",
-                   "Lovely junk": "So I put this old plastic toy in the attic and now the kids love it because it's junk.",
-                   "The story of our town": "Our town was built by a giant. Last week a massive tree fell onto it. We are rebuilding.",
-                   "Shorts": "I like to take my shorts out in January and put them on and pretend I'm on the other side of the world.",
-                   "The dead frog": "We found a dead frog in the stream. For a while we didn't drink the water, but then we forgot about it.",
-                   }
-
-FAKE_COMMENTS = {
-                 "What?": "Come on, that didn't really happen.",
-                 "Yep": "Same thing happened to me.",
-                 "Liar!": "I think you totally made that up.",
-                 "I was there!": "I think you have distorted things a little, haven't you?",
-                 "You have helped me": "I can't tell you how much your story has touched my life.",
-                 }
-
-def CreateABunchOfFakeData():
-    aMember = Member(users.get_current_user())
-
-    
-    for title in FAKE_STORY_DATA.keys():
-        aStory = Story(title=title, text=FAKE_STORY_DATA[title], creator=aMember, )
-    aStory = Story(
-                  title="My day at the zoo",
-                  text="I lost my freeze pop, and the lion ate my cousin. Pretty fun day.",
-                  creator=aMember,
-                  attribution="member",
-                  tookPlace=datetime.datetime(2009, 4, 2),
-                  collected=datetime.datetime.now)
-    aStory.put()
-    aComment = Comment(
-                       subject="Your cousin??", 
-                       post="Is that really true about your cousin?",
-                       article=aStory,
-                       creator=anotherMember,
-                       attribution="personification",
-                       personification=aPersonification,
-                       collected=datetime.datetime.now)
-
 # --------------------------------- NOT USING
 
 class JoinCommunityPage(webapp.RequestHandler):
@@ -260,66 +214,6 @@ MemberQuestion=Where live
     <p><a href="/">Main page</a>
     </body>
 </html>
-
-# ---------------------- NOT USING - was manageCommunity.html
-
-<html>
-    <head>
-        <link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
-    </head>
-    <body>
-        You are {{ current_user.nickname }}<p>
-          <p>Options for managing the community "{{ community.name|escape }}" are:<p>
-          <a href="/manageCommunity_Members">Memberships</a><p>
-          <a href="/manageCommunity_Settings">Settings</a><p>
-          <a href="/manageCommunity_Questions">Questions</a><p>
-          <a href="/manageCommunity_Personifications">Personifications</a><p>
-          <a href="/manageCommunity_Technical">Backup</a><p>
-    <a href="{{ url }}">{{ url_linktext }}</a>
-    </body>
-    <p><a href="/">Main page</a>
-</html>
-
-# --------------------- NOT USING - was notLoggedIn.html
-
-<html>
-    <head>
-        <link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
-    </head>
-    <body>
-    Welcome to Rakontu! 
-    <p>
-    You are not logged in. Log in to your Google account to proceed.
-    <a href="{{ url }}">{{ url_linktext }}</a>
-    </body>
-</html>
-
-# --------------------- NOT USING - decided to save community questions for later, too confusing now
-
-
-    # community questions
-    AddSystemQuestionIfNotThere(["community", 
-                    "Geographic",
-                    "Is this a geographic community?",
-                    "boolean", [],
-                    "Does this community represent a place or a group of people?",
-                    "",
-                    False])
-    AddSystemQuestionIfNotThere(["community", 
-                    "Why created",
-                    "Why was this community created?",
-                    "text", [],
-                    "Explain why the community was created.",
-                    "",
-                    False])
-    
-    def getCommunityQuestions(self):
-        return Question.all().filter("community = ", self.key()).filter("refersTo = ", "community").fetch(1000)
-    
-    def getCommunityAnswers(self):
-        return Answer.all().filter("referent = ", self.key()).fetch(1000)
-    
-
 
 # -------------------- NOT USING - decided to save rules for later, should not have non-working classes in now
 

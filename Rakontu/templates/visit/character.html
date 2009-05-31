@@ -1,0 +1,31 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+	</head>
+	<body>
+		{% include "../menus.html" %}
+		<div id="content">
+	
+		<h3>Information about {{character.name}}</h3>
+		
+		 		{% if character.image %}
+					<div><img src="img?character_id={{character.key}}" ></img></div>
+				{% endif %}
+				<p>
+				{{character.name}}
+  				{% if character.description %}<p>About {{character.name}}: <ul><li class="nobullet">{{character.description}}</li></ul>{% endif %}
+	
+	{% if history %}
+		<h4>History</h4>
+		<ul>
+		{% for item in history %}
+			<li class="nobullet">
+				{{item.attribution}} <b>{{item.actionType}}</b>
+				the {{item.referentType}} "{{item.textToShow}}" on {{item.timeStamp.date|date:"F j, Y"}} at {{item.timeStamp.time|time:"f"}}.</li>
+		{% endfor %}
+		</ul>
+	{% endif %}
+		 
+	</div>
+	</body>
+</html>

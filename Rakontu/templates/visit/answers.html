@@ -38,7 +38,7 @@
 				</select>
 			{% endif %}
 			
-			{% if show_attribution_choice %}
+			{% if character_allowed %}
 				{% if answers %}
 					<p>You can change who this answer set is attributed to here.</p>
 				{% else %}
@@ -48,29 +48,20 @@
 				<select name="attribution">
 					<option value="member"
 						{% if answers %}
-							{% ifequal answers.0.attribution "member" %}
+							{% if answers.0.attributedToMember %}
 								selected="selected"
-							{% endifequal %}
+							{% endif %}
 						{% endif %}
 						>Me ({{current_member.nickname}})</option>
-					{% if anon_entry_allowed %}
-						<option value="anonymous"
-						{% if answers.0 %}
-							{% ifequal answers.0.attribution "anonymous" %}
-								selected="selected"
-							{% endifequal %}
-						{% endif %}
-						>Anonymous</option>
-					{% endif %}
-					{% if community.getPersonifications %}
-						{% for personification in community.getPersonifications %}
-							<option value="{{personification.key}}"
+					{% if community.getCharacters %}
+						{% for character in community.getCharacters %}
+							<option value="{{character.key}}"
 							{% if answers %}
-								{% ifequal answers.0.personification.key personification.key %}
+								{% ifequal answers.0.character.key character.key %}
 									selected="selected"
 								{% endifequal %}
 							{% endif %}
-							>{{personification.name}}</option>
+							>{{character.name}}</option>
 						{% endfor %}
 					{% endif %}
 				</select>

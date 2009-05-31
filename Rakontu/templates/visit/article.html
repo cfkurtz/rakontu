@@ -33,6 +33,35 @@
 			{% endif %}
 			<div><input type="text" name="title" size="60" value="{% if article %}{{article.title}}{% endif %}"/></div>
 			
+			{% if character_allowed %}
+				{% if article %}
+					<p>You can change who this {{article_type}} is attributed to here.</p>
+				{% else %}
+					<p>To whom would you like to attribute this {{article_type}}?</p>
+				{% endif %}
+				
+				<select name="attribution">
+					<option value="member"
+						{% if article %}
+							{% if article.attributedToMember %}
+								selected="selected"
+							{% endif %}
+						{% endif %}
+						>Me ({{current_member.nickname}})</option>
+					{% if community.getCharacters %}
+						{% for character in community.getCharacters %}
+							<option value="{{character.key}}"
+							{% if article %}
+								{% ifequal article.character.key character.key %}
+									selected="selected"
+								{% endifequal %}
+							{% endif %}
+							>{{character.name}}</option>
+						{% endfor %}
+					{% endif %}
+				</select>
+			{% endif %}
+
 			{% if current_member.isLiaison %}
 				<div><label><input type="checkbox" name="collectedOffline" value="yes" 
 					{% if article.collectedOffline %}
@@ -57,44 +86,6 @@
 				</select>
 			{% endif %}
 			
-			{% if show_attribution_choice %}
-				{% if article %}
-					<p>You can change who this {{article_type}} is attributed to here.</p>
-				{% else %}
-					<p>To whom would you like to attribute this {{article_type}}?</p>
-				{% endif %}
-				
-				<select name="attribution">
-					<option value="member"
-						{% if article %}
-							{% ifequal article.attribution "member" %}
-								selected="selected"
-							{% endifequal %}
-						{% endif %}
-						>Me ({{current_member.nickname}})</option>
-					{% if anon_entry_allowed %}
-						<option value="anonymous"
-						{% if article %}
-							{% ifequal article.attribution "anonymous" %}
-								selected="selected"
-							{% endifequal %}
-						{% endif %}
-						>Anonymous</option>
-					{% endif %}
-					{% if community.getPersonifications %}
-						{% for personification in community.getPersonifications %}
-							<option value="{{personification.key}}"
-							{% if article %}
-								{% ifequal article.personification.key personification.key %}
-									selected="selected"
-								{% endifequal %}
-							{% endif %}
-							>{{personification.name}}</option>
-						{% endfor %}
-					{% endif %}
-				</select>
-			{% endif %}
-
 			{% if article_from %}
 				<p>You created this story 
 				{% ifequal link_type "retell" %}

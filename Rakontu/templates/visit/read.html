@@ -21,7 +21,9 @@
 	{% endif %}
 	
 	{% ifequal article.creator.key current_member.key %}
-		<p>You wrote this {{article.type}}; you can <a href="/visit/{{article.type}}?{{article.key}}">change</a> it.</p>
+		{% if article.attributedToMember %}
+			<p>You wrote this {{article.type}}; you can <a href="/visit/{{article.type}}?{{article.key}}">change</a> it.</p>
+		{% endif %}
 	{% endifequal %}
 	{% ifequal article.type "invitation" %}
 		<p>You can <a href="/visit/respond?{{article.key}}">respond</a> to this invitation with a story.</p>
@@ -31,21 +33,14 @@
 	
 	<p>This {{article.type}} was entered by 
 	
-	{% ifequal article.attribution "member" %}
+	{% if article.attributedToMember %}
 			<a href="member?{{article.creator.key}}">{{article.creator.nickname}}</a>
 		{% ifequal article.creator.key current_member.key %}
 			 (you)
 		{% endifequal %}
-	{% endifequal %}
-	{% ifequal article.attribution "anonymous" %}
-		an anonymous member
-			{% ifequal article.creator.key current_member.key %}
-				(actually, you)
-			{% endifequal %}
-	{% endifequal %}
-	{% ifequal article.attribution "personification" %}
-		{{article.personification.name}}
-	{% endifequal %}
+	{% else %}
+		<a href="characterInfo|{{nudge.character.key}}">{{article.character.name}}</a>
+	{% endif %}
 	
 	on {{article.entered.date}} at {{article.entered.time}}.</p>
 
@@ -88,27 +83,14 @@
 							{% endifequal %}
 							- 
 
-							{% ifequal answer.attribution "member" %}
+							{% if answer.attributedToMember %}
 								<a href="member?{{answer.creator.key}}">{{answer.creator.nickname}}</a>
 								{% ifequal answer.creator.key current_member.key %}
-								(<a href="answers?{{article.key}}">Change</a>)
+									(<a href="answers?{{article.key}}">Change</a>)
 								{% endifequal %}
-							{% endifequal %}
-							{% ifequal answer.attribution "anonymous" %}
-								An anonymous member
-								{% ifequal answer.creator.key current_member.key %}
-									(actually, you)
-								{% endifequal %}
-								{% ifequal answer.creator.key current_member.key %}
-								(<a href="answers?{{article.key}}">Change</a>)
-								{% endifequal %}
-							{% endifequal %}
-							{% ifequal answer.attribution "personification" %}
-								<a href="personificationInfo|{{answer.personification.key}}">{{answer.personification.name}}</a>
-								{% ifequal answer.creator.key current_member.key %}
-								(<a href="answers?{{article.key}}">Change</a>)
-								{% endifequal %}
-							{% endifequal %}
+							{% else %}
+								<a href="characterInfo|{{answer.character.key}}">{{answer.character.name}}</a>
+							{% endif %}
 						
 						{% endifequal %}
 					{% endfor %}
@@ -130,27 +112,14 @@
 		{% for comment in comments %}
 		<li class="nobullet"><b>{{comment.shortString}}</b> - 
 		
-		{% ifequal comment.attribution "member" %}
+		{% if comment.attributedToMember %}
 			<a href="member?{{comment.creator.key}}">{{comment.creator.nickname}}</a>
 			{% ifequal comment.creator.key current_member.key %}
-			(<a href="comment?{{comment.key}}">Change</a>)
+				(<a href="comment?{{comment.key}}">Change</a>)
 			{% endifequal %}
-		{% endifequal %}
-		{% ifequal comment.attribution "anonymous" %}
-			An anonymous member
-			{% ifequal comment.creator.key current_member.key %}
-				(actually, you)
-			{% endifequal %}
-			{% ifequal comment.creator.key current_member.key %}
-			(<a href="comment?{{comment.key}}">Change</a>)
-			{% endifequal %}
-		{% endifequal %}
-		{% ifequal comment.attribution "personification" %}
-			<a href="personificationInfo|{{comment.personification.key}}">{{comment.personification.name}}</a>
-			{% ifequal comment.creator.key current_member.key %}
-			(<a href="comment?{{comment.key}}">Change</a>)
-			{% endifequal %}
-		{% endifequal %}
+		{% else %}
+			<a href="characterInfo|{{comment.character.key}}">{{comment.character.name}}</a>
+		{% endif %}
 		
 		</li>
 		<ul><li class="nobullet">{{comment.longString|escape}}</li></ul>
@@ -168,27 +137,14 @@
 		{% for tag_set in tag_sets %}
 		<li class="nobullet">{{tag_set.tagsIfTagSet|join:", "}} - 
 
-		{% ifequal tag_set.attribution "member" %}
+		{% if tag_set.attributedToMember %}
 			<a href="member?{{tag_set.creator.key}}">{{tag_set.creator.nickname}}</a>
 			{% ifequal tag_set.creator.key current_member.key %}
-			(<a href="tagset?{{tag_set.key}}">Change</a>)
+				(<a href="tagset?{{tag_set.key}}">Change</a>)
 			{% endifequal %}
-		{% endifequal %}
-		{% ifequal tag_set.attribution "anonymous" %}
-			An anonymous member
-			{% ifequal tag_set.creator.key current_member.key %}
-				(actually, you)
-			{% endifequal %}
-			{% ifequal tag_set.creator.key current_member.key %}
-			(<a href="tagset?{{tag_set.key}}">Change</a>)
-			{% endifequal %}
-		{% endifequal %}
-		{% ifequal tag_set.attribution "personification" %}
-			<a href="personificationInfo|{{tag_set.personification.key}}">{{tag_set.personification.name}}</a>
-			{% ifequal tag_set.creator.key current_member.key %}
-			(<a href="tagset?{{tag_set.key}}">Change</a>)
-			{% endifequal %}
-		{% endifequal %}
+		{% else %}
+			<a href="characterInfo|{{tag_set.character.key}}">{{tag_set.character.name}}</a>
+		{% endif %}
 
 			</li>
 		{% endfor %}
@@ -210,27 +166,14 @@
 			{% if nudge.valuesIfNudge.4 %}{{community.nudgeCategories.4}} {{nudge.valuesIfNudge.4}} {% endif %}
 			</b>
 			- 
-		{% ifequal nudge.attribution "member" %}
+		{% if nudge.attributedToMember %}
 			<a href="member?{{nudge.creator.key}}">{{nudge.creator.nickname}}</a>
 			{% ifequal nudge.creator.key current_member.key %}
-			(<a href="nudge?{{nudge.key}}">Change</a>)
+				(<a href="nudge?{{nudge.key}}">Change</a>)
 			{% endifequal %}
-		{% endifequal %}
-		{% ifequal nudge.attribution "anonymous" %}
-			An anonymous member
-			{% ifequal nudge.creator.key current_member.key %}
-				(actually, you)
-			{% endifequal %}
-			{% ifequal nudge.creator.key current_member.key %}
-			(<a href="nudge?{{nudge.key}}">Change</a>)
-			{% endifequal %}
-		{% endifequal %}
-		{% ifequal nudge.attribution "personification" %}
-			<a href="personificationInfo|{{nudge.personification.key}}">{{nudge.personification.name}}</a>
-			{% ifequal nudge.creator.key current_member.key %}
-			(<a href="nudge?{{nudge.key}}">Change</a>)
-			{% endifequal %}
-		{% endifequal %}
+		{% else %}
+			<a href="characterInfo|{{nudge.character.key}}">{{nudge.character.name}}</a>
+		{% endif %}
 
 		</li>
 		<ul><li class="nobullet">{{nudge.shortString}}</li></ul>
@@ -249,28 +192,14 @@
 		<ul>
 		{% for request in requests %}
 			<li class="nobullet"><b>{{request.shortString}}</b> - 
-			
-		{% ifequal request.attribution "member" %}
-			<a href="member?{{request.creator.key}}">{{request.creator.nickname}}</a>
-			{% ifequal request.creator.key current_member.key %}
-			(<a href="request?{{request.key}}">Change</a>)
-			{% endifequal %}
-		{% endifequal %}
-		{% ifequal request.attribution "anonymous" %}
-			An anonymous member
-			{% ifequal request.creator.key current_member.key %}
-				(actually, you)
-			{% endifequal %}
-			{% ifequal request.creator.key current_member.key %}
-			(<a href="request?{{request.key}}">Change</a>)
-			{% endifequal %}
-		{% endifequal %}
-		{% ifequal request.attribution "personification" %}
-			<a href="personificationInfo|{{request.personification.key}}">{{request.personification.name}}</a>
-			{% ifequal request.creator.key current_member.key %}
-			(<a href="request?{{request.key}}">Change</a>)
-			{% endifequal %}
-		{% endifequal %}
+			{% if request.attributedToMember %}
+				<a href="member?{{request.creator.key}}">{{request.creator.nickname}}</a>
+				{% ifequal request.creator.key current_member.key %}
+					(<a href="request?{{request.key}}">Change</a>)
+				{% endifequal %}
+			{% else %}
+				<a href="characterInfo|{{request.character.key}}">{{request.character.name}}</a>
+			{% endif %}
 			</li>
 			<ul><li class="nobullet">{{request.longString|escape}}</li></ul>
 			</li>		
@@ -453,7 +382,7 @@
 		<ul>
 		{% for item in history %}
 			<li class="nobullet">
-				{{item.attributionToShow}} <b>{{item.actionType}}</b>
+				{{item.attribution}} <b>{{item.actionType}}</b>
 				the {{item.referentType}} "{{item.textToShow}}" on {{item.timeStamp.date|date:"F j, Y"}} at {{item.timeStamp.time|time:"f"}}.</li>
 		{% endfor %}
 		</ul>

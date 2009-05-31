@@ -257,6 +257,47 @@ class SeeMemberPage(webapp.RequestHandler):
                     self.redirect('/visit/look')
         else:
             self.redirect('/')
+
+class SeeCommunityCharactersPage(webapp.RequestHandler):
+    @RequireLogin 
+    def get(self):
+        community, member = GetCurrentCommunityAndMemberFromSession()
+        if community and member:
+                template_values = {
+                                   'community': community, 
+                                   'current_member': member,
+                                   'characters': community.getCharacters(),
+                                   'user_is_admin': users.is_current_user_admin(),
+                                   'logout_url': users.create_logout_url("/"),                                   
+                                   }
+                path = os.path.join(os.path.dirname(__file__), 'templates/visit/characters.html')
+                self.response.out.write(template.render(path, template_values))
+        else:
+            self.redirect('/')
+   
+class SeeCharacterPage(webapp.RequestHandler):
+    @RequireLogin 
+    def get(self):
+        community, member = GetCurrentCommunityAndMemberFromSession()
+        if community and member:
+                characterKey = self.request.query_string
+                characterToSee = db.get(characterKey)
+                if characterToSee:
+                    template_values = {
+                                       'community': community, 
+                                       'current_member': member,
+                                       'character': characterToSee,
+                                       'history': characterToSee.getHistory(),
+                                       'user_is_admin': users.is_current_user_admin(),
+                                       'logout_url': users.create_logout_url("/"),                                   
+                                       }
+                    path = os.path.join(os.path.dirname(__file__), 'templates/visit/character.html')
+                    self.response.out.write(template.render(path, template_values))
+                else:
+                    self.redirect('/visit/look')
+        else:
+            self.redirect('/')
+            
    
 # --------------------------------------------------------------------------------------------
 # Add or change article
@@ -273,21 +314,21 @@ class EnterArticlePage(webapp.RequestHandler):
                 articleFromKey = self.request.query_string
                 articleFrom = db.get(articleFromKey)
                 article = None
-                entryTypeIndexForAnonymity = STORY_ENTRY_TYPE_INDEX
+                entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
             elif self.request.uri.find("remind") >= 0:
                 type = "story"
                 linkType = "remind"
                 articleFromKey = self.request.query_string
                 articleFrom = db.get(articleFromKey)
                 article = None
-                entryTypeIndexForAnonymity = STORY_ENTRY_TYPE_INDEX
+                entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
             elif self.request.uri.find("respond") >= 0:
                 type = "story"
                 linkType = "respond"
                 articleFromKey = self.request.query_string
                 articleFrom = db.get(articleFromKey)
                 article = None
-                entryTypeIndexForAnonymity = STORY_ENTRY_TYPE_INDEX
+                entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
             else:
                 linkType = ""
                 articleFrom = None
@@ -295,7 +336,7 @@ class EnterArticlePage(webapp.RequestHandler):
                 for aType in ARTICLE_TYPES:
                     if self.request.uri.find(aType) >= 0:
                         type = aType
-                        entryTypeIndexForAnonymity = i
+                        entryTypeIndexForCharacters = i
                         break
                     i += 1
                 if not self.request.uri.find("?") >= 0:
@@ -319,8 +360,7 @@ class EnterArticlePage(webapp.RequestHandler):
                                'answers': answers,
                                'attachments': attachments,
                                'community_members': community.getMembers(),
-                               'anon_entry_allowed': community.allowAnonymousEntry[entryTypeIndexForAnonymity],
-                               'show_attribution_choice': community.hasAtLeastOnePersonificationOrAnonEntryAllowed(entryTypeIndexForAnonymity),
+                               'character_allowed': community.allowCharacter[entryTypeIndexForCharacters],
                                'link_type': linkType,
                                'article_from': articleFrom,
                                'user_is_admin': users.is_current_user_admin(),
@@ -353,17 +393,17 @@ class EnterArticlePage(webapp.RequestHandler):
                 if "remove|%s|%s" % (type, articleKey) in self.request.arguments():
                     annotations = Annotation.all().filter("article = ", article.key()).fetch(FETCH_NUMBER)
                     for annotation in annotations:
-                        article.addHistoryItem(member, "removed", annotation)
+                        article.addHistoryItem(annotation.memberNickNameOrCharacterName(), "removed", annotation)
                         db.delete(annotation)
                     linksFrom = Link.all().filter("articleFrom = ", article.key()).fetch(FETCH_NUMBER)
                     for link in linksFrom:
-                        article.addHistoryItem(member, "removed", link)
+                        article.addHistoryItem(link.creator.nickname, "removed", link)
                         db.delete(link)
                     linksTo = Link.all().filter("articleTo = ", article.key()).fetch(FETCH_NUMBER)
                     for link in linksTo:
-                        article.addHistoryItem(member, "removed", link)
+                        article.addHistoryItem(link.creator.nickname, "removed", link)
                         db.delete(link)
-                    article.addHistoryItem(member, "removed", article)
+                    article.addHistoryItem(article.memberNickNameOrCharacterName(), "removed", article)
                     db.delete(article)
                     self.redirect("/visit/look")
                     return
@@ -378,13 +418,10 @@ class EnterArticlePage(webapp.RequestHandler):
                         article.liaison = member
                         break
             if self.request.get("attribution"):
-                article.attribution = self.request.get("attribution")
-                if article.attribution and article.attribution != "member" and article.attribution != "anonymous":
-                    article.attribution = "personification"
-                    personificationKey = self.request.get("personification")
-                    article.personification = db.get(personificationKey)
+                characterKey = self.request.get("attribution")
+                article.character = Character.get(characterKey)
             else:
-                article.attribution = "member"
+                article.character = None
             article.put()
             if self.request.get("article_from"):
                 articleFrom = db.get(self.request.get("article_from"))
@@ -407,10 +444,10 @@ class EnterArticlePage(webapp.RequestHandler):
                 foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", article.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
                 if foundAnswers:
                     answerToEdit = foundAnswers[0]
-                    article.addHistoryItem(member, "changed", answerToEdit)
+                    article.addHistoryItem(answerToEdit.memberNickNameOrCharacterName(), "changed", answerToEdit)
                 else:
                     answerToEdit = Answer(question=question, referent=article)
-                    article.addHistoryItem(member, "created", answerToEdit)
+                    article.addHistoryItem(answerToEdit.memberNickNameOrCharacterName(), "created", answerToEdit)
                 if question.type == "text":
                     answerToEdit.answerIfText = self.request.get("%s" % question.key())
                 elif question.type == "value":
@@ -463,9 +500,9 @@ class EnterArticlePage(webapp.RequestHandler):
                                 attachmentToEdit.data = db.Blob(str(self.request.get("attachment%s" % i)))
                                 attachmentToEdit.put()
             if newArticle:
-                article.addHistoryItem(member, "created", article)
+                article.addHistoryItem(article.memberNickNameOrCharacterName(), "created", article)
             else:
-                article.addHistoryItem(member, "changed", article)
+                article.addHistoryItem(article.memberNickNameOrCharacterName(), "changed", article)
             self.redirect("/visit/read?%s" % article.key())
         else:
             self.redirect("/visit/look")
@@ -478,7 +515,6 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
             article = None
             if self.request.query_string:
                 article = Article.get(self.request.query_string)
-            anonEntryAllowed = community.allowAnonymousEntry[ANSWERS_ENTRY_TYPE_INDEX]
             if article:
                 template_values = {
                                    'user': users.get_current_user(),
@@ -489,8 +525,7 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
                                    'questions': community.getQuestionsOfType(article.type),
                                    'answers': article.getAnswersForMember(member),
                                    'community_members': community.getMembers(),
-                                   'anon_entry_allowed': anonEntryAllowed,
-                                   'show_attribution_choice': community.hasAtLeastOnePersonificationOrAnonEntryAllowed(ANSWERS_ENTRY_TYPE_INDEX),
+                                   'character_allowed': community.allowCharacter[ANSWERS_ENTRY_TYPE_INDEX],
                                    'user_is_admin': users.is_current_user_admin(),
                                    'logout_url': users.create_logout_url("/"),
                                    }
@@ -514,14 +549,10 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
                 self.redirect("/visit/read?%s" % article.key())
                 return
             if article:
-                attribution = "member"
-                personification = None
+                character = None
                 if self.request.get("attribution"):
-                    attribution = self.request.get("attribution")
-                    if attribution and attribution != "member" and attribution != "anonymous":
-                        attribution = "personification"
-                        personificationKey = self.request.get("personification")
-                        personification = db.get(personificationKey)
+                    characterKey = self.request.get("attribution")
+                    character = Character.get(characterKey)
                 newAnswers = False
                 questions = Question.all().filter("community = ", community).filter("refersTo = ", article.type).fetch(FETCH_NUMBER)
                 for question in questions:
@@ -531,8 +562,7 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
                     else:
                         answerToEdit = Answer(question=question, referent=article)
                         newAnswers = True
-                    answerToEdit.attribution = attribution
-                    answerToEdit.personification = personification
+                    answerToEdit.character = character
                     if question.type == "text":
                         answerToEdit.answerIfText = self.request.get("%s" % question.key())
                     elif question.type == "value":
@@ -554,9 +584,9 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
                     answerToEdit.creator = member
                     answerToEdit.put()
                     if newAnswers:
-                        article.addHistoryItem(member, "created", answerToEdit)
+                        article.addHistoryItem(answerToEdit.memberNickNameOrCharacterName(), "created", answerToEdit)
                     else:
-                        article.addHistoryItem(member, "changed", answerToEdit)
+                        article.addHistoryItem(answerToEdit.memberNickNameOrCharacterName(), "changed", answerToEdit)
             self.redirect("/visit/read?%s" % article.key())
         else:
             self.redirect("/visit/look")
@@ -570,8 +600,12 @@ class EnterAnnotationPage(webapp.RequestHandler):
             for aType in ANNOTATION_TYPES_URLS:
                 if self.request.uri.find(aType) >= 0:
                     type = ANNOTATION_TYPES[i]
-                    # CFK FIX
-                    anonEntryAllowed = True #community.getAnonymousEntrySettingForItem(ANNOTATION_TYPES[type])
+                    break
+                i += 1
+            i = 0
+            for aType in ENTRY_TYPES_URLS:
+                if self.request.uri.find(aType) >= 0:
+                    entryTypeIndex = i
                     break
                 i += 1
             article = None
@@ -593,8 +627,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
                                    'article': article,
                                    'request_types': REQUEST_TYPES,
                                    'nudge_categories': community.nudgeCategories,
-                                   'anon_entry_allowed': anonEntryAllowed,
-                                   'show_attribution_choice': True, #community.hasAtLeastOnePersonificationOrAnonEntryAllowed(anonEntryAllowed),
+                                   'character_allowed': community.allowCharacter[entryTypeIndex],
                                    'user_is_admin': users.is_current_user_admin(),
                                    'logout_url': users.create_logout_url("/"),
                                    }
@@ -632,7 +665,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
                         if annotation.type == "nudge":
                             member.nudgePoints += annotation.totalNudgePointsAbsolute
                             member.put()
-                        article.addHistoryItem(member, "removed", annotation)
+                        article.addHistoryItem(annotation.memberNickNameOrCharacterName(), "removed", annotation)
                         db.delete(annotation)
                         self.redirect("/visit/read?%s" % article.key())
                         return
@@ -643,10 +676,12 @@ class EnterAnnotationPage(webapp.RequestHandler):
                             annotation.creator = aMember
                             annotation.liaison = member
                             break
-                annotation.attribution = self.request.get("attribution")
-                if annotation.attribution != "member" and annotation.attribution != "anonymous":
-                    annotation.attribution = "personification"
-                    annotation.personification = self.request.get("personification")
+                if self.request.get("attribution"):
+                    characterKey = self.request.get("attribution")
+                    character = Character.get(characterKey)
+                    annotation.character = character
+                else:
+                    annotation.character = None
                 if type == "tag set":
                     annotation.tagsIfTagSet = []
                     for i in range (5):
@@ -698,12 +733,10 @@ class EnterAnnotationPage(webapp.RequestHandler):
                     member.nudgePoints -= newTotalNudgePointsInThisNudge
                     member.put()
                 annotation.put()
-                # CFK FIX - deal with history when the person is a liaison
-                # also for articles. who should get the event? probably the teller, not the liaison?
                 if newAnnotation:
-                    article.addHistoryItem(member, "created", annotation)
+                    article.addHistoryItem(annotation.memberNickNameOrCharacterName(), "created", annotation)
                 else:
-                    article.addHistoryItem(member, "changed", annotation)
+                    article.addHistoryItem(annotation.memberNickNameOrCharacterName(), "changed", annotation)
                 self.redirect("/visit/read?%s" % article.key())
             else:
                 self.redirect("/visit/look")
@@ -870,17 +903,17 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
                     nudgePointIncludes.append('<tr><td align="right">%s</td><td align="left"><input type="text" name="%s" size="4" value="%s"/></td></tr>' \
                         % (pointType, pointType, community.nudgePointsPerActivity[i]))
                 i += 1
-            anonIncludes = []
+            characterIncludes = []
             i = 0
             for entryType in ENTRY_TYPES:
-                anonIncludes.append('<input type="checkbox" name="%s" value="%s" %s id="%s"/><label for="%s">%s</label>' \
-                        % (entryType, entryType, checkedBlank(community.allowAnonymousEntry[i]), entryType, entryType, entryType))
+                characterIncludes.append('<input type="checkbox" name="%s" value="%s" %s id="%s"/><label for="%s">%s</label>' \
+                        % (entryType, entryType, checkedBlank(community.allowCharacter[i]), entryType, entryType, entryType))
                 i += 1
             template_values = {
                                'community': community, 
                                'current_user': users.get_current_user(), 
                                'current_member': member,
-                               'anonIncludes': anonIncludes,
+                               'character_includes': characterIncludes,
                                'nudge_point_includes': nudgePointIncludes,
                                'user_is_admin': users.is_current_user_admin(),
                                'logout_url': users.create_logout_url("/"),
@@ -900,7 +933,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
                 community.image = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
             i = 0
             for entryType in ENTRY_TYPES:
-                community.allowAnonymousEntry[i] = self.request.get(entryType) == entryType
+                community.allowCharacter[i] = self.request.get(entryType) == entryType
                 i += 1
             oldValue = community.maxNudgePointsPerArticle
             try:
@@ -1024,19 +1057,21 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
                     community.AddCopyOfQuestion(sysQuestion)
         self.redirect('/visit/look')
 
-class ManageCommunityPersonificationsPage(webapp.RequestHandler):
+class ManageCommunityCharactersPage(webapp.RequestHandler):
     @RequireLogin 
     def get(self):
         community, member = GetCurrentCommunityAndMemberFromSession()
         if community and member:
-            personifications = Personification.all().filter("community = ", community).fetch(FETCH_NUMBER)
+            characters = Character.all().filter("community = ", community).fetch(FETCH_NUMBER)
             template_values = {
                                'community': community, 
-                               'community_personifications': personifications,
+                               'current_user': users.get_current_user(), 
+                               'current_member': member,
+                               'characters': characters,
                                'user_is_admin': users.is_current_user_admin(),
                                'logout_url': users.create_logout_url("/"),
                                }
-            path = os.path.join(os.path.dirname(__file__), 'templates/manage/personifications.html')
+            path = os.path.join(os.path.dirname(__file__), 'templates/manage/characters.html')
             self.response.out.write(template.render(path, template_values))
         else:
             self.redirect('/')
@@ -1045,25 +1080,31 @@ class ManageCommunityPersonificationsPage(webapp.RequestHandler):
     def post(self):
         community, member = GetCurrentCommunityAndMemberFromSession()
         if community and member:
-            personifications = Personification.all().filter("community = ", community).fetch(FETCH_NUMBER)
-            psToRemove = []
-            for personification in personifications:
-                personification.name = self.request.get("name|%s" % personification.key())
-                personification.description = self.request.get("description|%s" % personification.key())
-                personification.put()
-                if self.request.get("remove|%s" % personification.key()):
-                    psToRemove.append(personification)
-            if psToRemove:
-                for personification in psToRemove:
-                    db.delete(personification)
-            namesToAdd = self.request.get("newPersonificationNames").split('\n')
+            characters = Character.all().filter("community = ", community).fetch(FETCH_NUMBER)
+            charactersToRemove = []
+            for name, value in self.request.params.items():
+                DebugPrint(name)
+                DebugPrint(value)
+            for character in characters:
+                character.name = self.request.get("name|%s" % character.key())
+                character.description = self.request.get("description|%s" % character.key())
+                imageQueryKey = "image|%s" % character.key()
+                if self.request.get(imageQueryKey):
+                    character.image = db.Blob(images.resize(str(self.request.get(imageQueryKey)), 100, 60))
+                character.put()
+                if self.request.get("remove|%s" % character.key()):
+                    charactersToRemove.append(character)
+            if charactersToRemove:
+                for character in charactersToRemove:
+                    db.delete(character)
+            namesToAdd = self.request.get("newCharacterNames").split('\n')
             for name in namesToAdd:
                 if name.strip():
-                    newPersonification = Personification(
+                    newCharacter = Character(
                         name=name,
                         community=community,
                         )
-                    newPersonification.put()
+                    newCharacter.put()
             community.put()
         self.redirect('/visit/look')
             
@@ -1129,7 +1170,12 @@ class ImageHandler(webapp.RequestHandler):
             if article and article.type == "pattern" and article.screenshotIfPattern:
                 self.response.headers['Content-Type'] = "image/jpg"
                 self.response.out.write(article.screenshotIfPattern)
-                
+        elif self.request.get("character_id"):
+            character = db.get(self.request.get("character_id"))
+            if character:
+                self.response.headers['Content-Type'] = "image/jpg"
+                self.response.out.write(character.image)
+               
 class AttachmentHandler(webapp.RequestHandler):
     def get(self):
         if self.request.get("attachment_id"):
@@ -1178,6 +1224,8 @@ application = webapp.WSGIApplication(
                                       
                                       ('/visit/members', SeeCommunityMembersPage),
                                       ('/visit/member', SeeMemberPage),
+                                      ('/visit/characters', SeeCommunityCharactersPage),
+                                      ('/visit/character', SeeCharacterPage),
                                       
                                       ('/visit/profile', ChangeMemberProfilePage),
                                       ('/img', ImageHandler),
@@ -1196,7 +1244,7 @@ application = webapp.WSGIApplication(
                                       ('/manage/questions/resource', ManageCommunityQuestionsPage),
                                       ('/manage/questions/member', ManageCommunityQuestionsPage),
                                       ('/manage/questions/questions', ManageCommunityQuestionsPage),
-                                      ('/manage/personifications', ManageCommunityPersonificationsPage),
+                                      ('/manage/characters', ManageCommunityCharactersPage),
                                       ('/manage/technical', ManageCommunityTechnicalPage),
                                       
                                       # site admin

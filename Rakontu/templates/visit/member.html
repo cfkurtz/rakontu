@@ -36,7 +36,7 @@
 		<ul>
 		{% for item in history %}
 			<li class="nobullet">
-				{{item.attributionToShow}} <b>{{item.actionType}}</b>
+				{{item.attribution}} <b>{{item.actionType}}</b>
 				the {{item.referentType}} "{{item.textToShow}}" on {{item.timeStamp.date|date:"F j, Y"}} at {{item.timeStamp.time|time:"f"}}.</li>
 		{% endfor %}
 		</ul>

@@ -69,7 +69,6 @@ ACTIVITIES_VERB = ["time", \
 
 # articles
 ARTICLE_TYPES = ["story", "pattern", "construct", "invitation", "resource"]
-ATTRIBUTION_CHOICES = ["member", "anonymous", "personification"]
 LINK_TYPES = ["retold", "reminded", "related", "included"]
 ACCEPTED_ATTACHMENT_FILE_TYPES = ["jpg", "png", "pdf", "doc", "txt", "mpg", "mp3", "html", "zip"]
 ACCEPTED_ATTACHMENT_MIME_TYPES = ["image/jpeg", "image/png", "application/pdf", "application/msword", "text/plain", "video/mpeg", "audio/mpeg", "text/html", "application/zip"]
@@ -79,7 +78,8 @@ ANNOTATION_TYPES = ["tag set", "comment", "request", "nudge"]
 ANNOTATION_TYPES_URLS = ["tagset", "comment", "request", "nudge"]
 REQUEST_TYPES = ["edit text", "clean up audio/video", "add comments", "nudge", "add tags", "translate", "transcribe", "read aloud", "contact me", "other"]
 NUDGE_TYPES = ["appropriateness", "importance", "utility", "utility custom 1", "utility custom 2", "utility custom 3"]
-ENTRY_TYPES = ["story", "pattern", "construct", "invitation", "resource", "answer", "tag", "comment", "request", "nudge"]
+ENTRY_TYPES = ["story", "pattern", "construct", "invitation", "resource", "answer", "tag set", "comment", "request", "nudge"]
+ENTRY_TYPES_URLS = ["story", "pattern", "construct", "invitation", "resource", "answer", "tagset", "comment", "request", "nudge"]
 STORY_ENTRY_TYPE_INDEX = 0
 ANSWERS_ENTRY_TYPE_INDEX = 5
 PRUNE_STRENGTH_NAMES = ["weak", "medium", "strong"]
@@ -135,8 +135,8 @@ class Community(db.Model):
 		nudgePointsPerActivity:	A number for each type of activity (ACTIVITIES_GERUND) denoting how many
 								points the member accumulates for doing it.
 		maxNudgePointsPerArticle:	How many nudge points a member is allowed to place (maximally) on any article.
-		allowAnonymousEntry:	Whether members are allowed to enter things with only
-								"anonymous" marked. One entry per type of thing (ENTRY_TYPES)
+		allowCharacter:	Whether members are allowed to enter things with
+								a character marked. One entry per type of thing (ENTRY_TYPES)
 		nudgeCategories:		Names of nudge categories. Up to five allowed.
 		roleReadmes:			Texts all role members read before taking on a role.
 								One text per helping role type.
@@ -159,7 +159,7 @@ class Community(db.Model):
 	
 	nudgePointsPerActivity = db.ListProperty(int, default=DEFAULT_NUDGE_POINT_ACCUMULATIONS)
 	maxNudgePointsPerArticle = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE)
-	allowAnonymousEntry = db.ListProperty(bool, default=[False,False,False,False,False,False,False,False,False,False])
+	allowCharacter = db.ListProperty(bool, default=[False,False,False,False,False,False,False,False,False,False])
 	nudgeCategories = db.StringListProperty(default=["appropriateness", "importance", "usefulness for new members", "usefulness for resolving conflicts", "usefulness for learning our group's history"])
 	roleReadmes = db.StringListProperty(default=DEFAULT_ROLE_READMES)
 	roleAgreements = db.ListProperty(bool, default=[False, False, False])
@@ -276,11 +276,11 @@ class Community(db.Model):
 	def getCommunityLevelViewingPreferences(self):
 		return ViewingPreferences.all().filter("community = ", self.key()).filter("owner = ", self.key()).fetch(FETCH_NUMBER)
 
-	def getPersonifications(self):
-		return Personification.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+	def getCharacters(self):
+		return Character.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
 	
-	def hasAtLeastOnePersonificationOrAnonEntryAllowed(self, entryTypeIndex):
-		return len(self.getPersonifications()) > 0 or self.allowAnonymousEntry[entryTypeIndex]
+	def hasAtLeastOneCharacterEntryAllowed(self, entryTypeIndex):
+		return len(self.getCharacters()) > 0 or self.allowCharacter[entryTypeIndex]
 	
 # --------------------------------------------------------------------------------------------
 # Question 
@@ -462,19 +462,22 @@ class PendingMember(db.Model):
 	email = db.StringProperty(required=True)
 	invited = db.DateTimeProperty(auto_now_add=True)
 	
-class Personification(db.Model):
+class Character(db.Model):
 	""" Used to anonymize entries but provide some information about intent. Optional.
 	
 	Properties
-		community:			The Rakontu community this personification belongs to.
-		name:				The fictional name of the personification, like "Coyote".
-		description:		Simple text description of the personification
+		community:			The Rakontu community this character belongs to.
+		name:				The fictional name of the character, like "Coyote".
+		description:		Simple text description of the character
 		image:				Optional image.
 	"""
 	community = db.ReferenceProperty(Community, required=True)
 	name = db.StringProperty(required=True)
 	description = db.TextProperty()
-	image = db.BlobProperty()
+	image = db.BlobProperty(default=None)
+	
+	def getHistory(self):
+		return ArticleHistoryItem.all().filter("attribution = ", self.name).order("-timeStamp")
 	
 # --------------------------------------------------------------------------------------------
 # Answer
@@ -503,8 +506,7 @@ class Answer(db.Model):
 	
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="answers_liaisoned")
-	attribution = db.StringProperty(choices=ATTRIBUTION_CHOICES, default="member")
-	personification = db.ReferenceProperty(Personification, default=None)
+	character = db.ReferenceProperty(Character, default=None)
 	
 	answerIfBoolean = db.BooleanProperty(default=False)
 	answerIfText = db.StringProperty(default="")
@@ -517,6 +519,15 @@ class Answer(db.Model):
 	def questionKey(self):
 		return self.question.key()
 	
+	def attributedToMember(self):
+		return self.character == None
+	
+	def memberNickNameOrCharacterName(self):
+		if self.character:
+			return self.character.name
+		else:
+			return self.creator.nickname
+				
 # --------------------------------------------------------------------------------------------
 # Article
 # --------------------------------------------------------------------------------------------
@@ -533,8 +544,7 @@ class Article(db.Model):
 		community:			The Rakontu community this article belongs to.
 		collectedOffline:	Whether it was contributed by an offline member.
 		liaison:			Person who entered the article for off-line member. None if not offline.
-		attribution: 		Whether to show the creator's nickname, "anonymous" or a personification.
-		personification: 	Reference to fictional member name (from global list).
+		character: 	Reference to fictional member name (from global list).
 		
 		instructionsIfPattern:	If this is a pattern, instructions on how to reproduce it.
 		screenshotIfPattern:	If this is a pattern, an uploaded picture of it.
@@ -557,8 +567,7 @@ class Article(db.Model):
 	community = db.ReferenceProperty(Community, required=True)
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="articles_liaisoned")
-	attribution = db.StringProperty(choices=ATTRIBUTION_CHOICES, default="member")
-	personification = db.ReferenceProperty(Personification, default=None)
+	character = db.ReferenceProperty(Character, default=None)
 	
 	tookPlace = db.DateTimeProperty(default=None)
 	collected = db.DateTimeProperty(default=None)
@@ -568,6 +577,9 @@ class Article(db.Model):
 	lastAnnotated = db.DateTimeProperty(default=None)
 	numBrowses = db.IntegerProperty(default=0)
 	numReads = db.IntegerProperty(default=0)
+	
+	def attributedToMember(self):
+		return self.character == None
 	
 	def isInvitation(self):
 		return self.type == "invitation"
@@ -615,16 +627,9 @@ class Article(db.Model):
 	def getHistory(self):
 		return ArticleHistoryItem.all().filter("article = ", self.key()).order("-timeStamp")
 	
-	def addHistoryItem(self, member, action, referent):
-		item = ArticleHistoryItem(member=member, actionType=action, referent=referent)
+	def addHistoryItem(self, attribution, action, referent):
+		item = ArticleHistoryItem(attribution=attribution, actionType=action, referent=referent)
 		item.article = self
-		if not referent.__class__.__name__ == "Link":
-			if referent.attribution == "personification":
-				item.attributionToShow = referent.personification.name
-			elif referent.attribution == "anonymous":
-				item.attributionToShow = "An anonymous member"
-			else:
-				item.attributionToShow = member.nickname
 		if referent.__class__.__name__ == "Article":
 			item.referentType = referent.type
 			item.textToShow = referent.title
@@ -640,8 +645,13 @@ class Article(db.Model):
 		elif referent.__class__.__name__ == "Link":
 			item.referentType = referent.type + " link"
 			item.textToShow = referent.comment
-			item.attributionToShow = member.nickname
 		item.put()
+		
+	def memberNickNameOrCharacterName(self):
+		if self.character:
+			return self.character.name
+		else:
+			return self.creator.nickname
 				
 class Link(db.Model):
 	""" For holding on to links between articles.
@@ -680,7 +690,6 @@ class ArticleHistoryItem(db.Model):
 	
 	Properties
 		timeStamp:			When the action happened.
-		member:				Which member did it.
 		actionType:			What was done - create, change or remove.
 		article:			What article the change relates to (may be same as referent).
 		referent:			What object it was done to.
@@ -690,8 +699,7 @@ class ArticleHistoryItem(db.Model):
 		textToShow:			How to report on what this was called.
 	"""
 	timeStamp = db.DateTimeProperty(auto_now_add=True)
-	member = db.ReferenceProperty(Member, collection_name="history members", required=True)
-	attributionToShow = db.StringProperty()
+	attribution = db.StringProperty()
 	actionType = db.StringProperty(choices=HISTORY_ACTION_TYPES, required=True)
 	article = db.ReferenceProperty(Article, collection_name="history articles")
 	referent = db.ReferenceProperty(None, collection_name="history", required=True)
@@ -722,8 +730,7 @@ class Annotation(db.Model):
 
 		collectedOffline:	Whether it was contributed by an offline member.
 		liaison:			Person who entered the article for off-line member. None if not offline.
-		attribution: 		Whether to show the creator's nickname, "anonymous" or a personification.
-		personification: 	Reference to fictional member name (from global list).
+		character: 	Reference to fictional member name (from global list).
 
 		collected:			When article was collected, usually from an off-line member.
 		entered:			When article was added to database.
@@ -743,8 +750,7 @@ class Annotation(db.Model):
 
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="annotations_liaisoned")
-	attribution = db.StringProperty(choices=ATTRIBUTION_CHOICES, default="member")
-	personification = db.ReferenceProperty(Personification, default=None)
+	character = db.ReferenceProperty(Character, default=None)
 
 	collected = db.DateTimeProperty(default=None)
 	entered = db.DateTimeProperty(auto_now_add=True)
@@ -754,7 +760,16 @@ class Annotation(db.Model):
 		for value in self.valuesIfNudge:
 			result += abs(value)
 		return result
+	
+	def attributedToMember(self):
+		return self.character == None
 
+	def memberNickNameOrCharacterName(self):
+		if self.character:
+			return self.character.name
+		else:
+			return self.creator.nickname
+				
 # --------------------------------------------------------------------------------------------
 # Pruning
 # --------------------------------------------------------------------------------------------

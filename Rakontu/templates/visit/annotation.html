@@ -122,7 +122,36 @@
 					{% endif %}
 					<input type="text" name="shortString" size="80" value="{% if annotation %}{{annotation.shortString}}{% endif %}"/>
 			{% endifequal %}
-			
+
+			{% if character_allowed %}
+				{% if annotation %}
+					<p>You can change who this {{annotation_type}} is attributed to here.</p>
+				{% else %}
+					<p>To whom would you like to attribute this {{annotation_type}}?</p>
+				{% endif %}
+				
+				<select name="attribution">
+					<option value="member"
+						{% if annotation %}
+							{% if annotation.attributedToMember %}
+								selected="selected"
+							{% endif %}
+						{% endif %}
+						>Me ({{current_member.nickname}})</option>
+					{% if community.getCharacters %}
+						{% for character in community.getCharacters %}
+							<option value="{{character.key}}"
+							{% if annotation %}
+								{% ifequal annotation.character.key character.key %}
+									selected="selected"
+								{% endifequal %}
+							{% endif %}
+							>{{character.name}}</option>
+						{% endfor %}
+					{% endif %}
+				</select>
+			{% endif %}
+
 			{% if current_member.isLiaison %}
 				<div><label><input type="checkbox" name="collectedOffline" value="yes" 
 					{% if annotation.collectedOffline %}
@@ -146,46 +175,8 @@
 					{% endfor %}
 				</select>
 			{% endif %}
-			
-			{% if show_attribution_choice %}
-				{% if annotation %}
-					<p>You can change who this {{annotation_type}} is attributed to here.</p>
-				{% else %}
-					<p>To whom would you like to attribute this {{annotation_type}}?</p>
-				{% endif %}
-				
-				<select name="attribution">
-					<option value="member"
-						{% if annotation %}
-							{% ifequal annotation.attribution "member" %}
-								selected="selected"
-							{% endifequal %}
-						{% endif %}
-						>Me ({{current_member.nickname}})</option>
-					{% if anon_entry_allowed %}
-						<option value="anonymous"
-						{% if annotation %}
-							{% ifequal annotation.attribution "anonymous" %}
-								selected="selected"
-							{% endifequal %}
-						{% endif %}
-						>Anonymous</option>
-					{% endif %}
-					{% if community.getPersonifications %}
-						{% for personification in community.getPersonifications %}
-							<option value="{{personification.key}}"
-							{% if annotation %}
-								{% ifequal annotation.personification.key personification.key %}
-									selected="selected"
-								{% endifequal %}
-							{% endif %}
-							>{{personification.name}}</option>
-						{% endfor %}
-					{% endif %}
-				</select>
-			{% endif %}
 			</fieldset>
-
+			
 			<p>			
 			<center>
 			{% if annotation %}
