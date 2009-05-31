@@ -111,19 +111,19 @@ def AddSystemQuestionsToDataStore():
 					"",
 					False])
 	
-	# construct quetsions
-	AddSystemQuestionIfNotThere(["construct", 
+	# collage quetsions
+	AddSystemQuestionIfNotThere(["collage", 
 					"Why built",
-					"Why was this construct built?",
+					"Why was this collage built?",
 					"text", [],
-					"Give viewers some idea of the construct's purpose.",
+					"Give viewers some idea of the collage's purpose.",
 					"",
 					False])
-	AddSystemQuestionIfNotThere(["construct", 
+	AddSystemQuestionIfNotThere(["collage", 
 					"Type", 
-					"Why was this construct built?",
-					"nominal", ["top ten list", "twice-told stories", "history", "emergent construct"],
-					"Which of these types of construct best describes this one?",
+					"Why was this collage built?",
+					"nominal", ["top ten list", "twice-told stories", "history", "emergent collage"],
+					"Which of these types of collage best describes this one?",
 					"",
 					False])
 	

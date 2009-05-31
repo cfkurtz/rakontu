@@ -68,7 +68,7 @@ ACTIVITIES_VERB = ["time", \
 						 "questions answered about", "tagged", "commented", "requested", "nudged"]
 
 # articles
-ARTICLE_TYPES = ["story", "pattern", "construct", "invitation", "resource"]
+ARTICLE_TYPES = ["story", "pattern", "collage", "invitation", "resource"]
 LINK_TYPES = ["retold", "reminded", "related", "included"]
 ACCEPTED_ATTACHMENT_FILE_TYPES = ["jpg", "png", "pdf", "doc", "txt", "mpg", "mp3", "html", "zip"]
 ACCEPTED_ATTACHMENT_MIME_TYPES = ["image/jpeg", "image/png", "application/pdf", "application/msword", "text/plain", "video/mpeg", "audio/mpeg", "text/html", "application/zip"]
@@ -78,8 +78,8 @@ ANNOTATION_TYPES = ["tag set", "comment", "request", "nudge"]
 ANNOTATION_TYPES_URLS = ["tagset", "comment", "request", "nudge"]
 REQUEST_TYPES = ["edit text", "clean up audio/video", "add comments", "nudge", "add tags", "translate", "transcribe", "read aloud", "contact me", "other"]
 NUDGE_TYPES = ["appropriateness", "importance", "utility", "utility custom 1", "utility custom 2", "utility custom 3"]
-ENTRY_TYPES = ["story", "pattern", "construct", "invitation", "resource", "answer", "tag set", "comment", "request", "nudge"]
-ENTRY_TYPES_URLS = ["story", "pattern", "construct", "invitation", "resource", "answer", "tagset", "comment", "request", "nudge"]
+ENTRY_TYPES = ["story", "pattern", "collage", "invitation", "resource", "answer", "tag set", "comment", "request", "nudge"]
+ENTRY_TYPES_URLS = ["story", "pattern", "collage", "invitation", "resource", "answer", "tagset", "comment", "request", "nudge"]
 STORY_ENTRY_TYPE_INDEX = 0
 ANSWERS_ENTRY_TYPE_INDEX = 5
 PRUNE_STRENGTH_NAMES = ["weak", "medium", "strong"]
@@ -104,19 +104,19 @@ DEFAULT_VERTICAL_MOVEMENT_POINTS_PER_EVENT = [
 
 # history
 HISTORY_ACTION_TYPES = ["read", "created", "changed", "removed"]
-HISTORY_REFERENT_TYPES = ["story", "pattern", "construct", "invitation", "request", \
+HISTORY_REFERENT_TYPES = ["story", "pattern", "collage", "invitation", "request", \
 						  "retold link", "reminded link", "related link", "included link", \
 						  "answer set", "tag set", "comment", "request", "nudge"]
 
 # querying
 QUERY_TYPES = ["free text", "tags", "answers", "members", "activities", "links"]
-QUERY_TARGETS = ["stories", "patterns", "constructs", "invitations", "resources", "articles", "answers", "tags", "comments", "requests", "nudge comments"]
+QUERY_TARGETS = ["stories", "patterns", "collages", "invitations", "resources", "articles", "answers", "tags", "comments", "requests", "nudge comments"]
 BOOLEAN_CHOICES = ["ALL", "ANY"]
 RECENT_TIME_FRAMES = ["last hour", "last day", "last week", "last month", "last six months", "last year", "ever"]
 
 # questions 
-QUESTION_REFERS_TO = ["story", "pattern", "construct", "invitation", "resource", "member"]
-QUESTION_REFERS_TO_PLURAL = ["stories", "patterns", "constructs", "invitations", "resources", "members"]
+QUESTION_REFERS_TO = ["story", "pattern", "collage", "invitation", "resource", "member"]
+QUESTION_REFERS_TO_PLURAL = ["stories", "patterns", "collages", "invitations", "resources", "members"]
 QUESTION_TYPES = ["boolean", "text", "ordinal", "nominal", "value"]
 
 # --------------------------------------------------------------------------------------------
@@ -179,8 +179,8 @@ class Community(db.Model):
 	def getPatterns(self):
 		return Pattern.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
 	
-	def getConstructs(self):
-		return Construct.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+	def getCollages(self):
+		return Collage.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
 	
 	def getInvitations(self):
 		return Invitation.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
@@ -292,7 +292,7 @@ class Question(db.Model):
 	Properties
 		community:			The Rakontu community this question belongs to.
 							If None, is in a global list communities can copy from. (??)
-		refersTo:			What the question is in reference to: an article (story, pattern, construct, invitation, resource), 
+		refersTo:			What the question is in reference to: an article (story, pattern, collage, invitation, resource), 
 							community, or member.
 		
 		type:				One of boolean, text, ordinal, nominal, value.
@@ -538,7 +538,7 @@ class Article(db.Model):
 	Properties
 		title:				A name for the article. Appears in the interface.
 		text:				Main body of content. What is read. 
-		type:				Whether it is a story, pattern, construct, invitation or resource.
+		type:				Whether it is a story, pattern, collage, invitation or resource.
 
 		creator: 			Member who contributed the story. May be online or offline.
 		community:			The Rakontu community this article belongs to.
@@ -584,8 +584,8 @@ class Article(db.Model):
 	def isInvitation(self):
 		return self.type == "invitation"
 	
-	def isPatternOrConstruct(self):
-		return self.type == "pattern" or self.type == "construct"
+	def isPatternOrCollage(self):
+		return self.type == "pattern" or self.type == "collage"
 	
 	def getAttachments(self):
 		return Attachment.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
@@ -657,7 +657,7 @@ class Link(db.Model):
 	""" For holding on to links between articles.
 	
 	Properties
-		articleFrom:		Where the link originated. Story read first, or pattern/construct.
+		articleFrom:		Where the link originated. Story read first, or pattern/collage.
 		articleTo:			Article referred to. Usually story.
 		creator: 			Member who created the link. May be online or offline.
 		type:				One of retold, reminded, related, included.

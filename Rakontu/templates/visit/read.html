@@ -267,11 +267,11 @@
 		</li>
 	{% endif %}
 	
-	{% if included_links_incoming_from_constructs %}
+	{% if included_links_incoming_from_collages %}
 		<li class="nobullet">
-		<p>This {{article.type}} is included in the constructs
+		<p>This {{article.type}} is included in the collages
 		<ul>
-		{% for link in included_links_to_constructs %}
+		{% for link in included_links_to_collages %}
 			<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a></li>
 		{% endfor %}
 		</ul>
@@ -335,7 +335,7 @@
 		</li><li class="nobullet">&nbsp; </li>
 	{% endif %}
 		
-	{% if article.isPatternOrConstruct %}
+	{% if article.isPatternOrCollage %}
 		<li class="nobullet">Articles <b>included</b> in this {{article.type}}
 		{% if included_links_outgoing %}
 			<ul>
@@ -349,7 +349,7 @@
 		{% endif %}
 	{% endif %}
 	
-	{% if not article.isPatternOrConstruct %}
+	{% if not article.isPatternOrCollage %}
 		<li class="nobullet">Patterns this {{article.type}} is <b>included</b> in
 		{% if included_links_incoming_from_patterns %}
 			<ul>
@@ -362,16 +362,16 @@
 			<ul><li class="nobullet">none yet - <a href="/visit/includeInPattern?{{article.key}}">Include</a> this {{article.type}} in a pattern</li></ul>
 		{% endif %}
 		</li><li class="nobullet">&nbsp; </li>
-		<li class="nobullet">Constructs this {{article.type}} is <b>included</b> in
+		<li class="nobullet">Collages this {{article.type}} is <b>included</b> in
 		{% if included_links_incoming_from_patterns %}
 			<ul>
 			{% for link in include_links %}
 				<li class="nobullet"><a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a></li>
 			{% endfor %}
 			</ul>
-			<ul><li class="nobullet"><a href="/visit/includeInConstruct?{{article.key}}">Include in another</a></li></ul>
+			<ul><li class="nobullet"><a href="/visit/includeInCollage?{{article.key}}">Include in another</a></li></ul>
 		{% else %}
-			<ul><li class="nobullet">none yet - <a href="/visit/includeInConstruct?{{article.key}}">Include</a> this {{article.type}} in a construct</li></ul>
+			<ul><li class="nobullet">none yet - <a href="/visit/includeInCollage?{{article.key}}">Include</a> this {{article.type}} in a collage</li></ul>
 		{% endif %}
 	{% endif %}
 	</li>

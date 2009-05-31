@@ -57,6 +57,8 @@ def GetCurrentCommunityAndMemberFromSession():
         community = None
     if member_key:
         member = db.get(member_key)
+        if not member.community.key() == community.key():
+            member = None
     else:
         member = None
     return community, member
@@ -81,7 +83,7 @@ class StartPage(webapp.RequestHandler):
                 try:
                     communities.append(pendingMember.community)
                 except:
-                    pass
+                    pass # if can't link to community don't use it
         template_values = {
                            'user': user, 
                            'communities': communities,
@@ -100,7 +102,7 @@ class StartPage(webapp.RequestHandler):
                 if community:
                     session = Session()
                     session['community_key'] = community_key
-                    members = Member.all().filter("community = ", community).filter("googleAccountID = ", users.get_current_user().user_id()).fetch(FETCH_NUMBER)
+                    members = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(FETCH_NUMBER)
                     if members:
                         session['member_key'] = members[0].key()
                     else:
@@ -209,7 +211,7 @@ class ReadArticlePage(webapp.RequestHandler):
                                    'related_links': article.getLinksOfType("related"),
                                    'included_links_incoming_from_invitations': article.getIncomingLinksOfTypeFromType("included", "invitation"),
                                    'included_links_incoming_from_patterns': article.getIncomingLinksOfTypeFromType("included", "pattern"),
-                                   'included_links_incoming_from_constructs': article.getIncomingLinksOfTypeFromType("included", "construct"),
+                                   'included_links_incoming_from_collages': article.getIncomingLinksOfTypeFromType("included", "collage"),
                                    'included_links_outgoing': article.getOutgoingLinksOfType("included"),
                                    'history': article.getHistory(),
                                    }
@@ -887,8 +889,8 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
             memberEmailsToAdd = self.request.get("newMemberEmails").split('\n')
             for email in memberEmailsToAdd:
                 if email.strip():
-                    pendingMember = PendingMember(community=community, email=email)
-                    pendingMember.put()
+                    newPendingMember = PendingMember(community=community, email=email.strip())
+                    newPendingMember.put()
         self.redirect('/manage/members')
                 
 class ManageCommunitySettingsPage(webapp.RequestHandler):
@@ -1082,9 +1084,6 @@ class ManageCommunityCharactersPage(webapp.RequestHandler):
         if community and member:
             characters = Character.all().filter("community = ", community).fetch(FETCH_NUMBER)
             charactersToRemove = []
-            for name, value in self.request.params.items():
-                DebugPrint(name)
-                DebugPrint(value)
             for character in characters:
                 character.name = self.request.get("name|%s" % character.key())
                 character.description = self.request.get("description|%s" % character.key())
@@ -1100,14 +1099,10 @@ class ManageCommunityCharactersPage(webapp.RequestHandler):
             namesToAdd = self.request.get("newCharacterNames").split('\n')
             for name in namesToAdd:
                 if name.strip():
-                    newCharacter = Character(
-                        name=name,
-                        community=community,
-                        )
+                    newCharacter = Character(name=name, community=community)
                     newCharacter.put()
             community.put()
         self.redirect('/visit/look')
-            
                 
 class ManageCommunityTechnicalPage(webapp.RequestHandler):
     pass
@@ -1208,7 +1203,7 @@ application = webapp.WSGIApplication(
                                       ('/visit/respond', EnterArticlePage),
                                       
                                       ('/visit/pattern', EnterArticlePage),
-                                      ('/visit/construct', EnterArticlePage),
+                                      ('/visit/collage', EnterArticlePage),
                                       ('/visit/invitation', EnterArticlePage),
                                       ('/visit/resource', EnterArticlePage),
                                       ('/visit/article', EnterArticlePage),
@@ -1239,7 +1234,7 @@ application = webapp.WSGIApplication(
                                       ('/manage/settings', ManageCommunitySettingsPage),
                                       ('/manage/questions/story', ManageCommunityQuestionsPage),
                                       ('/manage/questions/pattern', ManageCommunityQuestionsPage),
-                                      ('/manage/questions/construct', ManageCommunityQuestionsPage),
+                                      ('/manage/questions/collage', ManageCommunityQuestionsPage),
                                       ('/manage/questions/invitation', ManageCommunityQuestionsPage),
                                       ('/manage/questions/resource', ManageCommunityQuestionsPage),
                                       ('/manage/questions/member', ManageCommunityQuestionsPage),

@@ -27,29 +27,35 @@
 <div id="sidebar">
 
 	<h1>Visit</h1>
-  	<p><a href="/visit/look">Home</a></p>
-  	<p><a href="/visit/story">Tell a story</a></p>
-  	<p>Add a<p>
-  		<ul>
-	  	<li><a href="/visit/pattern">pattern</a></li>
-	  	<li><a href="/visit/construct">construct</a></li>
-	  	<li><a href="/visit/invitation">invitation</a></li>
-	  	<li><a href="/visit/resource">resource</a></li>
-	  	</ul>
-	<p><a href="/visit/members">Members</a></p>
-	<p><a href="/visit/characters">Characters</a></p>
+  	<p><a href="/visit/look">Look</a> at stories</p>
+  	<p><a href="/visit/story">Tell</a> a story</p>
+  	<p><a href="/visit/invitation">Invite</a> people to tell stories</p>
+  	<p><a href="/visit/collage">Build</a> a story collage</p>
+  	<p><a href="/visit/pattern">Describe</a> a pattern of stories</p>
+  	{% if current_member.isGuide or current_member.isManagerOrOwner %}
+  	<p>Add a <a href="/visit/resource">resource</a></p>
+  	{% endif %}
+ 	<hr>
+ 	<p>About the</p>
+ 	<ul>
+ 	<li><a href="/visit/community">community</a></li>
+	<li><a href="/visit/members">members</a></li>
+	{% if community.getCharacters %}
+		<li><a href="/visit/characters">characters</a></li>
+	{% endif %}
+	</ul>
   	
   	{% if current_member.isManagerOrOwner %}
       	<h1>Manage</h1>
-      	<p><a href="/manage/members">Memberships</a></p>
       	<p><a href="/manage/settings">Settings</a></p>
+      	<p><a href="/manage/members">Members</a></p>
       	<p><a href="/manage/characters">Characters</a></p>
       	
-      	<p>Manage questions about</p>
+      	<p>Questions about</p>
       	<ul>
       	<li><a href="/manage/questions/story">stories</a></li>
       	<li><a href="/manage/questions/pattern">patterns</a></li>
-      	<li><a href="/manage/questions/construct">constructs</a></li>
+      	<li><a href="/manage/questions/collage">collages</a></li>
       	<li><a href="/manage/questions/invitation">invitations</a></li>
       	<li><a href="/manage/questions/resource">resources</a></li>
       	<li><a href="/manage/questions/member">members</a></li>
@@ -67,6 +73,7 @@
 			</ul>
 	{% endif %}
 	
+	<hr>
 	<p><a href="/">Start page</a></p>
 
 </div>
