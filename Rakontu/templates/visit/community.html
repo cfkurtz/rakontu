@@ -8,11 +8,41 @@
 	
 		<h3>About the {{community.name}} community</h3>
 		
-		<ul><li class="nobullet">{{community.description}}</li></ul>
 		<p>Created: {{community.created}}</p>
+		<p>Description:</p>
+		<ul><li class="nobullet">{{community.description}}</li></ul>
+		{% if community.etiquetteStatement %}
+			<p>Rules for behavior:</p>
+			<ul><li class="nobullet">{{community.etiquetteStatement}}</li></ul>
+		{% endif %}
+		
+		{% if community.getCharacters %}
+			<h3>Characters</h3>
+			<p><i>Community characters are fictional names you can "take on" when you tell a story,
+				make a comment, and so on, if you don't want to say it as yourself.</i></p>
+	      	<table border="1" cellpadding="4" cellspacing="0">
+	      		{% for character in characters %}
+	  				<tr><td>
+			 		{% if character.image %}
+						<img src="img?character_id={{character.key}}" align="left"></img>
+					{% endif %}
+	  				<a href="character?{{character.key}}">{{ character.name }}</a> 
+	  				{% if character.description %}<p>About {{character.name}}:</p><ul><li class="nobullet">{{character.description}}</li></ul>{% endif %}
+	  				{% if character.etiquetteStatement %}<p>How to be {{character.name}}:</p><ul><li class="nobullet">{{character.etiquetteStatement}}</li></ul>{% endif %}
+	  				</td>
+	  				</tr>
+	      		{% endfor %}
+	      	</table>
+	     {% endif %}
 		
       	{% if current_member.isManagerOrOwner %}
-      		<center><p><a href="/manage/settings">Make changes to community-level settings</a></p></center>
+      		<p>You are a{% if current_member.isOwner %}n{% endif %} {{current_member.governanceType}}; you can</p>
+      		<ul>
+      		<li class="nobullet">Make changes to community-level <a href="/manage/settings">settings</a></li>
+      		{% if community.getCharacters %}
+      			<li class="nobullet">Make change to community <a href="/manage/characters">characters</a></li>
+      		{% endif %}
+      		</ul>
       	{% endif %}
 	</div>
 	</body>

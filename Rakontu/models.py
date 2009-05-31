@@ -128,6 +128,7 @@ class Community(db.Model):
 	Properties
 		name:					The name that appears on all pages.
 		description:			Some text that describes the community. Can contain links. (simple markup?)
+		etiquetteStatement:		This is just some extra text in case they want to say how people should behave.
 		image:					Picture to show on community page.
 		
 		nudgePointsPerActivity:	A number for each type of activity (ACTIVITIES_GERUND) denoting how many
@@ -145,6 +146,7 @@ class Community(db.Model):
 	"""
 	name = db.StringProperty()
 	description = db.TextProperty()
+	etiquetteStatement = db.TextProperty()
 	image = db.BlobProperty(default=None)
 	created = db.DateTimeProperty(auto_now_add=True)
 	
@@ -456,12 +458,15 @@ class Character(db.Model):
 	Properties
 		community:			The Rakontu community this character belongs to.
 		name:				The fictional name of the character, like "Coyote".
-		description:		Simple text description of the character
+		description:		Simple text description of the character.
+		etiquetteStatement:	Just some guidelines for when the person is taking on the character.
+							How not to behave.
 		image:				Optional image.
 	"""
 	community = db.ReferenceProperty(Community, required=True)
 	name = db.StringProperty(required=True)
 	description = db.TextProperty()
+	etiquetteStatement = db.TextProperty()
 	image = db.BlobProperty(default=None)
 	
 	def getHistory(self):

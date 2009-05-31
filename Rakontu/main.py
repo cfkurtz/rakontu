@@ -272,6 +272,7 @@ class SeeCommunityPage(webapp.RequestHandler):
                                    'community': community, 
                                    'current_member': member,
                                    'community_members': community.getMembers(),
+                                   'characters': community.getCharacters(),
                                    'user_is_admin': users.is_current_user_admin(),
                                    'logout_url': users.create_logout_url("/"),                                   
                                    }
@@ -317,23 +318,6 @@ class SeeMemberPage(webapp.RequestHandler):
                     self.response.out.write(template.render(path, template_values))
                 else:
                     self.redirect('/visit/look')
-        else:
-            self.redirect('/')
-
-class SeeCommunityCharactersPage(webapp.RequestHandler):
-    @RequireLogin 
-    def get(self):
-        community, member = GetCurrentCommunityAndMemberFromSession()
-        if community and member:
-                template_values = {
-                                   'community': community, 
-                                   'current_member': member,
-                                   'characters': community.getCharacters(),
-                                   'user_is_admin': users.is_current_user_admin(),
-                                   'logout_url': users.create_logout_url("/"),                                   
-                                   }
-                path = os.path.join(os.path.dirname(__file__), 'templates/visit/characters.html')
-                self.response.out.write(template.render(path, template_values))
         else:
             self.redirect('/')
    
@@ -992,6 +976,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
         if community and member:
             community.name = self.request.get("name")
             community.description = self.request.get("description")
+            community.etiquetteStatement = self.request.get("etiquetteStatement")
             if self.request.get("img"):
                 community.image = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
             i = 0
@@ -1142,6 +1127,7 @@ class ManageCommunityCharactersPage(webapp.RequestHandler):
             for character in characters:
                 character.name = self.request.get("name|%s" % character.key())
                 character.description = self.request.get("description|%s" % character.key())
+                character.etiquetteStatement = self.request.get("etiquetteStatement|%s" % character.key())
                 imageQueryKey = "image|%s" % character.key()
                 if self.request.get(imageQueryKey):
                     character.image = db.Blob(images.resize(str(self.request.get(imageQueryKey)), 100, 60))
@@ -1157,7 +1143,7 @@ class ManageCommunityCharactersPage(webapp.RequestHandler):
                     newCharacter = Character(name=name, community=community)
                     newCharacter.put()
             community.put()
-        self.redirect('/visit/characters')
+        self.redirect('/visit/community')
                 
 class ManageCommunityTechnicalPage(webapp.RequestHandler):
     pass
@@ -1284,7 +1270,6 @@ application = webapp.WSGIApplication(
                                       
                                       ('/visit/members', SeeCommunityMembersPage),
                                       ('/visit/member', SeeMemberPage),
-                                      ('/visit/characters', SeeCommunityCharactersPage),
                                       ('/visit/character', SeeCharacterPage),
                                       ('/visit/community', SeeCommunityPage),
                                       

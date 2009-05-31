@@ -14,9 +14,10 @@
 				<p>
 				{{character.name}}
   				{% if character.description %}<p>About {{character.name}}: <ul><li class="nobullet">{{character.description}}</li></ul>{% endif %}
+	  			{% if character.etiquetteStatement %}<p>How to be {{character.name}}:</p><ul><li class="nobullet">{{character.etiquetteStatement}}</li></ul>{% endif %}
 	
-	{% if history %}
-		<h4>History</h4>
+	{% if history.count %}
+		<h4>{{character.name}}'s History</h4>
 		<ul>
 		{% for item in history %}
 			<li class="nobullet">
@@ -25,7 +26,8 @@
 		{% endfor %}
 		</ul>
 	{% endif %}
-		 
+		
+	<a href="/visit/community">See all characters</a>
 	</div>
 	</body>
 </html>

@@ -37,17 +37,12 @@
   	{% if current_member.isGuide or current_member.isManagerOrOwner %}
   	<p>Add a <a href="/visit/resource">resource</a></p>
   	{% endif %}
- 	<hr>
- 	<p>About the</p>
- 	<ul>
- 	<li><a href="/visit/community">community</a></li>
-	<li><a href="/visit/members">members</a></li>
-	{% if community.getCharacters %}
-		<li><a href="/visit/characters">characters</a></li>
-	{% endif %}
+ 	<p>See the <a href="/visit/community">community</a></p>
+	<p>See its <a href="/visit/members">members</a></p>
 	</ul>
   	
   	{% if current_member.isManagerOrOwner %}
+  		<hr>
       	<h1>Manage</h1>
       	<p><a href="/manage/settings">Settings</a></p>
       	<p><a href="/manage/members">Members</a></p>
@@ -67,6 +62,7 @@
     {% endif %}
 
 	{% if user_is_admin %}
+		<hr>
 		<h1>Administer</h1>
 		<p>Show</p>
 			<ul>
