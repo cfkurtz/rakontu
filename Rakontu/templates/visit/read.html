@@ -20,13 +20,6 @@
 		{% endfor %}
 	{% endif %}
 	
-	{% if article.creator.isActiveMember %}
-		{% ifequal article.creator.key current_member.key %}
-			{% if article.attributedToMember %}
-				<p>You wrote this {{article.type}}; you can <a href="/visit/{{article.type}}?{{article.key}}">change</a> it.</p>
-			{% endif %}
-		{% endifequal %}
-	{% endif %}
 	{% ifequal article.type "invitation" %}
 		<p>You can <a href="/visit/respond?{{article.key}}">respond</a> to this invitation with a story.</p>
 	{% endifequal %}
@@ -48,7 +41,7 @@
 		<a href="characterInfo|{{nudge.character.key}}">{{article.character.name}}</a>
 	{% endif %}
 	
-	on {{article.entered.date}} at {{article.entered.time}}.</p>
+	on {{article.published.date|date:"F j, Y"}} at {{article.published.time|time:"f"}}.</p>
 
 	{% if article.collectedOffline %}
 		{% if article.liaison %}
@@ -96,9 +89,6 @@
 							{% if answer.attributedToMember %}
 								{% if answer.creator.isActiveMember %}
 									<a href="member?{{answer.creator.key}}">{{answer.creator.nickname}}</a>
-									{% ifequal answer.creator.key current_member.key %}
-										(<a href="answers?{{article.key}}">Change</a>)
-									{% endifequal %}
 								{% else %}
 									the former member "{{answer.creator.nickname}}"
 								{% endif %}
@@ -129,16 +119,13 @@
 		{% if comment.attributedToMember %}
 			{% if comment.creator.isActiveMember %}
 				<a href="member?{{comment.creator.key}}">{{comment.creator.nickname}}</a>
-				{% ifequal comment.creator.key current_member.key %}
-					(<a href="comment?{{comment.key}}">Change</a>)
-				{% endifequal %}
 			{% else %}
 				the former member "{{comment.creator.nickname}}"
 			{% endif %}
 		{% else %}
 			<a href="characterInfo|{{comment.character.key}}">{{comment.character.name}}</a>
 		{% endif %}
-		
+		&nbsp; {{comment.published.date|date:"F j, Y"}} at {{comment.published.time|time:"f"}}
 		</li>
 		<ul><li class="nobullet">{{comment.longString|escape}}</li></ul>
 		</li>
@@ -154,20 +141,16 @@
 		<ul>
 		{% for tag_set in tag_sets %}
 		<li class="nobullet">{{tag_set.tagsIfTagSet|join:", "}} - 
-
 		{% if tag_set.attributedToMember %}
 			{% if tag_set.creator.isActiveMember %}
 				<a href="member?{{tag_set.creator.key}}">{{tag_set.creator.nickname}}</a>
-				{% ifequal tag_set.creator.key current_member.key %}
-					(<a href="tagset?{{tag_set.key}}">Change</a>)
-				{% endifequal %}
 			{% else %}
 				the former member "{{tag_set.creator.nickname}}"
 			{% endif %}
 		{% else %}
 			<a href="characterInfo|{{tag_set.character.key}}">{{tag_set.character.name}}</a>
 		{% endif %}
-
+			&nbsp; {{tag_set.published.date|date:"F j, Y"}} at {{tag_set.published.time|time:"f"}}
 			</li>
 		{% endfor %}
 		</ul>
@@ -191,16 +174,13 @@
 		{% if nudge.attributedToMember %}
 			{% if nudge.creator.isActiveMember %}
 				<a href="member?{{nudge.creator.key}}">{{nudge.creator.nickname}}</a>
-				{% ifequal nudge.creator.key current_member.key %}
-					(<a href="nudge?{{nudge.key}}">Change</a>)
-				{% endifequal %}
 			{% else %}
 				the former member "{{nudge.creator.nickname}}"
 			{% endif %}
 		{% else %}
 			<a href="characterInfo|{{nudge.character.key}}">{{nudge.character.name}}</a>
 		{% endif %}
-
+		&nbsp; {{nudge.published.date|date:"F j, Y"}} at {{nudge.published.time|time:"f"}}
 		</li>
 		<ul><li class="nobullet">{{nudge.shortString}}</li></ul>
 		</li>
@@ -221,9 +201,6 @@
 			{% if request.attributedToMember %}
 				{% if request.creator.isActiveMember %}
 					<a href="member?{{request.creator.key}}">{{request.creator.nickname}}</a>
-					{% ifequal request.creator.key current_member.key %}
-						(<a href="request?{{request.key}}">Change</a>)
-					{% endifequal %}
 				{% else %}
 					the former member "{{request.creator.nickname}}"
 				{% endif %}
@@ -232,7 +209,8 @@
 			{% endif %}
 			</li>
 			<ul><li class="nobullet">{{request.longString|escape}}</li></ul>
-			</li>		
+			</li>	
+			&nbsp; {{request.published.date|date:"F j, Y"}} at {{request.published.time|time:"f"}}	
 		{% endfor %}
 		</ul>
 		<ul><li class="nobullet"><a href="/visit/request?{{article.key}}">Add another request</a></li></ul>

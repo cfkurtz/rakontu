@@ -38,8 +38,6 @@ DEFAULT_NUDGE_POINT_ACCUMULATIONS = [
 									0, # time (doesn't apply here)
 					 				4, # reading
 					 				20, # telling
-					 				30, # retelling
-					 				25, # reminding
 					 				10, # relating
 					 				15, # including
 					 				20, # answering
@@ -60,12 +58,12 @@ DEFAULT_ROLE_READMES = [
 GOVERNANCE_ROLE_TYPES = ["member", "manager", "owner"]
 ACTIVITIES_GERUND = ["time", \
 					   	 "reading", \
-						 "telling", "retelling", "reminding", "relating", "including", \
-						 "answering questions", "tagging", "commenting", "requesting", "nudging"]
+						 "telling", "relating", "including", \
+						 "answering question", "tagging", "commenting", "requesting", "nudging"]
 ACTIVITIES_VERB = ["time", \
 					   	 "read", \
-						 "told", "retold", "reminded", "related", "included", \
-						 "questions answered about", "tagged", "commented", "requested", "nudged"]
+						 "told", "related", "included", \
+						 "question answered about", "tagged", "commented", "requested", "nudged"]
 
 # articles
 ARTICLE_TYPES = ["story", "pattern", "collage", "invitation", "resource"]
@@ -89,8 +87,6 @@ DEFAULT_VERTICAL_MOVEMENT_POINTS_PER_EVENT = [
 									-1, # time
 					 				5, # reading
 					 				2, # telling  
-					 				2, # retelling 
-					 				2, # reminding 
 					 				2, # relating
 					 				2, # including 
 					 				20, # answering
@@ -101,7 +97,7 @@ DEFAULT_VERTICAL_MOVEMENT_POINTS_PER_EVENT = [
 					 				]
 
 # history
-HISTORY_ACTION_TYPES = ["read", "created", "changed", "removed"]
+HISTORY_ACTION_TYPES = ["read", "published"]
 HISTORY_REFERENT_TYPES = ["story", "pattern", "collage", "invitation", "request", \
 						  "retold link", "reminded link", "related link", "included link", \
 						  "answer set", "tag set", "comment", "request", "nudge"]
@@ -162,26 +158,8 @@ class Community(db.Model):
 	
 	# articles
 	
-	def getArticles(self):
-		return Article.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
-	
-	def getStories(self):
-		return Story.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
-	
-	def getPatterns(self):
-		return Pattern.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
-	
-	def getCollages(self):
-		return Collage.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
-	
-	def getInvitations(self):
-		return Invitation.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
-	
-	def getResources(self):
-		return Resource.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
-	
-	def getLinks(self):
-		return Link.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+	def getNonDraftArticles(self):
+		return Article.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
 	def getMemberForGoogleAccountId(self, id):
 		return Member.all().filter("community = ", self.key()).filter("googleAccountID = ", id).fetch(1)
@@ -271,6 +249,20 @@ class Community(db.Model):
 
 	# options
 	
+#ACTIVITIES_GERUND = ["time", \
+#					   	 "reading", \
+#						 "telling", "retelling", "reminding", "relating", "including", \
+#						 "answering questions", "tagging", "commenting", "requesting", "nudging"]
+
+	
+	def getNudgePointsPerActivityForActivityName(self, activity):
+		i = 0
+		for anActivity in ACTIVITIES_GERUND:
+			if anActivity == activity:
+				return self.nudgePointsPerActivity[i]
+			i += 1
+		return 0
+	
 	def getCommunityLevelViewingPreferences(self):
 		return ViewingPreferences.all().filter("community = ", self.key()).filter("owner = ", self.key()).fetch(FETCH_NUMBER)
 
@@ -308,7 +300,7 @@ class Question(db.Model):
 		help:				Explanatory text about how to answer the question.
 		useHelp:			Appears to manager choosing question. Helps them decide when to use it.
 	"""
-	community = db.ReferenceProperty(Community)
+	community = db.ReferenceProperty(Community, collection_name="questions_to_community")
 	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO, required=True)
 	
 	name = db.StringProperty(required=True, default="No name")
@@ -367,11 +359,12 @@ class Member(db.Model):
 		
 		lastEnteredArticle:	These "last" dates are for quickly showing activity.
 		lastEnteredAnnotation: 	These "last" dates are for quickly showing activity.
+		lastAnsweredQuestion:	These "last" dates are for quickly showing activity.
 		lastReadAnything:	These "last" dates are for quickly showing activity.
 		nudgePoints: 		Points accumulated by activity. Used for nudging articles.
 
 	"""
-	community = db.ReferenceProperty(Community, required=True)
+	community = db.ReferenceProperty(Community, required=True, collection_name="members_to_community")
 	nickname = db.StringProperty(default=NO_NICKNAME_SET)
 	googleAccountID = db.StringProperty(required=True)
 	googleAccountEmail = db.StringProperty(required=True)
@@ -393,6 +386,7 @@ class Member(db.Model):
 	joined = db.DateTimeProperty(auto_now_add=True)
 	lastEnteredArticle = db.DateTimeProperty()
 	lastEnteredAnnotation = db.DateTimeProperty()
+	lastAnsweredQuestion = db.DateTimeProperty()
 	lastReadAnything = db.DateTimeProperty()
 	nudgePoints = db.IntegerProperty(default=50)
 
@@ -455,6 +449,23 @@ class Member(db.Model):
 	def getHistory(self):
 		return ArticleHistoryItem.all().filter("member = ", self.key()).order("-timeStamp")
 	
+	def getDraftArticles(self):
+		return Article.all().filter("creator = ", self.key()).filter("draft = ", True).fetch(FETCH_NUMBER)
+	
+	def getDraftAnswersForArticle(self, article):
+		return Answer.all().filter("creator = ", self.key()).filter("draft = ", True).filter("referent = ", article.key()).fetch(FETCH_NUMBER)
+	
+	def getDraftAnnotations(self):
+		return Annotation.all().filter("creator = ", self.key()).filter("draft = ", True).fetch(FETCH_NUMBER)
+	
+	def getArticlesWithDraftAnswers(self):
+		answers = Answer.all().filter("creator = ", self.key()).filter("draft = ", True).filter("referentType = ", "article").fetch(FETCH_NUMBER)
+		articles = {}
+		for answer in answers:
+			if not articles.has_key(answer.referent):
+				articles[answer.referent] = 1
+		return articles.keys()
+	
 class PendingMember(db.Model):
 	""" A person who has been invited to join a community but who has not yet logged in.
 		
@@ -463,7 +474,7 @@ class PendingMember(db.Model):
 		email:				An email address related to a Google account.
 		invited:			When invited.
 	"""
-	community = db.ReferenceProperty(Community, required=True)
+	community = db.ReferenceProperty(Community, required=True, collection_name="pending_members_to_community")
 	email = db.StringProperty(required=True)
 	invited = db.DateTimeProperty(auto_now_add=True)
 	
@@ -478,7 +489,7 @@ class Character(db.Model):
 							How not to behave.
 		image:				Optional image.
 	"""
-	community = db.ReferenceProperty(Community, required=True)
+	community = db.ReferenceProperty(Community, required=True, collection_name="characters_to_community")
 	name = db.StringProperty(required=True)
 	description = db.TextProperty(default="")
 	etiquetteStatement = db.TextProperty(default="")
@@ -497,6 +508,7 @@ class Answer(db.Model):
 	Properties
 		question: 			Refers to annotation question, for display.
 		referent:			Whatever the answer refers to.
+		referentType:		Whether the answer refers to an article or member.
 		creator:			Who answered the question.
 		
 		answerIfBoolean:	True or false. Only used if question type is boolean.
@@ -505,15 +517,19 @@ class Answer(db.Model):
 		answerIfValue:		Integer. Only used if question type is value.
 							(Note we are leaving float values out.)
 		
-		entered: 			When entered.
-		lastChanged: 		When last changed.
+		created: 			When object was created.
+		edited: 			When last changed.
+		published:			When published (if).
+		draft:				Whether this is a draft or published entry.
 	"""
-	question = db.ReferenceProperty(Question, collection_name="answers to questions")
-	referent = db.ReferenceProperty(None, collection_name="answers to objects")
-	creator = db.ReferenceProperty(Member, collection_name="answers to creators")
-	
+	question = db.ReferenceProperty(Question, collection_name="answers_to_questions")
+	referent = db.ReferenceProperty(None, collection_name="answers_to_objects")
+	referentType = db.StringProperty(default="article")
+	creator = db.ReferenceProperty(Member, collection_name="answers_to_creators")
+	community = db.ReferenceProperty(Community, collection_name="answers_to_community")
+    
 	collectedOffline = db.BooleanProperty(default=False)
-	liaison = db.ReferenceProperty(Member, default=None, collection_name="answers_liaisoned")
+	liaison = db.ReferenceProperty(Member, default=None, collection_name="answers_to_liaisons")
 	character = db.ReferenceProperty(Character, default=None)
 	
 	answerIfBoolean = db.BooleanProperty(default=False)
@@ -521,8 +537,10 @@ class Answer(db.Model):
 	answerIfMultiple = db.StringListProperty(default=["", "", "", "", "", "", "", "", "", ""])
 	answerIfValue = db.IntegerProperty(default=0)
 	
-	entered = db.DateTimeProperty(auto_now_add=True)
-	lastChanged = db.DateTimeProperty(auto_now_add=True)
+	created = db.DateTimeProperty(auto_now_add=True)
+	edited = db.DateTimeProperty(auto_now_add=True)
+	published = db.DateTimeProperty(auto_now_add=True)
+	draft = db.BooleanProperty(default=True)
 	
 	def questionKey(self):
 		return self.question.key()
@@ -535,6 +553,16 @@ class Answer(db.Model):
 			return self.character.name
 		else:
 			return self.creator.nickname
+				
+	def publish(self):
+		if self.referentType == "article":
+			self.draft = False
+			self.published = datetime.datetime.now()
+			self.referent.addHistoryItem(self.memberNickNameOrCharacterName(), "published", self)
+			self.put()
+			self.creator.nudgePoints += self.community.getNudgePointsPerActivityForActivityName("answering question")
+			self.creator.lastAnsweredQuestion = datetime.datetime.now()
+			self.creator.put()
 				
 # --------------------------------------------------------------------------------------------
 # Article
@@ -559,8 +587,11 @@ class Article(db.Model):
 
 		tookPlace:			When the events the article is about took place.
 		collected:			When article was collected, usually from an off-line member.
-		entered:			When article was added to database.
-		lastChanged:			When the text or title was last changed.
+		created:			When article was added to database.
+		edited:				When the text or title was last changed.
+		published:			When the article was published.
+		draft:				Whether this is a draft or published entry.
+		
 		lastRead:			When it was last accessed by anyone.
 		lastAnnotated:		The last time any annotation was added.
 		numBrowses:			The number of times this article appeared in the main browse window.
@@ -572,15 +603,18 @@ class Article(db.Model):
 	type = db.StringProperty(choices=ARTICLE_TYPES, required=True)
 
 	creator = db.ReferenceProperty(Member, collection_name="articles")
-	community = db.ReferenceProperty(Community, required=True)
+	community = db.ReferenceProperty(Community, required=True, collection_name="articles_to_community")
 	collectedOffline = db.BooleanProperty(default=False)
-	liaison = db.ReferenceProperty(Member, default=None, collection_name="articles_liaisoned")
+	liaison = db.ReferenceProperty(Member, default=None, collection_name="articles_to_liaisons")
 	character = db.ReferenceProperty(Character, default=None)
 	
 	tookPlace = db.DateTimeProperty(default=None)
 	collected = db.DateTimeProperty(default=None)
-	entered = db.DateTimeProperty(auto_now_add=True)
-	lastChanged = db.DateTimeProperty(default=None)
+	created = db.DateTimeProperty(auto_now_add=True)
+	edited = db.DateTimeProperty(auto_now_add=True)
+	published = db.DateTimeProperty(auto_now_add=True)
+	draft = db.BooleanProperty(default=True)
+	
 	lastRead = db.DateTimeProperty(default=None)
 	lastAnnotated = db.DateTimeProperty(default=None)
 	numBrowses = db.IntegerProperty(default=0)
@@ -608,9 +642,12 @@ class Article(db.Model):
 	
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
+	
+	def getNonDraftAnswers(self):
+		return Answer.all().filter("referent = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 
-	def getAnnotationsOfType(self, type):
-		return Annotation.all().filter("article =", self.key()).filter("type = ", type).fetch(FETCH_NUMBER)
+	def getNonDraftAnnotationsOfType(self, type):
+		return Annotation.all().filter("article =", self.key()).filter("type = ", type).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
 	def getLinksOfType(self, type):
 		result = []
@@ -657,7 +694,7 @@ class Article(db.Model):
 				item.textToShow = referent.shortString
 		elif referent.__class__.__name__ == "Answer":
 			item.referentType = "answer set"
-			item.textToShow = answer.question.text
+			item.textToShow = referent.question.text
 		elif referent.__class__.__name__ == "Link":
 			item.referentType = referent.type + " link"
 			item.textToShow = referent.comment
@@ -668,6 +705,15 @@ class Article(db.Model):
 			return self.character.name
 		else:
 			return self.creator.nickname
+		
+	def publish(self):
+		self.draft = False
+		self.published = datetime.datetime.now()
+		self.addHistoryItem(self.memberNickNameOrCharacterName(), "published", self)
+		self.put()
+		self.creator.nudgePoints += self.community.getNudgePointsPerActivityForActivityName("telling")
+		self.creator.lastEnteredArticle = datetime.datetime.now()
+		self.creator.put()
 				
 class Link(db.Model):
 	""" For holding on to links between articles.
@@ -678,10 +724,12 @@ class Link(db.Model):
 		creator: 			Member who created the link. May be online or offline.
 		type:				One of retold, reminded, related, included.
 		comment:			Optional user comment about the linkage, written when link made.
+		published:			When created/published (no draft links).
 	"""
 	articleFrom = db.ReferenceProperty(Article, collection_name="linksFrom", required=True)
 	articleTo = db.ReferenceProperty(Article, collection_name="linksTo", required=True)
 	creator = db.ReferenceProperty(Member, collection_name="links")
+	published = db.DateTimeProperty(auto_now_add=True)
 	type = db.StringProperty(choices=LINK_TYPES, required=True)
 	comment = db.StringProperty(default="")
 	
@@ -717,8 +765,8 @@ class ArticleHistoryItem(db.Model):
 	timeStamp = db.DateTimeProperty(auto_now_add=True)
 	attribution = db.StringProperty()
 	actionType = db.StringProperty(choices=HISTORY_ACTION_TYPES, required=True)
-	article = db.ReferenceProperty(Article, collection_name="history articles")
-	referent = db.ReferenceProperty(None, collection_name="history", required=True)
+	article = db.ReferenceProperty(Article, collection_name="articles_history")
+	referent = db.ReferenceProperty(None, collection_name="referents_history", required=True)
 	referentType = db.StringProperty(choices=HISTORY_REFERENT_TYPES)
 	textToShow = db.StringProperty()
 	
@@ -749,13 +797,16 @@ class Annotation(db.Model):
 		character: 	Reference to fictional member name (from global list).
 
 		collected:			When article was collected, usually from an off-line member.
-		entered:			When article was added to database.
+		created:			When article was added to database.
+		edited:				When the text or title was last changed.
+		published:			When the annotation was published.
+		draft:				Whether this is a draft or published entry.
 		
 		inappropriateMarks:	A list of user comments marking the annotation as inappropriate.
 	"""
 	article = db.ReferenceProperty(Article, required=True, collection_name="annotations")
 	creator = db.ReferenceProperty(Member, collection_name="annotations")
-	community = db.ReferenceProperty(Community, required=True)
+	community = db.ReferenceProperty(Community, required=True, collection_name="annotations_to_community")
 	type = db.StringProperty(choices=ANNOTATION_TYPES, required=True)
 	
 	shortString = db.StringProperty()
@@ -769,7 +820,10 @@ class Annotation(db.Model):
 	character = db.ReferenceProperty(Character, default=None)
 
 	collected = db.DateTimeProperty(default=None)
-	entered = db.DateTimeProperty(auto_now_add=True)
+	created = db.DateTimeProperty(auto_now_add=True)
+	edited = db.DateTimeProperty(auto_now_add=True)
+	published = db.DateTimeProperty(auto_now_add=True)
+	draft = db.BooleanProperty(default=True)
 	
 	def totalNudgePointsAbsolute(self):
 		result = 0
@@ -785,6 +839,41 @@ class Annotation(db.Model):
 			return self.character.name
 		else:
 			return self.creator.nickname
+		
+	def typeAsURL(self):
+		if self.type != "tag set":
+			return self.type
+		return "tagset"
+	
+	def displayString(self):
+		if self.type == "comment" or self.type == "request":
+			return self.shortString
+		elif self.type == "tag set":
+			return ", ".join(self.tagsIfTagSet)
+		elif self.type == "nudge":
+			result = []
+			for i in range(5):
+				if self.valuesIfNudge[i] != 0:
+					result.append("%s: %s" % (self.community.nudgeCategories[i], self.valuesIfNudge[i]))
+			if self.shortString:
+				result.append("(%s)" % self.shortString)
+			return ", ".join(result)
+		
+	def publish(self):
+		self.draft = False
+		self.published = datetime.datetime.now()
+		self.article.addHistoryItem(self.memberNickNameOrCharacterName(), "published", self)
+		self.put()
+		if self.type == "tag set":
+			activity = "tagging"
+		elif self.type == "comment":
+			activity = "commenting"
+		elif self.type == "request":
+			activity =  "requesting"
+		elif self.type == "nudge":
+			activity = "nudging"
+		self.creator.nudgePoints += self.community.getNudgePointsPerActivityForActivityName(activity)
+		self.creator.put()
 				
 class InappropriateFlag(db.Model):
 	""" Flags that say anything is inappropriate and should be removed.
@@ -798,7 +887,7 @@ class InappropriateFlag(db.Model):
 		entered:			When the flag was created.
 	"""
 	referent = db.ReferenceProperty(None, required=True)
-	creator = db.ReferenceProperty(Member, collection_name="inappropriate flags")
+	creator = db.ReferenceProperty(Member, collection_name="flags")
 	comment = db.StringProperty(default="")
 	entered = db.DateTimeProperty(auto_now_add=True)
 	
@@ -940,7 +1029,7 @@ class ViewingPreferences(db.Model):
 							Used mainly at the community level, though users could set a different level for themselves.
 	"""
 	owner = db.ReferenceProperty(Member, required=True, collection_name="viewing_preferences")
-	communityIfCommon = db.ReferenceProperty(Community, required=True)
+	communityIfCommon = db.ReferenceProperty(Community, required=True, collection_name="prefs_to_community")
 	
 	xTimeStep = db.StringProperty(choices=TIME_STEPS, default="day")
 	xTimeStepMultiplier = db.IntegerProperty(default=1)

@@ -203,7 +203,7 @@ class BrowseArticlesPage(webapp.RequestHandler):
             template_values = {
                                'community': community, 
                                'current_member': member,
-                               'articles': community.getArticles(),
+                               'articles': community.getNonDraftArticles(),
                                'article_types': ARTICLE_TYPES,
                                'user_is_admin': users.is_current_user_admin(),
                                'logout_url': users.create_logout_url("/"),
@@ -229,13 +229,13 @@ class ReadArticlePage(webapp.RequestHandler):
                                    'community_has_questions_for_this_article_type': len(community.getQuestionsOfType(article.type)) > 0,
                                    'user_is_admin': users.is_current_user_admin(),
                                    'logout_url': users.create_logout_url("/"),
-                                   'answers': article.getAnswers(),
+                                   'answers': article.getNonDraftAnswers(),
                                    'questions': community.getQuestionsOfType(article.type),
                                    'attachments': article.getAttachments(),
-                                   'requests': article.getAnnotationsOfType("request"),
-                                   'comments': article.getAnnotationsOfType("comment"),
-                                   'tag_sets': article.getAnnotationsOfType("tag set"),
-                                   'nudges': article.getAnnotationsOfType("nudge"),
+                                   'requests': article.getNonDraftAnnotationsOfType("request"),
+                                   'comments': article.getNonDraftAnnotationsOfType("comment"),
+                                   'tag_sets': article.getNonDraftAnnotationsOfType("tag set"),
+                                   'nudges': article.getNonDraftAnnotationsOfType("nudge"),
                                    'retold_links_incoming': article.getIncomingLinksOfType("retold"),
                                    'retold_links_outgoing': article.getOutgoingLinksOfType("retold"),
                                    'reminded_links_incoming': article.getIncomingLinksOfType("reminded"),
@@ -247,6 +247,9 @@ class ReadArticlePage(webapp.RequestHandler):
                                    'included_links_outgoing': article.getOutgoingLinksOfType("included"),
                                    'history': article.getHistory(),
                                    }
+                member.lastReadAnything = datetime.datetime.now()
+                member.nudgePoints += community.getNudgePointsPerActivityForActivityName("reading")
+                member.put()
                 path = os.path.join(os.path.dirname(__file__), 'templates/visit/read.html')
                 self.response.out.write(template.render(path, template_values))
         else:
@@ -322,7 +325,8 @@ class SeeMemberPage(webapp.RequestHandler):
                         break
             if messageMember:
                 message = mail.EmailMessage()
-                message.sender=member.googleAccountEmail
+                # CFK FIX
+                #message.sender= # NEED TO STORE SYS ADMIN EMAIL !! (how to do that?)
                 message.subject=self.request.get("subject")
                 message.to=messageMember.googleAccountEmail
                 message.body=cgi.escape(self.request.get("message"))
@@ -351,7 +355,6 @@ class SeeCharacterPage(webapp.RequestHandler):
         else:
             self.redirect('/')
             
-   
 # --------------------------------------------------------------------------------------------
 # Add or change article
 # --------------------------------------------------------------------------------------------
@@ -442,24 +445,16 @@ class EnterArticlePage(webapp.RequestHandler):
             if not article:
                 article=Article(community=community, type=type, creator=member, title="Untitled")
                 newArticle = True
-            else:
-                if "remove|%s|%s" % (type, articleKey) in self.request.arguments():
-                    annotations = Annotation.all().filter("article = ", article.key()).fetch(FETCH_NUMBER)
-                    for annotation in annotations:
-                        article.addHistoryItem(annotation.memberNickNameOrCharacterName(), "removed", annotation)
-                        db.delete(annotation)
-                    linksFrom = Link.all().filter("articleFrom = ", article.key()).fetch(FETCH_NUMBER)
-                    for link in linksFrom:
-                        article.addHistoryItem(link.creator.nickname, "removed", link)
-                        db.delete(link)
-                    linksTo = Link.all().filter("articleTo = ", article.key()).fetch(FETCH_NUMBER)
-                    for link in linksTo:
-                        article.addHistoryItem(link.creator.nickname, "removed", link)
-                        db.delete(link)
-                    article.addHistoryItem(article.memberNickNameOrCharacterName(), "removed", article)
-                    db.delete(article)
-                    self.redirect("/visit/look")
-                    return
+            preview = False
+            if "save|%s" % type in self.request.arguments():
+                article.draft = True
+                article.edited = datetime.datetime.now()
+            elif "preview|%s" % type in self.request.arguments():
+                article.draft = True
+                preview = True
+            elif "publish|%s" % type in self.request.arguments():
+                article.draft = False
+                article.published = datetime.datetime.now()
             if self.request.get("title"):
                 article.title = self.request.get("title")
             article.text = self.request.get("text")
@@ -476,31 +471,36 @@ class EnterArticlePage(webapp.RequestHandler):
             else:
                 article.character = None
             article.put()
+            linkType = None
             if self.request.get("article_from"):
                 articleFrom = db.get(self.request.get("article_from"))
                 if articleFrom:
                     if self.request.get("link_type") == "retell":
                         linkType = "retold"
+                        activity = "retelling"
                     elif self.request.get("link_type") == "remind":
                         linkType = "reminded"
+                        activity = "reminding"
                     elif self.request.get("link_type") == "respond":
                         linkType = "included"
+                        activity = "including"
                     elif self.request.get("link_type") == "relate":
                         linkType = "related"
+                        activity = "relating"
                     elif self.request.get("link_type") == "include":
                         linkType = "included"
+                        activity = "including"
                     link = Link(articleFrom=articleFrom, articleTo=article, type=linkType, \
                                 creator=member, comment=self.request.get("link_comment"))
                     link.put()
+                    member.nudgePoints += community.getNudgePointsPerActivityForActivityName(activity)
             questions = Question.all().filter("community = ", community).filter("refersTo = ", type).fetch(FETCH_NUMBER)
             for question in questions:
                 foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", article.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
                 if foundAnswers:
                     answerToEdit = foundAnswers[0]
-                    article.addHistoryItem(answerToEdit.memberNickNameOrCharacterName(), "changed", answerToEdit)
                 else:
-                    answerToEdit = Answer(question=question, referent=article)
-                    article.addHistoryItem(answerToEdit.memberNickNameOrCharacterName(), "created", answerToEdit)
+                    answerToEdit = Answer(question=question, community=community, creator=member, referent=article, referentType="article")
                 if question.type == "text":
                     answerToEdit.answerIfText = self.request.get("%s" % question.key())
                 elif question.type == "value":
@@ -520,7 +520,10 @@ class EnterArticlePage(webapp.RequestHandler):
                     else:
                         answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
                 answerToEdit.creator = member
+                answerToEdit.draft = article.draft
                 answerToEdit.put()
+                if not answerToEdit.draft:
+                    answerToEdit.publish()
             foundAttachments = Attachment.all().filter("article = ", article.key()).fetch(FETCH_NUMBER)
             attachmentsToRemove = []
             for attachment in foundAttachments:
@@ -552,11 +555,14 @@ class EnterArticlePage(webapp.RequestHandler):
                                 attachmentToEdit.name = self.request.get("attachmentName%s" % i)
                                 attachmentToEdit.data = db.Blob(str(self.request.get("attachment%s" % i)))
                                 attachmentToEdit.put()
-            if newArticle:
-                article.addHistoryItem(article.memberNickNameOrCharacterName(), "created", article)
+            if not article.draft:
+                article.publish()
+            if preview:
+                self.redirect("/visit/preview?%s" % article.key())
+            elif article.draft:
+                self.redirect("/visit/profile?%s" % member.key())
             else:
-                article.addHistoryItem(article.memberNickNameOrCharacterName(), "changed", article)
-            self.redirect("/visit/read?%s" % article.key())
+                self.redirect("/visit/read?%s" % article.key())
         else:
             self.redirect("/visit/look")
             
@@ -595,25 +601,28 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
         if community and member:
             articleKey = self.request.query_string
             article = db.get(articleKey)
-            if "remove|answers|%s" % articleKey in self.request.arguments():
-                answers = Answer.all().filter("referent = ", article.key()).fetch(FETCH_NUMBER)
-                for answer in answers:
-                    db.delete(answer)
-                self.redirect("/visit/read?%s" % article.key())
-                return
             if article:
                 character = None
                 if self.request.get("attribution"):
                     characterKey = self.request.get("attribution")
                     character = Character.get(characterKey)
                 newAnswers = False
+                preview = False
+                setAsDraft = False
+                if "save" in self.request.arguments():
+                    setAsDraft = True
+                elif "preview" in self.request.arguments():
+                    setAsDraft = True
+                    preview = True
+                elif "publish" in self.request.arguments():
+                    setAsDraft = False
                 questions = Question.all().filter("community = ", community).filter("refersTo = ", article.type).fetch(FETCH_NUMBER)
                 for question in questions:
                     foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", article.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
                     if foundAnswers:
                         answerToEdit = foundAnswers[0]
                     else:
-                        answerToEdit = Answer(question=question, referent=article)
+                        answerToEdit = Answer(question=question, community=community, referent=article, referentType="article")
                         newAnswers = True
                     answerToEdit.character = character
                     if question.type == "text":
@@ -635,15 +644,67 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
                         else:
                             answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
                     answerToEdit.creator = member
-                    answerToEdit.put()
-                    if newAnswers:
-                        article.addHistoryItem(answerToEdit.memberNickNameOrCharacterName(), "created", answerToEdit)
+                    answerToEdit.draft = setAsDraft
+                    if setAsDraft:
+                        answerToEdit.edited = datetime.datetime.now()
+                        answerToEdit.put()
                     else:
-                        article.addHistoryItem(answerToEdit.memberNickNameOrCharacterName(), "changed", answerToEdit)
-            self.redirect("/visit/read?%s" % article.key())
+                        answerToEdit.publish()
+                if preview:
+                    self.redirect("/visit/previewAnswers?%s" % article.key())
+                elif setAsDraft:
+                    self.redirect("/visit/profile?%s" % member.key())
+                else:
+                    self.redirect("/visit/read?%s" % article.key())
         else:
             self.redirect("/visit/look")
             
+class PreviewAnswersPage(webapp.RequestHandler):
+    @RequireLogin 
+    def get(self):
+        community, member = GetCurrentCommunityAndMemberFromSession()
+        if community and member:
+            article = None
+            if self.request.query_string:
+                article = Article.get(self.request.query_string)
+                answers = article.getAnswersForMember(member)
+            if article and answers:
+                template_values = {
+                                   'user': users.get_current_user(),
+                                   'current_member': member,
+                                   'community': community, 
+                                   'article': article,
+                                   'community_has_questions_for_this_article_type': len(community.getQuestionsOfType(article.type)) > 0,
+                                   'questions': community.getQuestionsOfType(article.type),
+                                   'answers': answers,
+                                   'user_is_admin': users.is_current_user_admin(),
+                                   'logout_url': users.create_logout_url("/"),
+                                   }
+            path = os.path.join(os.path.dirname(__file__), 'templates/visit/previewAnswers.html')
+            self.response.out.write(template.render(path, template_values))
+        else:
+            self.redirect("/")
+        
+    @RequireLogin 
+    def post(self):
+        community, member = GetCurrentCommunityAndMemberFromSession()
+        if community and member:
+            article = None
+            if self.request.query_string:
+                article = Article.get(self.request.query_string)
+                if article:
+                    if "edit" in self.request.arguments():
+                        self.redirect("/visit/answers?%s" % article.key())
+                    elif "profile" in self.request.arguments():
+                        self.redirect("/visit/profile?%s" % member.key())
+                    elif "publish" in self.request.arguments():
+                        answers = article.getAnswersForMember(member)
+                        for answer in answers:
+                            answer.draft = False
+                            answer.published = datetime.datetime.now()
+                            answer.put()
+                        self.redirect("/visit/look")
+
 class EnterAnnotationPage(webapp.RequestHandler):
     @RequireLogin 
     def get(self):
@@ -713,15 +774,16 @@ class EnterAnnotationPage(webapp.RequestHandler):
                 if not annotation:
                     annotation = Annotation(community=community, type=type, creator=member, article=article)
                     newAnnotation = True
-                else:
-                    if "remove|%s|%s" % (type, annotation.key()) in self.request.arguments():
-                        if annotation.type == "nudge":
-                            member.nudgePoints += annotation.totalNudgePointsAbsolute
-                            member.put()
-                        article.addHistoryItem(annotation.memberNickNameOrCharacterName(), "removed", annotation)
-                        db.delete(annotation)
-                        self.redirect("/visit/read?%s" % article.key())
-                        return
+                preview = False
+                if "save|%s" % type in self.request.arguments():
+                    annotation.draft = True
+                    annotation.edited = datetime.datetime.now()
+                elif "preview|%s" % type in self.request.arguments():
+                    annotation.draft = True
+                    preview = True
+                elif "publish|%s" % type in self.request.arguments():
+                    annotation.draft = False
+                    annotation.published = datetime.datetime.now()
                 annotation.collectedOffline = self.request.get("collectedOffline") == "yes"
                 if annotation.collectedOffline and member.isLiaison():
                     for aMember in community.getActiveMembers():
@@ -786,16 +848,78 @@ class EnterAnnotationPage(webapp.RequestHandler):
                     member.nudgePoints -= newTotalNudgePointsInThisNudge
                     member.put()
                 annotation.put()
-                if newAnnotation:
-                    article.addHistoryItem(annotation.memberNickNameOrCharacterName(), "created", annotation)
+                if not annotation.draft:
+                    annotation.publish()
+                if preview:
+                    self.redirect("/visit/preview?%s" % annotation.key())
+                elif annotation.draft:
+                    self.redirect("/visit/profile?%s" % member.key())
                 else:
-                    article.addHistoryItem(annotation.memberNickNameOrCharacterName(), "changed", annotation)
-                self.redirect("/visit/read?%s" % article.key())
+                    self.redirect("/visit/read?%s" % article.key())
             else:
                 self.redirect("/visit/look")
         else:
             self.redirect("/")
+            
+class PreviewPage(webapp.RequestHandler):
+    @RequireLogin 
+    def get(self):
+        community, member = GetCurrentCommunityAndMemberFromSession()
+        if community and member:
+            article = None
+            annotation = None
+            if self.request.query_string:
+                try:
+                    article = Article.get(self.request.query_string)
+                except:
+                    annotation = Annotation.get(self.request.query_string)
+                    article = annotation.article
+            if article:
+                template_values = {
+                                   'user': users.get_current_user(),
+                                   'current_member': member,
+                                   'community': community, 
+                                   'annotation': annotation,
+                                   'article': article,
+                                   'community_has_questions_for_this_article_type': len(community.getQuestionsOfType(article.type)) > 0,
+                                   'questions': community.getQuestionsOfType(article.type),
+                                   'answers_with_article': article.getAnswersForMember(member),
+                                   'nudge_categories': community.nudgeCategories,
+                                   'user_is_admin': users.is_current_user_admin(),
+                                   'logout_url': users.create_logout_url("/"),
+                                   }
+            path = os.path.join(os.path.dirname(__file__), 'templates/visit/preview.html')
+            self.response.out.write(template.render(path, template_values))
+        else:
+            self.redirect("/")
         
+    @RequireLogin 
+    def post(self):
+        community, member = GetCurrentCommunityAndMemberFromSession()
+        if community and member:
+            article = None
+            annotation = None
+            if self.request.query_string:
+                try:
+                    article = Article.get(self.request.query_string)
+                except:
+                    annotation = Annotation.get(self.request.query_string)
+                    article = annotation.article
+            if "profile" in self.request.arguments():
+                self.redirect("/visit/profile?%s" % member.key())
+            elif annotation:
+                if "edit" in self.request.arguments():
+                    self.redirect("/visit/%s?%s" % (annotation.typeAsURL(), annotation.key()))
+                elif "publish" in self.request.arguments():
+                    annotation.publish()
+                    self.redirect("/visit/look?%s" % annotation.article.key())
+            else:
+                if "edit" in self.request.arguments():
+                    self.redirect("/visit/%s?%s" % (article.type, article.key()))
+                elif "publish" in self.request.arguments():
+                    article.publish()
+                    self.redirect("/visit/look")
+
 # --------------------------------------------------------------------------------------------
 # Manage memberhip
 # --------------------------------------------------------------------------------------------
@@ -811,12 +935,20 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
                     liaison = community.getMemberForGoogleAccountId(member.liaisonAccountID)
                 except:
                     liaison = None
+            draftAnswerArticles = member.getArticlesWithDraftAnswers()
+            firstDraftAnswerForEachArticle = []
+            for article in draftAnswerArticles:
+                answers = member.getDraftAnswersForArticle(article)
+                firstDraftAnswerForEachArticle.append(answers[0])
             template_values = {
                                'community': community, 
                                'current_user': users.get_current_user(), 
                                'current_member': member,
                                'questions': community.getMemberQuestions(),
                                'answers': member.getAnswers(),
+                               'draft_articles': member.getDraftArticles(),
+                               'draft_annotations': member.getDraftAnnotations(),
+                               'first_draft_answer_per_article': firstDraftAnswerForEachArticle,
                                'liaison': liaison,
                                'helping_role_names': HELPING_ROLE_TYPES,
                                'refer_type': "member",
@@ -842,13 +974,24 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
                 member.helpingRoles[i] = self.request.get("helpingRole%s" % i) == "helpingRole%s" % i
             member.guideIntro = self.request.get("guideIntro")
             member.put()
+            for article in member.getDraftArticles():
+                if self.request.get("remove|%s" % article.key()) == "yes":
+                    db.delete(article)
+            for annotation in member.getDraftAnnotations():
+                if self.request.get("remove|%s" % annotation.key()) == "yes":
+                    db.delete(annotation)
+            for article in member.getArticlesWithDraftAnswers():
+                if self.request.get("removeAnswers|%s" % article.key()) == "yes":
+                    answers = member.getDraftAnswersForArticle(article)
+                    for answer in answers:
+                        db.delete(answer)
             questions = Question.all().filter("community = ", community).filter("refersTo = ", "member").fetch(FETCH_NUMBER)
             for question in questions:
                 foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", member.key()).fetch(FETCH_NUMBER)
                 if foundAnswers:
                     answerToEdit = foundAnswers[0]
                 else:
-                    answerToEdit = Answer(question=question, referent=member)
+                    answerToEdit = Answer(question=question, community=community, referent=member, referentType="member")
                 if question.type == "text":
                     answerToEdit.answerIfText = self.request.get("%s" % question.key())
                 elif question.type == "value":
@@ -1264,6 +1407,8 @@ application = webapp.WSGIApplication(
                                       ('/visit/resource', EnterArticlePage),
                                       ('/visit/article', EnterArticlePage),
                                       ('/visit/answers', AnswerQuestionsAboutArticlePage),
+                                      ('/visit/preview', PreviewPage),
+                                      ('/visit/previewAnswers', PreviewPage),
                                       
                                       ('/visit/request', EnterAnnotationPage),
                                       ('/visit/tagset', EnterAnnotationPage),

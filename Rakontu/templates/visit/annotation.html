@@ -177,16 +177,16 @@
 			{% endif %}
 			</fieldset>
 			
-			<p>			
+			<p>
 			<center>
-			{% if annotation %}
-				<input type="submit" name="change|{{annotation_type}}|{{annotation.key}}" value="Change {{annotation_type}}" class="button">
-				<p>&nbsp; </p>
-				<p>&nbsp; </p>
-				<input type="submit" name="remove|{{annotation_type}}|{{annotation.key}}" value="I would like to PERMANENTLY REMOVE this {{annotation_type}}"
-					onClick="javascript:return confirm('Are you sure you want to delete this item?')"" class="button">
+			{% if article %}
+				<input type="submit" name="save|{{annotation_type}}" value="Save draft" class="button">
+				<input type="submit" name="preview|{{annotation_type}}" value="Preview" class="button">
+				<input type="submit" name="publish|{{annotation_type}}" value="Publish" class="button">
 			{% else %}
-				<input type="submit" name="add|{{annotation_type}}|{{article.key}}" value="Add {{annotation_type}}" class="button">
+				<input type="submit" name="save|{{annotation_type}}" value="Save as draft" class="button">
+				<input type="submit" name="preview|{{annotation_type}}" value="Preview" class="button">
+				<input type="submit" name="publish|{{annotation_type}}" value="Publish" class="button">
 			{% endif %}
 			</center>
 			

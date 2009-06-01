@@ -71,12 +71,13 @@
 			<p>
 			<center>
 			{% if answers %}
-				<input type="submit" name="answers|{{article.key}}" value="Change answers about {{article_type}}" class="button">
-				<p>&nbsp; </p>
-				<input type="submit" name="remove|answers|{{article.key}}" value="I would like to PERMANENTLY REMOVE these answers"
-					onClick="javascript:return confirm('Are you REALLY ABSOLUTELY sure you want to delete these answers?\n\nThere will be NO way to get them back.')"" class="button">
+				<input type="submit" name="save" value="Save draft" class="button">
+				<input type="submit" name="preview" value="Preview" class="button">
+				<input type="submit" name="publish" value="Publish" class="button">
 			{% else %}
-				<input type="submit" name="answers|{{article.key}}" value="Add answers about {{article_type}}" class="button">
+				<input type="submit" name="save" value="Save as draft" class="button">
+				<input type="submit" name="preview" value="Preview" class="button">
+				<input type="submit" name="publish" value="Publish" class="button">
 			{% endif %}
 			</center>
 			

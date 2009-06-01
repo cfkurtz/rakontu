@@ -224,12 +224,13 @@
 			<p>
 			<center>
 			{% if article %}
-				<input type="submit" name="change|{{article_type}}|{{article.key}}" value="Change {{article_type}}" class="button">
-				<p>&nbsp; </p>
-				<input type="submit" name="remove|{{article_type}}|{{article.key}}" value="I would like to PERMANENTLY REMOVE this {{article_type}}"
-					onClick="javascript:return confirm('Are you REALLY ABSOLUTELY sure you want to delete this item?\n\nThere will be NO way to get it back.')"" class="button">
+				<input type="submit" name="save|{{article_type}}" value="Save draft" class="button">
+				<input type="submit" name="preview|{{article_type}}" value="Preview" class="button">
+				<input type="submit" name="publish|{{article_type}}" value="Publish" class="button">
 			{% else %}
-				<input type="submit" name="add|{{article_type}}" value="Add {{article_type}}" class="button">
+				<input type="submit" name="save|{{article_type}}" value="Save as draft" class="button">
+				<input type="submit" name="preview|{{article_type}}" value="Preview" class="button">
+				<input type="submit" name="publish|{{article_type}}" value="Publish" class="button">
 			{% endif %}
 			</center>
 			

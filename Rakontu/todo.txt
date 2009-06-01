@@ -1,20 +1,13 @@
 Things to do before v0.1 is complete
 
-- resources should also be able to create remind links to stories
+# BUGS RIGHT NOW
 
-- save as draft, preview, publish
-no access after published
-can save drafts forever
-can delete drafts
-what to do if have a draft annotation/answer
-and the article is deleted?
-must delete the draft too
-how would the user know?
-wouldn't that be confusing?
-keep it? flag for "article removed"?
-then they would just have to delete it,
-you can't do anything with it
-but it's confusing if it just disappears
+- if you enter a story with answers, it doesn't show your answers in the read page. it asks you
+if you want to enter more. are there answers? may be lost due to recent changes with save/publish system.
+
+# TO DO
+
+- resources should also be able to create remind links to stories
 
 - need to add "send this member a note" thing
 in member page
@@ -30,6 +23,7 @@ by curators
 
 - mgrs/owners need deep freeze view page (was basement)
 where you can see and delete articles
+- NEED DEEP FREEZE? maybe it's just in the viewing prefs?
 
 - does the article nudge value start at zero?
 
@@ -81,6 +75,4 @@ that way no clutter if they don't want them
 add import/export of question lists (CSV)
 	
 that whole thing about escaping texts while allowing some simple html to pass through
-and links
-not doing right now - too hard
-put "|escape|linebreaks" after each text display to be safe
+can do - s/r then escape then s/r again
