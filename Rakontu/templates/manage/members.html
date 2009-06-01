@@ -11,19 +11,21 @@
 			<div id="stylized" class="rakontu_form">
 			<form action="/manage/members" method="post">
 			
-			<h3>Members</h3>
+			<h3>Active members</h3>
 	      	<table border="1" cellpadding="4" cellspacing="0">
 	      	<tr>
 	      		<th>Nickname</th>
 	      		<th>Online member?</th>
+	      		<th>Google account email</th>
 	      		<th>Governing roles</th>
 	      		<th>Helping roles and availability</th>
-	      		<th>Remove? </th>
+	      		<th>Inactivate?</th>
 	      		</tr>
 	      		{% for aMember in community_members %}
 	  				<tr>
 	  				<td>{{ aMember.nickname }} {% ifequal aMember.key current_member.key %}<br><i>(This is you)</i> {% endifequal %} </td>
 	  				<td>{{ aMember.isOnlineMember|yesno:"yes, no, maybe" }}</td>
+	  				<td>{{ aMember.googleUserEmailOrNotOnline}}</td>
 	  				<td>
 	  					<select name="governanceType" class="select">
 	  						<option value="member|{{ aMember.googleAccountID }}"
@@ -76,8 +78,8 @@
 	      				
 	  					</td>
 	  				<td>
-	  					<input type="checkbox" name="remove|{{ aMember.googleAccountID }}" id="remove|{{ aMember.googleAccountID }}"/>
-						<label for="remove|{{ aMember.googleAccountID }}">Remove</label>
+	  					<input type="checkbox" name="remove|{{ aMember.key }}" value="yes" id="remove|{{ aMember.key }}"/>
+						<label for="remove|{{ aMember.key }}">Make inactive</label>
 	  					</td>
 	  				</tr>
 	      		{% endfor %}
@@ -106,6 +108,21 @@
 			<p>Instructions: Add email adddresses (linked to valid Google Accounts) for each member you want to add.
 			Place each email address on a separate line.</p>
 			</fieldset>
+			
+			{% if inactive_members %}
+				<h3>Inactive members</h3>
+				<fieldset>
+				These members have been removed from the active members list. To reinstate an inactive member, 
+				copy their email to the "New emails to add" box and re-invite them to the community. Reinstated
+				members will reconnect to their old histories and profiles, if the email address on the
+				Google account is the same.
+				<ul>
+				{% for member in inactive_members %}
+					<li class="nobullet">{{member.googleAccountEmail}}</li>
+				{% endfor %}
+				</ul>
+				</fieldset>
+			{% endif %}
 	
 		<p></p>
 	    <center><input type="submit" name="submitChanges" value="Submit Changes" class="button"></center>	

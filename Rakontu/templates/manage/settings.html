@@ -20,8 +20,10 @@
 			<p>Community description</p>
 			<div><textarea name="description" rows="10" cols="60">{{ community.description|escape }}</textarea></div>
 			<i>Full URLs (starting with http://) in the community description will be converted to links in what is shown.</i>
+			<p>Welcome message for new members</p>
+			<div><textarea name="welcomeMessage" rows="6" cols="60">{{ community.welcomeMessage|escape }}</textarea></div>
 			<p>Optional etiquette statement (rules for behavior)</p>
-			<div><textarea name="etiquetteStatement" rows="10" cols="60">{{ community.etiquetteStatement|escape }}</textarea></div>
+			<div><textarea name="etiquetteStatement" rows="3" cols="60">{{ community.etiquetteStatement|escape }}</textarea></div>
 			<p>Community image</p>
 			{% if community.image %}
 				<img src="img?community_id={{community.key}}" class="bordered"></img>

@@ -1,0 +1,15 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+	</head>
+	<body>
+	{% include "../menus.html" %}
+	<div id="content">
+	
+	<h3>Welcome, {{current_member.nickname}}!</h3>
+	
+	{{community.welcomeMessage}}
+	
+	</div>
+	</body>
+</html>

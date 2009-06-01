@@ -192,6 +192,10 @@ ul li.nobullet {
 	padding-bottom: 8px;
 	}
 	
+#stylized label:hover{
+	color: #993300;
+	}
+	
 #stylized select{
 	font-size: 12px;
 	padding: 4px 2px;
@@ -199,10 +203,18 @@ ul li.nobullet {
 	margin: 2px 0px 10px 2px;
 	}
 	
+#stylized select:hover{
+	border: solid 1px #FF2400;
+	}
+	
 #stylized input{
 	font-size: 12px;
 	border: solid 1px #FF7F00;
 	margin: 2px 2px 2px 2px;
+	}
+	
+#stylized input:hover{
+	border: solid 1px #FF2400;
 	}
 	
 #stylized textarea{
@@ -212,6 +224,10 @@ ul li.nobullet {
 	border: solid 1px #FF7F00;
 	width: 98%;
 	margin: 2px 0px 10px 2px;
+	}
+	
+#stylized textarea:hover{
+	border: solid 1px #FF2400;
 	}
 	
 #stylized input.button{
@@ -225,4 +241,9 @@ ul li.nobullet {
 	font-size: 130%;
 	font-weight: bold;
 	border: solid 2px #FF7F00;
+	}
+	
+#stylized input.button:hover{
+	border: solid 2px #FF2400;
+	background: #FF8000;
 	}

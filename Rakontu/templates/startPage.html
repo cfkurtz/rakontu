@@ -14,17 +14,26 @@
 	
 	<div id="stylized" class="rakontu_form_centered">
 	<form action="/" method="post">
-	{% if communities %}
-		<p>Which Rakontu community would you like to visit?</p>
+	{% if communities_member_of %}
+		<p>You are a <b>member</b> of these Rakontu communities.<br>Which would you like to visit?</p>
 		<p><select name="community_key" class="select">
-		{% for community in communities %}
+		{% for community in communities_member_of %}
 			<option value="{{ community.key }}">{{ community.name }}</option>
 		{% endfor %}
 		</select></p>
 		<input type="submit" name="visitCommunity" value="Visit Community" class="button">
-	{% else %}
-		<p>You are not a member of any Rakontu communities.</p>
 	{% endif %}
+
+	{% if communities_invited_to %}
+		<p>You have been <b>invited</b> to join these Rakontu communities.<br>Which would you like to join?</p>
+		<p><select name="community_key" class="select">
+		{% for community in communities_invited_to %}
+			<option value="{{ community.key }}">{{ community.name }}</option>
+		{% endfor %}
+		</select></p>
+		<input type="submit" name="visitCommunity" value="Join Community" class="button">
+	{% endif %}
+
 	<p></p>
 	<input type="submit" name="createCommunity" value="Create a New Rakontu Community" class="button">
 	</form>

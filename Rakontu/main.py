@@ -19,6 +19,7 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext import db
 from google.appengine.api import memcache
 from google.appengine.api import images
+from google.appengine.api import mail
 
 # third party imports
 import sys
@@ -63,49 +64,6 @@ def GetCurrentCommunityAndMemberFromSession():
         member = None
     return community, member
 
-def SetAllMemberEntriesToFormerMemberNickname(member):
-    articles = Article.all().filter("creator = ", member.key()).fetch(FETCH_NUMBER)
-    for article in articles:
-        article.formerMemberNickname = member.nickname
-        article.creator = None
-        article.put()
-    annotations = Annotation.all().filter("creator = ", member.key()).fetch(FETCH_NUMBER)
-    for annotation in annotations:
-        annotation.formerMemberNickname = member.nickname
-        annotation.creator = None
-        annotation.put()
-    answers = Answer.all().filter("creator = ", member.key()).fetch(FETCH_NUMBER)
-    for answer in answers:
-        answer.formerMemberNickname = member.nickname
-        answer.creator = None
-        answer.put()
-    links = Link.all().filter("creator = ", member.key()).fetch(FETCH_NUMBER)
-    for link in links:
-        link.formerMemberNickname = member.nickname
-        link.creator = None
-        link.put()
-    flags = InappropriateFlag.all().filter("creator = ", member.key()).fetch(FETCH_NUMBER)
-    for flag in flags:
-        flag.formerMemberNickname = member.nickname
-        flag.creator = None
-        flag.put()
-    if member.isLiaison():
-        articles = Article.all().filter("liaison = ", member.key()).fetch(FETCH_NUMBER)
-        for article in articles:
-            article.formerLiaisonNickname = member.nickname
-            article.liaison = None
-            article.put()
-        annotations = Annotation.all().filter("liaison = ", member.key()).fetch(FETCH_NUMBER)
-        for annotation in annotations:
-            annotation.formerLiaisonNickname = member.nickname
-            annotation.liaison = None
-            annotation.put()
-        answers = Answer.all().filter("liaison = ", member.key()).fetch(FETCH_NUMBER)
-        for answer in answers:
-            answer.formerLiaisonNickname = member.nickname
-            answer.liaison = None
-            answer.put()
-
 # --------------------------------------------------------------------------------------------
 # Startup page
 # --------------------------------------------------------------------------------------------
@@ -113,23 +71,26 @@ def SetAllMemberEntriesToFormerMemberNickname(member):
 class StartPage(webapp.RequestHandler):
     def get(self):
         user = users.get_current_user()
-        communities = []
+        communitiesTheyAreAMemberOf = []
+        communitiesTheyAreInvitedTo = []
         if user:
             members = Member.all().filter("googleAccountID = ", user.user_id()).fetch(FETCH_NUMBER)
             for member in members:
                 try:
-                    communities.append(member.community)
+                    if member.isActiveMember:
+                        communitiesTheyAreAMemberOf.append(member.community)
                 except:
                     pass # if can't link to community don't use it
             pendingMembers = PendingMember.all().filter("email = ", user.email()).fetch(FETCH_NUMBER)
             for pendingMember in pendingMembers:
                 try:
-                    communities.append(pendingMember.community)
+                    communitiesTheyAreInvitedTo.append(pendingMember.community)
                 except:
                     pass # if can't link to community don't use it
         template_values = {
                            'user': user, 
-                           'communities': communities,
+                           'communities_member_of': communitiesTheyAreAMemberOf,
+                           'communities_invited_to': communitiesTheyAreInvitedTo,
                            'logout_url': users.create_logout_url("/"),
                            }
         path = os.path.join(os.path.dirname(__file__), 'templates/startPage.html')
@@ -145,9 +106,18 @@ class StartPage(webapp.RequestHandler):
                 if community:
                     session = Session()
                     session['community_key'] = community_key
-                    members = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(FETCH_NUMBER)
-                    if members:
-                        session['member_key'] = members[0].key()
+                    matchingMembers = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(FETCH_NUMBER)
+                    if matchingMembers:
+                        session['member_key'] = matchingMembers[0].key()
+                        if matchingMembers[0].isActiveMember:
+                            self.redirect('/visit/look')
+                        else:
+                            matchingMembers[0].isActiveMember = True
+                            matchingMembers[0].put()
+                            pendingMembers = PendingMember.all().filter("community = ", community.key()).filter("email = ", user.email()).fetch(FETCH_NUMBER)
+                            if pendingMembers:
+                                db.delete(pendingMembers[0])
+                            self.redirect("/visit/new")
                     else:
                         pendingMembers = PendingMember.all().filter("community = ", community.key()).filter("email = ", user.email()).fetch(FETCH_NUMBER)
                         if pendingMembers:
@@ -156,20 +126,38 @@ class StartPage(webapp.RequestHandler):
                                 googleAccountID=user.user_id(),
                                 googleAccountEmail=user.email(),
                                 community=community,
+                                isActiveMember=True,
                                 governanceType="member")
                             newMember.put()
                             db.delete(pendingMembers[0])
                             session['member_key'] = newMember.key()
+                            self.redirect("/visit/new")
                         else:
                             self.redirect('/')
-                    self.redirect('/visit/look')
                 else:
                     self.redirect('/')
             else:
                 self.redirect('/')
         elif "createCommunity" in self.request.arguments():
             self.redirect("/createCommunity")
-
+            
+class NewMemberPage(webapp.RequestHandler):
+    @RequireLogin 
+    def get(self):
+        community, member = GetCurrentCommunityAndMemberFromSession()
+        if community and member:
+            template_values = {
+                               'community': community, 
+                               'current_user': users.get_current_user(), 
+                               'current_member': member,
+                               'user_is_admin': users.is_current_user_admin(),
+                               'logout_url': users.create_logout_url("/"),
+                               }
+            path = os.path.join(os.path.dirname(__file__), 'templates/visit/new.html')
+            self.response.out.write(template.render(path, template_values))
+        else:
+            self.redirect('/')
+                             
 # --------------------------------------------------------------------------------------------
 # Create new community
 # --------------------------------------------------------------------------------------------
@@ -194,6 +182,7 @@ class CreateCommunityPage(webapp.RequestHandler):
         member = Member(
             googleAccountID=user.user_id(),
             googleAccountEmail=user.email(),
+            isActiveMember=True,
             community=community,
             governanceType="owner",
             nickname = self.request.get('nickname'),
@@ -271,7 +260,7 @@ class SeeCommunityPage(webapp.RequestHandler):
                 template_values = {
                                    'community': community, 
                                    'current_member': member,
-                                   'community_members': community.getMembers(),
+                                   'community_members': community.getActiveMembers(),
                                    'characters': community.getCharacters(),
                                    'user_is_admin': users.is_current_user_admin(),
                                    'logout_url': users.create_logout_url("/"),                                   
@@ -289,7 +278,7 @@ class SeeCommunityMembersPage(webapp.RequestHandler):
                 template_values = {
                                    'community': community, 
                                    'current_member': member,
-                                   'community_members': community.getMembers(),
+                                   'community_members': community.getActiveMembers(),
                                    'user_is_admin': users.is_current_user_admin(),
                                    'logout_url': users.create_logout_url("/"),                                   
                                    }
@@ -320,6 +309,24 @@ class SeeMemberPage(webapp.RequestHandler):
                     self.redirect('/visit/look')
         else:
             self.redirect('/')
+
+    @RequireLogin 
+    def post(self):
+        community, member = GetCurrentCommunityAndMemberFromSession()
+        if community and member:
+            messageMember = None
+            for aMember in community.getActiveMembers():
+                for argument in self.request.arguments():
+                    if argument.find(aMember.key()) >= 0:
+                        messageMember = aMember
+                        break
+            if messageMember:
+                message = mail.EmailMessage()
+                message.sender=member.googleAccountEmail
+                message.subject=self.request.get("subject")
+                message.to=messageMember.googleAccountEmail
+                message.body=cgi.escape(self.request.get("message"))
+                message.send()
    
 class SeeCharacterPage(webapp.RequestHandler):
     @RequireLogin 
@@ -405,7 +412,7 @@ class EnterArticlePage(webapp.RequestHandler):
                                'questions': community.getQuestionsOfType(type),
                                'answers': answers,
                                'attachments': attachments,
-                               'community_members': community.getMembers(),
+                               'community_members': community.getActiveMembers(),
                                'character_allowed': community.allowCharacter[entryTypeIndexForCharacters],
                                'link_type': linkType,
                                'article_from': articleFrom,
@@ -458,7 +465,7 @@ class EnterArticlePage(webapp.RequestHandler):
             article.text = self.request.get("text")
             article.collectedOffline = self.request.get("collectedOffline") == "yes"
             if article.collectedOffline and member.isLiaison():
-                for aMember in community.getMembers():
+                for aMember in community.getActiveMembers():
                     if self.request.get("offlineSource") == aMember.key():
                         article.creator = aMember
                         article.liaison = member
@@ -570,7 +577,7 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
                                    'article_type': article.type,
                                    'questions': community.getQuestionsOfType(article.type),
                                    'answers': article.getAnswersForMember(member),
-                                   'community_members': community.getMembers(),
+                                   'community_members': community.getActiveMembers(),
                                    'character_allowed': community.allowCharacter[ANSWERS_ENTRY_TYPE_INDEX],
                                    'user_is_admin': users.is_current_user_admin(),
                                    'logout_url': users.create_logout_url("/"),
@@ -669,7 +676,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
                                    'community': community, 
                                    'annotation_type': type,
                                    'annotation': annotation,
-                                   'community_members': community.getMembers(),
+                                   'community_members': community.getActiveMembers(),
                                    'article': article,
                                    'request_types': REQUEST_TYPES,
                                    'nudge_categories': community.nudgeCategories,
@@ -717,7 +724,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
                         return
                 annotation.collectedOffline = self.request.get("collectedOffline") == "yes"
                 if annotation.collectedOffline and member.isLiaison():
-                    for aMember in community.getMembers():
+                    for aMember in community.getActiveMembers():
                         if self.request.get("offlineSource") == aMember.key():
                             annotation.creator = aMember
                             annotation.liaison = member
@@ -789,9 +796,6 @@ class EnterAnnotationPage(webapp.RequestHandler):
         else:
             self.redirect("/")
         
-class EnterAnswersPage(webapp.RequestHandler):
-    pass
-           
 # --------------------------------------------------------------------------------------------
 # Manage memberhip
 # --------------------------------------------------------------------------------------------
@@ -804,7 +808,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
             liaison = None
             if not member.isOnlineMember:
                 try:
-                    liaison = db.get(member.liaisonAccountID)
+                    liaison = community.getMemberForGoogleAccountId(member.liaisonAccountID)
                 except:
                     liaison = None
             template_values = {
@@ -830,11 +834,13 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
         if community and member:
             member.nickname = self.request.get("nickname")
             member.nicknameIsRealName = self.request.get('nickname_is_real_name') =="yes"
+            member.acceptsMessages = self.request.get("acceptsMessages") == "yes"
             member.profileText = self.request.get("description")
             if self.request.get("img"):
                 member.profileImage = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
             for i in range(3):
                 member.helpingRoles[i] = self.request.get("helpingRole%s" % i) == "helpingRole%s" % i
+            member.guideIntro = self.request.get("guideIntro")
             member.put()
             questions = Question.all().filter("community = ", community).filter("refersTo = ", "member").fetch(FETCH_NUMBER)
             for question in questions:
@@ -879,8 +885,9 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
                                'community': community, 
                                'current_user': users.get_current_user(), 
                                'current_member': member,
-                               'community_members': community.getMembers(),
+                               'community_members': community.getActiveMembers(),
                                'pending_members': community.getPendingMembers(),
+                               'inactive_members': community.getInactiveMembers(),
                                'user_is_admin': users.is_current_user_admin(),
                                'logout_url': users.create_logout_url("/"),
                                }
@@ -893,7 +900,7 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
     def post(self):
         community, member = GetCurrentCommunityAndMemberFromSession()
         if community and member:
-            communityMembers = Member.all().filter("community = ", community).fetch(FETCH_NUMBER)
+            communityMembers = community.getActiveMembers()
             for aMember in communityMembers:
                 for name, value in self.request.params.items():
                     if value.find(aMember.googleAccountID) >= 0:
@@ -918,14 +925,10 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
                     for i in range(3):
                         aMember.helpingRolesAvailable[i] = True
                 aMember.put()
-            membersToRemove = []
             for aMember in communityMembers:
-                if self.request.get("remove|%s" % aMember.googleAccountID):
-                    membersToRemove.append(aMember)
-            if membersToRemove:
-                for aMember in membersToRemove:
-                    SetAllMemberEntriesToFormerMemberNickname(aMember)
-                    db.delete(aMember)
+                if self.request.get("remove|%s" % aMember.key()) == "yes":
+                    aMember.isActiveMember = False
+                    aMember.put()
             for pendingMember in community.getPendingMembers():
                 pendingMember.email = self.request.get("email|%s" % pendingMember.key())
                 pendingMember.put()
@@ -934,8 +937,9 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
             memberEmailsToAdd = self.request.get("newMemberEmails").split('\n')
             for email in memberEmailsToAdd:
                 if email.strip():
-                    newPendingMember = PendingMember(community=community, email=email.strip())
-                    newPendingMember.put()
+                    if not community.hasMemberWithGoogleEmail(email.strip()):
+                        newPendingMember = PendingMember(community=community, email=email.strip())
+                        newPendingMember.put()
         self.redirect('/manage/members')
                 
 class ManageCommunitySettingsPage(webapp.RequestHandler):
@@ -976,6 +980,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
         if community and member:
             community.name = self.request.get("name")
             community.description = self.request.get("description")
+            community.welcomeMessage = self.request.get("welcomeMessage")
             community.etiquetteStatement = self.request.get("etiquetteStatement")
             if self.request.get("img"):
                 community.image = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
@@ -1266,12 +1271,11 @@ application = webapp.WSGIApplication(
                                       ('/visit/nudge', EnterAnnotationPage),
                                       ('/visit/annotation', EnterAnnotationPage),
                                       
-                                      ('/visit/answers', EnterAnswersPage),
-                                      
                                       ('/visit/members', SeeCommunityMembersPage),
                                       ('/visit/member', SeeMemberPage),
                                       ('/visit/character', SeeCharacterPage),
                                       ('/visit/community', SeeCommunityPage),
+                                      ('/visit/new', NewMemberPage),
                                       
                                       ('/visit/profile', ChangeMemberProfilePage),
                                       ('/img', ImageHandler),

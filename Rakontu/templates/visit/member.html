@@ -8,39 +8,56 @@
 	
 		<h3>Information about {{member.nickname}}</h3>
 		
-		 		{% if member.profileImage %}
-					<div><img src="img?member_id={{member.key}}" ></img></div>
-				{% endif %}
-				<p>
-				{{member.nickname}}
-  				{% ifequal member.key current_member.key %}<i>(this is you)</i> {% endifequal %} 
-  				is {% ifequal member.governanceType "member" %}
-  					{% else %}
-  						an <b>{{ member.governanceType }}</b> of this community,
-  					{% endifequal %}
-  				is an <b>{{ member.isOnlineMember|yesno:"on-line, off-line" }}</b> member,
-  				and 
-  					{% if not member.hasAnyHelpingRole %}
-  						has no helping role in particular.
-  					{% else %}
-  						is a
-	  					{% if member.helpingRoles.0 %} <b>curator</b>{% if member.helpingRoles.1 or member.helpingRoles.2 %} and{% else %}. {% endif %}{% endif %}
-	  					{% if member.helpingRoles.1 %} <b>guide</b>{% if member.helpingRoles.2 %} and{% else %}. {% endif %} {% endif %}
-	  					{% if member.helpingRoles.2 %} <b>liaison</b>.{% endif %}
-	  				{% endif %}
-	  			</p>
-  				{% if member.profileText %}<p>Says {{member.nickname}}: <ul><li class="nobullet">{{member.profileText}}</li></ul>{% endif %}
+		{% if member.profileImage %}
+			<div><img src="img?member_id={{member.key}}" ></img></div>
+		{% endif %}
+		<p>
+		{{member.nickname}}
+  		{% ifequal member.key current_member.key %}<i>(this is you)</i> {% endifequal %} 
+  		is {% ifequal member.governanceType "member" %}
+  			{% else %}
+  				an <b>{{ member.governanceType }}</b> of this community,
+  			{% endifequal %}
+  		is an <b>{{ member.isOnlineMember|yesno:"on-line, off-line" }}</b> member,
+  		and 
+  			{% if not member.hasAnyHelpingRole %}
+  				has no helping role in particular.
+  			{% else %}
+  				is a
+	  			{% if member.helpingRoles.0 %} <b>curator</b>{% if member.helpingRoles.1 or member.helpingRoles.2 %} and{% else %}. {% endif %}{% endif %}
+	  			{% if member.helpingRoles.1 %} <b>guide</b>{% if member.helpingRoles.2 %} and{% else %}. {% endif %} {% endif %}
+	  			{% if member.helpingRoles.2 %} <b>liaison</b>.{% endif %}
+	  		{% endif %}
+	  	</p>
+  		{% if member.profileText %}<p>Says {{member.nickname}}: <ul><li class="nobullet">{{member.profileText}}</li></ul>{% endif %}
 	
-	{% if history %}
-		<h4>History</h4>
-		<ul>
-		{% for item in history %}
-			<li class="nobullet">
-				{{item.attribution}} <b>{{item.actionType}}</b>
-				the {{item.referentType}} "{{item.textToShow}}" on {{item.timeStamp.date|date:"F j, Y"}} at {{item.timeStamp.time|time:"f"}}.</li>
-		{% endfor %}
-		</ul>
-	{% endif %}
+	
+		{% if member.isOnlineMember and member.acceptsMessages %}
+			<h3>Send this member a message</h3>
+			<fieldset>
+			<div id="stylized" class="rakontu_form">
+			<form action="/visit/member" method="post">
+			<p>Please give your message a subject line.</p>
+			<p><input type="text" name="subject" size="80" value=""/></p>
+			<p>Please enter your message here.</p>
+			<textarea name="message" rows="20" cols="60"></textarea>
+			<center><input type="submit" name="message|{{member.key}}" value="Send message" class="button"></center>
+			</form>
+			</div>
+			</fieldset>
+		{% endif %}
+
+	
+		{% if history %}
+			<h4>History</h4>
+			<ul>
+			{% for item in history %}
+				<li class="nobullet">
+					{{item.attribution}} <b>{{item.actionType}}</b>
+					the {{item.referentType}} "{{item.textToShow}}" on {{item.timeStamp.date|date:"F j, Y"}} at {{item.timeStamp.time|time:"f"}}.</li>
+			{% endfor %}
+			</ul>
+		{% endif %}
 		 
 	</div>
 	</body>

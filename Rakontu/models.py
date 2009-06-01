@@ -129,6 +129,7 @@ class Community(db.Model):
 		name:					The name that appears on all pages.
 		description:			Some text that describes the community. Can contain links. (simple markup?)
 		etiquetteStatement:		This is just some extra text in case they want to say how people should behave.
+		welcomeMessage:			Extra text a new member will see.
 		image:					Picture to show on community page.
 		
 		nudgePointsPerActivity:	A number for each type of activity (ACTIVITIES_GERUND) denoting how many
@@ -147,6 +148,7 @@ class Community(db.Model):
 	name = db.StringProperty()
 	description = db.TextProperty()
 	etiquetteStatement = db.TextProperty()
+	welcomeMessage = db.TextProperty()
 	image = db.BlobProperty(default=None)
 	created = db.DateTimeProperty(auto_now_add=True)
 	
@@ -180,6 +182,9 @@ class Community(db.Model):
 	
 	def getLinks(self):
 		return Link.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+	
+	def getMemberForGoogleAccountId(self, id):
+		return Member.all().filter("community = ", self.key()).filter("googleAccountID = ", id).fetch(1)
 		
 	def allowsAtLeastTwoAttachments(self):
 		return self.maxNumAttachments >= 2
@@ -239,13 +244,16 @@ class Community(db.Model):
 							   community=self)
 		newQuestion.put()
 	
-	def getMembers(self):
-		return Member.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+	def getActiveMembers(self):
+		return Member.all().filter("community = ", self.key()).filter("isActiveMember = ", True).fetch(FETCH_NUMBER)
 	
-	def hasMemberWithUserID(self, userID):
-		members = self.getMembers()
+	def getInactiveMembers(self):
+		return Member.all().filter("community = ", self.key()).filter("isActiveMember = ", False).fetch(FETCH_NUMBER)
+	
+	def hasMemberWithGoogleEmail(self, email):
+		members = self.getActiveMembers()
 		for member in members:
-			if member.googleAccountID == userID:
+			if member.googleAccountEmail == email:
 				return True
 		return False
 	
@@ -338,6 +346,8 @@ class Member(db.Model):
 		googleAccountEmail:	The email with which the account was created. For display only.
 		isOnlineMember:		Whether the member is online (has a Google account).
 							Note that offline members cannot have helping roles or be managers or owners.
+		isActiveMember:		Flag set to false when members quit; so they can be reinstated easier.
+		acceptsMessages:	Other members can send them messages, and they come through their email address.
 		liaisonAccountID:	Can be permanently linked to a liaison. This is to help
 							liaisons manage the offline members they have responsibility for.
 							
@@ -347,6 +357,8 @@ class Member(db.Model):
 		helpingRoles:		Helping roles the member has chosen (curator, guide, liaison).
 		helpingRolesAvailable:	A manager/owner can ban a member from taking on these roles in future
 							(this is for if people abuse them).
+		guideIntro:			An introduction to be shown if the person is a guide
+							about what sorts of questions they can best answer.
 		
 		nicknameIsRealName:	Whether their nickname is their real name. For display only.
 		profileText:		Small amount of member-submitted info about themselves.
@@ -364,12 +376,15 @@ class Member(db.Model):
 	googleAccountID = db.StringProperty(required=True)
 	googleAccountEmail = db.StringProperty(required=True)
 	isOnlineMember = db.BooleanProperty(default=True)
+	isActiveMember = db.BooleanProperty(default=True)
+	acceptsMessages = db.BooleanProperty(default=True)
 	liaisonAccountID = db.StringProperty(default=None)
 	
 	governanceType = db.StringProperty(choices=GOVERNANCE_ROLE_TYPES, default="member")
 	governanceView = db.StringListProperty(default=None)
 	helpingRoles = db.ListProperty(bool, default=[False, False, False])
 	helpingRolesAvailable = db.ListProperty(bool, default=[True, True, True])
+	guideIntro = db.TextProperty(default="")
 	
 	nicknameIsRealName = db.BooleanProperty(default=False)
 	profileText = db.TextProperty(default="No profile information.")
@@ -465,8 +480,8 @@ class Character(db.Model):
 	"""
 	community = db.ReferenceProperty(Community, required=True)
 	name = db.StringProperty(required=True)
-	description = db.TextProperty()
-	etiquetteStatement = db.TextProperty()
+	description = db.TextProperty(default="")
+	etiquetteStatement = db.TextProperty(default="")
 	image = db.BlobProperty(default=None)
 	
 	def getHistory(self):
@@ -483,8 +498,6 @@ class Answer(db.Model):
 		question: 			Refers to annotation question, for display.
 		referent:			Whatever the answer refers to.
 		creator:			Who answered the question.
-		formerMemberNickname:	This is only used if the member who created it has 
-								been deleted, so there is still something to display.
 		
 		answerIfBoolean:	True or false. Only used if question type is boolean.
 		answerIfText:		String. Only used if question type is text.
@@ -498,11 +511,9 @@ class Answer(db.Model):
 	question = db.ReferenceProperty(Question, collection_name="answers to questions")
 	referent = db.ReferenceProperty(None, collection_name="answers to objects")
 	creator = db.ReferenceProperty(Member, collection_name="answers to creators")
-	formerMemberNickname = db.StringProperty(default="")
 	
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="answers_liaisoned")
-	formerLiaisonNickname = db.StringProperty(default="")
 	character = db.ReferenceProperty(Character, default=None)
 	
 	answerIfBoolean = db.BooleanProperty(default=False)
@@ -523,10 +534,7 @@ class Answer(db.Model):
 		if self.character:
 			return self.character.name
 		else:
-			if self.creator:
-				return self.creator.nickname
-			else:
-				return self.formerMemberNickname
+			return self.creator.nickname
 				
 # --------------------------------------------------------------------------------------------
 # Article
@@ -541,8 +549,6 @@ class Article(db.Model):
 		type:				Whether it is a story, pattern, collage, invitation or resource.
 
 		creator: 			Member who contributed the story. May be online or offline.
-		formerMemberNickname:	This is only used if the member who created it has 
-								been deleted, so there is still something to display.
 		community:			The Rakontu community this article belongs to.
 		collectedOffline:	Whether it was contributed by an offline member.
 		liaison:			Person who entered the article for off-line member. None if not offline.
@@ -566,11 +572,9 @@ class Article(db.Model):
 	type = db.StringProperty(choices=ARTICLE_TYPES, required=True)
 
 	creator = db.ReferenceProperty(Member, collection_name="articles")
-	formerMemberNickname = db.StringProperty(default="")
 	community = db.ReferenceProperty(Community, required=True)
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="articles_liaisoned")
-	formerLiaisonNickname = db.StringProperty(default="")
 	character = db.ReferenceProperty(Character, default=None)
 	
 	tookPlace = db.DateTimeProperty(default=None)
@@ -663,10 +667,7 @@ class Article(db.Model):
 		if self.character:
 			return self.character.name
 		else:
-			if self.creator:
-				return self.creator.nickname
-			else:
-				return self.formerMemberNickname
+			return self.creator.nickname
 				
 class Link(db.Model):
 	""" For holding on to links between articles.
@@ -681,7 +682,6 @@ class Link(db.Model):
 	articleFrom = db.ReferenceProperty(Article, collection_name="linksFrom", required=True)
 	articleTo = db.ReferenceProperty(Article, collection_name="linksTo", required=True)
 	creator = db.ReferenceProperty(Member, collection_name="links")
-	formerMemberNickname = db.StringProperty(default="")
 	type = db.StringProperty(choices=LINK_TYPES, required=True)
 	comment = db.StringProperty(default="")
 	
@@ -755,7 +755,6 @@ class Annotation(db.Model):
 	"""
 	article = db.ReferenceProperty(Article, required=True, collection_name="annotations")
 	creator = db.ReferenceProperty(Member, collection_name="annotations")
-	formerMemberNickname = db.StringProperty(default="")
 	community = db.ReferenceProperty(Community, required=True)
 	type = db.StringProperty(choices=ANNOTATION_TYPES, required=True)
 	
@@ -767,7 +766,6 @@ class Annotation(db.Model):
 
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="annotations_liaisoned")
-	formerLiaisonNickname = db.StringProperty(default="")
 	character = db.ReferenceProperty(Character, default=None)
 
 	collected = db.DateTimeProperty(default=None)
@@ -786,10 +784,7 @@ class Annotation(db.Model):
 		if self.character:
 			return self.character.name
 		else:
-			if self.creator:
-				return self.creator.nickname
-			else:
-				return self.formerMemberNickname
+			return self.creator.nickname
 				
 class InappropriateFlag(db.Model):
 	""" Flags that say anything is inappropriate and should be removed.
@@ -804,7 +799,6 @@ class InappropriateFlag(db.Model):
 	"""
 	referent = db.ReferenceProperty(None, required=True)
 	creator = db.ReferenceProperty(Member, collection_name="inappropriate flags")
-	formerMemberNickname = db.StringProperty(default="")
 	comment = db.StringProperty(default="")
 	entered = db.DateTimeProperty(auto_now_add=True)
 	

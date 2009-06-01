@@ -38,6 +38,13 @@
 				checked
 			{% endif %}
 			><label for="nickname_is_real_name">This nickname is my real name</label></p>
+		<p>Do you want other community members to be able to send you messages via email?
+		<i>(They will not see your email address.)</i></p>
+		<p><input type="checkbox" name="acceptsMessages" value="yes" id="acceptsMessages"
+			{% if current_member.acceptsMessages %}
+				checked
+			{% endif %}
+			><label for="acceptsMessages">Yes, people can send me messages</label></p>
 		<p>Please describe yourself to other members.</p>
 		<div><textarea name="description" rows="10" cols="60">{{ current_member.profileText }}</textarea></div>
 		<i>Full URLs in the profile text will be converted to links in what is shown.</i>
@@ -87,6 +94,8 @@
 					{% endif %}
 					</table>
 				{% endif %}
+				<p>If you are a guide, what would you like to tell members about what sorts of questions you can answer?</p>
+				<textarea name="guideIntro" rows="3" cols="60">{{ current_member.guideIntro }}</textarea>
 			{% endif %}
 			
 			{% if current_member.helpingRolesAvailable.2 %}

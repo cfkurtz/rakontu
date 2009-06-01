@@ -8,7 +8,7 @@
 	
 	<h2>{{article.title}} ({{article.type}})</h2>
 	
-	<div class="article_text">{{article.text}}</div>
+	<div class="article_text">{{article.text|escape|linebreaks}}</div>
 	
 	{% if attachments %}
 		{% for attachment in attachments %}
@@ -20,7 +20,7 @@
 		{% endfor %}
 	{% endif %}
 	
-	{% if article.creator %}
+	{% if article.creator.isActiveMember %}
 		{% ifequal article.creator.key current_member.key %}
 			{% if article.attributedToMember %}
 				<p>You wrote this {{article.type}}; you can <a href="/visit/{{article.type}}?{{article.key}}">change</a> it.</p>
@@ -36,13 +36,13 @@
 	<p>This {{article.type}} was entered by 
 	
 	{% if article.attributedToMember %}
-			{% if article.creator %}
+			{% if article.creator.isActiveMember %}
 				<a href="member?{{article.creator.key}}">{{article.creator.nickname}}</a>
 				{% ifequal article.creator.key current_member.key %}
 					 (you)
 				{% endifequal %}
 			{% else %}
-				the former member "{{article.formerMemberNickname}}"
+				the former member "{{article.creator.nickname}}"
 			{% endif %}
 	{% else %}
 		<a href="characterInfo|{{nudge.character.key}}">{{article.character.name}}</a>
@@ -94,13 +94,13 @@
 							- 
 
 							{% if answer.attributedToMember %}
-								{% if answer.creator %}
+								{% if answer.creator.isActiveMember %}
 									<a href="member?{{answer.creator.key}}">{{answer.creator.nickname}}</a>
 									{% ifequal answer.creator.key current_member.key %}
 										(<a href="answers?{{article.key}}">Change</a>)
 									{% endifequal %}
 								{% else %}
-									the former member "{{answer.formerMemberNickname}}"
+									the former member "{{answer.creator.nickname}}"
 								{% endif %}
 							{% else %}
 								<a href="characterInfo|{{answer.character.key}}">{{answer.character.name}}</a>
@@ -127,13 +127,13 @@
 		<li class="nobullet"><b>{{comment.shortString}}</b> - 
 		
 		{% if comment.attributedToMember %}
-			{% if comment.creator %}
+			{% if comment.creator.isActiveMember %}
 				<a href="member?{{comment.creator.key}}">{{comment.creator.nickname}}</a>
 				{% ifequal comment.creator.key current_member.key %}
 					(<a href="comment?{{comment.key}}">Change</a>)
 				{% endifequal %}
 			{% else %}
-				the former member "{{comment.formerMemberNickname}}"
+				the former member "{{comment.creator.nickname}}"
 			{% endif %}
 		{% else %}
 			<a href="characterInfo|{{comment.character.key}}">{{comment.character.name}}</a>
@@ -156,13 +156,13 @@
 		<li class="nobullet">{{tag_set.tagsIfTagSet|join:", "}} - 
 
 		{% if tag_set.attributedToMember %}
-			{% if tag_set.creator %}
+			{% if tag_set.creator.isActiveMember %}
 				<a href="member?{{tag_set.creator.key}}">{{tag_set.creator.nickname}}</a>
 				{% ifequal tag_set.creator.key current_member.key %}
 					(<a href="tagset?{{tag_set.key}}">Change</a>)
 				{% endifequal %}
 			{% else %}
-				the former member "{{tag_set.formerMemberNickname}}"
+				the former member "{{tag_set.creator.nickname}}"
 			{% endif %}
 		{% else %}
 			<a href="characterInfo|{{tag_set.character.key}}">{{tag_set.character.name}}</a>
@@ -189,13 +189,13 @@
 			</b>
 			- 
 		{% if nudge.attributedToMember %}
-			{% if nudge.creator %}
+			{% if nudge.creator.isActiveMember %}
 				<a href="member?{{nudge.creator.key}}">{{nudge.creator.nickname}}</a>
 				{% ifequal nudge.creator.key current_member.key %}
 					(<a href="nudge?{{nudge.key}}">Change</a>)
 				{% endifequal %}
 			{% else %}
-				the former member "{{nudge.formerMemberNickname}}"
+				the former member "{{nudge.creator.nickname}}"
 			{% endif %}
 		{% else %}
 			<a href="characterInfo|{{nudge.character.key}}">{{nudge.character.name}}</a>
@@ -219,13 +219,13 @@
 		{% for request in requests %}
 			<li class="nobullet"><b>{{request.shortString}}</b> - 
 			{% if request.attributedToMember %}
-				{% if request.creator %}
+				{% if request.creator.isActiveMember %}
 					<a href="member?{{request.creator.key}}">{{request.creator.nickname}}</a>
 					{% ifequal request.creator.key current_member.key %}
 						(<a href="request?{{request.key}}">Change</a>)
 					{% endifequal %}
 				{% else %}
-					the former member "{{request.formerMemberNickname}}"
+					the former member "{{request.creator.nickname}}"
 				{% endif %}
 			{% else %}
 				<a href="characterInfo|{{request.character.key}}">{{request.character.name}}</a>

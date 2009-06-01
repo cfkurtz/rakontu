@@ -17,7 +17,6 @@
 	      		<th>Community name</t>
 	      		<th>Nickname</th>
 	      		<th>Online member?</th>
-	      		<th>Google account<br>(email and ID)</th>
 	      		<th>Governing roles</th>
 	      		<th>Helping roles</th>
 	      		</tr>
@@ -26,7 +25,6 @@
 	  				<td>{{ aMember.community.name }}</td>
 	  				<td>{{ aMember.nickname }} {% ifequal aMember.key current_member.key %}<br><i>(This is you)</i> {% endifequal %} </td>
 	  				<td>{{ aMember.isOnlineMember|yesno:"yes, no, maybe" }}</td>
-	  				<td>{{ aMember.googleUserEmailOrNotOnline}}<br>{{ aMember.googleAccountID}}</td>
 	  				<td>{{ aMember.governanceType }}</td>
 	  				<td><p>Curator: {{aMember.helpingRoles.0|yesno:"yes, no, maybe"}}</p>
 						<p>Guide: {{aMember.helpingRoles.1|yesno:"yes, no, maybe"}}</p>
