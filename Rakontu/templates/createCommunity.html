@@ -11,15 +11,25 @@
 			<p>Please <b>name</b> the new Rakontu community.</p>
 			<input type="text" name="name" value="" maxlength="40" size="30"/>
 			<p>Please enter a brief <b>description</b> of the community. <i>You can change the name and description later.</i></p>
-			<div><textarea name="description" rows="8"></textarea></div>
+			<textarea name="description" rows="8"></textarea>
+			<div class="rightalign">Interpret this as <select name="description_format">
+				{% for format in text_formats %}
+					<option value="{{format}}" 
+					{% ifequal "plain text" format %}
+						selected="selected"
+					{% endifequal %}
+					>{{format}}</option>
+				{% endfor %}
+				</select></div>
 			<p><i>You, {{ user.nickname|escape }}, will be the community's first <b>member</b>. You will also be an <b>owner</b>
 			of the community, which means you can add and remove members, change community settings, and make 
 			other people owners and managers of the community.</i></p>
 			<p>Please choose a <b>nickname</b> to represent yourself in the community, either your real name or a "screen name."
 			<i>You can change your nickname later.</i></p>
-			<div><input type="text" name="nickname" value=""/></div>
+			<div><input type="text" name="nickname" value="" size="30"/></div>
 			<p>Is this your real name?</p>
-			<div><label><input type="checkbox" name="nickname_is_real_name" value="yes" checked> Yes, this is my real name</label></div>
+			<input type="checkbox" name="nickname_is_real_name" id="nickname_is_real_name" value="yes">
+			<label for="nickname_is_real_name">Yes, this is my real name</label>
 			<p></p>
 			<center>
 			<input type="submit" value="Create a New Rakontu Community" class="button">

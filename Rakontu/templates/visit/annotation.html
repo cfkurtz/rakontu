@@ -17,7 +17,7 @@
 		
 	<h2>{{article.title}} ({{article.type}})</h2>
 	
-	<div class="article_text">{{article.text}}</div
+	<div class="article_text">{{article.text_formatted}}</div
 		
 			<h3>{{annotation_type|capfirst}}</h3>
 			<fieldset>
@@ -45,6 +45,16 @@
 					<p>Please enter your comment here.</p>
 				{% endif %}
 				<textarea name="longString" rows="20" cols="60">{% if annotation %}{{annotation.longString}}{% endif %}</textarea>
+				<div class="rightalign">Interpret this as <select name="longString_format">
+					{% for format in text_formats %}
+						<option value="{{format}}" 
+						{% ifequal annotation.longString_format format %}
+							selected="selected"
+						{% endifequal %}
+						>{{format}}</option>
+					{% endfor %}
+					</select></div>
+
 			{% endifequal %}
 			
 			{% ifequal annotation_type "request" %}
@@ -61,6 +71,15 @@
 					<p>Please describe your request in full.</p>
 				{% endif %}
 				<textarea name="longString" rows="20" cols="60">{% if annotation %}{{annotation.longString}}{% endif %}</textarea>
+				<div class="rightalign">Interpret this as <select name="longString_format">
+					{% for format in text_formats %}
+						<option value="{{format}}" 
+						{% ifequal annotation.longString_format format %}
+							selected="selected"
+						{% endifequal %}
+						>{{format}}</option>
+					{% endfor %}
+					</select></div>
 
 				{% if annotation %}
 					<p>You can change the type of request here.</p>

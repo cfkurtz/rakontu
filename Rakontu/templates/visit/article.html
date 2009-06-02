@@ -24,7 +24,16 @@
 			{% else %}
 				Please type your {{article_type}} here.
 			{% endif %}
-			<div><textarea name="text" rows="20" cols="60">{% if article %}{{article.text}}{% endif %}</textarea></div>
+			<textarea name="text" rows="20" cols="60">{% if article %}{{article.text}}{% endif %}</textarea>
+			<div class="rightalign">Interpret this as <select name="text_format">
+				{% for format in text_formats %}
+					<option value="{{format}}" 
+					{% ifequal article.text_format format %}
+						selected="selected"
+					{% endifequal %}
+					>{{format}}</option>
+				{% endfor %}
+				</select></div>
 			
 			{% if article %}
 				You can change the name of your {{article_type}} here.

@@ -129,8 +129,16 @@
 			{% endif %}
 			><label for="acceptsMessages">Yes, people can send me messages</label></p>
 		<p>Please describe yourself to other members.</p>
-		<div><textarea name="description" rows="10" cols="60">{{ current_member.profileText }}</textarea></div>
-		<i>Full URLs in the profile text will be converted to links in what is shown.</i>
+		<textarea name="profileText" rows="10" cols="60">{{ current_member.profileText }}</textarea>
+		<div class="rightalign">Interpret this as <select name="profileText_format">
+			{% for format in text_formats %}
+				<option value="{{format}}" 
+				{% ifequal current_member.profileText_format format %}
+					selected="selected"
+				{% endifequal %}
+				>{{format}}</option>
+			{% endfor %}
+			</select></div>
 		<p>Profile image</p>
 		{% if current_member.profileImage %}
 			<div><img src="img?member_id={{current_member.key}}"></img></div>
@@ -151,9 +159,9 @@
 						/>
 					{% endif %}
 					I am a <b> {{helping_role_names.0}} </b> in this community.</label></p>
-				{% if community.roleReadmes.0 %}
+				{% if community.roleReadmes_formatted.0 %}
 					<table border="1" cellpadding="4" cellspacing="0">
-					<tr><td bgcolor="#FFFFFF"> {{ community.roleReadmes.0 }} </td></tr>
+					<tr><td bgcolor="#FFFFFF"> {{ community.roleReadmes_formatted.0 }} </td></tr>
 					{% if community.roleAgreements.0 %}
 						<tr><td><i>Clicking the "I am a {{helping_role_names.0}}" box implies that you agree to these terms.</i></td></tr>
 					{% endif %}
@@ -169,9 +177,9 @@
 						/>
 					{% endif %}
 					I am a <b>{{helping_role_names.1}}</b> in this community.</label></p>
-				{% if community.roleReadmes.1 %}
+				{% if community.roleReadmes_formatted.1 %}
 					<table border="1" cellpadding="4" cellspacing="0"><tr>
-					<tr><td bgcolor="#FFFFFF"> {{ community.roleReadmes.1 }} </td></tr>
+					<tr><td bgcolor="#FFFFFF"> {{ community.roleReadmes_formatted.1 }} </td></tr>
 					{% if community.roleAgreements.1 %}
 						<tr><td><i>Clicking the "I am a {{helping_role_names.1}}" box implies that you agree to these terms.</i></td></tr>
 					{% endif %}
@@ -179,6 +187,15 @@
 				{% endif %}
 				<p>If you are a guide, what would you like to tell members about what sorts of questions you can answer?</p>
 				<textarea name="guideIntro" rows="3" cols="60">{{ current_member.guideIntro }}</textarea>
+				<div class="rightalign">Interpret this as <select name="guideIntro_format">
+					{% for format in text_formats %}
+						<option value="{{format}}" 
+						{% ifequal current_member.guideIntro_format format %}
+							selected="selected"
+						{% endifequal %}
+						>{{format}}</option>
+					{% endfor %}
+			</select></div>
 			{% endif %}
 			
 			{% if current_member.helpingRolesAvailable.2 %}
@@ -189,9 +206,9 @@
 						/>
 					{% endif %}
 					I am a <b>{{helping_role_names.2}}</b> in this community.</label></p>
-				{% if community.roleReadmes.2 %}
+				{% if community.roleReadmes_formatted.2 %}
 					<table border="1" cellpadding="4" cellspacing="0">
-					<tr><td bgcolor="#FFFFFF"> {{ community.roleReadmes.2 }} </td></tr>
+					<tr><td bgcolor="#FFFFFF"> {{ community.roleReadmes_formatted.2 }} </td></tr>
 					{% if community.roleAgreements.2 %}
 						<tr><td><i>Clicking the "I am a {{helping_role_names.2}}" box implies that you agree to these terms.</i></td></tr>
 					{% endif %}

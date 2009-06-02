@@ -18,12 +18,38 @@
 			<p>Community name</p>
 			<div><input type="text" name="name" value="{{ community.name }}" maxlength="40" size="30"/></div>
 			<p>Community description</p>
-			<div><textarea name="description" rows="10" cols="60">{{ community.description|escape }}</textarea></div>
-			<i>Full URLs (starting with http://) in the community description will be converted to links in what is shown.</i>
+			<textarea name="description" rows="10" cols="60">{{ community.description }}</textarea>
+			<div class="rightalign">Interpret this as <select name="description_format">
+				{% for format in text_formats %}
+					<option value="{{format}}" 
+					{% ifequal community.description_format format %}
+						selected="selected"
+					{% endifequal %}
+					>{{format}}</option>
+				{% endfor %}
+				</select></div>
 			<p>Welcome message for new members</p>
-			<div><textarea name="welcomeMessage" rows="6" cols="60">{{ community.welcomeMessage|escape }}</textarea></div>
+			<textarea name="welcomeMessage" rows="6" cols="60">{{ community.welcomeMessage|escape }}</textarea>
+			<div class="rightalign">Interpret this as <select name="welcomeMessage_format">
+				{% for format in text_formats %}
+					<option value="{{format}}" 
+					{% ifequal community.welcomeMessage_format format %}
+						selected="selected"
+					{% endifequal %}
+					>{{format}}</option>
+				{% endfor %}
+				</select></div>
 			<p>Optional etiquette statement (rules for behavior)</p>
-			<div><textarea name="etiquetteStatement" rows="3" cols="60">{{ community.etiquetteStatement|escape }}</textarea></div>
+			<textarea name="etiquetteStatement" rows="3" cols="60">{{ community.etiquetteStatement|escape }}</textarea>
+			<div class="rightalign">Interpret this as <select name="etiquetteStatement_format">
+				{% for format in text_formats %}
+					<option value="{{format}}" 
+					{% ifequal community.etiquetteStatement_format format %}
+						selected="selected"
+					{% endifequal %}
+					>{{format}}</option>
+				{% endfor %}
+				</select></div>
 			<p>Community image</p>
 			{% if community.image %}
 				<img src="img?community_id={{community.key}}" class="bordered"></img>
@@ -100,7 +126,16 @@
 			<h3>Helping Roles</h3>
 			<fieldset>
 			<p><b>Curator read-before text</b></p>
-			<textarea name="readme0" rows="3" cols="60">{{ community.roleReadmes.0|escape }}</textarea>
+			<textarea name="readme0" rows="3" cols="60">{{ community.roleReadmes.0 }}</textarea>
+			<div class="rightalign">Interpret this as <select name="roleReadmes_formats0">
+				{% for format in text_formats %}
+					<option value="{{format}}" 
+					{% ifequal community.roleReadmes_formats.0 format %}
+						selected="selected"
+					{% endifequal %}
+					>{{format}}</option>
+				{% endfor %}
+				</select></div>
 			<input type="checkbox" name="agreement0" value="agreement0" id="agreement0"
 				{% if community.roleAgreements.0 %}
 					checked="checked"
@@ -110,6 +145,15 @@
 			<p></p>
 			<p><b>Guide read-before text</b></p>
 			<textarea name="readme1" rows="3" cols="60">{{ community.roleReadmes.1|escape }}</textarea>
+			<div class="rightalign">Interpret this as <select name="roleReadmes_formats1">
+				{% for format in text_formats %}
+					<option value="{{format}}" 
+					{% ifequal community.roleReadmes_formats.1 format %}
+						selected="selected"
+					{% endifequal %}
+					>{{format}}</option>
+				{% endfor %}
+				</select></div>
 			<input type="checkbox" name="agreement1"  value="agreement1" id="agreement1"
 				{% if community.roleAgreements.1 %}
 					checked="checked"/>
@@ -120,6 +164,15 @@
 			<p></p>
 			<p><b>Liaison read-before text</b></p>
 			<textarea name="readme2" rows="3" cols="60">{{ community.roleReadmes.2|escape }}</textarea>
+			<div class="rightalign">Interpret this as <select name="roleReadmes_formats2">
+				{% for format in text_formats %}
+					<option value="{{format}}" 
+					{% ifequal community.roleReadmes_formats.2 format %}
+						selected="selected"
+					{% endifequal %}
+					>{{format}}</option>
+				{% endfor %}
+				</select></div>
 			<input type="checkbox" name="agreement2"  value="agreement2" id="agreement2"
 				{% if community.roleAgreements.2 %}
 					checked="checked"/>

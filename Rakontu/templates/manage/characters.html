@@ -32,13 +32,31 @@
 						{% if character.image %}
 							<center><img src="img?character_id={{character.key}}"></img></center>
 						{% endif %}
-						<p><input type="file" name="image|{{character.key}}" accept="jpg/png"></p>
+						<p><input type="file" name="image|{{character.key}}" accept="jpg/png" size="10"></p>
 						</td>
 	  				<td>
-	  					<div><textarea name="description|{{character.key}}" rows="6" cols="60">{{ character.description }}</textarea></div>
+	  					<textarea name="description|{{character.key}}" rows="6" cols="60">{{ character.description }}</textarea>
+						<div class="rightalign">Interpret as <select name="description_format|{{character.key}}">
+							{% for format in text_formats %}
+								<option value="{{format}}" 
+								{% ifequal character.description_format format %}
+									selected="selected"
+								{% endifequal %}
+								>{{format}}</option>
+							{% endfor %}
+							</select></div>
 	  					</td>
 	  				<td>
-	  					<div><textarea name="etiquetteStatement|{{character.key}}" rows="6" cols="60">{{ character.etiquetteStatement }}</textarea></div>
+	  					<textarea name="etiquetteStatement|{{character.key}}" rows="6" cols="60">{{ character.etiquetteStatement }}</textarea>
+						<div class="rightalign">Interpret as <select name="etiquetteStatement_format|{{character.key}}">
+							{% for format in text_formats %}
+								<option value="{{format}}" 
+								{% ifequal character.etiquetteStatement_format format %}
+									selected="selected"
+								{% endifequal %}
+								>{{format}}</option>
+							{% endfor %}
+							</select></div>
 	  					</td>
 	  				<td>
 	  					<input type="checkbox" name="remove|{{character.key}}" />Remove

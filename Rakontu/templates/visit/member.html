@@ -29,7 +29,9 @@
 	  			{% if member.helpingRoles.2 %} <b>liaison</b>.{% endif %}
 	  		{% endif %}
 	  	</p>
-  		{% if member.profileText %}<p>Says {{member.nickname}}: <ul><li class="nobullet">{{member.profileText|linebreaks}}</li></ul>{% endif %}
+  		{% if member.profileText_formatted %}
+  			<p>Says {{member.nickname}}:</p><fieldset>{{member.profileText_formatted}}</fieldset>
+  		{% endif %}
 	
 	
 		{% if member.isOnlineMember and member.acceptsMessages %}
@@ -48,7 +50,7 @@
 		{% endif %}
 
 	
-		{% if history %}
+		{% if history and history.count %}
 			<h4>History</h4>
 			<ul>
 			{% for item in history %}

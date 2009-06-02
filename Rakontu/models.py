@@ -25,63 +25,152 @@ from google.appengine.api import users
 # --------------------------------------------------------------------------------------------
 # Utility functions
 # --------------------------------------------------------------------------------------------
-        
+		
 def DebugPrint(text, msg="print"):
-    logging.debug(">>>>>>>> %s >>>>>>>> %s" %(msg, text))
-    
+	logging.debug(">>>>>>>> %s >>>>>>>> %s" %(msg, text))
+	
 def checkedBlank(value):
-    if value:
-        return "checked"
-    return ""
+	if value:
+		return "checked"
+	return ""
 
 SIMPLE_HTML_REPLACEMENTS = [
-                            ("<p>", "{{startPar}}"), ("</p>", "{{stopPar}}"),
-                            ("<b>", "{{startBold}}"), ("</b>", "{{stopBold}}"),
-                            ("<i>", "{{startItalic}}"), ("</i>", "{{stopItalic}}"),
-                            ("<del>", "{{startStrike}}"), ("</del>", "{{stopStrike}}"),
-                            ("<ul>", "{{startUL}}"), ("</ul>", "{{stopUL}}"),
-                            ("<ol>", "{{startOL}}"), ("</ol>", "{{stopOL}}"),
-                            ("<li>", "{{startLI}}"), ("</li>", "{{stopLI}}"),
-                            ("<h1>", "{{startH1}}"), ("</h1>", "{{stopH1}}"),
-                            ("<h2>", "{{startH2}}"), ("</h2>", "{{stopH2}}"),
-                            ("<h3>", "{{startH3}}"), ("</h3>", "{{stopH3}}"),
-                            ("<h4>", "{{startH4}}"), ("</h4>", "{{stopH4}}"),
-                            ("<h5>", "{{startH5}}"), ("</h5>", "{{stopH5}}"),
-                            ("<br/>", "{{BR}}"),
-                            ("<hr>", "{{HR}}"),
-                            ]
-DONT_PUT_BRS_ON_THESE_LINES = ["p>", "</ul>", "li>", "</ol>", "h1>", "h2>", "h3>", "h4>", "h5>", "<hr>", "<br/"]
+							("<p>", "{{startPar}}"), ("</p>", "{{stopPar}}"),
+							("<b>", "{{startBold}}"), ("</b>", "{{stopBold}}"),
+							("<i>", "{{startItalic}}"), ("</i>", "{{stopItalic}}"),
+							("<del>", "{{startStrike}}"), ("</del>", "{{stopStrike}}"),
+							("<ul>", "{{startUL}}"), ("</ul>", "{{stopUL}}"),
+							("<ol>", "{{startOL}}"), ("</ol>", "{{stopOL}}"),
+							("<li>", "{{startLI}}"), ("</li>", "{{stopLI}}"),
+							("<h1>", "{{startH1}}"), ("</h1>", "{{stopH1}}"),
+							("<h2>", "{{startH2}}"), ("</h2>", "{{stopH2}}"),
+							("<h3>", "{{startH3}}"), ("</h3>", "{{stopH3}}"),
+							("<br/>", "{{BR}}"),
+							("<hr>", "{{HR}}"),
+							]
+
+TEXT_FORMATS = ["plain text", "simple HTML", "Wiki markup"]
+
+def InterpretEnteredText(text, mode="text"):
+	result = text
+	if mode == "plain text":
+		lines = result.split("\n")
+		changedLines = []
+		for line in lines:
+			changedLines.append("<p>%s</p>" % line)
+		result = "\n".join(changedLines)
+	elif mode == "simple HTML":
+		""" Simple HTML support:
+			p, b, i, del, ul, ol, h1, h2, h3, br, hr
+		"""
+		expression = re.compile(r'<a href="(.+?)">(.+)</a>')
+		links = expression.findall(result)
+		for url, label in links:
+			result = result.replace('<a href="%s">' % url, '{{BEGINHREF}}%s{{ENDHREF}}' % url)
+			result = result.replace('%s</a>' % label, '%s{{ENDLINK}}' % label)
+		for htmlVersion, longVersion in SIMPLE_HTML_REPLACEMENTS:
+			result = result.replace(htmlVersion, longVersion)
+		result = cgi.escape(result)
+		for htmlVersion, longVersion in SIMPLE_HTML_REPLACEMENTS:
+			result = result.replace(longVersion, htmlVersion)
+		for url, label in links:
+			result = result.replace('{{BEGINHREF}}%s{{ENDHREF}}' % url, '<a href="%s">' % url)
+			result = result.replace('%s{{ENDLINK}}' % label, '%s</a>' % label)
+	elif mode == "Wiki markup":
+		""" Wiki markup:
+			*text* becomes <b>text</b>
+			_text_ becomes <i>text</i>
+			`text` bcomes <code>text</code>
+			~text~ becomes <span style="text-decoration: line-through">text</span> (strike out)
+			= text becomes <h1>text</h1>
+			== text becomes <h2>text</h2>
+			=== text becomes <h3>text</h3>
+			  * text becomes <ul><li>text</li></ul> (two spaces before)
+			  # text becomes <ol><li>text</li></ol> (two spaces before)
+			---- on a line by itself becomes <hr>
+			[link] becomes <a href="link">link</a>
+			[link(name)] becomes <a href="link">name</a>
+		"""
+		result = cgi.escape(result)
+		lines = result.split("\n")
+		changedLines = []
+		bulletedListGoingOn = False
+		numberedListGoingOn = False
+		for line in lines:
+			if len(line) >= 3 and line[:3] == "===":
+				if bulletedListGoingOn:
+					bulletedListGoingOn = False
+					changedLines.append("</ul>")
+				if numberedListGoingOn:
+					numberedListGoingOn = False
+					changedLines.append("</ol>")
+				changedLines.append("<h3>%s</h3>" % line[3:].strip())
+			elif len(line) >= 2 and line[:2] == "==":
+				if bulletedListGoingOn:
+					bulletedListGoingOn = False
+					changedLines.append("</ul>")
+				if numberedListGoingOn:
+					numberedListGoingOn = False
+					changedLines.append("</ol>")
+				changedLines.append("<h2>%s</h2>" % line[2:].strip())
+			elif len(line) >= 1 and line[:1] == "=":
+				if bulletedListGoingOn:
+					bulletedListGoingOn = False
+					changedLines.append("</ul>")
+				if numberedListGoingOn:
+					numberedListGoingOn = False
+					changedLines.append("</ol>")
+				changedLines.append("<h1>%s</h1>" % line[1:].strip())
+			elif len(line) >= 3 and line[:3] == "  *":
+				if not bulletedListGoingOn:
+					bulletedListGoingOn = True
+					changedLines.append("<ul>")
+				changedLines.append("<li>%s</li>" % line[3:].strip())
+			elif len(line) >= 3 and line[:3] == "  #":
+				if not numberedListGoingOn:
+					numberedListGoingOn = True
+					changedLines.append("<ol>")
+				changedLines.append("<li>%s</li>" % line[3:].strip())
+			elif line.strip() == "----":
+				if bulletedListGoingOn:
+					bulletedListGoingOn = False
+					changedLines.append("</ul>")
+				if numberedListGoingOn:
+					numberedListGoingOn = False
+					changedLines.append("</ol>")
+				changedLines.append("<hr>")
+			else:
+				if bulletedListGoingOn:
+					bulletedListGoingOn = False
+					changedLines.append("</ul>")
+				if numberedListGoingOn:
+					numberedListGoingOn = False
+					changedLines.append("</ol>")
+				changedLines.append("<p>%s</p>" % line)
+		if bulletedListGoingOn:
+			changedLines.append("</ul>")
+		if numberedListGoingOn:
+			changedLines.append("</ol>")
+		result = "\n".join(changedLines)
+		for bold in re.compile(r'\*(.+?)\*').findall(result):
+			result = result.replace('*%s*' % bold, '<b>%s</b>' % bold)
+		for italic in re.compile(r'\_(.+?)\_').findall(result):
+			result = result.replace('_%s_' % italic, '<i>%s</i>' % italic)
+		for code in re.compile(r'\`(.+?)\`').findall(result):
+			result = result.replace('`%s`' % code, '<code>%s</code>' % code)
+		for strike in re.compile(r'\~(.+?)\~').findall(result):
+			result = result.replace('~%s~' % strike, '<span style="text-decoration: line-through">%s</span>' % strike)
+		for link, name in re.compile(r'\[(.+?)\((.+?)\)\]').findall(result):
+			result = result.replace('[%s(%s)]' % (link,name), '<a href="%s">%s</a>' % (link, name))
+		for link in re.compile(r'\[(.+?)\]').findall(result):
+			if link.find(".jpg") >= 0 or link.find(".png") >= 0 or link.find(".gif") >= 0:
+				result = result.replace('[%s]' % link, '<img src="%s" alt="%s">' % (link, link))
+			else:
+				result = result.replace('[%s]' % link, '<a href="%s">%s</a>' % (link, link))
+	return result
 
 def MakeTextSafeWithMinimalHTML(text):
-    result = text
-    expression = re.compile(r'<a href="(.+?)">(.+)</a>')
-    links = expression.findall(result)
-    for url, label in links:
-        result = result.replace('<a href="%s">' % url, '{{BEGINHREF}}%s{{ENDHREF}}' % url)
-        result = result.replace('%s</a>' % label, '%s{{ENDLINK}}' % label)
-    for htmlVersion, longVersion in SIMPLE_HTML_REPLACEMENTS:
-        result = result.replace(htmlVersion, longVersion)
-    result = cgi.escape(result)
-    for htmlVersion, longVersion in SIMPLE_HTML_REPLACEMENTS:
-        result = result.replace(longVersion, htmlVersion)
-    for url, label in links:
-        result = result.replace('{{BEGINHREF}}%s{{ENDHREF}}' % url, '<a href="%s">' % url)
-        result = result.replace('%s{{ENDLINK}}' % label, '%s</a>' % label)
-    """
-    lines = result.split("\n")
-    changedLines = []
-    for line in lines:
-        addBR = True
-        for exception in DONT_PUT_BRS_ON_THESE_LINES:
-            if line.find(exception) >= 0:
-                addBR = False
-        if addBR:
-            changedLines.append("%s<br/>" % line)
-        else:
-            changedLines.append(line)
-    result = "\n".join(changedLines)
-    """
-    return result
+	return text
  
 # --------------------------------------------------------------------------------------------
 # Constants
@@ -110,9 +199,9 @@ NO_NICKNAME_SET = "No nickname set"
 MEMBER_TYPES = ["member", "on-line member", "off-line member", "liaison", "curator", "guide", "manager", "owner"]
 HELPING_ROLE_TYPES = ["curator", "guide", "liaison"]
 DEFAULT_ROLE_READMES = [
-					    "A curator pays attention to Rakontu's accumulated data. Curators add information, check for problems, create links, and in general maintain the vitality of the story bank.",
-					    "A guide pays attention to the Rakontu's on-line human community. Guides answer questions, write tutorials, encourage people to tell and use stories, create patterns, write and respond to requests, set up and run exercises, and in general maintain the vitality of the on-line member community.",
-					    "A liaison guides stories and other information over the barrier between on-line and off-line worlds. Liaisons conduct external interviews and add the stories people tell in them, read stories to people and gather comments, nudges, and other annotations, and in general make the system work for both on-line and off-line community members."]
+						"A curator pays attention to Rakontu's accumulated data. Curators add information, check for problems, create links, and in general maintain the vitality of the story bank.",
+						"A guide pays attention to the Rakontu's on-line human community. Guides answer questions, write tutorials, encourage people to tell and use stories, create patterns, write and respond to requests, set up and run exercises, and in general maintain the vitality of the on-line member community.",
+						"A liaison guides stories and other information over the barrier between on-line and off-line worlds. Liaisons conduct external interviews and add the stories people tell in them, read stories to people and gather comments, nudges, and other annotations, and in general make the system work for both on-line and off-line community members."]
 GOVERNANCE_ROLE_TYPES = ["member", "manager", "owner"]
 ACTIVITIES_GERUND = ["time", \
 					   	 "reading", \
@@ -177,7 +266,7 @@ QUESTION_TYPES = ["boolean", "text", "ordinal", "nominal", "value"]
 
 class Community(db.Model):
 	""" Preferences and settings for the whole community.
-	    There can be multiple communities within one Rakontu installation.
+		There can be multiple communities within one Rakontu installation.
 	
 	Properties
 		name:					The name that appears on all pages.
@@ -201,8 +290,14 @@ class Community(db.Model):
 	"""
 	name = db.StringProperty()
 	description = db.TextProperty()
+	description_formatted = db.TextProperty()
+	description_format = db.StringProperty(default="plain text")
 	etiquetteStatement = db.TextProperty()
+	etiquetteStatement_formatted = db.TextProperty()
+	etiquetteStatement_format = db.StringProperty(default="plain text")
 	welcomeMessage = db.TextProperty()
+	welcomeMessage_formatted = db.TextProperty()
+	welcomeMessage_format = db.StringProperty(default="plain text")
 	image = db.BlobProperty(default=None)
 	created = db.DateTimeProperty(auto_now_add=True)
 	
@@ -210,7 +305,9 @@ class Community(db.Model):
 	maxNudgePointsPerArticle = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE)
 	allowCharacter = db.ListProperty(bool, default=[False,False,False,False,False,False,False,False,False,False])
 	nudgeCategories = db.StringListProperty(default=["appropriateness", "importance", "usefulness for new members", "usefulness for resolving conflicts", "usefulness for understanding our community"])
-	roleReadmes = db.StringListProperty(default=DEFAULT_ROLE_READMES)
+	roleReadmes = db.ListProperty(db.Text, default=[db.Text(DEFAULT_ROLE_READMES[0]), db.Text(DEFAULT_ROLE_READMES[1]), db.Text(DEFAULT_ROLE_READMES[2])])
+	roleReadmes_formatted = db.ListProperty(db.Text, default=[db.Text(""), db.Text(""), db.Text("")])
+	roleReadmes_formats = db.StringListProperty(default=["plain text", "plain text", "plain text"])
 	roleAgreements = db.ListProperty(bool, default=[False, False, False])
 	maxNumAttachments = db.IntegerProperty(choices=[0,1,2,3,4,5], default=3)
 	
@@ -362,7 +459,7 @@ class Question(db.Model):
 	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO, required=True)
 	
 	name = db.StringProperty(required=True, default="No name")
-	text = db.TextProperty(required=True, default="No question text yet.")
+	text = db.StringProperty(required=True, default="No question text yet.")
 	type = db.StringProperty(choices=QUESTION_TYPES, default="text")
 	lengthIfText = db.IntegerProperty(default=40)
 	minIfValue = db.IntegerProperty(default=0)
@@ -373,7 +470,11 @@ class Question(db.Model):
 	choices = db.StringListProperty(default=["", "", "", "", "", "", "", "", "", ""])
 	
 	help = db.TextProperty()
+	help_formatted = db.TextProperty()
+	help_format = db.StringProperty(default="plain text")
 	useHelp = db.TextProperty()
+	useHelp_formatted = db.TextProperty()
+	useHelp_format = db.StringProperty(default="plain text")
 	
 	created = db.DateTimeProperty(auto_now_add=True)
 	
@@ -436,9 +537,13 @@ class Member(db.Model):
 	helpingRoles = db.ListProperty(bool, default=[False, False, False])
 	helpingRolesAvailable = db.ListProperty(bool, default=[True, True, True])
 	guideIntro = db.TextProperty(default="")
+	guideIntro_formatted = db.TextProperty()
+	guideIntro_format = db.StringProperty(default="plain text")
 	
 	nicknameIsRealName = db.BooleanProperty(default=False)
 	profileText = db.TextProperty(default="No profile information.")
+	profileText_formatted = db.TextProperty()
+	profileText_format = db.StringProperty(default="plain text")
 	profileImage = db.BlobProperty(default=None)
 	
 	joined = db.DateTimeProperty(auto_now_add=True)
@@ -550,7 +655,11 @@ class Character(db.Model):
 	community = db.ReferenceProperty(Community, required=True, collection_name="characters_to_community")
 	name = db.StringProperty(required=True)
 	description = db.TextProperty(default="")
+	description_formatted = db.TextProperty()
+	description_format = db.StringProperty(default="plain text")
 	etiquetteStatement = db.TextProperty(default="")
+	etiquetteStatement_formatted = db.TextProperty()
+	etiquetteStatement_format = db.StringProperty(default="plain text")
 	image = db.BlobProperty(default=None)
 	
 	def getHistory(self):
@@ -585,7 +694,7 @@ class Answer(db.Model):
 	referentType = db.StringProperty(default="article")
 	creator = db.ReferenceProperty(Member, collection_name="answers_to_creators")
 	community = db.ReferenceProperty(Community, collection_name="answers_to_community")
-    
+	
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="answers_to_liaisons")
 	character = db.ReferenceProperty(Character, default=None)
@@ -658,6 +767,8 @@ class Article(db.Model):
 	"""
 	title = db.StringProperty(required=True)
 	text = db.TextProperty(default="No text")
+	text_formatted = db.TextProperty()
+	text_format = db.StringProperty(default="plain text")
 	type = db.StringProperty(choices=ARTICLE_TYPES, required=True)
 
 	creator = db.ReferenceProperty(Member, collection_name="articles")
@@ -848,7 +959,6 @@ class Annotation(db.Model):
 		shortString:		A short string, usually used as a title
 		longString:			A text property, used for the comment or request body.
 		tagsIfTagSet:		A set of five tags, any or all of which might be blank.
-		typeIfRequest:		Which type of request it is.
 		valuesIfNudge:		The number of nudge points (+ or -) this adds to the article.
 							One value per category (up to 5).
 
@@ -871,8 +981,9 @@ class Annotation(db.Model):
 	
 	shortString = db.StringProperty()
 	longString = db.TextProperty()
+	longString_formatted = db.TextProperty()
+	longString_format = db.StringProperty(default="plain text")
 	tagsIfTagSet = db.StringListProperty(default=["", "", "", "", ""])
-	typeIfRequest = db.StringProperty(choices=REQUEST_TYPES)
 	valuesIfNudge = db.ListProperty(int, default=[0,0,0,0,0])
 
 	collectedOffline = db.BooleanProperty(default=False)
@@ -1104,4 +1215,3 @@ class ViewingPreferences(db.Model):
 	
 	deepFreeze = db.IntegerProperty(default=0)
 	
-
