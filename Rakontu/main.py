@@ -6,29 +6,16 @@
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
 
-# python imports
-import cgi
-import os
-import string
-
-# GAE imports
-from google.appengine.ext.webapp import template
-from google.appengine.api import users
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp.util import run_wsgi_app
-from google.appengine.ext import db
-from google.appengine.api import memcache
-from google.appengine.api import images
-from google.appengine.api import mail
-
-# third party imports
-import sys
-sys.path.append("/Users/cfkurtz/Documents/personal/eclipse_workspace_kfsoft/Rakontu/lib/") 
-from appengine_utilities.sessions import Session
-
 # local file imports
 from models import *
 import systemquestions
+
+# GAE imports
+from google.appengine.ext.webapp import template
+from google.appengine.ext import webapp
+from google.appengine.ext.webapp.util import run_wsgi_app
+from google.appengine.api import images
+from google.appengine.api import mail
 
 # --------------------------------------------------------------------------------------------
 # Utility functions
@@ -64,6 +51,21 @@ def GetCurrentCommunityAndMemberFromSession():
         member = None
     return community, member
 
+def MakeSomeFakeData():
+    user = users.get_current_user()
+    community = Community(name="Test community", description="Test description")
+    community.put()
+    member = Member(googleAccountID=user.user_id(), googleAccountEmail=user.email(), nickname="Tester", community=community, governanceType="owner")
+    member.put()
+    Character(name="Little Bird", community=community).put()
+    Character(name="Old Coot", community=community).put()
+    Character(name="Blooming Idiot", community=community).put()
+    article = Article(community=community, type="story", creator=member, title="The dog", text="The dog sat on a log.", draft=False)
+    article.put()
+    Annotation(community=community, type="comment", creator=member, article=article, shortString="Great!", longString="Wonderful!", draft=False).put()
+    Annotation(community=community, type="comment", creator=member, article=article, shortString="Dumb", longString="Silly", draft=False).put()
+    Article(community=community, type="story", creator=member, title="The circus", text="I went the the circus. It was great.", draft=False).put()
+
 # --------------------------------------------------------------------------------------------
 # Startup page
 # --------------------------------------------------------------------------------------------
@@ -91,6 +93,7 @@ class StartPage(webapp.RequestHandler):
                            'user': user, 
                            'communities_member_of': communitiesTheyAreAMemberOf,
                            'communities_invited_to': communitiesTheyAreInvitedTo,
+                           'DEVELOPMENT': DEVELOPMENT,
                            'logout_url': users.create_logout_url("/"),
                            }
         path = os.path.join(os.path.dirname(__file__), 'templates/startPage.html')
@@ -140,6 +143,9 @@ class StartPage(webapp.RequestHandler):
                 self.redirect('/')
         elif "createCommunity" in self.request.arguments():
             self.redirect("/createCommunity")
+        elif "makeFakeData" in self.request.arguments():
+            MakeSomeFakeData()
+            self.redirect("/")
             
 class NewMemberPage(webapp.RequestHandler):
     @RequireLogin 
@@ -176,8 +182,8 @@ class CreateCommunityPage(webapp.RequestHandler):
     def post(self):
         user = users.get_current_user()
         community = Community(
-          name=self.request.get('name'),
-          description=self.request.get('description'))
+          name=cgi.escape(self.request.get('name')),
+          description=MakeTextSafeWithMinimalHTML(self.request.get('description')))
         community.put()
         member = Member(
             googleAccountID=user.user_id(),
@@ -185,9 +191,9 @@ class CreateCommunityPage(webapp.RequestHandler):
             isActiveMember=True,
             community=community,
             governanceType="owner",
-            nickname = self.request.get('nickname'),
+            nickname = cgi.escape(self.request.get('nickname')),
             nicknameIsRealName = self.request.get('nickname_is_real_name') =="yes",
-            profileText = self.request.get('profile_text)'))
+            profileText = MakeTextSafeWithMinimalHTML(self.request.get('profile_text)')))
         member.put()
         self.redirect('/')
         
@@ -327,9 +333,9 @@ class SeeMemberPage(webapp.RequestHandler):
                 message = mail.EmailMessage()
                 # CFK FIX
                 #message.sender= # NEED TO STORE SYS ADMIN EMAIL !! (how to do that?)
-                message.subject=self.request.get("subject")
+                message.subject=cgi.escape(self.request.get("subject"))
                 message.to=messageMember.googleAccountEmail
-                message.body=cgi.escape(self.request.get("message"))
+                message.body=MakeTextSafeWithMinimalHTML(self.request.get("message"))
                 message.send()
    
 class SeeCharacterPage(webapp.RequestHandler):
@@ -456,8 +462,8 @@ class EnterArticlePage(webapp.RequestHandler):
                 article.draft = False
                 article.published = datetime.datetime.now()
             if self.request.get("title"):
-                article.title = self.request.get("title")
-            article.text = self.request.get("text")
+                article.title = cgi.escape(self.request.get("title"))
+            article.text = MakeTextSafeWithMinimalHTML(self.request.get("text"))
             article.collectedOffline = self.request.get("collectedOffline") == "yes"
             if article.collectedOffline and member.isLiaison():
                 for aMember in community.getActiveMembers():
@@ -491,7 +497,7 @@ class EnterArticlePage(webapp.RequestHandler):
                         linkType = "included"
                         activity = "including"
                     link = Link(articleFrom=articleFrom, articleTo=article, type=linkType, \
-                                creator=member, comment=self.request.get("link_comment"))
+                                creator=member, comment=cgi.escape(self.request.get("link_comment")))
                     link.put()
                     member.nudgePoints += community.getNudgePointsPerActivityForActivityName(activity)
             questions = Question.all().filter("community = ", community).filter("refersTo = ", type).fetch(FETCH_NUMBER)
@@ -502,7 +508,7 @@ class EnterArticlePage(webapp.RequestHandler):
                 else:
                     answerToEdit = Answer(question=question, community=community, creator=member, referent=article, referentType="article")
                 if question.type == "text":
-                    answerToEdit.answerIfText = self.request.get("%s" % question.key())
+                    answerToEdit.answerIfText = cgi.escape(self.request.get("%s" % question.key()))
                 elif question.type == "value":
                     oldValue = answerToEdit.answerIfValue
                     try:
@@ -552,7 +558,7 @@ class EnterArticlePage(webapp.RequestHandler):
                             if mimeType:
                                 attachmentToEdit.mimeType = mimeType
                                 attachmentToEdit.fileName = filename
-                                attachmentToEdit.name = self.request.get("attachmentName%s" % i)
+                                attachmentToEdit.name = cgi.escape(self.request.get("attachmentName%s" % i))
                                 attachmentToEdit.data = db.Blob(str(self.request.get("attachment%s" % i)))
                                 attachmentToEdit.put()
             if not article.draft:
@@ -626,7 +632,7 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
                         newAnswers = True
                     answerToEdit.character = character
                     if question.type == "text":
-                        answerToEdit.answerIfText = self.request.get("%s" % question.key())
+                        answerToEdit.answerIfText = cgi.escape(self.request.get("%s" % question.key()))
                     elif question.type == "value":
                         oldValue = answerToEdit.answerIfValue
                         try:
@@ -801,13 +807,13 @@ class EnterAnnotationPage(webapp.RequestHandler):
                     annotation.tagsIfTagSet = []
                     for i in range (5):
                         if self.request.get("tag%s" % i):
-                            annotation.tagsIfTagSet.append(self.request.get("tag%s" % i))
+                            annotation.tagsIfTagSet.append(cgi.escape(self.request.get("tag%s" % i)))
                 elif type == "comment":
-                    annotation.shortString = self.request.get("shortString")
-                    annotation.longString = self.request.get("longString")
+                    annotation.shortString = cgi.escape(self.request.get("shortString"))
+                    annotation.longString = MakeTextSafeWithMinimalHTML(self.request.get("longString"))
                 elif type == "request":
-                    annotation.shortString = self.request.get("shortString")
-                    annotation.longString = self.request.get("longString")
+                    annotation.shortString = cgi.escape(self.request.get("shortString"))
+                    annotation.longString = MakeTextSafeWithMinimalHTML(self.request.get("longString"))
                     annotation.typeIfRequest = self.request.get("typeIfRequest")
                 elif type == "nudge":
                     oldTotalNudgePointsInThisNudge = annotation.totalNudgePointsAbsolute()
@@ -842,7 +848,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
                     for value in adjustedValues:
                         annotation.valuesIfNudge[i] = value
                         i += 1
-                    annotation.shortString = self.request.get("shortString")
+                    annotation.shortString = cgi.escape(self.request.get("shortString"))
                     newTotalNudgePointsInThisNudge = annotation.totalNudgePointsAbsolute()
                     member.nudgePoints += oldTotalNudgePointsInThisNudge
                     member.nudgePoints -= newTotalNudgePointsInThisNudge
@@ -964,15 +970,15 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
     def post(self):
         community, member = GetCurrentCommunityAndMemberFromSession()
         if community and member:
-            member.nickname = self.request.get("nickname")
+            member.nickname = cgi.escape(self.request.get("nickname"))
             member.nicknameIsRealName = self.request.get('nickname_is_real_name') =="yes"
             member.acceptsMessages = self.request.get("acceptsMessages") == "yes"
-            member.profileText = self.request.get("description")
+            member.profileText = MakeTextSafeWithMinimalHTML(self.request.get("description"))
             if self.request.get("img"):
                 member.profileImage = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
             for i in range(3):
                 member.helpingRoles[i] = self.request.get("helpingRole%s" % i) == "helpingRole%s" % i
-            member.guideIntro = self.request.get("guideIntro")
+            member.guideIntro = MakeTextSafeWithMinimalHTML(self.request.get("guideIntro"))
             member.put()
             for article in member.getDraftArticles():
                 if self.request.get("remove|%s" % article.key()) == "yes":
@@ -993,7 +999,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
                 else:
                     answerToEdit = Answer(question=question, community=community, referent=member, referentType="member")
                 if question.type == "text":
-                    answerToEdit.answerIfText = self.request.get("%s" % question.key())
+                    answerToEdit.answerIfText = cgi.escape(self.request.get("%s" % question.key()))
                 elif question.type == "value":
                     oldValue = answerToEdit.answerIfValue
                     try:
@@ -1073,11 +1079,11 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
                     aMember.isActiveMember = False
                     aMember.put()
             for pendingMember in community.getPendingMembers():
-                pendingMember.email = self.request.get("email|%s" % pendingMember.key())
+                pendingMember.email = cgi.escape(self.request.get("email|%s" % pendingMember.key()))
                 pendingMember.put()
                 if self.request.get("removePendingMember|%s" % pendingMember.key()):
                     db.delete(pendingMember)
-            memberEmailsToAdd = self.request.get("newMemberEmails").split('\n')
+            memberEmailsToAdd = cgi.escape(self.request.get("newMemberEmails").split('\n'))
             for email in memberEmailsToAdd:
                 if email.strip():
                     if not community.hasMemberWithGoogleEmail(email.strip()):
@@ -1121,10 +1127,10 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
     def post(self):
         community, member = GetCurrentCommunityAndMemberFromSession()
         if community and member:
-            community.name = self.request.get("name")
-            community.description = self.request.get("description")
-            community.welcomeMessage = self.request.get("welcomeMessage")
-            community.etiquetteStatement = self.request.get("etiquetteStatement")
+            community.name = cgi.escape(self.request.get("name"))
+            community.description = MakeTextSafeWithMinimalHTML(self.request.get("description"))
+            community.welcomeMessage = MakeTextSafeWithMinimalHTML(self.request.get("welcomeMessage"))
+            community.etiquetteStatement = MakeTextSafeWithMinimalHTML(self.request.get("etiquetteStatement"))
             if self.request.get("img"):
                 community.image = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
             i = 0
@@ -1137,7 +1143,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
             except:
                 community.maxNudgePointsPerArticle = oldValue
             for i in range(5):
-                community.nudgeCategories[i] = self.request.get("nudgeCategory%s" % i)
+                community.nudgeCategories[i] = cgi.escape(self.request.get("nudgeCategory%s" % i))
             oldValue = community.maxNumAttachments
             try:
                 community.maxNumAttachments = int(self.request.get("maxNumAttachments"))
@@ -1153,7 +1159,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
                         community.nudgePointsPerActivity[i] = oldValue
                 i += 1
             for i in range(3):
-                community.roleReadmes[i] = self.request.get("readme%s" % i)
+                community.roleReadmes[i] = MakeTextSafeWithMinimalHTML(self.request.get("readme%s" % i))
                 community.roleAgreements[i] = self.request.get("agreement%s" % i) == ("agreement%s" % i)
             community.put()
         self.redirect('/visit/look')
@@ -1202,26 +1208,26 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
             communityQuestionsOfType = community.getQuestionsOfType(type)
             systemQuestionsOfType = Question.all().filter("community = ", None).filter("refersTo = ", type).fetch(FETCH_NUMBER)
             for question in communityQuestionsOfType:
-                question.name = self.request.get("name|%s" % question.key())
-                question.text = self.request.get("text|%s" % question.key())
-                question.help = self.request.get("help|%s" % question.key())
+                question.name = cgi.escape(self.request.get("name|%s" % question.key()))
+                question.text = MakeTextSafeWithMinimalHTML(self.request.get("text|%s" % question.key()))
+                question.help = MakeTextSafeWithMinimalHTML(self.request.get("help|%s" % question.key()))
                 question.type = self.request.get("type|%s" % question.key())
                 question.choices = []
                 for i in range(10):
-                    question.choices.append(self.request.get("choice%s|%s" % (i, question.key())))
+                    question.choices.append(cgi.escape(self.request.get("choice%s|%s" % (i, question.key()))))
                 oldValue = question.lengthIfText
                 try:
-                    question.lengthIfText = self.request.get("lengthIfText|%s" % question.key())
+                    question.lengthIfText = int(self.request.get("lengthIfText|%s" % question.key()))
                 except:
                     question.lengthIfText = oldValue
                 oldValue = question.minIfValue
                 try:
-                    question.minIfValue = self.request.get("minIfValue|%s" % question.key())
+                    question.minIfValue = int(self.request.get("minIfValue|%s" % question.key()))
                 except:
                     question.minIfValue = oldValue
                 oldValue = question.maxIfValue
                 try:
-                    question.maxIfValue = self.request.get("maxIfValue|%s" % question.key())
+                    question.maxIfValue = int(self.request.get("maxIfValue|%s" % question.key()))
                 except:
                     question.maxIfValue = oldValue
                 question.responseIfBoolean = self.request.get("responseIfBoolean|%s" % question.key())
@@ -1237,7 +1243,7 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
                     for answer in answersWithThisQuestion:
                         db.delete(answer)
                     db.delete(question)
-            questionNamesToAdd = self.request.get("newQuestionNames").split('\n')
+            questionNamesToAdd = cgi.escape(self.request.get("newQuestionNames")).split('\n')
             for name in questionNamesToAdd:
                 if name.strip():
                     question = Question(name=name, refersTo=type, community=community)
@@ -1273,9 +1279,9 @@ class ManageCommunityCharactersPage(webapp.RequestHandler):
             characters = Character.all().filter("community = ", community).fetch(FETCH_NUMBER)
             charactersToRemove = []
             for character in characters:
-                character.name = self.request.get("name|%s" % character.key())
-                character.description = self.request.get("description|%s" % character.key())
-                character.etiquetteStatement = self.request.get("etiquetteStatement|%s" % character.key())
+                character.name = cgi.escape(self.request.get("name|%s" % character.key()))
+                character.description = MakeTextSafeWithMinimalHTML(self.request.get("description|%s" % character.key()))
+                character.etiquetteStatement = MakeTextSafeWithMinimalHTML(self.request.get("etiquetteStatement|%s" % character.key()))
                 imageQueryKey = "image|%s" % character.key()
                 if self.request.get(imageQueryKey):
                     character.image = db.Blob(images.resize(str(self.request.get(imageQueryKey)), 100, 60))
@@ -1285,7 +1291,7 @@ class ManageCommunityCharactersPage(webapp.RequestHandler):
             if charactersToRemove:
                 for character in charactersToRemove:
                     db.delete(character)
-            namesToAdd = self.request.get("newCharacterNames").split('\n')
+            namesToAdd = cgi.escape(self.request.get("newCharacterNames")).split('\n')
             for name in namesToAdd:
                 if name.strip():
                     newCharacter = Character(name=name, community=community)
@@ -1383,7 +1389,7 @@ class AttachmentHandler(webapp.RequestHandler):
                 self.response.out.write(attachment.data)
             else:
                 self.error(404)
-
+                
 # --------------------------------------------------------------------------------------------
 # Application and main
 # --------------------------------------------------------------------------------------------
@@ -1396,37 +1402,35 @@ application = webapp.WSGIApplication(
                                       ('/visit/', BrowseArticlesPage),
                                       ('/visit/look', BrowseArticlesPage),
                                       ('/visit/read', ReadArticlePage),
-                                      ('/visit/story', EnterArticlePage),
-                                      ('/visit/retell', EnterArticlePage),
-                                      ('/visit/remind', EnterArticlePage),
-                                      ('/visit/respond', EnterArticlePage),
-                                      
-                                      ('/visit/pattern', EnterArticlePage),
-                                      ('/visit/collage', EnterArticlePage),
-                                      ('/visit/invitation', EnterArticlePage),
-                                      ('/visit/resource', EnterArticlePage),
-                                      ('/visit/article', EnterArticlePage),
-                                      ('/visit/answers', AnswerQuestionsAboutArticlePage),
-                                      ('/visit/preview', PreviewPage),
-                                      ('/visit/previewAnswers', PreviewPage),
-                                      
-                                      ('/visit/request', EnterAnnotationPage),
-                                      ('/visit/tagset', EnterAnnotationPage),
-                                      ('/visit/comment', EnterAnnotationPage),
-                                      ('/visit/nudge', EnterAnnotationPage),
-                                      ('/visit/annotation', EnterAnnotationPage),
-                                      
                                       ('/visit/members', SeeCommunityMembersPage),
                                       ('/visit/member', SeeMemberPage),
                                       ('/visit/character', SeeCharacterPage),
                                       ('/visit/community', SeeCommunityPage),
                                       ('/visit/new', NewMemberPage),
-                                      
                                       ('/visit/profile', ChangeMemberProfilePage),
-                                      ('/img', ImageHandler),
-                                      ('/visit/img', ImageHandler),
-                                      ('/manage/img', ImageHandler),
-                                      ('/visit/attachment', AttachmentHandler),
+                                      
+                                      # entering articles
+                                      ('/visit/story', EnterArticlePage),
+                                      ('/visit/retell', EnterArticlePage),
+                                      ('/visit/remind', EnterArticlePage),
+                                      ('/visit/respond', EnterArticlePage),
+                                      ('/visit/pattern', EnterArticlePage),
+                                      ('/visit/collage', EnterArticlePage),
+                                      ('/visit/invitation', EnterArticlePage),
+                                      ('/visit/resource', EnterArticlePage),
+                                      ('/visit/article', EnterArticlePage),
+                                      
+                                      # answering questions
+                                      ('/visit/answers', AnswerQuestionsAboutArticlePage),
+                                      ('/visit/preview', PreviewPage),
+                                      ('/visit/previewAnswers', PreviewPage),
+                                      
+                                      # entering annotations
+                                      ('/visit/request', EnterAnnotationPage),
+                                      ('/visit/tagset', EnterAnnotationPage),
+                                      ('/visit/comment', EnterAnnotationPage),
+                                      ('/visit/nudge', EnterAnnotationPage),
+                                      ('/visit/annotation', EnterAnnotationPage),
                                       
                                       # managing
                                       ('/createCommunity', CreateCommunityPage),
@@ -1441,6 +1445,12 @@ application = webapp.WSGIApplication(
                                       ('/manage/questions/questions', ManageCommunityQuestionsPage),
                                       ('/manage/characters', ManageCommunityCharactersPage),
                                       ('/manage/technical', ManageCommunityTechnicalPage),
+                                      
+                                      # file handlers
+                                      ('/img', ImageHandler),
+                                      ('/visit/img', ImageHandler),
+                                      ('/manage/img', ImageHandler),
+                                      ('/visit/attachment', AttachmentHandler),
                                       
                                       # site admin
                                       ('/admin/showAllCommunities', ShowAllCommunities),

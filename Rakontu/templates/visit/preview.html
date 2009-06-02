@@ -8,7 +8,7 @@
 	
 	{% if article %}
 		<h2>{{article.title}} ({{article.type}})</h2>
-		<div class="article_text">{{article.text}}</div>
+		<div class="article_text">{{article.text|linebreaks}}</div>
 		{% if attachments %}
 			{% for attachment in attachments %}
 				<p>&nbsp; &nbsp; 
@@ -63,11 +63,11 @@
 		<hr><p><b>Your {{annotation.type|capfirst}}:</b></p>
 		{% ifequal annotation.type "comment" %}
 			<p><b>{{annotation.shortString}}</b></p>
-			<p>{{annotation.longString}}</p>
+			<p>{{annotation.longString|linebreaks}}</p>
 		{% endifequal %}
 		{% ifequal annotation.type "request" %}
 			<p><b>{{annotation.shortString}}</b></p>
-			<ul><li class="nobullet">{{annotation.longString}}</li></ul>
+			<ul><li class="nobullet">{{annotation.longString|linebreaks}}</li></ul>
 		{% endifequal %}
 		{% ifequal annotation.type "tag set" %}
 			<ul><li class="nobullet">{{annotation.tagsIfTagSet|join:", "}}</li></ul>

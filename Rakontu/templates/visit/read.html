@@ -8,7 +8,7 @@
 	
 	<h2>{{article.title}} ({{article.type}})</h2>
 	
-	<div class="article_text">{{article.text|escape|linebreaks}}</div>
+	<div class="article_text">{{article.text|linebreaks}}</div>
 	
 	{% if attachments %}
 		{% for attachment in attachments %}
@@ -127,7 +127,7 @@
 		{% endif %}
 		&nbsp; {{comment.published.date|date:"F j, Y"}} at {{comment.published.time|time:"f"}}
 		</li>
-		<ul><li class="nobullet">{{comment.longString|escape}}</li></ul>
+		<ul><li class="nobullet">{{comment.longString|linebreaks}}</li></ul>
 		</li>
 		{% endfor %}
 		</ul>
@@ -208,7 +208,7 @@
 				<a href="characterInfo|{{request.character.key}}">{{request.character.name}}</a>
 			{% endif %}
 			</li>
-			<ul><li class="nobullet">{{request.longString|escape}}</li></ul>
+			<ul><li class="nobullet">{{request.longString|linebreaks}}</li></ul>
 			</li>	
 			&nbsp; {{request.published.date|date:"F j, Y"}} at {{request.published.time|time:"f"}}	
 		{% endfor %}

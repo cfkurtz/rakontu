@@ -29,7 +29,7 @@
 	  					{% if aMember.helpingRoles.1 %} <b>guide</b>{% if aMember.helpingRoles.2 %} and{% else %}. {% endif %} {% endif %}
 	  					{% if aMember.helpingRoles.2 %} <b>liaison</b>.{% endif %}
 	  				{% endif %}
-  				{% if aMember.profileText %}<p>Says {{aMember.nickname}}: <ul><li class="nobullet">{{aMember.profileText}}</li></ul>{% endif %}
+  				{% if aMember.profileText %}<p>Says {{aMember.nickname}}: <ul><li class="nobullet">{{aMember.profileText|linebreaks}}</li></ul>{% endif %}
   				</td>
   				</tr>
       		{% endfor %}

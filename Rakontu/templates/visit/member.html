@@ -29,7 +29,7 @@
 	  			{% if member.helpingRoles.2 %} <b>liaison</b>.{% endif %}
 	  		{% endif %}
 	  	</p>
-  		{% if member.profileText %}<p>Says {{member.nickname}}: <ul><li class="nobullet">{{member.profileText}}</li></ul>{% endif %}
+  		{% if member.profileText %}<p>Says {{member.nickname}}: <ul><li class="nobullet">{{member.profileText|linebreaks}}</li></ul>{% endif %}
 	
 	
 		{% if member.isOnlineMember and member.acceptsMessages %}

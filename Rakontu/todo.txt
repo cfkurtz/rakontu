@@ -27,11 +27,6 @@ where you can see and delete articles
 
 - does the article nudge value start at zero?
 
--character items only anonymous in display
-mgrs/owners cannot see who wrote them
-but site admins can (by querying database,
-info is in there, in creator field)
-
 -curator page:
 	data centric - see how data is shaped and linked   
     deep freeze view
@@ -68,10 +63,12 @@ liaison page:
     quick ways to output things for them
     stories, comments about their stories, etc
     
+ get rid of request type?
+ 
+ put titles on pages!
+    
 finish relate, include links
 
-instead of system questions being always generated, make button to do that in each question page
-that way no clutter if they don't want them
 add import/export of question lists (CSV)
 	
 that whole thing about escaping texts while allowing some simple html to pass through

@@ -10,10 +10,10 @@
 		
 		<p>Created: {{community.created}}</p>
 		<p>Description:</p>
-		<ul><li class="nobullet">{{community.description}}</li></ul>
+		<ul><li class="nobullet">{{community.description|linebreaks}}</li></ul>
 		{% if community.etiquetteStatement %}
 			<p>Rules for behavior:</p>
-			<ul><li class="nobullet">{{community.etiquetteStatement}}</li></ul>
+			<ul><li class="nobullet">{{community.etiquetteStatement|linebreaks}}</li></ul>
 		{% endif %}
 		
 		{% if community.getCharacters %}
@@ -27,8 +27,8 @@
 						<img src="img?character_id={{character.key}}" align="left"></img>
 					{% endif %}
 	  				<a href="character?{{character.key}}">{{ character.name }}</a> 
-	  				{% if character.description %}<p>About {{character.name}}:</p><ul><li class="nobullet">{{character.description}}</li></ul>{% endif %}
-	  				{% if character.etiquetteStatement %}<p>How to be {{character.name}}:</p><ul><li class="nobullet">{{character.etiquetteStatement}}</li></ul>{% endif %}
+	  				{% if character.description %}<p>About {{character.name}}:</p><ul><li class="nobullet">{{character.description|linebreaks}}</li></ul>{% endif %}
+	  				{% if character.etiquetteStatement %}<p>How to be {{character.name}}:</p><ul><li class="nobullet">{{character.etiquetteStatement|linebreaks}}</li></ul>{% endif %}
 	  				</td>
 	  				</tr>
 	      		{% endfor %}

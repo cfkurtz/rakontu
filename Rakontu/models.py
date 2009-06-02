@@ -1,4 +1,4 @@
-# --------------------------------------------------------------------------------------------
+﻿# --------------------------------------------------------------------------------------------
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
 # Version: pre-0.1
@@ -6,13 +6,21 @@
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
 
+import os
+import string
 import datetime
 import logging
+import cgi
+import re
+import htmllib
+
+import sys
+sys.path.append("/Users/cfkurtz/Documents/personal/eclipse_workspace_kfsoft/Rakontu/lib/") 
+from appengine_utilities.sessions import Session
 
 from google.appengine.ext import db
 from google.appengine.api import memcache
 from google.appengine.api import users
-from google.appengine.ext.db import polymodel
 
 # --------------------------------------------------------------------------------------------
 # Utility functions
@@ -26,10 +34,60 @@ def checkedBlank(value):
         return "checked"
     return ""
 
+SIMPLE_HTML_REPLACEMENTS = [
+                            ("<p>", "{{startPar}}"), ("</p>", "{{stopPar}}"),
+                            ("<b>", "{{startBold}}"), ("</b>", "{{stopBold}}"),
+                            ("<i>", "{{startItalic}}"), ("</i>", "{{stopItalic}}"),
+                            ("<del>", "{{startStrike}}"), ("</del>", "{{stopStrike}}"),
+                            ("<ul>", "{{startUL}}"), ("</ul>", "{{stopUL}}"),
+                            ("<ol>", "{{startOL}}"), ("</ol>", "{{stopOL}}"),
+                            ("<li>", "{{startLI}}"), ("</li>", "{{stopLI}}"),
+                            ("<h1>", "{{startH1}}"), ("</h1>", "{{stopH1}}"),
+                            ("<h2>", "{{startH2}}"), ("</h2>", "{{stopH2}}"),
+                            ("<h3>", "{{startH3}}"), ("</h3>", "{{stopH3}}"),
+                            ("<h4>", "{{startH4}}"), ("</h4>", "{{stopH4}}"),
+                            ("<h5>", "{{startH5}}"), ("</h5>", "{{stopH5}}"),
+                            ("<br/>", "{{BR}}"),
+                            ("<hr>", "{{HR}}"),
+                            ]
+DONT_PUT_BRS_ON_THESE_LINES = ["p>", "</ul>", "li>", "</ol>", "h1>", "h2>", "h3>", "h4>", "h5>", "<hr>", "<br/"]
+
+def MakeTextSafeWithMinimalHTML(text):
+    result = text
+    expression = re.compile(r'<a href="(.+?)">(.+)</a>')
+    links = expression.findall(result)
+    for url, label in links:
+        result = result.replace('<a href="%s">' % url, '{{BEGINHREF}}%s{{ENDHREF}}' % url)
+        result = result.replace('%s</a>' % label, '%s{{ENDLINK}}' % label)
+    for htmlVersion, longVersion in SIMPLE_HTML_REPLACEMENTS:
+        result = result.replace(htmlVersion, longVersion)
+    result = cgi.escape(result)
+    for htmlVersion, longVersion in SIMPLE_HTML_REPLACEMENTS:
+        result = result.replace(longVersion, htmlVersion)
+    for url, label in links:
+        result = result.replace('{{BEGINHREF}}%s{{ENDHREF}}' % url, '<a href="%s">' % url)
+        result = result.replace('%s{{ENDLINK}}' % label, '%s</a>' % label)
+    """
+    lines = result.split("\n")
+    changedLines = []
+    for line in lines:
+        addBR = True
+        for exception in DONT_PUT_BRS_ON_THESE_LINES:
+            if line.find(exception) >= 0:
+                addBR = False
+        if addBR:
+            changedLines.append("%s<br/>" % line)
+        else:
+            changedLines.append(line)
+    result = "\n".join(changedLines)
+    """
+    return result
+ 
 # --------------------------------------------------------------------------------------------
 # Constants
 # --------------------------------------------------------------------------------------------
 
+DEVELOPMENT = True
 FETCH_NUMBER = 1000
 
 # community
@@ -100,7 +158,7 @@ DEFAULT_VERTICAL_MOVEMENT_POINTS_PER_EVENT = [
 HISTORY_ACTION_TYPES = ["read", "published"]
 HISTORY_REFERENT_TYPES = ["story", "pattern", "collage", "invitation", "request", \
 						  "retold link", "reminded link", "related link", "included link", \
-						  "answer set", "tag set", "comment", "request", "nudge"]
+						  "answer", "tag set", "comment", "request", "nudge"]
 
 # querying
 QUERY_TYPES = ["free text", "tags", "answers", "members", "activities", "links"]
@@ -679,7 +737,7 @@ class Article(db.Model):
 	
 	def getHistory(self):
 		return ArticleHistoryItem.all().filter("article = ", self.key()).order("-timeStamp")
-	
+
 	def addHistoryItem(self, attribution, action, referent):
 		item = ArticleHistoryItem(attribution=attribution, actionType=action, referent=referent)
 		item.article = self
@@ -693,19 +751,19 @@ class Article(db.Model):
 			else:
 				item.textToShow = referent.shortString
 		elif referent.__class__.__name__ == "Answer":
-			item.referentType = "answer set"
+			item.referentType = "answer"
 			item.textToShow = referent.question.text
 		elif referent.__class__.__name__ == "Link":
 			item.referentType = referent.type + " link"
 			item.textToShow = referent.comment
 		item.put()
-		
+
 	def memberNickNameOrCharacterName(self):
 		if self.character:
 			return self.character.name
-		else:
+		else: 
 			return self.creator.nickname
-		
+
 	def publish(self):
 		self.draft = False
 		self.published = datetime.datetime.now()
@@ -714,7 +772,9 @@ class Article(db.Model):
 		self.creator.nudgePoints += self.community.getNudgePointsPerActivityForActivityName("telling")
 		self.creator.lastEnteredArticle = datetime.datetime.now()
 		self.creator.put()
-				
+		for answer in self.getAnswersForMember(self.creator):
+			answer.publish()
+
 class Link(db.Model):
 	""" For holding on to links between articles.
 	

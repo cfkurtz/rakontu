@@ -33,9 +33,15 @@
 		</select></p>
 		<input type="submit" name="visitCommunity" value="Join Community" class="button">
 	{% endif %}
-
+	
 	<p></p>
 	<input type="submit" name="createCommunity" value="Create a New Rakontu Community" class="button">
+
+	{% if DEVELOPMENT %}
+		<p></p>
+		<input type="submit" name="makeFakeData" value="Make Some Fake Data">
+	{% endif %}
+	
 	</form>
 	</div>
 	
