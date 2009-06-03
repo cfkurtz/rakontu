@@ -24,7 +24,8 @@ from google.appengine.api import mail
 def RequireLogin(func):
 	def check_login(request):
 		if not users.get_current_user():
-			request.redirect('/login')
+			loginURL = users.create_login_url("/")
+			request.redirect(loginURL)
 			return
 		func(request)
 	return check_login 
@@ -94,12 +95,12 @@ class StartPage(webapp.RequestHandler):
 						   'communities_member_of': communitiesTheyAreAMemberOf,
 						   'communities_invited_to': communitiesTheyAreInvitedTo,
 						   'DEVELOPMENT': DEVELOPMENT,
+						   'login_url': users.create_login_url("/"),
 						   'logout_url': users.create_logout_url("/"),
 						   }
 		path = os.path.join(os.path.dirname(__file__), 'templates/startPage.html')
 		self.response.out.write(template.render(path, template_values))
 
-	@RequireLogin 
 	def post(self):
 		user = users.get_current_user()
 		if "visitCommunity" in self.request.arguments():

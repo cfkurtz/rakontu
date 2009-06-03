@@ -8,42 +8,42 @@
 	<p><img src="/images/Rakontu.jpg" alt="Rakontu logo" class="bordered"></p>
 	{% if user %}
 		<p>You are logged in to your Google account <b>{{ user.nickname }}</b>. <a href="{{logout_url}}">Log out</a></p>
-	{% else %}
-		<p>You are not logged in to a Google account. Please log in at Google and return.</p>
-	{% endif %}
 	
-	<div id="stylized" class="rakontu_form_centered">
-	<form action="/" method="post">
-	{% if communities_member_of %}
-		<p>You are a <b>member</b> of these Rakontu communities.<br>Which would you like to visit?</p>
-		<p><select name="community_key" class="select">
-		{% for community in communities_member_of %}
-			<option value="{{ community.key }}">{{ community.name }}</option>
-		{% endfor %}
-		</select></p>
-		<input type="submit" name="visitCommunity" value="Visit Community" class="button">
-	{% endif %}
-
-	{% if communities_invited_to %}
-		<p>You have been <b>invited</b> to join these Rakontu communities.<br>Which would you like to join?</p>
-		<p><select name="community_key" class="select">
-		{% for community in communities_invited_to %}
-			<option value="{{ community.key }}">{{ community.name }}</option>
-		{% endfor %}
-		</select></p>
-		<input type="submit" name="visitCommunity" value="Join Community" class="button">
-	{% endif %}
+		<div id="stylized" class="rakontu_form_centered">
+		<form action="/" method="post">
+		{% if communities_member_of %}
+			<p>You are a <b>member</b> of these Rakontu communities.<br>Which would you like to visit?</p>
+			<p><select name="community_key" class="select">
+			{% for community in communities_member_of %}
+				<option value="{{ community.key }}">{{ community.name }}</option>
+			{% endfor %}
+			</select></p>
+			<input type="submit" name="visitCommunity" value="Visit Community" class="button">
+		{% endif %}
 	
-	<p></p>
-	<input type="submit" name="createCommunity" value="Create a New Rakontu Community" class="button">
-
-	{% if DEVELOPMENT %}
+		{% if communities_invited_to %}
+			<p>You have been <b>invited</b> to join these Rakontu communities.<br>Which would you like to join?</p>
+			<p><select name="community_key" class="select">
+			{% for community in communities_invited_to %}
+				<option value="{{ community.key }}">{{ community.name }}</option>
+			{% endfor %}
+			</select></p>
+			<input type="submit" name="visitCommunity" value="Join Community" class="button">
+		{% endif %}
+		
 		<p></p>
-		<input type="submit" name="makeFakeData" value="Make Some Fake Data">
-	{% endif %}
 	
-	</form>
-	</div>
+		<input type="submit" name="createCommunity" value="Create a New Rakontu Community" class="button">
+		{% if DEVELOPMENT %}
+			<p></p>
+			<input type="submit" name="makeFakeData" value="Make Some Fake Data">
+		{% endif %}
+		</form>
+		</div>
+	
+	{% else %}
+		<p>You must be logged in to a Google account to use Rakontu.</p><p><a href="{{login_url}}">Login at Google</a></p>
+	{% endif %}
 	
 	</body>
 </html>
