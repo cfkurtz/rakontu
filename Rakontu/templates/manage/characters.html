@@ -9,8 +9,6 @@
 		{% if current_member.isManagerOrOwner %}
 			<div id="stylized" class="rakontu_form">
 			<form action="/manage/characters" method="post" enctype="multipart/form-data">
-			<h2>Changing Characters for Rakontu Community "{{ community.name|escape }}"</h2>
-			<p>
 			<h3>Add New Characters</h3>
 			<div><textarea name="newCharacterNames" rows="6" cols="40"></textarea></div>
 			<p>Instructions: Add names on separate lines.</p>
@@ -19,23 +17,21 @@
 			<h3>Change Characters</h3>
 	      	<table border="1" cellpadding="4" cellspacing="0">
 	      	<tr>
-	      		<th>Name</th>
-	      		<th>Image</th>
+	      		<th>Name and image</th>
 	      		<th>Description</th>
 	      		<th>Etiquette statement (optional)</th>
 	      		<th>Remove</th>
 	      		</tr>
 	      		{% for character in characters %}
 	  				<tr>
-	  				<td><div><input type="text" name="name|{{character.key}}" value="{{ character.name }}" size="10"/></div></td>
-					<td>
+	  				<td><p><input type="text" name="name|{{character.key}}" value="{{ character.name }}" size="20"/></p>
 						{% if character.image %}
 							<center><img src="img?character_id={{character.key}}"></img></center>
 						{% endif %}
 						<p><input type="file" name="image|{{character.key}}" accept="jpg/png" size="10"></p>
 						</td>
 	  				<td>
-	  					<textarea name="description|{{character.key}}" rows="6" cols="60">{{ character.description }}</textarea>
+	  					<textarea name="description|{{character.key}}" rows="4" cols="60">{{ character.description }}</textarea>
 						<div class="rightalign">Interpret as <select name="description_format|{{character.key}}">
 							{% for format in text_formats %}
 								<option value="{{format}}" 
@@ -47,7 +43,7 @@
 							</select></div>
 	  					</td>
 	  				<td>
-	  					<textarea name="etiquetteStatement|{{character.key}}" rows="6" cols="60">{{ character.etiquetteStatement }}</textarea>
+	  					<textarea name="etiquetteStatement|{{character.key}}" rows="4" cols="60">{{ character.etiquetteStatement }}</textarea>
 						<div class="rightalign">Interpret as <select name="etiquetteStatement_format|{{character.key}}">
 							{% for format in text_formats %}
 								<option value="{{format}}" 

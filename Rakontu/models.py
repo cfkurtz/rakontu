@@ -187,7 +187,7 @@ DEFAULT_NUDGE_POINT_ACCUMULATIONS = [
 					 				20, # telling
 					 				10, # relating
 					 				15, # including
-					 				20, # answering
+					 				2, # answering
 					 				4, # tagging
 					 				5, # commenting
 					 				8, # requesting
@@ -229,14 +229,14 @@ STORY_ENTRY_TYPE_INDEX = 0
 ANSWERS_ENTRY_TYPE_INDEX = 5
 
 # browsing
-TIME_STEPS = ["hour", "day", "week", "month", "year"]
-DEFAULT_VERTICAL_MOVEMENT_POINTS_PER_EVENT = [
+TIME_FRAMES = ["minute", "hour", "day", "week", "month", "year"]
+DEFAULT_ACTIVITY_POINTS_PER_EVENT = [
 									-1, # time
 					 				5, # reading
 					 				2, # telling  
 					 				2, # relating
 					 				2, # including 
-					 				20, # answering
+					 				2, # answering
 					 				10, # tagging
 					 				10, # commenting
 					 				20, # requesting
@@ -244,10 +244,13 @@ DEFAULT_VERTICAL_MOVEMENT_POINTS_PER_EVENT = [
 					 				]
 
 # history
-HISTORY_ACTION_TYPES = ["read", "published"]
-HISTORY_REFERENT_TYPES = ["story", "pattern", "collage", "invitation", "request", \
+HISTORY_ACTION_TYPES = ["read", "added"]
+HISTORY_REFERENT_TYPES = ["story", "pattern", "collage", "invitation", "resource", \
 						  "retold link", "reminded link", "related link", "included link", \
 						  "answer", "tag set", "comment", "request", "nudge"]
+DEFAULT_ACTIVITY_ACCUMULATIONS = {"story": 1, "pattern": 1, "collage": 1, "invitation": 1, "resource": 1, \
+						  "retold link": 3, "reminded link": 3, "related link": 3, "included link": 3, \
+						  "answer": 3, "tag set": 10, "comment": 10, "request": 10, "nudge": 10}
 
 # querying
 QUERY_TYPES = ["free text", "tags", "answers", "members", "activities", "links"]
@@ -270,7 +273,8 @@ class Community(db.Model):
 	
 	Properties
 		name:					The name that appears on all pages.
-		description:			Some text that describes the community. Can contain links. (simple markup?)
+		tagline:				Very short description that comes after the community name on the top of the page.
+		description:			Some text that describes the community. 
 		etiquetteStatement:		This is just some extra text in case they want to say how people should behave.
 		welcomeMessage:			Extra text a new member will see.
 		image:					Picture to show on community page.
@@ -289,6 +293,7 @@ class Community(db.Model):
 								May be useful to keep the database from getting out of hand.
 	"""
 	name = db.StringProperty()
+	tagline = db.StringProperty()
 	description = db.TextProperty()
 	description_formatted = db.TextProperty()
 	description_format = db.StringProperty(default="plain text")
@@ -378,10 +383,10 @@ class Community(db.Model):
 		newQuestion.put()
 	
 	def getActiveMembers(self):
-		return Member.all().filter("community = ", self.key()).filter("isActiveMember = ", True).fetch(FETCH_NUMBER)
+		return Member.all().filter("community = ", self.key()).filter("active = ", True).fetch(FETCH_NUMBER)
 	
 	def getInactiveMembers(self):
-		return Member.all().filter("community = ", self.key()).filter("isActiveMember = ", False).fetch(FETCH_NUMBER)
+		return Member.all().filter("community = ", self.key()).filter("active = ", False).fetch(FETCH_NUMBER)
 	
 	def hasMemberWithGoogleEmail(self, email):
 		members = self.getActiveMembers()
@@ -497,7 +502,7 @@ class Member(db.Model):
 		googleAccountEmail:	The email with which the account was created. For display only.
 		isOnlineMember:		Whether the member is online (has a Google account).
 							Note that offline members cannot have helping roles or be managers or owners.
-		isActiveMember:		Flag set to false when members quit; so they can be reinstated easier.
+		active:				Flag set to false when members quit; so they can be reinstated easier.
 		acceptsMessages:	Other members can send them messages, and they come through their email address.
 		liaisonAccountID:	Can be permanently linked to a liaison. This is to help
 							liaisons manage the offline members they have responsibility for.
@@ -528,7 +533,7 @@ class Member(db.Model):
 	googleAccountID = db.StringProperty(required=True)
 	googleAccountEmail = db.StringProperty(required=True)
 	isOnlineMember = db.BooleanProperty(default=True)
-	isActiveMember = db.BooleanProperty(default=True)
+	active = db.BooleanProperty(default=True)
 	acceptsMessages = db.BooleanProperty(default=True)
 	liaisonAccountID = db.StringProperty(default=None)
 	
@@ -552,9 +557,40 @@ class Member(db.Model):
 	lastAnsweredQuestion = db.DateTimeProperty()
 	lastReadAnything = db.DateTimeProperty()
 	nudgePoints = db.IntegerProperty(default=50)
+	
+	view_timeFrame = db.StringProperty(choices=TIME_FRAMES)
+	view_endTime = db.DateTimeProperty(auto_now_add=True)
+	view_numTimeFrames = db.IntegerProperty(default=1)
 
 	def getViewingPreferences(self):
 		return ViewingPreferences.all().filter("owner = ", self.key()).fetch(FETCH_NUMBER)
+	
+	def getViewStartTime(self):
+		if self.view_timeFrame == "minute":
+			return self.view_endTime - datetime.timedelta(minutes=1) * self.view_numTimeFrames
+		if self.view_timeFrame == "hour":
+			return self.view_endTime - datetime.timedelta(hours=1) * self.view_numTimeFrames
+		elif self.view_timeFrame == "day":
+			return self.view_endTime - datetime.timedelta(days=1) * self.view_numTimeFrames
+		elif self.view_timeFrame == "week":
+			return self.view_endTime - datetime.timedelta(weeks=1) * self.view_numTimeFrames
+		elif self.view_timeFrame == "month":
+			return self.view_endTime - datetime.timedelta(weeks=4) * self.view_numTimeFrames
+		else:
+			return self.view_endTime - datetime.timedelta(hours=1)  * self.view_numTimeFrames # cfk fix
+		
+	def getNumTimeColumns(self):
+		if self.view_timeFrame == "minute":
+			return 6
+		if self.view_timeFrame == "hour":
+			return 6
+		elif self.view_timeFrame == "day":
+			return 6
+		elif self.view_timeFrame == "week":
+			return 7
+		elif self.view_timeFrame == "month":
+			return 4
+		return 6 # cfk fix
 	
 	def googleUserEmailOrNotOnline(self):
 		if self.isOnlineMember:
@@ -610,7 +646,7 @@ class Member(db.Model):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
 	
 	def getHistory(self):
-		return ArticleHistoryItem.all().filter("member = ", self.key()).order("-timeStamp")
+		return ArticleHistoryItem.all().filter("member = ", self.key()).order("-timeStamp").fetch(FETCH_NUMBER)
 	
 	def getDraftArticles(self):
 		return Article.all().filter("creator = ", self.key()).filter("draft = ", True).fetch(FETCH_NUMBER)
@@ -663,7 +699,7 @@ class Character(db.Model):
 	image = db.BlobProperty(default=None)
 	
 	def getHistory(self):
-		return ArticleHistoryItem.all().filter("attribution = ", self.name).order("-timeStamp")
+		return ArticleHistoryItem.all().filter("attribution = ", self.name).order("-timeStamp").fetch(FETCH_NUMBER)
 	
 # --------------------------------------------------------------------------------------------
 # Answer
@@ -725,8 +761,8 @@ class Answer(db.Model):
 		if self.referentType == "article":
 			self.draft = False
 			self.published = datetime.datetime.now()
-			self.referent.addHistoryItem(self.memberNickNameOrCharacterName(), "published", self)
 			self.put()
+			self.referent.addHistoryItem(self.memberNickNameOrCharacterName(), "added", self)
 			self.creator.nudgePoints += self.community.getNudgePointsPerActivityForActivityName("answering question")
 			self.creator.lastAnsweredQuestion = datetime.datetime.now()
 			self.creator.put()
@@ -760,10 +796,6 @@ class Article(db.Model):
 		draft:				Whether this is a draft or published entry.
 		
 		lastRead:			When it was last accessed by anyone.
-		lastAnnotated:		The last time any annotation was added.
-		numBrowses:			The number of times this article appeared in the main browse window.
-							(This may be too CPU intensive to store here so it may go away.)
-		numReads:			The number of times this article was read.
 	"""
 	title = db.StringProperty(required=True)
 	text = db.TextProperty(default="No text")
@@ -785,17 +817,11 @@ class Article(db.Model):
 	draft = db.BooleanProperty(default=True)
 	
 	lastRead = db.DateTimeProperty(default=None)
-	lastAnnotated = db.DateTimeProperty(default=None)
-	numBrowses = db.IntegerProperty(default=0)
-	numReads = db.IntegerProperty(default=0)
+	activityPoints = db.IntegerProperty(default=0)
+	nudgePoints = db.ListProperty(int, default=[0,0,0,0,0])
 	
-	def creatorExists(self): # didn't need this but handy so I'll keep it around just in case
-		try:
-			if self.creator != None:
-				return True
-			return False
-		except db.Error:
-			return False
+	def nudgePointsCombined(self):
+		return self.nudgePoints[0] + self.nudgePoints[1] + self.nudgePoints[2] + self.nudgePoints[3] + self.nudgePoints[4]
 	
 	def attributedToMember(self):
 		return self.character == None
@@ -846,8 +872,11 @@ class Article(db.Model):
 	def getNudgesForMember(self, member):
 		return Annotation.all().filter("article = ", self.key()).filter("type = ", "nudge").filter("creator = ", member.key()).fetch(FETCH_NUMBER)
 	
+	def memberCanNudge(self, member):
+		return member.key() != self.creator.key()
+	
 	def getHistory(self):
-		return ArticleHistoryItem.all().filter("article = ", self.key()).order("-timeStamp")
+		return ArticleHistoryItem.all().filter("article = ", self.key()).order("-timeStamp").fetch(FETCH_NUMBER)
 
 	def addHistoryItem(self, attribution, action, referent):
 		item = ArticleHistoryItem(attribution=attribution, actionType=action, referent=referent)
@@ -867,8 +896,27 @@ class Article(db.Model):
 		elif referent.__class__.__name__ == "Link":
 			item.referentType = referent.type + " link"
 			item.textToShow = referent.comment
+		item.activityPoints = DEFAULT_ACTIVITY_ACCUMULATIONS[item.referentType]
 		item.put()
-
+		self.activityPoints = self.getCurrentTotalActivityPoints()
+		self.nudgePoints = self.getCurrentTotalNudgePointsInAllCategories()
+		self.put()
+				
+	def getCurrentTotalActivityPoints(self):
+		result = 0
+		for item in self.getHistory():
+			result += DEFAULT_ACTIVITY_ACCUMULATIONS[item.referentType]
+		return result
+	
+	def getCurrentTotalNudgePointsInAllCategories(self):
+		result = [0,0,0,0,0]
+		for nudge in self.getNonDraftAnnotationsOfType("nudge"):
+			i = 0
+			for value in nudge.valuesIfNudge:
+				result[i] += value
+				i += 1
+		return result
+			
 	def memberNickNameOrCharacterName(self):
 		if self.character:
 			return self.character.name
@@ -878,7 +926,7 @@ class Article(db.Model):
 	def publish(self):
 		self.draft = False
 		self.published = datetime.datetime.now()
-		self.addHistoryItem(self.memberNickNameOrCharacterName(), "published", self)
+		self.addHistoryItem(self.memberNickNameOrCharacterName(), "added", self)
 		self.put()
 		self.creator.nudgePoints += self.community.getNudgePointsPerActivityForActivityName("telling")
 		self.creator.lastEnteredArticle = datetime.datetime.now()
@@ -925,13 +973,14 @@ class ArticleHistoryItem(db.Model):
 	
 	Properties
 		timeStamp:			When the action happened.
-		actionType:			What was done - create, change or remove.
+		actionType:			What was done - read, create, or inactivate.
 		article:			What article the change relates to (may be same as referent).
 		referent:			What object it was done to.
 		referentType:		What type of object it was. 
 							This is here mainly if the object is removed and can no longer
 							be asked what type it was.
 		textToShow:			How to report on what this was called.
+		activityPoints:		How many activityPoints this item creates for the article.
 	"""
 	timeStamp = db.DateTimeProperty(auto_now_add=True)
 	attribution = db.StringProperty()
@@ -940,6 +989,7 @@ class ArticleHistoryItem(db.Model):
 	referent = db.ReferenceProperty(None, collection_name="referents_history", required=True)
 	referentType = db.StringProperty(choices=HISTORY_REFERENT_TYPES)
 	textToShow = db.StringProperty()
+	activityPoints = db.IntegerProperty(default=0)
 	
 # --------------------------------------------------------------------------------------------
 # Annotations
@@ -1033,7 +1083,7 @@ class Annotation(db.Model):
 	def publish(self):
 		self.draft = False
 		self.published = datetime.datetime.now()
-		self.article.addHistoryItem(self.memberNickNameOrCharacterName(), "published", self)
+		self.article.addHistoryItem(self.memberNickNameOrCharacterName(), "added", self)
 		self.put()
 		if self.type == "tag set":
 			activity = "tagging"
@@ -1202,7 +1252,7 @@ class ViewingPreferences(db.Model):
 	owner = db.ReferenceProperty(Member, required=True, collection_name="viewing_preferences")
 	communityIfCommon = db.ReferenceProperty(Community, required=True, collection_name="prefs_to_community")
 	
-	xTimeStep = db.StringProperty(choices=TIME_STEPS, default="day")
+	xTimeStep = db.StringProperty(choices=TIME_FRAMES, default="day")
 	xTimeStepMultiplier = db.IntegerProperty(default=1)
 	xStart = db.DateTimeProperty(default=datetime.datetime(2009, 5, 1))
 	xStop = db.DateTimeProperty(default=datetime.datetime(2009, 6, 1))
@@ -1211,7 +1261,7 @@ class ViewingPreferences(db.Model):
 	yTop = db.IntegerProperty(default=100)
 	yBottom = db.IntegerProperty(default=0)
 	yArrangement = db.StringListProperty(choices=ACTIVITIES_GERUND, default=["time", "reading", "nudging"])
-	verticalPoints = db.ListProperty(int, default=DEFAULT_VERTICAL_MOVEMENT_POINTS_PER_EVENT)
+	verticalPoints = db.ListProperty(int, default=DEFAULT_ACTIVITY_POINTS_PER_EVENT)
 	
 	deepFreeze = db.IntegerProperty(default=0)
 	

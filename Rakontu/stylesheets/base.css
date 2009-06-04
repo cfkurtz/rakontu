@@ -25,7 +25,8 @@ img.bordered {
 	
 table {
 	width: auto;
-	!border: 1px solid #FF7F00;
+	border-right: 1px solid #FF7F00;
+	border-bottom: 1px solid #FF7F00;
 	}
 	
 table.fullwidth {
@@ -35,7 +36,8 @@ table.fullwidth {
 	
 td {
 	font-size: 80%;
-	!border: 1px solid #FF7F00;
+	border-left: 1px solid #FF7F00;
+	border-top: 1px solid #FF7F00;
 	}
 	
 td.noborder {
@@ -48,7 +50,8 @@ th {
 	font-style: plain;
 	font-weight: normal;
 	background: #FFEECC;
-	border: 1px solid #FF7F00;
+	border-left: 1px solid #FF7F00;
+	border-top: 1px solid #FF7F00;
 	}
 		
 fieldset {

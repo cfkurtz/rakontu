@@ -131,103 +131,85 @@
 			
 			{% ifnotequal community.maxNumAttachments 0 %}
 				<h3>Attachments</h3>
-				<fieldset>
 				{% if article %}
-					<p>This {{article_type}} has these attachments.
+					<p>This {{article_type}} has these attachments. Click the Browse button to replace any attachment,
+					or check the Remove box to delete it.
 				{% else %}
 					<p>You can attach up to {{community.maxNumAttachmentsAsText}} files to this {{article_type}} here.
 				{% endif %}
-				<i>PDF, TXT, DOC, JPG, PNG only; 10 megabyte limit.</i></p>
+				<i>PDF, TXT, DOC, JPG, PNG only; maximum 10 megabyte limit per attachment.</i></p>
 				
-				<h4>First attachment</h4>
-				<p>Name</p>
-				<div><input type="text" name="attachmentName0" value="{{attachments.0.name}}"/></div></p>
-				{% if article %}
-					{% if attachments.0.fileName %}
-					<p><b>File</b>: <a href="attachment?attachment_id={{attachments.0.key}}">{{attachments.0.fileName}}</a>
-					&nbsp; <label><input type="checkbox" name"removeAttachment|{{attachments.0.key}}" value="removeAttachment|{{attachments.0.key}}">Remove</label></p>
-					{% else %}
-					<p><b>File</b>: none</p>
-					{% endif %}
-					<p>Click Browse to replace the first attachment for this {{article_type}}.</p>
-				{% else %}
-					<p>Click Browse to choose a first attachment for this {{article_type}}.</p>
-				{% endif %}
-				<p><input type="file" name="attachment0"/></p>
-	
-				{% if community.allowsAtLeastTwoAttachments %}
-					<h4>Second attachment</h4>
-					<p>Name</p>
-					<div><input type="text" name="attachmentName1" value="{{attachments.1.name}}"/></div></p>
-					{% if article %}
-						{% if attachments.1.fileName %}
-						<p><b>File</b>: <a href="attachment?attachment_id={{attachments.1.key}}">{{attachments.1.fileName}}</a>
-						&nbsp; <label><input type="checkbox" name"removeAttachment|{{attachments.1.key}}" value="removeAttachment|{{attachments.1.key}}">Remove</label></p>
-						{% else %}
-						<p><b>File</b>: none</p>
-						{% endif %}
-						<p>Click Browse to replace the second attachment for this {{article_type}}.</p>
-					{% else %}
-						<p>Click Browse to choose a second attachment for this {{article_type}}.</p>
-					{% endif %}
-					<p><input type="file" name="attachment1"/></p>
-					
-					{% if community.allowsAtLeastThreeAttachments %}
-						<h4>Third attachment</h4>
-						<p>Name</p>
-						<div><input type="text" name="attachmentName2" value="{{attachments.2.name}}"/></div></p>
-						{% if article %}
-							{% if attachments.2.fileName %}
-							<p><b>File</b>: <a href="attachment?attachment_id={{attachments.2.key}}">{{attachments.2.fileName}}</a>
-							&nbsp; <label><input type="checkbox" name"removeAttachment|{{attachments.2.key}}" value="removeAttachment|{{attachments.2.key}}">Remove</label></p>
-							{% else %}
-							<p><b>File</b>: none</p>
-							{% endif %}
-							<p>Click Browse to replace the third attachment for this {{article_type}}.</p>
-						{% else %}
-							<p>Click Browse to choose a third attachment for this {{article_type}}.</p>
-						{% endif %}
-						<p><input type="file" name="attachment2"/></p>
-						
-						{% if community.allowsAtLeastFourAttachments %}
-							<h4>Fourth attachment</h4>
-							<p>Name</p>
-							<div><input type="text" name="attachmentName3" value="{{attachments.3.name}}"/></div></p>
-							{% if article %}
-								{% if attachments.3.fileName %}
-								<p><b>File</b>: <a href="attachment?attachment_id={{attachments.3.key}}">{{attachments.3.fileName}}</a>
-								&nbsp; <label><input type="checkbox" name"removeAttachment|{{attachments.3.key}}" value="removeAttachment|{{attachments.3.key}}">Remove</label></p>
-								{% else %}
-								<p><b>File</b>: none</p>
-								{% endif %}
-								<p>Click Browse to replace the fourth attachment for this {{article_type}}.</p>
-							{% else %}
-								<p>Click Browse to choose a fourth attachment for this {{article_type}}.</p>
-							{% endif %}
-							<p><input type="file" name="attachment3"/></p>
+		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<tr>
+		      		<th>Name</th>
+		      		<th>File</th>
+		      		<th>Remove?</th>
+		      		<th>{% if article %} Replace {% else %} Attach {% endif %} </th>
+		      		
+		      		</tr><td><input type="text" name="attachmentName0" value="{{attachments.0.name}}" size="20"/></td>
+					<td>{% if attachments.0.fileName %}
+						<a href="attachment?attachment_id={{attachments.0.key}}">
+						{{attachments.0.fileName}}</a>{% else %}none
+						{% endif %}</td>
+					<td>{% if attachments.0.fileName %}
+							<input type="checkbox" name"removeAttachment|{{attachments.0.key}}" value="removeAttachment|{{attachments.0.key}}" id="0">
+							<label for="0">Remove</label>{% else %}&nbsp; 
+						{% endif %}</td>
+					<td><input type="file" name="attachment0" size="20"/></p></td></tr>
+
+					{% if community.allowsAtLeastTwoAttachments %}
+			      		</tr><td><input type="text" name="attachmentName1" value="{{attachments.1.name}}" size="20"/></td>
+						<td>{% if attachments.1.fileName %}
+							<a href="attachment?attachment_id={{attachments.1.key}}">
+							{{attachments.1.fileName}}</a>{% else %}none
+							{% endif %}</td>
+						<td>{% if attachments.1.fileName %}
+								<input type="checkbox" name"removeAttachment|{{attachments.1.key}}" value="removeAttachment|{{attachments.1.key}}" id="1">
+								<label for="1">Remove</label>{% else %}&nbsp; 
+							{% endif %}</td>
+						<td><input type="file" name="attachment1" size="20"/></p></td></tr>
+				
+						{% if community.allowsAtLeastThreeAttachments %}
+				      		</tr><td><input type="text" name="attachmentName2" value="{{attachments.2.name}}" size="20"/></td>
+							<td>{% if attachments.2.fileName %}
+								<a href="attachment?attachment_id={{attachments.2.key}}">
+								{{attachments.2.fileName}}</a>{% else %}none
+								{% endif %}</td>
+							<td>{% if attachments.2.fileName %}
+									<input type="checkbox" name"removeAttachment|{{attachments.2.key}}" value="removeAttachment|{{attachments.2.key}}" id="2">
+									<label for="2">Remove</label>{% else %}&nbsp; 
+								{% endif %}</td>
+							<td><input type="file" name="attachment2" size="20"/></p></td></tr>
 							
-							{% if community.allowsFiveAttachments %}
-								<h4>Fifth attachment</h4>
-								<p>Name</p>
-								<div><input type="text" name="attachmentName4" value="{{attachments.4.name}}"/></div></p>
-								{% if article %}
-									{% if attachments.4.fileName %}
-									<p><b>File</b>: <a href="attachment?attachment_id={{attachments.4.key}}">{{attachments.4.fileName}}</a>
-									&nbsp; <label><input type="checkbox" name"removeAttachment|{{attachments.4.key}}" value="removeAttachment|{{attachments.4.key}}">Remove</label></p>
-									{% else %}
-									<p><b>File</b>: none</p>
-									{% endif %}
-									<p>Click Browse to replace the fifth attachment for this {{article_type}}.</p>
-								{% else %}
-									<p>Click Browse to choose a fifth attachment for this {{article_type}}.</p>
+							{% if community.allowsAtLeastFourAttachments %}
+					      		</tr><td><input type="text" name="attachmentName3" value="{{attachments.3.name}}" size="20"/></td>
+								<td>{% if attachments.3.fileName %}
+									<a href="attachment?attachment_id={{attachments.3.key}}">
+									{{attachments.3.fileName}}</a>{% else %}none
+									{% endif %}</td>
+								<td>{% if attachments.3.fileName %}
+										<input type="checkbox" name"removeAttachment|{{attachments.3.key}}" value="removeAttachment|{{attachments.3.key}}" id="3">
+										<label for="3">Remove</label>{% else %}&nbsp; 
+									{% endif %}</td>
+								<td><input type="file" name="attachment3" size="20"/></p></td></tr>
+								
+								{% if community.allowsFiveAttachments %}
+					      		</tr><td><input type="text" name="attachmentName4" value="{{attachments.4.name}}" size="20"/></td>
+								<td>{% if attachments.4.fileName %}
+									<a href="attachment?attachment_id={{attachments.4.key}}">
+									{{attachments.4.fileName}}</a>{% else %}none
+									{% endif %}</td>
+								<td>{% if attachments.4.fileName %}
+										<input type="checkbox" name"removeAttachment|{{attachments.4.key}}" value="removeAttachment|{{attachments.4.key}}" id="4">
+										<label for="4">Remove</label>{% else %}&nbsp; 
+									{% endif %}</td>
+								<td><input type="file" name="attachment4" size="20"/></p></td></tr>
+							
 								{% endif %}
-								<p><input type="file" name="attachment4"/></p>
 							{% endif %}
 						{% endif %}
 					{% endif %}
-				{% endif %}
-					
-				</fieldset>
+				</table>
 			{% endifnotequal %}
 			
 			<p>

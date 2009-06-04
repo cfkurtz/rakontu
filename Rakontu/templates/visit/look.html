@@ -6,17 +6,65 @@
 	{% include "../menus.html" %}
 	<div id="content">
 	
-	<p>Browsing all articles in the {{ community.name }} community.</p>
-	
-	{% for type in article_types %}
-		<h3>{{type|capfirst}}</h3>
-		{% for article in articles %}
-			{% ifequal article.type type %}
-				<p>&nbsp; <a href="/visit/read?{{article.key}}">{{article.title}}</a></p>
-			{% endifequal %}
+	<p></p>
+	<table border="1" cellpadding="4" cellspacing="0">
+	{% for row_list in rows_cols %}
+		<tr>
+		{% for col_list in row_list %}
+		<td>
+		{% if col_list %}
+			{% for text in col_list %}
+				{{text}}
+			{% endfor %}
+		{% else %}
+		&nbsp; 
+		{% endif %}
+		</td>
 		{% endfor %}
-	{% endfor %}	
-
+		</tr>
+	{% endfor %}
+	{% if row_headers %}
+		<tr>
+		{% for header in row_headers %}
+		<th>{{header}}</th>
+		{% endfor %}
+		</tr>
+	{% endif %}
+	</table>
+	
+	<div id="stylized" class="rakontu_form">
+		<form action="/visit/look" method="post">
+			<center>
+			<input type="submit" name="moveTimeBack" value="< Back" class="button">
+			<b>Show</b> 
+			<select name="numberOf">
+				<option value="1" {% ifequal 1 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>1</option>
+				<option value="2" {% ifequal 2 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>2</option>
+				<option value="3" {% ifequal 3 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>3</option>
+				<option value="4" {% ifequal 4 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>4</option>
+				<option value="5" {% ifequal 5 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>5</option>
+				<option value="6" {% ifequal 6 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>6</option>
+				<option value="7" {% ifequal 7 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>7</option>
+				<option value="8" {% ifequal 8 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>8</option>
+				<option value="9" {% ifequal 9 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>9</option>
+				<option value="10" {% ifequal 10 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>10</option>
+				</select>
+			<select name="timeFrame">
+				{% for time_frame in time_frames %}
+					<option value="{{time_frame}}"
+					{% ifequal current_member.view_timeFrame time_frame %}
+						selected="selected"
+					{% endifequal %}
+					>{{time_frame}}(s)</option>
+				{% endfor %}
+				</select>
+			<input type="submit" name="changeTimeFrame" value="Change" class="button">
+			<input type="submit" name="moveTimeForward" value="Forward >" class="button">
+			<input type="submit" name="setToNow" value="Now >>" class="button">
+			</center>
+		</form>	
+	</div>
+	
 	</div>
 	</body>
 </html>

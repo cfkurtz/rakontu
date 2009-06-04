@@ -71,6 +71,10 @@ finish relate, include links
 
 add import/export of question lists (CSV)
 	
-that whole thing about escaping texts while allowing some simple html to pass through
-can do - s/r then escape then s/r again
+with markup - allow to refer to image in attachments {1} {2} etc
+also check how handling <img src= tag in simple html version (i think am not handling yet)
+
+deal with TIME ZONE
+
+start thinking about internationalization
 

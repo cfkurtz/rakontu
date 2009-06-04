@@ -6,11 +6,13 @@
 	{% include "../menus.html" %}
 	<div id="content">
 	
-	<h2>{{article.title}} ({{article.type}})</h2>
+	<img src="/images/{{article.type}}.png" alt="tags" align="left">
+	<h2>{{article.title}}</h2>
 	
 	<fieldset><div class="article_text">{{article.text_formatted}}</div></fieldset>
 	
 	{% if attachments %}
+		<p><img src="/images/attachments.png" alt="attachments"> Attachments</p>
 		{% for attachment in attachments %}
 			<p>&nbsp; &nbsp; 
 			{% if attachment.name %}
@@ -27,7 +29,7 @@
 	<p>This {{article.type}} was entered by 
 	
 	{% if article.attributedToMember %}
-			{% if article.creator.isActiveMember %}
+			{% if article.creator.active %}
 				<a href="member?{{article.creator.key}}">{{article.creator.nickname}}</a>
 				{% ifequal article.creator.key current_member.key %}
 					 (you)
@@ -50,7 +52,7 @@
 	{% endif %}
 	
 	{% if community_has_questions_for_this_article_type %}
-		<h4>Answers</h4>
+		<h4><img src="/images/answers.png" alt="answers"> Answers</h4>
 		{% if answers %}
 			<ul>
 			{% for question in questions %}
@@ -85,7 +87,7 @@
 							- 
 
 							{% if answer.attributedToMember %}
-								{% if answer.creator.isActiveMember %}
+								{% if answer.creator.active %}
 									<a href="member?{{answer.creator.key}}">{{answer.creator.nickname}}</a>
 								{% else %}
 									the former member "{{answer.creator.nickname}}"
@@ -108,14 +110,14 @@
 		{% endif %}
 	{% endif %}
 	
-	<h4>Comments</h4>
+	<h4><img src="/images/comments.png" alt="comments"> Comments</h4>
 	{% if comments %}
 		<ul>
 		{% for comment in comments %}
 		<li class="nobullet"><b>{{comment.shortString}}</b> - 
 		
 		{% if comment.attributedToMember %}
-			{% if comment.creator.isActiveMember %}
+			{% if comment.creator.active %}
 				<a href="member?{{comment.creator.key}}">{{comment.creator.nickname}}</a>
 			{% else %}
 				the former member "{{comment.creator.nickname}}"
@@ -134,13 +136,13 @@
 	<ul><li class="nobullet">none yet - <a href="/visit/comment?{{article.key}}">Add one</a></li></ul>
 	{% endif %}
 	
-	<h4>Tags</h4>
+	<h4><img src="/images/tags.png" alt="tags"> Tags</h4>
 	{% if tag_sets %}
 		<ul>
 		{% for tag_set in tag_sets %}
 		<li class="nobullet">{{tag_set.tagsIfTagSet|join:", "}} - 
 		{% if tag_set.attributedToMember %}
-			{% if tag_set.creator.isActiveMember %}
+			{% if tag_set.creator.active %}
 				<a href="member?{{tag_set.creator.key}}">{{tag_set.creator.nickname}}</a>
 			{% else %}
 				the former member "{{tag_set.creator.nickname}}"
@@ -157,7 +159,7 @@
 	<ul><li class="nobullet">none yet - <a href="/visit/tagset?{{article.key}}">Add some</a></li></ul>
 	{% endif %}
 	
-	<h4>Nudges</h4>
+	<h4><img src="/images/nudges.png" alt="nudges"> Nudges</h4>
 	{% if nudges %}
 		<ul>
 		{% for nudge in nudges %}
@@ -170,7 +172,7 @@
 			</b>
 			- 
 		{% if nudge.attributedToMember %}
-			{% if nudge.creator.isActiveMember %}
+			{% if nudge.creator.active %}
 				<a href="member?{{nudge.creator.key}}">{{nudge.creator.nickname}}</a>
 			{% else %}
 				the former member "{{nudge.creator.nickname}}"
@@ -188,16 +190,16 @@
 			<ul><li class="nobullet"><a href="/visit/nudge?{{article.key}}">Add another nudge</a></li></ul>
 		{% endif %}
 	{% else %}
-		<ul><li class="nobullet">none yet - <a href="/visit/nudge?{{article.key}}">Add one</a></li></ul>
+		<ul><li class="nobullet">none yet {% if member_can_add_nudge %}- <a href="/visit/nudge?{{article.key}}">Add one</a>{% endif %}</li></ul>
 	{% endif %}
 	
-	<h4>Requests</h4>
+	<h4><img src="/images/requests.png" alt="requests"> Requests</h4>
 	{% if requests %}
 		<ul>
 		{% for request in requests %}
 			<li class="nobullet"><b>{{request.shortString}}</b> - 
 			{% if request.attributedToMember %}
-				{% if request.creator.isActiveMember %}
+				{% if request.creator.active %}
 					<a href="member?{{request.creator.key}}">{{request.creator.nickname}}</a>
 				{% else %}
 					the former member "{{request.creator.nickname}}"
@@ -216,7 +218,7 @@
 		<ul><li class="nobullet">none yet - <a href="/visit/request?{{article.key}}">Add one</a></li></ul>
 	{% endif %}
 	
-	<h4>Relations</h4>
+	<h4><img src="/images/related.png" alt="related"> Related items</h4>
 	<ul>
 	{% if relate_links %}
 		{% for link in relate_links %}
@@ -233,7 +235,7 @@
 	{% endif %}
 	</ul>
 	
-	<h4>Incoming links</h4>
+	<h4><img src="/images/links_incoming.png" alt="incoming links"> Incoming links</h4>
 	<ul>
 	
 	{% if not retold_links_incoming and not reminded_links_incoming and not included_links_incoming_from_invitations and not included_links_incoming_from_patterns and not included_links_incoming_from_collages %}
@@ -289,7 +291,7 @@
 	{% endif %}
 	</ul>
 	
-	<h4>Outgoing links</h4>
+	<h4><img src="/images/links_outgoing.png" alt="tags"> Outgoing links</h4>
 	<ul>
 
 	{% ifequal article.type "story" %}
@@ -388,7 +390,7 @@
 	</ul>
 	
 	{% if history %}
-		<h4>History</h4>
+		<h4><img src="/images/history.png" alt="tags"> History</h4>
 		<ul>
 		{% for item in history %}
 			<li class="nobullet">

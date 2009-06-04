@@ -52,6 +52,21 @@ def GetCurrentCommunityAndMemberFromSession():
 		member = None
 	return community, member
 
+def RelativeTimeDisplayString(when):
+	delta = datetime.datetime.now() - when
+	if delta.days < 1 and delta.seconds < 60: 
+		return "Moments ago"
+	elif delta.days < 1 and delta.seconds < 3600:
+		return "%s minutes ago" % (delta.seconds // 60)
+	elif delta.days < 1:
+		return "Today at %s" % when.strftime("%I:%M")
+	elif delta.days < 2:
+		return "Yesterday at %s" % when.strftime("%I:%M %p")
+	elif delta.days < 7:
+		return when.strftime("%A at %I:%M %p")
+	else:
+		return when.strftime("%A %B %d, %Y at %I:%M %p")
+
 def MakeSomeFakeData():
 	user = users.get_current_user()
 	community = Community(name="Test community", description="Test description")
@@ -80,7 +95,7 @@ class StartPage(webapp.RequestHandler):
 			members = Member.all().filter("googleAccountID = ", user.user_id()).fetch(FETCH_NUMBER)
 			for member in members:
 				try:
-					if member.isActiveMember:
+					if member.active:
 						communitiesTheyAreAMemberOf.append(member.community)
 				except:
 					pass # if can't link to community don't use it
@@ -113,10 +128,10 @@ class StartPage(webapp.RequestHandler):
 					matchingMembers = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).fetch(FETCH_NUMBER)
 					if matchingMembers:
 						session['member_key'] = matchingMembers[0].key()
-						if matchingMembers[0].isActiveMember:
+						if matchingMembers[0].active:
 							self.redirect('/visit/look')
 						else:
-							matchingMembers[0].isActiveMember = True
+							matchingMembers[0].active = True
 							matchingMembers[0].put()
 							pendingMembers = PendingMember.all().filter("community = ", community.key()).filter("email = ", user.email()).fetch(FETCH_NUMBER)
 							if pendingMembers:
@@ -130,7 +145,7 @@ class StartPage(webapp.RequestHandler):
 								googleAccountID=user.user_id(),
 								googleAccountEmail=user.email(),
 								community=community,
-								isActiveMember=True,
+								active=True,
 								governanceType="member")
 							newMember.put()
 							db.delete(pendingMembers[0])
@@ -184,20 +199,14 @@ class CreateCommunityPage(webapp.RequestHandler):
 	def post(self):
 		user = users.get_current_user()
 		community = Community(name=cgi.escape(self.request.get('name')))
-		text = self.request.get("description")
-		format = self.request.get("description_format").strip()
-		community.description = text
-		community.description_formatted = db.Text(InterpretEnteredText(text, format))
-		community.description_format = format
 		community.put()
 		member = Member(
 			googleAccountID=user.user_id(),
 			googleAccountEmail=user.email(),
-			isActiveMember=True,
+			active=True,
 			community=community,
 			governanceType="owner",
-			nickname = cgi.escape(self.request.get('nickname')),
-			nicknameIsRealName = self.request.get('nickname_is_real_name') =="yes")
+			nickname = cgi.escape(self.request.get('nickname')))
 		member.put()
 		self.redirect('/')
 		
@@ -210,10 +219,86 @@ class BrowseArticlesPage(webapp.RequestHandler):
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
+			articles = community.getNonDraftArticles()
+			if articles:
+				maxTime = member.view_endTime
+				minTime = member.getViewStartTime()
+				maxNudgePoints = -9999999
+				minNudgePoints = -9999999
+				minActivityPoints = -9999999
+				maxActivityPoints = -9999999
+				for article in articles:
+					nudgePoints = article.nudgePointsCombined()
+					if minNudgePoints == -9999999:
+						minNudgePoints = nudgePoints
+					elif nudgePoints < minNudgePoints:
+						minNudgePoints = nudgePoints
+					if maxNudgePoints == -9999999:
+						maxNudgePoints = nudgePoints
+					elif nudgePoints > maxNudgePoints:
+						maxNudgePoints = nudgePoints
+					activityPoints = article.activityPoints
+					if minActivityPoints == -9999999:
+						minActivityPoints = activityPoints
+					elif activityPoints < minActivityPoints:
+						minActivityPoints = activityPoints
+					if maxActivityPoints == -9999999:
+						maxActivityPoints = activityPoints
+					elif activityPoints > maxActivityPoints:
+						maxActivityPoints = activityPoints
+				numRows = 10
+				numCols = member.getNumTimeColumns()
+				nudgeStep = max(1, (maxNudgePoints - minNudgePoints) // numRows)
+				timeStep = (maxTime - minTime) // numCols
+				
+				textsForGrid = []
+				rowHeaders = []
+				timeFormat = "%A %B %d, %Y at %H:%M"
+				for row in range(numRows):
+					textsInThisRow = []
+					startNudgePoints = minNudgePoints + nudgeStep * row
+					if row == numRows - 1:
+						endNudgePoints = 100000000
+						#textsInThisRow.append('> %s' % startNudgePoints)
+					else:
+						endNudgePoints = minNudgePoints + nudgeStep * (row+1)
+						#textsInThisRow.append('%s to %s' % (startNudgePoints, endNudgePoints))
+					for col in range(numCols):
+						textsInThisCell = []
+						startTime = minTime + timeStep * col
+						endTime = minTime + timeStep * (col+1)
+						if row == numRows - 1:
+							#rowHeaders.append('<p>%s</p><p>to</p><p>%s</p>' % (RelativeTimeDisplayString(startTime), RelativeTimeDisplayString(endTime)))
+							rowHeaders.append(RelativeTimeDisplayString(endTime))
+						for article in articles:
+							shouldBeInRow = article.nudgePointsCombined() >= startNudgePoints and article.nudgePointsCombined() < endNudgePoints
+							shouldBeInCol = article.published >= startTime and article.published < endTime
+							if shouldBeInRow and shouldBeInCol:
+								if article.type == "story":
+									imageText = '<img src="/images/story.png" alt="story" border="0">'
+								elif article.type == "pattern":
+									imageText = '<img src="/images/pattern.png" alt="pattern" border="0">'
+								elif article.type == "collage":
+									imageText = '<img src="/images/collage.png" alt="collage" border="0">'
+								if article.type == "invitation":
+									imageText = '<img src="/images/invitation.png" alt="invitation" border="0">'
+								if article.type == "resource":
+									imageText = '<img src="/images/resource.png" alt="resource" border="0">'
+								fontSizePercent = min(200, 90 + article.activityPoints - minActivityPoints)
+								text = '<p><a href="/visit/read?%s">%s</a> <span style="font-size:%s%%">%s</span></p>' % (article.key(), imageText, fontSizePercent, article.title)
+								textsInThisCell.append(text)
+						textsInThisRow.append(textsInThisCell)
+					textsForGrid.append(textsInThisRow)
+				textsForGrid.reverse()
+			else:
+				textsForGrid = []
 			template_values = {
 							   'community': community, 
 							   'current_member': member,
-							   'articles': community.getNonDraftArticles(),
+							   'articles': articles,
+							   'rows_cols': textsForGrid,
+							   'row_headers': rowHeaders,
+							   'time_frames': TIME_FRAMES,
 							   'article_types': ARTICLE_TYPES,
 							   'user_is_admin': users.is_current_user_admin(),
 							   'logout_url': users.create_logout_url("/"),
@@ -222,6 +307,42 @@ class BrowseArticlesPage(webapp.RequestHandler):
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect('/')
+			
+	@RequireLogin 
+	def post(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			if "changeTimeFrame" in self.request.arguments():
+				member.view_timeFrame = self.request.get("timeFrame")
+				oldValue = member.view_numTimeFrames
+				try:
+					member.view_numTimeFrames = int(self.request.get("numberOf"))
+				except:
+					member.view_numTimeFrames = oldValue
+			else:
+				if "setToNow" in self.request.arguments():
+					member.view_endTime = datetime.datetime.now()
+				else:
+					if "moveTimeBack" in self.request.arguments():
+						multiplier = -1
+					else:
+						multiplier = 1
+					if member.view_timeFrame == "minute":
+						member.view_endTime += datetime.timedelta(minutes=1*multiplier)
+					if member.view_timeFrame == "hour":
+						member.view_endTime += datetime.timedelta(hours=1*multiplier)
+					elif member.view_timeFrame == "day":
+						member.view_endTime += datetime.timedelta(days=1*multiplier)
+					elif member.view_timeFrame == "week":
+						member.view_endTime += datetime.timedelta(weeks=1*multiplier)
+					elif member.view_timeFrame == "month":
+						member.view_endTime += datetime.timedelta(weeks=4*multiplier)
+					if member.view_endTime > datetime.datetime.now():
+					  member.view_endTime = datetime.datetime.now()
+			member.put()
+			self.redirect("/visit/look")
+		else:
+			self.redirect("/")
 			
 class ReadArticlePage(webapp.RequestHandler):
 	@RequireLogin 
@@ -235,7 +356,7 @@ class ReadArticlePage(webapp.RequestHandler):
 								   'current_member': member,
 								   'article': article,
 								   'member_can_answer_questions': len(article.getAnswersForMember(member)) == 0,
-								   'member_can_add_nudge': len(article.getNudgesForMember(member)) == 0,
+								   'member_can_add_nudge': article.memberCanNudge(member) and len(article.getNudgesForMember(member)) == 0,
 								   'community_has_questions_for_this_article_type': len(community.getQuestionsOfType(article.type)) > 0,
 								   'user_is_admin': users.is_current_user_admin(),
 								   'logout_url': users.create_logout_url("/"),
@@ -997,7 +1118,9 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 			member.profileText = text
 			member.profileText_formatted = db.Text(InterpretEnteredText(text, format))
 			member.profileText_format = format
-			if self.request.get("img"):
+			if self.request.get("removeProfileImage") == "yes":
+				member.profileImage = None
+			elif self.request.get("img"):
 				member.profileImage = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
 			for i in range(3):
 				member.helpingRoles[i] = self.request.get("helpingRole%s" % i) == "helpingRole%s" % i
@@ -1103,14 +1226,14 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
 				aMember.put()
 			for aMember in communityMembers:
 				if self.request.get("remove|%s" % aMember.key()) == "yes":
-					aMember.isActiveMember = False
+					aMember.active = False
 					aMember.put()
 			for pendingMember in community.getPendingMembers():
 				pendingMember.email = cgi.escape(self.request.get("email|%s" % pendingMember.key()))
 				pendingMember.put()
 				if self.request.get("removePendingMember|%s" % pendingMember.key()):
 					db.delete(pendingMember)
-			memberEmailsToAdd = cgi.escape(self.request.get("newMemberEmails").split('\n'))
+			memberEmailsToAdd = cgi.escape(self.request.get("newMemberEmails")).split('\n')
 			for email in memberEmailsToAdd:
 				if email.strip():
 					if not community.hasMemberWithGoogleEmail(email.strip()):
@@ -1155,8 +1278,8 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-			DebugPrint(community.welcomeMessage_format)
 			community.name = cgi.escape(self.request.get("name"))
+			community.tagline = cgi.escape(self.request.get("tagline"))
 			text = self.request.get("description")
 			format = self.request.get("description_format").strip()
 			community.description = text

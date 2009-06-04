@@ -5,12 +5,15 @@
 	<table cellpadding="2" class="fullwidth">
 	<tr><td align="left" valign="center" width="70" class="noborder">
 	{% if community.image %}
-		<div><img src="img?community_id={{community.key}}" class="bordered"></img>
+		<img src="img?community_id={{community.key}}" class="bordered">
 	{% else %}
 		<p><img src="/images/Rakontu.jpg" width="100" height="64" alt="Rakontu logo" class="bordered" ></p>
 	{% endif %}
 	</td><td align="left" valign="center" class="noborder">
 	<b>{{ community.name }}</b>
+	{% if community.tagline %}
+		<br/><i>{{community.tagline}}</i>
+	{% endif %}
 	</td><td align="right" valign="center" class="noborder">
 	{{current_member.governanceType|capfirst}} <b>{{ current_member.nickname }}</b>
 	{% if user_is_admin %} (site admin) {% endif %}
