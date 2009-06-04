@@ -6,171 +6,7 @@
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
 
-import os
-import string
-import datetime
-import logging
-import cgi
-import re
-import htmllib
-
-import sys
-sys.path.append("/Users/cfkurtz/Documents/personal/eclipse_workspace_kfsoft/Rakontu/lib/") 
-from appengine_utilities.sessions import Session
-
-from google.appengine.ext import db
-from google.appengine.api import memcache
-from google.appengine.api import users
-
-# --------------------------------------------------------------------------------------------
-# Utility functions
-# --------------------------------------------------------------------------------------------
-		
-def DebugPrint(text, msg="print"):
-	logging.debug(">>>>>>>> %s >>>>>>>> %s" %(msg, text))
-	
-def checkedBlank(value):
-	if value:
-		return "checked"
-	return ""
-
-SIMPLE_HTML_REPLACEMENTS = [
-							("<p>", "{{startPar}}"), ("</p>", "{{stopPar}}"),
-							("<b>", "{{startBold}}"), ("</b>", "{{stopBold}}"),
-							("<i>", "{{startItalic}}"), ("</i>", "{{stopItalic}}"),
-							("<del>", "{{startStrike}}"), ("</del>", "{{stopStrike}}"),
-							("<ul>", "{{startUL}}"), ("</ul>", "{{stopUL}}"),
-							("<ol>", "{{startOL}}"), ("</ol>", "{{stopOL}}"),
-							("<li>", "{{startLI}}"), ("</li>", "{{stopLI}}"),
-							("<h1>", "{{startH1}}"), ("</h1>", "{{stopH1}}"),
-							("<h2>", "{{startH2}}"), ("</h2>", "{{stopH2}}"),
-							("<h3>", "{{startH3}}"), ("</h3>", "{{stopH3}}"),
-							("<br/>", "{{BR}}"),
-							("<hr>", "{{HR}}"),
-							]
-
-TEXT_FORMATS = ["plain text", "simple HTML", "Wiki markup"]
-
-def InterpretEnteredText(text, mode="text"):
-	result = text
-	if mode == "plain text":
-		lines = result.split("\n")
-		changedLines = []
-		for line in lines:
-			changedLines.append("<p>%s</p>" % line)
-		result = "\n".join(changedLines)
-	elif mode == "simple HTML":
-		""" Simple HTML support:
-			p, b, i, del, ul, ol, h1, h2, h3, br, hr
-		"""
-		expression = re.compile(r'<a href="(.+?)">(.+)</a>')
-		links = expression.findall(result)
-		for url, label in links:
-			result = result.replace('<a href="%s">' % url, '{{BEGINHREF}}%s{{ENDHREF}}' % url)
-			result = result.replace('%s</a>' % label, '%s{{ENDLINK}}' % label)
-		for htmlVersion, longVersion in SIMPLE_HTML_REPLACEMENTS:
-			result = result.replace(htmlVersion, longVersion)
-		result = cgi.escape(result)
-		for htmlVersion, longVersion in SIMPLE_HTML_REPLACEMENTS:
-			result = result.replace(longVersion, htmlVersion)
-		for url, label in links:
-			result = result.replace('{{BEGINHREF}}%s{{ENDHREF}}' % url, '<a href="%s">' % url)
-			result = result.replace('%s{{ENDLINK}}' % label, '%s</a>' % label)
-	elif mode == "Wiki markup":
-		""" Wiki markup:
-			*text* becomes <b>text</b>
-			_text_ becomes <i>text</i>
-			`text` bcomes <code>text</code>
-			~text~ becomes <span style="text-decoration: line-through">text</span> (strike out)
-			= text becomes <h1>text</h1>
-			== text becomes <h2>text</h2>
-			=== text becomes <h3>text</h3>
-			  * text becomes <ul><li>text</li></ul> (two spaces before)
-			  # text becomes <ol><li>text</li></ol> (two spaces before)
-			---- on a line by itself becomes <hr>
-			[link] becomes <a href="link">link</a>
-			[link(name)] becomes <a href="link">name</a>
-		"""
-		result = cgi.escape(result)
-		lines = result.split("\n")
-		changedLines = []
-		bulletedListGoingOn = False
-		numberedListGoingOn = False
-		for line in lines:
-			if len(line) >= 3 and line[:3] == "===":
-				if bulletedListGoingOn:
-					bulletedListGoingOn = False
-					changedLines.append("</ul>")
-				if numberedListGoingOn:
-					numberedListGoingOn = False
-					changedLines.append("</ol>")
-				changedLines.append("<h3>%s</h3>" % line[3:].strip())
-			elif len(line) >= 2 and line[:2] == "==":
-				if bulletedListGoingOn:
-					bulletedListGoingOn = False
-					changedLines.append("</ul>")
-				if numberedListGoingOn:
-					numberedListGoingOn = False
-					changedLines.append("</ol>")
-				changedLines.append("<h2>%s</h2>" % line[2:].strip())
-			elif len(line) >= 1 and line[:1] == "=":
-				if bulletedListGoingOn:
-					bulletedListGoingOn = False
-					changedLines.append("</ul>")
-				if numberedListGoingOn:
-					numberedListGoingOn = False
-					changedLines.append("</ol>")
-				changedLines.append("<h1>%s</h1>" % line[1:].strip())
-			elif len(line) >= 3 and line[:3] == "  *":
-				if not bulletedListGoingOn:
-					bulletedListGoingOn = True
-					changedLines.append("<ul>")
-				changedLines.append("<li>%s</li>" % line[3:].strip())
-			elif len(line) >= 3 and line[:3] == "  #":
-				if not numberedListGoingOn:
-					numberedListGoingOn = True
-					changedLines.append("<ol>")
-				changedLines.append("<li>%s</li>" % line[3:].strip())
-			elif line.strip() == "----":
-				if bulletedListGoingOn:
-					bulletedListGoingOn = False
-					changedLines.append("</ul>")
-				if numberedListGoingOn:
-					numberedListGoingOn = False
-					changedLines.append("</ol>")
-				changedLines.append("<hr>")
-			else:
-				if bulletedListGoingOn:
-					bulletedListGoingOn = False
-					changedLines.append("</ul>")
-				if numberedListGoingOn:
-					numberedListGoingOn = False
-					changedLines.append("</ol>")
-				changedLines.append("<p>%s</p>" % line)
-		if bulletedListGoingOn:
-			changedLines.append("</ul>")
-		if numberedListGoingOn:
-			changedLines.append("</ol>")
-		result = "\n".join(changedLines)
-		for bold in re.compile(r'\*(.+?)\*').findall(result):
-			result = result.replace('*%s*' % bold, '<b>%s</b>' % bold)
-		for italic in re.compile(r'\_(.+?)\_').findall(result):
-			result = result.replace('_%s_' % italic, '<i>%s</i>' % italic)
-		for code in re.compile(r'\`(.+?)\`').findall(result):
-			result = result.replace('`%s`' % code, '<code>%s</code>' % code)
-		for strike in re.compile(r'\~(.+?)\~').findall(result):
-			result = result.replace('~%s~' % strike, '<span style="text-decoration: line-through">%s</span>' % strike)
-		for link, name in re.compile(r'\[(.+?)\((.+?)\)\]').findall(result):
-			result = result.replace('[%s(%s)]' % (link,name), '<a href="%s">%s</a>' % (link, name))
-		for link in re.compile(r'\[(.+?)\]').findall(result):
-			if link.find(".jpg") >= 0 or link.find(".png") >= 0 or link.find(".gif") >= 0:
-				result = result.replace('[%s]' % link, '<img src="%s" alt="%s">' % (link, link))
-			else:
-				result = result.replace('[%s]' % link, '<a href="%s">%s</a>' % (link, link))
-	return result
-
-def MakeTextSafeWithMinimalHTML(text):
-	return text
+from utils import *
  
 # --------------------------------------------------------------------------------------------
 # Constants
@@ -229,6 +65,16 @@ STORY_ENTRY_TYPE_INDEX = 0
 ANSWERS_ENTRY_TYPE_INDEX = 5
 
 # browsing
+MINUTE_SECONDS = 60
+HOUR_SECONDS = 60 * MINUTE_SECONDS
+DAY_SECONDS = 24 * HOUR_SECONDS
+WEEK_SECONDS = 7 * DAY_SECONDS
+MONTH_SECONDS = 30 * DAY_SECONDS
+TIME_UNIT_STRINGS = {"minute": MINUTE_SECONDS, 
+					"hour": HOUR_SECONDS,
+					"day": DAY_SECONDS,
+					"week": WEEK_SECONDS,
+					"month": MONTH_SECONDS,}
 TIME_FRAMES = ["minute", "hour", "day", "week", "month", "year"]
 DEFAULT_ACTIVITY_POINTS_PER_EVENT = [
 									-1, # time
@@ -304,7 +150,11 @@ class Community(db.Model):
 	welcomeMessage_formatted = db.TextProperty()
 	welcomeMessage_format = db.StringProperty(default="plain text")
 	image = db.BlobProperty(default=None)
+	
 	created = db.DateTimeProperty(auto_now_add=True)
+	lastPublish = db.DateTimeProperty(default=None)
+	firstPublish = db.DateTimeProperty(default=None)
+	firstPublishSet = db.BooleanProperty(default=False)
 	
 	nudgePointsPerActivity = db.ListProperty(int, default=DEFAULT_NUDGE_POINT_ACCUMULATIONS)
 	maxNudgePointsPerArticle = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE)
@@ -558,39 +408,33 @@ class Member(db.Model):
 	lastReadAnything = db.DateTimeProperty()
 	nudgePoints = db.IntegerProperty(default=50)
 	
-	view_timeFrame = db.StringProperty(choices=TIME_FRAMES)
-	view_endTime = db.DateTimeProperty(auto_now_add=True)
-	view_numTimeFrames = db.IntegerProperty(default=1)
+	viewTimeEnd = db.DateTimeProperty(auto_now_add=True)
+	viewTimeFrameInSeconds = db.IntegerProperty(default=3600)
+	viewNumTimeFrames = db.IntegerProperty(default=1)
+	viewNumTimeColumns = db.IntegerProperty(default=10)
 
 	def getViewingPreferences(self):
 		return ViewingPreferences.all().filter("owner = ", self.key()).fetch(FETCH_NUMBER)
 	
 	def getViewStartTime(self):
-		if self.view_timeFrame == "minute":
-			return self.view_endTime - datetime.timedelta(minutes=1) * self.view_numTimeFrames
-		if self.view_timeFrame == "hour":
-			return self.view_endTime - datetime.timedelta(hours=1) * self.view_numTimeFrames
-		elif self.view_timeFrame == "day":
-			return self.view_endTime - datetime.timedelta(days=1) * self.view_numTimeFrames
-		elif self.view_timeFrame == "week":
-			return self.view_endTime - datetime.timedelta(weeks=1) * self.view_numTimeFrames
-		elif self.view_timeFrame == "month":
-			return self.view_endTime - datetime.timedelta(weeks=4) * self.view_numTimeFrames
-		else:
-			return self.view_endTime - datetime.timedelta(hours=1)  * self.view_numTimeFrames # cfk fix
-		
-	def getNumTimeColumns(self):
-		if self.view_timeFrame == "minute":
-			return 6
-		if self.view_timeFrame == "hour":
-			return 6
-		elif self.view_timeFrame == "day":
-			return 6
-		elif self.view_timeFrame == "week":
-			return 7
-		elif self.view_timeFrame == "month":
-			return 4
-		return 6 # cfk fix
+		deltaSeconds = self.viewTimeFrameInSeconds * self.viewNumTimeFrames
+		return self.viewTimeEnd - datetime.timedelta(seconds=deltaSeconds)
+			
+	def setViewTimeFrameFromTimeUnitString(self, unit):
+		for aUnit in TIME_UNIT_STRINGS.keys():
+			if unit == aUnit:
+				self.viewTimeFrameInSeconds = TIME_UNIT_STRINGS[aUnit]
+				break
+				# caller should do the put
+			
+	def getUnitStringForViewTimeFrame(self):
+		for key, value in TIME_UNIT_STRINGS.items():
+			if self.viewTimeFrameInSeconds == value:
+				return key
+			
+	def setTimeFrameToStartAtFirstPublish(self):
+		deltaSeconds = self.viewTimeFrameInSeconds * self.viewNumTimeFrames
+		self.viewTimeEnd = self.community.firstPublish + datetime.timedelta(seconds=deltaSeconds)
 	
 	def googleUserEmailOrNotOnline(self):
 		if self.isOnlineMember:
@@ -766,6 +610,8 @@ class Answer(db.Model):
 			self.creator.nudgePoints += self.community.getNudgePointsPerActivityForActivityName("answering question")
 			self.creator.lastAnsweredQuestion = datetime.datetime.now()
 			self.creator.put()
+			self.community.lastPublish = self.published
+			self.community.put()
 				
 # --------------------------------------------------------------------------------------------
 # Article
@@ -817,6 +663,7 @@ class Article(db.Model):
 	draft = db.BooleanProperty(default=True)
 	
 	lastRead = db.DateTimeProperty(default=None)
+	lastAnnotatedOrAnsweredOrLinked = db.DateTimeProperty(default=None)
 	activityPoints = db.IntegerProperty(default=0)
 	nudgePoints = db.ListProperty(int, default=[0,0,0,0,0])
 	
@@ -866,6 +713,19 @@ class Article(db.Model):
 				result.append(link)
 		return result
 	
+	def getImageLinkForType(self):
+		if self.type == "story":
+			imageText = '<img src="/images/story.png" alt="story" border="0">'
+		elif self.type == "pattern":
+			imageText = '<img src="/images/pattern.png" alt="pattern" border="0">'
+		elif self.type == "collage":
+			imageText = '<img src="/images/collage.png" alt="collage" border="0">'
+		if self.type == "invitation":
+			imageText = '<img src="/images/invitation.png" alt="invitation" border="0">'
+		if self.type == "resource":
+			imageText = '<img src="/images/resource.png" alt="resource" border="0">'
+		return imageText
+	
 	def getAnswersForMember(self, member):
 		return Answer.all().filter("referent = ", self.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
 	
@@ -884,18 +744,23 @@ class Article(db.Model):
 		if referent.__class__.__name__ == "Article":
 			item.referentType = referent.type
 			item.textToShow = referent.title
+			if action == "read":
+				self.lastRead = datetime.datetime.now()
 		elif referent.__class__.__name__ == "Annotation":
 			item.referentType = referent.type
 			if referent.type == "tag set":
 				item.textToShow = ", ".join(referent.tagsIfTagSet)
 			else:
 				item.textToShow = referent.shortString
+			self.lastAnnotatedOrAnsweredOrLinked = datetime.datetime.now()
 		elif referent.__class__.__name__ == "Answer":
 			item.referentType = "answer"
 			item.textToShow = referent.question.text
+			self.lastAnnotatedOrAnsweredOrLinked = datetime.datetime.now()
 		elif referent.__class__.__name__ == "Link":
 			item.referentType = referent.type + " link"
 			item.textToShow = referent.comment
+			self.lastAnnotatedOrAnsweredOrLinked = datetime.datetime.now()
 		item.activityPoints = DEFAULT_ACTIVITY_ACCUMULATIONS[item.referentType]
 		item.put()
 		self.activityPoints = self.getCurrentTotalActivityPoints()
@@ -927,12 +792,18 @@ class Article(db.Model):
 		self.draft = False
 		self.published = datetime.datetime.now()
 		self.addHistoryItem(self.memberNickNameOrCharacterName(), "added", self)
+		self.lastAnnotatedOrAnswered = datetime.datetime.now()
 		self.put()
 		self.creator.nudgePoints += self.community.getNudgePointsPerActivityForActivityName("telling")
 		self.creator.lastEnteredArticle = datetime.datetime.now()
 		self.creator.put()
 		for answer in self.getAnswersForMember(self.creator):
 			answer.publish()
+		self.community.lastPublish = self.published
+		if not self.community.firstPublishSet:
+			self.community.firstPublish = self.published
+			self.community.firstPublishSet = True
+		self.community.put()
 
 class Link(db.Model):
 	""" For holding on to links between articles.
@@ -1095,6 +966,8 @@ class Annotation(db.Model):
 			activity = "nudging"
 		self.creator.nudgePoints += self.community.getNudgePointsPerActivityForActivityName(activity)
 		self.creator.put()
+		self.community.lastPublish = self.published
+		self.community.put()
 				
 class InappropriateFlag(db.Model):
 	""" Flags that say anything is inappropriate and should be removed.

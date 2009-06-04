@@ -6,21 +6,9 @@
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
 
-# local file imports
 from models import *
 import systemquestions
 
-# GAE imports
-from google.appengine.ext.webapp import template
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp.util import run_wsgi_app
-from google.appengine.api import images
-from google.appengine.api import mail
-
-# --------------------------------------------------------------------------------------------
-# Utility functions
-# --------------------------------------------------------------------------------------------
-		
 def RequireLogin(func):
 	def check_login(request):
 		if not users.get_current_user():
@@ -54,7 +42,9 @@ def GetCurrentCommunityAndMemberFromSession():
 
 def RelativeTimeDisplayString(when):
 	delta = datetime.datetime.now() - when
-	if delta.days < 1 and delta.seconds < 60: 
+	if delta.days < 1 and delta.seconds < 1: 
+		return "Now"
+	elif delta.days < 1 and delta.seconds < 60: 
 		return "Moments ago"
 	elif delta.days < 1 and delta.seconds < 3600:
 		return "%s minutes ago" % (delta.seconds // 60)
@@ -78,9 +68,16 @@ def MakeSomeFakeData():
 	Character(name="Blooming Idiot", community=community).put()
 	article = Article(community=community, type="story", creator=member, title="The dog", text="The dog sat on a log.", draft=False)
 	article.put()
-	Annotation(community=community, type="comment", creator=member, article=article, shortString="Great!", longString="Wonderful!", draft=False).put()
-	Annotation(community=community, type="comment", creator=member, article=article, shortString="Dumb", longString="Silly", draft=False).put()
-	Article(community=community, type="story", creator=member, title="The circus", text="I went the the circus. It was great.", draft=False).put()
+	article.publish()
+	annotation = Annotation(community=community, type="comment", creator=member, article=article, shortString="Great!", longString="Wonderful!", draft=False)
+	annotation.put()
+	annotation.publish()
+	annotation = Annotation(community=community, type="comment", creator=member, article=article, shortString="Dumb", longString="Silly", draft=False)
+	annotation.put()
+	annotation.publish()
+	article = Article(community=community, type="story", creator=member, title="The circus", text="I went the the circus. It was great.", draft=False)
+	article.put()
+	article.publish()
 
 # --------------------------------------------------------------------------------------------
 # Startup page
@@ -221,7 +218,7 @@ class BrowseArticlesPage(webapp.RequestHandler):
 		if community and member:
 			articles = community.getNonDraftArticles()
 			if articles:
-				maxTime = member.view_endTime
+				maxTime = member.viewTimeEnd
 				minTime = member.getViewStartTime()
 				maxNudgePoints = -9999999
 				minNudgePoints = -9999999
@@ -247,7 +244,7 @@ class BrowseArticlesPage(webapp.RequestHandler):
 					elif activityPoints > maxActivityPoints:
 						maxActivityPoints = activityPoints
 				numRows = 10
-				numCols = member.getNumTimeColumns()
+				numCols = member.viewNumTimeColumns
 				nudgeStep = max(1, (maxNudgePoints - minNudgePoints) // numRows)
 				timeStep = (maxTime - minTime) // numCols
 				
@@ -259,34 +256,37 @@ class BrowseArticlesPage(webapp.RequestHandler):
 					startNudgePoints = minNudgePoints + nudgeStep * row
 					if row == numRows - 1:
 						endNudgePoints = 100000000
-						#textsInThisRow.append('> %s' % startNudgePoints)
 					else:
 						endNudgePoints = minNudgePoints + nudgeStep * (row+1)
-						#textsInThisRow.append('%s to %s' % (startNudgePoints, endNudgePoints))
 					for col in range(numCols):
 						textsInThisCell = []
 						startTime = minTime + timeStep * col
 						endTime = minTime + timeStep * (col+1)
 						if row == numRows - 1:
-							#rowHeaders.append('<p>%s</p><p>to</p><p>%s</p>' % (RelativeTimeDisplayString(startTime), RelativeTimeDisplayString(endTime)))
-							rowHeaders.append(RelativeTimeDisplayString(endTime))
+							rowHeaders.append(RelativeTimeDisplayString(startTime))
 						for article in articles:
 							shouldBeInRow = article.nudgePointsCombined() >= startNudgePoints and article.nudgePointsCombined() < endNudgePoints
-							shouldBeInCol = article.published >= startTime and article.published < endTime
+							if article.lastAnnotatedOrAnsweredOrLinked:
+								timeToCheck = article.lastAnnotatedOrAnsweredOrLinked
+							else:
+								timeToCheck = article.published
+							shouldBeInCol = timeToCheck >= startTime and timeToCheck < endTime
 							if shouldBeInRow and shouldBeInCol:
-								if article.type == "story":
-									imageText = '<img src="/images/story.png" alt="story" border="0">'
-								elif article.type == "pattern":
-									imageText = '<img src="/images/pattern.png" alt="pattern" border="0">'
-								elif article.type == "collage":
-									imageText = '<img src="/images/collage.png" alt="collage" border="0">'
-								if article.type == "invitation":
-									imageText = '<img src="/images/invitation.png" alt="invitation" border="0">'
-								if article.type == "resource":
-									imageText = '<img src="/images/resource.png" alt="resource" border="0">'
 								fontSizePercent = min(200, 90 + article.activityPoints - minActivityPoints)
-								text = '<p><a href="/visit/read?%s">%s</a> <span style="font-size:%s%%">%s</span></p>' % (article.key(), imageText, fontSizePercent, article.title)
+								text = '<p>%s <span style="font-size:%s%%"><a href="/visit/read?%s">%s</a></span></p>' % \
+									(article.getImageLinkForType(), fontSizePercent, article.key(), article.title)
 								textsInThisCell.append(text)
+							"""
+							# experiment with putting name in when first published, too confusing
+							if article.lastAnnotatedOrAnsweredOrLinked:
+								shouldBeInRowForPublish = 0 >= startNudgePoints and 0 < endNudgePoints
+								shouldBeInColForPublish = article.published >= startTime and article.published < endTime
+								if shouldBeInRowForPublish and shouldBeInColForPublish:
+									fontSizePercent = 80
+									text = '<p><span style="font-size:%s%%">%s</span></p>' % \
+									(fontSizePercent, article.title)
+									textsInThisCell.append(text)
+							"""
 						textsInThisRow.append(textsInThisCell)
 					textsForGrid.append(textsInThisRow)
 				textsForGrid.reverse()
@@ -300,6 +300,8 @@ class BrowseArticlesPage(webapp.RequestHandler):
 							   'row_headers': rowHeaders,
 							   'time_frames': TIME_FRAMES,
 							   'article_types': ARTICLE_TYPES,
+							   '1_to_31': range(1, 31, 1),
+							   '1_to_10': range(1, 11, 1),
 							   'user_is_admin': users.is_current_user_admin(),
 							   'logout_url': users.create_logout_url("/"),
 							   }
@@ -313,32 +315,39 @@ class BrowseArticlesPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 			if "changeTimeFrame" in self.request.arguments():
-				member.view_timeFrame = self.request.get("timeFrame")
-				oldValue = member.view_numTimeFrames
+				member.setViewTimeFrameFromTimeUnitString(self.request.get("timeFrame"))
+				oldValue = member.viewNumTimeFrames
 				try:
-					member.view_numTimeFrames = int(self.request.get("numberOf"))
+					member.viewNumTimeFrames = int(self.request.get("numberOf"))
 				except:
-					member.view_numTimeFrames = oldValue
+					member.viewNumTimeFrames = oldValue
+				oldValue = member.viewNumTimeColumns
+				try:
+					member.viewNumTimeColumns = int(self.request.get("numColumns"))
+				except:
+					member.viewNumTimeColumns = oldValue
+
 			else:
-				if "setToNow" in self.request.arguments():
-					member.view_endTime = datetime.datetime.now()
-				else:
-					if "moveTimeBack" in self.request.arguments():
-						multiplier = -1
+				if "setToLast" in self.request.arguments():
+					if community.lastPublish:
+						member.viewTimeEnd = community.lastPublish + datetime.timedelta(seconds=10)
 					else:
-						multiplier = 1
-					if member.view_timeFrame == "minute":
-						member.view_endTime += datetime.timedelta(minutes=1*multiplier)
-					if member.view_timeFrame == "hour":
-						member.view_endTime += datetime.timedelta(hours=1*multiplier)
-					elif member.view_timeFrame == "day":
-						member.view_endTime += datetime.timedelta(days=1*multiplier)
-					elif member.view_timeFrame == "week":
-						member.view_endTime += datetime.timedelta(weeks=1*multiplier)
-					elif member.view_timeFrame == "month":
-						member.view_endTime += datetime.timedelta(weeks=4*multiplier)
-					if member.view_endTime > datetime.datetime.now():
-					  member.view_endTime = datetime.datetime.now()
+						member.viewTimeEnd = datetime.datetime.now()
+				elif "setToFirst" in self.request.arguments():
+					if community.firstPublish:
+						member.setTimeFrameToStartAtFirstPublish()
+					else:
+						member.viewTimeEnd = datetime.datetime.now()
+				else:
+					changeSeconds = member.viewTimeFrameInSeconds * member.viewNumTimeFrames
+					if "moveTimeBack" in self.request.arguments():
+						member.viewTimeEnd = member.viewTimeEnd - datetime.timedelta(seconds=changeSeconds)
+					else:
+						member.viewTimeEnd = member.viewTimeEnd + datetime.timedelta(seconds=changeSeconds)
+				if community.firstPublish and member.getViewStartTime() < community.firstPublish:
+				 	member.setTimeFrameToStartAtFirstPublish()
+				if member.viewTimeEnd > datetime.datetime.now():
+					member.viewTimeEnd = datetime.datetime.now()
 			member.put()
 			self.redirect("/visit/look")
 		else:

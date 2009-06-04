@@ -41,7 +41,7 @@
 		<a href="characterInfo|{{nudge.character.key}}">{{article.character.name}}</a>
 	{% endif %}
 	
-	on {{article.published.date|date:"F j, Y"}} at {{article.published.time|time:"f"}}.</p>
+	on {{article.published.date|date:"F j, Y"}} at {{article.published.time|time:"P"}}</p>
 
 	{% if article.collectedOffline %}
 		{% if article.liaison %}
@@ -125,7 +125,7 @@
 		{% else %}
 			<a href="characterInfo|{{comment.character.key}}">{{comment.character.name}}</a>
 		{% endif %}
-		&nbsp; {{comment.published.date|date:"F j, Y"}} at {{comment.published.time|time:"f"}}
+		&nbsp; {{comment.published.date|date:"F j, Y"}} at {{comment.published.time|time:"P"}}
 		</li>
 		<ul><li class="nobullet">{{comment.longString_formatted}}</li></ul>
 		</li>
@@ -150,7 +150,7 @@
 		{% else %}
 			<a href="characterInfo|{{tag_set.character.key}}">{{tag_set.character.name}}</a>
 		{% endif %}
-			&nbsp; {{tag_set.published.date|date:"F j, Y"}} at {{tag_set.published.time|time:"f"}}
+			&nbsp; {{tag_set.published.date|date:"F j, Y"}} at {{tag_set.published.time|time:"P"}}
 			</li>
 		{% endfor %}
 		</ul>
@@ -180,7 +180,7 @@
 		{% else %}
 			<a href="characterInfo|{{nudge.character.key}}">{{nudge.character.name}}</a>
 		{% endif %}
-		&nbsp; {{nudge.published.date|date:"F j, Y"}} at {{nudge.published.time|time:"f"}}
+		&nbsp; {{nudge.published.date|date:"F j, Y"}} at {{nudge.published.time|time:"P"}}
 		</li>
 		<ul><li class="nobullet">{{nudge.shortString}}</li></ul>
 		</li>
@@ -210,7 +210,7 @@
 			</li>
 			<ul><li class="nobullet">{{request.longString_formatted}}</li></ul>
 			</li>	
-			&nbsp; {{request.published.date|date:"F j, Y"}} at {{request.published.time|time:"f"}}	
+			&nbsp; {{request.published.date|date:"F j, Y"}} at {{request.published.time|time:"P"}}	
 		{% endfor %}
 		</ul>
 		<ul><li class="nobullet"><a href="/visit/request?{{article.key}}">Add another request</a></li></ul>
@@ -395,7 +395,7 @@
 		{% for item in history %}
 			<li class="nobullet">
 				{{item.attribution}} <b>{{item.actionType}}</b>
-				the {{item.referentType}} "{{item.textToShow}}" on {{item.timeStamp.date|date:"F j, Y"}} at {{item.timeStamp.time|time:"f"}}.</li>
+				the {{item.referentType}} "{{item.textToShow}}" on {{item.timeStamp.date|date:"F j, Y"}} at {{item.timeStamp.time|time:"P"}}</li>
 		{% endfor %}
 		</ul>
 	{% endif %}

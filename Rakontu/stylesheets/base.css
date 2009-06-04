@@ -16,7 +16,13 @@ h1 {
 	}
 	
 a {
-	color: 8B4500;
+	color: #8B4500;
+	text-decoration: none;
+	}
+	
+a:hover {
+	background: #993300;
+	color: #FFFFFF;
 	}
 	
 img.bordered {
@@ -252,5 +258,22 @@ ul li.nobullet {
 	
 #stylized input.button:hover{
 	border: solid 2px #FF2400;
+	background: #FF8000;
+	}
+	
+#stylized input.button_small{
+	clear: both;
+	align: center;
+	width: auto;
+	height: 26px;
+	line-height: 24px;
+	background: #FFD39B;
+	text-align: center;
+	font-size: 80%;
+	border: solid 1px #FF7F00;
+	}
+	
+#stylized input.button_small:hover{
+	border: solid 1px #FF2400;
 	background: #FF8000;
 	}

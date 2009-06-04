@@ -7,6 +7,7 @@
 	<div id="content">
 	
 	<p></p>
+	<center>
 	<table border="1" cellpadding="4" cellspacing="0">
 	{% for row_list in rows_cols %}
 		<tr>
@@ -31,36 +32,38 @@
 		</tr>
 	{% endif %}
 	</table>
+	</center>
 	
 	<div id="stylized" class="rakontu_form">
 		<form action="/visit/look" method="post">
 			<center>
-			<input type="submit" name="moveTimeBack" value="< Back" class="button">
-			<b>Show</b> 
-			<select name="numberOf">
-				<option value="1" {% ifequal 1 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>1</option>
-				<option value="2" {% ifequal 2 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>2</option>
-				<option value="3" {% ifequal 3 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>3</option>
-				<option value="4" {% ifequal 4 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>4</option>
-				<option value="5" {% ifequal 5 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>5</option>
-				<option value="6" {% ifequal 6 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>6</option>
-				<option value="7" {% ifequal 7 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>7</option>
-				<option value="8" {% ifequal 8 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>8</option>
-				<option value="9" {% ifequal 9 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>9</option>
-				<option value="10" {% ifequal 10 current_member.view_numTimeFrames %}selected="selected"{% endifequal %}>10</option>
-				</select>
+			<input type="submit" name="setToFirst" value=" |< " class="button_small">
+			<input type="submit" name="moveTimeBack" value=" < " class="button_small">
+			Show
 			<select name="timeFrame">
 				{% for time_frame in time_frames %}
 					<option value="{{time_frame}}"
-					{% ifequal current_member.view_timeFrame time_frame %}
+					{% ifequal current_member.getUnitStringForViewTimeFrame time_frame %}
 						selected="selected"
 					{% endifequal %}
-					>{{time_frame}}(s)</option>
+					>{{time_frame}}s</option>
 				{% endfor %}
 				</select>
-			<input type="submit" name="changeTimeFrame" value="Change" class="button">
-			<input type="submit" name="moveTimeForward" value="Forward >" class="button">
-			<input type="submit" name="setToNow" value="Now >>" class="button">
+			How many?
+			<select name="numberOf">
+			{% for i in 1_to_31 %}
+				<option value="{{i}}" {% ifequal i current_member.viewNumTimeFrames %}selected="selected"{% endifequal %}>{{i}}</option>
+				{% endfor %}
+				</select>
+			Across how many columns?
+			<select name="numColumns">
+			{% for i in 1_to_10 %}
+				<option value="{{i}}" {% ifequal i current_member.viewNumTimeColumns %}selected="selected"{% endifequal %}>{{i}}</option>
+				{% endfor %}
+				</select>
+			<input type="submit" name="changeTimeFrame" value="Change" class="button_small">
+			<input type="submit" name="moveTimeForward" value=" > " class="button_small">
+			<input type="submit" name="setToLast" value=" >| " class="button_small">
 			</center>
 		</form>	
 	</div>
