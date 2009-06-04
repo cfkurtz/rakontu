@@ -7,33 +7,6 @@
 	<div id="content">
 	
 	<p></p>
-	<center>
-	<table border="1" cellpadding="4" cellspacing="0">
-	{% for row_list in rows_cols %}
-		<tr>
-		{% for col_list in row_list %}
-		<td>
-		{% if col_list %}
-			{% for text in col_list %}
-				{{text}}
-			{% endfor %}
-		{% else %}
-		&nbsp; 
-		{% endif %}
-		</td>
-		{% endfor %}
-		</tr>
-	{% endfor %}
-	{% if row_headers %}
-		<tr>
-		{% for header in row_headers %}
-		<th>{{header}}</th>
-		{% endfor %}
-		</tr>
-	{% endif %}
-	</table>
-	</center>
-	
 	<div id="stylized" class="rakontu_form">
 		<form action="/visit/look" method="post">
 			<center>
@@ -57,7 +30,7 @@
 				</select>
 			Across how many columns?
 			<select name="numColumns">
-			{% for i in 1_to_10 %}
+			{% for i in 5_to_10 %}
 				<option value="{{i}}" {% ifequal i current_member.viewNumTimeColumns %}selected="selected"{% endifequal %}>{{i}}</option>
 				{% endfor %}
 				</select>
@@ -67,6 +40,33 @@
 			</center>
 		</form>	
 	</div>
+	
+	<center>
+	<table cellpadding="4" cellspacing="0" style="width: 100%; border-top: 1px solid #FF7F00; border-bottom: none; border-left: none; border-right: 1px solid #FF7F00">
+	{% for row_list in rows_cols %}
+		<tr>
+		{% for col_list in row_list %}
+		<td style="border-left: 1px solid #FF7F00; border-top: none; border-bottom: none; border-right: none">
+		{% if col_list %}
+			{% for text in col_list %}
+				{{text}}
+			{% endfor %}
+		{% else %}
+		&nbsp; 
+		{% endif %}
+		</td>
+		{% endfor %}
+		</tr>
+	{% endfor %}
+	{% if row_headers %}
+		<tr>
+		{% for header in row_headers %}
+		<th style="border-right: 1px solid #FF7F00; border-top: 1px solid #FF7F00; border-bottom: 1px solid #FF7F00; border-left: 1px solid #FF7F00">{{header}}</th>
+		{% endfor %}
+		</tr>
+	{% endif %}
+	</table>
+	</center>
 	
 	</div>
 	</body>

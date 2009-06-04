@@ -70,11 +70,13 @@ HOUR_SECONDS = 60 * MINUTE_SECONDS
 DAY_SECONDS = 24 * HOUR_SECONDS
 WEEK_SECONDS = 7 * DAY_SECONDS
 MONTH_SECONDS = 30 * DAY_SECONDS
+YEAR_SECONDS = 365 * DAY_SECONDS
 TIME_UNIT_STRINGS = {"minute": MINUTE_SECONDS, 
 					"hour": HOUR_SECONDS,
 					"day": DAY_SECONDS,
 					"week": WEEK_SECONDS,
-					"month": MONTH_SECONDS,}
+					"month": MONTH_SECONDS,
+					"year": YEAR_SECONDS,}
 TIME_FRAMES = ["minute", "hour", "day", "week", "month", "year"]
 DEFAULT_ACTIVITY_POINTS_PER_EVENT = [
 									-1, # time
@@ -732,6 +734,13 @@ class Article(db.Model):
 	def getNudgesForMember(self, member):
 		return Annotation.all().filter("article = ", self.key()).filter("type = ", "nudge").filter("creator = ", member.key()).fetch(FETCH_NUMBER)
 	
+	def getTotalNudgePointsForMember(self, member):
+		nudges = self.getNudgesForMember(member)
+		result = 0
+		for nudge in nudges:
+			result += nudge.totalNudgePointsAbsolute()
+		return result
+	
 	def memberCanNudge(self, member):
 		return member.key() != self.creator.key()
 	
@@ -925,7 +934,7 @@ class Annotation(db.Model):
 	
 	def attributedToMember(self):
 		return self.character == None
-
+	
 	def memberNickNameOrCharacterName(self):
 		if self.character:
 			return self.character.name

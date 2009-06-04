@@ -243,7 +243,7 @@ class BrowseArticlesPage(webapp.RequestHandler):
 						maxActivityPoints = activityPoints
 					elif activityPoints > maxActivityPoints:
 						maxActivityPoints = activityPoints
-				numRows = 10
+				numRows = 25
 				numCols = member.viewNumTimeColumns
 				nudgeStep = max(1, (maxNudgePoints - minNudgePoints) // numRows)
 				timeStep = (maxTime - minTime) // numCols
@@ -301,7 +301,7 @@ class BrowseArticlesPage(webapp.RequestHandler):
 							   'time_frames': TIME_FRAMES,
 							   'article_types': ARTICLE_TYPES,
 							   '1_to_31': range(1, 31, 1),
-							   '1_to_10': range(1, 11, 1),
+							   '5_to_10': range(5, 11, 1),
 							   'user_is_admin': users.is_current_user_admin(),
 							   'logout_url': users.create_logout_url("/"),
 							   }
