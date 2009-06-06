@@ -16,6 +16,7 @@ DEVELOPMENT = True
 FETCH_NUMBER = 1000
 
 # community
+NUM_NUDGE_CATEGORIES = 5
 DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE = 10
 DEFAULT_NUDGE_POINT_ACCUMULATIONS = [
 									0, # time (doesn't apply here)
@@ -111,6 +112,29 @@ QUESTION_REFERS_TO = ["story", "pattern", "collage", "invitation", "resource", "
 QUESTION_REFERS_TO_PLURAL = ["stories", "patterns", "collages", "invitations", "resources", "members"]
 QUESTION_TYPES = ["boolean", "text", "ordinal", "nominal", "value"]
 
+
+# from http://www.letsyouandhimfight.com/2008/04/12/time-zones-in-google-app-engine/
+# with a few changes
+class TzDateTimeProperty(db.DateTimeProperty):
+	def get_value_for_datastore(self, model_instance):
+		value = super(TzDateTimeProperty, self).get_value_for_datastore(model_instance)
+		if value:
+			if value.tzinfo is None:
+				value = value.replace(tzinfo=pytz.utc)
+			else:
+				value = value.astimezone(pytz.utc)
+			return super(TzDateTimeProperty, self).get_value_for_datastore(model_instance)
+		else:
+			return None
+	def make_value_from_datastore(self, value):
+		value = super(TzDateTimeProperty, self).make_value_from_datastore(value)
+		if value:
+			if value.tzinfo is None:
+				value = value.replace(tzinfo=pytz.utc)
+			else:
+				value = value.astimezone(pytz.utc)
+		return value
+
 # --------------------------------------------------------------------------------------------
 # Community
 # --------------------------------------------------------------------------------------------
@@ -152,16 +176,17 @@ class Community(db.Model):
 	welcomeMessage_formatted = db.TextProperty()
 	welcomeMessage_format = db.StringProperty(default="plain text")
 	image = db.BlobProperty(default=None)
+	defaultTimeZoneName = db.StringProperty(default="US/Eastern")
 	
-	created = db.DateTimeProperty(auto_now_add=True)
-	lastPublish = db.DateTimeProperty(default=None)
-	firstPublish = db.DateTimeProperty(default=None)
+	created = TzDateTimeProperty(auto_now_add=True)
+	lastPublish = TzDateTimeProperty(default=None)
+	firstPublish = TzDateTimeProperty(default=None)
 	firstPublishSet = db.BooleanProperty(default=False)
 	
 	nudgePointsPerActivity = db.ListProperty(int, default=DEFAULT_NUDGE_POINT_ACCUMULATIONS)
 	maxNudgePointsPerArticle = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE)
-	allowCharacter = db.ListProperty(bool, default=[False,False,False,False,False,False,False,False,False,False])
-	nudgeCategories = db.StringListProperty(default=["appropriateness", "importance", "usefulness for new members", "usefulness for resolving conflicts", "usefulness for understanding our community"])
+	allowCharacter = db.ListProperty(bool, default=[True,True,True,True,True,True,True,True,True,True])
+	nudgeCategories = db.StringListProperty(default=["appropriate", "important", "useful to new members", "useful for resolving conflicts", "useful for understanding"])
 	roleReadmes = db.ListProperty(db.Text, default=[db.Text(DEFAULT_ROLE_READMES[0]), db.Text(DEFAULT_ROLE_READMES[1]), db.Text(DEFAULT_ROLE_READMES[2])])
 	roleReadmes_formatted = db.ListProperty(db.Text, default=[db.Text(""), db.Text(""), db.Text("")])
 	roleReadmes_formats = db.StringListProperty(default=["plain text", "plain text", "plain text"])
@@ -333,7 +358,7 @@ class Question(db.Model):
 	useHelp_formatted = db.TextProperty()
 	useHelp_format = db.StringProperty(default="plain text")
 	
-	created = db.DateTimeProperty(auto_now_add=True)
+	created = TzDateTimeProperty(auto_now_add=True)
 	
 	def isOrdinalOrNominal(self):
 		return self.type == "ordinal" or self.type == "nominal"
@@ -389,6 +414,10 @@ class Member(db.Model):
 	acceptsMessages = db.BooleanProperty(default=True)
 	liaisonAccountID = db.StringProperty(default=None)
 	
+	timeZoneName = db.StringProperty(default="US/Eastern")
+	timeFormat = db.StringProperty(default="P")
+	dateFormat = db.StringProperty(default="F j, Y")
+	
 	governanceType = db.StringProperty(choices=GOVERNANCE_ROLE_TYPES, default="member")
 	governanceView = db.StringListProperty(default=None)
 	helpingRoles = db.ListProperty(bool, default=[False, False, False])
@@ -403,24 +432,24 @@ class Member(db.Model):
 	profileText_format = db.StringProperty(default="plain text")
 	profileImage = db.BlobProperty(default=None)
 	
-	joined = db.DateTimeProperty(auto_now_add=True)
+	joined = TzDateTimeProperty(auto_now_add=True)
 	lastEnteredArticle = db.DateTimeProperty()
 	lastEnteredAnnotation = db.DateTimeProperty()
 	lastAnsweredQuestion = db.DateTimeProperty()
 	lastReadAnything = db.DateTimeProperty()
 	nudgePoints = db.IntegerProperty(default=50)
 	
-	viewTimeEnd = db.DateTimeProperty(auto_now_add=True)
+	viewTimeEnd = TzDateTimeProperty(auto_now_add=True)
 	viewTimeFrameInSeconds = db.IntegerProperty(default=3600)
 	viewNumTimeFrames = db.IntegerProperty(default=1)
 	viewNumTimeColumns = db.IntegerProperty(default=10)
-
+	
 	def getViewingPreferences(self):
 		return ViewingPreferences.all().filter("owner = ", self.key()).fetch(FETCH_NUMBER)
 	
 	def getViewStartTime(self):
 		deltaSeconds = self.viewTimeFrameInSeconds * self.viewNumTimeFrames
-		return self.viewTimeEnd - datetime.timedelta(seconds=deltaSeconds)
+		return self.viewTimeEnd - timedelta(seconds=deltaSeconds)
 			
 	def setViewTimeFrameFromTimeUnitString(self, unit):
 		for aUnit in TIME_UNIT_STRINGS.keys():
@@ -436,7 +465,7 @@ class Member(db.Model):
 			
 	def setTimeFrameToStartAtFirstPublish(self):
 		deltaSeconds = self.viewTimeFrameInSeconds * self.viewNumTimeFrames
-		self.viewTimeEnd = self.community.firstPublish + datetime.timedelta(seconds=deltaSeconds)
+		self.viewTimeEnd = self.community.firstPublish + timedelta(seconds=deltaSeconds)
 	
 	def googleUserEmailOrNotOnline(self):
 		if self.isOnlineMember:
@@ -521,7 +550,7 @@ class PendingMember(db.Model):
 	"""
 	community = db.ReferenceProperty(Community, required=True, collection_name="pending_members_to_community")
 	email = db.StringProperty(required=True)
-	invited = db.DateTimeProperty(auto_now_add=True)
+	invited = TzDateTimeProperty(auto_now_add=True)
 	
 class Character(db.Model):
 	""" Used to anonymize entries but provide some information about intent. Optional.
@@ -586,9 +615,9 @@ class Answer(db.Model):
 	answerIfMultiple = db.StringListProperty(default=["", "", "", "", "", "", "", "", "", ""])
 	answerIfValue = db.IntegerProperty(default=0)
 	
-	created = db.DateTimeProperty(auto_now_add=True)
-	edited = db.DateTimeProperty(auto_now_add=True)
-	published = db.DateTimeProperty(auto_now_add=True)
+	created = TzDateTimeProperty(auto_now_add=True)
+	edited = TzDateTimeProperty(auto_now_add=True)
+	published = TzDateTimeProperty(auto_now_add=True)
 	draft = db.BooleanProperty(default=True)
 	
 	def questionKey(self):
@@ -606,11 +635,11 @@ class Answer(db.Model):
 	def publish(self):
 		if self.referentType == "article":
 			self.draft = False
-			self.published = datetime.datetime.now()
+			self.published = datetime.now(pytz.utc)
 			self.put()
 			self.referent.addHistoryItem(self.memberNickNameOrCharacterName(), "added", self)
 			self.creator.nudgePoints += self.community.getNudgePointsPerActivityForActivityName("answering question")
-			self.creator.lastAnsweredQuestion = datetime.datetime.now()
+			self.creator.lastAnsweredQuestion = datetime.now(pytz.utc)
 			self.creator.put()
 			self.community.lastPublish = self.published
 			self.community.put()
@@ -657,17 +686,24 @@ class Article(db.Model):
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="articles_to_liaisons")
 	character = db.ReferenceProperty(Character, default=None)
 	
-	tookPlace = db.DateTimeProperty(default=None)
-	collected = db.DateTimeProperty(default=None)
-	created = db.DateTimeProperty(auto_now_add=True)
-	edited = db.DateTimeProperty(auto_now_add=True)
-	published = db.DateTimeProperty(auto_now_add=True)
+	tookPlace = TzDateTimeProperty(auto_now_add=True)
+	collected = TzDateTimeProperty(default=None)
+	created = TzDateTimeProperty(auto_now_add=True)
+	edited = TzDateTimeProperty(auto_now_add=True)
+	published = TzDateTimeProperty(auto_now_add=True)
 	draft = db.BooleanProperty(default=True)
 	
-	lastRead = db.DateTimeProperty(default=None)
-	lastAnnotatedOrAnsweredOrLinked = db.DateTimeProperty(default=None)
+	lastRead = TzDateTimeProperty(default=None)
+	lastAnnotatedOrAnsweredOrLinked = TzDateTimeProperty(default=None)
 	activityPoints = db.IntegerProperty(default=0)
 	nudgePoints = db.ListProperty(int, default=[0,0,0,0,0])
+	
+	def getPublishDateForMember(self, member):
+		if member:
+			localTime = self.published.astimezone(timezone(member.timeZoneName))
+			return localTime.strftime(str(member.timeFormat))
+		else:
+			return self.published
 	
 	def nudgePointsCombined(self):
 		return self.nudgePoints[0] + self.nudgePoints[1] + self.nudgePoints[2] + self.nudgePoints[3] + self.nudgePoints[4]
@@ -692,6 +728,9 @@ class Article(db.Model):
 
 	def getNonDraftAnnotationsOfType(self, type):
 		return Annotation.all().filter("article =", self.key()).filter("type = ", type).filter("draft = ", False).fetch(FETCH_NUMBER)
+	
+	def getNonDraftAnnotations(self):
+		return Annotation.all().filter("article =", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
 	def getLinksOfType(self, type):
 		result = []
@@ -754,22 +793,22 @@ class Article(db.Model):
 			item.referentType = referent.type
 			item.textToShow = referent.title
 			if action == "read":
-				self.lastRead = datetime.datetime.now()
+				self.lastRead = datetime.now(pytz.utc)
 		elif referent.__class__.__name__ == "Annotation":
 			item.referentType = referent.type
 			if referent.type == "tag set":
 				item.textToShow = ", ".join(referent.tagsIfTagSet)
 			else:
 				item.textToShow = referent.shortString
-			self.lastAnnotatedOrAnsweredOrLinked = datetime.datetime.now()
+			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
 		elif referent.__class__.__name__ == "Answer":
 			item.referentType = "answer"
 			item.textToShow = referent.question.text
-			self.lastAnnotatedOrAnsweredOrLinked = datetime.datetime.now()
+			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
 		elif referent.__class__.__name__ == "Link":
 			item.referentType = referent.type + " link"
 			item.textToShow = referent.comment
-			self.lastAnnotatedOrAnsweredOrLinked = datetime.datetime.now()
+			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
 		item.activityPoints = DEFAULT_ACTIVITY_ACCUMULATIONS[item.referentType]
 		item.put()
 		self.activityPoints = self.getCurrentTotalActivityPoints()
@@ -790,7 +829,10 @@ class Article(db.Model):
 				result[i] += value
 				i += 1
 		return result
-			
+	
+	def attributedToMember(self):
+		return self.character == None
+	
 	def memberNickNameOrCharacterName(self):
 		if self.character:
 			return self.character.name
@@ -799,12 +841,12 @@ class Article(db.Model):
 
 	def publish(self):
 		self.draft = False
-		self.published = datetime.datetime.now()
+		self.published = datetime.now(pytz.utc)
 		self.addHistoryItem(self.memberNickNameOrCharacterName(), "added", self)
-		self.lastAnnotatedOrAnswered = datetime.datetime.now()
+		self.lastAnnotatedOrAnswered = datetime.now(pytz.utc)
 		self.put()
 		self.creator.nudgePoints += self.community.getNudgePointsPerActivityForActivityName("telling")
-		self.creator.lastEnteredArticle = datetime.datetime.now()
+		self.creator.lastEnteredArticle = datetime.now(pytz.utc)
 		self.creator.put()
 		for answer in self.getAnswersForMember(self.creator):
 			answer.publish()
@@ -828,7 +870,7 @@ class Link(db.Model):
 	articleFrom = db.ReferenceProperty(Article, collection_name="linksFrom", required=True)
 	articleTo = db.ReferenceProperty(Article, collection_name="linksTo", required=True)
 	creator = db.ReferenceProperty(Member, collection_name="links")
-	published = db.DateTimeProperty(auto_now_add=True)
+	published = TzDateTimeProperty(auto_now_add=True)
 	type = db.StringProperty(choices=LINK_TYPES, required=True)
 	comment = db.StringProperty(default="")
 	
@@ -862,7 +904,7 @@ class ArticleHistoryItem(db.Model):
 		textToShow:			How to report on what this was called.
 		activityPoints:		How many activityPoints this item creates for the article.
 	"""
-	timeStamp = db.DateTimeProperty(auto_now_add=True)
+	timeStamp = TzDateTimeProperty(auto_now_add=True)
 	attribution = db.StringProperty()
 	actionType = db.StringProperty(choices=HISTORY_ACTION_TYPES, required=True)
 	article = db.ReferenceProperty(Article, collection_name="articles_history")
@@ -920,10 +962,10 @@ class Annotation(db.Model):
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="annotations_liaisoned")
 	character = db.ReferenceProperty(Character, default=None)
 
-	collected = db.DateTimeProperty(default=None)
-	created = db.DateTimeProperty(auto_now_add=True)
-	edited = db.DateTimeProperty(auto_now_add=True)
-	published = db.DateTimeProperty(auto_now_add=True)
+	collected = TzDateTimeProperty(default=None)
+	created = TzDateTimeProperty(auto_now_add=True)
+	edited = TzDateTimeProperty(auto_now_add=True)
+	published = TzDateTimeProperty(auto_now_add=True)
 	draft = db.BooleanProperty(default=True)
 	
 	def totalNudgePointsAbsolute(self):
@@ -962,7 +1004,7 @@ class Annotation(db.Model):
 		
 	def publish(self):
 		self.draft = False
-		self.published = datetime.datetime.now()
+		self.published = datetime.now(pytz.utc)
 		self.article.addHistoryItem(self.memberNickNameOrCharacterName(), "added", self)
 		self.put()
 		if self.type == "tag set":
@@ -992,7 +1034,7 @@ class InappropriateFlag(db.Model):
 	referent = db.ReferenceProperty(None, required=True)
 	creator = db.ReferenceProperty(Member, collection_name="flags")
 	comment = db.StringProperty(default="")
-	entered = db.DateTimeProperty(auto_now_add=True)
+	entered = TzDateTimeProperty(auto_now_add=True)
 	
 # --------------------------------------------------------------------------------------------
 # Queries
@@ -1009,7 +1051,7 @@ class Query(db.Model):
 		targets:			All searches return articles, annotations, or members (no combinations). 
 	"""
 	owner = db.ReferenceProperty(Member, required=True, collection_name="queries")
-	created = db.DateTimeProperty(auto_now_add=True)
+	created = TzDateTimeProperty(auto_now_add=True)
 
 	type = db.StringProperty(choices=QUERY_TYPES, required=True)
 	targets = db.StringListProperty(choices=QUERY_TARGETS, required=True)
@@ -1136,8 +1178,8 @@ class ViewingPreferences(db.Model):
 	
 	xTimeStep = db.StringProperty(choices=TIME_FRAMES, default="day")
 	xTimeStepMultiplier = db.IntegerProperty(default=1)
-	xStart = db.DateTimeProperty(default=datetime.datetime(2009, 5, 1))
-	xStop = db.DateTimeProperty(default=datetime.datetime(2009, 6, 1))
+	xStart = db.DateTimeProperty(default=datetime(2009, 5, 1))
+	xStop = db.DateTimeProperty(default=datetime(2009, 6, 1))
 	
 	yPointStep = db.IntegerProperty(default=10)
 	yTop = db.IntegerProperty(default=100)

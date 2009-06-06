@@ -106,9 +106,9 @@
 						<p>Please enter the number of points to nudge this {{article.type}} up (positive) or down (negative)
 						in any or all of these categories.<p>
 					{% endif %}
-					<p><i>You can use a maximum of 
-						<b>{{community.maxNudgePointsPerArticle}}</b> points per {{article.type}}. You have
-						<b>{{current_member.nudgePoints}}</b> points remaining to assign. If you assign more
+					<p><i>You have
+						<b>{{nudge_points_member_can_assign}}</b> points left that you can assign on this {{article.type}}. You have
+						<b>{{current_member.nudgePoints}}</b> points remaining to assign in general. If you assign more
 						points here than you have available or the community allows per {{article.type}},
 						your 
 						{% if annotation %}

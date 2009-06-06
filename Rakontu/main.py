@@ -9,6 +9,28 @@
 from models import *
 import systemquestions
 
+from google.appengine.api import memcache
+import logging
+import pytz
+from pytz import timezone
+
+webapp.template.register_template_library('djangoTemplateExtras')
+
+def getTimezone(tzname):
+  try:
+    tz = memcache.get("tz:%s" % tzname)
+  except:
+    tz = None
+    logging.debug("timezone get failed: %s" % tzname)
+  if tz is None:
+    tz = timezone(tzname)
+    memcache.add("tz:%s" % tzname, tz, 86400)
+    logging.debug("timezone memcache added: %s" % tzname)
+  else:
+    logging.debug("timezone memcache hit: %s" % tzname)
+
+  return tz
+
 def RequireLogin(func):
 	def check_login(request):
 		if not users.get_current_user():
@@ -40,8 +62,9 @@ def GetCurrentCommunityAndMemberFromSession():
 		member = None
 	return community, member
 
-def RelativeTimeDisplayString(when):
-	delta = datetime.datetime.now() - when
+def RelativeTimeDisplayString(whenUTC, member):
+	when = whenUTC.astimezone(timezone(member.timeZoneName))
+	delta = datetime.now(tz=timezone(member.timeZoneName)) - when
 	if delta.days < 1 and delta.seconds < 1: 
 		return "Now"
 	elif delta.days < 1 and delta.seconds < 60: 
@@ -63,6 +86,11 @@ def MakeSomeFakeData():
 	community.put()
 	member = Member(googleAccountID=user.user_id(), googleAccountEmail=user.email(), nickname="Tester", community=community, governanceType="owner")
 	member.put()
+	if user.email() != "test@example.com":
+		PendingMember(community=community, email="test@example.com").put()
+	else:
+		PendingMember(community=community, email="cfkurtz@cfkurtz.com").put()
+	PendingMember(community=community, email="admin@example.com").put()
 	Character(name="Little Bird", community=community).put()
 	Character(name="Old Coot", community=community).put()
 	Character(name="Blooming Idiot", community=community).put()
@@ -263,7 +291,7 @@ class BrowseArticlesPage(webapp.RequestHandler):
 						startTime = minTime + timeStep * col
 						endTime = minTime + timeStep * (col+1)
 						if row == numRows - 1:
-							rowHeaders.append(RelativeTimeDisplayString(startTime))
+							rowHeaders.append(RelativeTimeDisplayString(startTime, member))
 						for article in articles:
 							shouldBeInRow = article.nudgePointsCombined() >= startNudgePoints and article.nudgePointsCombined() < endNudgePoints
 							if article.lastAnnotatedOrAnsweredOrLinked:
@@ -273,20 +301,16 @@ class BrowseArticlesPage(webapp.RequestHandler):
 							shouldBeInCol = timeToCheck >= startTime and timeToCheck < endTime
 							if shouldBeInRow and shouldBeInCol:
 								fontSizePercent = min(200, 90 + article.activityPoints - minActivityPoints)
-								text = '<p>%s <span style="font-size:%s%%"><a href="/visit/read?%s">%s</a></span></p>' % \
-									(article.getImageLinkForType(), fontSizePercent, article.key(), article.title)
+								if article.attributedToMember():
+									if article.creator.active:
+										nameString = '<a href="member?%s">%s</a>' % (article.creator.key(), article.creator.nickname)
+									else:
+										nameString = article.creator.nickname
+								else:
+									nameString = '<a href="character?%s">%s</a>' % (article.character.key(), article.character.name)
+								text = '<p>%s <span style="font-size:%s%%"><a href="/visit/read?%s">%s</a> (%s)</span></p>' % \
+									(article.getImageLinkForType(), fontSizePercent, article.key(), article.title, nameString)
 								textsInThisCell.append(text)
-							"""
-							# experiment with putting name in when first published, too confusing
-							if article.lastAnnotatedOrAnsweredOrLinked:
-								shouldBeInRowForPublish = 0 >= startNudgePoints and 0 < endNudgePoints
-								shouldBeInColForPublish = article.published >= startTime and article.published < endTime
-								if shouldBeInRowForPublish and shouldBeInColForPublish:
-									fontSizePercent = 80
-									text = '<p><span style="font-size:%s%%">%s</span></p>' % \
-									(fontSizePercent, article.title)
-									textsInThisCell.append(text)
-							"""
 						textsInThisRow.append(textsInThisCell)
 					textsForGrid.append(textsInThisRow)
 				textsForGrid.reverse()
@@ -330,24 +354,26 @@ class BrowseArticlesPage(webapp.RequestHandler):
 			else:
 				if "setToLast" in self.request.arguments():
 					if community.lastPublish:
-						member.viewTimeEnd = community.lastPublish + datetime.timedelta(seconds=10)
+						member.viewTimeEnd = community.lastPublish + timedelta(seconds=10)
 					else:
-						member.viewTimeEnd = datetime.datetime.now()
+						member.viewTimeEnd = datetime.now(tz=pytz.utc)
 				elif "setToFirst" in self.request.arguments():
 					if community.firstPublish:
 						member.setTimeFrameToStartAtFirstPublish()
 					else:
-						member.viewTimeEnd = datetime.datetime.now()
-				else:
+						member.viewTimeEnd = datetime.now(tz=pytz.utc)
+				elif "moveTimeBack" in self.request.arguments() or "moveTimeForward" in self.request.arguments():
 					changeSeconds = member.viewTimeFrameInSeconds * member.viewNumTimeFrames
 					if "moveTimeBack" in self.request.arguments():
-						member.viewTimeEnd = member.viewTimeEnd - datetime.timedelta(seconds=changeSeconds)
+						member.viewTimeEnd = member.viewTimeEnd - timedelta(seconds=changeSeconds)
 					else:
-						member.viewTimeEnd = member.viewTimeEnd + datetime.timedelta(seconds=changeSeconds)
+						member.viewTimeEnd = member.viewTimeEnd + timedelta(seconds=changeSeconds)
+				elif "refresh" in self.request.arguments():
+					pass
 				if community.firstPublish and member.getViewStartTime() < community.firstPublish:
 				 	member.setTimeFrameToStartAtFirstPublish()
-				if member.viewTimeEnd > datetime.datetime.now():
-					member.viewTimeEnd = datetime.datetime.now()
+				if member.viewTimeEnd > datetime.now(tz=pytz.utc):
+					member.viewTimeEnd = datetime.now(tz=pytz.utc)
 			member.put()
 			self.redirect("/visit/look")
 		else:
@@ -360,12 +386,17 @@ class ReadArticlePage(webapp.RequestHandler):
 		if community and member:
 			article = db.get(self.request.query_string)
 			if article:
+				if not article.memberCanNudge(member):
+					nudgePointsMemberCanAssign = 0
+				else:
+					nudgePointsMemberCanAssign = max(0, community.maxNudgePointsPerArticle - article.getTotalNudgePointsForMember(member))
 				template_values = {
 								   'community': community, 
 								   'current_member': member,
+								   'current_member_key': member.key(),
 								   'article': article,
 								   'member_can_answer_questions': len(article.getAnswersForMember(member)) == 0,
-								   'member_can_add_nudge': article.memberCanNudge(member) and len(article.getNudgesForMember(member)) == 0,
+								   'member_can_add_nudge': nudgePointsMemberCanAssign > 0,
 								   'community_has_questions_for_this_article_type': len(community.getQuestionsOfType(article.type)) > 0,
 								   'user_is_admin': users.is_current_user_admin(),
 								   'logout_url': users.create_logout_url("/"),
@@ -387,7 +418,7 @@ class ReadArticlePage(webapp.RequestHandler):
 								   'included_links_outgoing': article.getOutgoingLinksOfType("included"),
 								   'history': article.getHistory(),
 								   }
-				member.lastReadAnything = datetime.datetime.now()
+				member.lastReadAnything = datetime.now(tz=pytz.utc)
 				member.nudgePoints += community.getNudgePointsPerActivityForActivityName("reading")
 				member.put()
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/read.html')
@@ -589,13 +620,13 @@ class EnterArticlePage(webapp.RequestHandler):
 			preview = False
 			if "save|%s" % type in self.request.arguments():
 				article.draft = True
-				article.edited = datetime.datetime.now()
+				article.edited = datetime.now(tz=pytz.utc)
 			elif "preview|%s" % type in self.request.arguments():
 				article.draft = True
 				preview = True
 			elif "publish|%s" % type in self.request.arguments():
 				article.draft = False
-				article.published = datetime.datetime.now()
+				article.published = datetime.now(tz=pytz.utc)
 			if self.request.get("title"):
 				article.title = cgi.escape(self.request.get("title"))
 			text = self.request.get("text")
@@ -610,7 +641,7 @@ class EnterArticlePage(webapp.RequestHandler):
 						article.creator = aMember
 						article.liaison = member
 						break
-			if self.request.get("attribution"):
+			if self.request.get("attribution") != "member":
 				characterKey = self.request.get("attribution")
 				article.character = Character.get(characterKey)
 			else:
@@ -707,7 +738,9 @@ class EnterArticlePage(webapp.RequestHandler):
 			elif article.draft:
 				self.redirect("/visit/profile?%s" % member.key())
 			else:
-				self.redirect("/visit/read?%s" % article.key())
+				member.viewTimeEnd = article.published + timedelta(seconds=1)
+				member.put()
+				self.redirect("/visit/look")#read?%s" % article.key())
 		else:
 			self.redirect("/visit/look")
 			
@@ -748,7 +781,7 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
 			article = db.get(articleKey)
 			if article:
 				character = None
-				if self.request.get("attribution"):
+				if self.request.get("attribution") != "member":
 					characterKey = self.request.get("attribution")
 					character = Character.get(characterKey)
 				newAnswers = False
@@ -791,7 +824,7 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
 					answerToEdit.creator = member
 					answerToEdit.draft = setAsDraft
 					if setAsDraft:
-						answerToEdit.edited = datetime.datetime.now()
+						answerToEdit.edited = datetime.now(tz=pytz.utc)
 						answerToEdit.put()
 					else:
 						answerToEdit.publish()
@@ -846,7 +879,7 @@ class PreviewAnswersPage(webapp.RequestHandler):
 						answers = article.getAnswersForMember(member)
 						for answer in answers:
 							answer.draft = False
-							answer.published = datetime.datetime.now()
+							answer.published = datetime.now(tz=pytz.utc)
 							answer.put()
 						self.redirect("/visit/look")
 
@@ -876,6 +909,13 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					annotation = Annotation.get(self.request.query_string)
 					article = annotation.article
 			if article:
+				if not article.memberCanNudge(member):
+					nudgePointsMemberCanAssign = 0
+				else:
+					nudgePointsMemberCanAssign = max(0, community.maxNudgePointsPerArticle - article.getTotalNudgePointsForMember(member))
+			else:
+				nudgePointsMemberCanAssign = community.maxNudgePointsPerArticle
+			if article:
 				template_values = {
 								   'user': users.get_current_user(),
 								   'current_member': member,
@@ -886,6 +926,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 								   'article': article,
 								   'request_types': REQUEST_TYPES,
 								   'nudge_categories': community.nudgeCategories,
+								   'nudge_points_member_can_assign': nudgePointsMemberCanAssign,
 								   'character_allowed': community.allowCharacter[entryTypeIndex],
 								   'text_formats': TEXT_FORMATS,
 								   'user_is_admin': users.is_current_user_admin(),
@@ -923,13 +964,13 @@ class EnterAnnotationPage(webapp.RequestHandler):
 				preview = False
 				if "save|%s" % type in self.request.arguments():
 					annotation.draft = True
-					annotation.edited = datetime.datetime.now()
+					annotation.edited = datetime.now(tz=pytz.utc)
 				elif "preview|%s" % type in self.request.arguments():
 					annotation.draft = True
 					preview = True
 				elif "publish|%s" % type in self.request.arguments():
 					annotation.draft = False
-					annotation.published = datetime.datetime.now()
+					annotation.published = datetime.now(tz=pytz.utc)
 				annotation.collectedOffline = self.request.get("collectedOffline") == "yes"
 				if annotation.collectedOffline and member.isLiaison():
 					for aMember in community.getActiveMembers():
@@ -937,7 +978,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 							annotation.creator = aMember
 							annotation.liaison = member
 							break
-				if self.request.get("attribution"):
+				if self.request.get("attribution") != "member":
 					characterKey = self.request.get("attribution")
 					character = Character.get(characterKey)
 					annotation.character = character

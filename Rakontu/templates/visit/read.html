@@ -38,10 +38,11 @@
 				the former member "{{article.creator.nickname}}"
 			{% endif %}
 	{% else %}
-		<a href="characterInfo|{{nudge.character.key}}">{{article.character.name}}</a>
+		<a href="character?{{nudge.character.key}}">{{article.character.name}}</a>
 	{% endif %}
 	
-	on {{article.published.date|date:"F j, Y"}} at {{article.published.time|time:"P"}}</p>
+	on {{article.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+	at {{article.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
 
 	{% if article.collectedOffline %}
 		{% if article.liaison %}
@@ -93,7 +94,7 @@
 									the former member "{{answer.creator.nickname}}"
 								{% endif %}
 							{% else %}
-								<a href="characterInfo|{{answer.character.key}}">{{answer.character.name}}</a>
+								<a href="character?{{answer.character.key}}">{{answer.character.name}}</a>
 							{% endif %}
 						
 						{% endifequal %}
@@ -123,9 +124,10 @@
 				the former member "{{comment.creator.nickname}}"
 			{% endif %}
 		{% else %}
-			<a href="characterInfo|{{comment.character.key}}">{{comment.character.name}}</a>
+			<a href="character?{{comment.character.key}}">{{comment.character.name}}</a>
 		{% endif %}
-		&nbsp; {{comment.published.date|date:"F j, Y"}} at {{comment.published.time|time:"P"}}
+		&nbsp; {{comment.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} 
+		at {{comment.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
 		</li>
 		<ul><li class="nobullet">{{comment.longString_formatted}}</li></ul>
 		</li>
@@ -148,9 +150,10 @@
 				the former member "{{tag_set.creator.nickname}}"
 			{% endif %}
 		{% else %}
-			<a href="characterInfo|{{tag_set.character.key}}">{{tag_set.character.name}}</a>
+			<a href="character?{{tag_set.character.key}}">{{tag_set.character.name}}</a>
 		{% endif %}
-			&nbsp; {{tag_set.published.date|date:"F j, Y"}} at {{tag_set.published.time|time:"P"}}
+			&nbsp; {{tag_set.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} 
+		at {{tag_set.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
 			</li>
 		{% endfor %}
 		</ul>
@@ -178,9 +181,10 @@
 				the former member "{{nudge.creator.nickname}}"
 			{% endif %}
 		{% else %}
-			<a href="characterInfo|{{nudge.character.key}}">{{nudge.character.name}}</a>
+			<a href="character?{{nudge.character.key}}">{{nudge.character.name}}</a>
 		{% endif %}
-		&nbsp; {{nudge.published.date|date:"F j, Y"}} at {{nudge.published.time|time:"P"}}
+		&nbsp; {{nudge.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} 
+		at {{nudge.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
 		</li>
 		<ul><li class="nobullet">{{nudge.shortString}}</li></ul>
 		</li>
@@ -205,12 +209,13 @@
 					the former member "{{request.creator.nickname}}"
 				{% endif %}
 			{% else %}
-				<a href="characterInfo|{{request.character.key}}">{{request.character.name}}</a>
+				<a href="character?{{request.character.key}}">{{request.character.name}}</a>
 			{% endif %}
 			</li>
 			<ul><li class="nobullet">{{request.longString_formatted}}</li></ul>
 			</li>	
-			&nbsp; {{request.published.date|date:"F j, Y"}} at {{request.published.time|time:"P"}}	
+			&nbsp; {{request.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} 
+		at {{request.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
 		{% endfor %}
 		</ul>
 		<ul><li class="nobullet"><a href="/visit/request?{{article.key}}">Add another request</a></li></ul>
@@ -395,7 +400,8 @@
 		{% for item in history %}
 			<li class="nobullet">
 				{{item.attribution}} <b>{{item.actionType}}</b>
-				the {{item.referentType}} "{{item.textToShow}}" on {{item.timeStamp.date|date:"F j, Y"}} at {{item.timeStamp.time|time:"P"}}</li>
+				the {{item.referentType}} "{{item.textToShow}}" on {{item.timeStamp|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} 
+		at {{item.timeStamp|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</li>
 		{% endfor %}
 		</ul>
 	{% endif %}
