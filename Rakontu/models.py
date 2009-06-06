@@ -284,14 +284,6 @@ class Community(db.Model):
 			return True
 		return False
 
-	# options
-	
-#ACTIVITIES_GERUND = ["time", \
-#					   	 "reading", \
-#						 "telling", "retelling", "reminding", "relating", "including", \
-#						 "answering questions", "tagging", "commenting", "requesting", "nudging"]
-
-	
 	def getNudgePointsPerActivityForActivityName(self, activity):
 		i = 0
 		for anActivity in ACTIVITIES_GERUND:

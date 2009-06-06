@@ -3,6 +3,7 @@
 from google.appengine.ext import webapp
 import logging
 from pytz import timezone
+import pytz
 
 register = webapp.template.create_template_register()
 
@@ -33,7 +34,11 @@ def makeRange(numberString):
 	return result
 	
 def timeZone(time, zoneName):
-	return time.astimezone(timezone(zoneName))
+	if time.tzinfo:
+		return time.astimezone(timezone(zoneName))
+	else:
+		timeUTC = time.replace(tzinfo=pytz.utc)
+		return timeUTC.astimezone(timezone(zoneName))
 
 register.filter("listLookup", listLookup)
 register.filter("dictLookup", dictLookup)

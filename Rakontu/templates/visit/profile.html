@@ -18,31 +18,31 @@
 		{% if not current_member.isOnlineMember %}
 			<td>Liaison</td><td>{{liaison.nickname}}</td></tr>
 		{% endif %}
-		<td>Joined</td><td>{{current_member.joined.date|date:"F j, Y"}}</td></tr>
+		<td>Joined</td><td>{{current_member.joined|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}</td></tr>
 		<td>Last entered article</td><td>
 			{% if current_member.lastEnteredArticle %} 
-				{{current_member.lastEnteredArticle.date|date:"F j, Y"}} at {{current_member.lastEnteredArticle.time|time:"f"}}
+				{{current_member.lastEnteredArticle|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{current_member.lastEnteredArticle|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
 			{% else %}
 				never
 			{% endif %}
 			</td></tr>
 		<td>Last entered annotation</td><td>
 			{% if current_member.lastEnteredAnnotation %} 
-				{{current_member.lastEnteredAnnotation.date|date:"F j, Y"}} at {{current_member.lastEnteredAnnotation.time|time:"f"}}
+				{{current_member.lastEnteredAnnotation|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{current_member.lastEnteredAnnotation|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
 			{% else %}
 				never
 			{% endif %}
 			</td></tr>
 		<td>Last answered question(s)</td><td>
 			{% if current_member.lastAnsweredQuestion %} 
-				{{current_member.lastAnsweredQuestion.date|date:"F j, Y"}} at {{current_member.lastAnsweredQuestion.time|time:"f"}}
+				{{current_member.lastAnsweredQuestion|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{current_member.lastAnsweredQuestion|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
 			{% else %}
 				never
 			{% endif %}
 			</td></tr>
 		<td>Last read anything</td><td>
 			{% if current_member.lastReadAnything %} 
-				{{current_member.lastReadAnything.date|date:"F j, Y"}} at {{current_member.lastReadAnything.time|time:"f"}}
+				{{current_member.lastReadAnything|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{current_member.lastReadAnything|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
 			{% else %}
 				never
 			{% endif %}
@@ -59,8 +59,8 @@
 		      	<tr>
 		      	<td>{{article.type}}</td>
 				<td><a href="{{article.type}}?{{article.key}}">{{article.title}}</a></td>
-				<td>{{article.created.date|date:"F j, Y"}} at {{article.created.time|time:"f"}}</td>
-				<td>{{article.edited.date|date:"F j, Y"}} at {{article.edited.time|time:"f"}}</td>
+				<td>{{article.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{article.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</td>
+				<td>{{article.edited|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{article.edited|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</td>
 				<td><input type="checkbox" name="remove|{{ article.key }}" value="yes" id="remove|{{ article.key }}"/>
 					<label for="remove|{{ article.key }}">Remove</label></td>
 				</tr>
@@ -78,8 +78,8 @@
 		      	<td>{{annotation.type}}</td>
 				<td><a href="{{annotation.typeAsURL}}?{{annotation.key}}">{{annotation.displayString}}</a></td>
 				<td><a href="read?{{annotation.article.key}}">{{annotation.article.title}}</a> ({{annotation.article.type}})</td>
-				<td>{{annotation.created.date|date:"F j, Y"}} at {{annotation.created.time|time:"f"}}</td>
-				<td>{{annotation.edited.date|date:"F j, Y"}} at {{annotation.edited.time|time:"f"}}</td>
+				<td>{{annotation.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{annotation.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</td>
+				<td>{{annotation.edited|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{annotation.edited|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</td>
 				<td><input type="checkbox" name="remove|{{ annotation.key }}" value="yes" id="remove|{{ annotation.key }}"/>
 					<label for="remove|{{ annotation.key }}">Remove</label>
 					</td>
@@ -96,8 +96,8 @@
 	      	{% for answer in first_draft_answer_per_article %}
 		      	<tr>
 				<td><a href="answers?{{answer.referent.key}}">{{answer.referent.title}}</a> ({{answer.referent.type}})</td>
-				<td>{{answer.created.date|date:"F j, Y"}} at {{answer.created.time|time:"f"}}</td>
-				<td>{{answer.edited.date|date:"F j, Y"}} at {{answer.edited.time|time:"f"}}</td>
+				<td>{{answer.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{answer.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</td>
+				<td>{{answer.edited|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{answer.edited|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</td>
 				<td><input type="checkbox" name="removeAnswers|{{answer.referent.key}}" value="yes" id="removeAnswers|{{answer.referent.key}}"/>
 					<label for="removeAnswers|{{answer.referent.key}}">Remove</label>
 					</td>

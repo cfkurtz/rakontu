@@ -22,7 +22,8 @@
 		{% for item in history %}
 			<li class="nobullet">
 				{{item.attribution}} <b>{{item.actionType}}</b>
-				the {{item.referentType}} "{{item.textToShow}}" on {{item.timeStamp.date|date:"F j, Y"}} at {{item.timeStamp.time|time:"f"}}.</li>
+				the {{item.referentType}} "{{item.textToShow}}" on {{item.timeStamp|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} 
+		at {{item.timeStamp|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</li>
 		{% endfor %}
 		</ul>
 	{% endif %}
