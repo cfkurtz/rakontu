@@ -500,7 +500,7 @@ class SeeMemberPage(webapp.RequestHandler):
 				#message.sender= # NEED TO STORE SYS ADMIN EMAIL !! (how to do that?)
 				message.subject=cgi.escape(self.request.get("subject"))
 				message.to=messageMember.googleAccountEmail
-				message.body=MakeTextSafeWithMinimalHTML(self.request.get("message"))
+				message.body=cgi.escape(self.request.get("message"))
 				message.send()
    
 class SeeCharacterPage(webapp.RequestHandler):
@@ -587,10 +587,12 @@ class EnterArticlePage(webapp.RequestHandler):
 							   'answers': answers,
 							   'attachments': attachments,
 							   'community_members': community.getActiveMembers(),
+							   'offline_members': community.getOfflineMembers(),
 							   'character_allowed': community.allowCharacter[entryTypeIndexForCharacters],
 							   'link_type': linkType,
 							   'article_from': articleFrom,
 							   'text_formats': TEXT_FORMATS,
+							   'refer_type': type,
 							   'user_is_admin': users.is_current_user_admin(),
 							   'logout_url': users.create_logout_url("/"),
 							   }
@@ -759,9 +761,11 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
 								   'community': community, 
 								   'article': article,
 								   'article_type': article.type,
+								   'refer_type': article.type,
 								   'questions': community.getQuestionsOfType(article.type),
 								   'answers': article.getAnswersForMember(member),
 								   'community_members': community.getActiveMembers(),
+								   'offline_members': community.getOfflineMembers(),
 								   'character_allowed': community.allowCharacter[ANSWERS_ENTRY_TYPE_INDEX],
 								   'user_is_admin': users.is_current_user_admin(),
 								   'logout_url': users.create_logout_url("/"),
@@ -923,6 +927,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 								   'annotation_type': type,
 								   'annotation': annotation,
 								   'community_members': community.getActiveMembers(),
+								   'offline_members': community.getOfflineMembers(),
 								   'article': article,
 								   'request_types': REQUEST_TYPES,
 								   'nudge_categories': community.nudgeCategories,
@@ -1407,7 +1412,7 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 							   'user_is_admin': users.is_current_user_admin(),
 							   'logout_url': users.create_logout_url("/"),
 							   }
-			path = os.path.join(os.path.dirname(__file__), 'templates/manage/questions/questions.html')
+			path = os.path.join(os.path.dirname(__file__), 'templates/manage/questions.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect("/")
@@ -1425,8 +1430,8 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 			systemQuestionsOfType = Question.all().filter("community = ", None).filter("refersTo = ", type).fetch(FETCH_NUMBER)
 			for question in communityQuestionsOfType:
 				question.name = cgi.escape(self.request.get("name|%s" % question.key()))
-				question.text = MakeTextSafeWithMinimalHTML(self.request.get("text|%s" % question.key()))
-				question.help = MakeTextSafeWithMinimalHTML(self.request.get("help|%s" % question.key()))
+				question.text = cgi.escape(self.request.get("text|%s" % question.key()))
+				question.help = cgi.escape(self.request.get("help|%s" % question.key()))
 				question.type = self.request.get("type|%s" % question.key())
 				question.choices = []
 				for i in range(10):
@@ -1467,7 +1472,7 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 			for sysQuestion in systemQuestionsOfType:
 				if self.request.get("copy|%s" % sysQuestion.key()) == "copy|%s" % sysQuestion.key():
 					community.AddCopyOfQuestion(sysQuestion)
-		self.redirect('/visit/look')
+		self.redirect(self.request.uri)
 		
 class ManageCommunityCharactersPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -1659,15 +1664,17 @@ application = webapp.WSGIApplication(
 									  
 									  # managing
 									  ('/createCommunity', CreateCommunityPage),
+									  ('/manage', ManageCommunitySettingsPage),
+									  ('/manage/', ManageCommunitySettingsPage),
 									  ('/manage/members', ManageCommunityMembersPage),
 									  ('/manage/settings', ManageCommunitySettingsPage),
-									  ('/manage/questions/story', ManageCommunityQuestionsPage),
-									  ('/manage/questions/pattern', ManageCommunityQuestionsPage),
-									  ('/manage/questions/collage', ManageCommunityQuestionsPage),
-									  ('/manage/questions/invitation', ManageCommunityQuestionsPage),
-									  ('/manage/questions/resource', ManageCommunityQuestionsPage),
-									  ('/manage/questions/member', ManageCommunityQuestionsPage),
-									  ('/manage/questions/questions', ManageCommunityQuestionsPage),
+									  ('/manage/questions_story', ManageCommunityQuestionsPage),
+									  ('/manage/questions_pattern', ManageCommunityQuestionsPage),
+									  ('/manage/questions_collage', ManageCommunityQuestionsPage),
+									  ('/manage/questions_invitation', ManageCommunityQuestionsPage),
+									  ('/manage/questions_resource', ManageCommunityQuestionsPage),
+									  ('/manage/questions_member', ManageCommunityQuestionsPage),
+									  ('/manage/questions_questions', ManageCommunityQuestionsPage),
 									  ('/manage/characters', ManageCommunityCharactersPage),
 									  ('/manage/technical', ManageCommunityTechnicalPage),
 									  

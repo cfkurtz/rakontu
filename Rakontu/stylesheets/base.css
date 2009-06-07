@@ -40,6 +40,16 @@ table.fullwidth {
 	border: 0;
 	}
 	
+table.noborder {
+	width: auto;
+	border: 0;
+	}
+	
+table.fullborder {
+	width: auto;
+	border: 1px solid #FF7F00;
+	}
+	
 td {
 	font-size: 80%;
 	border-left: 1px solid #FF7F00;
@@ -61,8 +71,8 @@ th {
 	}
 		
 fieldset {
-	background: #FFE4C4;
-	width: 95%;
+	background: #EECBAD; 
+	width: auto;
 	border: 1px solid #FF7F00;
 	}
 	
@@ -107,6 +117,15 @@ ul li.nobullet {
 	
 .rightalign {
 	text-align: right;
+	}
+	
+.blurb {
+	background: #FFE4C4;
+	width: auto;
+	border: 1px solid #FF7F00;
+	padding: 4px 8px 4px 8px;
+	margin-left: 8px;
+	margin-bottom: 8px;
 	}
 	
 /* ----------- page areas ----------- */
@@ -163,12 +182,58 @@ ul li.nobullet {
     float: none;
     top: 130px;
     bottom: 4px;
-	margin-right: 190px;
+	margin-right: 0px;
 	height: auto;
 	width: auto;
 	padding-left : 6px;
 	padding-right: 6px;
 	}
+	
+#optionsbar {
+    margin: 0;
+    margin-top: 4px;
+    padding: 0;
+    height: 1em; 
+    }
+#optionsbar li {
+    list-style: none;
+    width: 85px;
+    float: left; 
+    margin: 2px;
+    border: 1px solid #FF7F00;
+    }
+#optionsbar li a {
+    display: block;
+    padding: 3px 8px;
+    background-color: #FFEECC;
+    color: #000;
+    text-decoration: none; 
+    }
+#optionsbar li ul {
+    display: none;
+    width: 10em; /* Width to help Opera out */
+    background-color: #FFEECC;
+    }
+#optionsbar li:hover ul {
+    display: block;
+    position: absolute;
+    margin: 0;
+    padding: 0; 
+    }
+#optionsbar li:hover li {
+    float: none; 
+    }
+#optionsbar li:hover li a {
+    background-color: #FFEECC;
+    color: #000; 
+    }
+#optionsbar li li {
+	width: 200px;
+	}
+#optionsbar li li a:hover {
+    background-color: #FF7F00; 
+    color: #fff;
+    }
 
 /* ----------- forms ----------- */
 
@@ -217,7 +282,7 @@ ul li.nobullet {
 	}
 	
 #stylized select:hover{
-	border: solid 1px #FF2400;
+	border: solid 1px #993300;
 	}
 	
 #stylized input{
@@ -227,7 +292,7 @@ ul li.nobullet {
 	}
 	
 #stylized input:hover{
-	border: solid 1px #FF2400;
+	border: solid 1px #993300;
 	}
 	
 #stylized textarea{
@@ -240,7 +305,7 @@ ul li.nobullet {
 	}
 	
 #stylized textarea:hover{
-	border: solid 1px #FF2400;
+	border: solid 1px #993300;
 	}
 	
 #stylized input.button{
@@ -257,8 +322,8 @@ ul li.nobullet {
 	}
 	
 #stylized input.button:hover{
-	border: solid 2px #FF2400;
-	background: #FF8000;
+	border: solid 2px #993300;
+	background: #FF7F24;
 	}
 	
 #stylized input.button_small{
@@ -274,6 +339,6 @@ ul li.nobullet {
 	}
 	
 #stylized input.button_small:hover{
-	border: solid 1px #FF2400;
-	background: #FF8000;
+	border: solid 1px #993300;
+	background: #FF7F24;
 	}

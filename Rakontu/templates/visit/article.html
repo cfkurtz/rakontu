@@ -44,9 +44,9 @@
 			
 			{% if character_allowed %}
 				{% if article %}
-					<p>You can change who this {{article_type}} is attributed to here.</p>
+					<p>You can change who this {{article_type}} is attributed to here. 
 				{% else %}
-					<p>To whom would you like to attribute this {{article_type}}?</p>
+					<p>To whom would you like to attribute this {{article_type}}?
 				{% endif %}
 				
 				<select name="attribution">
@@ -68,31 +68,33 @@
 							>{{character.name}}</option>
 						{% endfor %}
 					{% endif %}
-				</select>
+				</select></p>
 			{% endif %}
 
-			{% if current_member.isLiaison %}
-				<div><label><input type="checkbox" name="collectedOffline" value="yes" 
-					{% if article.collectedOffline %}
-					checked
-					{% endif %}
-				>This {{article_type}} was collected offline.</label></div>
-				{% if article %}
-					<p>This off-line {{article_type}} was collected from:</p>
-				{% else %}
-					<p>If this {{article_type}} was collected off-line, please choose a member to assign it to.</p>
-				{% endif %}
-				<select name="offlineSource">
-					{% for member in community_members %}
-						<option value="{{member.key}}">{{member.nickname}}
-						{% if article %}
-							{% ifequal member.key article.creator.key %}
-								selected="selected"
-							{% endifequal %}
+			{% if offline_members %}
+				{% if current_member.isLiaison %}
+					<div><input type="checkbox" name="collectedOffline" value="yes" id="collectedOffline"
+						{% if article.collectedOffline %}
+						checked
 						{% endif %}
-						</option>
-					{% endfor %}
-				</select>
+					<label for="collectedOffline">This {{article_type}} was collected offline.</label></div>
+					{% if article %}
+						<p>This off-line {{article_type}} was collected from:</p>
+					{% else %}
+						<p>If this {{article_type}} was collected off-line, please choose a member to assign it to.</p>
+					{% endif %}
+					<select name="offlineSource">
+						{% for member in offline_members %}
+							<option value="{{member.key}}">{{member.nickname}}
+							{% if article %}
+								{% ifequal member.key article.creator.key %}
+									selected="selected"
+								{% endifequal %}
+							{% endif %}
+							</option>
+						{% endfor %}
+					</select>
+				{% endif %}
 			{% endif %}
 			
 			{% if article_from %}
@@ -131,6 +133,7 @@
 			
 			{% ifnotequal community.maxNumAttachments 0 %}
 				<h3>Attachments</h3>
+				<fieldset>
 				{% if article %}
 					<p>This {{article_type}} has these attachments. Click the Browse button to replace any attachment,
 					or check the Remove box to delete it.
@@ -210,6 +213,7 @@
 						{% endif %}
 					{% endif %}
 				</table>
+				</fieldset>
 			{% endifnotequal %}
 			
 			<p>

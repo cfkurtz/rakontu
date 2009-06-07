@@ -12,37 +12,18 @@
 		
 			<h2>{{article.title}} ({{article.type}})</h2>
 	
-			<div class="article_text">{{article.text}}</div
+			<div class="blurb">{{article.text}}</div
 			
 			{% if questions %}
 				{% include "questions.html" %}
 			{% endif %}
 			
-			{% if current_member.isLiaison %}
-				<div><label><input type="checkbox" name="collectedOffline" value="yes" checked>This answer set was collected offline.</label></div>
-				{% if answers %}
-					<p>This off-line answer set was collected from:</p>
-				{% else %}
-					<p>If this answer set was collected off-line, please choose a member to assign it to.</p>
-				{% endif %}
-				<select name="offlineSource">
-					{% for member in community_members %}
-						<option value="{{member.key}}">
-						{% if answers.0 %}
-							{% ifequal member.key answers.0.creator.key %}
-								selected="selected"
-							{% endifequal %}
-						{% endif %}
-						{{member.nickname}}</option>
-					{% endfor %}
-				</select>
-			{% endif %}
 			
 			{% if character_allowed %}
 				{% if answers %}
-					<p>You can change who this answer set is attributed to here.</p>
+					<p>You can change who this answer set is attributed to here.
 				{% else %}
-					<p>To whom would you like to attribute this answer set?</p>
+					<p>To whom would you like to attribute this answer set?
 				{% endif %}
 				
 				<select name="attribution">
@@ -64,9 +45,35 @@
 							>{{character.name}}</option>
 						{% endfor %}
 					{% endif %}
-				</select>
+				</select></p>
 			{% endif %}
 			</fieldset>
+			
+			{% if offline_members %}
+				{% if current_member.isLiaison %}
+				<p></p>
+					<input type="checkbox" name="collectedOffline" value="yes" id="collectedOffline">
+					<label for="collectedOffline">This answer set was collected offline.</label>
+					{% if answers %}
+						<p>This off-line answer set was collected from:</p>
+					{% else %}
+						<p>If this answer set was collected off-line, please choose a member to assign it to.</p>
+					{% endif %}
+					<select name="offlineSource">
+						{% for member in offline_members %}
+							{% if not member.isOnlineMember %}
+								<option value="{{member.key}}">
+								{% if answers.0 %}
+									{% ifequal member.key answers.0.creator.key %}
+										selected="selected"
+									{% endifequal %}
+								{% endif %}
+								{{member.nickname}}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
+				{% endif %}
+			{% endif %}
 			
 			<p>
 			<center>

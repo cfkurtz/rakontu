@@ -12,7 +12,7 @@
 		<fieldset>
 		{% for question in questions %}
 			<h4>{{ question.text }}</h4>
-			{% if question.help %}
+			{% if question.help|notNone %}
 				<p><i>&nbsp; &nbsp; &nbsp; &nbsp; {{question.help}}</i></p>
 			{% endif %}
 			
@@ -30,7 +30,7 @@
 				{% if question.multiple %}
 					{% for choice in question.choices %}
 						{% if choice|slugify %}
-							<p><label><input type="checkbox" name="{{question.key}}|{{choice}}" value="{{question.key}}|{{choice}}" 
+							<p><input type="checkbox" name="{{question.key}}|{{choice}}" value="{{question.key}}|{{choice}}" id="{{question.key}}|{{choice}}" 
 							{% for answer in answers %}
 								{% ifequal answer.questionKey question.key %}
 									{% for answerText in answer.answerIfMultiple %}
@@ -40,7 +40,7 @@
 									{% endfor %}
 								{% endifequal %}
 							{% endfor %}
-							/>{{choice}}</label></p>
+							/><label for="{{question.key}}|{{choice}}">{{choice}}</label></p>
 						{% endif %}
 					{% endfor %}
 				{% else %}
@@ -61,7 +61,7 @@
 			{% endif %}
 			
 			{% ifequal question.type "boolean" %}
-				<p><label><input type="checkbox" name="{{question.key}}" value="{{question.key}}" 
+				<p><input type="checkbox" name="{{question.key}}" value="{{question.key}}" id="{{question.key}}"
 				{% for answer in answers %}
 					{% ifequal answer.questionKey question.key %}
 						{% if answer.answerIfBoolean %}
@@ -69,7 +69,7 @@
 						{% endif %}
 					{% endifequal %}
 				{% endfor %}
-				/>{{question.responseIfBoolean}}</label></p>
+				/><label for="{{question.key}}">{{question.responseIfBoolean}}</label></p>
 			{% endifequal %}
 			
 			{% ifequal question.type "value" %}

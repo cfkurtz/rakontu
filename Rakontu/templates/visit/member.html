@@ -9,7 +9,7 @@
 		<h3>Information about {{member.nickname}}</h3>
 		
 		{% if member.profileImage %}
-			<div><img src="img?member_id={{member.key}}" ></img></div>
+			<div><img src="img?member_id={{member.key}}"></img></div>
 		{% endif %}
 		<p>
 		{{member.nickname}}
@@ -30,7 +30,7 @@
 	  		{% endif %}
 	  	</p>
   		{% if member.profileText_formatted %}
-  			<p>Says {{member.nickname}}:</p><fieldset>{{member.profileText_formatted}}</fieldset>
+  			<p>Says {{member.nickname}}:</p><div class="blurb">{{member.profileText_formatted}}</div>
   		{% endif %}
 	
 	
@@ -62,6 +62,9 @@
 			</ul>
 		{% endif %}
 		 
+      	{% ifequal member.key current_member.key %}
+      		<div class="rightalign"><p><a href="/visit/profile?{{member.key}}">Change your profile</a></p></div>
+      	{% endifequal %}
 	</div>
 	</body>
 </html>

@@ -39,9 +39,13 @@ def timeZone(time, zoneName):
 	else:
 		timeUTC = time.replace(tzinfo=pytz.utc)
 		return timeUTC.astimezone(timezone(zoneName))
+	
+def notNone(value):
+	return value != None and value != "None"
 
 register.filter("listLookup", listLookup)
 register.filter("dictLookup", dictLookup)
 register.filter("makeRange", makeRange)
 register.filter("timeZone", timeZone)
+register.filter("notNone", notNone)
 

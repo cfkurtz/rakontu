@@ -66,6 +66,11 @@ liaison page:
  get rid of request type?
  
  put titles on pages!
+ 
+ problem? saved story as draft, edited questions, resaved, history has extra items
+ is history saving when drafts are edited? should not be
+ 
+ all sections about liaisons don't check for the case where there are NO offline members!
     
 finish relate, include links
 
@@ -74,7 +79,27 @@ add import/export of question lists (CSV)
 with markup - allow to refer to image in attachments {1} {2} etc
 also check how handling <img src= tag in simple html version (i think am not handling yet)
 
-deal with TIME ZONE
+get time zone from community and member, test more
 
 start thinking about internationalization
+
+need extra pages for reading long articles/annotations
+
+remember to do that javascript thing about the menus
+http://www.cssnewbie.com/easy-css-dropdown-menus/
+
+sfHover = function() {
+    var sfEls = document.getElementById("navbar").getElementsByTagName("li");
+    for (var i=0; i<sfEls.length; i++) {
+        sfEls[i].onmouseover=function() {
+            this.className+=" hover";
+        }
+        sfEls[i].onmouseout=function() {
+            this.className=this.className.replace(new RegExp(" hover\\b"), "");
+        }
+    }
+}
+if (window.attachEvent) window.attachEvent("onload", sfHover);
+
+
 

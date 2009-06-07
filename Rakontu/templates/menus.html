@@ -3,78 +3,91 @@
 <div id="header">
 
 	<table cellpadding="2" class="fullwidth">
-	<tr><td align="left" valign="center" width="70" class="noborder">
+	<tr>
+	
+	<td align="left" valign="center" class="noborder" width="70">
 	{% if community.image %}
 		<img src="img?community_id={{community.key}}" class="bordered">
 	{% else %}
 		<p><img src="/images/Rakontu.jpg" width="100" height="64" alt="Rakontu logo" class="bordered" ></p>
 	{% endif %}
+	
 	</td><td align="left" valign="center" class="noborder">
-	<b>{{ community.name }}</b>
+	<b>{{ community.name }}</b><br/>
 	{% if community.tagline %}
-		<br/><i>{{community.tagline}}</i>
+		<i>{{community.tagline}}</i>
 	{% endif %}
-	</td><td align="right" valign="center" class="noborder">
-	{{current_member.governanceType|capfirst}} <b>{{ current_member.nickname }}</b>
-	{% if user_is_admin %} (site admin) {% endif %}
-	<br>
-	<a href="/visit/profile">Profile</a> |
-	<a href="xxx">Help</a> |
-	<a href="{{logout_url}}">Logout</a>
-		{% if current_member.profileImage %}
-		</td><td align="right" width="70" class="noborder">
-			<div><img src="img?member_id={{current_member.key}}"></img></div>
+	<ul id="optionsbar">
+  		<li><a href="/visit/look">Visit</a>
+			<ul>
+			<li><a href="/visit/look">Look at stories</a></li>
+ 			<li><a href="/visit/community">About the community</a></li>
+			<li><a href="/visit/members">About the members</a></li>
+			<li><a href="/">Exit community</a></li>
+			</ul>
+		</li>
+		<li><a href="/visit/story">Talk</a>
+			<ul>
+			<li><a href="/visit/story">Tell a story</a></li>
+  			<li><a href="/visit/invitation">Invite people to tell stories</a></li>
+  			<li><a href="/visit/collage">Build a story collage</a></li>
+  			<li><a href="/visit/pattern">Describe a pattern</a> </li>
+  			{% if current_member.isGuide or current_member.isManagerOrOwner %}
+  				<li><a href="/visit/resource">Add a resource</a></li>
+  			{% endif %}
+  			</ul>
+		</li>
+		{% if current_member.hasAnyHelpingRole %}
+			<li><a href="/curate/curate">Help</a>
+				<ul>
+				{% if current_member.isCurator %}
+					<li><a href="/curate/review">Review flags</a>
+				{% endif %}
+				{% if current_member.isGuide %}
+					<li><a href="/curate/review">Review resources</a>
+				{% endif %}
+				{% if current_member.isLiaison %}
+					<li><a href="/curate/review">Review off-line members</a>
+				{% endif %}
+				</ul>
+			</li>
 		{% endif %}
+		{% if current_member.isManagerOrOwner %}
+			<li><a href="/manage/settings">Manage</a>
+				<ul>
+				<li><a href="/manage/settings">Settings</a></li>
+	      		<li><a href="/manage/members">Members</a></li>
+	      		<li><a href="/manage/characters">Characters</a></li>
+	      		<li><a href="/manage/questions_story">Questions about stories</a></li>
+		      	<li><a href="/manage/questions_invitation">Questions about invitations</a></li>
+		      	<li><a href="/manage/questions_collage">Questions about collages</a></li>
+		      	<li><a href="/manage/questions_pattern">Questions about patterns</a></li>
+		      	<li><a href="/manage/questions_resource">Questions about resources</a></li>
+		      	<li><a href="/manage/questions_member">Questions about members</a></li>
+		      	<li><a href="/manage/technical">Backup / export</a></li>
+	      		</ul>
+	      	</li>
+	    {% endif %}
+		{% if user_is_admin %}
+ 			<li><a href="/admin/showAllCommunities">Administer</a>
+				<ul>
+				<li><a href="/admin/showAllCommunities">Communities</a></li>
+				<li><a href="/admin/showAllMembers">Members</a></li>
+				</ul>
+			</li>
+		{% endif %}
+		
+      	</ul>
+    </td><td align="right" class="noborder">
+    <p>&nbsp; You are logged in as <b>{{ current_member.nickname }}</b>.<br/>
+    <a href="xxx">Help</a> | <a href="/visit/profile">Preferences</a> | <a href="{{logout_url}}">Log out</a></p>
+	{% if current_member.profileImage %}
+	</td><td align="center" width="20" class="noborder">
+		<div><img src="img?member_id={{current_member.key}}"></img></div>
+	{% endif %}
+	</td><td valign="center" class="noborder">
+	
 	</td></tr></table>
 
 </div>
 
-<div id="sidebar">
-
-	<h1>Visit</h1>
-  	<p><a href="/visit/look">Look</a> at stories</p>
-  	<p><a href="/visit/story">Tell</a> a story</p>
-  	<p><a href="/visit/invitation">Invite</a> people to tell stories</p>
-  	<p><a href="/visit/collage">Build</a> a story collage</p>
-  	<p><a href="/visit/pattern">Describe</a> a pattern of stories</p>
-  	{% if current_member.isGuide or current_member.isManagerOrOwner %}
-  	<p>Add a <a href="/visit/resource">resource</a></p>
-  	{% endif %}
- 	<p>See the <a href="/visit/community">community</a></p>
-	<p>See its <a href="/visit/members">members</a></p>
-	</ul>
-  	
-  	{% if current_member.isManagerOrOwner %}
-  		<hr>
-      	<h1>Manage</h1>
-      	<p><a href="/manage/settings">Settings</a></p>
-      	<p><a href="/manage/members">Members</a></p>
-      	<p><a href="/manage/characters">Characters</a></p>
-      	
-      	<p>Questions about</p>
-      	<ul>
-      	<li><a href="/manage/questions/story">stories</a></li>
-      	<li><a href="/manage/questions/invitation">invitations</a></li>
-      	<li><a href="/manage/questions/collage">collages</a></li>
-      	<li><a href="/manage/questions/pattern">patterns</a></li>
-      	<li><a href="/manage/questions/resource">resources</a></li>
-      	<li><a href="/manage/questions/member">members</a></li>
-      	</ul>
-      	
-      	<p><a href="/manage/technical">Backup / export</a></p>
-    {% endif %}
-
-	{% if user_is_admin %}
-		<hr>
-		<h1>Administer</h1>
-		<p>Show</p>
-			<ul>
-			<li><a href="/admin/showAllCommunities">communities</a></li>
-			<li><a href="/admin/showAllMembers">members</a></li>
-			</ul>
-	{% endif %}
-	
-	<hr>
-	<p><a href="/">Start page</a></p>
-
-</div>

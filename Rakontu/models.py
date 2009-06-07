@@ -193,6 +193,9 @@ class Community(db.Model):
 	roleAgreements = db.ListProperty(bool, default=[False, False, False])
 	maxNumAttachments = db.IntegerProperty(choices=[0,1,2,3,4,5], default=3)
 	
+	def getOfflineMembers(self):
+		return Member.all().filter("community = ", self.key()).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
+	
 	# articles
 	
 	def getNonDraftArticles(self):

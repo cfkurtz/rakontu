@@ -12,6 +12,7 @@
 			<form action="/manage/members" method="post">
 			
 			<h3>Active members</h3>
+			<fieldset>
 	      	<table border="1" cellpadding="4" cellspacing="0">
 	      	<tr>
 	      		<th>Nickname</th>
@@ -84,25 +85,30 @@
 	  				</tr>
 	      		{% endfor %}
 	      	</table>
+	      	</fieldset>
 			
-			<h3>Pending members</h3>
-	      	<table border="1" cellpadding="4" cellspacing="0">
-	      	<tr>
-	      		<th>Email</th>
-	      		<th>Invited</th>
-	      		<th>Remove? </th>
-	      		</tr>
-	      		{% for pending_member in pending_members %}
-	  				<tr>
-	  				<td><input type="text" name="email|{{pending_member.key}}" size="20" value="{{pending_member.email}}"/></td>
-	  				<td>{{pending_member.invited.date}}</td>
-	  				<td><input type="checkbox" name="removePendingMember|{{pending_member.key}}" id="removePendingMember|{{pending_member.key}}"/>
-	  				<label for="removePendingMember|{{pending_member.key}}">Remove</label></td>
-	  				</tr>
-	      		{% endfor %}
-	      	</table>
+			{% if pending_members %}
+				<h3>Pending members</h3>
+				<fieldset>
+		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<tr>
+		      		<th>Email</th>
+		      		<th>Invited</th>
+		      		<th>Remove? </th>
+		      		</tr>
+		      		{% for pending_member in pending_members %}
+		  				<tr>
+		  				<td><input type="text" name="email|{{pending_member.key}}" size="20" value="{{pending_member.email}}"/></td>
+		  				<td>{{pending_member.invited.date}}</td>
+		  				<td><input type="checkbox" name="removePendingMember|{{pending_member.key}}" id="removePendingMember|{{pending_member.key}}"/>
+		  				<label for="removePendingMember|{{pending_member.key}}">Remove</label></td>
+		  				</tr>
+		      		{% endfor %}
+		      	</table>
+		      	</fieldset>
+		    {% endif %}
 			
-	 		<h3>New emails to add</h3>
+	 		<h3>Add members</h3>
 			<fieldset>
 			<div><textarea name="newMemberEmails" rows="6" cols="40"></textarea></div>
 			<p>Instructions: Add email adddresses (linked to valid Google Accounts) for each member you want to add.

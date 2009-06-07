@@ -10,39 +10,37 @@
 		
 		<p>Created: {{community.created}}</p>
 		<p>Description:</p>
-		<fieldset>{{community.description_formatted}}</fieldset>
+		<div class="blurb">{{community.description_formatted}}</div>
 		{% if community.etiquetteStatement_formatted %}
 			<p>Rules for behavior:</p>
-			<fieldset>{{community.etiquetteStatement_formatted}}</fieldset>
+			<div class="blurb">{{community.etiquetteStatement_formatted}}</div>
 		{% endif %}
 		
 		{% if community.getCharacters %}
 			<h3>Characters</h3>
 			<p><i>Community characters are fictional names you can "take on" when you tell a story,
 				make a comment, and so on, if you don't want to say it as yourself.</i></p>
-	      	<table border="1" cellpadding="4" cellspacing="0">
+	      	<table class="noborder">
 	      		{% for character in characters %}
-	  				<tr><td>
+	  				<tr border="0">
+	  				<td class="noborder">
 			 		{% if character.image %}
-						<img src="img?character_id={{character.key}}" align="left"></img>
+						<img src="img?character_id={{character.key}}" align="left">
 					{% endif %}
-	  				<a href="character?{{character.key}}">{{ character.name }}</a> 
-	  				{% if character.description_formatted %}<p>About {{character.name}}:</p><ul><li class="nobullet">{{character.description_formatted}}</li></ul>{% endif %}
-	  				{% if character.etiquetteStatement_formatted %}<p>How to be {{character.name}}:</p><ul><li class="nobullet">{{character.etiquetteStatement_formatted}}</li></ul>{% endif %}
-	  				</td>
+					</td>
+					<td class="noborder"><a href="character?{{character.key}}">{{character.name}}</a></td>
 	  				</tr>
 	      		{% endfor %}
 	      	</table>
 	     {% endif %}
 		
       	{% if current_member.isManagerOrOwner %}
-      		<p>You are a{% if current_member.isOwner %}n{% endif %} {{current_member.governanceType}}; you can</p>
-      		<ul>
-      		<li class="nobullet">Make changes to community-level <a href="/manage/settings">settings</a></li>
+      		<div class="rightalign">
+      		Make changes to community-level <a href="/manage/settings">settings</a>
       		{% if community.getCharacters %}
-      			<li class="nobullet">Make change to community <a href="/manage/characters">characters</a></li>
+      			or <a href="/manage/characters">characters</a>
       		{% endif %}
-      		</ul>
+      		</div>
       	{% endif %}
 	</div>
 	</body>

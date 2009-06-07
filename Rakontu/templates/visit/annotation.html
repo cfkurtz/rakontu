@@ -17,7 +17,7 @@
 		
 	<h2>{{article.title}} ({{article.type}})</h2>
 	
-	<div class="article_text">{{article.text_formatted}}</div
+	<div class="blurb">{{article.text_formatted}}</div>
 		
 			<h3>{{annotation_type|capfirst}}</h3>
 			<fieldset>
@@ -144,9 +144,9 @@
 
 			{% if character_allowed %}
 				{% if annotation %}
-					<p>You can change who this {{annotation_type}} is attributed to here.</p>
+					<p>You can change who this {{annotation_type}} is attributed to here.
 				{% else %}
-					<p>To whom would you like to attribute this {{annotation_type}}?</p>
+					<p>To whom would you like to attribute this {{annotation_type}}?
 				{% endif %}
 				
 				<select name="attribution">
@@ -168,33 +168,35 @@
 							>{{character.name}}</option>
 						{% endfor %}
 					{% endif %}
-				</select>
+				</select></p>
 			{% endif %}
 
-			{% if current_member.isLiaison %}
-				<div><label><input type="checkbox" name="collectedOffline" value="yes" 
-					{% if annotation.collectedOffline %}
-					checked
-					{% endif %}
-				>This {{annotation_type}} was collected offline.</label></div>
-				{% if annotation %}
-					<p>This off-line {{annotation_type}} was collected from:</p>
-				{% else %}
-					<p>If this {{annotation_type}} was collected off-line, please choose a member to assign it to.</p>
-				{% endif %}
-				<select name="offlineSource">
-					{% for member in community_members %}
-						<option value="{{member.key}}">
-						{% if annotation %}
-							{% ifequal member.key annotation.creator.key %}
-								selected="selected"
-							{% endifequal %}
+			{% if offline_members %}
+				{% if current_member.isLiaison %}
+					<input type="checkbox" name="collectedOffline" value="yes" id="collectedOffline"
+						{% if annotation.collectedOffline %}
+						checked
 						{% endif %}
-						{{member.nickname}}</option>
-					{% endfor %}
-				</select>
+					><label for="collectedOffline">This {{annotation_type}} was collected offline.</label>
+					{% if annotation %}
+						<p>This off-line {{annotation_type}} was collected from:</p>
+					{% else %}
+						<p>If this {{annotation_type}} was collected off-line, please choose a member to assign it to.</p>
+					{% endif %}
+					<select name="offlineSource">
+						{% for member in offline_members %}
+							<option value="{{member.key}}">
+							{% if annotation %}
+								{% ifequal member.key annotation.creator.key %}
+									selected="selected"
+								{% endifequal %}
+							{% endif %}
+							{{member.nickname}}</option>
+						{% endfor %}
+					</select>
+				{% endif %}
+				</fieldset>
 			{% endif %}
-			</fieldset>
 			
 			<p>
 			<center>

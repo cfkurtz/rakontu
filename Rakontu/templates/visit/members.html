@@ -7,13 +7,11 @@
 		<div id="content">
 	
 		<h3>Members</h3>
-      	<table border="1" cellpadding="4" cellspacing="0">
+      	
       		{% for aMember in community_members %}
-  				<tr><td>
-		 		{% if aMember.profileImage %}
-					<div><img src="img?member_id={{aMember.key}}" align="right"></img></div>
-				{% endif %}
-  				<a href="member?{{aMember.key}}">{{ aMember.nickname }}</a> 
+  				<table style="width:100%;" class="fullborder">
+  				<tr><td class="noborder">
+ 				<a href="member?{{aMember.key}}">{{ aMember.nickname }}</a> 
   				{% ifequal aMember.key current_member.key %}<i>(that's you)</i> {% endifequal %} 
   				is {% ifequal aMember.governanceType "member" %}
   					{% else %}
@@ -29,13 +27,23 @@
 	  					{% if aMember.helpingRoles.1 %} <b>guide</b>{% if aMember.helpingRoles.2 %} and{% else %}. {% endif %} {% endif %}
 	  					{% if aMember.helpingRoles.2 %} <b>liaison</b>.{% endif %}
 	  				{% endif %}
-  				{% if aMember.profileText_formatted %}<p>Says {{aMember.nickname}}: <ul><li class="nobullet">{{aMember.profileText_formatted}}</li></ul>{% endif %}
+  				{% if aMember.profileText_formatted %}
+					<p>Says {{aMember.nickname}}: </p>
+  					<div class="blurb" style="width:90%;">{{aMember.profileText_formatted}}</div>
+  				{% endif %}
   				</td>
-  				</tr>
+  				<td class="noborder" width="80" valign="top">
+		 		{% if aMember.profileImage %}
+					<img src="img?member_id={{aMember.key}}">
+				{% endif %}
+				</td>
+   				</tr>
+  				</table>
+  				<p></p>
       		{% endfor %}
-      	</table>
+      	
       	{% if current_member.isManagerOrOwner %}
-      		<center><p><a href="/manage/members">Make changes to memberships</a></p></center>
+      		<div class="rightalign"><p><a href="/manage/members">Make changes to memberships</a></p></div>
       	{% endif %}
 	</div>
 	</body>

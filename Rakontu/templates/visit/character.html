@@ -13,8 +13,8 @@
 				{% endif %}
 				<p>
 				{{character.name}}
-  				{% if character.description %}<p>About {{character.name}}: <ul><li class="nobullet">{{character.description}}</li></ul>{% endif %}
-	  			{% if character.etiquetteStatement %}<p>How to be {{character.name}}:</p><ul><li class="nobullet">{{character.etiquetteStatement}}</li></ul>{% endif %}
+  				{% if character.description %}<p>About {{character.name}}:</p><div class="blurb">{{character.description}}</div>{% endif %}
+	  			{% if character.etiquetteStatement %}<p>How to be {{character.name}}:</p><div class="blurb">{{character.etiquetteStatement}}</div>{% endif %}
 	
 	{% if history.count %}
 		<h4>{{character.name}}'s History</h4>
@@ -28,7 +28,7 @@
 		</ul>
 	{% endif %}
 		
-	<a href="/visit/community">See all characters</a>
+	<div class="rightalign"><a href="/visit/community">See all characters</a></div>
 	</div>
 	</body>
 </html>

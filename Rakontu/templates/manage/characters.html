@@ -10,11 +10,12 @@
 			<div id="stylized" class="rakontu_form">
 			<form action="/manage/characters" method="post" enctype="multipart/form-data">
 			<h3>Add New Characters</h3>
+			<fieldset>
 			<div><textarea name="newCharacterNames" rows="6" cols="40"></textarea></div>
-			<p>Instructions: Add names on separate lines.</p>
-			<p>
-			<hr size="1">
+			<p><i>Add names on separate lines.</i></p>
+			</fieldset>
 			<h3>Change Characters</h3>
+			<fieldset>
 	      	<table border="1" cellpadding="4" cellspacing="0">
 	      	<tr>
 	      		<th>Name and image</th>
@@ -61,6 +62,7 @@
 	      		{% endfor %}
 	      	</table>
 	      <p><i>The best picture size is 100 x 60.</i></p>
+	      </fieldset>
 		<p>
 	    <center><input type="submit" name="submitChanges" value="Submit Changes" class="button"></center>
 		</form>
