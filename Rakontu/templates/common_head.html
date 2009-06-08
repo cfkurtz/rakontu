@@ -1,0 +1,8 @@
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+		<script type="text/javascript" src="menu.js"></script>
+		<title>
+			{% if title %}{{title}}{% endif %}
+			{% if title_extra %} {{title_extra}}{% endif %}
+			{% if community %} - {{community.name}}{% endif %}</title>
+	</head>

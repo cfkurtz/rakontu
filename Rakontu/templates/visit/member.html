@@ -1,9 +1,7 @@
 <html>
-	<head>
-		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
-	</head>
+	{% include "../common_head.html" %}
 	<body>
-		{% include "../menus.html" %}
+	{% include "../common_menus.html" %}
 		<div id="content">
 	
 		<h3>Information about {{member.nickname}}</h3>
@@ -66,5 +64,6 @@
       		<div class="rightalign"><p><a href="/visit/profile?{{member.key}}">Change your profile</a></p></div>
       	{% endifequal %}
 	</div>
+	{% include "../common_footer.html" %}
 	</body>
 </html>

@@ -1,10 +1,7 @@
 <html>
-	<head>
-		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
-	</head>
+	{% include "../common_head.html" %}
 	<body>
-	{% include "../menus.html" %}
-	<div id="content">
+	{% include "../common_menus.html" %}
 	
 	{% if current_member.isManagerOrOwner %}
 		<div id="stylized" class="rakontu_form">
@@ -118,5 +115,6 @@
 	{% endif %}
 
 	</div>
+	{% include "../common_footer.html" %}
 	</body>
 </html>

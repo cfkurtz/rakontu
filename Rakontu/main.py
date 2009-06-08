@@ -18,16 +18,16 @@ webapp.template.register_template_library('djangoTemplateExtras')
 
 def getTimezone(tzname):
   try:
-    tz = memcache.get("tz:%s" % tzname)
+	tz = memcache.get("tz:%s" % tzname)
   except:
-    tz = None
-    logging.debug("timezone get failed: %s" % tzname)
+	tz = None
+	logging.debug("timezone get failed: %s" % tzname)
   if tz is None:
-    tz = timezone(tzname)
-    memcache.add("tz:%s" % tzname, tz, 86400)
-    logging.debug("timezone memcache added: %s" % tzname)
+	tz = timezone(tzname)
+	memcache.add("tz:%s" % tzname, tz, 86400)
+	logging.debug("timezone memcache added: %s" % tzname)
   else:
-    logging.debug("timezone memcache hit: %s" % tzname)
+	logging.debug("timezone memcache hit: %s" % tzname)
 
   return tz
 
@@ -131,6 +131,8 @@ class StartPage(webapp.RequestHandler):
 				except:
 					pass # if can't link to community don't use it
 		template_values = {
+						   'title': None,
+						   'title_extra': None,
 						   'user': user, 
 						   'communities_member_of': communitiesTheyAreAMemberOf,
 						   'communities_invited_to': communitiesTheyAreInvitedTo,
@@ -194,12 +196,14 @@ class NewMemberPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 			template_values = {
-							   'community': community, 
-							   'current_user': users.get_current_user(), 
-							   'current_member': member,
-							   'user_is_admin': users.is_current_user_admin(),
-							   'logout_url': users.create_logout_url("/"),
-							   }
+							'title': "Welcome",
+							'title_extra': member.nickname,
+							'community': community, 
+							'current_user': users.get_current_user(), 
+							'current_member': member,
+							'user_is_admin': users.is_current_user_admin(),
+							'logout_url': users.create_logout_url("/"),
+							}
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/new.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
@@ -212,7 +216,10 @@ class NewMemberPage(webapp.RequestHandler):
 class CreateCommunityPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
+		user = users.get_current_user()
 		template_values = {
+						   'title': "Create community",
+						   'title_extra': None,
 						   'text_formats': TEXT_FORMATS,
 						   'user': users.get_current_user(),
 						   'logout_url': users.create_logout_url("/"),
@@ -317,18 +324,20 @@ class BrowseArticlesPage(webapp.RequestHandler):
 			else:
 				textsForGrid = []
 			template_values = {
-							   'community': community, 
-							   'current_member': member,
-							   'articles': articles,
-							   'rows_cols': textsForGrid,
-							   'row_headers': rowHeaders,
-							   'time_frames': TIME_FRAMES,
-							   'article_types': ARTICLE_TYPES,
-							   '1_to_31': range(1, 31, 1),
-							   '5_to_10': range(5, 11, 1),
-							   'user_is_admin': users.is_current_user_admin(),
-							   'logout_url': users.create_logout_url("/"),
-							   }
+							'title': community.name,
+						   	'title_extra': None,
+							'community': community, 
+							'current_member': member, 
+							'articles': articles, 
+							'rows_cols': textsForGrid, 
+							'row_headers': rowHeaders, 
+							'time_frames': TIME_FRAMES, 
+							'article_types': ARTICLE_TYPES, 
+							'1_to_31': range(1, 31, 1), 
+							'5_to_10': range(5, 11, 1), 
+							'user_is_admin': users.is_current_user_admin(), 
+							'logout_url': users.create_logout_url("/"), 
+							}
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/look.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
@@ -391,6 +400,8 @@ class ReadArticlePage(webapp.RequestHandler):
 				else:
 					nudgePointsMemberCanAssign = max(0, community.maxNudgePointsPerArticle - article.getTotalNudgePointsForMember(member))
 				template_values = {
+								   'title': article.title, 
+						   		   'title_extra': None,
 								   'community': community, 
 								   'current_member': member,
 								   'current_member_key': member.key(),
@@ -432,6 +443,8 @@ class SeeCommunityPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 				template_values = {
+								   'title': "About", 
+						   		   'title_extra': community.name, 
 								   'community': community, 
 								   'current_member': member,
 								   'community_members': community.getActiveMembers(),
@@ -450,6 +463,8 @@ class SeeCommunityMembersPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 				template_values = {
+								   'title': "Members of", 
+						   		   'title_extra': community.name, 
 								   'community': community, 
 								   'current_member': member,
 								   'community_members': community.getActiveMembers(),
@@ -470,13 +485,15 @@ class SeeMemberPage(webapp.RequestHandler):
 				memberToSee = db.get(memberKey)
 				if memberToSee:
 					template_values = {
-									   'community': community, 
-									   'current_member': member,
-									   'member': memberToSee,
-									   'history': member.getHistory(),
-									   'user_is_admin': users.is_current_user_admin(),
-									   'logout_url': users.create_logout_url("/"),								   
-									   }
+								   'title': "Member", 
+						   		   'title_extra': member.nickname, 
+						   		   'community': community, 
+						   		   'current_member': member,
+						   		   'member': memberToSee,
+						   		   'history': member.getHistory(),
+						   		   'user_is_admin': users.is_current_user_admin(),
+						   		   'logout_url': users.create_logout_url("/"),								   
+						   		   }
 					path = os.path.join(os.path.dirname(__file__), 'templates/visit/member.html')
 					self.response.out.write(template.render(path, template_values))
 				else:
@@ -509,13 +526,15 @@ class SeeCharacterPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 				characterKey = self.request.query_string
-				characterToSee = db.get(characterKey)
-				if characterToSee:
+				character = db.get(characterKey)
+				if character:
 					template_values = {
+								   	   'title': "Character", 
+						   		   	   'title_extra': character.name, 
 									   'community': community, 
 									   'current_member': member,
-									   'character': characterToSee,
-									   'history': characterToSee.getHistory(),
+									   'character': character,
+									   'history': character.getHistory(),
 									   'user_is_admin': users.is_current_user_admin(),
 									   'logout_url': users.create_logout_url("/"),								   
 									   }
@@ -542,6 +561,7 @@ class EnterArticlePage(webapp.RequestHandler):
 				articleFrom = db.get(articleFromKey)
 				article = None
 				entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
+				articleName = None
 			elif self.request.uri.find("remind") >= 0:
 				type = "story"
 				linkType = "remind"
@@ -549,6 +569,7 @@ class EnterArticlePage(webapp.RequestHandler):
 				articleFrom = db.get(articleFromKey)
 				article = None
 				entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
+				articleName = None
 			elif self.request.uri.find("respond") >= 0:
 				type = "story"
 				linkType = "respond"
@@ -556,6 +577,7 @@ class EnterArticlePage(webapp.RequestHandler):
 				articleFrom = db.get(articleFromKey)
 				article = None
 				entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
+				articleName = None
 			else:
 				linkType = ""
 				articleFrom = None
@@ -568,9 +590,11 @@ class EnterArticlePage(webapp.RequestHandler):
 					i += 1
 				if not self.request.uri.find("?") >= 0:
 					article = None
+					articleName = None
 				else:
 					articleKey = self.request.query_string
 					article = db.get(articleKey)
+					articleName = article.title
 			if article:
 				answers = article.getAnswers()
 				attachments = article.getAttachments()
@@ -578,6 +602,8 @@ class EnterArticlePage(webapp.RequestHandler):
 				answers = None
 				attachments = None
 			template_values = {
+							   'title': type.capitalize(), 
+						   	   'title_extra': articleName, 
 							   'user': users.get_current_user(),
 							   'current_member': member,
 							   'community': community, 
@@ -756,6 +782,8 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
 				article = Article.get(self.request.query_string)
 			if article:
 				template_values = {
+							   	   'title': "Answers for", 
+						   	   	   'title_extra': article.title, 
 								   'user': users.get_current_user(),
 								   'current_member': member,
 								   'community': community, 
@@ -852,6 +880,8 @@ class PreviewAnswersPage(webapp.RequestHandler):
 				answers = article.getAnswersForMember(member)
 			if article and answers:
 				template_values = {
+							   	   'title': "Preview of", 
+						   	   	   'title_extra': "Answers for %s " % article.title, 
 								   'user': users.get_current_user(),
 								   'current_member': member,
 								   'community': community, 
@@ -921,6 +951,8 @@ class EnterAnnotationPage(webapp.RequestHandler):
 				nudgePointsMemberCanAssign = community.maxNudgePointsPerArticle
 			if article:
 				template_values = {
+							   	   'title': "% for" % type.capitalize(), 
+						   	   	   'title_extra': article.title, 
 								   'user': users.get_current_user(),
 								   'current_member': member,
 								   'community': community, 
@@ -1076,6 +1108,8 @@ class PreviewPage(webapp.RequestHandler):
 					article = annotation.article
 			if article:
 				template_values = {
+							   	   'title': "Preview", 
+						   	   	   'title_extra': article.title, 
 								   'user': users.get_current_user(),
 								   'current_member': member,
 								   'community': community, 
@@ -1141,6 +1175,8 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 				answers = member.getDraftAnswersForArticle(article)
 				firstDraftAnswerForEachArticle.append(answers[0])
 			template_values = {
+							   'title': "Profile of", 
+						   	   'title_extra': member.nickname, 
 							   'community': community, 
 							   'current_user': users.get_current_user(), 
 							   'current_member': member,
@@ -1236,6 +1272,8 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
 		if community and member:
 			communityMembers = Member.all().filter("community = ", community).fetch(FETCH_NUMBER)
 			template_values = {
+							   'title': "Manage members of", 
+						   	   'title_extra': community.name, 
 							   'community': community, 
 							   'current_user': users.get_current_user(), 
 							   'current_member': member,
@@ -1315,6 +1353,8 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 						% (entryType, entryType, checkedBlank(community.allowCharacter[i]), entryType, entryType, entryType))
 				i += 1
 			template_values = {
+							   'title': "Manage settings for", 
+						   	   'title_extra': community.name, 
 							   'community': community, 
 							   'current_user': users.get_current_user(), 
 							   'current_member': member,
@@ -1400,6 +1440,8 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 			communityQuestionsOfType = community.getQuestionsOfType(type)
 			systemQuestionsOfType = Question.all().filter("community = ", None).filter("refersTo = ", type).fetch(FETCH_NUMBER)
 			template_values = {
+							   'title': "Manage %s" % type, 
+						   	   'title_extra': "questions", 
 							   'community': community, 
 							   'current_user': users.get_current_user(), 
 							   'current_member': member,
@@ -1481,6 +1523,8 @@ class ManageCommunityCharactersPage(webapp.RequestHandler):
 		if community and member:
 			characters = Character.all().filter("community = ", community).fetch(FETCH_NUMBER)
 			template_values = {
+							   'title': "Manage characters for", 
+						   	   'title_extra': community.name, 
 							   'community': community, 
 							   'current_user': users.get_current_user(), 
 							   'current_member': member,
@@ -1543,6 +1587,8 @@ class ShowAllCommunities(webapp.RequestHandler):
 		if community and member:
 			if users.is_current_user_admin():
 				template_values = {
+							   	   'title': "All communities", 
+						   	   	   'title_extra': None, 
 								   'communities': Community.all().fetch(FETCH_NUMBER), 
 								   'members': Member.all().fetch(FETCH_NUMBER),
 								   'community': community, 
@@ -1563,6 +1609,8 @@ class ShowAllMembers(webapp.RequestHandler):
 		if community and member:
 			if users.is_current_user_admin():
 				template_values = {
+							   	   'title': "All members", 
+						   	   	   'title_extra': None, 
 								   'members': Member.all().fetch(FETCH_NUMBER),
 								   'community': community, 
 								   'current_user': users.get_current_user(), 

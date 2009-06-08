@@ -1,9 +1,7 @@
 <html>
-	<head>
-		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
-	</head>
+	{% include "../common_head.html" %}
 	<body>
-	{% include "../menus.html" %}
+	{% include "../common_menus.html" %}
 	<div id="content">
 	
 	<h2>{{article.title}} ({{article.type}})</h2>
@@ -61,5 +59,6 @@
 	</div>
 	
 	</div>
+	{% include "../common_footer.html" %}
 	</body>
 </html>
