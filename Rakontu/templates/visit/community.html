@@ -6,7 +6,7 @@
 	
 		<h3>About the {{community.name}} community</h3>
 		
-		<p>Created: {{community.created}}</p>
+		<p>This community was created on {{community.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.</p>
 		<p>Description:</p>
 		<div class="blurb">{{community.description_formatted}}</div>
 		{% if community.etiquetteStatement_formatted %}
@@ -18,15 +18,23 @@
 			<h3>Characters</h3>
 			<p><i>Community characters are fictional names you can "take on" when you tell a story,
 				make a comment, and so on, if you don't want to say it as yourself.</i></p>
-	      	<table class="noborder">
+	      	<table>
+	      		<tr><th>Name</th>
+	      			<th>Picture</th>
+	      			<th>About the character</th>
+	      			<th>How to be this character</th></tr>
 	      		{% for character in characters %}
-	  				<tr border="0">
-	  				<td class="noborder">
+	      			<tr>
+					<td><a href="character?{{character.key}}">{{character.name}}</a></td>
+	  				<td>
 			 		{% if character.image %}
 						<img src="img?character_id={{character.key}}" align="left">
+					{% else %}
+						&nbsp;
 					{% endif %}
 					</td>
-					<td class="noborder"><a href="character?{{character.key}}">{{character.name}}</a></td>
+					<td>{% if character.description %}{{character.description}}{% else %} &nbsp; {% endif %}</td>
+					<td>{% if character.etiquetteStatement %}{{character.etiquetteStatement}}{% else %} &nbsp; {% endif %}</td>
 	  				</tr>
 	      		{% endfor %}
 	      	</table>

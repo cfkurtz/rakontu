@@ -31,6 +31,15 @@ DEFAULT_NUDGE_POINT_ACCUMULATIONS = [
 					 				20, # nudging 
 					 				]
 
+DATE_FORMATS = {
+			"j F Y": "%d %B %Y", #"1 January 2000",
+			"F j, Y": "%B %d, %Y", #"January 1, 2000",
+			}
+TIME_FORMATS = {
+			"h:i a": "%I:%M %p", #"5:00 pm", 
+			"H:i": "%H:%M", #"17:00",
+			}
+
 # member
 NO_NICKNAME_SET = "No nickname set"
 MEMBER_TYPES = ["member", "on-line member", "off-line member", "liaison", "curator", "guide", "manager", "owner"]
@@ -176,7 +185,10 @@ class Community(db.Model):
 	welcomeMessage_formatted = db.TextProperty()
 	welcomeMessage_format = db.StringProperty(default="plain text")
 	image = db.BlobProperty(default=None)
+	
 	defaultTimeZoneName = db.StringProperty(default="US/Eastern")
+	defaultTimeFormat = db.StringProperty(default="P")
+	defaultDateFormat = db.StringProperty(default="F j, Y")
 	
 	created = TzDateTimeProperty(auto_now_add=True)
 	lastPublish = TzDateTimeProperty(default=None)
@@ -438,6 +450,11 @@ class Member(db.Model):
 	viewTimeFrameInSeconds = db.IntegerProperty(default=3600)
 	viewNumTimeFrames = db.IntegerProperty(default=1)
 	viewNumTimeColumns = db.IntegerProperty(default=10)
+	
+	def initialize(self):
+		self.timeZoneName = self.community.defaultTimeZoneName
+		self.timeFormat = self.community.defaultTimeFormat
+		self.dateFormat = self.community.defaultDateFormat
 	
 	def getViewingPreferences(self):
 		return ViewingPreferences.all().filter("owner = ", self.key()).fetch(FETCH_NUMBER)

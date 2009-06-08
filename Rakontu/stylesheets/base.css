@@ -59,6 +59,7 @@ td {
 td.noborder {
 	font-size: 80%;
 	border: 0;
+	padding: 0px 4px 0px 4px;
 	}
 	
 th {
@@ -69,7 +70,15 @@ th {
 	border-left: 1px solid #FF7F00;
 	border-top: 1px solid #FF7F00;
 	}
-		
+	
+th.fullborder {
+	font-size: 80%;
+	font-style: plain;
+	font-weight: normal;
+	background: #FFEECC;
+	border: 1px solid #FF7F00;
+	}
+	
 fieldset {
 	background: #EECBAD; 
 	width: auto;

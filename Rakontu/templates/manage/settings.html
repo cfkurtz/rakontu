@@ -65,6 +65,40 @@
 			<p><input type="file" name="img" accept="jpg/png"/></p>
 			</fieldset>
 			
+			<h3>Time zones and time reporting</h3>
+			<fieldset>
+			<p>What time zone should members see as the default?</p>
+				<select name="defaultTimeZoneName"">
+				{% for name in time_zone_names %}
+					<option value="{{name}}"
+					{% ifequal community.defaultTimeZoneName name %}
+						selected="selected"
+					{% endifequal %}
+					>{{name}}</option>
+				{% endfor %}
+				</select>
+			<p>How should dates be displayed by default?</p>
+				<select name="defaultDateFormat">
+				{% for format in date_formats.keys %}
+					<option value="{{format}}"
+					{% ifequal community.defaultDateFormat format %}
+						selected="selected"
+					{% endifequal %}
+					>{{date_formats|dictLookup:format}}</option>
+				{% endfor %}
+				</select>
+			<p>How should times be displayed by default?</p>
+				<select name="defaultTimeFormat">
+				{% for format in time_formats.keys %}
+					<option value="{{format}}"
+					{% ifequal community.defaultTimeFormat format %}
+						selected="selected"
+					{% endifequal %}
+					>{{time_formats|dictLookup:format}}</option>
+				{% endfor %}
+				</select>
+			</fieldset>
+			
 			<h3>Attachments</h3>
 			<fieldset>
 			<p>How many attachments are allowed per article?</p>

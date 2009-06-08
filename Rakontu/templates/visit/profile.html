@@ -162,6 +162,40 @@
 				</table>
 		</fieldset>
 		
+		<h3>Time zones and time reporting</h3>
+		<fieldset>
+		<p>What time zone are you in?
+			<select name="timeZoneName"">
+			{% for name in time_zone_names %}
+				<option value="{{name}}"
+				{% ifequal current_member.timeZoneName name %}
+					selected="selected"
+				{% endifequal %}
+				>{{name}}</option>
+			{% endfor %}
+			</select></p>
+		<p>How would you like dates to be displayed?
+			<select name="dateFormat">
+			{% for format in date_formats.keys %}
+				<option value="{{format}}"
+				{% ifequal current_member.dateFormat format %}
+					selected="selected"
+				{% endifequal %}
+				>{{date_formats|dictLookup:format}}</option>
+			{% endfor %}
+			</select></p>
+		<p>How would you like times to be displayed?
+			<select name="timeFormat">
+			{% for format in time_formats.keys %}
+				<option value="{{format}}"
+				{% ifequal current_member.timeFormat format %}
+					selected="selected"
+				{% endifequal %}
+				>{{time_formats|dictLookup:format}}</option>
+			{% endfor %}
+			</select></p>
+		</fieldset>
+			
 		{% if current_member.canTakeOnAnyHelpingRole %}
 			<h3>Helping roles</h3>
 			<fieldset>

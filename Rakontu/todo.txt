@@ -65,8 +65,6 @@ liaison page:
     
  get rid of request type?
  
- put titles on pages!
- 
  problem? saved story as draft, edited questions, resaved, history has extra items
  is history saving when drafts are edited? should not be
  
@@ -85,21 +83,6 @@ start thinking about internationalization
 
 need extra pages for reading long articles/annotations
 
-remember to do that javascript thing about the menus
-http://www.cssnewbie.com/easy-css-dropdown-menus/
-
-sfHover = function() {
-    var sfEls = document.getElementById("navbar").getElementsByTagName("li");
-    for (var i=0; i<sfEls.length; i++) {
-        sfEls[i].onmouseover=function() {
-            this.className+=" hover";
-        }
-        sfEls[i].onmouseout=function() {
-            this.className=this.className.replace(new RegExp(" hover\\b"), "");
-        }
-    }
-}
-if (window.attachEvent) window.attachEvent("onload", sfHover);
 
 
 

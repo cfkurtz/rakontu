@@ -62,6 +62,28 @@ def GetCurrentCommunityAndMemberFromSession():
 		member = None
 	return community, member
 
+def DjangoToPythonDateFormat(format):
+	if DATE_FORMATS.has_key(format):
+		return DATE_FORMATS[format]
+	return None
+
+def DjangoToPythonTimeFormat(format):
+	if TIME_FORMATS.has_key(format):
+		return TIME_FORMATS[format]
+	return None
+
+def DateFormatStrings():
+	result = {}
+	for format in DATE_FORMATS.keys():
+		result[format] = datetime.now().strftime(DATE_FORMATS[format])
+	return result
+
+def TimeFormatStrings():
+	result = {}
+	for format in TIME_FORMATS.keys():
+		result[format] = datetime.now().strftime(TIME_FORMATS[format])
+	return result
+
 def RelativeTimeDisplayString(whenUTC, member):
 	when = whenUTC.astimezone(timezone(member.timeZoneName))
 	delta = datetime.now(tz=timezone(member.timeZoneName)) - when
@@ -72,19 +94,22 @@ def RelativeTimeDisplayString(whenUTC, member):
 	elif delta.days < 1 and delta.seconds < 3600:
 		return "%s minutes ago" % (delta.seconds // 60)
 	elif delta.days < 1:
-		return "Today at %s" % when.strftime("%I:%M")
+		return "Today at %s" % when.strftime(DjangoToPythonTimeFormat(member.timeFormat))
 	elif delta.days < 2:
-		return "Yesterday at %s" % when.strftime("%I:%M %p")
+		return "Yesterday at %s" % when.strftime(DjangoToPythonTimeFormat(member.timeFormat))
 	elif delta.days < 7:
-		return when.strftime("%A at %I:%M %p")
+		return when.strftime("%s at %s" % (DjangoToPythonDateFormat(member.dateFormat), 
+										DjangoToPythonTimeFormat(member.timeFormat)))
 	else:
-		return when.strftime("%A %B %d, %Y at %I:%M %p")
+		return when.strftime("%s at %s" % (DjangoToPythonDateFormat(member.dateFormat), 
+										DjangoToPythonTimeFormat(member.timeFormat)))
 
 def MakeSomeFakeData():
 	user = users.get_current_user()
 	community = Community(name="Test community", description="Test description")
 	community.put()
 	member = Member(googleAccountID=user.user_id(), googleAccountEmail=user.email(), nickname="Tester", community=community, governanceType="owner")
+	member.initialize()
 	member.put()
 	if user.email() != "test@example.com":
 		PendingMember(community=community, email="test@example.com").put()
@@ -174,6 +199,7 @@ class StartPage(webapp.RequestHandler):
 								community=community,
 								active=True,
 								governanceType="member")
+							newMember.initialize()
 							newMember.put()
 							db.delete(pendingMembers[0])
 							session['member_key'] = newMember.key()
@@ -239,6 +265,7 @@ class CreateCommunityPage(webapp.RequestHandler):
 			community=community,
 			governanceType="owner",
 			nickname = cgi.escape(self.request.get('nickname')))
+		member.initialize()
 		member.put()
 		self.redirect('/')
 		
@@ -285,7 +312,6 @@ class BrowseArticlesPage(webapp.RequestHandler):
 				
 				textsForGrid = []
 				rowHeaders = []
-				timeFormat = "%A %B %d, %Y at %H:%M"
 				for row in range(numRows):
 					textsInThisRow = []
 					startNudgePoints = minNudgePoints + nudgeStep * row
@@ -951,7 +977,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 				nudgePointsMemberCanAssign = community.maxNudgePointsPerArticle
 			if article:
 				template_values = {
-							   	   'title': "% for" % type.capitalize(), 
+							   	   'title': "%s for" % type.capitalize(), 
 						   	   	   'title_extra': article.title, 
 								   'user': users.get_current_user(),
 								   'current_member': member,
@@ -1186,6 +1212,9 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 							   'draft_annotations': member.getDraftAnnotations(),
 							   'first_draft_answer_per_article': firstDraftAnswerForEachArticle,
 							   'liaison': liaison,
+							   'time_zone_names': pytz.all_timezones,
+							   'date_formats': DateFormatStrings(),
+							   'time_formats': TimeFormatStrings(),
 							   'helping_role_names': HELPING_ROLE_TYPES,
 							   'refer_type': "member",
 							   'text_formats': TEXT_FORMATS,
@@ -1213,6 +1242,9 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 				member.profileImage = None
 			elif self.request.get("img"):
 				member.profileImage = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
+			member.timeZoneName = self.request.get("timeZoneName")
+			member.dateFormat = self.request.get("dateFormat")
+			member.timeFormat = self.request.get("timeFormat")
 			for i in range(3):
 				member.helpingRoles[i] = self.request.get("helpingRole%s" % i) == "helpingRole%s" % i
 			text = self.request.get("guideIntro")
@@ -1358,6 +1390,10 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 							   'community': community, 
 							   'current_user': users.get_current_user(), 
 							   'current_member': member,
+							   'time_zone_names': pytz.all_timezones,
+							   'date_formats': DateFormatStrings(),
+							   'time_formats': TimeFormatStrings(),
+							   'current_date': datetime.now(tz=pytz.utc),
 							   'character_includes': characterIncludes,
 							   'nudge_point_includes': nudgePointIncludes,
 							   'text_formats': TEXT_FORMATS,
@@ -1390,6 +1426,9 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 			community.etiquetteStatement = text
 			community.etiquetteStatement_formatted = db.Text(InterpretEnteredText(text, format))
 			community.etiquetteStatement_format = format
+			community.defaultTimeZoneName = self.request.get("defaultTimeZoneName")
+			community.defaultDateFormat = self.request.get("defaultDateFormat")
+			community.defaultTimeFormat = self.request.get("defaultTimeFormat")
 			if self.request.get("img"):
 				community.image = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
 			i = 0
