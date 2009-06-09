@@ -423,6 +423,7 @@ class ReadArticlePage(webapp.RequestHandler):
 				allItems.extend(article.getNonDraftAnnotations())
 				allItems.extend(article.getNonDraftAnswers())
 				allItems.extend(article.getAllLinks())
+				haveContent = False
 				if allItems:
 					maxTime = article.lastAnnotatedOrAnsweredOrLinked
 					minTime = article.published
@@ -510,7 +511,7 @@ class ReadArticlePage(webapp.RequestHandler):
 				memberCanAddNudgeToThisArticle = nudgePointsMemberCanAssign > 0
 				thingsUserCanDo = {}
 				if article.isStory():
-					thingsUserCanDo["Tell my version of what happened"] = "retell?%s" % article.key()
+					thingsUserCanDo["Tell another version of what happened"] = "retell?%s" % article.key()
 				if article.isStory() or article.isResource():
 					thingsUserCanDo["Tell a story this %s reminds me of" % article.type] = "remind?%s" % article.key()
 				if communityHasQuestionsForThisArticleType and memberCanAnswerQuestionsAboutThisArticle:
@@ -553,7 +554,7 @@ class ReadArticlePage(webapp.RequestHandler):
 								   'included_links_outgoing': article.getOutgoingLinksOfType("included"),
 								   }
 				member.lastReadAnything = datetime.now(tz=pytz.utc)
-				member.nudgePoints += community.getNudgePointsPerActivityForActivityName("reading")
+				member.nudgePoints += community.getMemberNudgePointsForEvent("reading")
 				member.put()
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/read.html')
 				self.response.out.write(template.render(path, template_values))
@@ -1634,12 +1635,33 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 			nudgePointIncludes = []
+			nudgePointIncludes.append('<tr>')
 			i = 0
-			for pointType in ACTIVITIES_GERUND:
-				if DEFAULT_NUDGE_POINT_ACCUMULATIONS[i] != 0: # if zero, not appropriate for nudge point accumulation
-					nudgePointIncludes.append('<tr><td align="right">%s</td><td align="left"><input type="text" name="%s" size="4" value="%s"/></td></tr>' \
-						% (pointType, pointType, community.nudgePointsPerActivity[i]))
+			for eventType in EVENT_TYPES:
+				if eventType != EVENT_TYPES[0]: # leave time out for nudge accumulations
+					nudgePointIncludes.append('<td>%s</td>' % eventType)
 				i += 1
+			i = 0
+			nudgePointIncludes.append('</tr><tr>')
+			for eventType in EVENT_TYPES:
+				if eventType != EVENT_TYPES[0]: # leave time out for nudge accumulations
+					nudgePointIncludes.append('<td><input type="text" name="member|%s" size="3" value="%s"/></td>' \
+						% (eventType, community.memberNudgePointsPerEvent[i]))
+				i += 1
+			nudgePointIncludes.append('</tr>')
+			activityPointIncludes = []
+			activityPointIncludes.append('<tr>')
+			i = 0
+			for eventType in EVENT_TYPES:
+				activityPointIncludes.append('<td>%s</td>' % eventType)
+				i += 1
+			i = 0
+			activityPointIncludes.append('</tr><tr>')
+			for eventType in EVENT_TYPES:
+				activityPointIncludes.append('<td><input type="text" name="article|%s" size="3" value="%s"/></td>' \
+					% (eventType, community.articleActivityPointsPerEvent[i]))
+				i += 1
+			activityPointIncludes.append('</tr>')
 			characterIncludes = []
 			i = 0
 			for entryType in ENTRY_TYPES:
@@ -1658,6 +1680,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 							   'current_date': datetime.now(tz=pytz.utc),
 							   'character_includes': characterIncludes,
 							   'nudge_point_includes': nudgePointIncludes,
+							   'activity_point_includes': activityPointIncludes,
 							   'text_formats': TEXT_FORMATS,
 							   'user_is_admin': users.is_current_user_admin(),
 							   'logout_url': users.create_logout_url("/"),
@@ -1710,13 +1733,21 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 			except:
 				community.maxNumAttachments = oldValue
 			i = 0
-			for pointType in ACTIVITIES_GERUND:
-				if DEFAULT_NUDGE_POINT_ACCUMULATIONS[i] != 0: # if zero, not appropriate for nudge point accumulation
-					oldValue = community.nudgePointsPerActivity[i]
+			for eventType in EVENT_TYPES:
+				if eventType != EVENT_TYPES[0]: # leave time out for nudge accumulations
+					oldValue = community.memberNudgePointsPerEvent[i]
 					try:
-						community.nudgePointsPerActivity[i] = int(self.request.get(pointType))
+						community.memberNudgePointsPerEvent[i] = int(self.request.get("member|%s" % eventType))
 					except:
-						community.nudgePointsPerActivity[i] = oldValue
+						community.memberNudgePointsPerEvent[i] = oldValue
+				i += 1
+			i = 0
+			for eventType in EVENT_TYPES:
+				oldValue = community.articleActivityPointsPerEvent[i]
+				try:
+					community.articleActivityPointsPerEvent[i] = int(self.request.get("article|%s" % eventType))
+				except:
+					community.articleActivityPointsPerEvent[i] = oldValue
 				i += 1
 			for i in range(3):
 				community.roleReadmes[i] = db.Text(self.request.get("readme%s" % i))

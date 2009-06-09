@@ -15,7 +15,7 @@
 	</td><td align="left" valign="center" class="noborder">
 	<b>{{ community.name }}</b><br/>
 	{% if community.tagline %}
-		<i>{{community.tagline}}</i>
+		<i>{{community.tagline|orNbsp}}</i>
 	{% endif %}
 	<ul id="topmenu">
   		<li><a href="/visit/look">Visit</a>

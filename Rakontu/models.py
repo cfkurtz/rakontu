@@ -17,7 +17,7 @@ FETCH_NUMBER = 1000
 
 # community
 NUM_NUDGE_CATEGORIES = 5
-DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE = 10
+DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE = 25
 DEFAULT_NUDGE_POINT_ACCUMULATIONS = [
 									0, # time (doesn't apply here)
 					 				4, # reading
@@ -56,14 +56,48 @@ DEFAULT_ROLE_READMES = [
 						"A guide pays attention to the Rakontu's on-line human community. Guides answer questions, write tutorials, encourage people to tell and use stories, create patterns, write and respond to requests, set up and run exercises, and in general maintain the vitality of the on-line member community.",
 						"A liaison guides stories and other information over the barrier between on-line and off-line worlds. Liaisons conduct external interviews and add the stories people tell in them, read stories to people and gather comments, nudges, and other annotations, and in general make the system work for both on-line and off-line community members."]
 GOVERNANCE_ROLE_TYPES = ["member", "manager", "owner"]
-ACTIVITIES_GERUND = ["time", \
-					   	 "reading", \
-						 "telling", "retelling", "reminding", "relating", "including", "responding", \
-						 "answering question", "tagging", "commenting", "requesting", "nudging"]
-ACTIVITIES_VERB = ["time", \
-					   	 "read", \
-						 "told", "retold", "reminded", "related", "included", "responded", \
-						 "question answered about", "tagged", "commented", "requested", "nudged"]
+EVENT_TYPES = ["time (downdrift)", \
+			"reading", "adding story", "adding pattern", "adding collage", "adding invitation", "adding resource", \
+			"adding retold link", "adding reminded link", "adding related link", "adding included link", "adding responded link", \
+			"answering question", "adding tag set", "adding comment", "adding request", "adding nudge"]
+DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS = [
+					0,	# time (downdrift)
+					4,	# reading
+					40,	# adding story
+					20,	# adding pattern
+					20,	# adding collage
+					30,	# adding invitation
+					10,	# adding resource
+					10,	# adding retelling link
+					5,	# adding reminding link
+					5,	# adding relating link
+					5,	# adding including link
+					10,	# adding responding link
+					2,	# answering question
+					10,	# adding tag set
+					15,	# adding comment
+					15,	# adding request
+					5,	# adding nudge
+					]
+DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS = [
+					-1,	# time (downdrift)
+					4,	# reading
+					40,	# adding story
+					20,	# adding pattern
+					20,	# adding collage
+					30,	# adding invitation
+					10,	# adding resource
+					10,	# adding retelling link
+					5,	# adding reminding link
+					5,	# adding relating link
+					5,	# adding including link
+					10,	# adding responding link
+					2,	# answering question
+					10,	# adding tag set
+					15,	# adding comment
+					15,	# adding request
+					5,	# adding nudge
+					]
 
 # articles
 ARTICLE_TYPES = ["story", "pattern", "collage", "invitation", "resource"]
@@ -94,29 +128,6 @@ TIME_UNIT_STRINGS = {"minute": MINUTE_SECONDS,
 					"month": MONTH_SECONDS,
 					"year": YEAR_SECONDS,}
 TIME_FRAMES = ["minute", "hour", "day", "week", "month", "year"]
-DEFAULT_ACTIVITY_POINTS_PER_EVENT = [
-									-1, # time
-					 				5, # reading
-					 				2, # telling  
-					 				2, # retelling
-					 				2, # reminding
-					 				2, # relating
-					 				2, # including 
-					 				2, # responding
-					 				2, # answering
-					 				10, # tagging
-					 				10, # commenting
-					 				20, # requesting
-					 				6, # nudging 
-					 				]
-
-HISTORY_ACTION_TYPES = ["read", "added"]
-HISTORY_REFERENT_TYPES = ["story", "pattern", "collage", "invitation", "resource", \
-						  "retold link", "reminded link", "related link", "included link", \
-						  "answer", "tag set", "comment", "request", "nudge"]
-DEFAULT_ACTIVITY_ACCUMULATIONS = {"story": 1, "pattern": 1, "collage": 1, "invitation": 1, "resource": 1, \
-						  "retold link": 3, "reminded link": 3, "related link": 3, "included link": 3, \
-						  "answer": 3, "tag set": 10, "comment": 10, "request": 10, "nudge": 10}
 
 # querying
 QUERY_TYPES = ["free text", "tags", "answers", "members", "activities", "links"]
@@ -182,7 +193,7 @@ class Community(db.Model):
 								May be useful to keep the database from getting out of hand.
 	"""
 	name = db.StringProperty()
-	tagline = db.StringProperty()
+	tagline = db.StringProperty(default="")
 	description = db.TextProperty()
 	description_formatted = db.TextProperty()
 	description_format = db.StringProperty(default="plain text")
@@ -203,8 +214,9 @@ class Community(db.Model):
 	firstPublish = TzDateTimeProperty(default=None)
 	firstPublishSet = db.BooleanProperty(default=False)
 	
-	nudgePointsPerActivity = db.ListProperty(int, default=DEFAULT_NUDGE_POINT_ACCUMULATIONS)
 	maxNudgePointsPerArticle = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE)
+	memberNudgePointsPerEvent = db.ListProperty(int, default=DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS)
+	articleActivityPointsPerEvent = db.ListProperty(int, default=DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS)
 	allowCharacter = db.ListProperty(bool, default=[True,True,True,True,True,True,True,True,True,True])
 	nudgeCategories = db.StringListProperty(default=["appropriate", "important", "useful to new members", "useful for resolving conflicts", "useful for understanding"])
 	roleReadmes = db.ListProperty(db.Text, default=[db.Text(DEFAULT_ROLE_READMES[0]), db.Text(DEFAULT_ROLE_READMES[1]), db.Text(DEFAULT_ROLE_READMES[2])])
@@ -212,6 +224,22 @@ class Community(db.Model):
 	roleReadmes_formats = db.StringListProperty(default=["plain text", "plain text", "plain text"])
 	roleAgreements = db.ListProperty(bool, default=[False, False, False])
 	maxNumAttachments = db.IntegerProperty(choices=[0,1,2,3,4,5], default=3)
+	
+	def getArticleActivityPointsForEvent(self, event):
+		i = 0
+		for eventType in EVENT_TYPES:
+			if event == eventType:
+				return self.articleActivityPointsPerEvent[i]
+			i += 1
+		return 0
+	
+	def getMemberNudgePointsForEvent(self, event):
+		i = 0
+		for eventType in EVENT_TYPES:
+			if event == eventType:
+				return self.memberNudgePointsPerEvent[i]
+			i += 1
+		return 0
 	
 	def getOfflineMembers(self):
 		return Member.all().filter("community = ", self.key()).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
@@ -310,14 +338,6 @@ class Community(db.Model):
 			return True
 		return False
 
-	def getNudgePointsPerActivityForActivityName(self, activity):
-		i = 0
-		for anActivity in ACTIVITIES_GERUND:
-			if anActivity == activity:
-				return self.nudgePointsPerActivity[i]
-			i += 1
-		return 0
-	
 	def getCommunityLevelViewingPreferences(self):
 		return ViewingPreferences.all().filter("community = ", self.key()).filter("owner = ", self.key()).fetch(FETCH_NUMBER)
 
@@ -672,7 +692,7 @@ class Answer(db.Model):
 					self.articleNudgePointsWhenPublished[i] = self.referent.nudgePoints[i]
 				self.articleActivityPointsWhenPublished = self.referent.activityPoints
 				self.put()
-			self.creator.nudgePoints += self.community.getNudgePointsPerActivityForActivityName("answering question")
+			self.creator.nudgePoints += self.community.getMemberNudgePointsForEvent("answering question")
 			self.creator.lastAnsweredQuestion = datetime.now(pytz.utc)
 			self.creator.put()
 			self.community.lastPublish = self.published
@@ -759,6 +779,7 @@ class Article(db.Model):
 	draft = db.BooleanProperty(default=True)
 	
 	lastRead = TzDateTimeProperty(default=None)
+	lastDowndrifted = TzDateTimeProperty(default=None)
 	lastAnnotatedOrAnsweredOrLinked = TzDateTimeProperty(default=None)
 	activityPoints = db.IntegerProperty(default=0)
 	nudgePoints = db.ListProperty(int, default=[0,0,0,0,0])
@@ -864,25 +885,40 @@ class Article(db.Model):
 	
 	def memberCanNudge(self, member):
 		return member.key() != self.creator.key()
-	
+
 	def recordAction(self, action, referent):
 		if referent.__class__.__name__ == "Article":
-			referentType = referent.type
 			if action == "read":
-				self.lastRead = datetime.now(pytz.utc)
+				eventType = "reading"
+				self.lastRead = datetime.now(tz=pytz.utc)
+			elif action == "downdrift":
+				eventType = "time (downdrift)"
+				self.lastDowndrifted = datetime.now(tz=pytz.utc)
+			elif action =="added":
+				eventType = "adding %s" % self.type
 		elif referent.__class__.__name__ == "Annotation":
-			referentType = referent.type
+			eventType = "adding %s" % referent.type
 			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
+			if referent.type == "nudge":
+				self.nudgePoints = self.getCurrentTotalNudgePointsInAllCategories()
 		elif referent.__class__.__name__ == "Answer":
-			referentType = "answer"
+			eventType = "answering question"
 			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
 		elif referent.__class__.__name__ == "Link":
-			referentType = referent.type + " link"
+			eventType = "adding %s link" % referent.type 
 			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
-		self.activityPoints += DEFAULT_ACTIVITY_ACCUMULATIONS[referentType]
-		self.nudgePoints = self.getCurrentTotalNudgePointsInAllCategories()
+		self.activityPoints += self.community.getArticleActivityPointsForEvent(eventType)
 		self.put()
-				
+		
+	def updateForTimeDownDrift(self):
+		if self.lastDowndrifted:
+			timeOfPreviousAction = self.lastDowndrifted
+		else:
+			timeOfPreviousAction = self.published
+		daysSinceLastDowndrift = datetime.now(tz=pytz.utc) - lastDowndrifted
+		if daysSinceLastDowndrift > 0:
+			self.recordAction("downdrift", self)
+		
 	def getCurrentTotalNudgePointsInAllCategories(self):
 		result = [0,0,0,0,0]
 		for nudge in self.getNonDraftAnnotationsOfType("nudge"):
@@ -906,7 +942,7 @@ class Article(db.Model):
 		self.published = datetime.now(pytz.utc)
 		self.recordAction("added", self)
 		self.put()
-		self.creator.nudgePoints += self.community.getNudgePointsPerActivityForActivityName("telling")
+		self.creator.nudgePoints += self.community.getMemberNudgePointsForEvent("adding %s" % self.type)
 		self.creator.lastEnteredArticle = datetime.now(pytz.utc)
 		self.creator.put()
 		for answer in self.getAnswersForMember(self.creator):
@@ -952,15 +988,7 @@ class Link(db.Model):
 			self.articleNudgePointsWhenPublished[i] = self.articleFrom.nudgePoints[i]
 		self.articleActivityPointsWhenPublished = self.articleFrom.activityPoints
 		self.put()
-		i = 0
-		nudgePointType = None
-		for verb in ACTIVITIES_VERB:
-			if type == verb:
-				nudgePointType = ACTIVITIES_GERUND[i]
-				break
-			i += 1
-		if nudgePointType:
-			self.creator.nudgePoints = self.community.getNudgePointsPerActivityForActivityName(nudgePointType)
+		self.creator.nudgePoints = self.articleFrom.community.getMemberNudgePointsForEvent("adding %s link" % self.type)
 		self.creator.lastEnteredLink = datetime.now(pytz.utc)
 		self.creator.put()
 		self.articleFrom.community.lastPublish = self.published
@@ -1136,15 +1164,7 @@ class Annotation(db.Model):
 			self.articleNudgePointsWhenPublished[i] = self.article.nudgePoints[i]
 		self.articleActivityPointsWhenPublished = self.article.activityPoints
 		self.put()
-		if self.type == "tag set":
-			activity = "tagging"
-		elif self.type == "comment":
-			activity = "commenting"
-		elif self.type == "request":
-			activity =  "requesting"
-		elif self.type == "nudge":
-			activity = "nudging"
-		self.creator.nudgePoints += self.community.getNudgePointsPerActivityForActivityName(activity)
+		self.creator.nudgePoints += self.community.getMemberNudgePointsForEvent("adding %s" % self.type)
 		self.creator.put()
 		self.community.lastPublish = self.published
 		self.community.put()
@@ -1165,156 +1185,4 @@ class InappropriateFlag(db.Model):
 	comment = db.StringProperty(default="")
 	entered = TzDateTimeProperty(auto_now_add=True)
 	
-# --------------------------------------------------------------------------------------------
-# Queries
-# --------------------------------------------------------------------------------------------
-
-class Query(db.Model):
-	""" Choice to show subsets of items in main viewer.
-
-	Properties (common to all types):
-		owner:			Who this query belongs to.
-		created:			When it was created.
-
-		type:				One of free text, tags, answers, members, activities, links. 
-		targets:			All searches return articles, annotations, or members (no combinations). 
-	"""
-	owner = db.ReferenceProperty(Member, required=True, collection_name="queries")
-	created = TzDateTimeProperty(auto_now_add=True)
-
-	type = db.StringProperty(choices=QUERY_TYPES, required=True)
-	targets = db.StringListProperty(choices=QUERY_TARGETS, required=True)
-	
-	""" Free text search
-	
-	Properties:
-		targets:			Articles or annotations, or specific types of either.
-		text:				The text to search on. Can include boolean AND, OR, NOT.
-	Usage: 
-		Show [QUERY_TARGETS] with <text> 
-	Examples: 
-		Show [comments] with <hate OR love> 
-		(with selection) Show [nudges] in the selection with <NOT ""> (meaning, with non-blank nudge comments)
-	"""
-	text = db.StringProperty()
-	
-	""" Tag search
-	
-	Properties:
-		targets:			Articles or annotations, or specific types of either. 
-		tags:				List of tags to search on. 1-n.
-		combination:		Whether to search for all or any of the tags listed.
-	Usage:
-		Show [QUERY_TARGETS] in which [All, ANY] of <tags> appear 
-	Examples: 
-		Show [invitations] with [ANY OF] the tags <"need for project", "important">
-		(with selection) Show [resources] in the selection with the tag <"planning"> 
-	"""
-	tags = db.StringListProperty()
-	combination = db.StringProperty(choices=BOOLEAN_CHOICES, default="ANY")
-	
-	""" Answer search
-	
-	Properties:
-		targets:			Articles or annotations, or specific types of either. 
-		questionAnswers:	List of strings denoting question and one or more answers.
-							Saved together and parsed. 1-n.
-		combination:		Whether to search for all or any of the question-answer sets listed.
-	Usage:
-		Show [QUERY_TARGETS] in which {questions+answers} appear 
-	Examples: 
-		Show [stories] with [ALL OF] <How do you feel ~ includes ~ happy> and <What was the outcome ~ is ~ bad>
-		(with selection) Show [articles] in the selection with <How damaging is this story ~ >= ~ 75>
-	"""
-	questionAnswers = db.StringListProperty()
-	
-	""" Member search
-	
-	Properties:
-		memberType:			What sort of member to find. 
-		activity:			What the member should have done. 
-		timeFrame:			When the member should have done it. 
-	Usage:
-		Show [MEMBER_TYPES] who have [ACTIVITIES_VERB] in [RECENT_TIME_FRAMES]
-	Examples: 
-		Show [off-line members] who [commented] in [the last week]
-		(with selection) Show [members] who [nudged] the selected story in [the last hour]
-	"""
-	memberType = db.StringProperty(choices=MEMBER_TYPES)
-	activity = db.StringProperty(choices=ACTIVITIES_VERB)
-	timeFrame = db.StringProperty(choices=RECENT_TIME_FRAMES)
-	
-	""" Activity search
-	Properties:
-		targets:			Articles or annotations, or specific types of either. 
-		activity:			What the member should have done. 
-		memberIDS:			Who should have done it. 1-n.
-		combination:		Whether to search for all or any of the members listed.
-		timeFrame:			When the member(s) should have done it. 
-	Usage:
-		Show [QUERY_TARGETS] in which [ACTIVITIES_VERB] were done by {members} in [RECENT_TIME_FRAMES]
-	Examples:
-		Show [stories] [retold] by {Joe OR Jim} in [the past 6 months]
-		(with selection) Show which of the selected [articles] {I} have [nudged] [ever]
-	"""
-	memberIDs = db.StringListProperty()
-	
-	""" Link search
-	Properties:
-		articleType:		Articles (without annotations). 
-		linkType:			Type of link. 
-		typeLinkedTo:		What sort of article should have been linked to. 
-		memberIDS:			Who should have done it. 1-n.
-		timeFrame:			When the member(s) should have done it. 
-	Usage:
-		Show [ARTICLE_TYPES] {members} connected with [LINK_TYPES] to [ARTICLE_TYPES] in [RECENT_TIME_FRAMES]
-	Examples:
-		Show [resources] {I} have [related] to [stories] in [the past month]
-		(with selection) Show [stories] [included] in the selected pattern by {anyone} [ever]
-	"""
-	articleType = db.StringProperty(choices=ARTICLE_TYPES)
-	linkType = db.StringProperty(choices=LINK_TYPES)
-	typeLinkedTo = db.StringProperty(choices=ARTICLE_TYPES)
-	
-# --------------------------------------------------------------------------------------------
-# Preferences
-# --------------------------------------------------------------------------------------------
-
-class ViewingPreferences(db.Model):
-	""" Preferences for the main viewer. Each user has these, and there is a community-wide set as well for defaulting.
-	
-	Properties
-		owner:				The member these preferences belong to.
-		communityIfCommon:	If these are common default options for the community, which community they are for.
-		
-		xTimeStep:			What time unit to show in grid columns (day, week, month, etc).
-		xTimeStepMultiplier:How many days, weeks, etc to show in one column.
-		xStart:				What time to show in the first column.
-		xStop:				What time to show in the last column.
-		
-		yPointStep:			How many points in vertical space are covered by one grid row.
-		yTop:				What point number to show in the top row.
-		yBottom:			What point number to show in the bottom row.
-		yArrangement:		How to arrange items on the Y axis. 1-n.
-		verticalPoints:		A number for each type of placement denoting how many points (+ or -) an article moves
-							each time something happens. For time the unit is one day; all other placements are events.
-							
-		deepFreeze:		A number of points below which articles are not displayed, no matter what yBottom users pick.
-							Used mainly at the community level, though users could set a different level for themselves.
-	"""
-	owner = db.ReferenceProperty(Member, required=True, collection_name="viewing_preferences")
-	communityIfCommon = db.ReferenceProperty(Community, required=True, collection_name="prefs_to_community")
-	
-	xTimeStep = db.StringProperty(choices=TIME_FRAMES, default="day")
-	xTimeStepMultiplier = db.IntegerProperty(default=1)
-	xStart = db.DateTimeProperty(default=datetime(2009, 5, 1))
-	xStop = db.DateTimeProperty(default=datetime(2009, 6, 1))
-	
-	yPointStep = db.IntegerProperty(default=10)
-	yTop = db.IntegerProperty(default=100)
-	yBottom = db.IntegerProperty(default=0)
-	yArrangement = db.StringListProperty(choices=ACTIVITIES_GERUND, default=["time", "reading", "nudging"])
-	verticalPoints = db.ListProperty(int, default=DEFAULT_ACTIVITY_POINTS_PER_EVENT)
-	
-	deepFreeze = db.IntegerProperty(default=0)
 	

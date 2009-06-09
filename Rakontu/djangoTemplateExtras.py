@@ -45,7 +45,10 @@ def notNone(value):
 
 def orNbsp(value):
 	if value:
-		return value
+		if value == "None":
+			return "&nbsp;"
+		else:
+			return value
 	else:
 		return "&nbsp;"
 	

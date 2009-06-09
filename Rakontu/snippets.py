@@ -407,6 +407,118 @@ def GenerateURLs(request):
             {% endifequal %}
             </fieldset>
 
+# ---------------------------------- MOVED, may reuse, but needs to be updated
+
+# --------------------------------------------------------------------------------------------
+# Queries
+# --------------------------------------------------------------------------------------------
+
+class Query(db.Model):
+	""" Choice to show subsets of items in main viewer.
+
+	Properties (common to all types):
+		owner:			Who this query belongs to.
+		created:			When it was created.
+
+		type:				One of free text, tags, answers, members, activities, links. 
+		targets:			All searches return articles, annotations, or members (no combinations). 
+	"""
+	owner = db.ReferenceProperty(Member, required=True, collection_name="queries")
+	created = TzDateTimeProperty(auto_now_add=True)
+
+	type = db.StringProperty(choices=QUERY_TYPES, required=True)
+	targets = db.StringListProperty(choices=QUERY_TARGETS, required=True)
+	
+	""" Free text search
+	
+	Properties:
+		targets:			Articles or annotations, or specific types of either.
+		text:				The text to search on. Can include boolean AND, OR, NOT.
+	Usage: 
+		Show [QUERY_TARGETS] with <text> 
+	Examples: 
+		Show [comments] with <hate OR love> 
+		(with selection) Show [nudges] in the selection with <NOT ""> (meaning, with non-blank nudge comments)
+	"""
+	text = db.StringProperty()
+	
+	""" Tag search
+	
+	Properties:
+		targets:			Articles or annotations, or specific types of either. 
+		tags:				List of tags to search on. 1-n.
+		combination:		Whether to search for all or any of the tags listed.
+	Usage:
+		Show [QUERY_TARGETS] in which [All, ANY] of <tags> appear 
+	Examples: 
+		Show [invitations] with [ANY OF] the tags <"need for project", "important">
+		(with selection) Show [resources] in the selection with the tag <"planning"> 
+	"""
+	tags = db.StringListProperty()
+	combination = db.StringProperty(choices=BOOLEAN_CHOICES, default="ANY")
+	
+	""" Answer search
+	
+	Properties:
+		targets:			Articles or annotations, or specific types of either. 
+		questionAnswers:	List of strings denoting question and one or more answers.
+							Saved together and parsed. 1-n.
+		combination:		Whether to search for all or any of the question-answer sets listed.
+	Usage:
+		Show [QUERY_TARGETS] in which {questions+answers} appear 
+	Examples: 
+		Show [stories] with [ALL OF] <How do you feel ~ includes ~ happy> and <What was the outcome ~ is ~ bad>
+		(with selection) Show [articles] in the selection with <How damaging is this story ~ >= ~ 75>
+	"""
+	questionAnswers = db.StringListProperty()
+	
+	""" Member search
+	
+	Properties:
+		memberType:			What sort of member to find. 
+		activity:			What the member should have done. 
+		timeFrame:			When the member should have done it. 
+	Usage:
+		Show [MEMBER_TYPES] who have [ACTIVITIES_VERB] in [RECENT_TIME_FRAMES]
+	Examples: 
+		Show [off-line members] who [commented] in [the last week]
+		(with selection) Show [members] who [nudged] the selected story in [the last hour]
+	"""
+	memberType = db.StringProperty(choices=MEMBER_TYPES)
+	activity = db.StringProperty(choices=ACTIVITIES_VERB)
+	timeFrame = db.StringProperty(choices=RECENT_TIME_FRAMES)
+	
+	""" Activity search
+	Properties:
+		targets:			Articles or annotations, or specific types of either. 
+		activity:			What the member should have done. 
+		memberIDS:			Who should have done it. 1-n.
+		combination:		Whether to search for all or any of the members listed.
+		timeFrame:			When the member(s) should have done it. 
+	Usage:
+		Show [QUERY_TARGETS] in which [ACTIVITIES_VERB] were done by {members} in [RECENT_TIME_FRAMES]
+	Examples:
+		Show [stories] [retold] by {Joe OR Jim} in [the past 6 months]
+		(with selection) Show which of the selected [articles] {I} have [nudged] [ever]
+	"""
+	memberIDs = db.StringListProperty()
+	
+	""" Link search
+	Properties:
+		articleType:		Articles (without annotations). 
+		linkType:			Type of link. 
+		typeLinkedTo:		What sort of article should have been linked to. 
+		memberIDS:			Who should have done it. 1-n.
+		timeFrame:			When the member(s) should have done it. 
+	Usage:
+		Show [ARTICLE_TYPES] {members} connected with [LINK_TYPES] to [ARTICLE_TYPES] in [RECENT_TIME_FRAMES]
+	Examples:
+		Show [resources] {I} have [related] to [stories] in [the past month]
+		(with selection) Show [stories] [included] in the selected pattern by {anyone} [ever]
+	"""
+	articleType = db.StringProperty(choices=ARTICLE_TYPES)
+	linkType = db.StringProperty(choices=LINK_TYPES)
+	typeLinkedTo = db.StringProperty(choices=ARTICLE_TYPES)
 
 
 
