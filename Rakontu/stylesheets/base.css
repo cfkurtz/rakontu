@@ -54,12 +54,12 @@ td {
 	font-size: 80%;
 	border-left: 1px solid #FF7F00;
 	border-top: 1px solid #FF7F00;
+	padding: 4px 4px 4px 4px;
 	}
 	
 td.noborder {
 	font-size: 80%;
 	border: 0;
-	padding: 0px 4px 0px 4px;
 	}
 	
 th {

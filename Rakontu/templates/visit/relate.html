@@ -1,0 +1,91 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+		<div id="content">
+		
+		<div id="stylized" class="rakontu_form">
+		<form action="/visit/relate
+		{% if article %}
+		?{{article.key}}
+		{% endif %}
+		" method="post" enctype="multipart/form-data">
+		
+		<h3>Relating {{article.title}} ({{article.type}}) to other articles</h3>
+			
+			{% if related_links %}
+				<h3>Articles related to this {{article.type}}</h3>
+				<fieldset>
+		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<tr>
+		      		<th>Title (type)</th>
+		      		<th>Incoming or outgoing?</th>
+		      		<th>Text</th>
+		      		<th>Relation comment</th>
+		      		<th>Remove?</th>
+		      		</tr>
+		      		{% for link in related_links %}
+		  				<tr>
+		  				<td>
+		  				{% ifequal article.key link.articleTo.key %}
+		  					<a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a> ({{link.articleFrom.type}})
+		  				{% else %}
+		  					<a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a> ({{link.articleTo.type}})
+		  				{% endifequal %}
+		  				</td>
+		  				<td>
+		  				{% ifequal article.key link.articleTo.key %}
+		  					incoming
+		  				{% else %}
+		  					outgoing
+		  				{% endifequal %}
+		  				</td>
+		  				<td>{{link.articleTo.shortFormattedText|orNone}}</td>
+		  				<td><input type="text" name="linkComment|{{link.key}}" value="{{link.comment}}" size="40"/></td>
+		  				<td>
+		  					<input type="checkbox" name="removeLink|{{ link.key }}" value="yes" id="removeLink|{{ link.key }}"/>
+							<label for="removeLink|{{ link.key }}">Remove</label>
+		  					</td>
+		  				</tr>
+		      		{% endfor %}
+		      	</table>
+		      	</fieldset>
+	      {% endif %}
+			<h3>Relate this {{article.type}} to new articles</h3>
+			<fieldset>
+	      	<table border="1" cellpadding="4" cellspacing="0">
+	      	<tr>
+	      		<th>Relate?</th>
+	      		<th>Title (type)</th>
+	      		<th>Text</th>
+	      		<th>Relation comment</th>
+	      		</tr>
+	      		{% for anArticle in articles %}
+	  				<tr>
+	  				<td width="80">
+	  					<input type="checkbox" name="addLink|{{ anArticle.key }}" value="yes" id="addLink|{{ anArticle.key }}"/>
+						<label for="addLink|{{ anArticle.key }}">Relate</label>
+	  					</td>
+	  				<td><a href="read?{{anArticle.key}}">{{anArticle.title}} ({{anArticle.type}})</a></td>
+	  				<td>{{anArticle.shortFormattedText|orNone}}</td>
+	  				<td><input type="text" name="linkComment|{{anArticle.key}}" value="" size="40"/></td>
+	  				</tr>
+	      		{% endfor %}
+	      	</table>
+	      	</fieldset>
+			
+			<p>
+			<center>
+			{% if related_links %}
+				<input type="submit" name="save" value="Save changes" class="button">
+			{% else %}
+				<input type="submit" name="save" value="Save new relations" class="button">
+			{% endif %}
+			</center>
+			
+		</form>
+		</div>
+		</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

@@ -24,6 +24,7 @@ DEFAULT_NUDGE_POINT_ACCUMULATIONS = [
 					 				20, # telling
 					 				10, # relating
 					 				15, # including
+					 				30, # responding
 					 				2, # answering
 					 				4, # tagging
 					 				5, # commenting
@@ -51,7 +52,7 @@ DEFAULT_ROLE_READMES = [
 GOVERNANCE_ROLE_TYPES = ["member", "manager", "owner"]
 ACTIVITIES_GERUND = ["time", \
 					   	 "reading", \
-						 "telling", "relating", "including", \
+						 "telling", "relating", "including", "responding", \
 						 "answering question", "tagging", "commenting", "requesting", "nudging"]
 ACTIVITIES_VERB = ["time", \
 					   	 "read", \
@@ -60,14 +61,13 @@ ACTIVITIES_VERB = ["time", \
 
 # articles
 ARTICLE_TYPES = ["story", "pattern", "collage", "invitation", "resource"]
-LINK_TYPES = ["retold", "reminded", "related", "included"]
+LINK_TYPES = ["retold", "reminded", "responded", "related", "included"]
 ACCEPTED_ATTACHMENT_FILE_TYPES = ["jpg", "png", "pdf", "doc", "txt", "mpg", "mp3", "html", "zip"]
 ACCEPTED_ATTACHMENT_MIME_TYPES = ["image/jpeg", "image/png", "application/pdf", "application/msword", "text/plain", "video/mpeg", "audio/mpeg", "text/html", "application/zip"]
 
 # annotations
 ANNOTATION_TYPES = ["tag set", "comment", "request", "nudge"]
 ANNOTATION_TYPES_URLS = ["tagset", "comment", "request", "nudge"]
-REQUEST_TYPES = ["edit text", "clean up audio/video", "add comments", "nudge", "add tags", "translate", "transcribe", "read aloud", "contact me", "other"]
 NUDGE_TYPES = ["appropriateness", "importance", "utility", "utility custom 1", "utility custom 2", "utility custom 3"]
 ENTRY_TYPES = ["story", "pattern", "collage", "invitation", "resource", "answer", "tag set", "comment", "request", "nudge"]
 ENTRY_TYPES_URLS = ["story", "pattern", "collage", "invitation", "resource", "answer", "tagset", "comment", "request", "nudge"]
@@ -186,9 +186,9 @@ class Community(db.Model):
 	welcomeMessage_format = db.StringProperty(default="plain text")
 	image = db.BlobProperty(default=None)
 	
-	defaultTimeZoneName = db.StringProperty(default="US/Eastern")
-	defaultTimeFormat = db.StringProperty(default="P")
-	defaultDateFormat = db.StringProperty(default="F j, Y")
+	defaultTimeZoneName = db.StringProperty()
+	defaultTimeFormat = db.StringProperty()
+	defaultDateFormat = db.StringProperty()
 	
 	created = TzDateTimeProperty(auto_now_add=True)
 	lastPublish = TzDateTimeProperty(default=None)
@@ -212,6 +212,9 @@ class Community(db.Model):
 	
 	def getNonDraftArticles(self):
 		return Article.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+	
+	def getNonDraftArticlesOfType(self, type):
+		return Article.all().filter("community = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(FETCH_NUMBER)
 	
 	def getMemberForGoogleAccountId(self, id):
 		return Member.all().filter("community = ", self.key()).filter("googleAccountID = ", id).fetch(1)
@@ -421,9 +424,9 @@ class Member(db.Model):
 	acceptsMessages = db.BooleanProperty(default=True)
 	liaisonAccountID = db.StringProperty(default=None)
 	
-	timeZoneName = db.StringProperty(default="US/Eastern")
-	timeFormat = db.StringProperty(default="P")
-	dateFormat = db.StringProperty(default="F j, Y")
+	timeZoneName = db.StringProperty()
+	timeFormat = db.StringProperty()
+	dateFormat = db.StringProperty()
 	
 	governanceType = db.StringProperty(choices=GOVERNANCE_ROLE_TYPES, default="member")
 	governanceView = db.StringListProperty(default=None)
@@ -723,11 +726,20 @@ class Article(db.Model):
 	def attributedToMember(self):
 		return self.character == None
 	
+	def isStory(self):
+		return self.type == "story"
+	
+	def isResource(self):
+		return self.type == "resource"
+	
 	def isInvitation(self):
 		return self.type == "invitation"
 	
 	def isPatternOrCollage(self):
 		return self.type == "pattern" or self.type == "collage"
+	
+	def isCollage(self):
+		return self.type == "collage"
 	
 	def getAttachments(self):
 		return Attachment.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
@@ -867,6 +879,12 @@ class Article(db.Model):
 			self.community.firstPublish = self.published
 			self.community.firstPublishSet = True
 		self.community.put()
+		
+	def shortFormattedText(self):
+		if len(self.text_formatted) > 100:
+			return "%s ..." % self.text_formatted[:98]
+		else:
+			return self.text_formatted
 
 class Link(db.Model):
 	""" For holding on to links between articles.
@@ -979,6 +997,12 @@ class Annotation(db.Model):
 	edited = TzDateTimeProperty(auto_now_add=True)
 	published = TzDateTimeProperty(auto_now_add=True)
 	draft = db.BooleanProperty(default=True)
+	
+	def totalNudgePoints(self):
+		result = 0
+		for value in self.valuesIfNudge:
+			result += value
+		return result
 	
 	def totalNudgePointsAbsolute(self):
 		result = 0

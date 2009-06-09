@@ -2,12 +2,8 @@ Things to do before v0.1 is complete
 
 # BUGS RIGHT NOW
 
-- if you enter a story with answers, it doesn't show your answers in the read page. it asks you
-if you want to enter more. are there answers? may be lost due to recent changes with save/publish system.
 
 # TO DO
-
-- resources should also be able to create remind links to stories
 
 - need to add "send this member a note" thing
 in member page
@@ -21,12 +17,6 @@ sent to them when new inappropriate flags are set
 by curators
 (what other times?)
 
-- mgrs/owners need deep freeze view page (was basement)
-where you can see and delete articles
-- NEED DEEP FREEZE? maybe it's just in the viewing prefs?
-
-- does the article nudge value start at zero?
-
 -curator page:
 	data centric - see how data is shaped and linked   
     deep freeze view
@@ -35,7 +25,6 @@ where you can see and delete articles
     faster/easier way to add relate links?
     faster/easier way to build observations?
 
-guides can enter resources
 guide page:
 	people centric - what people are doing
     invitations with no responses
@@ -63,13 +52,9 @@ liaison page:
     quick ways to output things for them
     stories, comments about their stories, etc
     
- get rid of request type?
- 
  problem? saved story as draft, edited questions, resaved, history has extra items
  is history saving when drafts are edited? should not be
  
- all sections about liaisons don't check for the case where there are NO offline members!
-    
 finish relate, include links
 
 add import/export of question lists (CSV)
@@ -77,12 +62,12 @@ add import/export of question lists (CSV)
 with markup - allow to refer to image in attachments {1} {2} etc
 also check how handling <img src= tag in simple html version (i think am not handling yet)
 
-get time zone from community and member, test more
-
 start thinking about internationalization
 
 need extra pages for reading long articles/annotations
 
+UNICODE
 
+deal with issue of people saving an article or annotation or answer set with no content
 
-
+need a way to nudge things from the main page - you just want to do it - icon?

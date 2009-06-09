@@ -32,9 +32,6 @@
   			<li><a href="/visit/invitation">Invite people to tell stories</a></li>
   			<li><a href="/visit/collage">Build a story collage</a></li>
   			<li><a href="/visit/pattern">Describe a pattern</a> </li>
-  			{% if current_member.isGuide or current_member.isManagerOrOwner %}
-  				<li><a href="/visit/resource">Add a resource</a></li>
-  			{% endif %}
   			</ul>
 		</li>
 		{% if current_member.hasAnyHelpingRole %}
@@ -45,6 +42,7 @@
 				{% endif %}
 				{% if current_member.isGuide %}
 					<li><a href="/curate/review">Review resources</a>
+					<li><a href="/visit/resource">Add a resource</a></li>
 				{% endif %}
 				{% if current_member.isLiaison %}
 					<li><a href="/curate/review">Review off-line members</a>

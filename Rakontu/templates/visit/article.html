@@ -20,9 +20,23 @@
 			{% if article %}
 				You can change the text of your {{article_type}} here.
 			{% else %}
-				Please type your {{article_type}} here.
+				{% ifequal article_type "story" %}
+					Please tell your story here.
+				{% endifequal %}
+				{% ifequal article_type "pattern" %}
+					Please describe the pattern of stories you want to make note of here.
+				{% endifequal %}
+				{% ifequal article_type "collage" %}
+					Please describe your collage here. 
+				{% endifequal %}
+				{% ifequal article_type "invitation" %}
+					Please describe to other members what you would like them to tell stories about.
+				{% endifequal %}
+				{% ifequal article_type "resource" %}
+					Type the text of your resource here.
+				{% endifequal %}
 			{% endif %}
-			<textarea name="text" rows="20" cols="60">{% if article %}{{article.text}}{% endif %}</textarea>
+			<textarea name="text" rows="10" cols="60">{% if article %}{{article.text}}{% endif %}</textarea>
 			<div class="rightalign">Interpret this as <select name="text_format">
 				{% for format in text_formats %}
 					<option value="{{format}}" 
@@ -213,6 +227,55 @@
 				</table>
 				</fieldset>
 			{% endifnotequal %}
+			
+		{% ifequal article_type "collage" %}
+			{% if included_links_outgoing %}
+				<h3>Stories included in the collage</h3>
+				<fieldset>
+		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<tr>
+		      		<th>Title</th>
+		      		<th>Text</th>
+		      		<th>Link comment</th>
+		      		<th>Remove?</th>
+		      		</tr>
+		      		{% for link in included_links_outgoing %}
+		  				<tr>
+		  				<td><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a></td>
+		  				<td>{{link.articleTo.shortFormattedText|orNone}}</td>
+		  				<td><input type="text" name="linkComment|{{link.key}}" value="{{link.comment}}" size="40"/></td>
+		  				<td>
+		  					<input type="checkbox" name="removeLink|{{ link.key }}" value="yes" id="removeLink|{{ link.key }}"/>
+							<label for="removeLink|{{ link.key }}">Remove</label>
+		  					</td>
+		  				</tr>
+		      		{% endfor %}
+		      	</table>
+		      	</fieldset>
+	      {% endif %}
+			<h3>Add stories to the collage</h3>
+			<fieldset>
+	      	<table border="1" cellpadding="4" cellspacing="0">
+	      	<tr>
+	      		<th>Include?</th>
+	      		<th>Title</th>
+	      		<th>Text</th>
+	      		<th>Link comment</th>
+	      		</tr>
+	      		{% for anArticle in articles_that_can_be_linked_to_by_collage %}
+	  				<tr>
+	  				<td>
+	  					<input type="checkbox" name="addLink|{{ anArticle.key }}" value="yes" id="addLink|{{ anArticle.key }}"/>
+						<label for="addLink|{{ anArticle.key }}">Include</label>
+	  					</td>
+	  				<td><a href="read?{{anArticle.key}}">{{anArticle.title}}</a></td>
+	  				<td>{{anArticle.shortFormattedText|orNone}}</td>
+	  				<td><input type="text" name="linkComment|{{anArticle.key}}" value="" size="40"/></td>
+	  				</tr>
+	      		{% endfor %}
+	      	</table>
+	      	</fieldset>
+	  {% endifequal %}
 			
 			<p>
 			<center>

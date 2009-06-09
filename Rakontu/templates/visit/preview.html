@@ -5,8 +5,27 @@
 	<div id="content">
 	
 	{% if article %}
-		<h2>{{article.title}} ({{article.type}})</h2>
-		<div class="blurb">{{article.text_formatted}}</div>
+		{% if annotation %}
+			<h2>For the {{article.type}} "{{article.title}}"</h2>
+		{% else %}
+			<h2>{{article.type|capfirst}} {{article.title}}</h2>
+		{% endif %}
+		{% if article.isCollage %}
+			<div class="blurb">
+			{{article.text_formatted}}
+			{% if included_links_outgoing %}
+				<ul>
+				{% for link in included_links_outgoing %}
+					<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a>
+					{% if link.comment %} ({{link.comment}}) {% endif %}
+					</li>
+				{% endfor %}
+				</ul>
+			{% endif %}
+			</div>
+		{% else %}
+			<div class="blurb">{{article.text_formatted}}</div>
+		{% endif %}
 		{% if attachments %}
 			{% for attachment in attachments %}
 				<p>&nbsp; &nbsp; 
@@ -58,7 +77,7 @@
 	{% endif %}
 	
 	{% if annotation %}
-		<hr><p><b>Your {{annotation.type|capfirst}}:</b></p>
+		<p><b>Your {{annotation.type|capfirst}}:</b></p>
 		{% ifequal annotation.type "comment" %}
 			<p><b>{{annotation.shortString}}</b></p>
 			<p>{{annotation.longString_formatted}}</p>
@@ -85,11 +104,7 @@
 	{% endif %}
 	
 	<div id="stylized" class="rakontu_form">
-	{% if answers %}
-		<form action="/visit/previewAnswers
-	{% else %}
 		<form action="/visit/preview
-	{% endif %}
 		{% if annotation %}
 			?{{annotation.key}}
 		{% else %}

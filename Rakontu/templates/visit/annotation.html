@@ -13,9 +13,24 @@
 		{% endif %}
 		" method="post" enctype="multipart/form-data">
 		
-	<h2>{{article.title}} ({{article.type}})</h2>
+	<h2>For the {{article.type}} "{{article.title}}"</h2>
 	
-	<div class="blurb">{{article.text_formatted}}</div>
+		{% if article.isCollage %}
+			<div class="blurb">
+			{{article.text_formatted}}
+			{% if included_links_outgoing %}
+				<ul>
+				{% for link in included_links_outgoing %}
+					<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a>
+					{% if link.comment %} ({{link.comment}}) {% endif %}
+					</li>
+				{% endfor %}
+				</ul>
+			{% endif %}
+			</div>
+		{% else %}
+			<div class="blurb">{{article.text_formatted}}</div>
+		{% endif %}
 		
 			<h3>{{annotation_type|capfirst}}</h3>
 			<fieldset>
@@ -33,7 +48,6 @@
 				{% if annotation %}
 					<p>You can change the subject line of your comment here.</p>
 				{% else %}
-					<p>Please give your comment a subject line.</p>
 				{% endif %}
 				<p><input type="text" name="shortString" size="80" value="{% if annotation %}{{annotation.shortString}}{% endif %}"/></p>
 
@@ -66,7 +80,7 @@
 				{% if annotation %}
 					<p>You can change the text of your request here.</p>
 				{% else %}
-					<p>Please describe your request in full.</p>
+					<p>What would you like other members to do with regard to this {{article.type}}?</p>
 				{% endif %}
 				<textarea name="longString" rows="20" cols="60">{% if annotation %}{{annotation.longString}}{% endif %}</textarea>
 				<div class="rightalign">Interpret this as <select name="longString_format">
@@ -78,21 +92,6 @@
 						>{{format}}</option>
 					{% endfor %}
 					</select></div>
-
-				{% if annotation %}
-					<p>You can change the type of request here.</p>
-				{% else %}
-					<p>Please categorize your request. What would you like other members of the community to do?</p>
-				{% endif %}
-				<p><select name="typeIfRequest">
-				{% for type in request_types %}
-					<option value="{{type}}"
-					{% ifequal annotation_typeIfRequest type %}
-						selected="selected"
-					{% endifequal %}
-					>{{type|capfirst}}</option>
-				{% endfor %}
-				</select></p>
 			{% endifequal %}
 			
 			{% ifequal annotation_type "nudge" %}

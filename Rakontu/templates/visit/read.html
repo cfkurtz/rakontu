@@ -7,8 +7,23 @@
 	<img src="/images/{{article.type}}.png" alt="tags" align="left">
 	<h2>{{article.title}}</h2>
 	
-	<div class="blurb">{{article.text_formatted}}</div>
-	
+	{% if article.isCollage %}
+		<div class="blurb">
+		{{article.text_formatted}}
+		{% if included_links_outgoing %}
+			<ul>
+			{% for link in included_links_outgoing %}
+				<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a>
+				{% if link.comment %} ({{link.comment}}) {% endif %}
+				</li>
+			{% endfor %}
+			</ul>
+		{% endif %}
+		</div>
+	{% else %}
+		<div class="blurb">{{article.text_formatted}}</div>
+	{% endif %}
+
 	{% if attachments %}
 		<p><img src="/images/attachments.png" alt="attachments"> Attachments</p>
 		{% for attachment in attachments %}
@@ -223,174 +238,139 @@
 	
 	<h4><img src="/images/related.png" alt="related"> Related items</h4>
 	<ul>
-	{% if relate_links %}
-		{% for link in relate_links %}
+	{% if related_links %}
+		{% for link in related_links %}
 			{% ifequal link.articleFrom.key article.key %}
-				<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a></li>
+				<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a>
+				{% if link.comment %} ({{link.comment}}) {% endif %}
+				</li>
 			{% endifequal %}
 			{% ifequal link.articleTo.key article.key %}
-				<li class="nobullet"><a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a></li>
+				<li class="nobullet"><a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>
+				{% if link.comment %} ({{link.comment}}) {% endif %}
+				</li>
 			{% endifequal %}
 		{% endfor %}
-		<li class="nobullet"><a href="/visit/relate?{{article.key}}">Add another relation</a></li>
+		<li class="nobullet">Would you like to <a href="/visit/relate?{{article.key}}">add or remove a relation</a>?</li>
 	{% else %}
-		<li class="nobullet">none yet - <a href="/visit/relate?{{article.key}}">Add one</a></li>
+		<li class="nobullet">none yet - <a href="/visit/relate?{{article.key}}">Add some</a></li>
 	{% endif %}
 	</ul>
 	
-	<h4><img src="/images/links_incoming.png" alt="incoming links"> Incoming links</h4>
-	<ul>
-	
-	{% if not retold_links_incoming and not reminded_links_incoming and not included_links_incoming_from_invitations and not included_links_incoming_from_patterns and not included_links_incoming_from_collages %}
-		none
-	{% endif %}
-
-	{% ifequal article.type "story" %}
-		{% if retold_links_incoming %}
-			<li class="nobullet">
-			{% for link in retold_links_incoming %}
-				<p>This story is a retelling of <a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>.</p>
-			{% endfor %}
-			</li>
-		{% endif %}
-		{% if reminded_links_incoming %}
-			<li class="nobullet">
-			{% for link in reminded_links_incoming %}
-				<p>This story was told because <a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>
-				reminded its teller of something.</p>
-			{% endfor %}
-			</li>
-		{% endif %}
-		{% if included_links_incoming_from_invitations %}
-			<li class="nobullet">
-			<p>This {{article.type}} was told in response to the invitation
-			{% for link in included_links_incoming_from_invitations %}
-				<a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>.</p>
-			{% endfor %}
-			</li>
-		{% endif %}
-	{% endifequal %}
-	
-	{% if included_links_incoming_from_patterns %}
-		<li class="nobullet">
-		<p>This {{article.type}} is included in the patterns
+	{% if retold_links_incoming or reminded_links_incoming or included_links_incoming_from_invitations or included_links_incoming_from_collages %}
+		<h4><img src="/images/links_incoming.png" alt="incoming links"> Incoming links</h4>
 		<ul>
-		{% for link in included_links_to_patterns %}
-			<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a></li>
-		{% endfor %}
+		{% ifequal article.type "story" %}
+			{% if retold_links_incoming %}
+				<li class="nobullet">
+				{% for link in retold_links_incoming %}
+					<p>This story is a retelling of <a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>.</p>
+				{% endfor %}
+				</li>
+			{% endif %}
+			{% if reminded_links_incoming %}
+				<li class="nobullet">
+				{% for link in reminded_links_incoming %}
+					<p>This story was told because <a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>
+					reminded its teller of something.</p>
+				{% endfor %}
+				</li>
+			{% endif %}
+			{% if links_incoming_from_invitations %}
+				<li class="nobullet">
+				{% for link in included_links_incoming_from_invitations %}
+					<p>This story was told in response to the invitation <a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>.</p>
+				{% endfor %}
+				</li>
+			{% endif %}
+			{% if links_incoming_from_collages %}
+				<li class="nobullet">This {{article.type}} is <b>included</b> in the collages
+				<ul>
+				{% for link in included_links_incoming_from_collages %}
+					<li class="nobullet"><a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a></li>
+				{% endfor %}
+				</ul>
+				</li>
+			{% endif %}
+		{% endifequal %}
 		</ul>
-		</li>
 	{% endif %}
 	
-	{% if included_links_incoming_from_collages %}
-		<li class="nobullet">
-		<p>This {{article.type}} is included in the collages
+	
+	{% if article.isStory or article.isResource or article.isInvitation %}
+		<h4><img src="/images/links_outgoing.png" alt="tags"> Outgoing links</h4>
 		<ul>
-		{% for link in included_links_to_collages %}
-			<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a></li>
-		{% endfor %}
-		</ul>
+		{% if article.isStory %}
+			<li class="nobullet">Stories about the same <b>events</b> as this one
+			{% if retold_links_outgoing %}
+				<ul>
+				{% for link in retold_links_outgoing %}
+					<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a>
+					{% if link.comment %}
+						because "{{link.comment}}"
+					{% endif %}
+					</li>
+				{% endfor %}
+				</ul>
+				{% ifnotequal current_member.key article.creator.key %}
+					<ul><li class="nobullet">Would you like to tell <a href="/visit/retell?{{article.key}}">your version</a> of what happened in this story?</li></ul>
+				{% endifnotequal %}
+			{% else %}
+				{% ifnotequal current_member.key article.creator.key %}
+					<ul><li class="nobullet">none yet - Would you like to tell <a href="/visit/retell?{{article.key}}">your version</a> of what happened in this story?</li></ul>
+				{% else %}
+					<ul><li class="nobullet">none</li></ul>
+				{% endifnotequal %}
+			{% endif %}
+			<li class="nobullet">Stories this one <b>reminded</b> people of
+			{% if reminded_links_outgoing %}
+				<ul>
+				{% for link in reminded_links_outgoing %}
+					<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a>
+					{% if link.comment %}
+						because "{{link.comment}}"
+					{% endif %}
+					</li>
+				{% endfor %}
+				</ul>
+				<ul><li class="nobullet">Does this story <a href="/visit/remind?{{article.key}}">remind</a> you of a story you would like to tell?</li></ul>
+			{% else %}
+				<ul><li class="nobullet">none yet - Does this story <a href="/visit/remind?{{article.key}}">remind</a> you of a story you would like to tell?</li></ul>
+			{% endif %}
+		{% endif %}
+		{% if article.isResource %}
+			<li class="nobullet">Stories this resource <b>reminded</b> people of
+			{% if reminded_links_outgoing %}
+				<ul>
+				{% for link in reminded_links_outgoing %}
+					<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a>
+					{% if link.comment %}
+						because "{{link.comment}}"
+					{% endif %}
+					</li>
+				{% endfor %}
+				</ul>
+				<ul><li class="nobullet">Does this resource <a href="/visit/remind?{{article.key}}">remind</a> you of a story you would like to tell?</li></ul>
+			{% else %}
+				<ul><li class="nobullet">none yet - Does this resource <a href="/visit/remind?{{article.key}}">remind</a> you of a story you would like to tell?</li></ul>
+			{% endif %}
+		{% endif %}
+		{% if article.isInvitation %}
+			<li class="nobullet">Stories told in <b>response</b> to this invitation
+			{% if included_links_outgoing %}
+				<ul>
+				{% for link in included_links_outgoing %}
+					<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a></li>
+				{% endfor %}
+				</ul>
+				<ul><li class="nobullet"><a href="/visit/respond?{{article.key}}">Respond</a> to this invitation with a story</li></ul>
+			{% else %}
+				<ul><li class="nobullet">none yet - <a href="/visit/respond?{{article.key}}">Respond</a> to this invitation with a story</li></ul>
+			{% endif %}
+		{% endif %}
 		</li>
+		</ul>
 	{% endif %}
-	</ul>
-	
-	<h4><img src="/images/links_outgoing.png" alt="tags"> Outgoing links</h4>
-	<ul>
-
-	{% ifequal article.type "story" %}
-		<li class="nobullet">Stories about the same <b>events</b> as this one
-		{% if retold_links_outgoing %}
-			<ul>
-			{% for link in retold_links_outgoing %}
-				<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a>
-				{% if link.comment %}
-					because "{{link.comment}}"
-				{% endif %}
-				</li>
-			{% endfor %}
-			</ul>
-			<ul><li class="nobullet">Would you like to tell <a href="/visit/retell?{{article.key}}">your version</a> of what happened in this story?</li></ul>
-		{% else %}
-			<ul><li class="nobullet">none yet - Would you like to tell <a href="/visit/retell?{{article.key}}">your version</a> of what happened in this story?</li></ul>
-		{% endif %}
-		</li><li class="nobullet">&nbsp; </li>
-	{% endifequal %}
-
-	{% ifequal article.type "story" %}
-		<li class="nobullet">Stories this one <b>reminded</b> people of
-		{% if reminded_links_outgoing %}
-			<ul>
-			{% for link in reminded_links_outgoing %}
-				<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a>
-				{% if link.comment %}
-					because "{{link.comment}}"
-				{% endif %}
-				</li>
-			{% endfor %}
-			</ul>
-			<ul><li class="nobullet">Does this story <a href="/visit/remind?{{article.key}}">remind you</a> of a story you would like to tell?</li></ul>
-		{% else %}
-			<ul><li class="nobullet">none yet - Does this story <a href="/visit/remind?{{article.key}}">remind you</a> of a story you would like to tell?</li></ul>
-		{% endif %}
-		</li><li class="nobullet">&nbsp; </li>
-	{% endifequal %}
-	
-	{% if article.isInvitation %}
-		<li class="nobullet">Stories told in <b>response</b> to this invitation
-		{% if included_links_outgoing %}
-			<ul>
-			{% for link in included_links_outgoing %}
-				<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a></li>
-			{% endfor %}
-			</ul>
-			<ul><li class="nobullet"><a href="/visit/respond?{{article.key}}">Respond</a> to this invitation with a story</li></ul>
-		{% else %}
-			<ul><li class="nobullet">none yet - <a href="/visit/respond?{{article.key}}">Respond</a> to this invitation with a story</li></ul>
-		{% endif %}
-		</li><li class="nobullet">&nbsp; </li>
-	{% endif %}
-		
-	{% if article.isPatternOrCollage %}
-		<li class="nobullet">Articles <b>included</b> in this {{article.type}}
-		{% if included_links_outgoing %}
-			<ul>
-			{% for link in included_links_outgoing %}
-				<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a> ({{link.articleTo.type}})</li>
-			{% endfor %}
-			</ul>
-			<ul><li class="nobullet"><a href="/visit/includeArticle?{{article.key}}">Include another</a></li></ul>
-		{% else %}
-			<ul><li class="nobullet">none yet - <a href="/visit/includeArticle?{{article.key}}">Include one</a></li></ul>
-		{% endif %}
-	{% endif %}
-	
-	{% if not article.isPatternOrCollage %}
-		<li class="nobullet">Patterns this {{article.type}} is <b>included</b> in
-		{% if included_links_incoming_from_patterns %}
-			<ul>
-			{% for link in include_links %}
-				<li class="nobullet"><a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a></li>
-			{% endfor %}
-			</ul>
-			<ul><li class="nobullet"><a href="/visit/includeInPattern?{{article.key}}">Include in another</a></li></ul>
-		{% else %}
-			<ul><li class="nobullet">none yet - <a href="/visit/includeInPattern?{{article.key}}">Include</a> this {{article.type}} in a pattern</li></ul>
-		{% endif %}
-		</li><li class="nobullet">&nbsp; </li>
-		<li class="nobullet">Collages this {{article.type}} is <b>included</b> in
-		{% if included_links_incoming_from_patterns %}
-			<ul>
-			{% for link in include_links %}
-				<li class="nobullet"><a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a></li>
-			{% endfor %}
-			</ul>
-			<ul><li class="nobullet"><a href="/visit/includeInCollage?{{article.key}}">Include in another</a></li></ul>
-		{% else %}
-			<ul><li class="nobullet">none yet - <a href="/visit/includeInCollage?{{article.key}}">Include</a> this {{article.type}} in a collage</li></ul>
-		{% endif %}
-	{% endif %}
-	</li>
-	</ul>
 	
 	{% if history %}
 		<h4><img src="/images/history.png" alt="tags"> History</h4>

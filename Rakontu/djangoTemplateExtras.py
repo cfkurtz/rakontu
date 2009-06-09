@@ -43,9 +43,23 @@ def timeZone(time, zoneName):
 def notNone(value):
 	return value != None and value != "None"
 
+def orNbsp(value):
+	if value:
+		return value
+	else:
+		return "&nbsp;"
+	
+def orNone(value):
+	if value:
+		return value
+	else:
+		return "none"
+
 register.filter("listLookup", listLookup)
 register.filter("dictLookup", dictLookup)
 register.filter("makeRange", makeRange)
 register.filter("timeZone", timeZone)
 register.filter("notNone", notNone)
+register.filter("orNbsp", orNbsp)
+register.filter("orNone", orNone)
 

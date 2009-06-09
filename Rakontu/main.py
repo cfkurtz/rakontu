@@ -65,12 +65,12 @@ def GetCurrentCommunityAndMemberFromSession():
 def DjangoToPythonDateFormat(format):
 	if DATE_FORMATS.has_key(format):
 		return DATE_FORMATS[format]
-	return None
+	return "%B %d, %Y"
 
 def DjangoToPythonTimeFormat(format):
 	if TIME_FORMATS.has_key(format):
 		return TIME_FORMATS[format]
-	return None
+	return "%I:%M %p"
 
 def DateFormatStrings():
 	result = {}
@@ -89,12 +89,12 @@ def RelativeTimeDisplayString(whenUTC, member):
 	delta = datetime.now(tz=timezone(member.timeZoneName)) - when
 	if delta.days < 1 and delta.seconds < 1: 
 		return "Now"
-	elif delta.days < 1 and delta.seconds < 60: 
+	elif delta.days < 1 and delta.seconds < 60: # one minute
 		return "Moments ago"
-	elif delta.days < 1 and delta.seconds < 3600:
+	elif delta.days < 1 and delta.seconds < 60*60: # one hour
 		return "%s minutes ago" % (delta.seconds // 60)
 	elif delta.days < 1:
-		return "Today at %s" % when.strftime(DjangoToPythonTimeFormat(member.timeFormat))
+		return when.strftime(DjangoToPythonTimeFormat(member.timeFormat))
 	elif delta.days < 2:
 		return "Yesterday at %s" % when.strftime(DjangoToPythonTimeFormat(member.timeFormat))
 	elif delta.days < 7:
@@ -449,9 +449,8 @@ class ReadArticlePage(webapp.RequestHandler):
 								   'reminded_links_incoming': article.getIncomingLinksOfType("reminded"),
 								   'reminded_links_outgoing': article.getOutgoingLinksOfType("reminded"),
 								   'related_links': article.getLinksOfType("related"),
-								   'included_links_incoming_from_invitations': article.getIncomingLinksOfTypeFromType("included", "invitation"),
-								   'included_links_incoming_from_patterns': article.getIncomingLinksOfTypeFromType("included", "pattern"),
-								   'included_links_incoming_from_collages': article.getIncomingLinksOfTypeFromType("included", "collage"),
+								   'links_incoming_from_invitations': article.getIncomingLinksOfTypeFromType("responded", "invitation"),
+								   'links_incoming_from_collages': article.getIncomingLinksOfTypeFromType("included", "collage"),
 								   'included_links_outgoing': article.getOutgoingLinksOfType("included"),
 								   'history': article.getHistory(),
 								   }
@@ -627,6 +626,24 @@ class EnterArticlePage(webapp.RequestHandler):
 			else:
 				answers = None
 				attachments = None
+			if type == "collage":
+				if article:
+					includedLinksOutgoing = article.getOutgoingLinksOfType("included")
+				else:
+					includedLinksOutgoing = []
+				articles = community.getNonDraftArticlesOfType("story")
+				articlesThatCanBeIncluded = []
+				for anArticle in articles:
+					found = False
+					for link in includedLinksOutgoing:
+						if article and link.articleTo.key() == anArticle.key():
+							found = True
+							break
+					if not found:
+						articlesThatCanBeIncluded.append(anArticle)
+			else:
+				articlesThatCanBeIncluded = None
+				includedLinksOutgoing = None
 			template_values = {
 							   'title': type.capitalize(), 
 						   	   'title_extra': articleName, 
@@ -643,6 +660,8 @@ class EnterArticlePage(webapp.RequestHandler):
 							   'character_allowed': community.allowCharacter[entryTypeIndexForCharacters],
 							   'link_type': linkType,
 							   'article_from': articleFrom,
+							   'articles_that_can_be_linked_to_by_collage': articlesThatCanBeIncluded,
+							   'included_links_outgoing': includedLinksOutgoing,
 							   'text_formats': TEXT_FORMATS,
 							   'refer_type': type,
 							   'user_is_admin': users.is_current_user_admin(),
@@ -712,8 +731,8 @@ class EnterArticlePage(webapp.RequestHandler):
 						linkType = "reminded"
 						activity = "reminding"
 					elif self.request.get("link_type") == "respond":
-						linkType = "included"
-						activity = "including"
+						linkType = "responded"
+						activity = "responding"
 					elif self.request.get("link_type") == "relate":
 						linkType = "related"
 						activity = "relating"
@@ -724,6 +743,21 @@ class EnterArticlePage(webapp.RequestHandler):
 								creator=member, comment=cgi.escape(self.request.get("link_comment")))
 					link.put()
 					member.nudgePoints += community.getNudgePointsPerActivityForActivityName(activity)
+			if article.isCollage():
+				linksToRemove = []
+				for link in article.getOutgoingLinksOfType("included"):
+					link.comment = self.request.get("linkComment|%s" % link.key())
+					link.put()
+					if self.request.get("removeLink|%s" % link.key()) == "yes":
+						linksToRemove.append(link)
+				for link in linksToRemove:
+					db.delete(link)
+				for anArticle in community.getNonDraftArticlesOfType("story"):
+					if self.request.get("addLink|%s" % anArticle.key()) == "yes":
+						link = Link(articleFrom=article, articleTo=anArticle, type="included", 
+									creator=member, 
+									comment=cgi.escape(self.request.get("linkComment|%s" % anArticle.key())))
+						link.put()
 			questions = Question.all().filter("community = ", community).filter("refersTo = ", type).fetch(FETCH_NUMBER)
 			for question in questions:
 				foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", article.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
@@ -987,10 +1021,10 @@ class EnterAnnotationPage(webapp.RequestHandler):
 								   'community_members': community.getActiveMembers(),
 								   'offline_members': community.getOfflineMembers(),
 								   'article': article,
-								   'request_types': REQUEST_TYPES,
 								   'nudge_categories': community.nudgeCategories,
 								   'nudge_points_member_can_assign': nudgePointsMemberCanAssign,
 								   'character_allowed': community.allowCharacter[entryTypeIndex],
+								   'included_links_outgoing': article.getOutgoingLinksOfType("included"),
 								   'text_formats': TEXT_FORMATS,
 								   'user_is_admin': users.is_current_user_admin(),
 								   'logout_url': users.create_logout_url("/"),
@@ -1066,7 +1100,6 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					annotation.longString = text
 					annotation.longString_formatted = db.Text(InterpretEnteredText(text, format))
 					annotation.longString_format = format
-					annotation.typeIfRequest = self.request.get("typeIfRequest")
 				elif type == "nudge":
 					oldTotalNudgePointsInThisNudge = annotation.totalNudgePointsAbsolute()
 					nudgeValuesTheyWantToSet = []
@@ -1141,6 +1174,7 @@ class PreviewPage(webapp.RequestHandler):
 								   'community': community, 
 								   'annotation': annotation,
 								   'article': article,
+								   'included_links_outgoing': article.getOutgoingLinksOfType("included"),
 								   'community_has_questions_for_this_article_type': len(community.getQuestionsOfType(article.type)) > 0,
 								   'questions': community.getQuestionsOfType(article.type),
 								   'answers_with_article': article.getAnswersForMember(member),
@@ -1179,6 +1213,83 @@ class PreviewPage(webapp.RequestHandler):
 				elif "publish" in self.request.arguments():
 					article.publish()
 					self.redirect("/visit/look")
+		else:
+			self.redirect("/")
+					
+class RelateArticlePage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			article = None
+			if self.request.query_string:
+				try:
+					article = Article.get(self.request.query_string)
+				except:
+					article = None
+			if article:
+				links = article.getLinksOfType("related")
+				articles = community.getNonDraftArticles()
+				articlesThatCanBeRelated = []
+				for anArticle in articles:
+					found = False
+					for link in links:
+						if link.articleTo.key() == anArticle.key() or link.articleFrom.key() == anArticle.key():
+							found = True
+					if not found and anArticle.key() != article.key():
+						articlesThatCanBeRelated.append(anArticle)
+				if articlesThatCanBeRelated:
+					template_values = {
+									'title': "Relate articles to",
+								   	'title_extra': article.title,
+									'community': community, 
+									'current_member': member, 
+									'article': article,
+									'articles': articlesThatCanBeRelated, 
+									'related_links': links,
+									'user_is_admin': users.is_current_user_admin(), 
+									'logout_url': users.create_logout_url("/"), 
+									}
+					path = os.path.join(os.path.dirname(__file__), 'templates/visit/relate.html')
+					self.response.out.write(template.render(path, template_values))
+				else:
+					self.redirect("read?%s" % article.key()) # should not have link in this case CFK FIX
+			else:
+				self.redirect('/')
+					
+	@RequireLogin 
+	def post(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+				article = None
+				if self.request.query_string:
+					try:
+						article = Article.get(self.request.query_string)
+					except:
+						article = None
+				if article:
+					linksToRemove = []
+					for link in article.getLinksOfType("related"):
+						if self.request.get("linkComment|%s" % link.key()):
+							link.comment = self.request.get("linkComment|%s" % link.key())
+							DebugPrint(link.comment)
+							link.put()
+						if self.request.get("removeLink|%s" % link.key()) == "yes":
+							linksToRemove.append(link)
+					for link in linksToRemove:
+						db.delete(link)
+					for anArticle in community.getNonDraftArticles():
+						if self.request.get("addLink|%s" % anArticle.key()) == "yes":
+							link = Link(articleFrom=article, articleTo=anArticle, type="related", \
+										creator=member, 
+										comment=cgi.escape(self.request.get("linkComment|%s" % anArticle.key())))
+							DebugPrint(anArticle.title, "link created")
+							link.put()
+					self.redirect("read?%s" % article.key())
+				else:
+					self.redirect("/visit/look")
+		else:
+			self.redirect("/")
 
 # --------------------------------------------------------------------------------------------
 # Manage memberhip
@@ -1748,6 +1859,9 @@ application = webapp.WSGIApplication(
 									  ('/visit/comment', EnterAnnotationPage),
 									  ('/visit/nudge', EnterAnnotationPage),
 									  ('/visit/annotation', EnterAnnotationPage),
+									  
+									  # entering links
+									  ('/visit/relate', RelateArticlePage),
 									  
 									  # managing
 									  ('/createCommunity', CreateCommunityPage),
