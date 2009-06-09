@@ -403,8 +403,6 @@ class BrowseArticlesPage(webapp.RequestHandler):
 						member.viewTimeEnd = member.viewTimeEnd - timedelta(seconds=changeSeconds)
 					else:
 						member.viewTimeEnd = member.viewTimeEnd + timedelta(seconds=changeSeconds)
-				elif "refresh" in self.request.arguments():
-					pass
 				if community.firstPublish and member.getViewStartTime() < community.firstPublish:
 				 	member.setTimeFrameToStartAtFirstPublish()
 				if member.viewTimeEnd > datetime.now(tz=pytz.utc):
@@ -421,10 +419,108 @@ class ReadArticlePage(webapp.RequestHandler):
 		if community and member:
 			article = db.get(self.request.query_string)
 			if article:
+				allItems = []
+				allItems.extend(article.getNonDraftAnnotations())
+				allItems.extend(article.getNonDraftAnswers())
+				allItems.extend(article.getAllLinks())
+				if allItems:
+					maxTime = article.lastAnnotatedOrAnsweredOrLinked
+					minTime = article.published
+					maxNudgePoints = -9999999
+					minNudgePoints = -9999999
+					minActivityPoints = -9999999
+					maxActivityPoints = -9999999
+					for item in allItems:
+						nudgePoints = 0
+						for i in range(5):
+							nudgePoints += item.articleNudgePointsWhenPublished[i]
+						if minNudgePoints == -9999999:
+							minNudgePoints = nudgePoints
+						elif nudgePoints < minNudgePoints:
+							minNudgePoints = nudgePoints
+						if maxNudgePoints == -9999999:
+							maxNudgePoints = nudgePoints
+						elif nudgePoints > maxNudgePoints:
+							maxNudgePoints = nudgePoints
+						activityPoints = item.articleActivityPointsWhenPublished
+						if minActivityPoints == -9999999:
+							minActivityPoints = activityPoints
+						elif activityPoints < minActivityPoints:
+							minActivityPoints = activityPoints
+						if maxActivityPoints == -9999999:
+							maxActivityPoints = activityPoints
+						elif activityPoints > maxActivityPoints:
+							maxActivityPoints = activityPoints
+					numRows = 20
+					numCols = 6
+					nudgeStep = max(1, (maxNudgePoints - minNudgePoints) // numRows)
+					timeStep = (maxTime - minTime) // numCols
+					
+					textsForGrid = []
+					rowHeaders = []
+					haveContent = False
+					for row in range(numRows):
+						textsInThisRow = []
+						startNudgePoints = minNudgePoints + nudgeStep * row
+						if row == numRows - 1:
+							endNudgePoints = 100000000
+						else:
+							endNudgePoints = minNudgePoints + nudgeStep * (row+1)
+						for col in range(numCols):
+							textsInThisCell = []
+							startTime = minTime + timeStep * col
+							endTime = minTime + timeStep * (col+1)
+							if row == numRows - 1:
+								rowHeaders.append(RelativeTimeDisplayString(startTime, member))
+							for item in allItems:
+								nudgePoints = 0
+								for i in range(5):
+									nudgePoints += item.articleNudgePointsWhenPublished[i]
+								shouldBeInRow = nudgePoints >= startNudgePoints and nudgePoints < endNudgePoints
+								shouldBeInCol = item.published >= startTime and item.published < endTime
+								if shouldBeInRow and shouldBeInCol:
+									fontSizePercent = min(200, 90 + item.articleActivityPointsWhenPublished - minActivityPoints)
+									timeLoss = (item.published - article.published).seconds // 60
+									fontSizePercent -= timeLoss
+									if item.attributedToMember():
+										if item.creator.active:
+											nameString = '<a href="member?%s">%s</a>' % (item.creator.key(), item.creator.nickname)
+										else:
+											nameString = item.creator.nickname
+									else:
+										nameString = '<a href="character?%s">%s</a>' % (item.character.key(), item.character.name)
+									text = '<p>%s %s (%s)</p>' % \
+										(item.getImageLinkForType(), item.linkString(), nameString)
+									textsInThisCell.append(text)
+							haveContent = haveContent or len(textsInThisCell) > 0
+							textsInThisRow.append(textsInThisCell)
+						textsForGrid.append(textsInThisRow)
+					textsForGrid.reverse()
+				else:
+					textsForGrid = None
+					rowHeaders = None
+				if not haveContent:
+					textsForGrid = None
 				if not article.memberCanNudge(member):
 					nudgePointsMemberCanAssign = 0
 				else:
 					nudgePointsMemberCanAssign = max(0, community.maxNudgePointsPerArticle - article.getTotalNudgePointsForMember(member))
+				communityHasQuestionsForThisArticleType = len(community.getQuestionsOfType(article.type)) > 0
+				memberCanAnswerQuestionsAboutThisArticle = len(article.getAnswersForMember(member)) == 0
+				memberCanAddNudgeToThisArticle = nudgePointsMemberCanAssign > 0
+				thingsUserCanDo = {}
+				if article.isStory():
+					thingsUserCanDo["Tell my version of what happened"] = "retell?%s" % article.key()
+				if article.isStory() or article.isResource():
+					thingsUserCanDo["Tell a story this %s reminds me of" % article.type] = "remind?%s" % article.key()
+				if communityHasQuestionsForThisArticleType and memberCanAnswerQuestionsAboutThisArticle:
+					thingsUserCanDo["Answer questions about this %s" % article.type] = "answers?%s" % article.key()
+				thingsUserCanDo["Add a comment about this %s" % article.type] = "comment?%s" % article.key()
+				thingsUserCanDo["Add some tags about this %s" % article.type] = "tagset?%s" % article.key()
+				if memberCanAddNudgeToThisArticle:
+					thingsUserCanDo["Nudge this %s up or down" % article.type] = "nudge?%s" % article.key()
+				thingsUserCanDo["Make a request about this %s" % article.type] = "request?%s" % article.key()
+				thingsUserCanDo["Add or remove relations to this %s" % article.type] = "relate?%s" % article.key()
 				template_values = {
 								   'title': article.title, 
 						   		   'title_extra': None,
@@ -432,9 +528,12 @@ class ReadArticlePage(webapp.RequestHandler):
 								   'current_member': member,
 								   'current_member_key': member.key(),
 								   'article': article,
-								   'member_can_answer_questions': len(article.getAnswersForMember(member)) == 0,
-								   'member_can_add_nudge': nudgePointsMemberCanAssign > 0,
-								   'community_has_questions_for_this_article_type': len(community.getQuestionsOfType(article.type)) > 0,
+								   'rows_cols': textsForGrid, 
+							       'row_headers': rowHeaders, 
+							       'things_member_can_do': thingsUserCanDo,
+								   'member_can_answer_questions': memberCanAnswerQuestionsAboutThisArticle,
+								   'member_can_add_nudge': memberCanAddNudgeToThisArticle,
+								   'community_has_questions_for_this_article_type': communityHasQuestionsForThisArticleType,
 								   'user_is_admin': users.is_current_user_admin(),
 								   'logout_url': users.create_logout_url("/"),
 								   'answers': article.getNonDraftAnswers(),
@@ -452,7 +551,6 @@ class ReadArticlePage(webapp.RequestHandler):
 								   'links_incoming_from_invitations': article.getIncomingLinksOfTypeFromType("responded", "invitation"),
 								   'links_incoming_from_collages': article.getIncomingLinksOfTypeFromType("included", "collage"),
 								   'included_links_outgoing': article.getOutgoingLinksOfType("included"),
-								   'history': article.getHistory(),
 								   }
 				member.lastReadAnything = datetime.now(tz=pytz.utc)
 				member.nudgePoints += community.getNudgePointsPerActivityForActivityName("reading")
@@ -462,6 +560,40 @@ class ReadArticlePage(webapp.RequestHandler):
 		else:
 			self.redirect('/')
 			
+	@RequireLogin 
+	def post(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			self.redirect(self.request.get("nextAction"))
+		else:
+			self.redirect("/visit/look")
+			
+class ReadAnnotationPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			annotation = db.get(self.request.query_string)
+			if annotation:
+				template_values = {
+								   'title': annotation.displayString, 
+						   		   'title_extra': None,
+								   'community': community, 
+								   'current_member': member,
+								   'current_member_key': member.key(),
+								   'annotation': annotation,
+								   'included_links_outgoing': annotation.article.getOutgoingLinksOfType("included"),
+								   'user_is_admin': users.is_current_user_admin(),
+								   'logout_url': users.create_logout_url("/"),
+								   }
+				member.lastReadAnything = datetime.now(tz=pytz.utc)
+				member.nudgePoints += community.getNudgePointsPerActivityForActivityName("reading")
+				member.put()
+				path = os.path.join(os.path.dirname(__file__), 'templates/visit/readAnnotation.html')
+				self.response.out.write(template.render(path, template_values))
+		else:
+			self.redirect('/')
+
 class SeeCommunityPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
@@ -515,7 +647,9 @@ class SeeMemberPage(webapp.RequestHandler):
 						   		   'community': community, 
 						   		   'current_member': member,
 						   		   'member': memberToSee,
-						   		   'history': member.getHistory(),
+						   		   'articles': memberToSee.getNonDraftArticlesAttributedToMember(),
+						   		   'annotations': memberToSee.getNonDraftAnnotationsAttributedToMember(),
+						   		   'answers': memberToSee.getNonDraftAnswersAboutArticlesAttributedToMember(),
 						   		   'user_is_admin': users.is_current_user_admin(),
 						   		   'logout_url': users.create_logout_url("/"),								   
 						   		   }
@@ -559,7 +693,6 @@ class SeeCharacterPage(webapp.RequestHandler):
 									   'community': community, 
 									   'current_member': member,
 									   'character': character,
-									   'history': character.getHistory(),
 									   'user_is_admin': users.is_current_user_admin(),
 									   'logout_url': users.create_logout_url("/"),								   
 									   }
@@ -715,7 +848,6 @@ class EnterArticlePage(webapp.RequestHandler):
 						article.liaison = member
 						break
 			if self.request.get("attribution") != "member":
-				characterKey = self.request.get("attribution")
 				article.character = Character.get(characterKey)
 			else:
 				article.character = None
@@ -726,23 +858,18 @@ class EnterArticlePage(webapp.RequestHandler):
 				if articleFrom:
 					if self.request.get("link_type") == "retell":
 						linkType = "retold"
-						activity = "retelling"
 					elif self.request.get("link_type") == "remind":
 						linkType = "reminded"
-						activity = "reminding"
 					elif self.request.get("link_type") == "respond":
 						linkType = "responded"
-						activity = "responding"
 					elif self.request.get("link_type") == "relate":
 						linkType = "related"
-						activity = "relating"
 					elif self.request.get("link_type") == "include":
 						linkType = "included"
-						activity = "including"
 					link = Link(articleFrom=articleFrom, articleTo=article, type=linkType, \
 								creator=member, comment=cgi.escape(self.request.get("link_comment")))
 					link.put()
-					member.nudgePoints += community.getNudgePointsPerActivityForActivityName(activity)
+					link.publish()
 			if article.isCollage():
 				linksToRemove = []
 				for link in article.getOutgoingLinksOfType("included"):
@@ -758,6 +885,7 @@ class EnterArticlePage(webapp.RequestHandler):
 									creator=member, 
 									comment=cgi.escape(self.request.get("linkComment|%s" % anArticle.key())))
 						link.put()
+						link.publish()
 			questions = Question.all().filter("community = ", community).filter("refersTo = ", type).fetch(FETCH_NUMBER)
 			for question in questions:
 				foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", article.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
@@ -765,29 +893,41 @@ class EnterArticlePage(webapp.RequestHandler):
 					answerToEdit = foundAnswers[0]
 				else:
 					answerToEdit = Answer(question=question, community=community, creator=member, referent=article, referentType="article")
-				if question.type == "text":
-					answerToEdit.answerIfText = cgi.escape(self.request.get("%s" % question.key()))
-				elif question.type == "value":
-					oldValue = answerToEdit.answerIfValue
-					try:
-						answerToEdit.answerIfValue = int(self.request.get("%s" % question.key()))
-					except:
-						answerToEdit.answerIfValue = oldValue
-				elif question.type == "boolean":
-					answerToEdit.answerIfBoolean = self.request.get("%s" % question.key()) == "%s" % question.key()
-				elif question.type == "nominal" or question.type == "ordinal":
-					if question.multiple:
-						answerToEdit.answerIfMultiple = []
-						for choice in question.choices:
-							if self.request.get("%s|%s" % (question.key(), choice)):
-								answerToEdit.answerIfMultiple.append(choice)
-					else:
-						answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
-				answerToEdit.creator = member
-				answerToEdit.draft = article.draft
-				answerToEdit.put()
-				if not answerToEdit.draft:
-					answerToEdit.publish()
+					keepAnswer = False
+					queryText = "%s" % question.key()
+					if question.type == "text":
+						keepAnswer = len(self.request.get(queryText)) > 0
+						if keepAnswer:
+							answerToEdit.answerIfText = cgi.escape(self.request.get(queryText))
+					elif question.type == "value":
+						keepAnswer = len(self.request.get(queryText)) > 0
+						if keepAnswer:
+							oldValue = answerToEdit.answerIfValue
+							try:
+								answerToEdit.answerIfValue = int(self.request.get(queryText))
+							except:
+								answerToEdit.answerIfValue = oldValue
+					elif question.type == "boolean":
+						keepAnswer = queryText in self.request.params.keys()
+						if keepAnswer:
+							answerToEdit.answerIfBoolean = self.request.get(queryText) == queryText
+					elif question.type == "nominal" or question.type == "ordinal":
+						if question.multiple:
+							answerToEdit.answerIfMultiple = []
+							for choice in question.choices:
+								if self.request.get("%s|%s" % (question.key(), choice)) == "yes":
+									answerToEdit.answerIfMultiple.append(choice)
+									keepAnswer = True
+						else:
+							keepAnswer = len(self.request.get(queryText)) > 0
+							if keepAnswer:
+								answerToEdit.answerIfText = self.request.get(queryText)
+					answerToEdit.creator = member
+					answerToEdit.draft = article.draft
+					if keepAnswer:
+						answerToEdit.put()
+						if not answerToEdit.draft:
+							answerToEdit.publish()
 			foundAttachments = Attachment.all().filter("article = ", article.key()).fetch(FETCH_NUMBER)
 			attachmentsToRemove = []
 			for attachment in foundAttachments:
@@ -895,31 +1035,43 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
 						answerToEdit = Answer(question=question, community=community, referent=article, referentType="article")
 						newAnswers = True
 					answerToEdit.character = character
+					keepAnswer = False
+					queryText = "%s" % question.key()
 					if question.type == "text":
-						answerToEdit.answerIfText = cgi.escape(self.request.get("%s" % question.key()))
+						keepAnswer = len(self.request.get(queryText)) > 0
+						if keepAnswer:
+							answerToEdit.answerIfText = cgi.escape(self.request.get(queryText))
 					elif question.type == "value":
-						oldValue = answerToEdit.answerIfValue
-						try:
-							answerToEdit.answerIfValue = int(self.request.get("%s" % question.key()))
-						except:
-							answerToEdit.answerIfValue = oldValue
+						keepAnswer = len(self.request.get(queryText)) > 0
+						if keepAnswer:
+							oldValue = answerToEdit.answerIfValue
+							try:
+								answerToEdit.answerIfValue = int(self.request.get(queryText))
+							except:
+								answerToEdit.answerIfValue = oldValue
 					elif question.type == "boolean":
-						answerToEdit.answerIfBoolean = self.request.get("%s" % question.key()) == "%s" % question.key()
+						keepAnswer = queryText in self.request.params.keys()
+						if keepAnswer:
+							answerToEdit.answerIfBoolean = self.request.get(queryText) == queryText
 					elif question.type == "nominal" or question.type == "ordinal":
 						if question.multiple:
 							answerToEdit.answerIfMultiple = []
 							for choice in question.choices:
-								if self.request.get("%s|%s" % (question.key(), choice)):
+								if self.request.get("%s|%s" % (question.key(), choice)) == "yes":
 									answerToEdit.answerIfMultiple.append(choice)
+									keepAnswer = True
 						else:
-							answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
+							keepAnswer = len(self.request.get(queryText)) > 0
+							if keepAnswer:
+								answerToEdit.answerIfText = self.request.get(queryText)
 					answerToEdit.creator = member
 					answerToEdit.draft = setAsDraft
-					if setAsDraft:
-						answerToEdit.edited = datetime.now(tz=pytz.utc)
-						answerToEdit.put()
-					else:
-						answerToEdit.publish()
+					if keepAnswer:
+						if setAsDraft:
+							answerToEdit.edited = datetime.now(tz=pytz.utc)
+							answerToEdit.put()
+						else:
+							answerToEdit.publish()
 				if preview:
 					self.redirect("/visit/previewAnswers?%s" % article.key())
 				elif setAsDraft:
@@ -1272,7 +1424,6 @@ class RelateArticlePage(webapp.RequestHandler):
 					for link in article.getLinksOfType("related"):
 						if self.request.get("linkComment|%s" % link.key()):
 							link.comment = self.request.get("linkComment|%s" % link.key())
-							DebugPrint(link.comment)
 							link.put()
 						if self.request.get("removeLink|%s" % link.key()) == "yes":
 							linksToRemove.append(link)
@@ -1283,8 +1434,8 @@ class RelateArticlePage(webapp.RequestHandler):
 							link = Link(articleFrom=article, articleTo=anArticle, type="related", \
 										creator=member, 
 										comment=cgi.escape(self.request.get("linkComment|%s" % anArticle.key())))
-							DebugPrint(anArticle.title, "link created")
 							link.put()
+							link.publish()
 					self.redirect("read?%s" % article.key())
 				else:
 					self.redirect("/visit/look")
@@ -1396,7 +1547,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 					if question.multiple:
 						answerToEdit.answerIfMultiple = []
 						for choice in question.choices:
-							if self.request.get("%s|%s" % (question.key(), choice)):
+							if self.request.get("%s|%s" % (question.key(), choice)) == "yes":
 								answerToEdit.answerIfMultiple.append(choice)
 					else:
 						answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
@@ -1830,6 +1981,7 @@ application = webapp.WSGIApplication(
 									  ('/visit/', BrowseArticlesPage),
 									  ('/visit/look', BrowseArticlesPage),
 									  ('/visit/read', ReadArticlePage),
+									  ('/visit/readAnnotation', ReadAnnotationPage),
 									  ('/visit/members', SeeCommunityMembersPage),
 									  ('/visit/member', SeeMemberPage),
 									  ('/visit/character', SeeCharacterPage),

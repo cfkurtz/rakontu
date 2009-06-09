@@ -20,6 +20,11 @@ a {
 	text-decoration: none;
 	}
 	
+p
+	{
+	margin: 4px;
+	}
+	
 a:hover {
 	background: #993300;
 	color: #FFFFFF;
@@ -133,7 +138,7 @@ ul li.nobullet {
 	width: auto;
 	border: 1px solid #FF7F00;
 	padding: 4px 8px 4px 8px;
-	margin-left: 8px;
+	margin-left: 0px;
 	margin-bottom: 8px;
 	}
 	

@@ -7,9 +7,12 @@
 	<p></p>
 	<div id="stylized" class="rakontu_form">
 		<form action="/visit/look" method="post">
-			<center>
+			<table style="border:none;width:100%;"><tr><td align="left" style="border:none;">
 			<input type="submit" name="setToFirst" value=" |< " class="button_small">
 			<input type="submit" name="moveTimeBack" value=" < " class="button_small">
+			<input type="submit" name="moveTimeForward" value=" > " class="button_small">
+			<input type="submit" name="setToLast" value=" >| " class="button_small">
+			</td><td align="right" style="border:none;">
 			Show
 			<select name="timeFrame">
 				{% for time_frame in time_frames %}
@@ -26,22 +29,25 @@
 				<option value="{{i}}" {% ifequal i current_member.viewNumTimeFrames %}selected="selected"{% endifequal %}>{{i}}</option>
 				{% endfor %}
 				</select>
-			Across how many columns?
+			With how many columns?
 			<select name="numColumns">
 			{% for i in 5_to_10 %}
 				<option value="{{i}}" {% ifequal i current_member.viewNumTimeColumns %}selected="selected"{% endifequal %}>{{i}}</option>
 				{% endfor %}
 				</select>
 			<input type="submit" name="changeTimeFrame" value="Change" class="button_small">
-			<input type="submit" name="moveTimeForward" value=" > " class="button_small">
-			<input type="submit" name="setToLast" value=" >| " class="button_small">
-			<input type="submit" name="refresh" value="Refresh" class="button_small">
-			</center>
+			</td></tr></table>
 		</form>	
 	</div>
 	
-	<center>
-	<table cellpadding="4" cellspacing="0" style="width: 100%; border-top: 1px solid #FF7F00; border-bottom: none; border-left: none; border-right: 1px solid #FF7F00">
+	<table cellpadding="4" cellspacing="0" style="width: 100%; border-top: none; border-bottom: 1px solid #FF7F00; border-left: none; border-right: 1px solid #FF7F00">
+	{% if row_headers %}
+		<tr>
+		{% for header in row_headers %}
+		<th style="border-right: 1px solid #FF7F00; border-top: 1px solid #FF7F00; border-bottom: 1px solid #FF7F00; border-left: 1px solid #FF7F00">{{header}}</th>
+		{% endfor %}
+		</tr>
+	{% endif %}
 	{% for row_list in rows_cols %}
 		<tr>
 		{% for col_list in row_list %}
@@ -57,15 +63,7 @@
 		{% endfor %}
 		</tr>
 	{% endfor %}
-	{% if row_headers %}
-		<tr>
-		{% for header in row_headers %}
-		<th style="border-right: 1px solid #FF7F00; border-top: 1px solid #FF7F00; border-bottom: 1px solid #FF7F00; border-left: 1px solid #FF7F00">{{header}}</th>
-		{% endfor %}
-		</tr>
-	{% endif %}
 	</table>
-	</center>
 	
 	</div>
 	{% include "../common_footer.html" %}

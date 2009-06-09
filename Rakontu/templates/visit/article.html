@@ -244,7 +244,7 @@
 		  				<td><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a></td>
 		  				<td>{{link.articleTo.shortFormattedText|orNone}}</td>
 		  				<td><input type="text" name="linkComment|{{link.key}}" value="{{link.comment}}" size="40"/></td>
-		  				<td>
+		  				<td width="80">
 		  					<input type="checkbox" name="removeLink|{{ link.key }}" value="yes" id="removeLink|{{ link.key }}"/>
 							<label for="removeLink|{{ link.key }}">Remove</label>
 		  					</td>
@@ -264,7 +264,7 @@
 	      		</tr>
 	      		{% for anArticle in articles_that_can_be_linked_to_by_collage %}
 	  				<tr>
-	  				<td>
+	  				<td width="80">
 	  					<input type="checkbox" name="addLink|{{ anArticle.key }}" value="yes" id="addLink|{{ anArticle.key }}"/>
 						<label for="addLink|{{ anArticle.key }}">Include</label>
 	  					</td>

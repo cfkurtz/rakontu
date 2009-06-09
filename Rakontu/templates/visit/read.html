@@ -51,7 +51,7 @@
 				the former member "{{article.creator.nickname}}"
 			{% endif %}
 	{% else %}
-		<a href="character?{{nudge.character.key}}">{{article.character.name}}</a>
+		<a href="character?{{article.character.key}}">{{article.character.name}}</a>
 	{% endif %}
 	
 	on {{article.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
@@ -60,328 +60,84 @@
 	{% if article.collectedOffline %}
 		{% if article.liaison %}
 			<p>It was collected off-line and entered by {{article.liaison.nickname}}.</p>
-		{% else %}
-			<p>It was collected off-line and entered by the former member {{article.formerLiaisonNickname}}.</p>
 		{% endif %}
 	{% endif %}
-	
-	{% if community_has_questions_for_this_article_type %}
-		<h4><img src="/images/answers.png" alt="answers"> Answers</h4>
-		{% if answers %}
-			<ul>
-			{% for question in questions %}
-				<li class="nobullet"><b>{{question.text}}</b></li>
-				{% if answers %}
-					<ul>
-					{% for answer in answers %}
-						{% ifequal question.key answer.question.key %}
-							{% ifequal answer.question.type "text" %}
-								<li class="nobullet">{{answer.answerIfText}}
-							{% endifequal %}
-							{% ifequal answer.question.type "boolean" %}
-								<li class="nobullet">{{answer.answerIfBoolean|yesno:"Yes, No, Maybe"}}
-							{% endifequal %}
-							{% ifequal answer.question.type "ordinal" %}
-								{% if answer.question.multiple %}
-									<li class="nobullet">{{answer.answerIfMultiple|join:", "}}
-								{% else %}
-									<li class="nobullet">{{answer.answerIfText}}
-								{% endif %}
-							{% endifequal %}
-							{% ifequal answer.question.type "nominal" %}
-								{% if answer.question.multiple %}
-									<li class="nobullet">{{answer.answerIfMultiple|join:", "}}
-								{% else %}
-									<li class="nobullet">{{answer.answerIfText}}
-								{% endif %}
-							{% endifequal %}
-							{% ifequal answer.question.type "value" %}
-								<li class="nobullet">{{answer.answerIfValue}}
-							{% endifequal %}
-							- 
-
-							{% if answer.attributedToMember %}
-								{% if answer.creator.active %}
-									<a href="member?{{answer.creator.key}}">{{answer.creator.nickname}}</a>
-								{% else %}
-									the former member "{{answer.creator.nickname}}"
-								{% endif %}
-							{% else %}
-								<a href="character?{{answer.character.key}}">{{answer.character.name}}</a>
-							{% endif %}
-						
-						{% endifequal %}
-					{% endfor %}
-					</ul>
-				{% endif %}
-			{% endfor %}
-			</ul>
-			{% if member_can_answer_questions %}
-				<ul><li class="nobullet"><a href="/visit/answers?{{article.key}}">Answer questions about this {{article.type}} yourself</a></li></ul>
-			{% endif %}
-		{% else %}
-			<ul><li class="nobullet">none yet - <a href="/visit/answers?{{article.key}}">Add some</a></li></ul>
-		{% endif %}
-	{% endif %}
-	
-	<h4><img src="/images/comments.png" alt="comments"> Comments</h4>
-	{% if comments %}
-		<ul>
-		{% for comment in comments %}
-		<li class="nobullet"><b>{{comment.shortString}}</b> - 
-		
-		{% if comment.attributedToMember %}
-			{% if comment.creator.active %}
-				<a href="member?{{comment.creator.key}}">{{comment.creator.nickname}}</a>
-			{% else %}
-				the former member "{{comment.creator.nickname}}"
-			{% endif %}
-		{% else %}
-			<a href="character?{{comment.character.key}}">{{comment.character.name}}</a>
-		{% endif %}
-		&nbsp; {{comment.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} 
-		at {{comment.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
-		</li>
-		<ul><li class="nobullet">{{comment.longString_formatted}}</li></ul>
-		</li>
-		{% endfor %}
-		</ul>
-		<ul><li class="nobullet"><a href="/visit/comment?{{article.key}}">Add another comment</a></li></ul>
-	{% else %}
-	<ul><li class="nobullet">none yet - <a href="/visit/comment?{{article.key}}">Add one</a></li></ul>
-	{% endif %}
-	
-	<h4><img src="/images/tags.png" alt="tags"> Tags</h4>
-	{% if tag_sets %}
-		<ul>
-		{% for tag_set in tag_sets %}
-		<li class="nobullet">{{tag_set.tagsIfTagSet|join:", "}} - 
-		{% if tag_set.attributedToMember %}
-			{% if tag_set.creator.active %}
-				<a href="member?{{tag_set.creator.key}}">{{tag_set.creator.nickname}}</a>
-			{% else %}
-				the former member "{{tag_set.creator.nickname}}"
-			{% endif %}
-		{% else %}
-			<a href="character?{{tag_set.character.key}}">{{tag_set.character.name}}</a>
-		{% endif %}
-			&nbsp; {{tag_set.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} 
-		at {{tag_set.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
-			</li>
-		{% endfor %}
-		</ul>
-		<ul><li class="nobullet"><a href="/visit/tagset?{{article.key}}">Add more tags</a></li></ul>
-	{% else %}
-	<ul><li class="nobullet">none yet - <a href="/visit/tagset?{{article.key}}">Add some</a></li></ul>
-	{% endif %}
-	
-	<h4><img src="/images/nudges.png" alt="nudges"> Nudges</h4>
-	{% if nudges %}
-		<ul>
-		{% for nudge in nudges %}
-		<li class="nobullet"><b>
-			{% if nudge.valuesIfNudge.0 %}{{community.nudgeCategories.0}} {{nudge.valuesIfNudge.0}} {% endif %}
-			{% if nudge.valuesIfNudge.1 %}{{community.nudgeCategories.1}} {{nudge.valuesIfNudge.1}} {% endif %}
-			{% if nudge.valuesIfNudge.2 %}{{community.nudgeCategories.2}} {{nudge.valuesIfNudge.2}} {% endif %}
-			{% if nudge.valuesIfNudge.3 %}{{community.nudgeCategories.3}} {{nudge.valuesIfNudge.3}} {% endif %}
-			{% if nudge.valuesIfNudge.4 %}{{community.nudgeCategories.4}} {{nudge.valuesIfNudge.4}} {% endif %}
-			</b>
-			- 
-		{% if nudge.attributedToMember %}
-			{% if nudge.creator.active %}
-				<a href="member?{{nudge.creator.key}}">{{nudge.creator.nickname}}</a>
-			{% else %}
-				the former member "{{nudge.creator.nickname}}"
-			{% endif %}
-		{% else %}
-			<a href="character?{{nudge.character.key}}">{{nudge.character.name}}</a>
-		{% endif %}
-		&nbsp; {{nudge.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} 
-		at {{nudge.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
-		</li>
-		<ul><li class="nobullet">{{nudge.shortString}}</li></ul>
-		</li>
-		{% endfor %}
-		</ul>
-		{% if member_can_add_nudge %}
-			<ul><li class="nobullet"><a href="/visit/nudge?{{article.key}}">Add another nudge</a></li></ul>
-		{% endif %}
-	{% else %}
-		<ul><li class="nobullet">none yet {% if member_can_add_nudge %}- <a href="/visit/nudge?{{article.key}}">Add one</a>{% endif %}</li></ul>
-	{% endif %}
-	
-	<h4><img src="/images/requests.png" alt="requests"> Requests</h4>
-	{% if requests %}
-		<ul>
-		{% for request in requests %}
-			<li class="nobullet"><b>{{request.shortString}}</b> - 
-			{% if request.attributedToMember %}
-				{% if request.creator.active %}
-					<a href="member?{{request.creator.key}}">{{request.creator.nickname}}</a>
-				{% else %}
-					the former member "{{request.creator.nickname}}"
-				{% endif %}
-			{% else %}
-				<a href="character?{{request.character.key}}">{{request.character.name}}</a>
-			{% endif %}
-			</li>
-			<ul><li class="nobullet">{{request.longString_formatted}}</li></ul>
-			</li>	
-			&nbsp; {{request.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} 
-		at {{request.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
-		{% endfor %}
-		</ul>
-		<ul><li class="nobullet"><a href="/visit/request?{{article.key}}">Add another request</a></li></ul>
-	{% else %}
-		<ul><li class="nobullet">none yet - <a href="/visit/request?{{article.key}}">Add one</a></li></ul>
-	{% endif %}
-	
-	<h4><img src="/images/related.png" alt="related"> Related items</h4>
-	<ul>
-	{% if related_links %}
-		{% for link in related_links %}
-			{% ifequal link.articleFrom.key article.key %}
-				<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a>
-				{% if link.comment %} ({{link.comment}}) {% endif %}
-				</li>
-			{% endifequal %}
-			{% ifequal link.articleTo.key article.key %}
-				<li class="nobullet"><a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>
-				{% if link.comment %} ({{link.comment}}) {% endif %}
-				</li>
-			{% endifequal %}
-		{% endfor %}
-		<li class="nobullet">Would you like to <a href="/visit/relate?{{article.key}}">add or remove a relation</a>?</li>
-	{% else %}
-		<li class="nobullet">none yet - <a href="/visit/relate?{{article.key}}">Add some</a></li>
-	{% endif %}
-	</ul>
 	
 	{% if retold_links_incoming or reminded_links_incoming or included_links_incoming_from_invitations or included_links_incoming_from_collages %}
-		<h4><img src="/images/links_incoming.png" alt="incoming links"> Incoming links</h4>
-		<ul>
 		{% ifequal article.type "story" %}
 			{% if retold_links_incoming %}
-				<li class="nobullet">
 				{% for link in retold_links_incoming %}
-					<p>This story is a retelling of <a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>.</p>
+					<p>This story is a retelling of <a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>
+					 {% if link.comment %} ({{link.comment}}) {% endif %}</p>
 				{% endfor %}
-				</li>
 			{% endif %}
 			{% if reminded_links_incoming %}
-				<li class="nobullet">
 				{% for link in reminded_links_incoming %}
 					<p>This story was told because <a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>
-					reminded its teller of something.</p>
+					reminded its teller of something. {% if link.comment %} ({{link.comment}}) {% endif %}</p>
 				{% endfor %}
-				</li>
 			{% endif %}
 			{% if links_incoming_from_invitations %}
-				<li class="nobullet">
 				{% for link in included_links_incoming_from_invitations %}
-					<p>This story was told in response to the invitation <a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>.</p>
+					<p>This story was told in response to the invitation <a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>
+					 {% if link.comment %} ({{link.comment}}) {% endif %}</p>
 				{% endfor %}
-				</li>
 			{% endif %}
 			{% if links_incoming_from_collages %}
 				<li class="nobullet">This {{article.type}} is <b>included</b> in the collages
 				<ul>
 				{% for link in included_links_incoming_from_collages %}
-					<li class="nobullet"><a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a></li>
+					<li class="nobullet"><a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>
+					 {% if link.comment %} ({{link.comment}}) {% endif %}</li>
 				{% endfor %}
 				</ul>
-				</li>
 			{% endif %}
 		{% endifequal %}
-		</ul>
 	{% endif %}
-	
-	
-	{% if article.isStory or article.isResource or article.isInvitation %}
-		<h4><img src="/images/links_outgoing.png" alt="tags"> Outgoing links</h4>
-		<ul>
-		{% if article.isStory %}
-			<li class="nobullet">Stories about the same <b>events</b> as this one
-			{% if retold_links_outgoing %}
-				<ul>
-				{% for link in retold_links_outgoing %}
-					<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a>
-					{% if link.comment %}
-						because "{{link.comment}}"
-					{% endif %}
-					</li>
-				{% endfor %}
-				</ul>
-				{% ifnotequal current_member.key article.creator.key %}
-					<ul><li class="nobullet">Would you like to tell <a href="/visit/retell?{{article.key}}">your version</a> of what happened in this story?</li></ul>
-				{% endifnotequal %}
-			{% else %}
-				{% ifnotequal current_member.key article.creator.key %}
-					<ul><li class="nobullet">none yet - Would you like to tell <a href="/visit/retell?{{article.key}}">your version</a> of what happened in this story?</li></ul>
-				{% else %}
-					<ul><li class="nobullet">none</li></ul>
-				{% endifnotequal %}
-			{% endif %}
-			<li class="nobullet">Stories this one <b>reminded</b> people of
-			{% if reminded_links_outgoing %}
-				<ul>
-				{% for link in reminded_links_outgoing %}
-					<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a>
-					{% if link.comment %}
-						because "{{link.comment}}"
-					{% endif %}
-					</li>
-				{% endfor %}
-				</ul>
-				<ul><li class="nobullet">Does this story <a href="/visit/remind?{{article.key}}">remind</a> you of a story you would like to tell?</li></ul>
-			{% else %}
-				<ul><li class="nobullet">none yet - Does this story <a href="/visit/remind?{{article.key}}">remind</a> you of a story you would like to tell?</li></ul>
-			{% endif %}
-		{% endif %}
-		{% if article.isResource %}
-			<li class="nobullet">Stories this resource <b>reminded</b> people of
-			{% if reminded_links_outgoing %}
-				<ul>
-				{% for link in reminded_links_outgoing %}
-					<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a>
-					{% if link.comment %}
-						because "{{link.comment}}"
-					{% endif %}
-					</li>
-				{% endfor %}
-				</ul>
-				<ul><li class="nobullet">Does this resource <a href="/visit/remind?{{article.key}}">remind</a> you of a story you would like to tell?</li></ul>
-			{% else %}
-				<ul><li class="nobullet">none yet - Does this resource <a href="/visit/remind?{{article.key}}">remind</a> you of a story you would like to tell?</li></ul>
-			{% endif %}
-		{% endif %}
-		{% if article.isInvitation %}
-			<li class="nobullet">Stories told in <b>response</b> to this invitation
-			{% if included_links_outgoing %}
-				<ul>
-				{% for link in included_links_outgoing %}
-					<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a></li>
-				{% endfor %}
-				</ul>
-				<ul><li class="nobullet"><a href="/visit/respond?{{article.key}}">Respond</a> to this invitation with a story</li></ul>
-			{% else %}
-				<ul><li class="nobullet">none yet - <a href="/visit/respond?{{article.key}}">Respond</a> to this invitation with a story</li></ul>
-			{% endif %}
-		{% endif %}
-		</li>
-		</ul>
-	{% endif %}
-	
-	{% if history %}
-		<h4><img src="/images/history.png" alt="tags"> History</h4>
-		<ul>
-		{% for item in history %}
-			<li class="nobullet">
-				{{item.attribution}} <b>{{item.actionType}}</b>
-				the {{item.referentType}} "{{item.textToShow}}" on {{item.timeStamp|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} 
-		at {{item.timeStamp|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</li>
+
+	{% if things_member_can_do %}
+		<div id="stylized" class="rakontu_form">
+		<form action="/visit/read" method="post">
+		What would you like to do next?
+		<select name="nextAction">
+		{% for key in things_member_can_do.keys|sorted %}
+			<option value="{{things_member_can_do|dictLookup:key}}">{{key}}</option>
 		{% endfor %}
-		</ul>
+		</select>
+		<input type="submit" name="doSomething" value="Go" class="button_small"></p>
+		</form>
+		</div>
+	{% endif %}
+			
+	{% if rows_cols %}
+		<hr>
+		<h3>Annotations to this {{article.type}}</h3>
+		<center>
+		<table cellpadding="4" cellspacing="0" style="border-top: 1px solid #FF7F00; border-bottom: 1px solid #FF7F00; border-left: none; border-right: 1px solid #FF7F00">
+		{% if row_headers %}
+			<tr>
+			{% for header in row_headers %}
+			<th style="border-right: 1px solid #FF7F00; border-top: 1px solid #FF7F00; border-bottom: 1px solid #FF7F00; border-left: 1px solid #FF7F00">{{header}}</th>
+			{% endfor %}
+			</tr>
+		{% endif %}
+		{% for row_list in rows_cols %}
+			<tr>
+			{% for col_list in row_list %}
+			<td style="border-left: 1px solid #FF7F00; border-top: none; border-bottom: none; border-right: none">
+			{% if col_list %}
+				{% for text in col_list %}
+					{{text}}
+				{% endfor %}
+			{% else %}
+			&nbsp; 
+			{% endif %}
+			</td>
+			{% endfor %}
+			</tr>
+		{% endfor %}
+		</table>
+		</center>
 	{% endif %}
 	
 	</div>

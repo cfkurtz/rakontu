@@ -54,6 +54,12 @@ def orNone(value):
 		return value
 	else:
 		return "none"
+	
+def sorted(value):
+	result = []
+	value.sort()
+	result.extend(value)
+	return result
 
 register.filter("listLookup", listLookup)
 register.filter("dictLookup", dictLookup)
@@ -62,4 +68,5 @@ register.filter("timeZone", timeZone)
 register.filter("notNone", notNone)
 register.filter("orNbsp", orNbsp)
 register.filter("orNone", orNone)
+register.filter("sorted", sorted)
 

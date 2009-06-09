@@ -1,0 +1,39 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+	<div id="content">
+	
+	<h3>{{annotation.shortString}}</h3>
+	<div class="blurb">{{annotation.longString_formatted}}</div>
+
+	<p>This {{annotation.type}} refers to the {{annotation.article.type}} <a href="read?{{annotation.article.key}}">{{annotation.article.title}}</a>.</p>
+	
+	<p>It was entered by 
+	
+	{% if annotation.attributedToMember %}
+			{% if annotation.creator.active %}
+				<a href="member?{{annotation.creator.key}}">{{annotation.creator.nickname}}</a>
+				{% ifequal annotation.creator.key current_member.key %}
+					 (you)
+				{% endifequal %}
+			{% else %}
+				the former member "{{annotation.creator.nickname}}"
+			{% endif %}
+	{% else %}
+		<a href="character?{{annotation.character.key}}">{{annotation.character.name}}</a>
+	{% endif %}
+	
+	on {{annotation.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+	at {{annotation.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
+
+	{% if annotation.collectedOffline %}
+		{% if annotation.liaison %}
+			<p>It was collected off-line and entered by {{annotation.liaison.nickname}}.</p>
+		{% endif %}
+	{% endif %}
+	
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

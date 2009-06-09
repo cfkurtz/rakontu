@@ -22,6 +22,8 @@ DEFAULT_NUDGE_POINT_ACCUMULATIONS = [
 									0, # time (doesn't apply here)
 					 				4, # reading
 					 				20, # telling
+					 				5, # retelling
+					 				5, # reminding
 					 				10, # relating
 					 				15, # including
 					 				30, # responding
@@ -33,8 +35,12 @@ DEFAULT_NUDGE_POINT_ACCUMULATIONS = [
 					 				]
 
 DATE_FORMATS = {
-			"j F Y": "%d %B %Y", #"1 January 2000",
-			"F j, Y": "%B %d, %Y", #"January 1, 2000",
+			"j F Y": "%e %B %Y", # 3 January 2000
+			"F j, Y": "%B %e, %Y", # January 3, 2000
+			"j F": "%e %B", # 3 January
+			"F j": "%B %e", # January 3
+			"j/n/Y": "%d/%m/%Y", # 03/01/2000
+			"n/j/Y": "%m/%d/%Y", # 01/03/2000
 			}
 TIME_FORMATS = {
 			"h:i a": "%I:%M %p", #"5:00 pm", 
@@ -52,11 +58,11 @@ DEFAULT_ROLE_READMES = [
 GOVERNANCE_ROLE_TYPES = ["member", "manager", "owner"]
 ACTIVITIES_GERUND = ["time", \
 					   	 "reading", \
-						 "telling", "relating", "including", "responding", \
+						 "telling", "retelling", "reminding", "relating", "including", "responding", \
 						 "answering question", "tagging", "commenting", "requesting", "nudging"]
 ACTIVITIES_VERB = ["time", \
 					   	 "read", \
-						 "told", "related", "included", \
+						 "told", "retold", "reminded", "related", "included", "responded", \
 						 "question answered about", "tagged", "commented", "requested", "nudged"]
 
 # articles
@@ -92,8 +98,11 @@ DEFAULT_ACTIVITY_POINTS_PER_EVENT = [
 									-1, # time
 					 				5, # reading
 					 				2, # telling  
+					 				2, # retelling
+					 				2, # reminding
 					 				2, # relating
 					 				2, # including 
+					 				2, # responding
 					 				2, # answering
 					 				10, # tagging
 					 				10, # commenting
@@ -101,7 +110,6 @@ DEFAULT_ACTIVITY_POINTS_PER_EVENT = [
 					 				6, # nudging 
 					 				]
 
-# history
 HISTORY_ACTION_TYPES = ["read", "added"]
 HISTORY_REFERENT_TYPES = ["story", "pattern", "collage", "invitation", "resource", \
 						  "retold link", "reminded link", "related link", "included link", \
@@ -186,9 +194,9 @@ class Community(db.Model):
 	welcomeMessage_format = db.StringProperty(default="plain text")
 	image = db.BlobProperty(default=None)
 	
-	defaultTimeZoneName = db.StringProperty()
-	defaultTimeFormat = db.StringProperty()
-	defaultDateFormat = db.StringProperty()
+	defaultTimeZoneName = db.StringProperty(default="US/Eastern")
+	defaultTimeFormat = db.StringProperty(default="h:i a")
+	defaultDateFormat = db.StringProperty(default="F j, Y")
 	
 	created = TzDateTimeProperty(auto_now_add=True)
 	lastPublish = TzDateTimeProperty(default=None)
@@ -445,6 +453,7 @@ class Member(db.Model):
 	joined = TzDateTimeProperty(auto_now_add=True)
 	lastEnteredArticle = db.DateTimeProperty()
 	lastEnteredAnnotation = db.DateTimeProperty()
+	lastEnteredLink = db.DateTimeProperty()
 	lastAnsweredQuestion = db.DateTimeProperty()
 	lastReadAnything = db.DateTimeProperty()
 	nudgePoints = db.IntegerProperty(default=50)
@@ -535,14 +544,20 @@ class Member(db.Model):
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
 	
-	def getHistory(self):
-		return ArticleHistoryItem.all().filter("member = ", self.key()).order("-timeStamp").fetch(FETCH_NUMBER)
+	def getNonDraftArticlesAttributedToMember(self):
+		return Article.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).fetch(FETCH_NUMBER)
 	
 	def getDraftArticles(self):
 		return Article.all().filter("creator = ", self.key()).filter("draft = ", True).fetch(FETCH_NUMBER)
 	
+	def getNonDraftAnnotationsAttributedToMember(self):
+		return Annotation.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).fetch(FETCH_NUMBER)
+	
 	def getDraftAnswersForArticle(self, article):
 		return Answer.all().filter("creator = ", self.key()).filter("draft = ", True).filter("referent = ", article.key()).fetch(FETCH_NUMBER)
+	
+	def getNonDraftAnswersAboutArticlesAttributedToMember(self):
+		return Answer.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).filter("referentType = ", "article").fetch(FETCH_NUMBER)
 	
 	def getDraftAnnotations(self):
 		return Annotation.all().filter("creator = ", self.key()).filter("draft = ", True).fetch(FETCH_NUMBER)
@@ -588,9 +603,6 @@ class Character(db.Model):
 	etiquetteStatement_format = db.StringProperty(default="plain text")
 	image = db.BlobProperty(default=None)
 	
-	def getHistory(self):
-		return ArticleHistoryItem.all().filter("attribution = ", self.name).order("-timeStamp").fetch(FETCH_NUMBER)
-	
 # --------------------------------------------------------------------------------------------
 # Answer
 # --------------------------------------------------------------------------------------------
@@ -634,6 +646,8 @@ class Answer(db.Model):
 	edited = TzDateTimeProperty(auto_now_add=True)
 	published = TzDateTimeProperty(auto_now_add=True)
 	draft = db.BooleanProperty(default=True)
+	articleNudgePointsWhenPublished = db.ListProperty(int, default=[0,0,0,0,0])
+	articleActivityPointsWhenPublished = db.IntegerProperty(default=0)
 	
 	def questionKey(self):
 		return self.question.key()
@@ -646,19 +660,55 @@ class Answer(db.Model):
 			return self.character.name
 		else:
 			return self.creator.nickname
-				
+		
 	def publish(self):
 		if self.referentType == "article":
 			self.draft = False
 			self.published = datetime.now(pytz.utc)
 			self.put()
-			self.referent.addHistoryItem(self.memberNickNameOrCharacterName(), "added", self)
+			self.referent.recordAction("added", self)
+			if self.referentType == "article":
+				for i in range(5):
+					self.articleNudgePointsWhenPublished[i] = self.referent.nudgePoints[i]
+				self.articleActivityPointsWhenPublished = self.referent.activityPoints
+				self.put()
 			self.creator.nudgePoints += self.community.getNudgePointsPerActivityForActivityName("answering question")
 			self.creator.lastAnsweredQuestion = datetime.now(pytz.utc)
 			self.creator.put()
 			self.community.lastPublish = self.published
 			self.community.put()
 				
+	def getImageLinkForType(self):
+		return'<img src="/images/answers.png" alt="answer" border="0">'
+	
+	def displayStringShort(self):
+		return self.displayString(includeQuestionName=False)
+	
+	def displayString(self, includeQuestionName=True):
+		if includeQuestionName:
+			result = self.question.name + ": "
+		else: 
+			result = ""
+		if self.question.type == "boolean":
+			if self.answerIfBoolean: 
+				result += "yes"
+			else:
+				result += "no"
+		elif self.question.type == "text":
+			result += self.answerIfText
+		elif self.question.type == "ordinal" or self.question.type == "nominal":
+			answersToReport = []
+			for answer in self.answerIfMultiple:
+				if len(answer):
+					answersToReport.append(answer)
+			result +=  ", ".join(answersToReport)
+		elif self.question.type == "value":
+			result +=  "%s" % self.answerIfValue
+		return result
+	
+	def linkString(self):
+		return self.displayString()
+		
 # --------------------------------------------------------------------------------------------
 # Article
 # --------------------------------------------------------------------------------------------
@@ -756,6 +806,14 @@ class Article(db.Model):
 	def getNonDraftAnnotations(self):
 		return Annotation.all().filter("article =", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
+	def getAllLinks(self):
+		result = []
+		outgoingLinks = Link.all().filter("articleFrom =", self.key()).fetch(FETCH_NUMBER)
+		incomingLinks = Link.all().filter("articleTo =", self.key()).fetch(FETCH_NUMBER)
+		result.extend(outgoingLinks)
+		result.extend(incomingLinks)
+		return result
+	
 	def getLinksOfType(self, type):
 		result = []
 		outgoingLinks = self.getOutgoingLinksOfType(type)
@@ -785,9 +843,9 @@ class Article(db.Model):
 			imageText = '<img src="/images/pattern.png" alt="pattern" border="0">'
 		elif self.type == "collage":
 			imageText = '<img src="/images/collage.png" alt="collage" border="0">'
-		if self.type == "invitation":
+		elif self.type == "invitation":
 			imageText = '<img src="/images/invitation.png" alt="invitation" border="0">'
-		if self.type == "resource":
+		elif self.type == "resource":
 			imageText = '<img src="/images/resource.png" alt="resource" border="0">'
 		return imageText
 	
@@ -807,44 +865,24 @@ class Article(db.Model):
 	def memberCanNudge(self, member):
 		return member.key() != self.creator.key()
 	
-	def getHistory(self):
-		return ArticleHistoryItem.all().filter("article = ", self.key()).order("-timeStamp").fetch(FETCH_NUMBER)
-
-	def addHistoryItem(self, attribution, action, referent):
-		item = ArticleHistoryItem(attribution=attribution, actionType=action, referent=referent)
-		item.article = self
+	def recordAction(self, action, referent):
 		if referent.__class__.__name__ == "Article":
-			item.referentType = referent.type
-			item.textToShow = referent.title
+			referentType = referent.type
 			if action == "read":
 				self.lastRead = datetime.now(pytz.utc)
 		elif referent.__class__.__name__ == "Annotation":
-			item.referentType = referent.type
-			if referent.type == "tag set":
-				item.textToShow = ", ".join(referent.tagsIfTagSet)
-			else:
-				item.textToShow = referent.shortString
+			referentType = referent.type
 			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
 		elif referent.__class__.__name__ == "Answer":
-			item.referentType = "answer"
-			item.textToShow = referent.question.text
+			referentType = "answer"
 			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
 		elif referent.__class__.__name__ == "Link":
-			item.referentType = referent.type + " link"
-			item.textToShow = referent.comment
+			referentType = referent.type + " link"
 			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
-		item.activityPoints = DEFAULT_ACTIVITY_ACCUMULATIONS[item.referentType]
-		item.put()
-		self.activityPoints = self.getCurrentTotalActivityPoints()
+		self.activityPoints += DEFAULT_ACTIVITY_ACCUMULATIONS[referentType]
 		self.nudgePoints = self.getCurrentTotalNudgePointsInAllCategories()
 		self.put()
 				
-	def getCurrentTotalActivityPoints(self):
-		result = 0
-		for item in self.getHistory():
-			result += DEFAULT_ACTIVITY_ACCUMULATIONS[item.referentType]
-		return result
-	
 	def getCurrentTotalNudgePointsInAllCategories(self):
 		result = [0,0,0,0,0]
 		for nudge in self.getNonDraftAnnotationsOfType("nudge"):
@@ -866,8 +904,7 @@ class Article(db.Model):
 	def publish(self):
 		self.draft = False
 		self.published = datetime.now(pytz.utc)
-		self.addHistoryItem(self.memberNickNameOrCharacterName(), "added", self)
-		self.lastAnnotatedOrAnswered = datetime.now(pytz.utc)
+		self.recordAction("added", self)
 		self.put()
 		self.creator.nudgePoints += self.community.getNudgePointsPerActivityForActivityName("telling")
 		self.creator.lastEnteredArticle = datetime.now(pytz.utc)
@@ -903,7 +940,52 @@ class Link(db.Model):
 	published = TzDateTimeProperty(auto_now_add=True)
 	type = db.StringProperty(choices=LINK_TYPES, required=True)
 	comment = db.StringProperty(default="")
+	articleNudgePointsWhenPublished = db.ListProperty(int, default=[0,0,0,0,0])
+	articleActivityPointsWhenPublished = db.IntegerProperty(default=0)
 	
+	def publish(self):
+		self.published = datetime.now(pytz.utc)
+		self.put()
+		self.articleFrom.recordAction("added", self)
+		self.articleTo.recordAction("added", self)
+		for i in range(5):
+			self.articleNudgePointsWhenPublished[i] = self.articleFrom.nudgePoints[i]
+		self.articleActivityPointsWhenPublished = self.articleFrom.activityPoints
+		self.put()
+		i = 0
+		nudgePointType = None
+		for verb in ACTIVITIES_VERB:
+			if type == verb:
+				nudgePointType = ACTIVITIES_GERUND[i]
+				break
+			i += 1
+		if nudgePointType:
+			self.creator.nudgePoints = self.community.getNudgePointsPerActivityForActivityName(nudgePointType)
+		self.creator.lastEnteredLink = datetime.now(pytz.utc)
+		self.creator.put()
+		self.articleFrom.community.lastPublish = self.published
+		if not self.articleFrom.community.firstPublishSet:
+			self.articleFrom.community.firstPublish = self.published
+			self.articleFrom.community.firstPublishSet = True
+		self.articleFrom.community.put()
+		
+	def attributedToMember(self):
+		return True
+		
+	def getImageLinkForType(self):
+		return'<img src="/images/link.png" alt="link" border="0">'
+	
+	def displayString(self):
+		result = '<a href="read?%s">%s</a> (%s' % (self.articleTo.key(), self.articleTo.title, self.type)
+		if self.comment:
+			result += ", %s)" % self.comment
+		else:
+			result += ")"
+		return result
+	
+	def linkString(self):
+		return self.displayString()
+		
 class Attachment(db.Model):
 	""" For binary attachments to articles.
 	
@@ -919,29 +1001,6 @@ class Attachment(db.Model):
 	fileName = db.StringProperty()
 	data = db.BlobProperty()
 	article = db.ReferenceProperty(Article, collection_name="attachments")
-	
-class ArticleHistoryItem(db.Model):
-	""" To keep a record of changes made to articles.
-	
-	Properties
-		timeStamp:			When the action happened.
-		actionType:			What was done - read, create, or inactivate.
-		article:			What article the change relates to (may be same as referent).
-		referent:			What object it was done to.
-		referentType:		What type of object it was. 
-							This is here mainly if the object is removed and can no longer
-							be asked what type it was.
-		textToShow:			How to report on what this was called.
-		activityPoints:		How many activityPoints this item creates for the article.
-	"""
-	timeStamp = TzDateTimeProperty(auto_now_add=True)
-	attribution = db.StringProperty()
-	actionType = db.StringProperty(choices=HISTORY_ACTION_TYPES, required=True)
-	article = db.ReferenceProperty(Article, collection_name="articles_history")
-	referent = db.ReferenceProperty(None, collection_name="referents_history", required=True)
-	referentType = db.StringProperty(choices=HISTORY_REFERENT_TYPES)
-	textToShow = db.StringProperty()
-	activityPoints = db.IntegerProperty(default=0)
 	
 # --------------------------------------------------------------------------------------------
 # Annotations
@@ -997,6 +1056,14 @@ class Annotation(db.Model):
 	edited = TzDateTimeProperty(auto_now_add=True)
 	published = TzDateTimeProperty(auto_now_add=True)
 	draft = db.BooleanProperty(default=True)
+	articleNudgePointsWhenPublished = db.ListProperty(int, default=[0,0,0,0,0])
+	articleActivityPointsWhenPublished = db.IntegerProperty(default=0)
+	
+	def isComment(self):
+		return self.type == "comment"
+	
+	def isRequest(self):
+		return self.type == "request"
 	
 	def totalNudgePoints(self):
 		result = 0
@@ -1037,11 +1104,37 @@ class Annotation(db.Model):
 			if self.shortString:
 				result.append("(%s)" % self.shortString)
 			return ", ".join(result)
+	
+	def linkString(self):
+		if self.type == "comment" or self.type == "request":
+			if self.longString_formatted and len(self.longString_formatted) > 30:
+				return '<a href="readAnnotation?%s">%s</a>' % (self.key(), self.displayString())
+			elif self.longString_formatted:
+				return "%s: %s" % (self.shortString, self.longString_formatted)
+			else:
+				return self.shortString
+		else:
+			return self.displayString()
 		
+	def getImageLinkForType(self):
+		if self.type == "comment":
+			imageText = '<img src="/images/comments.png" alt="comment" border="0">'
+		elif self.type == "request":
+			imageText = '<img src="/images/requests.png" alt="request" border="0">'
+		elif self.type == "tag set":
+			imageText = '<img src="/images/tags.png" alt="tag set" border="0">'
+		elif self.type == "nudge":
+			imageText = '<img src="/images/nudges.png" alt="nudge" border="0">'
+		return imageText
+	
 	def publish(self):
 		self.draft = False
 		self.published = datetime.now(pytz.utc)
-		self.article.addHistoryItem(self.memberNickNameOrCharacterName(), "added", self)
+		self.put()
+		self.article.recordAction("added", self)
+		for i in range(5):
+			self.articleNudgePointsWhenPublished[i] = self.article.nudgePoints[i]
+		self.articleActivityPointsWhenPublished = self.article.activityPoints
 		self.put()
 		if self.type == "tag set":
 			activity = "tagging"

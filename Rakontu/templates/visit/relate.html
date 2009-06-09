@@ -20,6 +20,7 @@
 		      	<tr>
 		      		<th>Title (type)</th>
 		      		<th>Incoming or outgoing?</th>
+		      		<th>Created by</th>
 		      		<th>Text</th>
 		      		<th>Relation comment</th>
 		      		<th>Remove?</th>
@@ -39,6 +40,16 @@
 		  				{% else %}
 		  					outgoing
 		  				{% endifequal %}
+		  				</td>
+		  				<td>
+							{% if link.creator.active %}
+								<a href="member?{{link.creator.key}}">{{link.creator.nickname}}</a>
+								{% ifequal link.creator.key current_member.key %}
+									 (you)
+								{% endifequal %}
+							{% else %}
+								the former member "{{link.creator.nickname}}"
+							{% endif %}
 		  				</td>
 		  				<td>{{link.articleTo.shortFormattedText|orNone}}</td>
 		  				<td><input type="text" name="linkComment|{{link.key}}" value="{{link.comment}}" size="40"/></td>

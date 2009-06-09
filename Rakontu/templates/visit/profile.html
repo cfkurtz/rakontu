@@ -38,6 +38,13 @@
 				never
 			{% endif %}
 			</td></tr>
+		<td>Last entered link</td><td>
+			{% if current_member.lastEnteredLink %} 
+				{{current_member.lastEnteredLink|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{current_member.lastEnteredLink|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+			{% else %}
+				never
+			{% endif %}
+			</td></tr>
 		<td>Last read anything</td><td>
 			{% if current_member.lastReadAnything %} 
 				{{current_member.lastReadAnything|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{current_member.lastReadAnything|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
