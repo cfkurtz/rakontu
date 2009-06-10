@@ -30,6 +30,10 @@ a:hover {
 	color: #FFFFFF;
 	}
 	
+.image:hover {
+	background: #EECBAD;
+	}
+	
 img.bordered {
 	border: 1px solid #FF7F00;
 	}

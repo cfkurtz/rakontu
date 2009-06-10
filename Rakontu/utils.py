@@ -28,6 +28,31 @@ from google.appengine.api import images
 from google.appengine.api import mail
 
 webapp.template.register_template_library('djangoTemplateExtras')
+import csv
+
+def GenerateHelps():
+	helpStrings = csv.reader(open('help.csv'))
+	for row in helpStrings:
+		if len(row) >= 3:
+			matchingHelp = helpLookup(row[1].strip(), row[0].strip())
+			if not matchingHelp:
+				help = Help(name=row[1].strip(), type=row[0].strip(), text=row[2].strip())
+				help.put()
+			else:
+				matchingHelp.name = row[1].strip()
+				matchingHelp.type = row[0].strip()
+				matchingHelp.text = row[2].strip()
+				matchingHelp.put()
+		
+def helpLookup(name, type):
+	return Help.all().filter("name = ", name).filter("type = ", type).get()
+
+def helpTextLookup(name, type):
+	match = Help.all().filter("name = ", name).filter("type = ", type).get()
+	if match:
+		return match.text
+	else:
+		return None
 
 class ImageHandler(webapp.RequestHandler):
 	def get(self):

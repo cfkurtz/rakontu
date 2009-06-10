@@ -1194,4 +1194,9 @@ class InappropriateFlag(db.Model):
 	comment = db.StringProperty(default="")
 	entered = TzDateTimeProperty(auto_now_add=True)
 	
+class Help(db.Model):
+	name = db.StringProperty()
+	type = db.StringProperty()
+	text = db.StringProperty()
+	
 	

@@ -87,6 +87,12 @@ class StartPage(webapp.RequestHandler):
 		elif "makeFakeData" in self.request.arguments():
 			MakeSomeFakeData()
 			self.redirect("/")
+		elif "generateSystemQuestions" in self.request.arguments():
+			systemquestions.AddSystemQuestionsToDataStore()
+			self.redirect("/")
+		elif "generateHelps" in self.request.arguments():
+			GenerateHelps()
+			self.redirect("/")
 			
 class NewMemberPage(webapp.RequestHandler):
 	@RequireLogin 

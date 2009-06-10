@@ -5,6 +5,8 @@ import logging
 from pytz import timezone
 import pytz
 
+import utils
+
 register = webapp.template.create_template_register()
 
 def dictLookup(dict, key):
@@ -51,7 +53,7 @@ def orNbsp(value):
 			return value
 	else:
 		return "&nbsp;"
-	
+
 def orNone(value):
 	if value:
 		return value
@@ -64,12 +66,24 @@ def sorted(value):
 	result.extend(value)
 	return result
 
-register.filter("listLookup", listLookup)
-register.filter("dictLookup", dictLookup)
-register.filter("makeRange", makeRange)
-register.filter("timeZone", timeZone)
-register.filter("notNone", notNone)
-register.filter("orNbsp", orNbsp)
-register.filter("orNone", orNone)
-register.filter("sorted", sorted)
+def info(value):
+	return '<img src="../images/information.png" alt="help" border="0" valign="center" title="%s"' % utils.helpTextLookup(value, "info")
+
+def tip(value):
+	return '<img src="../images/tip.png" alt="help" border="0" valign="center" title="%s">' % utils.helpTextLookup(value, "tip")
+
+def caution(value):
+	return '<img src="../images/caution.png" alt="help" border="0" valign="center" title="%s">' % utils.helpTextLookup(value, "caution")
+
+register.filter(listLookup)
+register.filter(dictLookup)
+register.filter(makeRange)
+register.filter(timeZone)
+register.filter(notNone)
+register.filter(orNbsp)
+register.filter(orNone)
+register.filter(sorted)
+register.filter(info)
+register.filter(tip)
+register.filter(caution)
 

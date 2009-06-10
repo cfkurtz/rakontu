@@ -7,18 +7,18 @@
 		{% if current_member.isManagerOrOwner %}
 			<div id="stylized" class="rakontu_form">
 			<form action="/manage/settings" method="post" enctype="multipart/form-data">
-			<h2>Changing Settings for Rakontu Community "{{ community.name|escape }}"</h2>
-			<p>Community ID number (database key): {{community.key}}</p>
-			<p>Created: {{community.created}}</p>
+			<p>This community was created 
+			on {{community.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.</p>
+			
 	
 			<h3>Name and description</h3>
 			<fieldset>
-			<p>Community name</p>
+			<p>Community name {{"community_name"|tip}}</p>
 			<input type="text" name="name" value="{{ community.name }}" maxlength="40" size="30"/>
-			<p>Tag line</p>
+			<p>Tag line {{"community_tagline"|tip}}</p>
 			<input type="text" name="tagline" value="{{ community.tagline }}" maxlength="80" size="80"/>
-			<p><i>This text shows after your community name at the top of the web page.</i></p>
-			<p>Community description</p>
+			<p><i>The tag line (if you choose one) shows after your community name at the top of the web page.</i></p>
+			<p>Community description {{"community_description"|tip}}</p>
 			<textarea name="description" rows="10" cols="60">{{ community.description }}</textarea>
 			<div class="rightalign">Interpret this as <select name="description_format">
 				{% for format in text_formats %}
@@ -29,7 +29,7 @@
 					>{{format}}</option>
 				{% endfor %}
 				</select></div>
-			<p>Welcome message for new members</p>
+			<p>Welcome message for new members {{"community_welcome"|tip}}</p>
 			<textarea name="welcomeMessage" rows="5" cols="60">{{ community.welcomeMessage|escape }}</textarea>
 			<div class="rightalign">Interpret this as <select name="welcomeMessage_format">
 				{% for format in text_formats %}
@@ -40,7 +40,7 @@
 					>{{format}}</option>
 				{% endfor %}
 				</select></div>
-			<p>Optional etiquette statement (rules for behavior)</p>
+			<p>Optional etiquette statement (rules for behavior) {{"community_etiquette"|tip}}</p>
 			<textarea name="etiquetteStatement" rows="5" cols="60">{{ community.etiquetteStatement|escape }}</textarea>
 			<div class="rightalign">Interpret this as <select name="etiquetteStatement_format">
 				{% for format in text_formats %}
@@ -51,17 +51,11 @@
 					>{{format}}</option>
 				{% endfor %}
 				</select></div>
-			<p>Community image</p>
+			<p>Community image {{"community_image"|tip}}</p>
 			{% if community.image %}
 				<img src="img?community_id={{community.key}}" class="bordered"></img>
 				<input type="checkbox" name="removeImage" value="removeImage" id="removeImage"><label for="removeImage">Remove</label>
 			{% endif %}
-			{% if community.image %}
-				<p>Click Browse to replace this image with a new one.
-			{% else %}
-				<p>Click Browse to choose a community image. This will display on the top of all screens.
-			{% endif %}
-			<i>The best image size is width 100, height 60.</i></p>
 			<p><input type="file" name="img" accept="jpg/png"/></p>
 			</fieldset>
 			
@@ -133,7 +127,7 @@
 	
 			<h3>Characters</h3>
 			<fieldset>
-			<p>Is entry via fictional character allowed for each of these entry types?</p>
+			<p>Is entry via fictional character allowed for each of these entry types? {{"community_fictional"|caution}}</p>
 			{% for text in character_includes %}
 				{{ text }}
 			{% endfor %}
@@ -142,11 +136,10 @@
 			
 			<h3>Nudge system</h3>
 			<fieldset>
-			<p><i>Nudge points are ratings assigned by members. They collectively
-			affect the <b>vertical placement</b> of articles in the main window and give members
-			a sense of what matters to the community.</i></p>
-			<p>How many nudge points can be asssigned (maximum) per article?
+			<p><i></i></p>
+			<p>How many nudge points can be asssigned (maximum) per article? 
 			<input type="text" name="maxNudgePointsPerArticle" size="4" value="{{community.maxNudgePointsPerArticle}}"/>
+			{{"community_nudgePoints"|info}} {{"community_nudgePointsPerArticle"|caution}}
 			<p>Enter your nudge category names here.<i>Note: You should not change these after many articles
 			have been entered.</i></p>
 			<p>
