@@ -6,7 +6,7 @@
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
 
-from view import *
+from visit import *
 from create import *
 from manage import *
 
