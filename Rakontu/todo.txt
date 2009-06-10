@@ -52,11 +52,6 @@ liaison page:
     quick ways to output things for them
     stories, comments about their stories, etc
     
- problem? saved story as draft, edited questions, resaved, history has extra items
- is history saving when drafts are edited? should not be
- 
-finish relate, include links
-
 add import/export of question lists (CSV)
 	
 with markup - allow to refer to image in attachments {1} {2} etc
@@ -64,10 +59,8 @@ also check how handling <img src= tag in simple html version (i think am not han
 
 start thinking about internationalization
 
-need extra pages for reading long articles/annotations
-
 UNICODE
 
-deal with issue of people saving an article or annotation or answer set with no content
-
 need a way to nudge things from the main page - you just want to do it - icon?
+
+reorganize main.py, too long

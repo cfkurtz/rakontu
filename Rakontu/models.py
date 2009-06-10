@@ -6,8 +6,17 @@
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
 
-from utils import *
- 
+import logging
+from datetime import *
+import pytz
+from pytz import timezone
+
+from google.appengine.ext import db
+
+
+def DebugPrint(text, msg="print"):
+	logging.info(">>>>>>>> %s >>>>>>>> %s" %(msg, text))
+	
 # --------------------------------------------------------------------------------------------
 # Constants
 # --------------------------------------------------------------------------------------------

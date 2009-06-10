@@ -8,20 +8,18 @@
 
 import os
 import string
-from datetime import *
-import logging
 import cgi
 import re
 import htmllib
-import pytz
-from pytz import timezone
+
+import systemquestions
+
+from models import *
 
 import sys
 sys.path.append("/Users/cfkurtz/Documents/personal/eclipse_workspace_kfsoft/Rakontu/lib/") 
 from appengine_utilities.sessions import Session
 
-from google.appengine.ext import db
-from google.appengine.api import memcache
 from google.appengine.api import users
 from google.appengine.ext.webapp import template
 from google.appengine.ext import webapp
@@ -29,9 +27,150 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.api import images
 from google.appengine.api import mail
 
-def DebugPrint(text, msg="print"):
-	logging.info(">>>>>>>> %s >>>>>>>> %s" %(msg, text))
-	
+webapp.template.register_template_library('djangoTemplateExtras')
+
+class ImageHandler(webapp.RequestHandler):
+	def get(self):
+		if self.request.get("member_id"):
+			member = db.get(self.request.get("member_id"))
+			if member and member.profileImage:
+				self.response.headers['Content-Type'] = "image/jpg"
+				self.response.out.write(member.profileImage)
+			else:
+				self.error(404)
+		elif self.request.get("community_id"):
+			community = db.get(self.request.get("community_id"))
+			if community and community.image:
+				self.response.headers['Content-Type'] = "image/jpg"
+				self.response.out.write(community.image)
+			else:
+				self.error(404)
+		elif self.request.get("article_id"):
+			article = db.get(self.request.get("article_id"))
+			if article and article.type == "pattern" and article.screenshotIfPattern:
+				self.response.headers['Content-Type'] = "image/jpg"
+				self.response.out.write(article.screenshotIfPattern)
+		elif self.request.get("character_id"):
+			character = db.get(self.request.get("character_id"))
+			if character:
+				self.response.headers['Content-Type'] = "image/jpg"
+				self.response.out.write(character.image)
+			   
+class AttachmentHandler(webapp.RequestHandler):
+	def get(self):
+		if self.request.get("attachment_id"):
+			attachment = db.get(self.request.get("attachment_id"))
+			if attachment and attachment.data:
+				if attachment.mimeType in ["image/jpeg", "image/png", "text/html", "text/plain"]:
+					self.response.headers.add_header('Content-Disposition', 'filename="%s"' % attachment.fileName)
+				else:
+					self.response.headers.add_header('Content-Disposition', 'attachment; filename="%s"' % attachment.fileName)
+				self.response.headers.add_header('Content-Type', attachment.mimeType)
+				self.response.out.write(attachment.data)
+			else:
+				self.error(404)
+				
+def RequireLogin(func):
+	def check_login(request):
+		if not users.get_current_user():
+			loginURL = users.create_login_url("/")
+			request.redirect(loginURL)
+			return
+		func(request)
+	return check_login 
+
+def GetCurrentCommunityAndMemberFromSession():
+	session = Session()
+	if session and session.has_key('community_key'):
+		community_key = session['community_key']
+	else:
+		community_key = None
+	if session and session.has_key('member_key'):
+		member_key = session['member_key']
+	else:
+		member_key = None
+	if community_key: 
+		community = db.get(community_key) 
+	else:
+		community = None
+	if member_key:
+		member = db.get(member_key)
+		if not member.community.key() == community.key():
+			member = None
+	else:
+		member = None
+	return community, member
+
+def DjangoToPythonDateFormat(format):
+	if DATE_FORMATS.has_key(format):
+		return DATE_FORMATS[format]
+	return "%B %d, %Y"
+
+def DjangoToPythonTimeFormat(format):
+	if TIME_FORMATS.has_key(format):
+		return TIME_FORMATS[format]
+	return "%I:%M %p"
+
+def DateFormatStrings():
+	result = {}
+	for format in DATE_FORMATS.keys():
+		result[format] = datetime.now().strftime(DATE_FORMATS[format])
+	return result
+
+def TimeFormatStrings():
+	result = {}
+	for format in TIME_FORMATS.keys():
+		result[format] = datetime.now().strftime(TIME_FORMATS[format])
+	return result
+
+def RelativeTimeDisplayString(whenUTC, member):
+	when = whenUTC.astimezone(timezone(member.timeZoneName))
+	delta = datetime.now(tz=timezone(member.timeZoneName)) - when
+	if delta.days < 1 and delta.seconds < 1: 
+		return "Now"
+	elif delta.days < 1 and delta.seconds < 60: # one minute
+		return "Moments ago"
+	elif delta.days < 1 and delta.seconds < 60*60: # one hour
+		return "%s minutes ago" % (delta.seconds // 60)
+	elif delta.days < 1:
+		return when.strftime(DjangoToPythonTimeFormat(member.timeFormat))
+	elif delta.days < 2:
+		return "Yesterday at %s" % when.strftime(DjangoToPythonTimeFormat(member.timeFormat))
+	elif delta.days < 7:
+		return when.strftime("%s at %s" % (DjangoToPythonDateFormat(member.dateFormat), 
+										DjangoToPythonTimeFormat(member.timeFormat)))
+	else:
+		return when.strftime("%s at %s" % (DjangoToPythonDateFormat(member.dateFormat), 
+										DjangoToPythonTimeFormat(member.timeFormat)))
+
+def MakeSomeFakeData():
+	user = users.get_current_user()
+	community = Community(name="Test community", description="Test description")
+	community.put()
+	member = Member(googleAccountID=user.user_id(), googleAccountEmail=user.email(), nickname="Tester", community=community, governanceType="owner")
+	member.initialize()
+	member.put()
+	if user.email() != "test@example.com":
+		PendingMember(community=community, email="test@example.com").put()
+	else:
+		PendingMember(community=community, email="cfkurtz@cfkurtz.com").put()
+	PendingMember(community=community, email="admin@example.com").put()
+	Character(name="Little Bird", community=community).put()
+	Character(name="Old Coot", community=community).put()
+	Character(name="Blooming Idiot", community=community).put()
+	article = Article(community=community, type="story", creator=member, title="The dog", text="The dog sat on a log.", draft=False)
+	article.put()
+	article.publish()
+	annotation = Annotation(community=community, type="comment", creator=member, article=article, shortString="Great!", longString="Wonderful!", draft=False)
+	annotation.put()
+	annotation.publish()
+	annotation = Annotation(community=community, type="comment", creator=member, article=article, shortString="Dumb", longString="Silly", draft=False)
+	annotation.put()
+	annotation.publish()
+	article = Article(community=community, type="story", creator=member, title="The circus", text="I went the the circus. It was great.", draft=False)
+	article.put()
+	article.publish()
+
 def checkedBlank(value):
 	if value:
 		return "checked"
