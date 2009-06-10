@@ -515,3 +515,27 @@ class ShowAllMembers(webapp.RequestHandler):
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect('/')
+				
+class GenerateSystemQuestionsPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			if users.is_current_user_admin():
+				GenerateSystemQuestions()
+				self.redirect('/visit/look')
+			else:
+				self.redirect('/')
+				
+class GenerateHelpsPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			if users.is_current_user_admin():
+				GenerateHelps()
+				self.redirect('/visit/look')
+			else:
+				self.redirect('/')
+				
+

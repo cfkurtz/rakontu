@@ -65,12 +65,12 @@ DEFAULT_ROLE_READMES = [
 						"A guide pays attention to the Rakontu's on-line human community. Guides answer questions, write tutorials, encourage people to tell and use stories, create patterns, write and respond to requests, set up and run exercises, and in general maintain the vitality of the on-line member community.",
 						"A liaison guides stories and other information over the barrier between on-line and off-line worlds. Liaisons conduct external interviews and add the stories people tell in them, read stories to people and gather comments, nudges, and other annotations, and in general make the system work for both on-line and off-line community members."]
 GOVERNANCE_ROLE_TYPES = ["member", "manager", "owner"]
-EVENT_TYPES = ["time (downdrift)", \
+EVENT_TYPES = ["downdrift", \
 			"reading", "adding story", "adding pattern", "adding collage", "adding invitation", "adding resource", \
 			"adding retold link", "adding reminded link", "adding related link", "adding included link", "adding responded link", \
 			"answering question", "adding tag set", "adding comment", "adding request", "adding nudge"]
 DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS = [
-					0,	# time (downdrift)
+					0,	# downdrift
 					4,	# reading
 					40,	# adding story
 					20,	# adding pattern
@@ -89,7 +89,7 @@ DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS = [
 					5,	# adding nudge
 					]
 DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS = [
-					-1,	# time (downdrift)
+					-1,	# downdrift
 					4,	# reading
 					40,	# adding story
 					20,	# adding pattern
@@ -901,7 +901,7 @@ class Article(db.Model):
 				eventType = "reading"
 				self.lastRead = datetime.now(tz=pytz.utc)
 			elif action == "downdrift":
-				eventType = "time (downdrift)"
+				eventType = "downdrift"
 				self.lastDowndrifted = datetime.now(tz=pytz.utc)
 			elif action =="added":
 				eventType = "adding %s" % self.type

@@ -66,14 +66,25 @@ def sorted(value):
 	result.extend(value)
 	return result
 
+def infoTipCaution(value, visibleValue, type):
+	if visibleValue:
+		textToShow = value
+	else:
+		textToShow = ""
+	helpText = utils.helpTextLookup(value, type)
+	if helpText:
+		return '%s <img src="../images/%s.png" alt="help" border="0" valign="center" title="%s"/>' % (textToShow, type, helpText)
+	else:
+		return textToShow
+
 def info(value):
-	return '<img src="../images/information.png" alt="help" border="0" valign="center" title="%s"' % utils.helpTextLookup(value, "info")
+	return infoTipCaution(value, value.find("#") < 0, "info")
 
 def tip(value):
-	return '<img src="../images/tip.png" alt="help" border="0" valign="center" title="%s">' % utils.helpTextLookup(value, "tip")
+	return infoTipCaution(value, value.find("#") < 0, "tip")
 
 def caution(value):
-	return '<img src="../images/caution.png" alt="help" border="0" valign="center" title="%s">' % utils.helpTextLookup(value, "caution")
+	return infoTipCaution(value, value.find("#") < 0, "caution")
 
 register.filter(listLookup)
 register.filter(dictLookup)

@@ -76,12 +76,14 @@ application = webapp.WSGIApplication(
 									  
 									  # site admin
 									  ('/admin/showAllCommunities', ShowAllCommunities),
-									  ('/admin/showAllMembers', ShowAllMembers)],
+									  ('/admin/showAllMembers', ShowAllMembers),
+									  ('/admin/generateSystemQuestions', GenerateSystemQuestionsPage),
+									  ('/admin/generateHelps', GenerateHelpsPage),
+									  ],
 									 debug=True)
 
 def main():
 	run_wsgi_app(application)
 
 if __name__ == "__main__":
-	GenerateHelps()
 	main()

@@ -63,4 +63,5 @@ UNICODE
 
 need a way to nudge things from the main page - you just want to do it - icon?
 
-reorganize main.py, too long
+in the community settings it says you can set it so members have to check a box
+before becoming a curator etc, but you really don't

@@ -88,7 +88,7 @@ class StartPage(webapp.RequestHandler):
 			MakeSomeFakeData()
 			self.redirect("/")
 		elif "generateSystemQuestions" in self.request.arguments():
-			systemquestions.AddSystemQuestionsToDataStore()
+			GenerateSystemQuestions()
 			self.redirect("/")
 		elif "generateHelps" in self.request.arguments():
 			GenerateHelps()
@@ -200,7 +200,7 @@ class BrowseArticlesPage(webapp.RequestHandler):
 							'time_frames': TIME_FRAMES, 
 							'article_types': ARTICLE_TYPES, 
 							'1_to_31': range(1, 31, 1), 
-							'5_to_10': range(5, 11, 1), 
+							'3_to_10': range(3, 11, 1), 
 							'user_is_admin': users.is_current_user_admin(), 
 							'logout_url': users.create_logout_url("/"), 
 							}

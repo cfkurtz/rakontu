@@ -12,8 +12,6 @@ import cgi
 import re
 import htmllib
 
-import systemquestions
-
 from models import *
 
 import sys
@@ -31,18 +29,14 @@ webapp.template.register_template_library('djangoTemplateExtras')
 import csv
 
 def GenerateHelps():
-	helpStrings = csv.reader(open('help.csv'))
+	db.delete(Help.all().fetch(FETCH_NUMBER))
+	file = open('help.csv')
+	helpStrings = csv.reader(file)
 	for row in helpStrings:
-		if len(row) >= 3:
-			matchingHelp = helpLookup(row[1].strip(), row[0].strip())
-			if not matchingHelp:
-				help = Help(name=row[1].strip(), type=row[0].strip(), text=row[2].strip())
-				help.put()
-			else:
-				matchingHelp.name = row[1].strip()
-				matchingHelp.type = row[0].strip()
-				matchingHelp.text = row[2].strip()
-				matchingHelp.put()
+		if len(row) >= 3 and row[0][0] != ";":
+			help = Help(type=row[0].strip(), name=row[1].strip(), text=row[2].strip())
+			help.put()
+	file.close()
 		
 def helpLookup(name, type):
 	return Help.all().filter("name = ", name).filter("type = ", type).get()
@@ -54,6 +48,26 @@ def helpTextLookup(name, type):
 	else:
 		return None
 
+def GenerateSystemQuestions():
+	db.delete(Question.all().filter("community = ", None).fetch(FETCH_NUMBER))
+	file = open('questions.csv')
+	questionStrings = csv.reader(file)
+	for row in questionStrings:
+		if len(row) >= 3 and row[0][0] != ";":
+			question = Question(
+							   refersTo=row[0],
+							   name=row[1],
+							   text=row[2],
+							   type=row[3],
+							   choices=row[4].split(", "),
+							   multiple=row[5] == "yes",
+							   help=row[6],
+							   useHelp=row[7],
+							   community=None,
+							   )
+			question.put()
+	file.close()
+		
 class ImageHandler(webapp.RequestHandler):
 	def get(self):
 		if self.request.get("member_id"):

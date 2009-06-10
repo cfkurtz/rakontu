@@ -14,27 +14,27 @@
 			<input type="submit" name="setToLast" value=" >| " class="button_small">
 			</td><td align="right" style="border:none;">
 			Show
+			<select name="numberOf">
+			{% for i in 1_to_31 %}
+				<option value="{{i}}" {% ifequal i current_member.viewNumTimeFrames %}selected="selected"{% endifequal %}>{{i}}</option>
+				{% endfor %}
+				</select>
 			<select name="timeFrame">
 				{% for time_frame in time_frames %}
 					<option value="{{time_frame}}"
 					{% ifequal current_member.getUnitStringForViewTimeFrame time_frame %}
 						selected="selected"
 					{% endifequal %}
-					>{{time_frame}}s</option>
+					>{{time_frame}}(s)</option>
 				{% endfor %}
 				</select>
-			How many?
-			<select name="numberOf">
-			{% for i in 1_to_31 %}
-				<option value="{{i}}" {% ifequal i current_member.viewNumTimeFrames %}selected="selected"{% endifequal %}>{{i}}</option>
-				{% endfor %}
-				</select>
-			With how many columns?
+			across
 			<select name="numColumns">
-			{% for i in 5_to_10 %}
+			{% for i in 3_to_10 %}
 				<option value="{{i}}" {% ifequal i current_member.viewNumTimeColumns %}selected="selected"{% endifequal %}>{{i}}</option>
 				{% endfor %}
 				</select>
+			columns
 			<input type="submit" name="changeTimeFrame" value="Change" class="button_small">
 			</td></tr></table>
 		</form>	

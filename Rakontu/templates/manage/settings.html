@@ -13,12 +13,12 @@
 	
 			<h3>Name and description</h3>
 			<fieldset>
-			<p>Community name {{"community_name"|tip}}</p>
+			<p>{{"Community name"|tip}}</p>
 			<input type="text" name="name" value="{{ community.name }}" maxlength="40" size="30"/>
-			<p>Tag line {{"community_tagline"|tip}}</p>
+			<p>{{"Tag line"|tip}}</p>
 			<input type="text" name="tagline" value="{{ community.tagline }}" maxlength="80" size="80"/>
 			<p><i>The tag line (if you choose one) shows after your community name at the top of the web page.</i></p>
-			<p>Community description {{"community_description"|tip}}</p>
+			<p>{{"Community description"|tip}}</p>
 			<textarea name="description" rows="10" cols="60">{{ community.description }}</textarea>
 			<div class="rightalign">Interpret this as <select name="description_format">
 				{% for format in text_formats %}
@@ -28,8 +28,8 @@
 					{% endifequal %}
 					>{{format}}</option>
 				{% endfor %}
-				</select></div>
-			<p>Welcome message for new members {{"community_welcome"|tip}}</p>
+				</select>{{"#interpret_as"|tip}}</div>
+			<p>{{"Welcome message for new members"|tip}}</p>
 			<textarea name="welcomeMessage" rows="5" cols="60">{{ community.welcomeMessage|escape }}</textarea>
 			<div class="rightalign">Interpret this as <select name="welcomeMessage_format">
 				{% for format in text_formats %}
@@ -40,7 +40,7 @@
 					>{{format}}</option>
 				{% endfor %}
 				</select></div>
-			<p>Optional etiquette statement (rules for behavior) {{"community_etiquette"|tip}}</p>
+			<p>{{"Community etiquette statement"|tip}}</p>
 			<textarea name="etiquetteStatement" rows="5" cols="60">{{ community.etiquetteStatement|escape }}</textarea>
 			<div class="rightalign">Interpret this as <select name="etiquetteStatement_format">
 				{% for format in text_formats %}
@@ -51,7 +51,7 @@
 					>{{format}}</option>
 				{% endfor %}
 				</select></div>
-			<p>Community image {{"community_image"|tip}}</p>
+			<p>{{"Community image"|tip}}</p>
 			{% if community.image %}
 				<img src="img?community_id={{community.key}}" class="bordered"></img>
 				<input type="checkbox" name="removeImage" value="removeImage" id="removeImage"><label for="removeImage">Remove</label>
@@ -73,7 +73,7 @@
 				</select>
 			<p>How should dates be displayed by default?
 				<select name="defaultDateFormat">
-				{% for format in date_formats.keys %}
+				{% for format in date_formats.keys|sorted %}
 					<option value="{{format}}"
 					{% ifequal community.defaultDateFormat format %}
 						selected="selected"
@@ -127,7 +127,7 @@
 	
 			<h3>Characters</h3>
 			<fieldset>
-			<p>Is entry via fictional character allowed for each of these entry types? {{"community_fictional"|caution}}</p>
+			<p>{{"Is entry via fictional character allowed for each of these entry types?"|caution}}</p>
 			{% for text in character_includes %}
 				{{ text }}
 			{% endfor %}
@@ -139,9 +139,8 @@
 			<p><i></i></p>
 			<p>How many nudge points can be asssigned (maximum) per article? 
 			<input type="text" name="maxNudgePointsPerArticle" size="4" value="{{community.maxNudgePointsPerArticle}}"/>
-			{{"community_nudgePoints"|info}} {{"community_nudgePointsPerArticle"|caution}}
-			<p>Enter your nudge category names here.<i>Note: You should not change these after many articles
-			have been entered.</i></p>
+			{{"#community_nudgePoints"|info}} {{"#community_nudgePointsPerArticle"|caution}}
+			<p>{{"Enter your nudge category names here."|caution}}</p>
 			<p>
 			{% for i in 5|makeRange %}
 				<input type="text" name="nudgeCategory{{i}}" size="20" value="{{community.nudgeCategories|listLookup:i}}"/>
@@ -157,10 +156,7 @@
 	      	
 			<h3>Activity system</h3>
 			<fieldset>
-			<p><i>Activity points accumulate as an article is referenced and annotated. 
-			They collectively affect the <b>size</b> of article titles in the main window and give members a sense of
-			the level of activity surrounding each item.</i></p>
-			<p>How many activity points are added to an item based on each activity?</p>
+			<p>{{"How many activity points are added to an item based on each activity?"|info}}</p>
 			<table  border="1" cellpadding="4" cellspacing="0">
 			{% for text in activity_point_includes %}
 				{{ text }}
@@ -170,7 +166,7 @@
 	      	
 			<h3>Helping Roles</h3>
 			<fieldset>
-			<p><b>Curator read-before text</b></p>
+			<p><b>{{"Curator read-before text"|info}}</b></p>
 			<textarea name="readme0" rows="3" cols="60">{{ community.roleReadmes.0 }}</textarea>
 			<div class="rightalign">Interpret this as <select name="roleReadmes_formats0">
 				{% for format in text_formats %}
@@ -186,7 +182,8 @@
 					checked="checked"
 				{% endif %}
 				/>
-				<label for="agreement0">Members must check box to agree to terms before becoming curator</label>
+				<label for="agreement0">Members must check box to agree to terms before becoming curator
+				{{"#terms_check_box"|tip}}</label>
 			<p></p>
 			<p><b>Guide read-before text</b></p>
 			<textarea name="readme1" rows="3" cols="60">{{ community.roleReadmes.1|escape }}</textarea>
@@ -225,7 +222,6 @@
 					/>
 				{% endif %}
 				<label for="agreement2">Members must check box to agree to terms before becoming liaison</label>
-			<p><i>These texts are shown to members before they take on voluntary roles.</i></p>
 			</fieldset>
 		<p></p>
 	    <center><input type="submit" name="changeSettings" value="Change Settings" class="button"></center>
