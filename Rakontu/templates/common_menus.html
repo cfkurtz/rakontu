@@ -38,14 +38,14 @@
 			<li><a href="/curate/curate">Help</a>
 				<ul>
 				{% if current_member.isCurator %}
-					<li><a href="/curate/review">Review flags</a>
+					<li><a href="/curate/flags">Review flags</a>
 				{% endif %}
 				{% if current_member.isGuide %}
-					<li><a href="/curate/review">Review resources</a>
-					<li><a href="/visit/resource">Add a resource</a></li>
+					<li><a href="/guide/resources">Review resources</a>
+					<li><a href="/guide/resource">Add a resource</a></li>
 				{% endif %}
 				{% if current_member.isLiaison %}
-					<li><a href="/curate/review">Review off-line members</a>
+					<li><a href="/liaise/members">Review off-line members</a>
 				{% endif %}
 				</ul>
 			</li>

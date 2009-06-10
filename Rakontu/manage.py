@@ -523,7 +523,7 @@ class GenerateSystemQuestionsPage(webapp.RequestHandler):
 		if community and member:
 			if users.is_current_user_admin():
 				GenerateSystemQuestions()
-				self.redirect('/visit/look')
+				self.redirect(self.request.headers["Referer"])
 			else:
 				self.redirect('/')
 				
@@ -534,8 +534,87 @@ class GenerateHelpsPage(webapp.RequestHandler):
 		if community and member:
 			if users.is_current_user_admin():
 				GenerateHelps()
-				self.redirect('/visit/look')
+				self.redirect(self.request.headers["Referer"])
 			else:
 				self.redirect('/')
 				
-
+class FlagOrUnflagItemPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			item = None
+			if self.request.query_string:
+				try:
+					item = db.get(self.request.query_string)
+				except:
+					item = None
+			if item:
+				item.flaggedForRemoval = not item.flaggedForRemoval
+				item.put()
+				self.redirect(self.request.headers["Referer"])
+			else:
+				self.redirect("/visit/look")
+		else:
+			self.redirect("/")
+	
+class CurateFlagsPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			if member.isCurator():
+				(articles, annotations, answers, links) = community.getAllItems()
+				template_values = {
+							   	   'title': "Review flags", 
+						   	   	   'title_extra': None, 
+								   'community': community, 
+								   'articles': articles,
+								   'annotations': annotations,
+								   'answers': answers,
+								   'links': links,
+								   'current_user': users.get_current_user(), 
+								   'current_member': member,
+								   'user_is_admin': users.is_current_user_admin(),
+								   'logout_url': users.create_logout_url("/"),
+								   }
+				path = os.path.join(os.path.dirname(__file__), 'templates/curate/flags.html')
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect('/visit/look')
+		else:
+			self.redirect("/")
+				
+	@RequireLogin 
+	def post(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			items = community.getAllFlaggedItemsAsOneList()
+			if member.isManagerOrOwner():
+				for item in items:
+					if self.request.get("remove|%s" % item.key()) == "yes":
+						if item.__class__.__name__ == "Article":
+							item.removeAllDependents()
+						db.delete(item)
+			elif member.isCurator():
+				itemsToSendMessageAbout = []
+				for item in items:
+					if self.request.get("message|%s" % item.key()) == "yes":
+						itemsToSendMessageAbout.append(item)
+				if itemsToSendMessageAbout:
+					subject = "Reminder about flagged items from %s" % current_member.nickname
+					messageLines = []
+					# CFK FINISH
+					for item in itemsToSendMessageAbout:
+						messageLines.append(item.key)
+					message = "\n".join(messageLines)
+					ownersAndManagers = community.getManagersAndOwners()
+					for ownerOrManager in ownersAndManagers:
+						message = mail.EmailMessage()
+						message.sender = community.contactEmail
+						message.subject = subject
+						message.to = ownerOrManager.googleAccountEmail
+						message.body = message
+						message.send()
+					# CFK FIX should say message was sent
+			self.redirect(self.request.headers["Referer"])

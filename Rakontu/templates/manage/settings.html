@@ -18,6 +18,8 @@
 			<p>{{"Tag line"|tip}}</p>
 			<input type="text" name="tagline" value="{{ community.tagline }}" maxlength="80" size="80"/>
 			<p><i>The tag line (if you choose one) shows after your community name at the top of the web page.</i></p>
+			<p>{{"Community contact email"|caution}}</p>
+			<input type="text" name="contactEmail" value="{{ community.contactEmail }}" maxlength="80" size="80"/>
 			<p>{{"Community description"|tip}}</p>
 			<textarea name="description" rows="10" cols="60">{{ community.description }}</textarea>
 			<div class="rightalign">Interpret this as <select name="description_format">

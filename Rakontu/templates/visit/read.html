@@ -4,8 +4,18 @@
 	{% include "../common_menus.html" %}
 	<div id="content">
 	
-	<img src="/images/{{article.type}}.png" alt="tags" align="left">
-	<h2>{{article.title}}</h2>
+	<img src="/images/{{article.type}}.png" alt="tags" align="left" border="0">
+	<h2>{{article.title}}
+	{% if curating %}
+		<a href="flag?{{article.key}}" class="imagelight"><img src="../images/
+		{% if article.flaggedForRemoval %}
+			flag_red.png
+		{% else %}
+			flag_green.png
+		{% endif %}
+		" alt="flag" border="0"></a>
+	{% endif %}	
+	</h2>
 	
 	{% if article.isCollage %}
 		<div class="blurb">
@@ -34,10 +44,6 @@
 			<a href="attachment?attachment_id={{attachment.key}}">{{attachment.fileName}}</a><p>
 		{% endfor %}
 	{% endif %}
-	
-	{% ifequal article.type "invitation" %}
-		<p>You can <a href="/visit/respond?{{article.key}}">respond</a> to this invitation with a story.</p>
-	{% endifequal %}
 	
 	<p>This {{article.type}} was entered by 
 	
@@ -94,10 +100,10 @@
 			{% endif %}
 		{% endifequal %}
 	{% endif %}
-
+	
 	{% if things_member_can_do %}
 		<div id="stylized" class="rakontu_form">
-		<form action="/visit/read" method="post">
+		<form name="read" action="/visit/read" method="post">
 		What would you like to do next?
 		<select name="nextAction">
 		{% for key in things_member_can_do.keys|sorted %}

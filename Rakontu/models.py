@@ -213,6 +213,7 @@ class Community(db.Model):
 	welcomeMessage_formatted = db.TextProperty()
 	welcomeMessage_format = db.StringProperty(default="plain text")
 	image = db.BlobProperty(default=None)
+	contactEmail = db.StringProperty()
 	
 	defaultTimeZoneName = db.StringProperty(default="US/Eastern")
 	defaultTimeFormat = db.StringProperty(default="h:i a")
@@ -341,6 +342,9 @@ class Community(db.Model):
 	def getOwners(self):
 		return Member.all().filter("community = ", self.key()).filter("governanceType = ", "owner").fetch(FETCH_NUMBER)
 	
+	def getManagersAndOwners(self):
+		return Member.all().filter("community = ", self.key()).filter("governanceType IN ", ["owner", "manager"]).fetch(FETCH_NUMBER)
+	
 	def memberIsOnlyOwner(self, member):
 		owners = self.getOwners()
 		if len(owners) == 1 and owners[0].key() == member.key():
@@ -355,6 +359,29 @@ class Community(db.Model):
 	
 	def hasAtLeastOneCharacterEntryAllowed(self, entryTypeIndex):
 		return len(self.getCharacters()) > 0 or self.allowCharacter[entryTypeIndex]
+	
+	def getAllFlaggedItems(self):
+		articles = Article.all().filter("community = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
+		annotations = Annotation.all().filter("community = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
+		answers = Answer.all().filter("community = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
+		links = Link.all().filter("community = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
+		return (articles, annotations, answers, links)
+	
+	def getAllFlaggedItemsAsOneList(self):
+		result = []
+		(articles, annotations, answers, links) = self.getAllFlaggedItems()
+		result.extend(links)
+		result.extend(answers)
+		result.extend(annotations)
+		result.extend(articles)
+		return result
+
+	def getAllItems(self):
+		articles = Article.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+		annotations = Annotation.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+		answers = Answer.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+		links = Link.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+		return (articles, annotations, answers, links)
 	
 # --------------------------------------------------------------------------------------------
 # Question 
@@ -528,6 +555,9 @@ class Member(db.Model):
 	def isCurator(self):
 		return self.helpingRoles[0]
 	
+	def isCuratorOrManagerOrOwner(self):
+		return self.isCurator() or self.isManagerOrOwner()
+	
 	def isGuide(self):
 		return self.helpingRoles[1]
 	
@@ -666,6 +696,8 @@ class Answer(db.Model):
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="answers_to_liaisons")
 	character = db.ReferenceProperty(Character, default=None)
 	
+	flaggedForRemoval = db.BooleanProperty(default=False)
+	
 	answerIfBoolean = db.BooleanProperty(default=False)
 	answerIfText = db.StringProperty(default="")
 	answerIfMultiple = db.StringListProperty(default=["", "", "", "", "", "", "", "", "", ""])
@@ -780,6 +812,8 @@ class Article(db.Model):
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="articles_to_liaisons")
 	character = db.ReferenceProperty(Character, default=None)
 	
+	flaggedForRemoval = db.BooleanProperty(default=False)
+	
 	tookPlace = TzDateTimeProperty(auto_now_add=True)
 	collected = TzDateTimeProperty(default=None)
 	created = TzDateTimeProperty(auto_now_add=True)
@@ -821,6 +855,16 @@ class Article(db.Model):
 	def isCollage(self):
 		return self.type == "collage"
 	
+	def removeAllDependents(self):
+		for attachment in self.getAttachments():
+			db.delete(attachment)
+		for link in self.getAllLinks():
+			db.delete(link)
+		for answer in self.getAnswers():
+			db.delete(answer)
+		for annotation in self.getAnnotations():
+			db.delete(annotation)
+	
 	def getAttachments(self):
 		return Attachment.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
 	
@@ -830,6 +874,9 @@ class Article(db.Model):
 	def getNonDraftAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 
+	def getAnnotations(self):
+		return Annotation.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
+	
 	def getNonDraftAnnotationsOfType(self, type):
 		return Annotation.all().filter("article =", self.key()).filter("type = ", type).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
@@ -982,6 +1029,10 @@ class Link(db.Model):
 	articleFrom = db.ReferenceProperty(Article, collection_name="linksFrom", required=True)
 	articleTo = db.ReferenceProperty(Article, collection_name="linksTo", required=True)
 	creator = db.ReferenceProperty(Member, collection_name="links")
+	community = db.ReferenceProperty(Community, required=True, collection_name="links_to_community")
+	
+	flaggedForRemoval = db.BooleanProperty(default=False)
+	
 	published = TzDateTimeProperty(auto_now_add=True)
 	type = db.StringProperty(choices=LINK_TYPES, required=True)
 	comment = db.StringProperty(default="")
@@ -1076,6 +1127,8 @@ class Annotation(db.Model):
 	creator = db.ReferenceProperty(Member, collection_name="annotations")
 	community = db.ReferenceProperty(Community, required=True, collection_name="annotations_to_community")
 	type = db.StringProperty(choices=ANNOTATION_TYPES, required=True)
+	
+	flaggedForRemoval = db.BooleanProperty(default=False)
 	
 	shortString = db.StringProperty()
 	longString = db.TextProperty()
@@ -1177,22 +1230,6 @@ class Annotation(db.Model):
 		self.creator.put()
 		self.community.lastPublish = self.published
 		self.community.put()
-				
-class InappropriateFlag(db.Model):
-	""" Flags that say anything is inappropriate and should be removed.
-		Can only be added by curators, managers or owners. 
-		Items can only be removed by managers, owners, or their creators.
-	
-	Properties
-		referent:			What object is recommended for removal: article, annotation or answer.
-		creator:			Who recommended removing the object.
-		comment:			An optional comment on why removal is recommended.
-		entered:			When the flag was created.
-	"""
-	referent = db.ReferenceProperty(None, required=True)
-	creator = db.ReferenceProperty(Member, collection_name="flags")
-	comment = db.StringProperty(default="")
-	entered = TzDateTimeProperty(auto_now_add=True)
 	
 class Help(db.Model):
 	name = db.StringProperty()

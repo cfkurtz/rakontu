@@ -12,3 +12,4 @@
 "info","How many activity points are added to an item based on each activity?","Activity points accumulate as an article is referenced and annotated. They collectively affect the size of article titles in the main window and give members a sense of the level of activity surrounding each item."
 "info","Curator read-before text","Each of these texts is read by members in their preferences page when they are deciding whether to take on a helping role."
 "tip","#terms_check_box","The purpose of these check boxes is to set a slighly higher social barrier to taking on a helping role. They don't have any effect on the system itself."
+"caution","Community contact email","This is the email address from which all emails sent to members (reminders, messages) will be sent. It should be a working email address."

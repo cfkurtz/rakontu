@@ -199,7 +199,8 @@ class EnterArticlePage(webapp.RequestHandler):
 					elif self.request.get("link_type") == "include":
 						linkType = "included"
 					link = Link(articleFrom=articleFrom, articleTo=article, type=linkType, \
-								creator=member, comment=cgi.escape(self.request.get("link_comment")))
+								creator=member, community=community, \
+								comment=cgi.escape(self.request.get("link_comment")))
 					link.put()
 					link.publish()
 			if article.isCollage():
@@ -214,7 +215,7 @@ class EnterArticlePage(webapp.RequestHandler):
 				for anArticle in community.getNonDraftArticlesOfType("story"):
 					if self.request.get("addLink|%s" % anArticle.key()) == "yes":
 						link = Link(articleFrom=article, articleTo=anArticle, type="included", 
-									creator=member, 
+									creator=member, community=community,
 									comment=cgi.escape(self.request.get("linkComment|%s" % anArticle.key())))
 						link.put()
 						link.publish()
@@ -764,7 +765,7 @@ class RelateArticlePage(webapp.RequestHandler):
 					for anArticle in community.getNonDraftArticles():
 						if self.request.get("addLink|%s" % anArticle.key()) == "yes":
 							link = Link(articleFrom=article, articleTo=anArticle, type="related", \
-										creator=member, 
+										creator=member, community=community,
 										comment=cgi.escape(self.request.get("linkComment|%s" % anArticle.key())))
 							link.put()
 							link.publish()
@@ -773,4 +774,4 @@ class RelateArticlePage(webapp.RequestHandler):
 					self.redirect("/visit/look")
 		else:
 			self.redirect("/")
-
+			

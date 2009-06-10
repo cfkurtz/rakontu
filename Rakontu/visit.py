@@ -259,6 +259,7 @@ class ReadArticlePage(webapp.RequestHandler):
 		if community and member:
 			article = db.get(self.request.query_string)
 			if article:
+				curating = self.request.uri.find("curate") >= 0
 				allItems = []
 				allItems.extend(article.getNonDraftAnnotations())
 				allItems.extend(article.getNonDraftAnswers())
@@ -330,8 +331,14 @@ class ReadArticlePage(webapp.RequestHandler):
 											nameString = item.creator.nickname
 									else:
 										nameString = '<a href="character?%s">%s</a>' % (item.character.key(), item.character.name)
-									text = '<p>%s %s (%s)</p>' % \
-										(item.getImageLinkForType(), item.linkString(), nameString)
+									if curating:
+										if item.flaggedForRemoval:
+											curateString = '<a href="flag?%s" class="imagelight"><img src="../images/flag_red.png" alt="flag" border="0"></a>' % item.key()
+										else:
+											curateString = '<a href="flag?%s" class="imagelight"><img src="../images/flag_green.png" alt="flag" border="0"></a>' % item.key()
+									else:
+										curateString = ""
+									text = '<p>%s %s (%s) %s</p>' % (item.getImageLinkForType(), item.linkString(), nameString, curateString)
 									textsInThisCell.append(text)
 							haveContent = haveContent or len(textsInThisCell) > 0
 							textsInThisRow.append(textsInThisCell)
@@ -356,18 +363,23 @@ class ReadArticlePage(webapp.RequestHandler):
 					thingsUserCanDo["Tell a story this %s reminds me of" % article.type] = "remind?%s" % article.key()
 				if communityHasQuestionsForThisArticleType and memberCanAnswerQuestionsAboutThisArticle:
 					thingsUserCanDo["Answer questions about this %s" % article.type] = "answers?%s" % article.key()
+				if article.isInvitation():
+					thingsUserCanDo["Respond to this invitation with a story"] = "respond?%s" % article.key()
 				thingsUserCanDo["Add a comment about this %s" % article.type] = "comment?%s" % article.key()
 				thingsUserCanDo["Add some tags about this %s" % article.type] = "tagset?%s" % article.key()
 				if memberCanAddNudgeToThisArticle:
 					thingsUserCanDo["Nudge this %s up or down" % article.type] = "nudge?%s" % article.key()
 				thingsUserCanDo["Make a request about this %s" % article.type] = "request?%s" % article.key()
 				thingsUserCanDo["Add or remove relations to this %s" % article.type] = "relate?%s" % article.key()
+				if member.isCuratorOrManagerOrOwner():
+					thingsUserCanDo["Curate this %s and its annotations" % article.type] = "curate?%s" % article.key()
 				template_values = {
 								   'title': article.title, 
 						   		   'title_extra': None,
 								   'community': community, 
 								   'current_member': member,
 								   'current_member_key': member.key(),
+								   'curating': curating,
 								   'article': article,
 								   'rows_cols': textsForGrid, 
 							       'row_headers': rowHeaders, 
@@ -513,11 +525,10 @@ class SeeMemberPage(webapp.RequestHandler):
 						break
 			if messageMember:
 				message = mail.EmailMessage()
-				# CFK FIX
-				#message.sender= # NEED TO STORE SYS ADMIN EMAIL !! (how to do that?)
-				message.subject=cgi.escape(self.request.get("subject"))
-				message.to=messageMember.googleAccountEmail
-				message.body=cgi.escape(self.request.get("message"))
+				message.sender = community.contactEmail
+				message.subject = cgi.escape(self.request.get("subject"))
+				message.to = messageMember.googleAccountEmail
+				message.body = cgi.escape(self.request.get("message"))
 				message.send()
    
 class SeeCharacterPage(webapp.RequestHandler):

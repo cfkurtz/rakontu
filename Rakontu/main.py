@@ -18,6 +18,8 @@ application = webapp.WSGIApplication(
 									  ('/visit/', BrowseArticlesPage),
 									  ('/visit/look', BrowseArticlesPage),
 									  ('/visit/read', ReadArticlePage),
+									  ('/visit/curate', ReadArticlePage),
+									  ('/visit/flag', FlagOrUnflagItemPage),
 									  ('/visit/readAnnotation', ReadAnnotationPage),
 									  ('/visit/members', SeeCommunityMembersPage),
 									  ('/visit/member', SeeMemberPage),
@@ -51,6 +53,8 @@ application = webapp.WSGIApplication(
 									  
 									  # entering links
 									  ('/visit/relate', RelateArticlePage),
+									  
+									  ('/curate/flags', CurateFlagsPage),
 									  
 									  # managing
 									  ('/createCommunity', CreateCommunityPage),

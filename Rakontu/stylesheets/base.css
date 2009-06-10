@@ -34,6 +34,15 @@ a:hover {
 	background: #EECBAD;
 	}
 	
+.imagelight:hover {
+	background: #FFEECC;
+	}
+	
+img {
+	padding: 2px;
+	border: none;
+	}
+	
 img.bordered {
 	border: 1px solid #FF7F00;
 	}
@@ -149,6 +158,13 @@ ul li.nobullet {
 .footer {
 	text-align: right;
 	font-size: 80%;
+	}
+	
+.flag {
+	background: #FFE303; 
+	width: auto;
+	border: 1px solid #E3170D;
+	padding: 4px;
 	}
 	
 /* ----------- page areas ----------- */

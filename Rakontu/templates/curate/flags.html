@@ -1,0 +1,213 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+		<div id="content">
+		{% if current_member.isCuratorOrManagerOrOwner %}
+			<div id="stylized" class="rakontu_form">
+			<form action="/curate/flags" method="post">
+				{% if current_member.isManagerOrOwner %}
+					<p>You are a{% ifequal current_member.governanceType "owner" %}n{% endifequal %} 
+					<b>{{current_member.governanceType}}</b> of this community, so you can remove any item
+					added to the system. <i><b>Please remove items carefully as they can not be reinstated.</b></i></p>
+				{% else %}
+					<p>You are a <b>curator</b> in this community, so you can flag items for removal
+					and send reminders to the community's owners and managers if you think an item
+					should be removed quickly.<p>
+				{% endif %}
+				
+				<h3>Articles</h3>
+				{% if articles %}
+					<fieldset>
+			      	<table border="1" cellpadding="4" cellspacing="0">
+			      	<tr><th>Flag</th><th>Article</th><th>Type</th><th>Text</th>
+		      		{% if current_member.isManagerOrOwner %} 
+		      			<th>Remove?</th> 
+		      		{% else %}  
+		      			<th>Send reminder?</th> 
+		      		{% endif %}
+		      		</tr>
+		      		{% for article in articles %}
+		  				<tr>
+		  				{% if article.flaggedForRemoval %}
+		  					<td><a href="/visit/flag?{{article.key}}" class="image"><img src="../images/flag_red.png" alt="flag" border="0"></a></td>
+		  				{% else %}
+		 					<td><a href="/visit/flag?{{article.key}}" class="image"><img src="../images/flag_green.png" alt="flag" border="0"></a></td>
+		  				{% endif %}
+		  				<td><a href="/visit/read?{{article.key}}">{{article.title}}</a></td>
+		  				<td>{{article.type}}</td>
+		  				<td>{{article.text_formatted}}</td>
+		  				<td>
+		  				{% if article.flaggedForRemoval %}
+			  				{% if current_member.isManagerOrOwner %}
+			  						<input type="checkbox" name="remove|{{ article.key }}" value="yes" id="remove|{{ article.key }}"/>
+									<label for="remove|{{ article.key }}">Remove</label>
+			  				{% else %}
+			  						<input type="checkbox" name="message|{{ article.key }}" value="yes" id="message|{{ article.key }}"/>
+									<label for="message|{{ article.key }}">Send</label>
+			  				{% endif %}	
+			  			{% else %}
+			  				&nbsp;
+			  			{% endif %}
+		  				</td>	  				
+		  				</tr>
+		      		{% endfor %}
+			      	</table>
+		      		</fieldset>
+		      	{% else %}
+		      		<ul><li class="nobullet">none</li></ul>
+		      	{% endif %}
+		      	
+				<h3>Annotations</h3>
+				{% if annotations %}
+					<fieldset>
+			      	<table border="1" cellpadding="4" cellspacing="0">
+			      	<tr><th>Flag</th><th>Article</th><th>Type</th><th>Text</th>
+		      		{% if current_member.isManagerOrOwner %} 
+		      			<th>Remove?</th> 
+		      		{% else %}  
+		      			<th>Send reminder?</th> 
+		      		{% endif %}
+		      		</tr>
+		      		{% for annotation in annotations %}
+		  				<tr>
+		  				{% if annotation.flaggedForRemoval %}
+		  					<td><a href="/visit/flag?{{annotation.key}}" class="image"><img src="../images/flag_red.png" alt="flag" border="0"></a></td>
+		  				{% else %}
+		 					<td><a href="/visit/flag?{{annotation.key}}" class="image"><img src="../images/flag_green.png" alt="flag" border="0"></a></td>
+		  				{% endif %}
+		  				<td><a href="/visit/read?{{annotation.article.key}}">{{annotation.article.title}}</td>
+		  				<td>{{annotation.type}}</td>
+		  				<td>
+		  				{% if annotation.isComment or annotation.isRequest %}
+		  					{{annotation.linkString}}
+		  				{% else %}
+		  					{{annotation.displayString}}
+		  				{% endif %}
+		  				</td>
+		  				<td>
+		  				{% if annotation.flaggedForRemoval %}
+			  				{% if current_member.isManagerOrOwner %}
+			  						<input type="checkbox" name="remove|{{ annotation.key }}" value="yes" id="remove|{{ annotation.key }}"/>
+									<label for="remove|{{ annotation.key }}">Remove</label>
+			  				{% else %}
+			  						<input type="checkbox" name="message|{{ annotation.key }}" value="yes" id="message|{{ annotation.key }}"/>
+									<label for="message|{{ annotation.key }}">Send</label>
+			  				{% endif %}	
+			  			{% else %}
+			  				&nbsp;
+			  			{% endif %}
+		  				</tr>
+		      		{% endfor %}
+			      	</table>
+			      	</fieldset>
+		      	{% else %}
+		      		<ul><li class="nobullet">none</li></ul>
+		      	{% endif %}
+	      	
+				<h3>Answers</h3>
+				{% if answers %}
+					<fieldset>
+			      	<table border="1" cellpadding="4" cellspacing="0">
+			      	<tr><th>Flag</th><th>Article</th><th>Question</th><th>Answer</th>
+		      		{% if current_member.isManagerOrOwner %} 
+		      			<th>Remove?</th> 
+		      		{% else %}  
+		      			<th>Send reminder?</th> 
+		      		{% endif %}
+		      		</tr>
+		      		{% for answer in answers %}
+		  				<tr>
+		  				{% if answer.flaggedForRemoval %}
+		  					<td><a href="/visit/flag?{{answer.key}}" class="image"><img src="../images/flag_red.png" alt="flag" border="0"></a></td>
+		  				{% else %}
+		 					<td><a href="/visit/flag?{{answer.key}}" class="image"><img src="../images/flag_green.png" alt="flag" border="0"></a></td>
+		  				{% endif %}
+		  				<td><a href="/visit/read?{{answer.referent.key}}">{{answer.referent.title}}</td>
+		  				<td>{{answer.question.text}}</td>
+		  				<td>{{answer.displayStringShort}}</td>
+		  				<td>
+		  				{% if answer.flaggedForRemoval %}
+			  				{% if current_member.isManagerOrOwner %}
+			  						<input type="checkbox" name="remove|{{ answer.key }}" value="yes" id="remove|{{ answer.key }}"/>
+									<label for="remove|{{ answer.key }}">Remove</label>
+			  				{% else %}
+			  						<input type="checkbox" name="message|{{ answer.key }}" value="yes" id="message|{{ answer.key }}"/>
+									<label for="message|{{ answer.key }}">Send</label>
+			  				{% endif %}	
+			  			{% else %}
+			  				&nbsp;
+			  			{% endif %}
+		  				</tr>
+		      		{% endfor %}
+			      	</table>
+			      	</fieldset>
+		      	{% else %}
+		      		<ul><li class="nobullet">none</li></ul>
+		      	{% endif %}
+	      	
+				<h3>Links</h3>
+				{% if links %}
+					<fieldset>
+			      	<table border="1" cellpadding="4" cellspacing="0">
+			      	<tr><th>Flag</th><th>From</th><th>To</th><th>Comment</th>
+		      		{% if current_member.isManagerOrOwner %} 
+		      			<th>Remove?</th> 
+		      		{% else %}  
+		      			<th>Send reminder?</th> 
+		      		{% endif %}
+		      		</tr>
+		      		{% for link in links %}
+		  				<tr>
+		  				{% if link.flaggedForRemoval %}
+		  					<td><a href="/visit/flag?{{link.key}}" class="image"><img src="../images/flag_red.png" alt="flag" border="0"></a></td>
+		  				{% else %}
+		 					<td><a href="/visit/flag?{{link.key}}" class="image"><img src="../images/flag_green.png" alt="flag" border="0"></a></td>
+		  				{% endif %}
+		  				<td><a href="/visit/read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</td>
+		  				<td><a href="/visit/read?{{link.articleTo.key}}">{{link.articleTo.title}}</td>
+		  				<td>{{link.comment}}</td>
+		  				<td>
+		  				{% if link.flaggedForRemoval %}
+			  				{% if current_member.isManagerOrOwner %}
+			  						<input type="checkbox" name="remove|{{ link.key }}" value="yes" id="remove|{{ link.key }}"/>
+									<label for="remove|{{ link.key }}">Remove</label>
+			  				{% else %}
+			  						<input type="checkbox" name="message|{{ article.key }}" value="yes" id="message|{{ link.key }}"/>
+									<label for="message|{{ link.key }}">Send</label>
+			  				{% endif %}	
+			  			{% else %}
+			  				&nbsp;
+			  			{% endif %}
+		  				</tr>
+		      		{% endfor %}
+			      	</table>
+			      	</fieldset>
+		      	{% else %}
+		      		<ul><li class="nobullet">none</li></ul>
+		      	{% endif %}
+	      	
+	      	{% if articles or annotations or answers or links %}
+				<p>&nbsp; </p>
+			    <center><input type="submit" name="submitChanges" 
+			    {% if current_member.isManagerOrOwner %}
+			    	value="Delete Selected Items PERMANENTLY"
+			    {% else %}
+			    	value="Send reminders about selected items"
+			    {% endif %}
+			    class="button"
+			    {% if current_member.isManagerOrOwner %}
+			    	onClick="javascript:return confirm('Are you\n\nREALLY ABSOLUTELY\n\nsure you want to delete these items from the database?')"
+			    {% endif %}
+			    ></center>	
+			{% endif %}
+			</form>	
+			</div>
+		{% else %}
+			<p>You are not a curator of this community and cannot review removal flags.
+			Either become a curator or ask a curator, manager or owner to make any changes you would like to see made.</p>
+		{% endif %}
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>
