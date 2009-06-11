@@ -556,3 +556,134 @@ class SeeCharacterPage(webapp.RequestHandler):
 					self.redirect('/visit/look')
 		else:
 			self.redirect('/')
+
+class ChangeMemberProfilePage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			liaison = None
+			if not member.isOnlineMember:
+				try:
+					liaison = community.getMemberForGoogleAccountId(member.liaisonAccountID)
+				except:
+					liaison = None
+			draftAnswerArticles = member.getArticlesWithDraftAnswers()
+			firstDraftAnswerForEachArticle = []
+			for article in draftAnswerArticles:
+				answers = member.getDraftAnswersForArticle(article)
+				firstDraftAnswerForEachArticle.append(answers[0])
+			template_values = {
+							   'title': "Profile of", 
+						   	   'title_extra': member.nickname, 
+							   'community': community, 
+							   'current_user': users.get_current_user(), 
+							   'current_member': member,
+							   'questions': community.getMemberQuestions(),
+							   'answers': member.getAnswers(),
+							   'draft_articles': member.getDraftArticles(),
+							   'draft_annotations': member.getDraftAnnotations(),
+							   'first_draft_answer_per_article': firstDraftAnswerForEachArticle,
+							   'liaison': liaison,
+							   'time_zone_names': pytz.all_timezones,
+							   'date_formats': DateFormatStrings(),
+							   'time_formats': TimeFormatStrings(),
+							   'helping_role_names': HELPING_ROLE_TYPES,
+							   'refer_type': "member",
+							   'text_formats': TEXT_FORMATS,
+							   'user_is_admin': users.is_current_user_admin(),
+							   'logout_url': users.create_logout_url("/"),
+							   }
+			path = os.path.join(os.path.dirname(__file__), 'templates/visit/profile.html')
+			self.response.out.write(template.render(path, template_values))
+		else:
+			self.redirect('/')
+							 
+	@RequireLogin 
+	def post(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			member.nickname = cgi.escape(self.request.get("nickname"))
+			member.nicknameIsRealName = self.request.get('nickname_is_real_name') =="yes"
+			member.acceptsMessages = self.request.get("acceptsMessages") == "yes"
+			text = self.request.get("profileText")
+			format = self.request.get("profileText_format").strip()
+			member.profileText = text
+			member.profileText_formatted = db.Text(InterpretEnteredText(text, format))
+			member.profileText_format = format
+			if self.request.get("removeProfileImage") == "yes":
+				member.profileImage = None
+			elif self.request.get("img"):
+				member.profileImage = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
+			member.timeZoneName = self.request.get("timeZoneName")
+			member.dateFormat = self.request.get("dateFormat")
+			member.timeFormat = self.request.get("timeFormat")
+			for i in range(3):
+				member.helpingRoles[i] = self.request.get("helpingRole%s" % i) == "helpingRole%s" % i
+			text = self.request.get("guideIntro")
+			format = self.request.get("guideIntro_format").strip()
+			member.guideIntro = text
+			member.guideIntro_formatted = db.Text(InterpretEnteredText(text, format))
+			member.guideIntro_format = format
+			member.put()
+			for article in member.getDraftArticles():
+				if self.request.get("remove|%s" % article.key()) == "yes":
+					db.delete(article)
+			for annotation in member.getDraftAnnotations():
+				if self.request.get("remove|%s" % annotation.key()) == "yes":
+					db.delete(annotation)
+			for article in member.getArticlesWithDraftAnswers():
+				if self.request.get("removeAnswers|%s" % article.key()) == "yes":
+					answers = member.getDraftAnswersForArticle(article)
+					for answer in answers:
+						db.delete(answer)
+			questions = Question.all().filter("community = ", community).filter("refersTo = ", "member").fetch(FETCH_NUMBER)
+			for question in questions:
+				foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", member.key()).fetch(FETCH_NUMBER)
+				if foundAnswers:
+					answerToEdit = foundAnswers[0]
+				else:
+					answerToEdit = Answer(question=question, community=community, referent=member, referentType="member")
+				if question.type == "text":
+					answerToEdit.answerIfText = cgi.escape(self.request.get("%s" % question.key()))
+				elif question.type == "value":
+					oldValue = answerToEdit.answerIfValue
+					try:
+						answerToEdit.answerIfValue = int(self.request.get("%s" % question.key()))
+					except:
+						answerToEdit.answerIfValue = oldValue
+				elif question.type == "boolean":
+					answerToEdit.answerIfBoolean = self.request.get("%s" % question.key()) == "%s" % question.key()
+				elif question.type == "nominal" or question.type == "ordinal":
+					if question.multiple:
+						answerToEdit.answerIfMultiple = []
+						for choice in question.choices:
+							if self.request.get("%s|%s" % (question.key(), choice)) == "yes":
+								answerToEdit.answerIfMultiple.append(choice)
+					else:
+						answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
+				answerToEdit.creator = member
+				answerToEdit.put()
+		self.redirect('/visit/look')
+		
+class ResultFeedbackPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			template_values = {
+						   	   'title': "Action successful", 
+					   	   	   'title_extra': None, 
+							   'community': community, 
+							   'message': self.request.query_string,
+							   "linkback": self.request.headers["Referer"],
+							   'current_user': users.get_current_user(), 
+							   'current_member': member,
+							   'user_is_admin': users.is_current_user_admin(),
+							   'logout_url': users.create_logout_url("/"),
+							   }
+			path = os.path.join(os.path.dirname(__file__), 'templates/result.html')
+			self.response.out.write(template.render(path, template_values))
+		else:
+			self.redirect("/")
+				

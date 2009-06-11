@@ -8,7 +8,9 @@
 
 from visit import *
 from create import *
+from help import *
 from manage import *
+from admin import *
 
 application = webapp.WSGIApplication(
 									 [('/', StartPage),
@@ -18,9 +20,8 @@ application = webapp.WSGIApplication(
 									  ('/visit/', BrowseArticlesPage),
 									  ('/visit/look', BrowseArticlesPage),
 									  ('/visit/read', ReadArticlePage),
-									  ('/visit/curate', ReadArticlePage),
-									  ('/visit/flag', FlagOrUnflagItemPage),
 									  ('/visit/readAnnotation', ReadAnnotationPage),
+									  
 									  ('/visit/members', SeeCommunityMembersPage),
 									  ('/visit/member', SeeMemberPage),
 									  ('/visit/character', SeeCharacterPage),
@@ -54,9 +55,11 @@ application = webapp.WSGIApplication(
 									  # entering links
 									  ('/visit/relate', RelateArticlePage),
 									  
+									  # helping roles
+									  ('/visit/curate', ReadArticlePage),
+									  ('/visit/flag', FlagOrUnflagItemPage),
 									  ('/curate/flags', CurateFlagsPage),
-									  ('/result', ResultFeedbackPage),
-									  
+									  ('/curate/gaps', CurateGapsPage),
 									  ('/guide/resource', EnterArticlePage),
 									  ('/guide/resources', ReviewResourcesPage),
 									  
@@ -75,6 +78,9 @@ application = webapp.WSGIApplication(
 									  ('/manage/questions_questions', ManageCommunityQuestionsPage),
 									  ('/manage/characters', ManageCommunityCharactersPage),
 									  ('/manage/technical', ManageCommunityTechnicalPage),
+									  
+									  # general result handler
+									   ('/result', ResultFeedbackPage),
 									  
 									  # file handlers
 									  ('/img', ImageHandler),

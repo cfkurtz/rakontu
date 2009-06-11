@@ -23,10 +23,6 @@ def stripTags(text):
     pattern = re.compile(r'<.*?>')
     return pattern.sub('', text)
 		
-# --------------------------------------------------------------------------------------------
-# Constants
-# --------------------------------------------------------------------------------------------
-
 DEVELOPMENT = True
 FETCH_NUMBER = 1000
 
@@ -89,10 +85,6 @@ class TzDateTimeProperty(db.DateTimeProperty):
 				value = value.astimezone(pytz.utc)
 		return value
 
-# --------------------------------------------------------------------------------------------
-# Community
-# --------------------------------------------------------------------------------------------
-
 class Community(db.Model):
 	""" Preferences and settings for the whole community.
 		There can be multiple communities within one Rakontu installation.
@@ -153,6 +145,30 @@ class Community(db.Model):
 	roleReadmes_formats = db.StringListProperty(default=DEFAULT_ROLE_READMES_FORMATS)
 	roleAgreements = db.ListProperty(bool, default=[False, False, False])
 	maxNumAttachments = db.IntegerProperty(choices=[0,1,2,3,4,5], default=3)
+	
+	def getNonDraftArticlesWithMissingMetadata(self):
+		articlesWithoutTags = []
+		articlesWithoutLinks = []
+		articlesWithoutAnswers = []
+		articlesWithoutComments = []
+		invitationsWithoutResponses = []
+		collagesWithoutInclusions = []
+		for article in self.getNonDraftArticles():
+			if not Annotation.all().filter("article = ", article.key()).filter("type = ", "tag set").filter("draft = ", False).get():
+				articlesWithoutTags.append(article)
+			if not Link.all().filter("articleFrom = ", article.key()).get() and not Link.all().filter("articleTo = ", article.key()).get():
+				articlesWithoutLinks.append(article)
+			if not Answer.all().filter("referent = ", article.key()).filter("draft = ", False).get():
+				articlesWithoutAnswers.append(article)
+			if not Annotation.all().filter("article = ", article.key()).filter("type = ", "comment").filter("draft = ", False).get():
+				articlesWithoutComments.append(article)
+		for invitation in self.getNonDraftArticlesOfType("invitation"):
+			if not Link.all().filter("articleFrom = ", invitation.key()).filter("type = ", "responded").get():
+				invitationsWithoutResponses.append(invitation)
+		for collage in self.getNonDraftArticlesOfType("collage"):
+			if not Link.all().filter("articleFrom = ", collage.key()).filter("type = ", "included").get():
+				collagesWithoutInclusions.append(collage)
+		return (articlesWithoutTags, articlesWithoutLinks, articlesWithoutAnswers, articlesWithoutComments, invitationsWithoutResponses, collagesWithoutInclusions)
 	
 	def getArticleActivityPointsForEvent(self, event):
 		i = 0
@@ -229,6 +245,9 @@ class Community(db.Model):
 	
 	def getQuestionsOfType(self, type):
 		return Question.all().filter("community = ", self.key()).filter("refersTo = ", type).fetch(FETCH_NUMBER)
+	
+	def getNonMemberQuestions(self):
+		return Question.all().filter("community = ", self.key()).filter("refersTo !=", "member").fetch(FETCH_NUMBER)
 		
 	def hasQuestionWithSameTypeAndName(self, question):
 		allQuestions = self.getQuestions()

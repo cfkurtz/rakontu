@@ -87,9 +87,12 @@ def caution(value):
 	return infoTipCaution(value, value.find("#") < 0, "caution")
 
 def upTo(value, number):
-	result = value[:number]
-	if len(value) > number:
-		result += "..."
+	if value:
+		result = value[:number]
+		if len(value) > number:
+			result += "..."
+	else:
+		result = value
 	return result
 
 register.filter(listLookup)
