@@ -68,8 +68,6 @@ before becoming a curator etc, but you really don't
 
 need a way for site administrator to DELETE a community (and also disable but not delete)
 
-need better feedback when a person has done a thing - action completed page? that tells you what you just did?
-
 check all input texts to set maxlength to fit into string property
 
 don't show manager/owner status to group, just that they are a manager. owner status should not be obvious to all members.

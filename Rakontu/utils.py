@@ -9,7 +9,6 @@
 import os
 import string
 import cgi
-import re
 import htmllib
 
 from models import *
@@ -67,7 +66,7 @@ def GenerateSystemQuestions():
 							   )
 			question.put()
 	file.close()
-		
+	
 class ImageHandler(webapp.RequestHandler):
 	def get(self):
 		if self.request.get("member_id"):
@@ -94,6 +93,11 @@ class ImageHandler(webapp.RequestHandler):
 			if character:
 				self.response.headers['Content-Type'] = "image/jpg"
 				self.response.out.write(character.image)
+		elif self.request.get("attachment_id"):
+			attachment = db.get(self.request.get("attachment_id"))
+			if attachment:
+				self.response.headers['Content-Type'] = attachment.mimeType
+				self.response.out.write(attachment.data)
 			   
 class AttachmentHandler(webapp.RequestHandler):
 	def get(self):

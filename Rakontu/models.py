@@ -10,13 +10,17 @@ import logging
 from datetime import *
 import pytz
 from pytz import timezone
+import re
 
 from google.appengine.ext import db
 
-
 def DebugPrint(text, msg="print"):
 	logging.info(">>>>>>>> %s >>>>>>>> %s" %(msg, text))
-	
+
+def stripTags(text):
+    pattern = re.compile(r'<.*?>')
+    return pattern.sub('', text)
+		
 # --------------------------------------------------------------------------------------------
 # Constants
 # --------------------------------------------------------------------------------------------
@@ -109,7 +113,7 @@ DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS = [
 					]
 
 # articles
-ARTICLE_TYPES = ["story", "pattern", "collage", "invitation", "resource"]
+ARTICLE_TYPES = ["story", "invitation", "collage", "pattern", "resource"]
 LINK_TYPES = ["retold", "reminded", "responded", "related", "included"]
 ACCEPTED_ATTACHMENT_FILE_TYPES = ["jpg", "png", "pdf", "doc", "txt", "mpg", "mp3", "html", "zip"]
 ACCEPTED_ATTACHMENT_MIME_TYPES = ["image/jpeg", "image/png", "application/pdf", "application/msword", "text/plain", "video/mpeg", "audio/mpeg", "text/html", "application/zip"]
@@ -193,6 +197,7 @@ class Community(db.Model):
 		maxNudgePointsPerArticle:	How many nudge points a member is allowed to place (maximally) on any article.
 		allowCharacter:	Whether members are allowed to enter things with
 								a character marked. One entry per type of thing (ENTRY_TYPES)
+		allowEditingAfterPublishing:	Can allow any of the article types to be re-entered after publishing.
 		nudgeCategories:		Names of nudge categories. Up to five allowed.
 		roleReadmes:			Texts all role members read before taking on a role.
 								One text per helping role type.
@@ -228,6 +233,7 @@ class Community(db.Model):
 	memberNudgePointsPerEvent = db.ListProperty(int, default=DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS)
 	articleActivityPointsPerEvent = db.ListProperty(int, default=DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS)
 	allowCharacter = db.ListProperty(bool, default=[True,True,True,True,True,True,True,True,True,True])
+	allowEditingAfterPublishing = db.ListProperty(bool, default=[False, False, True, True, True])
 	nudgeCategories = db.StringListProperty(default=["appropriate", "important", "useful to new members", "useful for resolving conflicts", "useful for understanding"])
 	roleReadmes = db.ListProperty(db.Text, default=[db.Text(DEFAULT_ROLE_READMES[0]), db.Text(DEFAULT_ROLE_READMES[1]), db.Text(DEFAULT_ROLE_READMES[2])])
 	roleReadmes_formatted = db.ListProperty(db.Text, default=[db.Text(""), db.Text(""), db.Text("")])
@@ -250,6 +256,14 @@ class Community(db.Model):
 				return self.memberNudgePointsPerEvent[i]
 			i += 1
 		return 0
+	
+	def allowsPostPublishEditOfArticleType(self, type):
+		i = 0
+		for articleType in ARTICLE_TYPES:
+			if type == articleType:
+				return self.allowEditingAfterPublishing[i]
+			i += 1
+		return False
 	
 	def getOfflineMembers(self):
 		return Member.all().filter("community = ", self.key()).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
@@ -558,6 +572,9 @@ class Member(db.Model):
 	def isCuratorOrManagerOrOwner(self):
 		return self.isCurator() or self.isManagerOrOwner()
 	
+	def isGuideOrManagerOrOwner(self):
+		return self.isGuide() or self.isManagerOrOwner()
+	
 	def isGuide(self):
 		return self.helpingRoles[1]
 	
@@ -830,6 +847,9 @@ class Article(db.Model):
 	def displayString(self):
 		return self.title
 	
+	def linkString(self):
+		return '<a href="/visit/read?%s">%s</a>' % (self.key(), self.title)
+		
 	def getPublishDateForMember(self, member):
 		if member:
 			localTime = self.published.astimezone(timezone(member.timeZoneName))
@@ -857,6 +877,9 @@ class Article(db.Model):
 	
 	def isCollage(self):
 		return self.type == "collage"
+	
+	def isCollageOrResource(self):
+		return self.type == "collage" or self.type == "resource"
 	
 	def removeAllDependents(self):
 		for attachment in self.getAttachments():
@@ -916,17 +939,24 @@ class Article(db.Model):
 				result.append(link)
 		return result
 	
+	def getTooltipText(self):
+		if self.text_formatted:
+			return'title="%s"' % stripTags(self.text_formatted[:100])
+		else:
+			return ""
+	
 	def getImageLinkForType(self):
+		text = self.getTooltipText()
 		if self.type == "story":
-			imageText = '<img src="/images/story.png" alt="story" border="0">'
+			imageText = '<img src="/images/story.png" alt="story" border="0" %s\>' % text
 		elif self.type == "pattern":
-			imageText = '<img src="/images/pattern.png" alt="pattern" border="0">'
+			imageText = '<img src="/images/pattern.png" alt="pattern" border="0" %s\>' % text
 		elif self.type == "collage":
-			imageText = '<img src="/images/collage.png" alt="collage" border="0">'
+			imageText = '<img src="/images/collage.png" alt="collage" border="0" %s\>' % text
 		elif self.type == "invitation":
-			imageText = '<img src="/images/invitation.png" alt="invitation" border="0">'
+			imageText = '<img src="/images/invitation.png" alt="invitation" border="0" %s\>' % text
 		elif self.type == "resource":
-			imageText = '<img src="/images/resource.png" alt="resource" border="0">'
+			imageText = '<img src="/images/resource.png" alt="resource" border="0" %s\>' % text
 		return imageText
 	
 	def getAnswersForMember(self, member):
@@ -1093,6 +1123,12 @@ class Attachment(db.Model):
 	data = db.BlobProperty()
 	article = db.ReferenceProperty(Article, collection_name="attachments")
 	
+	def linkString(self):
+		return '<a href="/visit/attachment?attachment_id=%s">%s</a>' % (self.key(), self.fileName)
+	
+	def isImage(self):
+		return self.mimeType == "image/jpeg" or self.mimeType == "image/png"
+	
 # --------------------------------------------------------------------------------------------
 # Annotations
 # --------------------------------------------------------------------------------------------
@@ -1196,7 +1232,7 @@ class Annotation(db.Model):
 			result = []
 			for i in range(5):
 				if self.valuesIfNudge[i] != 0:
-					result.append("%s: %s" % (self.community.nudgeCategories[i], self.valuesIfNudge[i]))
+					result.append("%s %s" % (self.valuesIfNudge[i], self.community.nudgeCategories[i]))
 			if self.shortString:
 				result.append("(%s)" % self.shortString)
 			return ", ".join(result)
@@ -1204,9 +1240,9 @@ class Annotation(db.Model):
 	def linkString(self):
 		if self.type == "comment" or self.type == "request":
 			if self.longString_formatted and len(self.longString_formatted) > 30:
-				return '<a href="readAnnotation?%s">%s</a>' % (self.key(), self.displayString())
+				return '<a href="/visit/readAnnotation?%s">%s</a>' % (self.key(), self.displayString())
 			elif self.longString_formatted:
-				return "%s: %s" % (self.shortString, self.longString_formatted)
+				return "%s - %s" % (self.shortString, stripTags(self.longString_formatted)[:50])
 			else:
 				return self.shortString
 		else:

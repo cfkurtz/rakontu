@@ -210,6 +210,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 						% (eventType, community.memberNudgePointsPerEvent[i]))
 				i += 1
 			nudgePointIncludes.append('</tr>')
+			
 			activityPointIncludes = []
 			activityPointIncludes.append('<tr>')
 			i = 0
@@ -223,11 +224,19 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 					% (eventType, community.articleActivityPointsPerEvent[i]))
 				i += 1
 			activityPointIncludes.append('</tr>')
+			
 			characterIncludes = []
 			i = 0
 			for entryType in ENTRY_TYPES:
-				characterIncludes.append('<input type="checkbox" name="%s" value="%s" %s id="%s"/><label for="%s">%s</label>' \
-						% (entryType, entryType, checkedBlank(community.allowCharacter[i]), entryType, entryType, entryType))
+				characterIncludes.append('<input type="checkbox" name="character|%s" value="yes" %s id="character|%s"/><label for="character|%s">%s</label>' \
+						% (entryType, checkedBlank(community.allowCharacter[i]), entryType, entryType, entryType))
+				i += 1
+				
+			editingIncludes = []
+			i = 0
+			for articleType in ARTICLE_TYPES:
+				editingIncludes.append('<input type="checkbox" name="editing|%s" value="yes" %s id="editing|%s"/><label for="editing|%s">%s</label>' \
+						% (articleType, checkedBlank(community.allowEditingAfterPublishing[i]), articleType, articleType, articleType))
 				i += 1
 			template_values = {
 							   'title': "Manage settings for", 
@@ -240,6 +249,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 							   'time_formats': TimeFormatStrings(),
 							   'current_date': datetime.now(tz=pytz.utc),
 							   'character_includes': characterIncludes,
+							   'editing_includes': editingIncludes,
 							   'nudge_point_includes': nudgePointIncludes,
 							   'activity_point_includes': activityPointIncludes,
 							   'text_formats': TEXT_FORMATS,
@@ -280,7 +290,11 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 				community.image = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
 			i = 0
 			for entryType in ENTRY_TYPES:
-				community.allowCharacter[i] = self.request.get(entryType) == entryType
+				community.allowCharacter[i] = self.request.get("character|%s" % entryType) == "yes"
+				i += 1
+			i = 0
+			for articleType in ARTICLE_TYPES:
+				community.allowEditingAfterPublishing[i] = self.request.get("editing|%s" % articleType) == "yes"
 				i += 1
 			oldValue = community.maxNudgePointsPerArticle
 			try:
@@ -686,4 +700,38 @@ class ResultFeedbackPage(webapp.RequestHandler):
 		else:
 			self.redirect("/")
 				
+class ReviewResourcesPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			if member.isGuideOrManagerOrOwner():
+				template_values = {
+							   	   'title': "Resources", 
+						   	   	   'title_extra': None, 
+								   'community': community, 
+								   'resources': community.getNonDraftArticlesOfType("resource"),
+								   'current_user': users.get_current_user(), 
+								   'current_member': member,
+								   'user_is_admin': users.is_current_user_admin(),
+								   'logout_url': users.create_logout_url("/"),
+								   }
+				path = os.path.join(os.path.dirname(__file__), 'templates/guide/resources.html')
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect("/visit/look")
+		else:
+			self.redirect("/")
+			
+	@RequireLogin 
+	def post(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			if member.isGuideOrManagerOrOwner():
+				resources = community.getNonDraftArticlesOfType("resource")
+				for resource in resources:
+					 if self.request.get("flag|%s" % resource.key()) == "yes":
+					 	resource.flaggedForRemoval = not resource.flaggedForRemoval
+					 	resource.put()
+				self.redirect('/result?changessaved')
 

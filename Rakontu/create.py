@@ -111,7 +111,7 @@ class EnterArticlePage(webapp.RequestHandler):
 				includedLinksOutgoing = None
 			template_values = {
 							   'title': type.capitalize(), 
-						   	   'title_extra': articleName, 
+						   	   'title_extra': "- %s" % articleName, 
 							   'user': users.get_current_user(),
 							   'current_member': member,
 							   'community': community, 

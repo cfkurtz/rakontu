@@ -35,13 +35,17 @@
 	{% endif %}
 
 	{% if attachments %}
-		<p><img src="/images/attachments.png" alt="attachments"> Attachments</p>
+		<p><b>Attachments</b></p>
 		{% for attachment in attachments %}
-			<p>&nbsp; &nbsp; 
-			{% if attachment.name %}
-			{{attachment.name}} -
+			{% if attachment.isImage %}
+				<img src="img?attachment_id={{attachment.key}}"\>
+			{% else %}
+				<p>&nbsp; &nbsp; 
+				{% if attachment.name %}
+					{{attachment.name}} -
+				{% endif %}
+				<a href="/visit/attachment?attachment_id={{attachment.key}}">{{attachment.fileName}}</a><p>
 			{% endif %}
-			<a href="attachment?attachment_id={{attachment.key}}">{{attachment.fileName}}</a><p>
 		{% endfor %}
 	{% endif %}
 	

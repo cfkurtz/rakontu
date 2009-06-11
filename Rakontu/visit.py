@@ -181,8 +181,8 @@ class BrowseArticlesPage(webapp.RequestHandler):
 										nameString = article.creator.nickname
 								else:
 									nameString = '<a href="character?%s">%s</a>' % (article.character.key(), article.character.name)
-								text = '<p>%s <span style="font-size:%s%%"><a href="/visit/read?%s">%s</a> (%s)</span></p>' % \
-									(article.getImageLinkForType(), fontSizePercent, article.key(), article.title, nameString)
+								text = '<p>%s <span style="font-size:%s%%"><a href="/visit/read?%s" %s>%s</a> (%s)</span></p>' % \
+									(article.getImageLinkForType(), fontSizePercent, article.key(), article.getTooltipText(), article.title, nameString)
 								textsInThisCell.append(text)
 						textsInThisRow.append(textsInThisCell)
 					textsForGrid.append(textsInThisRow)
@@ -372,7 +372,9 @@ class ReadArticlePage(webapp.RequestHandler):
 				thingsUserCanDo["Make a request about this %s" % article.type] = "request?%s" % article.key()
 				thingsUserCanDo["Add or remove relations to this %s" % article.type] = "relate?%s" % article.key()
 				if member.isCuratorOrManagerOrOwner():
-					thingsUserCanDo["Curate this %s and its annotations" % article.type] = "curate?%s" % article.key()
+					thingsUserCanDo["Curate this %s" % article.type] = "curate?%s" % article.key()
+				if article.creator.key() == member.key() and community.allowsPostPublishEditOfArticleType(article.type):
+					thingsUserCanDo["Change this %s" % article.type] = "%s?%s" % (article.type, article.key())
 				template_values = {
 								   'title': article.title, 
 						   		   'title_extra': None,

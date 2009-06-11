@@ -127,10 +127,19 @@
 				</select>
 			</fieldset>
 	
-			<h3>Characters</h3>
+			<h3>Fictional characters</h3>
 			<fieldset>
 			<p>{{"Is entry via fictional character allowed for each of these entry types?"|caution}}</p>
 			{% for text in character_includes %}
+				{{ text }}
+			{% endfor %}
+			</table>
+			</fieldset>
+			
+			<h3>Editing</h3>
+			<fieldset>
+			<p>{{"For which of these types of article should editing be allowed after publishing?"|info}}{{"#editing_after_publish"|caution}}</p>
+			{% for text in editing_includes %}
 				{{ text }}
 			{% endfor %}
 			</table>
