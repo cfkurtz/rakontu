@@ -1,0 +1,21 @@
+<html>
+	{% include "common_head.html" %}
+	<body>
+	{% include "common_menus.html" %}
+	<div id="content">
+		
+	<h3>
+	{% ifequal message "messagesent" %}
+		Your message has been sent.
+	{% endifequal %}
+	
+	{% ifequal message "changessaved" %}
+		Your changes have been saved.
+	{% endifequal %}
+	</h3>
+	<p>Would you like to <b><a href="{{linkback}}">Go back</a></b> to the page you were on?</p>
+		
+	</div>
+	{% include "common_footer.html" %}
+	</body>
+</html>

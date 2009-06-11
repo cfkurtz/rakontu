@@ -213,7 +213,7 @@ class Community(db.Model):
 	welcomeMessage_formatted = db.TextProperty()
 	welcomeMessage_format = db.StringProperty(default="plain text")
 	image = db.BlobProperty(default=None)
-	contactEmail = db.StringProperty()
+	contactEmail = db.StringProperty(default="support@rakontu.org")
 	
 	defaultTimeZoneName = db.StringProperty(default="US/Eastern")
 	defaultTimeFormat = db.StringProperty(default="h:i a")
@@ -826,6 +826,9 @@ class Article(db.Model):
 	lastAnnotatedOrAnsweredOrLinked = TzDateTimeProperty(default=None)
 	activityPoints = db.IntegerProperty(default=0)
 	nudgePoints = db.ListProperty(int, default=[0,0,0,0,0])
+	
+	def displayString(self):
+		return self.title
 	
 	def getPublishDateForMember(self, member):
 		if member:

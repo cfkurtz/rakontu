@@ -72,4 +72,6 @@ need better feedback when a person has done a thing - action completed page? tha
 
 check all input texts to set maxlength to fit into string property
 
+don't show manager/owner status to group, just that they are a manager. owner status should not be obvious to all members.
+
 hover over images on look page

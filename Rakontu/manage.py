@@ -272,6 +272,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 			community.etiquetteStatement = text
 			community.etiquetteStatement_formatted = db.Text(InterpretEnteredText(text, format))
 			community.etiquetteStatement_format = format
+			community.contactEmail = self.request.get("contactEmail")
 			community.defaultTimeZoneName = self.request.get("defaultTimeZoneName")
 			community.defaultDateFormat = self.request.get("defaultDateFormat")
 			community.defaultTimeFormat = self.request.get("defaultTimeFormat")
@@ -606,25 +607,83 @@ class CurateFlagsPage(webapp.RequestHandler):
 						if item.__class__.__name__ == "Article":
 							item.removeAllDependents()
 						db.delete(item)
+				self.redirect('/result?changessaved')
 			elif member.isCurator():
 				itemsToSendMessageAbout = []
 				for item in items:
 					if self.request.get("notify|%s" % item.key()) == "yes":
 						itemsToSendMessageAbout.append(item)
 				if itemsToSendMessageAbout:
-					subject = "Reminder about flagged items from %s" % current_member.nickname
+					subject = "Reminder about flagged items from %s" % member.nickname
+					URL = self.request.headers["Host"]
 					messageLines = []
-					# CFK FINISH
+					messageLines.append("The curator %s wanted you to know that these items require your attention.\n" % member.nickname)
+					itemsToSendMessageAbout.reverse()
 					for item in itemsToSendMessageAbout:
-						messageLines.append(item.key)
+						if item.__class__.__name__ == "Article":
+							linkKey = item.key()
+							displayString = 'A %s called "%s"' % (item.type, item.title)
+						elif item.__class__.__name__ == "Annotation":
+							linkKey = item.article.key()
+							if item.shortString:
+								shortString = " (%s)" % item.shortString
+							else:
+								shortString = ""
+							displayString = 'A %s%s for the %s called "%s"' % (item.type, shortString, item.article.type, item.article.title)
+ 						elif item.__class__.__name__ == "Answer":
+							linkKey = item.referent.key()
+							displayString = 'An answer (%s) for the %s called "%s"' % (item.displayString(), item.referent.type, item.referent.title)
+						elif item.__class__.__name__ == "Link":
+							linkKey = item.articleFrom.key()
+							if item.comment:
+								commentString = " (%s)" % item.comment
+							else:
+								commentString = ""
+							displayString = 'A link%s from the %s called "%s" to the %s called "%s"' % \
+								(commentString, item.articleFrom.type, item.articleFrom.title, item.articleTo.type, item.articleTo.title)
+						messageLines.append('* %s\n\n    http://%s/visit/curate?%s\n' % (displayString, URL, linkKey))
+					messageLines.append("Thank you for your attention.\n")
+					messageLines.append("Sincerely,")
+					messageLines.append("    Your Rakontu site")
 					message = "\n".join(messageLines)
 					ownersAndManagers = community.getManagersAndOwners()
 					for ownerOrManager in ownersAndManagers:
+						messageLines.insert(0, "Dear manager %s:\n" % ownerOrManager.nickname)
+						messageBody = "\n".join(messageLines)
 						message = mail.EmailMessage()
 						message.sender = community.contactEmail
 						message.subject = subject
 						message.to = ownerOrManager.googleAccountEmail
-						message.body = message
-						message.send()
-					# CFK FIX should say message was sent
-			self.redirect(self.request.headers["Referer"])
+						message.body = messageBody
+						DebugPrint(messageBody)
+						# CFK FIX
+						# not putting this last line in until I can start testing it, either locally or on the real server
+						#message.send()
+					self.redirect('/result?messagesent')
+			else:
+				self.redirect("/visit/look")
+		else:
+			self.redirect("/")
+			
+class ResultFeedbackPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			template_values = {
+						   	   'title': "Action successful", 
+					   	   	   'title_extra': None, 
+							   'community': community, 
+							   'message': self.request.query_string,
+							   "linkback": self.request.headers["Referer"],
+							   'current_user': users.get_current_user(), 
+							   'current_member': member,
+							   'user_is_admin': users.is_current_user_admin(),
+							   'logout_url': users.create_logout_url("/"),
+							   }
+			path = os.path.join(os.path.dirname(__file__), 'templates/result.html')
+			self.response.out.write(template.render(path, template_values))
+		else:
+			self.redirect("/")
+				
+

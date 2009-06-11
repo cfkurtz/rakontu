@@ -55,6 +55,7 @@ application = webapp.WSGIApplication(
 									  ('/visit/relate', RelateArticlePage),
 									  
 									  ('/curate/flags', CurateFlagsPage),
+									  ('/result', ResultFeedbackPage),
 									  
 									  # managing
 									  ('/createCommunity', CreateCommunityPage),

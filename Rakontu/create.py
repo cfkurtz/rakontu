@@ -301,7 +301,7 @@ class EnterArticlePage(webapp.RequestHandler):
 			else:
 				member.viewTimeEnd = article.published + timedelta(seconds=1)
 				member.put()
-				self.redirect("/visit/look")#read?%s" % article.key())
+				self.redirect("/visit/read?%s" % article.key())
 		else:
 			self.redirect("/visit/look")
 			
