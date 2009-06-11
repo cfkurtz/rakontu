@@ -15,3 +15,5 @@
 "caution","Community contact email","This is the email address from which all emails sent to members (reminders, messages) will be sent. It should be a working email address."
 "caution","#remove_flagged_item","Removing items in this window is FINAL; they cannot be recalled. You might want to export or backup the data set before removing things."
 "tip","#unflag_item","Unflagging an item will remove it from this window. To flag it again, visit its page off the main 'look' window and choose 'curate' in the menu there."
+"caution","#editing_after_publish","Making articles easy to re-edit is useful for resources, collages and patterns; but it may be very confusing for stories and invitations. In any case, this setting should not be changed often as it will confuse people. "
+"info","For which of these types of article should editing be allowed after publishing?","Articles edited again after publishing can be turned into drafts again (and hidden) or re-published with changes. Older versions are replaced and not saved."
