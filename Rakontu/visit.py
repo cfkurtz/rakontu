@@ -274,7 +274,7 @@ class ReadArticlePage(webapp.RequestHandler):
 					maxActivityPoints = -9999999
 					for item in allItems:
 						nudgePoints = 0
-						for i in range(5):
+						for i in range(NUM_NUDGE_CATEGORIES):
 							nudgePoints += item.articleNudgePointsWhenPublished[i]
 						if minNudgePoints == -9999999:
 							minNudgePoints = nudgePoints
@@ -316,7 +316,7 @@ class ReadArticlePage(webapp.RequestHandler):
 								rowHeaders.append(RelativeTimeDisplayString(startTime, member))
 							for item in allItems:
 								nudgePoints = 0
-								for i in range(5):
+								for i in range(NUM_NUDGE_CATEGORIES):
 									nudgePoints += item.articleNudgePointsWhenPublished[i]
 								shouldBeInRow = nudgePoints >= startNudgePoints and nudgePoints < endNudgePoints
 								shouldBeInCol = item.published >= startTime and item.published < endTime

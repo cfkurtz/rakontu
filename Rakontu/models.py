@@ -12,6 +12,8 @@ import pytz
 from pytz import timezone
 import re
 
+from site_configuration import *
+
 from google.appengine.ext import db
 
 def DebugPrint(text, msg="print"):
@@ -28,106 +30,26 @@ def stripTags(text):
 DEVELOPMENT = True
 FETCH_NUMBER = 1000
 
-# community
-NUM_NUDGE_CATEGORIES = 5
-DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE = 25
-DEFAULT_NUDGE_POINT_ACCUMULATIONS = [
-									0, # time (doesn't apply here)
-					 				4, # reading
-					 				20, # telling
-					 				5, # retelling
-					 				5, # reminding
-					 				10, # relating
-					 				15, # including
-					 				30, # responding
-					 				2, # answering
-					 				4, # tagging
-					 				5, # commenting
-					 				8, # requesting
-					 				20, # nudging 
-					 				]
-
-DATE_FORMATS = {
-			"j F Y": "%e %B %Y", # 3 January 2000
-			"F j, Y": "%B %e, %Y", # January 3, 2000
-			"j F": "%e %B", # 3 January
-			"F j": "%B %e", # January 3
-			"j/n/Y": "%d/%m/%Y", # 03/01/2000
-			"n/j/Y": "%m/%d/%Y", # 01/03/2000
-			}
-TIME_FORMATS = {
-			"h:i a": "%I:%M %p", #"5:00 pm", 
-			"H:i": "%H:%M", #"17:00",
-			}
-
-# member
-NO_NICKNAME_SET = "No nickname set"
 MEMBER_TYPES = ["member", "on-line member", "off-line member", "liaison", "curator", "guide", "manager", "owner"]
 HELPING_ROLE_TYPES = ["curator", "guide", "liaison"]
-DEFAULT_ROLE_READMES = [
-						"A curator pays attention to Rakontu's accumulated data. Curators add information, check for problems, create links, and in general maintain the vitality of the story bank.",
-						"A guide pays attention to the Rakontu's on-line human community. Guides answer questions, write tutorials, encourage people to tell and use stories, create patterns, write and respond to requests, set up and run exercises, and in general maintain the vitality of the on-line member community.",
-						"A liaison guides stories and other information over the barrier between on-line and off-line worlds. Liaisons conduct external interviews and add the stories people tell in them, read stories to people and gather comments, nudges, and other annotations, and in general make the system work for both on-line and off-line community members."]
 GOVERNANCE_ROLE_TYPES = ["member", "manager", "owner"]
+
 EVENT_TYPES = ["downdrift", \
 			"reading", "adding story", "adding pattern", "adding collage", "adding invitation", "adding resource", \
 			"adding retold link", "adding reminded link", "adding related link", "adding included link", "adding responded link", \
 			"answering question", "adding tag set", "adding comment", "adding request", "adding nudge"]
-DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS = [
-					0,	# downdrift
-					4,	# reading
-					40,	# adding story
-					20,	# adding pattern
-					20,	# adding collage
-					30,	# adding invitation
-					10,	# adding resource
-					10,	# adding retelling link
-					5,	# adding reminding link
-					5,	# adding relating link
-					5,	# adding including link
-					10,	# adding responding link
-					2,	# answering question
-					10,	# adding tag set
-					15,	# adding comment
-					15,	# adding request
-					5,	# adding nudge
-					]
-DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS = [
-					-1,	# downdrift
-					4,	# reading
-					40,	# adding story
-					20,	# adding pattern
-					20,	# adding collage
-					30,	# adding invitation
-					10,	# adding resource
-					10,	# adding retelling link
-					5,	# adding reminding link
-					5,	# adding relating link
-					5,	# adding including link
-					10,	# adding responding link
-					2,	# answering question
-					10,	# adding tag set
-					15,	# adding comment
-					15,	# adding request
-					5,	# adding nudge
-					]
 
-# articles
+
 ARTICLE_TYPES = ["story", "invitation", "collage", "pattern", "resource"]
 LINK_TYPES = ["retold", "reminded", "responded", "related", "included"]
-ACCEPTED_ATTACHMENT_FILE_TYPES = ["jpg", "png", "pdf", "doc", "txt", "mpg", "mp3", "html", "zip"]
-ACCEPTED_ATTACHMENT_MIME_TYPES = ["image/jpeg", "image/png", "application/pdf", "application/msword", "text/plain", "video/mpeg", "audio/mpeg", "text/html", "application/zip"]
 
-# annotations
 ANNOTATION_TYPES = ["tag set", "comment", "request", "nudge"]
 ANNOTATION_TYPES_URLS = ["tagset", "comment", "request", "nudge"]
-NUDGE_TYPES = ["appropriateness", "importance", "utility", "utility custom 1", "utility custom 2", "utility custom 3"]
 ENTRY_TYPES = ["story", "pattern", "collage", "invitation", "resource", "answer", "tag set", "comment", "request", "nudge"]
 ENTRY_TYPES_URLS = ["story", "pattern", "collage", "invitation", "resource", "answer", "tagset", "comment", "request", "nudge"]
 STORY_ENTRY_TYPE_INDEX = 0
 ANSWERS_ENTRY_TYPE_INDEX = 5
 
-# browsing
 MINUTE_SECONDS = 60
 HOUR_SECONDS = 60 * MINUTE_SECONDS
 DAY_SECONDS = 24 * HOUR_SECONDS
@@ -140,19 +62,10 @@ TIME_UNIT_STRINGS = {"minute": MINUTE_SECONDS,
 					"week": WEEK_SECONDS,
 					"month": MONTH_SECONDS,
 					"year": YEAR_SECONDS,}
-TIME_FRAMES = ["minute", "hour", "day", "week", "month", "year"]
 
-# querying
-QUERY_TYPES = ["free text", "tags", "answers", "members", "activities", "links"]
-QUERY_TARGETS = ["stories", "patterns", "collages", "invitations", "resources", "articles", "answers", "tags", "comments", "requests", "nudge comments"]
-BOOLEAN_CHOICES = ["ALL", "ANY"]
-RECENT_TIME_FRAMES = ["last hour", "last day", "last week", "last month", "last six months", "last year", "ever"]
-
-# questions 
 QUESTION_REFERS_TO = ["story", "pattern", "collage", "invitation", "resource", "member"]
 QUESTION_REFERS_TO_PLURAL = ["stories", "patterns", "collages", "invitations", "resources", "members"]
 QUESTION_TYPES = ["boolean", "text", "ordinal", "nominal", "value"]
-
 
 # from http://www.letsyouandhimfight.com/2008/04/12/time-zones-in-google-app-engine/
 # with a few changes
@@ -218,11 +131,11 @@ class Community(db.Model):
 	welcomeMessage_formatted = db.TextProperty()
 	welcomeMessage_format = db.StringProperty(default="plain text")
 	image = db.BlobProperty(default=None)
-	contactEmail = db.StringProperty(default="support@rakontu.org")
+	contactEmail = db.StringProperty(default=DEFAULT_CONTACT_EMAIL)
 	
-	defaultTimeZoneName = db.StringProperty(default="US/Eastern")
-	defaultTimeFormat = db.StringProperty(default="h:i a")
-	defaultDateFormat = db.StringProperty(default="F j, Y")
+	defaultTimeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE)
+	defaultTimeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT)
+	defaultDateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT)
 	
 	created = TzDateTimeProperty(auto_now_add=True)
 	lastPublish = TzDateTimeProperty(default=None)
@@ -234,10 +147,10 @@ class Community(db.Model):
 	articleActivityPointsPerEvent = db.ListProperty(int, default=DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS)
 	allowCharacter = db.ListProperty(bool, default=[True,True,True,True,True,True,True,True,True,True])
 	allowEditingAfterPublishing = db.ListProperty(bool, default=[False, False, True, True, True])
-	nudgeCategories = db.StringListProperty(default=["appropriate", "important", "useful to new members", "useful for resolving conflicts", "useful for understanding"])
+	nudgeCategories = db.StringListProperty(default=DEFAULT_NUDGE_CATEGORIES)
 	roleReadmes = db.ListProperty(db.Text, default=[db.Text(DEFAULT_ROLE_READMES[0]), db.Text(DEFAULT_ROLE_READMES[1]), db.Text(DEFAULT_ROLE_READMES[2])])
 	roleReadmes_formatted = db.ListProperty(db.Text, default=[db.Text(""), db.Text(""), db.Text("")])
-	roleReadmes_formats = db.StringListProperty(default=["plain text", "plain text", "plain text"])
+	roleReadmes_formats = db.StringListProperty(default=DEFAULT_ROLE_READMES_FORMATS)
 	roleAgreements = db.ListProperty(bool, default=[False, False, False])
 	maxNumAttachments = db.IntegerProperty(choices=[0,1,2,3,4,5], default=3)
 	
@@ -746,7 +659,7 @@ class Answer(db.Model):
 			self.put()
 			self.referent.recordAction("added", self)
 			if self.referentType == "article":
-				for i in range(5):
+				for i in range(NUM_NUDGE_CATEGORIES):
 					self.articleNudgePointsWhenPublished[i] = self.referent.nudgePoints[i]
 				self.articleActivityPointsWhenPublished = self.referent.activityPoints
 				self.put()
@@ -1077,7 +990,7 @@ class Link(db.Model):
 		self.put()
 		self.articleFrom.recordAction("added", self)
 		self.articleTo.recordAction("added", self)
-		for i in range(5):
+		for i in range(NUM_NUDGE_CATEGORIES):
 			self.articleNudgePointsWhenPublished[i] = self.articleFrom.nudgePoints[i]
 		self.articleActivityPointsWhenPublished = self.articleFrom.activityPoints
 		self.put()
@@ -1230,7 +1143,7 @@ class Annotation(db.Model):
 			return ", ".join(self.tagsIfTagSet)
 		elif self.type == "nudge":
 			result = []
-			for i in range(5):
+			for i in range(NUM_NUDGE_CATEGORIES):
 				if self.valuesIfNudge[i] != 0:
 					result.append("%s %s" % (self.valuesIfNudge[i], self.community.nudgeCategories[i]))
 			if self.shortString:

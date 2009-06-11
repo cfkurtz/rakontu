@@ -413,6 +413,12 @@ def GenerateURLs(request):
 # Queries
 # --------------------------------------------------------------------------------------------
 
+# querying
+QUERY_TYPES = ["free text", "tags", "answers", "members", "activities", "links"]
+QUERY_TARGETS = ["stories", "patterns", "collages", "invitations", "resources", "articles", "answers", "tags", "comments", "requests", "nudge comments"]
+BOOLEAN_CHOICES = ["ALL", "ANY"]
+RECENT_TIME_FRAMES = ["last hour", "last day", "last week", "last month", "last six months", "last year", "ever"]
+
 class Query(db.Model):
 	""" Choice to show subsets of items in main viewer.
 

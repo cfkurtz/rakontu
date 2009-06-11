@@ -301,7 +301,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 				community.maxNudgePointsPerArticle = int(self.request.get("maxNudgePointsPerArticle"))
 			except:
 				community.maxNudgePointsPerArticle = oldValue
-			for i in range(5):
+			for i in range(NUM_NUDGE_CATEGORIES):
 				community.nudgeCategories[i] = cgi.escape(self.request.get("nudgeCategory%s" % i))
 			oldValue = community.maxNumAttachments
 			try:
@@ -380,6 +380,8 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 			systemQuestionsOfType = Question.all().filter("community = ", None).filter("refersTo = ", type).fetch(FETCH_NUMBER)
 			for question in communityQuestionsOfType:
 				question.name = cgi.escape(self.request.get("name|%s" % question.key()))
+				if not question.name:
+					question.name = DEFAULT_QUESTION_NAME
 				question.text = cgi.escape(self.request.get("text|%s" % question.key()))
 				question.help = cgi.escape(self.request.get("help|%s" % question.key()))
 				question.type = self.request.get("type|%s" % question.key())

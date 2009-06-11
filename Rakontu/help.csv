@@ -17,3 +17,4 @@
 "tip","#unflag_item","Unflagging an item will remove it from this window. To flag it again, visit its page off the main 'look' window and choose 'curate' in the menu there."
 "caution","#editing_after_publish","Making articles easy to re-edit is useful for resources, collages and patterns; but it may be very confusing for stories and invitations. In any case, this setting should not be changed often as it will confuse people. "
 "info","For which of these types of article should editing be allowed after publishing?","Articles edited again after publishing can be turned into drafts again (and hidden) or re-published with changes. Older versions are replaced and not saved."
+"tip","#title_in_resource_list","Click a green flag icon to flag (mark) the resource for deletion. Click a red flag icon to unflag the item."

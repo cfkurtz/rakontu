@@ -61,6 +61,8 @@ start thinking about internationalization
 
 UNICODE
 
+I don't think downdrift is working yet
+
 need a way to nudge things from the main page - you just want to do it - icon?
 
 in the community settings it says you can set it so members have to check a box
@@ -72,4 +74,6 @@ check all input texts to set maxlength to fit into string property
 
 don't show manager/owner status to group, just that they are a manager. owner status should not be obvious to all members.
 
-hover over images on look page
+resource type
+
+orphans page

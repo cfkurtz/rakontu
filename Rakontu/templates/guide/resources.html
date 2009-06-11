@@ -6,21 +6,26 @@
 		
 		{% if current_member.isGuideOrManagerOrOwner %}
 	
-			<div id="stylized" class="rakontu_form">
-			<form action="/guide/resources" method="post">
-			
 			<h3>Resources</h3>
-			<fieldset>
 	      	<table border="1" cellpadding="4" cellspacing="0">
 	      	<tr>
-	      		<th>Title</th>
+	      		<th>Name{{"#title_in_resource_list"|tip}}</th>
 	      		<th>Text</th>
 	      		<th>Attachments</th>
-	      		<th>Flag for removal?</th>
+	      		<th>Created</th>
+	      		<th>Last changed</th>
+	      		<th>Last published</th>
 	      		</tr>
 	      		{% for resource in resources %}
 	  				<tr>
-	  				<td>{{resource.linkString}}</td>
+	  				<td>
+	  				{% if resource.flaggedForRemoval %}
+	  					<a href="/visit/flag?{{resource.key}}" class="image"><img src="../images/flag_red.png" alt="flag" border="0"></a>
+	  				{% else %}
+	  					<a href="/visit/flag?{{resource.key}}" class="image"><img src="../images/flag_green.png" alt="flag" border="0"></a>
+					{% endif %}
+
+	  				{{resource.linkString}}</td>
 	  				<td>{{resource.text|upTo:100}}</td>
 	  				<td>
 	  				{% if resource.getAttachments %}
@@ -28,28 +33,22 @@
 	  						<p>{{attachment.linkString}}</p>
 	  					{% endfor %}
 	  				{% else %}
-	  					none
+	  					<p>none</p>
 	  				{% endif %}
 					</td>
-	  				<td>
-	  				{% if resource.flaggedForRemoval %}
-	  					<img src="../images/flag_red.png" alt="flag" border="0">
-	  					<input type="checkbox" name="flag|{{ resource.key }}" value="yes" id="flag|{{ resource.key }}"/>
-						<label for="flag|{{ resource.key }}">Unflag</label>
-	  				{% else %}
-	  					<input type="checkbox" name="flag|{{ resource.key }}" value="yes" id="flag|{{ resource.key }}"/>
-						<label for="flag|{{ resource.key }}">Flag</label>
-					{% endif %}
-	  					</td>
+					<td>{{resource.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+						<br/> {{resource.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					</td>
+					<td>{{resource.edited|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+						<br/> {{resource.edited|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					</td>
+					<td>{{resource.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+						<br/> {{resource.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					</td>
 	  				</tr>
 	      		{% endfor %}
 	      	</table>
-	      	</fieldset>
 			
-		<p></p>
-	    <center><input type="submit" name="submitChanges" value="Submit Changes" class="button"></center>	
-		</form>	
-		</div>
 	{% else %}
 		<p>You are not a guide or manager or owner of this community and cannot change its resources.
 		Please ask a guide, manager or owner to make any changes you would like to see made.</p>

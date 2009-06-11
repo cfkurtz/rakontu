@@ -153,7 +153,7 @@ class EnterArticlePage(webapp.RequestHandler):
 				article = db.get(articleKey)
 			newArticle = False
 			if not article:
-				article=Article(community=community, type=type, creator=member, title="Untitled")
+				article=Article(community=community, type=type, creator=member, title=DEFAULT_UNTITLED_ARTICLE_TITLE)
 				newArticle = True
 			preview = False
 			if "save|%s" % type in self.request.arguments():
@@ -589,7 +589,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					oldTotalNudgePointsInThisNudge = annotation.totalNudgePointsAbsolute()
 					nudgeValuesTheyWantToSet = []
 					totalNudgeValuesTheyWantToSet = 0
-					for i in range(5):
+					for i in range(NUM_NUDGE_CATEGORIES):
 						category = community.nudgeCategories[i]
 						if category:
 							oldValue = annotation.valuesIfNudge[i]
@@ -602,7 +602,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					maximumAllowedInThisInstance = min(member.nudgePoints, community.maxNudgePointsPerArticle)
 					if totalNudgeValuesTheyWantToSet > maximumAllowedInThisInstance:
 						totalNudgePointsAllocated = 0
-						for i in range(5):
+						for i in range(NUM_NUDGE_CATEGORIES):
 							category = community.nudgeCategories[i]
 							if category:
 								overLimit = totalNudgePointsAllocated + nudgeValuesTheyWantToSet[i] > maximumAllowedInThisInstance
