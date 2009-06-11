@@ -235,6 +235,7 @@ TEXT_FORMATS = ["plain text", "simple HTML", "Wiki markup"]
 def InterpretEnteredText(text, mode="text"):
 	result = text
 	if mode == "plain text":
+		result = cgi.escape(result)
 		lines = result.split("\n")
 		changedLines = []
 		for line in lines:

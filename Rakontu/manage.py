@@ -564,7 +564,7 @@ class CurateFlagsPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 			if member.isCurator():
-				(articles, annotations, answers, links) = community.getAllItems()
+				(articles, annotations, answers, links) = community.getAllFlaggedItems()
 				template_values = {
 							   	   'title': "Review flags", 
 						   	   	   'title_extra': None, 
@@ -590,16 +590,26 @@ class CurateFlagsPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 			items = community.getAllFlaggedItemsAsOneList()
+			for item in items:
+				 if self.request.get("unflag|%s" % item.key()) == "yes":
+				 	item.flaggedForRemoval = False
+				 	item.put()
 			if member.isManagerOrOwner():
 				for item in items:
-					if self.request.get("remove|%s" % item.key()) == "yes":
+					if self.request.get("removeComment|%s" % item.key()) == "yes":
+						if item.__class__.__name__ == "Annotation": # nudge
+							item.shortString = ""
+						elif item.__class__.__name__ == "Link":
+							item.comment = ""
+						item.put()
+					elif self.request.get("remove|%s" % item.key()) == "yes":
 						if item.__class__.__name__ == "Article":
 							item.removeAllDependents()
 						db.delete(item)
 			elif member.isCurator():
 				itemsToSendMessageAbout = []
 				for item in items:
-					if self.request.get("message|%s" % item.key()) == "yes":
+					if self.request.get("notify|%s" % item.key()) == "yes":
 						itemsToSendMessageAbout.append(item)
 				if itemsToSendMessageAbout:
 					subject = "Reminder about flagged items from %s" % current_member.nickname

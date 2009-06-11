@@ -69,3 +69,7 @@ before becoming a curator etc, but you really don't
 need a way for site administrator to DELETE a community (and also disable but not delete)
 
 need better feedback when a person has done a thing - action completed page? that tells you what you just did?
+
+check all input texts to set maxlength to fit into string property
+
+hover over images on look page

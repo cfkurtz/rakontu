@@ -1155,6 +1155,9 @@ class Annotation(db.Model):
 	def isRequest(self):
 		return self.type == "request"
 	
+	def isNudge(self):
+		return self.type == "nudge"
+	
 	def totalNudgePoints(self):
 		result = 0
 		for value in self.valuesIfNudge:

@@ -86,6 +86,12 @@ def tip(value):
 def caution(value):
 	return infoTipCaution(value, value.find("#") < 0, "caution")
 
+def upTo(value, number):
+	result = value[:number]
+	if len(value) > number:
+		result += "..."
+	return result
+
 register.filter(listLookup)
 register.filter(dictLookup)
 register.filter(makeRange)
@@ -97,4 +103,5 @@ register.filter(sorted)
 register.filter(info)
 register.filter(tip)
 register.filter(caution)
+register.filter(upTo)
 
