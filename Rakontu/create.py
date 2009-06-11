@@ -180,7 +180,7 @@ class EnterArticlePage(webapp.RequestHandler):
 						article.liaison = member
 						break
 			if self.request.get("attribution") != "member":
-				article.character = Character.get(characterKey)
+				article.character = Character.get(self.request.get("attribution"))
 			else:
 				article.character = None
 			article.put()
@@ -507,9 +507,11 @@ class EnterAnnotationPage(webapp.RequestHandler):
 								   'offline_members': community.getOfflineMembers(),
 								   'article': article,
 								   'nudge_categories': community.nudgeCategories,
+								   'num_nudge_categories': NUM_NUDGE_CATEGORIES,
 								   'nudge_points_member_can_assign': nudgePointsMemberCanAssign,
 								   'character_allowed': community.allowCharacter[entryTypeIndex],
 								   'included_links_outgoing': article.getOutgoingLinksOfType("included"),
+								   'num_tags_in_tag_set': NUM_TAGS_IN_TAG_SET,
 								   'text_formats': TEXT_FORMATS,
 								   'user_is_admin': users.is_current_user_admin(),
 								   'logout_url': users.create_logout_url("/"),
@@ -568,7 +570,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					annotation.character = None
 				if type == "tag set":
 					annotation.tagsIfTagSet = []
-					for i in range (5):
+					for i in range (NUM_TAGS_IN_TAG_SET):
 						if self.request.get("tag%s" % i):
 							annotation.tagsIfTagSet.append(cgi.escape(self.request.get("tag%s" % i)))
 				elif type == "comment":
@@ -664,6 +666,7 @@ class PreviewPage(webapp.RequestHandler):
 								   'questions': community.getQuestionsOfType(article.type),
 								   'answers_with_article': article.getAnswersForMember(member),
 								   'nudge_categories': community.nudgeCategories,
+								   'num_nudge_categories': NUM_NUDGE_CATEGORIES,
 								   'user_is_admin': users.is_current_user_admin(),
 								   'logout_url': users.create_logout_url("/"),
 								   }

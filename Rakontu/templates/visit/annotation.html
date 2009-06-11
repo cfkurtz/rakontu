@@ -36,12 +36,10 @@
 			<fieldset>
 			
 			{% ifequal annotation_type "tag set" %}
-				<p>Please enter up to five words or short phrases that describe this {{article.type}}.</p>
-				<p><input type="text" name="tag0" size="15" value="{% if annotation %}{{annotation.tagsIfTagSet.0}}{% endif %}"/>&nbsp; 
-				<input type="text" name="tag1" size="12" value="{% if annotation %}{{annotation.tagsIfTagSet.1}}{% endif %}"/>&nbsp; 
-				<input type="text" name="tag2" size="12" value="{% if annotation %}{{annotation.tagsIfTagSet.2}}{% endif %}"/>&nbsp; 
-				<input type="text" name="tag3" size="12" value="{% if annotation %}{{annotation.tagsIfTagSet.3}}{% endif %}"/>&nbsp; 
-				<input type="text" name="tag4" size="12" value="{% if annotation %}{{annotation.tagsIfTagSet.4}}{% endif %}"/></p>
+				<p>Please enter up to {{num_tags_in_tag_set}} words or short phrases that describe this {{article.type}}.</p>
+				{% for i in num_tags_in_tag_set|makeRange %}
+					<p><input type="text" name="tag{{i}}" size="15" value="{% if annotation %}{{annotation.tagsIfTagSet|listLookup:i}}{% endif %}"/>&nbsp; 
+				{% endfor %}
 			{% endifequal %}
 			
 			{% ifequal annotation_type "comment" %}
@@ -115,21 +113,10 @@
 						{% endif %}
 						will be reduced to what is available, starting with the last ones in the list.</i></p>
 					<tr><th>Category</th><th>Nudge</th></tr>
-						{% if community.nudgeCategories.0 %}
-							<tr><td align="right">{{community.nudgeCategories.0}}</td><td align="left"><input type="text" name="nudge0" size="4" value="{{annotation.valuesIfNudge.0}}"/></td></tr>
-						{% endif %}
-						{% if community.nudgeCategories.1 %}
-							<tr><td align="right">{{community.nudgeCategories.1}}</td><td align="left"><input type="text" name="nudge1" size="4" value="{{annotation.valuesIfNudge.1}}"/></td></tr>
-						{% endif %}
-						{% if community.nudgeCategories.2 %}
-							<tr><td align="right">{{community.nudgeCategories.2}}</td><td align="left"><input type="text" name="nudge2" size="4" value="{{annotation.valuesIfNudge.2}}"/></td></tr>
-						{% endif %}
-						{% if community.nudgeCategories.3 %}
-							<tr><td align="right">{{community.nudgeCategories.3}}</td><td align="left"><input type="text" name="nudge3" size="4" value="{{annotation.valuesIfNudge.3}}"/></td></tr>
-						{% endif %}
-						{% if community.nudgeCategories.4 %}
-							<tr><td align="right">{{community.nudgeCategories.4}}</td><td align="left"><input type="text" name="nudge4" size="4" value="{{annotation.valuesIfNudge.4}}"/></td></tr>
-						{% endif %}
+						{% for i in num_nudge_categories|makeRange %}
+							<tr><td align="right">{{community.nudgeCategories|listLookup:i}}</td><td align="left">
+							<input type="text" name="nudge{{i}}" size="4" value="{{annotation.valuesIfNudge|listLookup:i|orNothing}}"/></td></tr>
+						{% endfor %}
 					</table>
 					{% if annotation %}
 						<p>You can change your comment on this nudge here.</p>

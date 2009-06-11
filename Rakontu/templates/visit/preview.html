@@ -91,11 +91,11 @@
 		{% endifequal %}
 		{% ifequal annotation.type "nudge" %}
 			<ul>
-			{% if annotation.valuesIfNudge.0 %}<li class="nobullet">{{community.nudgeCategories.0}}: <b>{{annotation.valuesIfNudge.0}}</b> </li>{% endif %}
-			{% if annotation.valuesIfNudge.1 %}<li class="nobullet">{{community.nudgeCategories.1}}: <b>{{annotation.valuesIfNudge.1}}</b> </li>{% endif %}
-			{% if annotation.valuesIfNudge.2 %}<li class="nobullet">{{community.nudgeCategories.2}}: <b>{{annotation.valuesIfNudge.2}}</b> </li>{% endif %}
-			{% if annotation.valuesIfNudge.3 %}<li class="nobullet">{{community.nudgeCategories.3}}: <b>{{annotation.valuesIfNudge.3}}</b> </li>{% endif %}
-			{% if annotation.valuesIfNudge.4 %}<li class="nobullet">{{community.nudgeCategories.4}}: <b>{{annotation.valuesIfNudge.4}}</b> </li>{% endif %}
+			{% for i in num_nudge_categories|makeRange %}
+				{% if annotation.valuesIfNudge|listLookup:i %}
+					<li class="nobullet">{{community.nudgeCategories|listLookup:i}}: <b>{{annotation.valuesIfNudge|listLookup:i}}</b> </li>
+				{% endif %}
+			{% endfor %}
 			</ul>			
 			{% if annotation.shortString %}
 				<p>Your comment:</p><ul><li class="nobullet">{{annotation.shortString}}</li></ul>

@@ -547,6 +547,9 @@ class SeeCharacterPage(webapp.RequestHandler):
 									   'community': community, 
 									   'current_member': member,
 									   'character': character,
+						   		   	   'articles': character.getNonDraftArticlesAttributedToCharacter(),
+						   		       'annotations': character.getNonDraftAnnotationsAttributedToCharacter(),
+						   		       'answers': character.getNonDraftAnswersAboutArticlesAttributedToCharacter(),
 									   'user_is_admin': users.is_current_user_admin(),
 									   'logout_url': users.create_logout_url("/"),								   
 									   }
@@ -562,12 +565,6 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-			liaison = None
-			if not member.isOnlineMember:
-				try:
-					liaison = community.getMemberForGoogleAccountId(member.liaisonAccountID)
-				except:
-					liaison = None
 			draftAnswerArticles = member.getArticlesWithDraftAnswers()
 			firstDraftAnswerForEachArticle = []
 			for article in draftAnswerArticles:
@@ -584,7 +581,6 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 							   'draft_articles': member.getDraftArticles(),
 							   'draft_annotations': member.getDraftAnnotations(),
 							   'first_draft_answer_per_article': firstDraftAnswerForEachArticle,
-							   'liaison': liaison,
 							   'time_zone_names': pytz.all_timezones,
 							   'date_formats': DateFormatStrings(),
 							   'time_formats': TimeFormatStrings(),

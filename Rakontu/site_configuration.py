@@ -1,39 +1,59 @@
-# --------------------------------------------------------------------------------------------
+# ============================================================================================ 
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
 # Version: pre-0.1
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
-# --------------------------------------------------------------------------------------------
+# ============================================================================================ 
 
-# --------------------------------------------------------------------------------------------
+# ============================================================================================ 
 # ON CHANGING THESE VALUES
-# --------------------------------------------------------------------------------------------
+# ============================================================================================ 
 # These site constants determine some aspects of the behavior of all community sites
 # created in this Rakontu installation. You can of course change the source code of Rakontu itself, 
 # but these constants are those the most amenable to change without architectural changes to the source code. 
 # They have been placed here mainly as a convenience to the site administrator.
 #
+# There are several dependencies between different settings (e.g., if you change the number of options 
+# you must change the options). These are noted in the comments below.
+#
 # Warning: This file uses Python syntax. You should be comfortable editing Python code before you edit this file.
 #
 # BACKUP THIS FILE before you make changes!
-# --------------------------------------------------------------------------------------------
+# ============================================================================================ 
 
-# --------------------------------------------------------------------------------------------
+# This determines how texts will be interpreted by default all over the site.
+# Change this only if the people on your site will be MUCH more likely to prefer a simple HTML or Wiki format.
+# MUST be (exactly) one of "plain text", "simple HTML", and "Wiki markup".
+DEFAULT_TEXT_FORMAT = "plain text"
+
+# ============================================================================================ 
 # MEMBERS
-# --------------------------------------------------------------------------------------------
+# ============================================================================================ 
 
 # This is what members are called before they have set themselves a nickname.
 NO_NICKNAME_SET = "No nickname set"
+
+# This is what shows if people don't enter anything in the "Please describe yourself to other members." area.
+NO_PROFILE_TEXT = "No profile information."
+
+# How many nudge points members should get when they join.
+# Giving people something to start with is encouraging.
+DEFAULT_START_NUDGE_POINTS = 50
 
 # The community contact email is the email address used as the SENDER in all email sent FROM the Rakontu.
 # This appears as the default in the community settings.
 # It MUST be a valid email address.
 DEFAULT_CONTACT_EMAIL = "support@rakontu.org"
 
-# --------------------------------------------------------------------------------------------
+DEFAULT_WELCOME_MESSAGE = \
+"""
+Hello and welcome to our community! 
+"""
+
+# ============================================================================================ 
 # BROWSING
-# --------------------------------------------------------------------------------------------
+# ============================================================================================ 
 
 # These are the time frames shown in the main "Look at stories" browser window.
 # You can remove time frames from this list, but you cannot change them or add any. 
@@ -64,12 +84,20 @@ DEFAULT_TIME_FORMAT = "h:i a"
 # This time zone will show up in all community settings pages.
 DEFAULT_TIME_ZONE = "US/Eastern"
 
-# --------------------------------------------------------------------------------------------
+# ============================================================================================ 
 # ARTICLES
-# --------------------------------------------------------------------------------------------
+# ============================================================================================ 
 
 # This is the title given to articles which are not titled by their creators.
 DEFAULT_UNTITLED_ARTICLE_TITLE = "Untitled"
+
+NO_TEXT_IN_ARTICLE = "No text."
+
+# This is the list of numbers of attachments communities can choose from, and the choice
+# that appears chosen by default.
+# To disallow attachments completely for the site, set NUM_ATTACHMENT_CHOICES to [0] and DEFAULT_MAX_NUM_ATTACHMENTS to 0.
+NUM_ATTACHMENT_CHOICES = [0, 1, 2, 3, 4, 5]
+DEFAULT_MAX_NUM_ATTACHMENTS = 3
 
 # These are the accepted attachment file types. You can add or remove any types here.
 # However, these two lists MUST match up exactly (by order).
@@ -79,14 +107,47 @@ DEFAULT_UNTITLED_ARTICLE_TITLE = "Untitled"
 ACCEPTED_ATTACHMENT_FILE_TYPES = ["jpg", "png", "pdf", "doc", "txt", "mpg", "mp3", "html", "zip"]
 ACCEPTED_ATTACHMENT_MIME_TYPES = ["image/jpeg", "image/png", "application/pdf", "application/msword", "text/plain", "video/mpeg", "audio/mpeg", "text/html", "application/zip"]
 
+# This is whether fictional character attribution is allowed, by default.
+# One setting for each of these entry types: story, pattern, collage, invitation, resource, answer, tag set, comment, request, nudge
+DEFAULT_ALLOW_CHARACTERS = [True,True,True,True,True,True,True,True,True,True]
+
+# This is whether members are allowed to "re-enter" articles of each type after they are published.
+# This can be great for things like resources, but it is usually NOT good for things like stories.
+# One setting for each of these article types: story, invitation, collage, pattern, resource
+DEFAULT_ALLOW_EDITING_AFTER_PUBLISHING = [False, False, True, True, True]
+
+# ============================================================================================ 
+# QUESTIONS
+# ============================================================================================ 
+
 # This is the name given to questions not named by their creators.
 DEFAULT_QUESTION_NAME = "Unnamed question"
 
-# --------------------------------------------------------------------------------------------
-# NUDGE SYSTEM
-# --------------------------------------------------------------------------------------------
+# This is how long a text answer to a question is allowed to be, by default.
+# Should not be set too high to avoid really long answers.
+# Max storage space is 500 bytes (CFK FIX - unicode
+DEFAULT_QUESTION_TEXT_LENGTH = 40
 
-# The number of nudge categories. This must be set to at least one.
+# Defaults for question value ranges.
+DEFAULT_QUESTION_VALUE_MIN = 0
+DEFAULT_QUESTION_VALUE_MAX = 1000
+
+# Default response (label on checkbox) for boolean questions
+DEFAULT_QUESTION_BOOLEAN_RESPONSE = "Yes"
+
+# How many choices can be offered for an ordinal or nominal question, maximum.
+# A reasonable range is between 5 and 10.
+MAX_NUM_CHOICES_PER_QUESTION = 10
+
+# ============================================================================================ 
+# NUDGE SYSTEM
+# ============================================================================================ 
+
+# The number of nudge categories. This MUST be set to at least one.
+# It also MUST match the number of entries in the next list.
+# If you change this AFTER there are communities using the site, their nudge categories
+# will either get cut off (and not displayed), or new ones called "None" will be displayed.
+# It's best to set it up at the start and not change it after any items have been entered.
 NUM_NUDGE_CATEGORIES = 5
 
 # The default nudge category names that come up in community settings. 
@@ -138,9 +199,16 @@ DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS = [
 					5,	# adding nudge
 					]
 
-# --------------------------------------------------------------------------------------------
+# ============================================================================================ 
+# ANNOTATIONS
+# ============================================================================================ 
+
+# The number of tags in each tag set. Reasonable values are between 3 and 7.
+NUM_TAGS_IN_TAG_SET = 5
+
+# ============================================================================================ 
 # HELPING ROLES
-# --------------------------------------------------------------------------------------------
+# ============================================================================================ 
 
 # These appear in each member's profile page, in the section where they are deciding whether 
 # to take on each of the helping roles. You can add site-specific information here.
@@ -162,9 +230,12 @@ comments, nudges, and other annotations, and in general make the system work for
 """]
 
 # These are the formats in which the default role readmes (above) are to be interpreted.
-# Available options are "plain text", "simple HTML", and "Wiki markup" ONLY.
+# Each setting MUST be (exactly) one of "plain text", "simple HTML", and "Wiki markup".
 DEFAULT_ROLE_READMES_FORMATS = ["plain text", "plain text", "plain text"]
 
+# Whether people have to click "I agree" to become a curator, guide or liaison.
+# One setting for each of these helping roles: curator, guide, liaison.
+DEFAULT_ROLE_AGREEMENTS = [False, False, False]
 
 
 

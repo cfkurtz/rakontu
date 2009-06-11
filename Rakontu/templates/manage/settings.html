@@ -95,37 +95,39 @@
 				</select>
 			</fieldset>
 			
-			<h3>Attachments</h3>
-			<fieldset>
-			<p>How many attachments are allowed per article?
-				<select name="maxNumAttachments" style="width: 60px;">
-				<option value="1"
-					{% ifequal community.maxNumAttachments 1 %}
-						selected="selected"
-					{% endifequal %}
-					>1</option>
-				<option value="2"
-					{% ifequal community.maxNumAttachments 2 %}
-						selected="selected"
-					{% endifequal %}
-					>2</option>
-				<option value="3"
-					{% ifequal community.maxNumAttachments 3 %}
-						selected="selected"
-					{% endifequal %}
-					>3</option>
-				<option value="4"
-					{% ifequal community.maxNumAttachments 4 %}
-						selected="selected"
-					{% endifequal %}
-					>4</option>
-				<option value="5"
-					{% ifequal community.maxNumAttachments 5 %}
-						selected="selected"
-					{% endifequal %}
-					>5</option>
-				</select>
-			</fieldset>
+			{% if site_allows_attachments %}
+				<h3>Attachments</h3>
+				<fieldset>
+				<p>How many attachments are allowed per article?
+					<select name="maxNumAttachments" style="width: 60px;">
+					<option value="1"
+						{% ifequal community.maxNumAttachments 1 %}
+							selected="selected"
+						{% endifequal %}
+						>1</option>
+					<option value="2"
+						{% ifequal community.maxNumAttachments 2 %}
+							selected="selected"
+						{% endifequal %}
+						>2</option>
+					<option value="3"
+						{% ifequal community.maxNumAttachments 3 %}
+							selected="selected"
+						{% endifequal %}
+						>3</option>
+					<option value="4"
+						{% ifequal community.maxNumAttachments 4 %}
+							selected="selected"
+						{% endifequal %}
+						>4</option>
+					<option value="5"
+						{% ifequal community.maxNumAttachments 5 %}
+							selected="selected"
+						{% endifequal %}
+						>5</option>
+					</select>
+				</fieldset>
+			{% endif %}
 	
 			<h3>Fictional characters</h3>
 			<fieldset>
@@ -153,9 +155,9 @@
 			{{"#community_nudgePoints"|info}} {{"#community_nudgePointsPerArticle"|caution}}
 			<p>{{"Enter your nudge category names here."|caution}}</p>
 			<p>
-			{% for i in 5|makeRange %}
+			{% for i in num_nudge_categories|makeRange %}
 				<input type="text" name="nudgeCategory{{i}}" size="20" value="{{community.nudgeCategories|listLookup:i}}"/>
-				{% endfor %}
+			{% endfor %}
 			</p>
 			<p>How many nudge points do members accumulate by participating in the community?</p>
 			<table  border="1" cellpadding="4" cellspacing="0">

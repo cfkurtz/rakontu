@@ -139,7 +139,9 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 							   'editing_includes': editingIncludes,
 							   'nudge_point_includes': nudgePointIncludes,
 							   'activity_point_includes': activityPointIncludes,
+							   'site_allows_attachments': DEFAULT_MAX_NUM_ATTACHMENTS > 0,
 							   'text_formats': TEXT_FORMATS,
+							   'num_nudge_categories': NUM_NUDGE_CATEGORIES,
 							   'user_is_admin': users.is_current_user_admin(),
 							   'logout_url': users.create_logout_url("/"),
 							   }
@@ -243,6 +245,7 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 							   'questions': communityQuestionsOfType,
 							   'question_types': QUESTION_TYPES,
 							   'system_questions': systemQuestionsOfType,
+							   'max_num_choices': MAX_NUM_CHOICES_PER_QUESTION,
 							   'refer_type': type,
 							   'refer_type_plural': typePlural,
 							   'question_refer_types': QUESTION_REFERS_TO,

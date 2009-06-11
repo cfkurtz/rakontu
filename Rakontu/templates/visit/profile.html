@@ -13,9 +13,6 @@
       	<tr>
 		<td>Member type</td><td>{{current_member.governanceType}}</td></tr>
 		<td>Online member?</td><td>{{current_member.isOnlineMember|yesno:"yes, no, maybe"}}</td></tr>
-		{% if not current_member.isOnlineMember %}
-			<td>Liaison</td><td>{{liaison.nickname}}</td></tr>
-		{% endif %}
 		<td>Joined</td><td>{{current_member.joined|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}</td></tr>
 		<td>Last entered article</td><td>
 			{% if current_member.lastEnteredArticle %} 

@@ -60,6 +60,12 @@ def orNone(value):
 	else:
 		return "none"
 	
+def orNothing(value):
+	if value:
+		return value
+	else:
+		return ""
+	
 def sorted(value):
 	result = []
 	value.sort()
@@ -102,6 +108,7 @@ register.filter(timeZone)
 register.filter(notNone)
 register.filter(orNbsp)
 register.filter(orNone)
+register.filter(orNothing)
 register.filter(sorted)
 register.filter(info)
 register.filter(tip)

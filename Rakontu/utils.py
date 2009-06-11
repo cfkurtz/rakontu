@@ -53,6 +53,14 @@ def GenerateSystemQuestions():
 	questionStrings = csv.reader(file)
 	for row in questionStrings:
 		if len(row) >= 3 and row[0][0] != ";":
+			try:
+				minValue = int(row[6])
+			except:
+				minValue = DEFAULT_QUESTION_VALUE_MIN
+			try:
+				maxValue = int(row[7])
+			except:
+				maxValue = DEFAULT_QUESTION_VALUE_MAX
 			question = Question(
 							   refersTo=row[0],
 							   name=row[1],
@@ -60,8 +68,10 @@ def GenerateSystemQuestions():
 							   type=row[3],
 							   choices=row[4].split(", "),
 							   multiple=row[5] == "yes",
-							   help=row[6],
-							   useHelp=row[7],
+							   minIfValue=minValue,
+							   maxIfValue=maxValue,
+							   help=row[8],
+							   useHelp=row[9],
 							   community=None,
 							   )
 			question.put()

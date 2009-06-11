@@ -72,8 +72,10 @@ need a way for site administrator to DELETE a community (and also disable but no
 
 check all input texts to set maxlength to fit into string property
 
+still have not implemented user choosing which nudge categories to consider in look page
+
 don't show manager/owner status to group, just that they are a manager. owner status should not be obvious to all members.
 
 resource type
 
-orphans page
+number of tags, number of nudges not FULLY updated for flexibility yet - check EVERY use

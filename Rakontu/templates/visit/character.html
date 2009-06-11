@@ -14,17 +14,57 @@
   				{% if character.description %}<p>About {{character.name}}:</p><div class="blurb">{{character.description}}</div>{% endif %}
 	  			{% if character.etiquetteStatement %}<p>How to be {{character.name}}:</p><div class="blurb">{{character.etiquetteStatement}}</div>{% endif %}
 	
-	{% if history.count %}
-		<h4>{{character.name}}'s History</h4>
-		<ul>
-		{% for item in history %}
-			<li class="nobullet">
-				{{item.attribution}} <b>{{item.actionType}}</b>
-				the {{item.referentType}} "{{item.textToShow}}" on {{item.timeStamp|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} 
-		at {{item.timeStamp|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</li>
-		{% endfor %}
-		</ul>
-	{% endif %}
+  		<h3>Articles (stories, invitations, collages, patterns, resources)</h3>
+  		{% if articles %}
+	  		<ul>
+	  		{% for article in articles %}
+	  			<li class="nobullet">
+	  			<a href="read?{{article.key}}">{{article.title}}</a> was added
+	  			on {{article.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+				at {{article.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+				</li>
+	  		{% endfor %}
+	  		</ul>
+ 	  	{% else %}
+	  		<ul><li class="nobullet">none</li></ul>
+  		{% endif %}
+	
+		<h3>Annotations (comments, requests, nudges, tags)</h3>
+  		{% if annotations %}
+	  		<ul>
+	  		{% for annotation in annotations %}
+	  			<li class="nobullet">
+	  			A {{annotation.type}} of 
+	  			{% if annotation.isComment or annotation.isRequest %}
+	  				<a href="readAnnotation?{{annotation.key}}">{{annotation.displayString}}</a>
+	  			{% else %}
+	  				"{{annotation.displayString}}"
+	  			{% endif %}
+	  			was added to the article <a href="read?{{annotation.article.key}}">{{annotation.article.title}}</a> 
+	  			on {{annotation.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+				at {{annotation.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+				</li>
+	  		{% endfor %}
+	  		</ul>
+	  	{% else %}
+	  		<ul><li class="nobullet">none</li></ul>
+  		{% endif %}
+	
+		<h3>Answers to questions</h3>
+  		{% if answers %}
+	  		<ul>
+	  		{% for answer in answers %}
+	  			<li class="nobullet">
+	  			For the {{answer.referent.type}} <a href="read?{{answer.referent.key}}">{{answer.referent.title}}</a>,
+	  			the question "{{answer.question.text}}" was answered "{{answer.displayStringShort}}"
+	  			on {{answer.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+				at {{answer.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+				</li>
+	  		{% endfor %}
+	  		</ul>
+	  	{% else %}
+	  		<ul><li class="nobullet">none</li></ul>
+   		{% endif %}
 		
 	<div class="rightalign"><a href="/visit/community">See all characters</a></div>
 	</div>

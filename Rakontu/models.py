@@ -1,10 +1,10 @@
-﻿# --------------------------------------------------------------------------------------------
+﻿# ============================================================================================
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
 # Version: pre-0.1
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
-# --------------------------------------------------------------------------------------------
+# ============================================================================================
 
 import logging
 from datetime import *
@@ -85,66 +85,150 @@ class TzDateTimeProperty(db.DateTimeProperty):
 				value = value.astimezone(pytz.utc)
 		return value
 
+# ============================================================================================
+# ============================================================================================
 class Community(db.Model):
-	""" Preferences and settings for the whole community.
-		There can be multiple communities within one Rakontu installation.
+# ============================================================================================
+# ============================================================================================
+
+	name = db.StringProperty() # appears on all pages at top
+	tagline = db.StringProperty(default="") # appears under name, optional
+	image = db.BlobProperty(default=None) # appears on all pages, should be small (100x60 is best)
+	contactEmail = db.StringProperty(default=DEFAULT_CONTACT_EMAIL) # sender address for emails sent from site
 	
-	Properties
-		name:					The name that appears on all pages.
-		tagline:				Very short description that comes after the community name on the top of the page.
-		description:			Some text that describes the community. 
-		etiquetteStatement:		This is just some extra text in case they want to say how people should behave.
-		welcomeMessage:			Extra text a new member will see.
-		image:					Picture to show on community page.
-		
-		nudgePointsPerActivity:	A number for each type of activity (ACTIVITIES_GERUND) denoting how many
-								points the member accumulates for doing it.
-		maxNudgePointsPerArticle:	How many nudge points a member is allowed to place (maximally) on any article.
-		allowCharacter:	Whether members are allowed to enter things with
-								a character marked. One entry per type of thing (ENTRY_TYPES)
-		allowEditingAfterPublishing:	Can allow any of the article types to be re-entered after publishing.
-		nudgeCategories:		Names of nudge categories. Up to five allowed.
-		roleReadmes:			Texts all role members read before taking on a role.
-								One text per helping role type.
-		roleAgreements:			Whether the user is asked to click a checkbox before taking on a role
-								to show that they agree with the terms of the role. (Social obligation only.)
-		maxNumAttachments:		How many attachments are allowed per article.
-								May be useful to keep the database from getting out of hand.
-	"""
-	name = db.StringProperty()
-	tagline = db.StringProperty(default="")
-	description = db.TextProperty()
-	description_formatted = db.TextProperty()
-	description_format = db.StringProperty(default="plain text")
-	etiquetteStatement = db.TextProperty()
+	description = db.TextProperty(default=None) # appears on "about community" page
+	description_formatted = db.TextProperty() # formatted texts kept separate for re-editing original
+	description_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	
+	etiquetteStatement = db.TextProperty(default=None) # appears on "about community" page
 	etiquetteStatement_formatted = db.TextProperty()
-	etiquetteStatement_format = db.StringProperty(default="plain text")
-	welcomeMessage = db.TextProperty()
+	etiquetteStatement_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	
+	welcomeMessage = db.TextProperty(default=DEFAULT_WELCOME_MESSAGE) # appears only on new member welcome page
 	welcomeMessage_formatted = db.TextProperty()
-	welcomeMessage_format = db.StringProperty(default="plain text")
-	image = db.BlobProperty(default=None)
-	contactEmail = db.StringProperty(default=DEFAULT_CONTACT_EMAIL)
+	welcomeMessage_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
 	
-	defaultTimeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE)
-	defaultTimeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT)
-	defaultDateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT)
+	defaultTimeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE) # appears on member preferences page
+	defaultTimeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT) # appears on member preferences page
+	defaultDateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT) # appears on member preferences page
 	
-	created = TzDateTimeProperty(auto_now_add=True)
+	created = TzDateTimeProperty(auto_now_add=True) 
 	lastPublish = TzDateTimeProperty(default=None)
 	firstPublish = TzDateTimeProperty(default=None)
-	firstPublishSet = db.BooleanProperty(default=False)
+	firstPublishSet = db.BooleanProperty(default=False) # whether the first publish date was set yet
 	
+	maxNumAttachments = db.IntegerProperty(choices=NUM_ATTACHMENT_CHOICES, default=DEFAULT_MAX_NUM_ATTACHMENTS)
+
 	maxNudgePointsPerArticle = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE)
 	memberNudgePointsPerEvent = db.ListProperty(int, default=DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS)
-	articleActivityPointsPerEvent = db.ListProperty(int, default=DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS)
-	allowCharacter = db.ListProperty(bool, default=[True,True,True,True,True,True,True,True,True,True])
-	allowEditingAfterPublishing = db.ListProperty(bool, default=[False, False, True, True, True])
 	nudgeCategories = db.StringListProperty(default=DEFAULT_NUDGE_CATEGORIES)
+
+	articleActivityPointsPerEvent = db.ListProperty(int, default=DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS)
+	
+	allowCharacter = db.ListProperty(bool, default=DEFAULT_ALLOW_CHARACTERS)
+	allowEditingAfterPublishing = db.ListProperty(bool, default=DEFAULT_ALLOW_EDITING_AFTER_PUBLISHING)
+	
 	roleReadmes = db.ListProperty(db.Text, default=[db.Text(DEFAULT_ROLE_READMES[0]), db.Text(DEFAULT_ROLE_READMES[1]), db.Text(DEFAULT_ROLE_READMES[2])])
 	roleReadmes_formatted = db.ListProperty(db.Text, default=[db.Text(""), db.Text(""), db.Text("")])
 	roleReadmes_formats = db.StringListProperty(default=DEFAULT_ROLE_READMES_FORMATS)
-	roleAgreements = db.ListProperty(bool, default=[False, False, False])
-	maxNumAttachments = db.IntegerProperty(choices=[0,1,2,3,4,5], default=3)
+	roleAgreements = db.ListProperty(bool, default=DEFAULT_ROLE_AGREEMENTS)
+	
+	# OPTIONS
+	
+	def allowsPostPublishEditOfArticleType(self, type):
+		i = 0
+		for articleType in ARTICLE_TYPES:
+			if type == articleType:
+				return self.allowEditingAfterPublishing[i]
+			i += 1
+		return False
+	
+	def allowsAtLeastTwoAttachments(self):
+		return self.maxNumAttachments >= 2
+	
+	def allowsAtLeastThreeAttachments(self):
+		return self.maxNumAttachments >= 3
+	
+	def allowsAtLeastFourAttachments(self):
+		return self.maxNumAttachments >= 4
+	
+	def allowsFiveAttachments(self):
+		return self.maxNumAttachments == 5
+	
+	def maxNumAttachmentsAsText(self):
+		if self.maxNumAttachments == 1:
+			return "one"
+		elif self.maxNumAttachments == 2:
+			return "two"
+		elif self.maxNumAttachments == 3:
+			return "three"
+		elif self.maxNumAttachments == 4:
+			return "four"
+		elif self.maxNumAttachments == 5:
+			return "five"
+	
+	# MEMBERS
+	
+	def getPendingMembers(self):
+		return PendingMember.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+
+	def getOfflineMembers(self):
+		return Member.all().filter("community = ", self.key()).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
+	
+	def getMemberNudgePointsForEvent(self, event):
+		i = 0
+		for eventType in EVENT_TYPES:
+			if event == eventType:
+				return self.memberNudgePointsPerEvent[i]
+			i += 1
+		return 0
+	
+	def getMemberForGoogleAccountId(self, id):
+		return Member.all().filter("community = ", self.key()).filter("googleAccountID = ", id).fetch(1)
+		
+	def getActiveMembers(self):
+		return Member.all().filter("community = ", self.key()).filter("active = ", True).fetch(FETCH_NUMBER)
+	
+	def getInactiveMembers(self):
+		return Member.all().filter("community = ", self.key()).filter("active = ", False).fetch(FETCH_NUMBER)
+	
+	def hasMemberWithGoogleEmail(self, email):
+		members = self.getActiveMembers()
+		for member in members:
+			if member.googleAccountEmail == email:
+				return True
+		return False
+	
+	def getManagers(self):
+		return Member.all().filter("community = ", self.key()).filter("governanceType = ", "manager").fetch(FETCH_NUMBER)
+	
+	def getOwners(self):
+		return Member.all().filter("community = ", self.key()).filter("governanceType = ", "owner").fetch(FETCH_NUMBER)
+	
+	def getManagersAndOwners(self):
+		return Member.all().filter("community = ", self.key()).filter("governanceType IN ", ["owner", "manager"]).fetch(FETCH_NUMBER)
+	
+	def memberIsOnlyOwner(self, member):
+		owners = self.getOwners()
+		if len(owners) == 1 and owners[0].key() == member.key():
+			return True
+		return False
+	
+	# CHARACTERS
+	
+	def getCharacters(self):
+		return Character.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+	
+	def hasAtLeastOneCharacterEntryAllowed(self, entryTypeIndex):
+		return len(self.getCharacters()) > 0 or self.allowCharacter[entryTypeIndex]
+	
+	# ARTICLES
+	
+	def getNonDraftArticles(self):
+		return Article.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+	
+	def getNonDraftArticlesOfType(self, type):
+		return Article.all().filter("community = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(FETCH_NUMBER)
 	
 	def getNonDraftArticlesWithMissingMetadata(self):
 		articlesWithoutTags = []
@@ -178,133 +262,7 @@ class Community(db.Model):
 			i += 1
 		return 0
 	
-	def getMemberNudgePointsForEvent(self, event):
-		i = 0
-		for eventType in EVENT_TYPES:
-			if event == eventType:
-				return self.memberNudgePointsPerEvent[i]
-			i += 1
-		return 0
-	
-	def allowsPostPublishEditOfArticleType(self, type):
-		i = 0
-		for articleType in ARTICLE_TYPES:
-			if type == articleType:
-				return self.allowEditingAfterPublishing[i]
-			i += 1
-		return False
-	
-	def getOfflineMembers(self):
-		return Member.all().filter("community = ", self.key()).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
-	
-	# articles
-	
-	def getNonDraftArticles(self):
-		return Article.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
-	
-	def getNonDraftArticlesOfType(self, type):
-		return Article.all().filter("community = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(FETCH_NUMBER)
-	
-	def getMemberForGoogleAccountId(self, id):
-		return Member.all().filter("community = ", self.key()).filter("googleAccountID = ", id).fetch(1)
-		
-	def allowsAtLeastTwoAttachments(self):
-		return self.maxNumAttachments >= 2
-	
-	def allowsAtLeastThreeAttachments(self):
-		return self.maxNumAttachments >= 3
-	
-	def allowsAtLeastFourAttachments(self):
-		return self.maxNumAttachments >= 4
-	
-	def allowsFiveAttachments(self):
-		return self.maxNumAttachments == 5
-	
-	def maxNumAttachmentsAsText(self):
-		if self.maxNumAttachments == 1:
-			return "one"
-		elif self.maxNumAttachments == 2:
-			return "two"
-		elif self.maxNumAttachments == 3:
-			return "three"
-		elif self.maxNumAttachments == 4:
-			return "four"
-		elif self.maxNumAttachments == 5:
-			return "five"
-	
-	# community level questions and answers
-	
-	def getPendingMembers(self):
-		return PendingMember.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
-
-	def getMemberQuestions(self):
-		return Question.all().filter("community = ", self.key()).filter("refersTo = ", "member").fetch(FETCH_NUMBER)
-	
-	def getQuestions(self):
-		return Question.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
-	
-	def getQuestionsOfType(self, type):
-		return Question.all().filter("community = ", self.key()).filter("refersTo = ", type).fetch(FETCH_NUMBER)
-	
-	def getNonMemberQuestions(self):
-		return Question.all().filter("community = ", self.key()).filter("refersTo !=", "member").fetch(FETCH_NUMBER)
-		
-	def hasQuestionWithSameTypeAndName(self, question):
-		allQuestions = self.getQuestions()
-		for aQuestion in allQuestions:
-			if aQuestion.refersTo == question.refersTo and aQuestion.name == question.name:
-				return True
-		return False
-	
-	def AddCopyOfQuestion(self, question):
-		newQuestion = Question(
-							   refersTo=question.refersTo,
-							   name=question.name,
-							   text=question.text,
-							   type=question.type,
-							   choices=question.choices,
-							   help=question.help,
-							   useHelp=question.useHelp,
-							   multiple=question.multiple,
-							   community=self)
-		newQuestion.put()
-	
-	def getActiveMembers(self):
-		return Member.all().filter("community = ", self.key()).filter("active = ", True).fetch(FETCH_NUMBER)
-	
-	def getInactiveMembers(self):
-		return Member.all().filter("community = ", self.key()).filter("active = ", False).fetch(FETCH_NUMBER)
-	
-	def hasMemberWithGoogleEmail(self, email):
-		members = self.getActiveMembers()
-		for member in members:
-			if member.googleAccountEmail == email:
-				return True
-		return False
-	
-	def getManagers(self):
-		return Member.all().filter("community = ", self.key()).filter("governanceType = ", "manager").fetch(FETCH_NUMBER)
-	
-	def getOwners(self):
-		return Member.all().filter("community = ", self.key()).filter("governanceType = ", "owner").fetch(FETCH_NUMBER)
-	
-	def getManagersAndOwners(self):
-		return Member.all().filter("community = ", self.key()).filter("governanceType IN ", ["owner", "manager"]).fetch(FETCH_NUMBER)
-	
-	def memberIsOnlyOwner(self, member):
-		owners = self.getOwners()
-		if len(owners) == 1 and owners[0].key() == member.key():
-			return True
-		return False
-
-	def getCommunityLevelViewingPreferences(self):
-		return ViewingPreferences.all().filter("community = ", self.key()).filter("owner = ", self.key()).fetch(FETCH_NUMBER)
-
-	def getCharacters(self):
-		return Character.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
-	
-	def hasAtLeastOneCharacterEntryAllowed(self, entryTypeIndex):
-		return len(self.getCharacters()) > 0 or self.allowCharacter[entryTypeIndex]
+	# ARTICLES, ANNOTATIONS, ANSWERS, LINKS - EVERYTHING
 	
 	def getAllFlaggedItems(self):
 		articles = Article.all().filter("community = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
@@ -329,128 +287,111 @@ class Community(db.Model):
 		links = Link.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
 		return (articles, annotations, answers, links)
 	
-# --------------------------------------------------------------------------------------------
-# Question 
-# --------------------------------------------------------------------------------------------
-
+	# QUESTIONS
+	
+	def getQuestions(self):
+		return Question.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+	
+	def getQuestionsOfType(self, type):
+		return Question.all().filter("community = ", self.key()).filter("refersTo = ", type).fetch(FETCH_NUMBER)
+	
+	def getMemberQuestions(self):
+		return self.getQuestionsOfType("member")
+	
+	def getNonMemberQuestions(self):
+		return Question.all().filter("community = ", self.key()).filter("refersTo !=", "member").fetch(FETCH_NUMBER)
+		
+	def hasQuestionWithSameTypeAndName(self, question):
+		allQuestions = self.getQuestions()
+		for aQuestion in allQuestions:
+			if aQuestion.refersTo == question.refersTo and aQuestion.name == question.name:
+				return True
+		return False
+	
+	def AddCopyOfQuestion(self, question):
+		newQuestion = Question(
+							   refersTo=question.refersTo,
+							   name=question.name,
+							   text=question.text,
+							   type=question.type,
+							   choices=question.choices,
+							   help=question.help,
+							   useHelp=question.useHelp,
+							   multiple=question.multiple,
+							   community=self)
+		newQuestion.put()
+	
+# ============================================================================================
+# ============================================================================================
 class Question(db.Model):
-	""" Questions asked about the community, a member, or an article.
-	
-	Properties
-		community:			The Rakontu community this question belongs to.
-							If None, is in a global list communities can copy from. (??)
-		refersTo:			What the question is in reference to: an article (story, pattern, collage, invitation, resource), 
-							community, or member.
-		
-		type:				One of boolean, text, ordinal, nominal, value.
-		lengthIfText:		How long is allowed for a text answer.
-		minIfValue:			Minimum value allowed, if value.
-		maxIfValue:			Maximum value allowed, if value.
-		responseIfBoolean:	What the checkbox should say if the response is positive.
-		options:			Options for display. Not using this field, saving in case of need later.
-							Replaced "required" field which I got rid of.
-		multiple:			Whether multiple answers are allowed.
-		name:				Name to display in viewer or wherever a short handle is needed.
-		text:				The actual text question asked. May be much longer.
-		choices:			A list of strings with possible answers.
-		
-		help:				Explanatory text about how to answer the question.
-		useHelp:			Appears to manager choosing question. Helps them decide when to use it.
-	"""
+# ============================================================================================
+# ============================================================================================
+
 	community = db.ReferenceProperty(Community, collection_name="questions_to_community")
-	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO, required=True)
+	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO, required=True) # member or article
 	
-	name = db.StringProperty(required=True, default="No name")
-	text = db.StringProperty(required=True, default="No question text yet.")
-	type = db.StringProperty(choices=QUESTION_TYPES, default="text")
-	lengthIfText = db.IntegerProperty(default=40)
-	minIfValue = db.IntegerProperty(default=0)
-	maxIfValue = db.IntegerProperty(default=1000)
-	responseIfBoolean = db.StringProperty(default="Yes")
-	options = db.StringProperty(default="")
-	multiple = db.BooleanProperty(default=False)
-	choices = db.StringListProperty(default=["", "", "", "", "", "", "", "", "", ""])
+	name = db.StringProperty(required=True, default=DEFAULT_QUESTION_NAME)
+	text = db.StringProperty(required=True)
+	type = db.StringProperty(choices=QUESTION_TYPES, default="text") # text, boolean, ordinal, nominal, value
 	
-	help = db.TextProperty()
+	lengthIfText = db.IntegerProperty(default=DEFAULT_QUESTION_TEXT_LENGTH)
+	minIfValue = db.IntegerProperty(default=DEFAULT_QUESTION_VALUE_MIN)
+	maxIfValue = db.IntegerProperty(default=DEFAULT_QUESTION_VALUE_MAX)
+	responseIfBoolean = db.StringProperty(default=DEFAULT_QUESTION_BOOLEAN_RESPONSE) # what the checkbox label should say
+	multiple = db.BooleanProperty(default=False) # whether multiple answers are allowed (for ordinal/nominal only)
+	choices = db.StringListProperty(default=[""] * MAX_NUM_CHOICES_PER_QUESTION) 
+	
+	help = db.TextProperty() # appears to person answering question
 	help_formatted = db.TextProperty()
-	help_format = db.StringProperty(default="plain text")
-	useHelp = db.TextProperty()
+	help_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	
+	useHelp = db.TextProperty() # appears to manager choosing question, about when to use it
 	useHelp_formatted = db.TextProperty()
-	useHelp_format = db.StringProperty(default="plain text")
+	useHelp_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
 	
 	created = TzDateTimeProperty(auto_now_add=True)
 	
 	def isOrdinalOrNominal(self):
 		return self.type == "ordinal" or self.type == "nominal"
-		
-# --------------------------------------------------------------------------------------------
-# Member
-# --------------------------------------------------------------------------------------------
-
-class Member(db.Model):
-	""" A member is essentially the combination of a Google user and a Rakontu community,
-		since a Google user can belong to more than one Rakontu community.
-		Though members can also exist without Google accounts (those are off-line members).
 	
-	Properties
-		community:			The community this member belongs to. 
-		nickname:			The member's "handle" in the system. 
-		googleAccountID:	UserID field from Google account. None if offline.
-		googleAccountEmail:	The email with which the account was created. For display only.
-		isOnlineMember:		Whether the member is online (has a Google account).
-							Note that offline members cannot have helping roles or be managers or owners.
-		active:				Flag set to false when members quit; so they can be reinstated easier.
-		acceptsMessages:	Other members can send them messages, and they come through their email address.
-		liaisonAccountID:	Can be permanently linked to a liaison. This is to help
-							liaisons manage the offline members they have responsibility for.
-							
-		governanceType:		Whether they are a member, manager or owner.
-		governanceView:		What views (of GOVERNANCE_VIEWS) the member wants to see if they 
-							are a manager or owner.
-		helpingRoles:		Helping roles the member has chosen (curator, guide, liaison).
-		helpingRolesAvailable:	A manager/owner can ban a member from taking on these roles in future
-							(this is for if people abuse them).
-		guideIntro:			An introduction to be shown if the person is a guide
-							about what sorts of questions they can best answer.
+	def numChoices(self):
+		return len(self.choices)
 		
-		nicknameIsRealName:	Whether their nickname is their real name. For display only.
-		profileText:		Small amount of member-submitted info about themselves.
-							Can include URLs which are converted to links.
-		profileImage:		Thumbnail picture. Optional.
-		
-		lastEnteredArticle:	These "last" dates are for quickly showing activity.
-		lastEnteredAnnotation: 	These "last" dates are for quickly showing activity.
-		lastAnsweredQuestion:	These "last" dates are for quickly showing activity.
-		lastReadAnything:	These "last" dates are for quickly showing activity.
-		nudgePoints: 		Points accumulated by activity. Used for nudging articles.
+# ============================================================================================
+# ============================================================================================
+class Member(db.Model):
+# ============================================================================================
+# ============================================================================================
 
-	"""
 	community = db.ReferenceProperty(Community, required=True, collection_name="members_to_community")
 	nickname = db.StringProperty(default=NO_NICKNAME_SET)
-	googleAccountID = db.StringProperty(required=True)
-	googleAccountEmail = db.StringProperty(required=True)
 	isOnlineMember = db.BooleanProperty(default=True)
-	active = db.BooleanProperty(default=True)
-	acceptsMessages = db.BooleanProperty(default=True)
-	liaisonAccountID = db.StringProperty(default=None)
+	googleAccountID = db.StringProperty() # none if off-line member
+	googleAccountEmail = db.StringProperty() # blank if off-line member
 	
-	timeZoneName = db.StringProperty()
-	timeFormat = db.StringProperty()
-	dateFormat = db.StringProperty()
+	# active: members are never removed, just inactivated, so articles can still link to something.
+	# inactive members do not show up in any display, but they can be "reactivated" by issuing an invitation
+	# to the same google email as before.
+	active = db.BooleanProperty(default=True) 
 	
-	governanceType = db.StringProperty(choices=GOVERNANCE_ROLE_TYPES, default="member")
-	governanceView = db.StringListProperty(default=None)
-	helpingRoles = db.ListProperty(bool, default=[False, False, False])
-	helpingRolesAvailable = db.ListProperty(bool, default=[True, True, True])
-	guideIntro = db.TextProperty(default="")
+	governanceType = db.StringProperty(choices=GOVERNANCE_ROLE_TYPES, default="member") # can only be set by managers
+	helpingRoles = db.ListProperty(bool, default=[False, False, False]) # members can choose
+	helpingRolesAvailable = db.ListProperty(bool, default=[True, True, True]) # managers can ban members from roles
+	
+	guideIntro = db.TextProperty(default=None) # appears on the welcome and get help pages if the member is a guide
 	guideIntro_formatted = db.TextProperty()
-	guideIntro_format = db.StringProperty(default="plain text")
+	guideIntro_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
 	
-	nicknameIsRealName = db.BooleanProperty(default=False)
-	profileText = db.TextProperty(default="No profile information.")
+	nicknameIsRealName = db.BooleanProperty(default=False) # shows on member page only
+	profileText = db.TextProperty(default=NO_PROFILE_TEXT)
 	profileText_formatted = db.TextProperty()
-	profileText_format = db.StringProperty(default="plain text")
-	profileImage = db.BlobProperty(default=None)
+	profileText_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	profileImage = db.BlobProperty(default=None) # optional, resized to 100x60
+	acceptsMessages = db.BooleanProperty(default=True) # other members can send emails to their google email (without seeing it)
+	
+	timeZoneName = db.StringProperty() # members choose these in their prefs page
+	timeFormat = db.StringProperty() # how they want to see dates
+	dateFormat = db.StringProperty() # how they want to see times
 	
 	joined = TzDateTimeProperty(auto_now_add=True)
 	lastEnteredArticle = db.DateTimeProperty()
@@ -458,20 +399,66 @@ class Member(db.Model):
 	lastEnteredLink = db.DateTimeProperty()
 	lastAnsweredQuestion = db.DateTimeProperty()
 	lastReadAnything = db.DateTimeProperty()
-	nudgePoints = db.IntegerProperty(default=50)
+	
+	nudgePoints = db.IntegerProperty(default=DEFAULT_START_NUDGE_POINTS) # accumulated through participation
 	
 	viewTimeEnd = TzDateTimeProperty(auto_now_add=True)
 	viewTimeFrameInSeconds = db.IntegerProperty(default=3600)
 	viewNumTimeFrames = db.IntegerProperty(default=1)
 	viewNumTimeColumns = db.IntegerProperty(default=10)
 	
+	# CREATION
+	
 	def initialize(self):
 		self.timeZoneName = self.community.defaultTimeZoneName
 		self.timeFormat = self.community.defaultTimeFormat
 		self.dateFormat = self.community.defaultDateFormat
+		
+	# INFO
+		
+	def googleUserEmailOrNotOnline(self):
+		if self.isOnlineMember:
+			return self.googleAccountEmail
+		return "Offline member"
 	
-	def getViewingPreferences(self):
-		return ViewingPreferences.all().filter("owner = ", self.key()).fetch(FETCH_NUMBER)
+	# GOVERNANCE
+	
+	def isRegularMember(self):
+		return self.governanceType == "member"
+	
+	def isManager(self):
+		return self.governanceType == "manager"
+	
+	def isOwner(self):
+		return self.governanceType == "owner"
+	
+	def isManagerOrOwner(self):
+		return self.governanceType == "manager" or self.governanceType == "owner"
+	
+	# HELPING ROLES
+	
+	def isCurator(self):
+		return self.helpingRoles[0]
+	
+	def isGuide(self):
+		return self.helpingRoles[1]
+	
+	def isLiaison(self):
+		return self.helpingRoles[2]
+	
+	def isCuratorOrManagerOrOwner(self):
+		return self.isCurator() or self.isManagerOrOwner()
+	
+	def isGuideOrManagerOrOwner(self):
+		return self.isGuide() or self.isManagerOrOwner()
+	
+	def hasAnyHelpingRole(self):
+		return self.helpingRoles[0] or self.helpingRoles[1] or self.helpingRoles[2]
+
+	def canTakeOnAnyHelpingRole(self):
+		return self.helpingRolesAvailable[0] or self.helpingRolesAvailable[1] or self.helpingRolesAvailable[2]
+	
+	# BROWSING
 	
 	def getViewStartTime(self):
 		deltaSeconds = self.viewTimeFrameInSeconds * self.viewNumTimeFrames
@@ -492,62 +479,8 @@ class Member(db.Model):
 	def setTimeFrameToStartAtFirstPublish(self):
 		deltaSeconds = self.viewTimeFrameInSeconds * self.viewNumTimeFrames
 		self.viewTimeEnd = self.community.firstPublish + timedelta(seconds=deltaSeconds)
-	
-	def googleUserEmailOrNotOnline(self):
-		if self.isOnlineMember:
-			return self.googleAccountEmail
-		return "Offline member"
-	
-	def isCurator(self):
-		return self.helpingRoles[0]
-	
-	def isCuratorOrManagerOrOwner(self):
-		return self.isCurator() or self.isManagerOrOwner()
-	
-	def isGuideOrManagerOrOwner(self):
-		return self.isGuide() or self.isManagerOrOwner()
-	
-	def isGuide(self):
-		return self.helpingRoles[1]
-	
-	def isLiaison(self):
-		return self.helpingRoles[2]
-	
-	def hasAnyHelpingRole(self):
-		return self.helpingRoles[0] or self.helpingRoles[1] or self.helpingRoles[2]
-
-	def canTakeOnAnyHelpingRole(self):
-		return self.helpingRolesAvailable[0] or self.helpingRolesAvailable[1] or self.helpingRolesAvailable[2]
-	
-	def setGovernanceType(self, type):
-		self.governanceType = type
 		
-	def isRegularMember(self):
-		return self.governanceType == "member"
-	
-	def checkedIfRegularMember(self):
-		if self.isRegularMember():
-			return "checked"
-		return ""
-	
-	def isManager(self):
-		return self.governanceType == "manager"
-	
-	def isManagerOrOwner(self):
-		return self.governanceType == "manager" or self.governanceType == "owner"
-	
-	def checkedIfManager(self):
-		if self.isManager():
-			return "checked"
-		return ""
-	
-	def isOwner(self):
-		return self.governanceType == "owner"
-	
-	def checkedIfOwner(self):
-		if self.isOwner():
-			return "checked"
-		return ""
+	# CONTRIBUTIONS
 	
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
@@ -555,17 +488,19 @@ class Member(db.Model):
 	def getNonDraftArticlesAttributedToMember(self):
 		return Article.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).fetch(FETCH_NUMBER)
 	
-	def getDraftArticles(self):
-		return Article.all().filter("creator = ", self.key()).filter("draft = ", True).fetch(FETCH_NUMBER)
-	
 	def getNonDraftAnnotationsAttributedToMember(self):
 		return Annotation.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).fetch(FETCH_NUMBER)
 	
-	def getDraftAnswersForArticle(self, article):
-		return Answer.all().filter("creator = ", self.key()).filter("draft = ", True).filter("referent = ", article.key()).fetch(FETCH_NUMBER)
-	
 	def getNonDraftAnswersAboutArticlesAttributedToMember(self):
 		return Answer.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).filter("referentType = ", "article").fetch(FETCH_NUMBER)
+	
+	# DRAFTS
+	
+	def getDraftArticles(self):
+		return Article.all().filter("creator = ", self.key()).filter("draft = ", True).fetch(FETCH_NUMBER)
+	
+	def getDraftAnswersForArticle(self, article):
+		return Answer.all().filter("creator = ", self.key()).filter("draft = ", True).filter("referent = ", article.key()).fetch(FETCH_NUMBER)
 	
 	def getDraftAnnotations(self):
 		return Annotation.all().filter("creator = ", self.key()).filter("draft = ", True).fetch(FETCH_NUMBER)
@@ -578,99 +513,75 @@ class Member(db.Model):
 				articles[answer.referent] = 1
 		return articles.keys()
 	
-class PendingMember(db.Model):
-	""" A person who has been invited to join a community but who has not yet logged in.
-		
-	Properties
-		community:			Which community they have been invited to join.
-		email:				An email address related to a Google account.
-		invited:			When invited.
-	"""
+# ============================================================================================
+# ============================================================================================
+class PendingMember(db.Model): # person invited to join community but not yet logged in
+# ============================================================================================
+# ============================================================================================
+
 	community = db.ReferenceProperty(Community, required=True, collection_name="pending_members_to_community")
-	email = db.StringProperty(required=True)
+	email = db.StringProperty(required=True) # must match google account
 	invited = TzDateTimeProperty(auto_now_add=True)
 	
-class Character(db.Model):
-	""" Used to anonymize entries but provide some information about intent. Optional.
-	
-	Properties
-		community:			The Rakontu community this character belongs to.
-		name:				The fictional name of the character, like "Coyote".
-		description:		Simple text description of the character.
-		etiquetteStatement:	Just some guidelines for when the person is taking on the character.
-							How not to behave.
-		image:				Optional image.
-	"""
+# ============================================================================================
+# ============================================================================================
+class Character(db.Model): # optional fictions to anonymize entries but provide some information about intent
+# ============================================================================================
+# ============================================================================================
+
 	community = db.ReferenceProperty(Community, required=True, collection_name="characters_to_community")
 	name = db.StringProperty(required=True)
-	description = db.TextProperty(default="")
+	
+	description = db.TextProperty(default=None) # appears on community page
 	description_formatted = db.TextProperty()
-	description_format = db.StringProperty(default="plain text")
-	etiquetteStatement = db.TextProperty(default="")
+	description_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	
+	etiquetteStatement = db.TextProperty(default=None) # appears under "how to be [name]"
 	etiquetteStatement_formatted = db.TextProperty()
-	etiquetteStatement_format = db.StringProperty(default="plain text")
-	image = db.BlobProperty(default=None)
+	etiquetteStatement_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
 	
-# --------------------------------------------------------------------------------------------
-# Answer
-# --------------------------------------------------------------------------------------------
+	image = db.BlobProperty(default=None) # optional
+	
+	def getNonDraftArticlesAttributedToCharacter(self):
+		return Article.all().filter("character = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+	
+	def getNonDraftAnnotationsAttributedToCharacter(self):
+		return Annotation.all().filter("character = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+	
+	def getNonDraftAnswersAboutArticlesAttributedToCharacter(self):
+		return Answer.all().filter("character = ", self.key()).filter("draft = ", False).filter("referentType = ", "article").fetch(FETCH_NUMBER)
 
+# ============================================================================================
+# ============================================================================================
 class Answer(db.Model):
-	""" Answer to question. 
-	
-	Properties
-		question: 			Refers to annotation question, for display.
-		referent:			Whatever the answer refers to.
-		referentType:		Whether the answer refers to an article or member.
-		creator:			Who answered the question.
-		
-		answerIfBoolean:	True or false. Only used if question type is boolean.
-		answerIfText:		String. Only used if question type is text.
-		answerIfMultiple:	List of strings. Only used if question type is ordinal or nominal and multiple flag is set.
-		answerIfValue:		Integer. Only used if question type is value.
-							(Note we are leaving float values out.)
-		
-		created: 			When object was created.
-		edited: 			When last changed.
-		published:			When published (if).
-		draft:				Whether this is a draft or published entry.
-	"""
-	question = db.ReferenceProperty(Question, collection_name="answers_to_questions")
-	referent = db.ReferenceProperty(None, collection_name="answers_to_objects")
-	referentType = db.StringProperty(default="article")
-	creator = db.ReferenceProperty(Member, collection_name="answers_to_creators")
+# ============================================================================================
+# ============================================================================================
+
 	community = db.ReferenceProperty(Community, collection_name="answers_to_community")
+	question = db.ReferenceProperty(Question, collection_name="answers_to_questions")
+	referent = db.ReferenceProperty(None, collection_name="answers_to_objects") # article or member
+	referentType = db.StringProperty(default="article") # article or member
+	creator = db.ReferenceProperty(Member, collection_name="answers_to_creators") 
 	
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="answers_to_liaisons")
 	character = db.ReferenceProperty(Character, default=None)
 	
+	draft = db.BooleanProperty(default=True)
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	
 	answerIfBoolean = db.BooleanProperty(default=False)
 	answerIfText = db.StringProperty(default="")
-	answerIfMultiple = db.StringListProperty(default=["", "", "", "", "", "", "", "", "", ""])
+	answerIfMultiple = db.StringListProperty(default=[""] * MAX_NUM_CHOICES_PER_QUESTION)
 	answerIfValue = db.IntegerProperty(default=0)
 	
 	created = TzDateTimeProperty(auto_now_add=True)
 	edited = TzDateTimeProperty(auto_now_add=True)
 	published = TzDateTimeProperty(auto_now_add=True)
-	draft = db.BooleanProperty(default=True)
-	articleNudgePointsWhenPublished = db.ListProperty(int, default=[0,0,0,0,0])
+	
+	articleNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
 	articleActivityPointsWhenPublished = db.IntegerProperty(default=0)
 	
-	def questionKey(self):
-		return self.question.key()
-	
-	def attributedToMember(self):
-		return self.character == None
-	
-	def memberNickNameOrCharacterName(self):
-		if self.character:
-			return self.character.name
-		else:
-			return self.creator.nickname
-		
 	def publish(self):
 		if self.referentType == "article":
 			self.draft = False
@@ -688,6 +599,8 @@ class Answer(db.Model):
 			self.community.lastPublish = self.published
 			self.community.put()
 				
+	# DISPLAY
+		
 	def getImageLinkForType(self):
 		return'<img src="/images/answers.png" alt="answer" border="0">'
 	
@@ -719,194 +632,72 @@ class Answer(db.Model):
 	def linkString(self):
 		return self.displayString()
 		
-# --------------------------------------------------------------------------------------------
-# Article
-# --------------------------------------------------------------------------------------------
-
-class Article(db.Model):
-	""" Main element of the system. 
-	
-	Properties
-		title:				A name for the article. Appears in the interface.
-		text:				Main body of content. What is read. 
-		type:				Whether it is a story, pattern, collage, invitation or resource.
-
-		creator: 			Member who contributed the story. May be online or offline.
-		community:			The Rakontu community this article belongs to.
-		collectedOffline:	Whether it was contributed by an offline member.
-		liaison:			Person who entered the article for off-line member. None if not offline.
-		character: 	Reference to fictional member name (from global list).
-		
-		instructionsIfPattern:	If this is a pattern, instructions on how to reproduce it.
-		screenshotIfPattern:	If this is a pattern, an uploaded picture of it.
-
-		tookPlace:			When the events the article is about took place.
-		collected:			When article was collected, usually from an off-line member.
-		created:			When article was added to database.
-		edited:				When the text or title was last changed.
-		published:			When the article was published.
-		draft:				Whether this is a draft or published entry.
-		
-		lastRead:			When it was last accessed by anyone.
-	"""
-	title = db.StringProperty(required=True)
-	text = db.TextProperty(default="No text")
-	text_formatted = db.TextProperty()
-	text_format = db.StringProperty(default="plain text")
-	type = db.StringProperty(choices=ARTICLE_TYPES, required=True)
-
-	creator = db.ReferenceProperty(Member, collection_name="articles")
-	community = db.ReferenceProperty(Community, required=True, collection_name="articles_to_community")
-	collectedOffline = db.BooleanProperty(default=False)
-	liaison = db.ReferenceProperty(Member, default=None, collection_name="articles_to_liaisons")
-	character = db.ReferenceProperty(Character, default=None)
-	
-	flaggedForRemoval = db.BooleanProperty(default=False)
-	
-	tookPlace = TzDateTimeProperty(auto_now_add=True)
-	collected = TzDateTimeProperty(default=None)
-	created = TzDateTimeProperty(auto_now_add=True)
-	edited = TzDateTimeProperty(auto_now_add=True)
-	published = TzDateTimeProperty(auto_now_add=True)
-	draft = db.BooleanProperty(default=True)
-	
-	lastRead = TzDateTimeProperty(default=None)
-	lastDowndrifted = TzDateTimeProperty(default=None)
-	lastAnnotatedOrAnsweredOrLinked = TzDateTimeProperty(default=None)
-	activityPoints = db.IntegerProperty(default=0)
-	nudgePoints = db.ListProperty(int, default=[0,0,0,0,0])
-	
-	def displayString(self):
-		return self.title
-	
-	def linkString(self):
-		return '<a href="/visit/read?%s">%s</a>' % (self.key(), self.title)
-		
-	def getPublishDateForMember(self, member):
-		if member:
-			localTime = self.published.astimezone(timezone(member.timeZoneName))
-			return localTime.strftime(str(member.timeFormat))
-		else:
-			return self.published
-	
-	def nudgePointsCombined(self):
-		return self.nudgePoints[0] + self.nudgePoints[1] + self.nudgePoints[2] + self.nudgePoints[3] + self.nudgePoints[4]
+	# ATTRIBUTION
 	
 	def attributedToMember(self):
 		return self.character == None
 	
-	def isStory(self):
-		return self.type == "story"
-	
-	def isResource(self):
-		return self.type == "resource"
-	
-	def isInvitation(self):
-		return self.type == "invitation"
-	
-	def isPatternOrCollage(self):
-		return self.type == "pattern" or self.type == "collage"
-	
-	def isCollage(self):
-		return self.type == "collage"
-	
-	def isCollageOrResource(self):
-		return self.type == "collage" or self.type == "resource"
-	
-	def removeAllDependents(self):
-		for attachment in self.getAttachments():
-			db.delete(attachment)
-		for link in self.getAllLinks():
-			db.delete(link)
-		for answer in self.getAnswers():
-			db.delete(answer)
-		for annotation in self.getAnnotations():
-			db.delete(annotation)
-	
-	def getAttachments(self):
-		return Attachment.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
-	
-	def getAnswers(self):
-		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
-	
-	def getNonDraftAnswers(self):
-		return Answer.all().filter("referent = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
-
-	def getAnnotations(self):
-		return Annotation.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
-	
-	def getNonDraftAnnotationsOfType(self, type):
-		return Annotation.all().filter("article =", self.key()).filter("type = ", type).filter("draft = ", False).fetch(FETCH_NUMBER)
-	
-	def getNonDraftAnnotations(self):
-		return Annotation.all().filter("article =", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
-	
-	def getAllLinks(self):
-		result = []
-		outgoingLinks = Link.all().filter("articleFrom =", self.key()).fetch(FETCH_NUMBER)
-		incomingLinks = Link.all().filter("articleTo =", self.key()).fetch(FETCH_NUMBER)
-		result.extend(outgoingLinks)
-		result.extend(incomingLinks)
-		return result
-	
-	def getLinksOfType(self, type):
-		result = []
-		outgoingLinks = self.getOutgoingLinksOfType(type)
-		incomingLinks = self.getIncomingLinksOfType(type)
-		result.extend(outgoingLinks)
-		result.extend(incomingLinks)
-		return result
-	
-	def getOutgoingLinksOfType(self, type):
-		return Link.all().filter("articleFrom =", self.key()).filter("type = ", type).fetch(FETCH_NUMBER)
-	
-	def getIncomingLinksOfType(self, type):
-		return Link.all().filter("articleTo =", self.key()).filter("type = ", type).fetch(FETCH_NUMBER)
-	
-	def getIncomingLinksOfTypeFromType(self, type, fromType):
-		result = []
-		incomingLinks = self.getIncomingLinksOfType(type)
-		for link in incomingLinks:
-			if link.articleFrom.type == fromType:
-				result.append(link)
-		return result
-	
-	def getTooltipText(self):
-		if self.text_formatted:
-			return'title="%s"' % stripTags(self.text_formatted[:100])
+	def memberNickNameOrCharacterName(self):
+		if self.character:
+			return self.character.name
 		else:
-			return ""
+			return self.creator.nickname
+		
+	def questionKey(self):
+		return self.question.key()
 	
-	def getImageLinkForType(self):
-		text = self.getTooltipText()
-		if self.type == "story":
-			imageText = '<img src="/images/story.png" alt="story" border="0" %s\>' % text
-		elif self.type == "pattern":
-			imageText = '<img src="/images/pattern.png" alt="pattern" border="0" %s\>' % text
-		elif self.type == "collage":
-			imageText = '<img src="/images/collage.png" alt="collage" border="0" %s\>' % text
-		elif self.type == "invitation":
-			imageText = '<img src="/images/invitation.png" alt="invitation" border="0" %s\>' % text
-		elif self.type == "resource":
-			imageText = '<img src="/images/resource.png" alt="resource" border="0" %s\>' % text
-		return imageText
-	
-	def getAnswersForMember(self, member):
-		return Answer.all().filter("referent = ", self.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
-	
-	def getNudgesForMember(self, member):
-		return Annotation.all().filter("article = ", self.key()).filter("type = ", "nudge").filter("creator = ", member.key()).fetch(FETCH_NUMBER)
-	
-	def getTotalNudgePointsForMember(self, member):
-		nudges = self.getNudgesForMember(member)
-		result = 0
-		for nudge in nudges:
-			result += nudge.totalNudgePointsAbsolute()
-		return result
-	
-	def memberCanNudge(self, member):
-		return member.key() != self.creator.key()
 
+# ============================================================================================
+# ============================================================================================
+class Article(db.Model):                       # story, invitation, collage, pattern, resource
+# ============================================================================================
+# ============================================================================================
+
+	type = db.StringProperty(choices=ARTICLE_TYPES, required=True) 
+	title = db.StringProperty(required=True, default=DEFAULT_UNTITLED_ARTICLE_TITLE)
+	text = db.TextProperty(default=NO_TEXT_IN_ARTICLE)
+	text_formatted = db.TextProperty()
+	text_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+
+	community = db.ReferenceProperty(Community, required=True, collection_name="articles_to_community")
+	creator = db.ReferenceProperty(Member, collection_name="articles")
+	collectedOffline = db.BooleanProperty(default=False)
+	liaison = db.ReferenceProperty(Member, default=None, collection_name="articles_to_liaisons")
+	character = db.ReferenceProperty(Character, default=None)
+	
+	draft = db.BooleanProperty(default=True)
+	flaggedForRemoval = db.BooleanProperty(default=False)
+	
+	collected = TzDateTimeProperty(default=None)
+	created = TzDateTimeProperty(auto_now_add=True)
+	edited = TzDateTimeProperty(auto_now_add=True)
+	published = TzDateTimeProperty(auto_now_add=True)
+	
+	lastRead = TzDateTimeProperty(default=None)
+	lastDowndrifted = TzDateTimeProperty(default=None)
+	lastAnnotatedOrAnsweredOrLinked = TzDateTimeProperty(default=None)
+	
+	activityPoints = db.IntegerProperty(default=0)
+	nudgePoints = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
+	
+	# IMPORTANT METHODS
+	
+	def publish(self):
+		self.draft = False
+		self.published = datetime.now(pytz.utc)
+		self.recordAction("added", self)
+		self.put()
+		self.creator.nudgePoints += self.community.getMemberNudgePointsForEvent("adding %s" % self.type)
+		self.creator.lastEnteredArticle = datetime.now(pytz.utc)
+		self.creator.put()
+		for answer in self.getAnswersForMember(self.creator):
+			answer.publish()
+		self.community.lastPublish = self.published
+		if not self.community.firstPublishSet:
+			self.community.firstPublish = self.published
+			self.community.firstPublishSet = True
+		self.community.put()
+		
 	def recordAction(self, action, referent):
 		if referent.__class__.__name__ == "Article":
 			if action == "read":
@@ -940,14 +731,47 @@ class Article(db.Model):
 		if daysSinceLastDowndrift > 0:
 			self.recordAction("downdrift", self)
 		
-	def getCurrentTotalNudgePointsInAllCategories(self):
-		result = [0,0,0,0,0]
-		for nudge in self.getNonDraftAnnotationsOfType("nudge"):
-			i = 0
-			for value in nudge.valuesIfNudge:
-				result[i] += value
-				i += 1
-		return result
+	def removeAllDependents(self):
+		for attachment in self.getAttachments():
+			db.delete(attachment)
+		for link in self.getAllLinks():
+			db.delete(link)
+		for answer in self.getAnswers():
+			db.delete(answer)
+		for annotation in self.getAnnotations():
+			db.delete(annotation)
+
+	# TYPE
+	
+	def isStory(self):
+		return self.type == "story"
+	
+	def isInvitation(self):
+		return self.type == "invitation"
+	
+	def isCollage(self):
+		return self.type == "collage"
+	
+	def isPattern(self):
+		return self.type == "pattern"
+	
+	def isResource(self):
+		return self.type == "resource"
+	
+	def isPatternOrCollage(self):
+		return self.type == "pattern" or self.type == "collage"
+	
+	def isCollageOrResource(self):
+		return self.type == "collage" or self.type == "resource"
+	
+	# MEMBERS
+		
+	def getPublishDateForMember(self, member):
+		if member:
+			localTime = self.published.astimezone(timezone(member.timeZoneName))
+			return localTime.strftime(str(member.timeFormat))
+		else:
+			return self.published
 	
 	def attributedToMember(self):
 		return self.character == None
@@ -957,52 +781,149 @@ class Article(db.Model):
 			return self.character.name
 		else: 
 			return self.creator.nickname
-
-	def publish(self):
-		self.draft = False
-		self.published = datetime.now(pytz.utc)
-		self.recordAction("added", self)
-		self.put()
-		self.creator.nudgePoints += self.community.getMemberNudgePointsForEvent("adding %s" % self.type)
-		self.creator.lastEnteredArticle = datetime.now(pytz.utc)
-		self.creator.put()
-		for answer in self.getAnswersForMember(self.creator):
-			answer.publish()
-		self.community.lastPublish = self.published
-		if not self.community.firstPublishSet:
-			self.community.firstPublish = self.published
-			self.community.firstPublishSet = True
-		self.community.put()
 		
+	# NUDGE SYSTEM
+
+	def getNudgesForMember(self, member):
+		return Annotation.all().filter("article = ", self.key()).filter("type = ", "nudge").filter("creator = ", member.key()).fetch(FETCH_NUMBER)
+	
+	def getTotalNudgePointsForMember(self, member):
+		nudges = self.getNudgesForMember(member)
+		result = 0
+		for nudge in nudges:
+			result += nudge.totalNudgePointsAbsolute()
+		return result
+	
+	def memberCanNudge(self, member):
+		return member.key() != self.creator.key()
+
+	def getCurrentTotalNudgePointsInAllCategories(self):
+		result = [0] * NUM_NUDGE_CATEGORIES
+		for nudge in self.getNonDraftAnnotationsOfType("nudge"):
+			i = 0
+			for value in nudge.valuesIfNudge:
+				result[i] += value
+				i += 1
+		return result
+	
+	def nudgePointsCombined(self):
+		return self.nudgePoints[0] + self.nudgePoints[1] + self.nudgePoints[2] + self.nudgePoints[3] + self.nudgePoints[4]
+	
+	# ANNOTATIONS, ANSWERS, LINKS
+	
+	def getAnnotations(self):
+		return Annotation.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
+	
+	def getNonDraftAnnotations(self):
+		return Annotation.all().filter("article =", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+	
+	def getNonDraftAnnotationsOfType(self, type):
+		return Annotation.all().filter("article =", self.key()).filter("type = ", type).filter("draft = ", False).fetch(FETCH_NUMBER)
+	
+	def getAttachments(self):
+		return Attachment.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
+	
+	def getAnswers(self):
+		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
+	
+	def getNonDraftAnswers(self):
+		return Answer.all().filter("referent = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+
+	def getAnswersForMember(self, member):
+		return Answer.all().filter("referent = ", self.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
+	
+	def getAllLinks(self):
+		result = []
+		outgoingLinks = Link.all().filter("articleFrom =", self.key()).fetch(FETCH_NUMBER)
+		incomingLinks = Link.all().filter("articleTo =", self.key()).fetch(FETCH_NUMBER)
+		result.extend(outgoingLinks)
+		result.extend(incomingLinks)
+		return result
+	
+	def getLinksOfType(self, type):
+		result = []
+		outgoingLinks = self.getOutgoingLinksOfType(type)
+		incomingLinks = self.getIncomingLinksOfType(type)
+		result.extend(outgoingLinks)
+		result.extend(incomingLinks)
+		return result
+	
+	def getOutgoingLinksOfType(self, type):
+		return Link.all().filter("articleFrom =", self.key()).filter("type = ", type).fetch(FETCH_NUMBER)
+	
+	def getIncomingLinksOfType(self, type):
+		return Link.all().filter("articleTo =", self.key()).filter("type = ", type).fetch(FETCH_NUMBER)
+	
+	def getIncomingLinksOfTypeFromType(self, type, fromType):
+		result = []
+		incomingLinks = self.getIncomingLinksOfType(type)
+		for link in incomingLinks:
+			if link.articleFrom.type == fromType:
+				result.append(link)
+		return result
+	
+	# DISPLAY
+	
+	def displayString(self):
+		return self.title
+	
+	def linkString(self):
+		return '<a href="/visit/read?%s">%s</a>' % (self.key(), self.title)
+	
+	def getTooltipText(self):
+		if self.text_formatted:
+			return'title="%s"' % stripTags(self.text_formatted[:100])
+		else:
+			return ""
+	
 	def shortFormattedText(self):
 		if len(self.text_formatted) > 100:
 			return "%s ..." % self.text_formatted[:98]
 		else:
 			return self.text_formatted
 
-class Link(db.Model):
-	""" For holding on to links between articles.
+	def getImageLinkForType(self):
+		text = self.getTooltipText()
+		if self.type == "story":
+			imageText = '<img src="/images/story.png" alt="story" border="0" %s\>' % text
+		elif self.type == "pattern":
+			imageText = '<img src="/images/pattern.png" alt="pattern" border="0" %s\>' % text
+		elif self.type == "collage":
+			imageText = '<img src="/images/collage.png" alt="collage" border="0" %s\>' % text
+		elif self.type == "invitation":
+			imageText = '<img src="/images/invitation.png" alt="invitation" border="0" %s\>' % text
+		elif self.type == "resource":
+			imageText = '<img src="/images/resource.png" alt="resource" border="0" %s\>' % text
+		return imageText
 	
-	Properties
-		articleFrom:		Where the link originated. Story read first, or pattern/collage.
-		articleTo:			Article referred to. Usually story.
-		creator: 			Member who created the link. May be online or offline.
-		type:				One of retold, reminded, related, included.
-		comment:			Optional user comment about the linkage, written when link made.
-		published:			When created/published (no draft links).
-	"""
+# ============================================================================================
+# ============================================================================================
+class Link(db.Model):                         # related, retold, reminded, responded, included
+# ============================================================================================
+# ============================================================================================
+	type = db.StringProperty(choices=LINK_TYPES, required=True) 
+	# how links go: 
+	#	related: either way
+	#	retold: story to story
+	# 	reminded: story or resource to story
+	#   responded: invitation to story
+	#	included: collage to story
 	articleFrom = db.ReferenceProperty(Article, collection_name="linksFrom", required=True)
 	articleTo = db.ReferenceProperty(Article, collection_name="linksTo", required=True)
-	creator = db.ReferenceProperty(Member, collection_name="links")
 	community = db.ReferenceProperty(Community, required=True, collection_name="links_to_community")
+	creator = db.ReferenceProperty(Member, collection_name="links")
 	
+	# links cannot be in draft mode
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	
 	published = TzDateTimeProperty(auto_now_add=True)
-	type = db.StringProperty(choices=LINK_TYPES, required=True)
+	
 	comment = db.StringProperty(default="")
-	articleNudgePointsWhenPublished = db.ListProperty(int, default=[0,0,0,0,0])
+	
+	articleNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
 	articleActivityPointsWhenPublished = db.IntegerProperty(default=0)
+	
+	# IMPORTANT METHODS
 	
 	def publish(self):
 		self.published = datetime.now(pytz.utc)
@@ -1022,8 +943,12 @@ class Link(db.Model):
 			self.articleFrom.community.firstPublishSet = True
 		self.articleFrom.community.put()
 		
+	# MEMBERS
+		
 	def attributedToMember(self):
 		return True
+	
+	# DISPLAY
 		
 	def getImageLinkForType(self):
 		return'<img src="/images/link.png" alt="link" border="0">'
@@ -1039,20 +964,15 @@ class Link(db.Model):
 	def linkString(self):
 		return self.displayString()
 		
-class Attachment(db.Model):
-	""" For binary attachments to articles.
-	
-	Properties:
-		name:				Name of the attachment.
-		mimeType:			Determines how it is shown/downloaded.
-		fileName:			The name of the file that was uploaded.
-		data:				Binary data.
-		article:			Which article it is associated with. (Only one allowed.)
-	"""
+# ============================================================================================
+# ============================================================================================
+class Attachment(db.Model):                                   # binary attachments to articles
+# ============================================================================================
+# ============================================================================================
 	name = db.StringProperty()
-	mimeType = db.StringProperty()
-	fileName = db.StringProperty()
-	data = db.BlobProperty()
+	mimeType = db.StringProperty() # from ACCEPTED_ATTACHMENT_MIME_TYPES
+	fileName = db.StringProperty() # as uploaded
+	data = db.BlobProperty() # there is a practical limit on this size - cfk look at
 	article = db.ReferenceProperty(Article, collection_name="attachments")
 	
 	def linkString(self):
@@ -1061,52 +981,28 @@ class Attachment(db.Model):
 	def isImage(self):
 		return self.mimeType == "image/jpeg" or self.mimeType == "image/png"
 	
-# --------------------------------------------------------------------------------------------
-# Annotations
-# --------------------------------------------------------------------------------------------
+# ============================================================================================
+# ============================================================================================
+class Annotation(db.Model):                                # tag set, comment, request, nudge
+# ============================================================================================
+# ============================================================================================
 
-class Annotation(db.Model):
-	""" Additions to articles.
-	
-	Properties
-		article:			The thing being annotated.
-		creator: 			Member who contributed the story. May be online or offline.
-		community:			The Rakontu community this annotation belongs to.
-							Maybe not necessary, but if you wanted to get a list of these without going through
-							articles, this would be useful.
-		type:				One of tag, comment, request or nudge.
-		
-		shortString:		A short string, usually used as a title
-		longString:			A text property, used for the comment or request body.
-		tagsIfTagSet:		A set of five tags, any or all of which might be blank.
-		valuesIfNudge:		The number of nudge points (+ or -) this adds to the article.
-							One value per category (up to 5).
-
-		collectedOffline:	Whether it was contributed by an offline member.
-		liaison:			Person who entered the article for off-line member. None if not offline.
-		character: 	Reference to fictional member name (from global list).
-
-		collected:			When article was collected, usually from an off-line member.
-		created:			When article was added to database.
-		edited:				When the text or title was last changed.
-		published:			When the annotation was published.
-		draft:				Whether this is a draft or published entry.
-		
-		inappropriateMarks:	A list of user comments marking the annotation as inappropriate.
-	"""
+	type = db.StringProperty(choices=ANNOTATION_TYPES, required=True)
+	community = db.ReferenceProperty(Community, required=True, collection_name="annotations_to_community")
 	article = db.ReferenceProperty(Article, required=True, collection_name="annotations")
 	creator = db.ReferenceProperty(Member, collection_name="annotations")
-	community = db.ReferenceProperty(Community, required=True, collection_name="annotations_to_community")
-	type = db.StringProperty(choices=ANNOTATION_TYPES, required=True)
 	
+	draft = db.BooleanProperty(default=True)
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	
-	shortString = db.StringProperty()
-	longString = db.TextProperty()
+	shortString = db.StringProperty() # comment/request subject, nudge comment
+	
+	longString = db.TextProperty() # comment/request body
 	longString_formatted = db.TextProperty()
-	longString_format = db.StringProperty(default="plain text")
-	tagsIfTagSet = db.StringListProperty(default=["", "", "", "", ""])
-	valuesIfNudge = db.ListProperty(int, default=[0,0,0,0,0])
+	longString_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	
+	tagsIfTagSet = db.StringListProperty(default=[""] * NUM_TAGS_IN_TAG_SET)
+	valuesIfNudge = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
 
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="annotations_liaisoned")
@@ -1116,9 +1012,27 @@ class Annotation(db.Model):
 	created = TzDateTimeProperty(auto_now_add=True)
 	edited = TzDateTimeProperty(auto_now_add=True)
 	published = TzDateTimeProperty(auto_now_add=True)
-	draft = db.BooleanProperty(default=True)
-	articleNudgePointsWhenPublished = db.ListProperty(int, default=[0,0,0,0,0])
+	
+	articleNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
 	articleActivityPointsWhenPublished = db.IntegerProperty(default=0)
+	
+	# IMPORTANT METHODS
+	
+	def publish(self):
+		self.draft = False
+		self.published = datetime.now(pytz.utc)
+		self.put()
+		self.article.recordAction("added", self)
+		for i in range(NUM_NUDGE_CATEGORIES):
+			self.articleNudgePointsWhenPublished[i] = self.article.nudgePoints[i]
+		self.articleActivityPointsWhenPublished = self.article.activityPoints
+		self.put()
+		self.creator.nudgePoints += self.community.getMemberNudgePointsForEvent("adding %s" % self.type)
+		self.creator.put()
+		self.community.lastPublish = self.published
+		self.community.put()
+
+	# TYPE
 	
 	def isComment(self):
 		return self.type == "comment"
@@ -1128,6 +1042,8 @@ class Annotation(db.Model):
 	
 	def isNudge(self):
 		return self.type == "nudge"
+	
+	# NUDGE SYSTEM
 	
 	def totalNudgePoints(self):
 		result = 0
@@ -1141,6 +1057,8 @@ class Annotation(db.Model):
 			result += abs(value)
 		return result
 	
+	# MEMBERS
+	
 	def attributedToMember(self):
 		return self.character == None
 	
@@ -1149,6 +1067,8 @@ class Annotation(db.Model):
 			return self.character.name
 		else:
 			return self.creator.nickname
+		
+	# DISPLAY
 		
 	def typeAsURL(self):
 		if self.type != "tag set":
@@ -1191,23 +1111,14 @@ class Annotation(db.Model):
 			imageText = '<img src="/images/nudges.png" alt="nudge" border="0">'
 		return imageText
 	
-	def publish(self):
-		self.draft = False
-		self.published = datetime.now(pytz.utc)
-		self.put()
-		self.article.recordAction("added", self)
-		for i in range(5):
-			self.articleNudgePointsWhenPublished[i] = self.article.nudgePoints[i]
-		self.articleActivityPointsWhenPublished = self.article.activityPoints
-		self.put()
-		self.creator.nudgePoints += self.community.getMemberNudgePointsForEvent("adding %s" % self.type)
-		self.creator.put()
-		self.community.lastPublish = self.published
-		self.community.put()
-	
-class Help(db.Model):
-	name = db.StringProperty()
-	type = db.StringProperty()
-	text = db.StringProperty()
+# ============================================================================================
+# ============================================================================================
+class Help(db.Model):	     # context-sensitive help string - appears as title hover on icon 
+# ============================================================================================
+# ============================================================================================
+
+	type = db.StringProperty() # info, tip, caution
+	name = db.StringProperty() # links to name in template
+	text = db.StringProperty() # text to show user (plain text)
 	
 	

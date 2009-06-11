@@ -47,16 +47,9 @@
 	      			 	</td>
 	      			 <td valign="top" align="center"><div><input type="text" name="responseIfBoolean|{{question.key}}" size="10" value="{{question.responseIfBoolean}}"></div></td>
 	      			 <td valign="top" align="center">
-	      			 	<div><input type="text" name="choice0|{{question.key}}" size="8" value="{{question.choices.0}}"></div>
-	      			 	<div><input type="text" name="choice1|{{question.key}}" size="8" value="{{question.choices.1}}"></div>
-	      			 	<div><input type="text" name="choice2|{{question.key}}" size="8" value="{{question.choices.2}}"></div>
-	      			 	<div><input type="text" name="choice3|{{question.key}}" size="8" value="{{question.choices.3}}"></div>
-	      			 	<div><input type="text" name="choice4|{{question.key}}" size="8" value="{{question.choices.4}}"></div>
-	      			 	<div><input type="text" name="choice5|{{question.key}}" size="8" value="{{question.choices.5}}"></div>
-	      			 	<div><input type="text" name="choice6|{{question.key}}" size="8" value="{{question.choices.6}}"></div>
-	      			 	<div><input type="text" name="choice7|{{question.key}}" size="8" value="{{question.choices.7}}"></div>
-	      			 	<div><input type="text" name="choice8|{{question.key}}" size="8" value="{{question.choices.8}}"></div>
-	      			 	<div><input type="text" name="choice9|{{question.key}}" size="8" value="{{question.choices.9}}"></div>
+	      			 	{% for i in max_num_choices|makeRange %}
+	      			 		<input type="text" name="choice{{i}}|{{question.key}}" size="8" value="{{question.choices|listLookup:i|orNothing}}"><br/>
+	      			 	{% endfor %}
 	      			 	</td>
 	     			 <td valign="top" align="center"><label><input type="checkbox" name="multiple|{{question.key}}" value="multiple|{{question.key}}"
 	     			 	{% if question.multiple %}
@@ -78,28 +71,40 @@
 			<fieldset>
 	      	<table border="1" cellpadding="4" cellspacing="0">
 	      	<tr>
-	      		<th>Copy This Question?</th>
-	      		<th>Name, question, and explanation</th>
-	      		<th>Type</th>
-	      		<th>Maximum characters<br><i>if text</i></th>
-	      		<th>Minimum and maximum<br><i>if value</i></th>
-	      		<th>Response<br><i>if boolean</i></th>
-	      		<th>Choices<br><i>if ordinal or nominal</i></i></th>
-	      		<th>Multiple answers allowed?<br><i>if ordinal or nominal</i></th>
+	      		<th>Copy?</th>
+	      		<th>Question</th>
 	      		</tr>
 				{% for sys_question in system_questions %}
-	      			<td valign="top"><input type="checkbox" name="copy|{{sys_question.key}}" value="copy|{{sys_question.key}}" id="copy|{{sys_question.key}}">
+	      			<td valign="top" width="80"><input type="checkbox" name="copy|{{sys_question.key}}" value="copy|{{sys_question.key}}" id="copy|{{sys_question.key}}">
 	      			<label for="copy|{{sys_question.key}}">Copy</label></td>
-					<td valign="top"><i>Name</i><br>&nbsp; {{sys_question.name}}<p>
-						<i>Question</i><br>&nbsp; {{sys_question.text}}<p>
-						<i>Explanation</i><br>&nbsp; {{sys_question.help}}</td>
-					<td valign="top">{{sys_question.type}}</td>
-					<td valign="top">{% ifequal sys_question.type "text" %} {{sys_question.lengthIfText}} {% else %} &nbsp; {% endifequal %}</td>
-					<td valign="top">{% ifequal sys_question.type "value" %} {{sys_question.minIfValue}} {% else %} &nbsp; {% endifequal %}<br>
-					{% ifequal sys_question.type "value" %} {{sys_question.maxIfValue}} {% else %} &nbsp; {% endifequal %}</td>
-					<td valign="top">{% ifequal sys_question.type "boolean" %} {{sys_question.responseIfBoolean}} {% else %} &nbsp; {% endifequal %}</td>
-					<td valign="top">{% if sys_question.choices %} {{sys_question.choices|join:"<br>"}}  {% else %} &nbsp; {% endif %}</td>
-					<td valign="top">{{sys_question.multiple|yesno:"yes, no, maybe"}}</td>
+					<td valign="top">
+					The question "{{sys_question.name}}" asks "<b>{{sys_question.text}}</b>"
+					It is a{% ifequal sys_question.type "ordinal" %}n{% endifequal %} <b>{{sys_question.type}}</b> question.
+					{% ifequal sys_question.type "value" %} 
+						Allowed values are between {{sys_question.minIfValue}} and {{sys_question.maxIfValue}}. 
+					{% endifequal %}
+					{% ifequal sys_question.type "boolean" %} 
+						Positive answers are given as "{{sys_question.responseIfBoolean}}." 
+					{% endifequal %}
+					{% ifequal sys_question.type "ordinal" %}
+						Choices are:
+						<ol>
+						{% for choice in sys_question.choices %}
+							<li>{{choice}}</li>
+						{% endfor %}
+						</ol>
+					{% endifequal %}
+					{% ifequal sys_question.type "nominal" %}
+						Choices are:
+						<ul>
+						{% for choice in sys_question.choices %}
+							<li>{{choice}}</li>
+						{% endfor %}
+						</ul>
+					{% endifequal %}
+					{% if sys_question.multiple %} Multiple answers are allowed. {% endif %}
+					{% if sys_question.help %} The explanation given is "{{sys_question.help}}" {% endif %}
+					</td>
 					</tr>
 				{% endfor %}
 				</table>

@@ -27,6 +27,9 @@
 	  			{% if member.helpingRoles.2 %} <b>liaison</b>.{% endif %}
 	  		{% endif %}
 	  	</p>
+  		{% if member.nicknameIsRealName %}
+  			<p>This nickname is {{member.nickname}}'s real name.</p>
+		{% endif %}
   		{% if member.profileText_formatted %}
   			<p>Says {{member.nickname}}:</p><div class="blurb">{{member.profileText_formatted}}</div>
   		{% endif %}
