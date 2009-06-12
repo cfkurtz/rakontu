@@ -16,7 +16,9 @@
   			{% else %}
   				an <b>{{ member.governanceType }}</b> of this community,
   			{% endifequal %}
-  		is an <b>{{ member.isOnlineMember|yesno:"on-line, off-line" }}</b> member,
+  		is an <b>{{ member.isOnlineMember|yesno:"on-line, off-line" }}</b> member{% if member.isOnlineMember %},{% else %}.{% endif %}
+  		
+  		{% if member.isOnlineMember %}
   		and 
   			{% if not member.hasAnyHelpingRole %}
   				has no helping role in particular.
@@ -26,6 +28,7 @@
 	  			{% if member.helpingRoles.1 %} <b>guide</b>{% if member.helpingRoles.2 %} and{% else %}. {% endif %} {% endif %}
 	  			{% if member.helpingRoles.2 %} <b>liaison</b>.{% endif %}
 	  		{% endif %}
+	  	{% endif %}
 	  	</p>
   		{% if member.nicknameIsRealName %}
   			<p>This nickname is {{member.nickname}}'s real name.</p>
@@ -87,22 +90,23 @@
    		{% endif %}
 	
 	
-		{% if member.isOnlineMember and member.acceptsMessages %}
-			<h3>Send this member a message</h3>
-			<fieldset>
-			<div id="stylized" class="rakontu_form">
-			<form action="/visit/member" method="post">
-			<p>Please give your message a subject line.</p>
-			<p><input type="text" name="subject" size="80" value=""/></p>
-			<p>Please enter your message here.</p>
-			<textarea name="message" rows="20" cols="60"></textarea>
-			<center><input type="submit" name="message|{{member.key}}" value="Send message" class="button"></center>
-			</form>
-			</div>
-			</fieldset>
-		{% endif %}
+		{% ifnotequal member.key current_member.key %}
+			{% if member.isOnlineMember and member.acceptsMessages %}
+				<h3>Send this member a message</h3>
+				<fieldset>
+				<div id="stylized" class="rakontu_form">
+				<form action="/visit/member" method="post">
+				<p>Please give your message a subject line.</p>
+				<p><input type="text" name="subject" size="80" value=""/></p>
+				<p>Please enter your message here.</p>
+				<textarea name="message" rows="20" cols="60"></textarea>
+				<center><input type="submit" name="message|{{member.key}}" value="Send message" class="button"></center>
+				</form>
+				</div>
+				</fieldset>
+			{% endif %}
+		{% endifnotequal %}
 
-			 
       	{% ifequal member.key current_member.key %}
       		<div class="rightalign"><p><a href="/visit/profile?{{member.key}}">Change your profile</a></p></div>
       	{% endifequal %}

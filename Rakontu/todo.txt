@@ -72,10 +72,18 @@ need a way for site administrator to DELETE a community (and also disable but no
 
 check all input texts to set maxlength to fit into string property
 
+cannot allow two members in the same community to have the same nickname, because
+offline members are identified by it.
+
 still have not implemented user choosing which nudge categories to consider in look page
 
 don't show manager/owner status to group, just that they are a manager. owner status should not be obvious to all members.
 
 resource type
 
+preference for member about what text format they want to come up by default
+
 number of tags, number of nudges not FULLY updated for flexibility yet - check EVERY use
+
+DOING RIGHT NOW
+add liaisoned items to contributions that show on member page - started but not finished - need ??

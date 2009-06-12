@@ -62,6 +62,8 @@ application = webapp.WSGIApplication(
 									  ('/curate/gaps', CurateGapsPage),
 									  ('/guide/resource', EnterArticlePage),
 									  ('/guide/resources', ReviewResourcesPage),
+									  ('/liaise/import', ImportItemsPage),
+									  ('/liaise/members', ReviewOfflineMembersPage),
 									  
 									  # managing
 									  ('/createCommunity', CreateCommunityPage),

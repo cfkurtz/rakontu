@@ -60,13 +60,13 @@
 					<select name="offlineSource">
 						{% for member in offline_members %}
 							{% if not member.isOnlineMember %}
-								<option value="{{member.key}}">
+								<option value="{{member.key}}"
 								{% if answers.0 %}
 									{% ifequal member.key answers.0.creator.key %}
 										selected="selected"
 									{% endifequal %}
 								{% endif %}
-								{{member.nickname}}</option>
+								>{{member.nickname}}</option>
 							{% endif %}
 						{% endfor %}
 					</select>

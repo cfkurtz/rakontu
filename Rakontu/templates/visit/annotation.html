@@ -54,8 +54,12 @@
 				{% else %}
 					<p>Please enter your comment here.</p>
 				{% endif %}
-				<textarea name="longString" rows="20" cols="60">{% if annotation %}{{annotation.longString}}{% endif %}</textarea>
-				<div class="rightalign">Interpret this as <select name="longString_format">
+				<table style="width:100%; border:none">
+				<tr><td class="noborder">
+				<textarea name="longString" rows="10" cols="60">{% if annotation %}{{annotation.longString}}{% endif %}</textarea>
+				</td><td class="noborder" width="80">
+				<p>Interpret as</p>
+					<select name="text_format">
 					{% for format in text_formats %}
 						<option value="{{format}}" 
 						{% ifequal annotation.longString_format format %}
@@ -63,7 +67,8 @@
 						{% endifequal %}
 						>{{format}}</option>
 					{% endfor %}
-					</select></div>
+					</select>
+				</td></tr></table>
 
 			{% endifequal %}
 			
@@ -80,8 +85,12 @@
 				{% else %}
 					<p>What would you like other members to do with regard to this {{article.type}}?</p>
 				{% endif %}
-				<textarea name="longString" rows="20" cols="60">{% if annotation %}{{annotation.longString}}{% endif %}</textarea>
-				<div class="rightalign">Interpret this as <select name="longString_format">
+				<table style="width:100%; border:none">
+				<tr><td class="noborder">
+				<textarea name="longString" rows="10" cols="60">{% if annotation %}{{annotation.longString}}{% endif %}</textarea>
+				</td><td class="noborder" width="80">
+				<p>Interpret as</p>
+					<select name="text_format">
 					{% for format in text_formats %}
 						<option value="{{format}}" 
 						{% ifequal annotation.longString_format format %}
@@ -89,7 +98,8 @@
 						{% endifequal %}
 						>{{format}}</option>
 					{% endfor %}
-					</select></div>
+					</select>
+				</td></tr></table>
 			{% endifequal %}
 			
 			{% ifequal annotation_type "nudge" %}
@@ -157,30 +167,27 @@
 
 			{% if offline_members %}
 				{% if current_member.isLiaison %}
+					<p>Since you are a liaison, was this {{article_type}} collected from an off-line member?</p>
 					<input type="checkbox" name="collectedOffline" value="yes" id="collectedOffline"
 						{% if annotation.collectedOffline %}
 						checked
 						{% endif %}
-					><label for="collectedOffline">This {{annotation_type}} was collected offline.</label>
-					{% if annotation %}
-						<p>This off-line {{annotation_type}} was collected from:</p>
-					{% else %}
-						<p>If this {{annotation_type}} was collected off-line, please choose a member to assign it to.</p>
-					{% endif %}
-					<select name="offlineSource">
+					<label for="collectedOffline">Yes, it was collected from</label>
+						<option value="none">None</option>
 						{% for member in offline_members %}
-							<option value="{{member.key}}">
-							{% if annotation %}
+							<option value="{{member.key}}"
+							{% if article %}
 								{% ifequal member.key annotation.creator.key %}
 									selected="selected"
 								{% endifequal %}
+							>{{member.nickname}}
 							{% endif %}
-							{{member.nickname}}</option>
+							</option>
 						{% endfor %}
 					</select>
 				{% endif %}
-				</fieldset>
 			{% endif %}
+
 			
 			<p>
 			<center>

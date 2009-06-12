@@ -1,4 +1,6 @@
 /* ----------- elements ----------- */
+/* ----------- margin: top right bottom left ----------- */
+
 body {
   	!font-family: Verdana, Helvetica, sans-serif;
   	font-family: Georgia, "Times New Roman", Times, serif;
@@ -22,7 +24,7 @@ a {
 	
 p
 	{
-	margin: 4px;
+	margin: 8px 0px 8px 0px;
 	}
 	
 a:hover {

@@ -11,6 +11,7 @@ from datetime import *
 import pytz
 from pytz import timezone
 import re
+import csv
 
 from site_configuration import *
 
@@ -192,12 +193,32 @@ class Community(db.Model):
 	def getInactiveMembers(self):
 		return Member.all().filter("community = ", self.key()).filter("active = ", False).fetch(FETCH_NUMBER)
 	
+	def getActiveOfflineMembers(self):
+		return Member.all().filter("community = ", self.key()).filter("active = ", True).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
+	
+	def getInactiveOfflineMembers(self):
+		return Member.all().filter("community = ", self.key()).filter("active = ", False).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
+	
 	def hasMemberWithGoogleEmail(self, email):
 		members = self.getActiveMembers()
 		for member in members:
 			if member.googleAccountEmail == email:
 				return True
 		return False
+	
+	def hasMemberWithNickname(self, nickname):
+		members = self.getActiveMembers()
+		for member in members:
+			if member.nickname == nickname:
+				return True
+		return False
+	
+	def getOfflineMemberForNickname(self, nickname):
+		members = self.getActiveOfflineMembers()
+		for member in members:
+			if member.nickname == nickname:
+				return member
+		return None
 	
 	def getManagers(self):
 		return Member.all().filter("community = ", self.key()).filter("governanceType = ", "manager").fetch(FETCH_NUMBER)
@@ -284,9 +305,73 @@ class Community(db.Model):
 		articles = Article.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 		annotations = Annotation.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 		answers = Answer.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
-		links = Link.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+		links = Link.all().filter("community = ", self.key()).filter("inImportBuffer = ", False).fetch(FETCH_NUMBER)
 		return (articles, annotations, answers, links)
 	
+	def addArticlesFromCSV(self, data, liaison):
+		reader = csv.reader(data.split("\n"), delimiter=',', doublequote='"', quotechar='"')
+		for row in reader:
+			dateOkay = True
+			if len(row) > 0 and len(row[0]) > 0 and row[0][0] != ";" and row[0][0] != "#":
+				nickname = row[0].strip()
+				member = self.getOfflineMemberForNickname(nickname)
+				if member:
+					if len(row) >= 1:
+						dateString = row[1].strip()
+					else:
+						dateString = None
+						dateOkay = False
+					if dateOkay:
+						try:
+							(year, month, day) = dateString.split("-")
+						except:
+							dateOkay = False
+						if dateOkay:
+							try:
+								collected = datetime(int(year), int(month), int(day))
+							except:
+								collected = None
+								dateOkay = False
+							if dateOkay:
+								if len(row) >= 3:
+									type = row[2].strip()
+								else:
+									type = None
+								if type:
+									if len(row) >= 4:
+										title = row[3].strip()
+									else:
+										title = None
+									if title:
+										foundArticle = self.getArticleInImportBufferWithTitle(title)
+										if not foundArticle:
+											if len(row) >= 5:
+												text = row[4].strip()
+											else:
+												text = "No text imported."
+											article = Article(community=self, type=type, title=title) 
+											article.text = text
+											article.community = self
+											article.creator = member
+											article.collectedOffline = True
+											article.collected = collected
+											article.liaison = liaison
+											article.inImportBuffer = True
+											article.draft = True
+											article.put()	
+										
+	def getArticleInImportBufferWithTitle(self, title):	
+		return Article.all().filter("community = ", self.key()).filter("inImportBuffer = ", True).filter("title = ", title).get()
+										
+	def getArticlesInImportBufferForLiaison(self, liaison):
+		return Article.all().filter("community = ", self.key()).filter("inImportBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
+	
+	def moveImportedArticlesOutOfBuffer(self, items):
+		for item in items:
+			item.draft = False
+			item.inImportBuffer = False
+			item.put()
+							
 	# QUESTIONS
 	
 	def getQuestions(self):
@@ -351,6 +436,8 @@ class Question(db.Model):
 	
 	created = TzDateTimeProperty(auto_now_add=True)
 	
+	inImportBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
+	
 	def isOrdinalOrNominal(self):
 		return self.type == "ordinal" or self.type == "nominal"
 	
@@ -366,6 +453,7 @@ class Member(db.Model):
 	community = db.ReferenceProperty(Community, required=True, collection_name="members_to_community")
 	nickname = db.StringProperty(default=NO_NICKNAME_SET)
 	isOnlineMember = db.BooleanProperty(default=True)
+	liaisonIfOfflineMember = db.SelfReferenceProperty(default=None, collection_name="offline_members_to_liaisons")
 	googleAccountID = db.StringProperty() # none if off-line member
 	googleAccountEmail = db.StringProperty() # blank if off-line member
 	
@@ -389,9 +477,9 @@ class Member(db.Model):
 	profileImage = db.BlobProperty(default=None) # optional, resized to 100x60
 	acceptsMessages = db.BooleanProperty(default=True) # other members can send emails to their google email (without seeing it)
 	
-	timeZoneName = db.StringProperty() # members choose these in their prefs page
-	timeFormat = db.StringProperty() # how they want to see dates
-	dateFormat = db.StringProperty() # how they want to see times
+	timeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE) # members choose these in their prefs page
+	timeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT) # how they want to see dates
+	dateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT) # how they want to see times
 	
 	joined = TzDateTimeProperty(auto_now_add=True)
 	lastEnteredArticle = db.DateTimeProperty()
@@ -452,6 +540,9 @@ class Member(db.Model):
 	def isGuideOrManagerOrOwner(self):
 		return self.isGuide() or self.isManagerOrOwner()
 	
+	def isLiaisonOrManagerOrOwner(self):
+		return self.isLiaison() or self.isManagerOrOwner()
+	
 	def hasAnyHelpingRole(self):
 		return self.helpingRoles[0] or self.helpingRoles[1] or self.helpingRoles[2]
 
@@ -494,6 +585,16 @@ class Member(db.Model):
 	def getNonDraftAnswersAboutArticlesAttributedToMember(self):
 		return Answer.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).filter("referentType = ", "article").fetch(FETCH_NUMBER)
 	
+	def getNonDraftLiaisonedArticles(self):
+		return Article.all().filter("liaison = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+	
+	def getNonDraftLiaisonedAnnotations(self):
+		return Annotation.all().filter("liaison = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+	
+	def getNonDraftLiaisonedAnswers(self):
+		return Answer.all().filter("liaison = ", self.key()).filter("draft = ", False).filter("referentType = ", "article").fetch(FETCH_NUMBER)
+	
+		
 	# DRAFTS
 	
 	def getDraftArticles(self):
@@ -569,6 +670,7 @@ class Answer(db.Model):
 	
 	draft = db.BooleanProperty(default=True)
 	flaggedForRemoval = db.BooleanProperty(default=False)
+	inImportBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	
 	answerIfBoolean = db.BooleanProperty(default=False)
 	answerIfText = db.StringProperty(default="")
@@ -667,6 +769,7 @@ class Article(db.Model):                       # story, invitation, collage, pat
 	
 	draft = db.BooleanProperty(default=True)
 	flaggedForRemoval = db.BooleanProperty(default=False)
+	inImportBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	
 	collected = TzDateTimeProperty(default=None)
 	created = TzDateTimeProperty(auto_now_add=True)
@@ -849,10 +952,10 @@ class Article(db.Model):                       # story, invitation, collage, pat
 		return result
 	
 	def getOutgoingLinksOfType(self, type):
-		return Link.all().filter("articleFrom =", self.key()).filter("type = ", type).fetch(FETCH_NUMBER)
+		return Link.all().filter("articleFrom =", self.key()).filter("type = ", type).filter("inImportBuffer = ", False).fetch(FETCH_NUMBER)
 	
 	def getIncomingLinksOfType(self, type):
-		return Link.all().filter("articleTo =", self.key()).filter("type = ", type).fetch(FETCH_NUMBER)
+		return Link.all().filter("articleTo =", self.key()).filter("type = ", type).filter("inImportBuffer = ", False).fetch(FETCH_NUMBER)
 	
 	def getIncomingLinksOfTypeFromType(self, type, fromType):
 		result = []
@@ -915,6 +1018,7 @@ class Link(db.Model):                         # related, retold, reminded, respo
 	
 	# links cannot be in draft mode
 	flaggedForRemoval = db.BooleanProperty(default=False)
+	inImportBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	
 	published = TzDateTimeProperty(auto_now_add=True)
 	
@@ -994,6 +1098,7 @@ class Annotation(db.Model):                                # tag set, comment, r
 	
 	draft = db.BooleanProperty(default=True)
 	flaggedForRemoval = db.BooleanProperty(default=False)
+	inImportBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	
 	shortString = db.StringProperty() # comment/request subject, nudge comment
 	

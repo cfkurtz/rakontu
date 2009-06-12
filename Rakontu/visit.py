@@ -145,7 +145,7 @@ class BrowseArticlesPage(webapp.RequestHandler):
 						maxActivityPoints = activityPoints
 					elif activityPoints > maxActivityPoints:
 						maxActivityPoints = activityPoints
-				numRows = 25
+				numRows = 10
 				numCols = member.viewNumTimeColumns
 				nudgeStep = max(1, (maxNudgePoints - minNudgePoints) // numRows)
 				timeStep = (maxTime - minTime) // numCols
@@ -190,7 +190,7 @@ class BrowseArticlesPage(webapp.RequestHandler):
 			else:
 				textsForGrid = []
 			template_values = {
-							'title': community.name,
+							'title': "Main page",
 						   	'title_extra': None,
 							'community': community, 
 							'current_member': member, 
@@ -505,6 +505,9 @@ class SeeMemberPage(webapp.RequestHandler):
 						   		   'articles': memberToSee.getNonDraftArticlesAttributedToMember(),
 						   		   'annotations': memberToSee.getNonDraftAnnotationsAttributedToMember(),
 						   		   'answers': memberToSee.getNonDraftAnswersAboutArticlesAttributedToMember(),
+						   		   'articles_liaisoned': memberToSee.getNonDraftLiaisonedArticles(),
+						   		   'annotations_liaisoned': memberToSee.getNonDraftLiaisonedAnnotations(),
+						   		   'answers_liaisoned': memberToSee.getNonDraftLiaisonedAnswers(),
 						   		   'user_is_admin': users.is_current_user_admin(),
 						   		   'logout_url': users.create_logout_url("/"),								   
 						   		   }
@@ -565,6 +568,14 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
+			try:
+				offlineMember = db.get(self.request.query_string)
+			except:
+				offlineMember = None
+			if offlineMember:
+				memberToEdit = offlineMember
+			else:
+				memberToEdit = member
 			draftAnswerArticles = member.getArticlesWithDraftAnswers()
 			firstDraftAnswerForEachArticle = []
 			for article in draftAnswerArticles:
@@ -575,6 +586,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 						   	   'title_extra': member.nickname, 
 							   'community': community, 
 							   'current_user': users.get_current_user(), 
+							   'member': memberToEdit,
 							   'current_member': member,
 							   'questions': community.getMemberQuestions(),
 							   'answers': member.getAnswers(),
@@ -599,68 +611,93 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-			member.nickname = cgi.escape(self.request.get("nickname"))
-			member.nicknameIsRealName = self.request.get('nickname_is_real_name') =="yes"
-			member.acceptsMessages = self.request.get("acceptsMessages") == "yes"
-			text = self.request.get("profileText")
-			format = self.request.get("profileText_format").strip()
-			member.profileText = text
-			member.profileText_formatted = db.Text(InterpretEnteredText(text, format))
-			member.profileText_format = format
-			if self.request.get("removeProfileImage") == "yes":
-				member.profileImage = None
-			elif self.request.get("img"):
-				member.profileImage = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
-			member.timeZoneName = self.request.get("timeZoneName")
-			member.dateFormat = self.request.get("dateFormat")
-			member.timeFormat = self.request.get("timeFormat")
-			for i in range(3):
-				member.helpingRoles[i] = self.request.get("helpingRole%s" % i) == "helpingRole%s" % i
-			text = self.request.get("guideIntro")
-			format = self.request.get("guideIntro_format").strip()
-			member.guideIntro = text
-			member.guideIntro_formatted = db.Text(InterpretEnteredText(text, format))
-			member.guideIntro_format = format
-			member.put()
-			for article in member.getDraftArticles():
-				if self.request.get("remove|%s" % article.key()) == "yes":
-					db.delete(article)
-			for annotation in member.getDraftAnnotations():
-				if self.request.get("remove|%s" % annotation.key()) == "yes":
-					db.delete(annotation)
-			for article in member.getArticlesWithDraftAnswers():
-				if self.request.get("removeAnswers|%s" % article.key()) == "yes":
-					answers = member.getDraftAnswersForArticle(article)
-					for answer in answers:
-						db.delete(answer)
-			questions = Question.all().filter("community = ", community).filter("refersTo = ", "member").fetch(FETCH_NUMBER)
-			for question in questions:
-				foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", member.key()).fetch(FETCH_NUMBER)
-				if foundAnswers:
-					answerToEdit = foundAnswers[0]
+			goAhead = True
+			offlineMember = None
+			for argument in self.request.arguments():
+				if argument.find("|") >= 0:
+					for aMember in community.getActiveOfflineMembers():
+						if argument == "changeSettings|%s" % aMember.key():
+							try:
+								offlineMember = aMember
+							except: 
+								offlineMember = None
+								goAhead = False
+							break
+			if goAhead:
+				if offlineMember:
+					memberToEdit = offlineMember
 				else:
-					answerToEdit = Answer(question=question, community=community, referent=member, referentType="member")
-				if question.type == "text":
-					answerToEdit.answerIfText = cgi.escape(self.request.get("%s" % question.key()))
-				elif question.type == "value":
-					oldValue = answerToEdit.answerIfValue
-					try:
-						answerToEdit.answerIfValue = int(self.request.get("%s" % question.key()))
-					except:
-						answerToEdit.answerIfValue = oldValue
-				elif question.type == "boolean":
-					answerToEdit.answerIfBoolean = self.request.get("%s" % question.key()) == "%s" % question.key()
-				elif question.type == "nominal" or question.type == "ordinal":
-					if question.multiple:
-						answerToEdit.answerIfMultiple = []
-						for choice in question.choices:
-							if self.request.get("%s|%s" % (question.key(), choice)) == "yes":
-								answerToEdit.answerIfMultiple.append(choice)
+					memberToEdit = member
+				memberToEdit.nickname = cgi.escape(self.request.get("nickname")).strip()
+				memberToEdit.nicknameIsRealName = self.request.get('nickname_is_real_name') =="yes"
+				memberToEdit.acceptsMessages = self.request.get("acceptsMessages") == "yes"
+				text = self.request.get("profileText")
+				format = self.request.get("profileText_format").strip()
+				memberToEdit.profileText = text
+				memberToEdit.profileText_formatted = db.Text(InterpretEnteredText(text, format))
+				memberToEdit.profileText_format = format
+				if self.request.get("removeProfileImage") == "yes":
+					memberToEdit.profileImage = None
+				elif self.request.get("img"):
+					memberToEdit.profileImage = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
+				memberToEdit.timeZoneName = self.request.get("timeZoneName")
+				memberToEdit.dateFormat = self.request.get("dateFormat")
+				memberToEdit.timeFormat = self.request.get("timeFormat")
+				if memberToEdit.isOnlineMember:
+					for i in range(3):
+						memberToEdit.helpingRoles[i] = self.request.get("helpingRole%s" % i) == "helpingRole%s" % i
+					text = self.request.get("guideIntro")
+					format = self.request.get("guideIntro_format").strip()
+					memberToEdit.guideIntro = text
+					memberToEdit.guideIntro_formatted = db.Text(InterpretEnteredText(text, format))
+					memberToEdit.guideIntro_format = format
+				memberToEdit.put()
+				for article in memberToEdit.getDraftArticles():
+					if self.request.get("remove|%s" % article.key()) == "yes":
+						db.delete(article)
+				for annotation in memberToEdit.getDraftAnnotations():
+					if self.request.get("remove|%s" % annotation.key()) == "yes":
+						db.delete(annotation)
+				for article in memberToEdit.getArticlesWithDraftAnswers():
+					if self.request.get("removeAnswers|%s" % article.key()) == "yes":
+						answers = memberToEdit.getDraftAnswersForArticle(article)
+						for answer in answers:
+							db.delete(answer)
+				questions = Question.all().filter("community = ", community).filter("refersTo = ", "memberToEdit").fetch(FETCH_NUMBER)
+				for question in questions:
+					foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", memberToEdit.key()).fetch(FETCH_NUMBER)
+					if foundAnswers:
+						answerToEdit = foundAnswers[0]
 					else:
-						answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
-				answerToEdit.creator = member
-				answerToEdit.put()
-		self.redirect('/visit/look')
+						answerToEdit = Answer(question=question, community=community, referent=memberToEdit, referentType="memberToEdit")
+					if question.type == "text":
+						answerToEdit.answerIfText = cgi.escape(self.request.get("%s" % question.key()))
+					elif question.type == "value":
+						oldValue = answerToEdit.answerIfValue
+						try:
+							answerToEdit.answerIfValue = int(self.request.get("%s" % question.key()))
+						except:
+							answerToEdit.answerIfValue = oldValue
+					elif question.type == "boolean":
+						answerToEdit.answerIfBoolean = self.request.get("%s" % question.key()) == "%s" % question.key()
+					elif question.type == "nominal" or question.type == "ordinal":
+						if question.multiple:
+							answerToEdit.answerIfMultiple = []
+							for choice in question.choices:
+								if self.request.get("%s|%s" % (question.key(), choice)) == "yes":
+									answerToEdit.answerIfMultiple.append(choice)
+						else:
+							answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
+					answerToEdit.creator = memberToEdit
+					answerToEdit.put()
+				if offlineMember:
+					self.redirect('/liaise/members')
+				else:
+					self.redirect('/visit/member?%s' % memberToEdit.key())
+			else:
+				self.redirect("/visit/look")
+		else:
+			self.redirect("/")
 		
 class ResultFeedbackPage(webapp.RequestHandler):
 	@RequireLogin 

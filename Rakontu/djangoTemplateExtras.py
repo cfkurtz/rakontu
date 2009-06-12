@@ -101,6 +101,18 @@ def upTo(value, number):
 		result = value
 	return result
 
+def yourOrThis(value):
+	if value:
+		return "your"
+	else:
+		return "this member's"
+
+def youOrThis(value):
+	if value:
+		return "you"
+	else:
+		return "this member"
+	
 register.filter(listLookup)
 register.filter(dictLookup)
 register.filter(makeRange)
@@ -114,4 +126,7 @@ register.filter(info)
 register.filter(tip)
 register.filter(caution)
 register.filter(upTo)
+register.filter(yourOrThis)
+register.filter(youOrThis)
+
 

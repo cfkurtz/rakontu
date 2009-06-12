@@ -23,6 +23,7 @@
 			<li><a href="/visit/look">Look at stories</a></li>
  			<li><a href="/visit/community">About the community</a></li>
 			<li><a href="/visit/members">About the members</a></li>
+			<li><a href="/visit/members">Get help</a></li>
 			<li><a href="/">Exit community</a></li>
 			</ul>
 		</li>
@@ -34,21 +35,28 @@
   			<li><a href="/visit/pattern">Describe a pattern</a> </li>
   			</ul>
 		</li>
-		{% if current_member.hasAnyHelpingRole %}
-			<li><a href="/curate/curate">Help</a>
-				<ul>
-				{% if current_member.isCurator %}
-					<li><a href="/curate/flags">Review flags</a>
-					<li><a href="/curate/gaps">Review gaps</a>
-				{% endif %}
-				{% if current_member.isGuide %}
-					<li><a href="/guide/resources">Review resources</a>
-					<li><a href="/guide/resource">Add a resource</a></li>
-				{% endif %}
-				{% if current_member.isLiaison %}
-					<li><a href="/liaise/members">Review off-line members</a>
-				{% endif %}
-				</ul>
+		{% if current_member.isCurator %}
+			<li><a href="/curate/flags">Curate</a>
+			<ul>
+				<li><a href="/curate/flags">Review flags</a>
+				<li><a href="/curate/gaps">Review gaps</a>
+			</ul>
+			</li>
+		{% endif %}
+		{% if current_member.isGuide %}
+			<li><a href="/guide/resources">Guide</a>
+			<ul>
+				<li><a href="/guide/resources">Review resources</a>
+				<li><a href="/guide/resource">Add a resource</a></li>
+			</ul>
+			</li>
+		{% endif %}
+		{% if current_member.isLiaison %}
+			<li><a href="/liaise/members">Liaise</a>
+			<ul>
+				<li><a href="/liaise/members">Manage off-line members</a>
+				<li><a href="/liaise/import">Import stories</a>
+			</ul>
 			</li>
 		{% endif %}
 		{% if current_member.isManagerOrOwner %}

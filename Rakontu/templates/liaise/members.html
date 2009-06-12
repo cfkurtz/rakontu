@@ -1,0 +1,84 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+	
+	
+	<div id="content">
+	
+		<div id="stylized" class="rakontu_form">
+		<form action="/liaise/members" method="post" enctype="multipart/form-data">
+		
+		{% if current_member.isLiaisonOrManagerOrOwner %}
+	
+			<div id="stylized" class="rakontu_form">
+			<form action="/liaise/members" method="post">
+			
+			<h3>Active off-line members</h3>
+			<fieldset>
+	      	<table border="1" cellpadding="4" cellspacing="0">
+	      	<tr>
+	      		<th>Nickname</th>
+	      		<th>Picture</th>
+	      		<th>Liaison</th>
+	      		<th>Inactivate?</th>
+	      		</tr>
+	      		{% for aMember in active_members %}
+	  				<tr>
+	  				<td>
+	  					<a href="/visit/member?{{aMember.key}}">{{ aMember.nickname }}</a>
+	  					{% ifequal aMember.liaisonIfOfflineMember.key current_member.key %}
+	  						<br/><a href="/visit/profile?{{aMember.key}}">(Change profile)</a>
+	  					{% endifequal %}
+	  				</td>
+	  				<td width="80" valign="top">
+			 		{% if aMember.profileImage %}
+						<img src="/visit/img?member_id={{aMember.key}}">
+					{% else %}
+						none
+					{% endif %}
+					</td>
+	  				<td><a href="/visit/member?{{aMember.liaisonIfOfflineMember.key}}">{{aMember.liaisonIfOfflineMember.nickname}}</a></td>
+	  				<td>
+	  					<input type="checkbox" name="remove|{{ aMember.key }}" value="yes" id="remove|{{ aMember.key }}"/>
+						<label for="remove|{{ aMember.key }}">Inactivate</label>
+	  					</td>
+	  				</tr>
+	      		{% endfor %}
+	      	</table>
+	      	</fieldset>
+			
+	 		<h3>Add off-line members</h3>
+			<fieldset>
+			<div><textarea name="newMemberNicknames" rows="6" cols="40"></textarea></div>
+			<p>Instructions: Add nicknames for each off-line member you want to add.
+			Place each nickname on a separate line.</p>
+			</fieldset>
+			
+			{% if inactive_members %}
+				<h3>Inactive members</h3>
+				<fieldset>
+				These members have been removed from the active members list. To reinstate an inactive member, 
+				copy their nickname to the "Add off-line members" box to reinstate them. Reinstated
+				members will reconnect to their old histories and profiles.
+				<ul>
+				{% for member in inactive_members %}
+					<li class="nobullet">{{member.nickname}}</li>
+				{% endfor %}
+				</ul>
+				</fieldset>
+			{% endif %}
+	
+		<p></p>
+	    <center><input type="submit" name="submitChanges" value="Submit Changes" class="button"></center>	
+		</form>	
+		</div>
+	{% else %}
+		<p>You are not a liaison or manager of this community and cannot change its off-line memberships.
+		Please ask a liaison or manager to make any changes you would like to see made.</p>
+	{% endif %}
+
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

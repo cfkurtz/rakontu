@@ -121,7 +121,7 @@ class EnterArticlePage(webapp.RequestHandler):
 							   'answers': answers,
 							   'attachments': attachments,
 							   'community_members': community.getActiveMembers(),
-							   'offline_members': community.getOfflineMembers(),
+							   'offline_members': community.getActiveOfflineMembers(),
 							   'character_allowed': community.allowCharacter[entryTypeIndexForCharacters],
 							   'link_type': linkType,
 							   'article_from': articleFrom,
@@ -296,6 +296,11 @@ class EnterArticlePage(webapp.RequestHandler):
 				article.publish()
 			if preview:
 				self.redirect("/visit/preview?%s" % article.key())
+			elif article.inImportBuffer:
+				if member.isLiaison():
+					self.redirect("/liaise/import")
+				else:
+					self.redirect("/visit/look")
 			elif article.draft:
 				self.redirect("/visit/profile?%s" % member.key())
 			else:
@@ -687,7 +692,12 @@ class PreviewPage(webapp.RequestHandler):
 				except:
 					annotation = Annotation.get(self.request.query_string)
 					article = annotation.article
-			if "profile" in self.request.arguments():
+			if "imports" in self.request.arguments():
+				if member.isLiaison():
+					self.redirect('/liaise/import')
+				else:
+					self.redirect("/visit/look")
+			elif "profile" in self.request.arguments():
 				self.redirect("/visit/profile?%s" % member.key())
 			elif annotation:
 				if "edit" in self.request.arguments():

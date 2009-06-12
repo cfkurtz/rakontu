@@ -18,7 +18,7 @@
 			{% endif %}
 			<fieldset>
 			{% if article %}
-				You can change the text of your {{article_type}} here.
+				You can change the text of the {{article_type}} here.
 			{% else %}
 				{% ifequal article_type "story" %}
 					Please tell your story here.
@@ -36,8 +36,13 @@
 					Type the text of your resource here.
 				{% endifequal %}
 			{% endif %}
+			
+			<table style="width:100%; border:none">
+			<tr><td class="noborder">
 			<textarea name="text" rows="10" cols="60">{% if article %}{{article.text}}{% endif %}</textarea>
-			<div class="rightalign">Interpret this as <select name="text_format">
+			</td><td class="noborder" width="80">
+			<p>Interpret as</p>
+				<select name="text_format">
 				{% for format in text_formats %}
 					<option value="{{format}}" 
 					{% ifequal article.text_format format %}
@@ -45,21 +50,18 @@
 					{% endifequal %}
 					>{{format}}</option>
 				{% endfor %}
-				</select></div>
+				</select>
+			</td></tr></table>
 			
 			{% if article %}
-				You can change the name of your {{article_type}} here.
+				<p>You can change the name of this {{article_type}} here.</p>
 			{% else %}
-				Please give your {{article_type}} a name.
+				<p>Please give this {{article_type}} a name.</p>
 			{% endif %}
-			<div><input type="text" name="title" size="60" value="{% if article %}{{article.title}}{% endif %}"/></div>
+			<p><input type="text" name="title" size="60" value="{% if article %}{{article.title}}{% endif %}"/></p>
 			
 			{% if character_allowed %}
-				{% if article %}
-					<p>You can change who this {{article_type}} is attributed to here. 
-				{% else %}
-					<p>To whom would you like to attribute this {{article_type}}?
-				{% endif %}
+				This {{article_type}} was added by 
 				
 				<select name="attribution">
 					<option value="member"
@@ -85,23 +87,20 @@
 
 			{% if offline_members %}
 				{% if current_member.isLiaison %}
-					<div><input type="checkbox" name="collectedOffline" value="yes" id="collectedOffline"
+					<p>Since you are a liaison, was this {{article_type}} collected from an off-line member?</p>
+					<input type="checkbox" name="collectedOffline" value="yes" id="collectedOffline"
 						{% if article.collectedOffline %}
 						checked
 						{% endif %}
-					<label for="collectedOffline">This {{article_type}} was collected offline.</label></div>
-					{% if article %}
-						<p>This off-line {{article_type}} was collected from:</p>
-					{% else %}
-						<p>If this {{article_type}} was collected off-line, please choose a member to assign it to.</p>
-					{% endif %}
+					<label for="collectedOffline">Yes, it was collected from</label>
 					<select name="offlineSource">
 						{% for member in offline_members %}
-							<option value="{{member.key}}">{{member.nickname}}
+							<option value="{{member.key}}"
 							{% if article %}
 								{% ifequal member.key article.creator.key %}
 									selected="selected"
 								{% endifequal %}
+							>{{member.nickname}}
 							{% endif %}
 							</option>
 						{% endfor %}
@@ -280,9 +279,14 @@
 			<p>
 			<center>
 			{% if article %}
-				<input type="submit" name="save|{{article_type}}" value="Save as draft" class="button">
-				<input type="submit" name="preview|{{article_type}}" value="Preview" class="button">
-				<input type="submit" name="publish|{{article_type}}" value="Publish" class="button">
+				{% if article.collectedOffline %}
+					<input type="submit" name="save|{{article_type}}" value="Save changes to imported article" class="button">
+					<input type="submit" name="preview|{{article_type}}" value="Preview" class="button">
+				{% else %}
+					<input type="submit" name="save|{{article_type}}" value="Save as draft" class="button">
+					<input type="submit" name="preview|{{article_type}}" value="Preview" class="button">
+					<input type="submit" name="publish|{{article_type}}" value="Publish" class="button">
+				{% endif %}
 			{% else %}
 				<input type="submit" name="save|{{article_type}}" value="Save as draft" class="button">
 				<input type="submit" name="preview|{{article_type}}" value="Preview" class="button">

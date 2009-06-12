@@ -8,51 +8,62 @@
 	
 		<div id="stylized" class="rakontu_form">
 		<form action="/visit/profile" method="post" enctype="multipart/form-data">
-		<h3>Your member information</h3>
+		{% if member.isOnlineMember %}
+			<h3>Your member information</h3>
+		{% else %}
+			<h3>This off-line member's information</h3>
+		{% endif %}
       	<table border="1" cellpadding="4" cellspacing="0">
       	<tr>
-		<td>Member type</td><td>{{current_member.governanceType}}</td></tr>
-		<td>Online member?</td><td>{{current_member.isOnlineMember|yesno:"yes, no, maybe"}}</td></tr>
-		<td>Joined</td><td>{{current_member.joined|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}</td></tr>
+      	{% if member.isOnlineMember %}
+			<td>Member type</td><td>{{member.governanceType}}</td></tr>
+		{% endif %}
+		<td>Joined</td><td>{{member.joined|timeZone:member.timeZoneName|date:member.dateFormat}}</td></tr>
 		<td>Last entered article</td><td>
-			{% if current_member.lastEnteredArticle %} 
-				{{current_member.lastEnteredArticle|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{current_member.lastEnteredArticle|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+			{% if member.lastEnteredArticle %} 
+				{{member.lastEnteredArticle|timeZone:member.timeZoneName|date:member.dateFormat}} at {{member.lastEnteredArticle|timeZone:member.timeZoneName|time:member.timeFormat}}
 			{% else %}
 				never
 			{% endif %}
 			</td></tr>
 		<td>Last entered annotation</td><td>
-			{% if current_member.lastEnteredAnnotation %} 
-				{{current_member.lastEnteredAnnotation|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{current_member.lastEnteredAnnotation|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+			{% if member.lastEnteredAnnotation %} 
+				{{member.lastEnteredAnnotation|timeZone:member.timeZoneName|date:member.dateFormat}} at {{member.lastEnteredAnnotation|timeZone:member.timeZoneName|time:member.timeFormat}}
 			{% else %}
 				never
 			{% endif %}
 			</td></tr>
 		<td>Last answered question(s)</td><td>
-			{% if current_member.lastAnsweredQuestion %} 
-				{{current_member.lastAnsweredQuestion|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{current_member.lastAnsweredQuestion|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+			{% if member.lastAnsweredQuestion %} 
+				{{member.lastAnsweredQuestion|timeZone:member.timeZoneName|date:member.dateFormat}} at {{member.lastAnsweredQuestion|timeZone:member.timeZoneName|time:member.timeFormat}}
 			{% else %}
 				never
 			{% endif %}
 			</td></tr>
 		<td>Last entered link</td><td>
-			{% if current_member.lastEnteredLink %} 
-				{{current_member.lastEnteredLink|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{current_member.lastEnteredLink|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+			{% if member.lastEnteredLink %} 
+				{{member.lastEnteredLink|timeZone:member.timeZoneName|date:member.dateFormat}} at {{member.lastEnteredLink|timeZone:member.timeZoneName|time:member.timeFormat}}
 			{% else %}
 				never
 			{% endif %}
 			</td></tr>
-		<td>Last read anything</td><td>
-			{% if current_member.lastReadAnything %} 
-				{{current_member.lastReadAnything|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{current_member.lastReadAnything|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
-			{% else %}
-				never
-			{% endif %}
-			</td></tr>
-		<td>Accumulated nudge points</td><td>{{current_member.nudgePoints}}</td></tr>
+		{% if member.isOnlineMember %}
+			<td>Last read anything</td><td>
+				{% if member.lastReadAnything %} 
+					{{member.lastReadAnything|timeZone:member.timeZoneName|date:member.dateFormat}} at {{member.lastReadAnything|timeZone:member.timeZoneName|time:member.timeFormat}}
+				{% else %}
+					never
+				{% endif %}
+				</td></tr>
+			<td>Accumulated nudge points</td><td>{{member.nudgePoints}}</td></tr>
+		{% endif %}
 		</table>
 		
-		<h3>Your saved drafts</h3>
+		{% if member.isOnlineMember %}
+			<h3>Your saved drafts</h3>
+		{% else %}
+			<h3>This member's saved drafts</h3>
+		{% endif %}
 		{% if draft_articles %}
 			<h4>Articles</h4>
 	      	<table border="1" cellpadding="4" cellspacing="0">
@@ -61,8 +72,8 @@
 		      	<tr>
 		      	<td>{{article.type}}</td>
 				<td><a href="{{article.type}}?{{article.key}}">{{article.title}}</a></td>
-				<td>{{article.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{article.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</td>
-				<td>{{article.edited|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{article.edited|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</td>
+				<td>{{article.created|timeZone:member.timeZoneName|date:member.dateFormat}} at {{article.created|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
+				<td>{{article.edited|timeZone:member.timeZoneName|date:member.dateFormat}} at {{article.edited|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
 				<td><input type="checkbox" name="remove|{{ article.key }}" value="yes" id="remove|{{ article.key }}"/>
 					<label for="remove|{{ article.key }}">Remove</label></td>
 				</tr>
@@ -80,8 +91,8 @@
 		      	<td>{{annotation.type}}</td>
 				<td><a href="{{annotation.typeAsURL}}?{{annotation.key}}">{{annotation.displayString}}</a></td>
 				<td><a href="read?{{annotation.article.key}}">{{annotation.article.title}}</a> ({{annotation.article.type}})</td>
-				<td>{{annotation.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{annotation.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</td>
-				<td>{{annotation.edited|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{annotation.edited|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</td>
+				<td>{{annotation.created|timeZone:member.timeZoneName|date:member.dateFormat}} at {{annotation.created|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
+				<td>{{annotation.edited|timeZone:member.timeZoneName|date:member.dateFormat}} at {{annotation.edited|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
 				<td><input type="checkbox" name="remove|{{ annotation.key }}" value="yes" id="remove|{{ annotation.key }}"/>
 					<label for="remove|{{ annotation.key }}">Remove</label>
 					</td>
@@ -98,8 +109,8 @@
 	      	{% for answer in first_draft_answer_per_article %}
 		      	<tr>
 				<td><a href="answers?{{answer.referent.key}}">{{answer.referent.title}}</a> ({{answer.referent.type}})</td>
-				<td>{{answer.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{answer.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</td>
-				<td>{{answer.edited|timeZone:current_member.timeZoneName|date:current_member.dateFormat}} at {{answer.edited|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</td>
+				<td>{{answer.created|timeZone:member.timeZoneName|date:member.dateFormat}} at {{answer.created|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
+				<td>{{answer.edited|timeZone:member.timeZoneName|date:member.dateFormat}} at {{answer.edited|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
 				<td><input type="checkbox" name="removeAnswers|{{answer.referent.key}}" value="yes" id="removeAnswers|{{answer.referent.key}}"/>
 					<label for="removeAnswers|{{answer.referent.key}}">Remove</label>
 					</td>
@@ -110,55 +121,77 @@
 			<p><b>Answer sets</b> - none</p>
 		{% endif %}
 		
-		<h3>Your nickname and description</h3>
+		<h3>{{member.isOnlineMember|yourOrThis|capfirst}} nickname and description</h3>
 		<fieldset>
-		<p>What nickname do you want to use in the community? <i>Note that if you change your nickname,
-		the new nickname will display on all of your previous entries as well as new ones.</i></p>
-		<input type="text" name="nickname" value="{{ current_member.nickname }}"/>
-		<p>Is this your real name?</p>
+		{% if member.isOnlineMember %}
+			<p>What nickname do you want to use in the community? <i>Note that if you change your nickname,
+			the new nickname will display on all of your previous entries as well as new ones.</i></p>
+		{% else %}
+			<p>What nickname do you want to use to represent this off-line member in the community? 
+			<i>Note that if you change this nickname,
+			the new nickname will display on all of the member's previous entries as well as new ones.</i></p>
+		{% endif %}
+		<input type="text" name="nickname" value="{{ member.nickname }}"/>
+		<p>Is this {% if member.isOnlineMember %}your{% else %}the member's{% endif %} real name?</p>
 		<p><input type="checkbox" name="nickname_is_real_name" value="yes" id="nickname_is_real_name"
-			{% if current_member.nicknameIsRealName %}
+			{% if member.nicknameIsRealName %}
 				checked
 			{% endif %}
-			><label for="nickname_is_real_name">Yes, this nickname is my real name</label></p>
-		<p>Do you want other community members to be able to send you messages via email?
-		<i>(They will not see your email address.)</i></p>
+			><label for="nickname_is_real_name">Yes, this nickname is {% if member.isOnlineMember %}my{% else %}the member's{% endif %} real name</label></p>
+		{% if member.isOnlineMember %}
+			<p>Do you want other community members to be able to send you messages via email?
+			<i>(Senders will not see your email address.)</i></p>
+		{% else %}
+			<p>Do you want other community members to be able to send this member messages via email?
+			<i>(You, as the member's liaison, will get the messages. Senders will not see your email address.)</i></p>
+		{% endif %}
 		<p><input type="checkbox" name="acceptsMessages" value="yes" id="acceptsMessages"
-			{% if current_member.acceptsMessages %}
+			{% if member.acceptsMessages %}
 				checked
 			{% endif %}
-			><label for="acceptsMessages">Yes, people can send me messages</label></p>
-		<p>Please describe yourself to other members.</p>
-		<textarea name="profileText" rows="6" cols="60">{{ current_member.profileText }}</textarea>
-		<div class="rightalign">Interpret this as <select name="profileText_format">
-			{% for format in text_formats %}
-				<option value="{{format}}" 
-				{% ifequal current_member.profileText_format format %}
-					selected="selected"
-				{% endifequal %}
-				>{{format}}</option>
-			{% endfor %}
-			</select></div>
+			><label for="acceptsMessages">Yes, people can send {% if member.isOnlineMember %}me messages{% else %}the member messages through me{% endif %}</label></p>
+		{% if member.isOnlineMember %}
+			<p>Please describe yourself to other members.</p>
+		{% else %}
+			<p>Please describe this off-line member to other members.</p>
+		{% endif %}
+
+				<table style="width:100%; border:none">
+				<tr><td class="noborder">
+				<textarea name="profileText" rows="10" cols="60">{{member.profileText}}</textarea>
+				</td><td class="noborder" width="80">
+				<p>Interpret as</p>
+					<select name="text_format">
+					{% for format in text_formats %}
+						<option value="{{format}}" 
+						{% ifequal member.profileText_format format %}
+							selected="selected"
+						{% endifequal %}
+						>{{format}}</option>
+					{% endfor %}
+					</select>
+				</td></tr></table>
+
 			</fieldset>
 			
-		<h3>Your picture</h3>
+		<h3>{{member.isOnlineMember|yourOrThis|capfirst}} picture</h3>
 		<fieldset>
 		      	<table border="1" cellpadding="4" cellspacing="0">
 		      	<tr>
 		      		<th>Image</th>
-		      		<th>{% if current_member.profileImage %} Replace {% else %} Attach {% endif %} </th>
+		      		<th>{% if member.profileImage %} Replace {% else %} Attach {% endif %} </th>
 		      		<th>Remove?</th>
 		      		
 		      	</tr>
 		      	<tr>
-					<td>{% if current_member.profileImage %}
-							<img src="img?member_id={{current_member.key}}">
+					<td>{% if member.profileImage %}
+							<img src="img?member_id={{member.key}}">
 						{% else %}
 							none
 						{% endif %}
 						</td>
 					<td><input type="file" name="img" size="40" accept="jpg/png"/></p><p><i>The best picture size is 100 x 60.</i></p></td>
-					<td>{% if current_member.profileImage %}
+					<td>{% if member.profileImage %}
 							<input type="checkbox" name="removeProfileImage" value="yes" id="removeProfileImage">
 							<label for="removeProfileImage">Remove</label>{% else %}&nbsp; 
 						{% endif %}</td>
@@ -168,107 +201,120 @@
 		
 		<h3>Time zones and time reporting</h3>
 		<fieldset>
-		<p>What time zone are you in?
+		{% if member.isOnlineMember %}
+			<p>What time zone are you in?
+		{% else %}
+			<p>What time zone is this member in?
+		{% endif %}
 			<select name="timeZoneName"">
 			{% for name in time_zone_names %}
 				<option value="{{name}}"
-				{% ifequal current_member.timeZoneName name %}
+				{% ifequal member.timeZoneName name %}
 					selected="selected"
 				{% endifequal %}
 				>{{name}}</option>
 			{% endfor %}
 			</select></p>
-		<p>How would you like dates to be displayed?
+		<p>How would {{member.isOnlineMember|youOrThis}} like dates to be displayed?
 			<select name="dateFormat">
 			{% for format in date_formats.keys %}
 				<option value="{{format}}"
-				{% ifequal current_member.dateFormat format %}
+				{% ifequal member.dateFormat format %}
 					selected="selected"
 				{% endifequal %}
 				>{{date_formats|dictLookup:format}}</option>
 			{% endfor %}
 			</select></p>
-		<p>How would you like times to be displayed?
+		<p>How would {{member.isOnlineMember|youOrThis}} like times to be displayed?
 			<select name="timeFormat">
 			{% for format in time_formats.keys %}
 				<option value="{{format}}"
-				{% ifequal current_member.timeFormat format %}
+				{% ifequal member.timeFormat format %}
 					selected="selected"
 				{% endifequal %}
 				>{{time_formats|dictLookup:format}}</option>
 			{% endfor %}
 			</select></p>
 		</fieldset>
-			
-		{% if current_member.canTakeOnAnyHelpingRole %}
-			<h3>Helping roles</h3>
-			<fieldset>
-			
-			{% if current_member.helpingRolesAvailable.0 %}
-				<p><label><input type="checkbox" name="helpingRole0" value="helpingRole0"
-					{% if current_member.helpingRoles.0 %}
-						checked="checked"/>
-					{% else %}
-						/>
+		
+		{% if member.isOnlineMember %}
+			{% if member.canTakeOnAnyHelpingRole %}
+				<h3>Helping roles</h3>
+				<fieldset>
+				
+				{% if member.helpingRolesAvailable.0 %}
+					<p><label><input type="checkbox" name="helpingRole0" value="helpingRole0"
+						{% if member.helpingRoles.0 %}
+							checked="checked"/>
+						{% else %}
+							/>
+						{% endif %}
+						I am a <b> {{helping_role_names.0}} </b> in this community.</label></p>
+					{% if community.roleReadmes_formatted.0 %}
+						<table border="1" cellpadding="4" cellspacing="0">
+						<tr><td bgcolor="#FFFFFF"> {{ community.roleReadmes_formatted.0 }} </td></tr>
+						{% if community.roleAgreements.0 %}
+							<tr><td><i>Clicking the "I am a {{helping_role_names.0}}" box implies that you agree to these terms.</i></td></tr>
+						{% endif %}
+						</table>
 					{% endif %}
-					I am a <b> {{helping_role_names.0}} </b> in this community.</label></p>
-				{% if community.roleReadmes_formatted.0 %}
-					<table border="1" cellpadding="4" cellspacing="0">
-					<tr><td bgcolor="#FFFFFF"> {{ community.roleReadmes_formatted.0 }} </td></tr>
-					{% if community.roleAgreements.0 %}
-						<tr><td><i>Clicking the "I am a {{helping_role_names.0}}" box implies that you agree to these terms.</i></td></tr>
-					{% endif %}
-					</table>
 				{% endif %}
-			{% endif %}
-			
-			{% if current_member.helpingRolesAvailable.1 %}
-				<p><label><input type="checkbox" name="helpingRole1" value="helpingRole1"
-					{% if current_member.helpingRoles.1 %}
-						checked="checked"/>
-					{% else %}
-						/>
+				
+				{% if member.helpingRolesAvailable.1 %}
+					<p><label><input type="checkbox" name="helpingRole1" value="helpingRole1"
+						{% if member.helpingRoles.1 %}
+							checked="checked"/>
+						{% else %}
+							/>
+						{% endif %}
+						I am a <b>{{helping_role_names.1}}</b> in this community.</label></p>
+					{% if community.roleReadmes_formatted.1 %}
+						<table border="1" cellpadding="4" cellspacing="0"><tr>
+						<tr><td bgcolor="#FFFFFF"> {{ community.roleReadmes_formatted.1 }} </td></tr>
+						{% if community.roleAgreements.1 %}
+							<tr><td><i>Clicking the "I am a {{helping_role_names.1}}" box implies that you agree to these terms.</i></td></tr>
+						{% endif %}
+						</table>
 					{% endif %}
-					I am a <b>{{helping_role_names.1}}</b> in this community.</label></p>
-				{% if community.roleReadmes_formatted.1 %}
-					<table border="1" cellpadding="4" cellspacing="0"><tr>
-					<tr><td bgcolor="#FFFFFF"> {{ community.roleReadmes_formatted.1 }} </td></tr>
-					{% if community.roleAgreements.1 %}
-						<tr><td><i>Clicking the "I am a {{helping_role_names.1}}" box implies that you agree to these terms.</i></td></tr>
-					{% endif %}
-					</table>
-				{% endif %}
-				<p>If you are a guide, what would you like to tell members about what sorts of questions you can answer?</p>
-				<textarea name="guideIntro" rows="3" cols="60">{{ current_member.guideIntro }}</textarea>
-				<div class="rightalign">Interpret this as <select name="guideIntro_format">
+					<p>If you are a guide, what would you like to tell members about what sorts of questions you can answer?</p>
+
+				<table style="width:100%; border:none">
+				<tr><td class="noborder">
+				<textarea name="guideIntro" rows="10" cols="60">{{member.guideIntro}}</textarea>
+				</td><td class="noborder" width="80">
+				<p>Interpret as</p>
+					<select name="text_format">
 					{% for format in text_formats %}
 						<option value="{{format}}" 
-						{% ifequal current_member.guideIntro_format format %}
+						{% ifequal member.guideIntro_format format %}
 							selected="selected"
 						{% endifequal %}
 						>{{format}}</option>
 					{% endfor %}
-			</select></div>
-			{% endif %}
-			
-			{% if current_member.helpingRolesAvailable.2 %}
-				<p><label><input type="checkbox" name="helpingRole2" value="helpingRole2"
-					{% if current_member.helpingRoles.2 %}
-						checked="checked"/>
-					{% else %}
-						/>
-					{% endif %}
-					I am a <b>{{helping_role_names.2}}</b> in this community.</label></p>
-				{% if community.roleReadmes_formatted.2 %}
-					<table border="1" cellpadding="4" cellspacing="0">
-					<tr><td bgcolor="#FFFFFF"> {{ community.roleReadmes_formatted.2 }} </td></tr>
-					{% if community.roleAgreements.2 %}
-						<tr><td><i>Clicking the "I am a {{helping_role_names.2}}" box implies that you agree to these terms.</i></td></tr>
-					{% endif %}
-					</table>
+					</select>
+				</td></tr></table>
+
 				{% endif %}
+				
+				{% if member.helpingRolesAvailable.2 %}
+					<p><label><input type="checkbox" name="helpingRole2" value="helpingRole2"
+						{% if member.helpingRoles.2 %}
+							checked="checked"/>
+						{% else %}
+							/>
+						{% endif %}
+						I am a <b>{{helping_role_names.2}}</b> in this community.</label></p>
+					{% if community.roleReadmes_formatted.2 %}
+						<table border="1" cellpadding="4" cellspacing="0">
+						<tr><td bgcolor="#FFFFFF"> {{ community.roleReadmes_formatted.2 }} </td></tr>
+						{% if community.roleAgreements.2 %}
+							<tr><td><i>Clicking the "I am a {{helping_role_names.2}}" box implies that you agree to these terms.</i></td></tr>
+						{% endif %}
+						</table>
+					{% endif %}
+				{% endif %}
+				</fieldset>
 			{% endif %}
-			</fieldset>
 		{% endif %}
 		
 		{% if questions %}
@@ -276,7 +322,7 @@
 		{% endif %}
 		
       	<p>
-    <center><input type="submit" name="changeSettings" value="Change Settings" class="button"></center>
+    <center><input type="submit" name="changeSettings|{{member.key}}" value="Change Settings" class="button"></center>
 	</form>	
 	</div>
 	</div>

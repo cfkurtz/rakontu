@@ -81,6 +81,7 @@ class ImageHandler(webapp.RequestHandler):
 	def get(self):
 		if self.request.get("member_id"):
 			member = db.get(self.request.get("member_id"))
+			DebugPrint(member, "MEMBER")
 			if member and member.profileImage:
 				self.response.headers['Content-Type'] = "image/jpg"
 				self.response.out.write(member.profileImage)

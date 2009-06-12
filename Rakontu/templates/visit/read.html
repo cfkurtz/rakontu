@@ -49,7 +49,7 @@
 		{% endfor %}
 	{% endif %}
 	
-	<p>This {{article.type}} was entered by 
+	<p>This {{article.type}} was created by 
 	
 	{% if article.attributedToMember %}
 			{% if article.creator.active %}
@@ -64,15 +64,19 @@
 		<a href="character?{{article.character.key}}">{{article.character.name}}</a>
 	{% endif %}
 	
-	on {{article.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-	at {{article.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
-
 	{% if article.collectedOffline %}
+		on {{article.collected|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.
 		{% if article.liaison %}
-			<p>It was collected off-line and entered by {{article.liaison.nickname}}.</p>
+			It was collected off-line and entered by <a href="/visit/member?{{article.liaison.key}}">{{article.liaison.nickname}}</a>
+			on {{article.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+			at {{article.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+			</p>
 		{% endif %}
+	{% else %}
+		on {{article.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+		at {{article.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
 	{% endif %}
-	
+
 	{% if retold_links_incoming or reminded_links_incoming or included_links_incoming_from_invitations or included_links_incoming_from_collages %}
 		{% ifequal article.type "story" %}
 			{% if retold_links_incoming %}

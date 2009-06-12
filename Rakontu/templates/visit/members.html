@@ -5,39 +5,44 @@
 		<div id="content">
 	
 		<h3>Members</h3>
-      	
+      		<hr>
       		{% for aMember in community_members %}
-  				<table style="width:100%;" class="fullborder">
-  				<tr><td class="noborder">
- 				<a href="member?{{aMember.key}}">{{ aMember.nickname }}</a> 
-  				{% ifequal aMember.key current_member.key %}<i>(that's you)</i> {% endifequal %} 
-  				is {% ifequal aMember.governanceType "member" %}
-  					{% else %}
-  						an <b>{{ aMember.governanceType }}</b> of this community,
-  					{% endifequal %}
-  				is an <b>{{ aMember.isOnlineMember|yesno:"on-line, off-line" }}</b> member,
-  				and 
-  					{% if not aMember.hasAnyHelpingRole %}
-  						has no helping role in particular.
-  					{% else %}
-  						is a
-	  					{% if aMember.helpingRoles.0 %} <b>curator</b>{% if aMember.helpingRoles.1 or aMember.helpingRoles.2 %} and{% else %}. {% endif %}{% endif %}
-	  					{% if aMember.helpingRoles.1 %} <b>guide</b>{% if aMember.helpingRoles.2 %} and{% else %}. {% endif %} {% endif %}
-	  					{% if aMember.helpingRoles.2 %} <b>liaison</b>.{% endif %}
-	  				{% endif %}
-  				{% if aMember.profileText_formatted %}
-					<p>Says {{aMember.nickname}}: </p>
-  					<div class="blurb" style="width:90%;">{{aMember.profileText_formatted}}</div>
-  				{% endif %}
-  				</td>
-  				<td class="noborder" width="80" valign="top">
-		 		{% if aMember.profileImage %}
-					<img src="img?member_id={{aMember.key}}">
-				{% endif %}
+  				<table style="width:100%;" class="noborder">
+  				<tr>
+  				<td style="border:none; border-right:1px solid #FF7F00;" width="100" valign="center" align="center">
+			 		{% if aMember.profileImage %}
+						<img src="/visit/img?member_id={{aMember.key}}">
+					{% else %}
+						&nbsp;
+					{% endif %}
 				</td>
+				<td style="border:none;padding-left:16px;">
+	 				<a href="member?{{aMember.key}}">{{ aMember.nickname }}</a> 
+	  				{% ifequal aMember.key current_member.key %}<i>(that's you)</i> {% endifequal %} 
+	  				is {% ifequal aMember.governanceType "member" %}
+	  					{% else %}
+	  						an <b>{{ aMember.governanceType }}</b> of this community,
+	  					{% endifequal %}
+	  				is an <b>{{ aMember.isOnlineMember|yesno:"on-line, off-line" }}</b> member{% if member.isOnlineMember %},{% else %}.{% endif %}
+	  				{% if aMember.isOnlineMemger %}
+		  				and 
+		  					{% if not aMember.hasAnyHelpingRole %}
+		  						has no helping role in particular.
+		  					{% else %}
+		  						is a
+			  					{% if aMember.helpingRoles.0 %} <b>curator</b>{% if aMember.helpingRoles.1 or aMember.helpingRoles.2 %} and{% else %}. {% endif %}{% endif %}
+			  					{% if aMember.helpingRoles.1 %} <b>guide</b>{% if aMember.helpingRoles.2 %} and{% else %}. {% endif %} {% endif %}
+			  					{% if aMember.helpingRoles.2 %} <b>liaison</b>.{% endif %}
+			  				{% endif %}
+			  		{% endif %}
+	  				{% if aMember.profileText_formatted %}
+						<p>Says {{aMember.nickname}}: </p>
+	  					<div class="blurb" style="width:90%;">{{aMember.profileText_formatted}}</div>
+	  				{% endif %}
+  				</td>
    				</tr>
   				</table>
-  				<p></p>
+  				<hr>
       		{% endfor %}
       	
       	{% if current_member.isManagerOrOwner %}

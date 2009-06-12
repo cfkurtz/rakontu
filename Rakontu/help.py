@@ -202,4 +202,87 @@ class ReviewResourcesPage(webapp.RequestHandler):
 					 	resource.flaggedForRemoval = not resource.flaggedForRemoval
 					 	resource.put()
 				self.redirect('/result?changessaved')
+						
+class ReviewOfflineMembersPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+				template_values = {
+								   'title': "Off-line members", 
+						   		   'title_extra': community.name, 
+								   'community': community, 
+								   'current_member': member,
+								   'active_members': community.getActiveOfflineMembers(),
+								   'inactive_members': community.getInactiveOfflineMembers(),
+								   'user_is_admin': users.is_current_user_admin(),
+								   'logout_url': users.create_logout_url("/"),								   
+								   }
+				path = os.path.join(os.path.dirname(__file__), 'templates/liaise/members.html')
+				self.response.out.write(template.render(path, template_values))
+		else:
+			self.redirect('/')
+			
+	@RequireLogin 
+	def post(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			if member.isLiaisonOrManagerOrOwner():
+				offlineMembers = community.getActiveOfflineMembers()
+				for aMember in offlineMembers:
+					if self.request.get("remove|%s" % aMember.key()) == "yes":
+						aMember.active = False
+						aMember.put()
+				memberNicknamesToAdd = cgi.escape(self.request.get("newMemberNicknames")).split('\n')
+				for nickname in memberNicknamesToAdd:
+					if nickname.strip():
+						if not community.hasMemberWithNickname(nickname.strip()):
+							newMember = Member(community=community, 
+											nickname=nickname.strip(),
+											isOnlineMember = False,
+											liaisonIfOfflineMember = member,
+											googleAccountID = None,
+											googleAccountEmail = None)
+							newMember.put()
+			self.redirect('/liaise/members')
+
+class ImportItemsPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			if member.isLiaisonOrManagerOrOwner():
+				template_values = {
+							   	   'title': "Import", 
+						   	   	   'title_extra': None, 
+								   'community': community, 
+								   'current_user': users.get_current_user(), 
+								   'articles': community.getArticlesInImportBufferForLiaison(member),
+								   'current_member': member,
+								   'user_is_admin': users.is_current_user_admin(),
+								   'logout_url': users.create_logout_url("/"),
+								   }
+				path = os.path.join(os.path.dirname(__file__), 'templates/liaise/import.html')
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect("/visit/look")
+		else:
+			self.redirect("/")
+			
+	@RequireLogin 
+	def post(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			if member.isLiaisonOrManagerOrOwner():
+				if "finalizeImport" in self.request.arguments():
+					itemsToFinalize = []
+					items = community.getArticlesInImportBufferForLiaison(member)
+					for item in items:
+						if self.request.get("import|%s" % item.key()) == "yes":
+							itemsToFinalize.append(item)
+					if itemsToFinalize:
+						community.moveImportedArticlesOutOfBuffer(itemsToFinalize)
+				elif self.request.get("import"):
+					community.addArticlesFromCSV(self.request.get("import"), member)
+				self.redirect('/liaise/import')
 

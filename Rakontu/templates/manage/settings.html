@@ -21,38 +21,57 @@
 			<p>{{"Community contact email"|caution}}</p>
 			<input type="text" name="contactEmail" value="{{ community.contactEmail }}" maxlength="80" size="80"/>
 			<p>{{"Community description"|tip}}</p>
-			<textarea name="description" rows="10" cols="60">{{ community.description }}</textarea>
-			<div class="rightalign">Interpret this as <select name="description_format">
-				{% for format in text_formats %}
-					<option value="{{format}}" 
-					{% ifequal community.description_format format %}
-						selected="selected"
-					{% endifequal %}
-					>{{format}}</option>
-				{% endfor %}
-				</select>{{"#interpret_as"|tip}}</div>
+
+				<table style="width:100%; border:none">
+				<tr><td class="noborder">
+				<textarea name="description" rows="10" cols="60">{{community.description}}</textarea>
+				</td><td class="noborder" width="80">
+				<p>Interpret as{{"#interpret_as"|tip}}</p>
+					<select name="text_format">
+					{% for format in text_formats %}
+						<option value="{{format}}" 
+						{% ifequal community.description_format format %}
+							selected="selected"
+						{% endifequal %}
+						>{{format}}</option>
+					{% endfor %}
+					</select>
+				</td></tr></table>
+				
 			<p>{{"Welcome message for new members"|tip}}</p>
-			<textarea name="welcomeMessage" rows="5" cols="60">{{ community.welcomeMessage|escape }}</textarea>
-			<div class="rightalign">Interpret this as <select name="welcomeMessage_format">
-				{% for format in text_formats %}
-					<option value="{{format}}" 
-					{% ifequal community.welcomeMessage_format format %}
-						selected="selected"
-					{% endifequal %}
-					>{{format}}</option>
-				{% endfor %}
-				</select></div>
+				<table style="width:100%; border:none">
+				<tr><td class="noborder">
+				<textarea name="welcomeMessage" rows="10" cols="60">{{community.welcomeMessage}}</textarea>
+				</td><td class="noborder" width="80">
+				<p>Interpret as</p>
+					<select name="text_format">
+					{% for format in text_formats %}
+						<option value="{{format}}" 
+						{% ifequal community.welcomeMessage_format format %}
+							selected="selected"
+						{% endifequal %}
+						>{{format}}</option>
+					{% endfor %}
+					</select>
+				</td></tr></table>
+
 			<p>{{"Community etiquette statement"|tip}}</p>
-			<textarea name="etiquetteStatement" rows="5" cols="60">{{ community.etiquetteStatement|escape }}</textarea>
-			<div class="rightalign">Interpret this as <select name="etiquetteStatement_format">
-				{% for format in text_formats %}
-					<option value="{{format}}" 
-					{% ifequal community.etiquetteStatement_format format %}
-						selected="selected"
-					{% endifequal %}
-					>{{format}}</option>
-				{% endfor %}
-				</select></div>
+				<table style="width:100%; border:none">
+				<tr><td class="noborder">
+				<textarea name="etiquetteStatement" rows="10" cols="60">{{community.etiquetteStatement}}</textarea>
+				</td><td class="noborder" width="80">
+				<p>Interpret as</p>
+					<select name="text_format">
+					{% for format in text_formats %}
+						<option value="{{format}}" 
+						{% ifequal community.etiquetteStatement_format format %}
+							selected="selected"
+						{% endifequal %}
+						>{{format}}</option>
+					{% endfor %}
+					</select>
+				</td></tr></table>
+
 			<p>{{"Community image"|tip}}</p>
 			{% if community.image %}
 				<img src="img?community_id={{community.key}}" class="bordered"></img>
@@ -180,16 +199,22 @@
 			<h3>Helping Roles</h3>
 			<fieldset>
 			<p><b>{{"Curator read-before text"|info}}</b></p>
-			<textarea name="readme0" rows="3" cols="60">{{ community.roleReadmes.0 }}</textarea>
-			<div class="rightalign">Interpret this as <select name="roleReadmes_formats0">
-				{% for format in text_formats %}
-					<option value="{{format}}" 
-					{% ifequal community.roleReadmes_formats.0 format %}
-						selected="selected"
-					{% endifequal %}
-					>{{format}}</option>
-				{% endfor %}
-				</select></div>
+				<table style="width:100%; border:none">
+				<tr><td class="noborder">
+				<textarea name="readme0" rows="10" cols="60">{{community.roleReadmes.0}}</textarea>
+				</td><td class="noborder" width="80">
+				<p>Interpret as</p>
+					<select name="text_format">
+					{% for format in text_formats %}
+						<option value="{{format}}" 
+						{% ifequal community.roleReadmes_formats.0 format %}
+							selected="selected"
+						{% endifequal %}
+						>{{format}}</option>
+					{% endfor %}
+					</select>
+				</td></tr></table>
+
 			<input type="checkbox" name="agreement0" value="agreement0" id="agreement0"
 				{% if community.roleAgreements.0 %}
 					checked="checked"
@@ -199,16 +224,21 @@
 				{{"#terms_check_box"|tip}}</label>
 			<p></p>
 			<p><b>Guide read-before text</b></p>
-			<textarea name="readme1" rows="3" cols="60">{{ community.roleReadmes.1|escape }}</textarea>
-			<div class="rightalign">Interpret this as <select name="roleReadmes_formats1">
-				{% for format in text_formats %}
-					<option value="{{format}}" 
-					{% ifequal community.roleReadmes_formats.1 format %}
-						selected="selected"
-					{% endifequal %}
-					>{{format}}</option>
-				{% endfor %}
-				</select></div>
+				<table style="width:100%; border:none">
+				<tr><td class="noborder">
+				<textarea name="readme1" rows="10" cols="60">{{community.roleReadmes.1}}</textarea>
+				</td><td class="noborder" width="80">
+				<p>Interpret as</p>
+					<select name="text_format">
+					{% for format in text_formats %}
+						<option value="{{format}}" 
+						{% ifequal community.roleReadmes_formats.1 format %}
+							selected="selected"
+						{% endifequal %}
+						>{{format}}</option>
+					{% endfor %}
+					</select>
+				</td></tr></table>
 			<input type="checkbox" name="agreement1"  value="agreement1" id="agreement1"
 				{% if community.roleAgreements.1 %}
 					checked="checked"/>
@@ -218,16 +248,21 @@
 				<label for="agreement1">Members must check box to agree to terms before becoming guide</label>
 			<p></p>
 			<p><b>Liaison read-before text</b></p>
-			<textarea name="readme2" rows="3" cols="60">{{ community.roleReadmes.2|escape }}</textarea>
-			<div class="rightalign">Interpret this as <select name="roleReadmes_formats2">
-				{% for format in text_formats %}
-					<option value="{{format}}" 
-					{% ifequal community.roleReadmes_formats.2 format %}
-						selected="selected"
-					{% endifequal %}
-					>{{format}}</option>
-				{% endfor %}
-				</select></div>
+				<table style="width:100%; border:none">
+				<tr><td class="noborder">
+				<textarea name="readme2" rows="10" cols="60">{{community.roleReadmes.2}}</textarea>
+				</td><td class="noborder" width="80">
+				<p>Interpret as</p>
+					<select name="text_format">
+					{% for format in text_formats %}
+						<option value="{{format}}" 
+						{% ifequal community.roleReadmes_formats.2 format %}
+							selected="selected"
+						{% endifequal %}
+						>{{format}}</option>
+					{% endfor %}
+					</select>
+				</td></tr></table>
 			<input type="checkbox" name="agreement2"  value="agreement2" id="agreement2"
 				{% if community.roleAgreements.2 %}
 					checked="checked"/>
