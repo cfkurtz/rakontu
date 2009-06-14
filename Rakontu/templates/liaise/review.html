@@ -1,0 +1,65 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+	<div id="content">
+	{% if current_member.isCuratorOrManagerOrOwner %}
+		<div id="stylized" class="rakontu_form">
+		<form action="/liaise/review" method="post" enctype="multipart/form-data">
+			<h3>Batch entered stories</h3>
+			<p>These stories have been entered but are not yet in the main set of stories. You can review them
+			and make changes here, then click Import to add them to the main data set.</p>
+			{% if batch_entries %}
+				<fieldset>
+		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<tr><th>Import?</th><th>Title</th><th>Collected from</th><th>Date</th><th>Comment</th><th>Tag set</th><th>Remove?</th></tr>
+	      		{% for entry in batch_entries %}
+	      			<tr>
+	      			 <td valign="top" align="center"><input type="checkbox" name="import|{{entry.key}}" value="yes" id="import|{{entry.key}}"/>
+	      			 <label for="import|{{entry.key}}">Import</label></td>
+	      			 <td>{{entry.title}}<br/>(<a href="/visit/preview?{{entry.key}}">Preview</a>) 
+	      			 (<a href="/visit/{{entry.type}}?{{entry.key}}">Change</a>)</td>
+	      			 <td>{{entry.creator.nickname}}</td>
+	      			 <td>
+	      			 Year <input type="text" name="year|{{entry.key}}" size="4" value="{{entry.collected|date:"Y"}}"/>
+	      			 Month <input type="text" name="month|{{entry.key}}" size="4" value="{{entry.collected|date:"m"}}"/>
+	      			 Day <input type="text" name="day|{{entry.key}}" size="4" value="{{entry.collected|date:"d"}}"/>
+	      			 </td>
+	      			 <td>&nbsp;
+	      			 	{% for comment in batch_comments %}
+	      			 		{% ifequal comment.entry.key entry.key %}
+	      			 			<a href="/visit/comment?{{comment.key}}">{{comment.displayString}}</a>
+	      			 		{% endifequal %}
+	      			 	{% endfor %}
+	      			 </td>
+	      			 <td>&nbsp;
+	      			 	{% for tagset in batch_tagsets %}
+	      			 		{% ifequal tagset.entry.key entry.key %}
+	      			 			<a href="/visit/tagset?{{tagset.key}}">{{tagset.displayString}}</a>
+	      			 		{% endifequal %}
+	      			 	{% endfor %}
+	      			 </td>
+	      			 <td valign="top" align="center"><input type="checkbox" name="remove|{{entry.key}}" value="yes" id="remove|{{entry.key}}"/>
+	      			 <label for="remove|{{entry.key}}">Remove</label></td>
+	      			</tr>
+	      		{% endfor %}
+		      	</table>
+		      	</fieldset>
+		      	<p>
+			    <center><input type="submit" name="finalizeBatchEntry" value="Save changes" class="button">
+			    <input type="submit" name="addMore" value="Add more stories" class="button"></center>
+			{% else %}
+				<p><i>No stories have yet been entered.</i></p>
+		      	<p>
+			    <center><input type="submit" name="addMore" value="Add stories" class="button"></center>
+			{% endif %}
+		</form>	
+		</div>
+	{% else %}
+		<p>You are not a liaison of this community and cannot import data collected offline.
+		Either become a liaison, or ask a liaison to import any items you would like to see added.</p>
+	{% endif %}
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

@@ -94,6 +94,7 @@
 						{% endif %}
 					<label for="collectedOffline">Yes, it was collected from</label>
 					<select name="offlineSource">
+						<option value="none">(choose)</option>
 						{% for member in offline_members %}
 							<option value="{{member.key}}"
 							{% if entry %}
@@ -279,11 +280,11 @@
 			<p>
 			<center>
 			{% if entry %}
-				{% if entry.collectedOffline %}
-					<input type="submit" name="save|{{entry_type}}" value="Save changes to imported entry" class="button">
+				{% if entry.inImportBuffer %}
+					<input type="submit" name="save|{{entry_type}}" value="Save changes and return" class="button">
 					<input type="submit" name="preview|{{entry_type}}" value="Preview" class="button">
 				{% else %}
-					<input type="submit" name="save|{{entry_type}}" value="Save as draft" class="button">
+					<input type="submit" name="save|{{entry_type}}" value="Save draft" class="button">
 					<input type="submit" name="preview|{{entry_type}}" value="Preview" class="button">
 					<input type="submit" name="publish|{{entry_type}}" value="Publish" class="button">
 				{% endif %}

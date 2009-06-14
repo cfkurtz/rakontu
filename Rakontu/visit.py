@@ -354,6 +354,7 @@ class ReadEntryPage(webapp.RequestHandler):
 				else:
 					nudgePointsMemberCanAssign = max(0, community.maxNudgePointsPerEntry - entry.getTotalNudgePointsForMember(member))
 				communityHasQuestionsForThisEntryType = len(community.getQuestionsOfType(entry.type)) > 0
+				DebugPrint(entry.getAnswersForMember(member))
 				memberCanAnswerQuestionsAboutThisEntry = len(entry.getAnswersForMember(member)) == 0
 				memberCanAddNudgeToThisEntry = nudgePointsMemberCanAssign > 0
 				thingsUserCanDo = {}

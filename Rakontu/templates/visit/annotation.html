@@ -173,7 +173,8 @@
 						checked
 						{% endif %}
 					<label for="collectedOffline">Yes, it was collected from</label>
-						<option value="none">None</option>
+						<select name="offlineSource">
+						<option value="none">(choose)</option>
 						{% for member in offline_members %}
 							<option value="{{member.key}}"
 							{% if entry %}
@@ -187,14 +188,20 @@
 					</select>
 				{% endif %}
 			{% endif %}
+			</fieldset>
 
 			
 			<p>
 			<center>
-			{% if entry %}
-				<input type="submit" name="save|{{annotation_type}}" value="Save draft" class="button">
-				<input type="submit" name="preview|{{annotation_type}}" value="Preview" class="button">
-				<input type="submit" name="publish|{{annotation_type}}" value="Publish" class="button">
+			{% if annotation %}
+				{% if annotation.inImportBuffer %}
+					<input type="submit" name="save|{{annotation_type}}" value="Save changes and return" class="button">
+					<input type="submit" name="preview|{{annotation_type}}" value="Preview" class="button">
+				{% else %}
+					<input type="submit" name="save|{{annotation_type}}" value="Save draft" class="button">
+					<input type="submit" name="preview|{{annotation_type}}" value="Preview" class="button">
+					<input type="submit" name="publish|{{annotation_type}}" value="Publish" class="button">
+				{% endif %}
 			{% else %}
 				<input type="submit" name="save|{{annotation_type}}" value="Save as draft" class="button">
 				<input type="submit" name="preview|{{annotation_type}}" value="Preview" class="button">

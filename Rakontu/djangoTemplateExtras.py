@@ -34,6 +34,14 @@ def makeRange(numberString):
 	for i in range(number):
 		result.append(i)
 	return result
+
+def add(numberString, addString):
+	try:
+		number = int(numberString)
+		addNumber = int(addString)
+		return str(number + addNumber)
+	except:
+		return numberString
 	
 def timeZone(time, zoneName):
 	if time.tzinfo:
@@ -128,5 +136,6 @@ register.filter(caution)
 register.filter(upTo)
 register.filter(yourOrThis)
 register.filter(youOrThis)
+register.filter(add)
 
 

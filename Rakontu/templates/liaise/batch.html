@@ -1,0 +1,133 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+	<div id="content">
+	{% if current_member.isCuratorOrManagerOrOwner %}
+		<div id="stylized" class="rakontu_form">
+		<form action="/liaise/batch" method="post" enctype="multipart/form-data">
+		
+		<h2>Batch Story Entry</h2>
+		<p><b><i>Note: Clicking "Add stories" on this page will not add these entries right away; you will be able to
+			review them in the page that apears afterward.</i></b></p>
+
+		{% for i in num_entries|makeRange %}
+			<table  style="border-right:2px solid #FF7F00;border-bottom:2px solid #FF7F00;">
+			<h3>Story {{i|add:1}}</h3>
+			<tr><th>Collected from</th><td>
+				<select name="source|{{i}}">
+					{% if current_member.isManagerOrOwner %}
+						{% for member in online_members %}
+							<option value="{{member.key}}">{{member.nickname}}</option>
+						{% endfor %}
+					{% endif %}
+					{% for member in offline_members %}
+						<option value="{{member.key}}">{{member.nickname}}</option>
+					{% endfor %}
+				</select>
+			</td></tr>
+			<tr><th>Date collected<br/></th>
+			<td>
+	  			 Year <input type="text" name="year|{{i}}" size="4" value=""/>
+	  			 Month <input type="text" name="month|{{i}}" size="4" value=""/>
+	  			 Day <input type="text" name="day|{{i}}" size="4" value=""/>
+	  			 <i>Leave these blank to use the current date.</i>
+			</td><tr>
+			<tr><th>Title</th><td><input type="text" name="title|{{i}}" size="60" value=""/></td><tr>
+			<th>Text</th><td>
+				<table style="width:100%; border:none">
+				<tr><td class="noborder">
+				<textarea name="text|{{i}}" rows="5" cols="60"></textarea>
+				</td><td class="noborder" width="80">
+				<p>Interpret as</p>
+					<select name="textFormat|{{i}}">
+					{% for format in text_formats %}
+						<option value="{{format}}">{{format}}</option>
+					{% endfor %}
+					</select>
+				</td></tr></table>
+			</td></tr>
+			{% if community.allowsAttachments %}
+				<tr><th>Attachments</th><td>
+					{% for a in community.maxNumAttachments|makeRange %}
+						<input type="text" name="attachmentName|{{i}}|{{a}}" size="40"/>
+						<input type="file" name="attachment|{{i}}|{{a}}" size="15"/><br/>
+					{% endfor %}
+				</td></tr>
+			{% endif %}
+			{% if questions %}
+				<tr><th>Questions</th><td>
+					<table style="border:none;width:100%">
+					{% for question in questions %}
+						<tr><td class="noborder" align="right">
+							{{ question.text }}
+						</td><td class="noborder">
+							{% ifequal question.type "text" %}
+								<input type="text" size="{{question.lengthIfText}}" name="{{i}}|{{question.key}}" value=""/>
+							{% endifequal %}
+							{% if question.isOrdinalOrNominal %}
+								{% if question.multiple %}
+									{% for choice in question.choices %}
+										{% if choice|slugify %}
+											<p><input type="checkbox" name="{{i}}|{{question.key}}|{{choice}}" value="yes" id="{{i}}|{{question.key}}|{{choice}}" 
+											/><label for="{{i}}|{{question.key}}|{{choice}}">{{choice}}</label></p>
+										{% endif %}
+									{% endfor %}
+								{% else %}
+									{% for choice in question.choices %}
+										{% if choice|slugify %}
+										<p><label><input type="radio" name="{{i}}|{{question.key}}" value="{{choice}}" 
+										/>{{choice}}</label></p>
+										{% endif %}
+									{% endfor %}				
+								{% endif %}
+							{% endif %}
+							{% ifequal question.type "boolean" %}
+								<p><input type="checkbox" name="{{i}}|{{question.key}}" value="yes" id="{{i}}|{{question.key}}"
+								/><label for="{{i}}|{{question.key}}">{{question.responseIfBoolean}}</label></p>
+							{% endifequal %}
+							{% ifequal question.type "value" %}
+								<input type="text" size="{{question.lengthIfText}}" name="{{i}}|{{question.key}}" value=""/>
+								<p><i>Please enter a number between {{question.minIfValue}} and {{question.maxIfValue}}.</i></p>
+							{% endifequal %}
+						</td></tr>
+					{% endfor %}
+					</table>
+				</td></tr>
+			{% endif %}
+			<tr><th>Comment</br></th><td>
+				<p>Subject <input type="text" size="40" name="commentSubject|{{i}}" value=""/></p>
+				<table style="width:100%; border:none">
+				<tr><td class="noborder">
+				<textarea name="comment|{{i}}" rows="3" cols="60"></textarea>
+				</td><td class="noborder" width="80">
+				<p>Interpret as</p>
+					<select name="commentFormat|{{i}}">
+					{% for format in text_formats %}
+						<option value="{{format}}">{{format}}</option>
+					{% endfor %}
+					</select>
+				</td></tr></table>
+			</td></tr>
+			<tr><th>Tags</br></th><td>
+				{% for j in num_tags|makeRange %}
+					<input type="text" size="12" name="tag|{{i}}|{{j}}" value=""/>
+				{% endfor %}
+			</td></tr>
+
+			</table>
+			<p></p>
+			<center><input type="submit" name="acceptBatchEntry" value="Add stories" class="button"></center>
+		{% endfor %}
+		
+		
+		</form>	
+		</div>
+	{% else %}
+		<p>You are not a liaison of this community and cannot import data collected offline.
+		Either become a liaison, or ask a liaison to import any items you would like to see added.</p>
+	{% endif %}
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

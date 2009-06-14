@@ -116,6 +116,11 @@ DEFAULT_ALLOW_CHARACTERS = [True,True,True,True,True,True,True,True,True,True]
 # One setting for each of these entry types: story, invitation, collage, pattern, resource
 DEFAULT_ALLOW_EDITING_AFTER_PUBLISHING = [False, False, True, True, True]
 
+# This is the number of stories that can be entered on a batch page (by a liaison or manager/owner)
+# at any one time. Batch entry is mainly for entering the results of off-line story collections
+# into the system.
+NUM_ENTRIES_PER_BATCH_PAGE = 10
+
 # ============================================================================================ 
 # QUESTIONS
 # ============================================================================================ 

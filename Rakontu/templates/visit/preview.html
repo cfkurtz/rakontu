@@ -116,18 +116,18 @@
 		<p>
 		<center>
 			{% if annotation %}
-				{% if annotation.collectedOffline %}
-					<input type="submit" name="edit" value="Edit imported annotation" class="button">
-					<input type="submit" name="imports" value="View all imports" class="button">
+				{% if entry.inImportBuffer %}
+					<input type="submit" name="edit" value="Change" class="button">
+					<input type="submit" name="batch" value="Return to list" class="button">
 				{% else %}
 					<input type="submit" name="edit" value="Edit draft" class="button">
 					<input type="submit" name="profile" value="View all drafts" class="button">
 					<input type="submit" name="publish" value="Publish" class="button">
 				{% endif %}
 			{% else %}
-				{% if entry.collectedOffline %}
-					<input type="submit" name="edit" value="Edit imported entry" class="button">
-					<input type="submit" name="imports" value="View all imports" class="button">
+				{% if entry.inImportBuffer %}
+					<input type="submit" name="edit" value="Change entry" class="button">
+					<input type="submit" name="batch" value="Return to list" class="button">
 				{% else %}
 					<input type="submit" name="edit" value="Edit draft" class="button">
 					<input type="submit" name="profile" value="View all drafts" class="button">

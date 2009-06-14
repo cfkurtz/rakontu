@@ -298,7 +298,7 @@ class EnterEntryPage(webapp.RequestHandler):
 				self.redirect("/visit/preview?%s" % entry.key())
 			elif entry.inImportBuffer:
 				if member.isLiaison():
-					self.redirect("/liaise/import")
+					self.redirect("/liaise/review")
 				else:
 					self.redirect("/visit/look")
 			elif entry.draft:
@@ -692,9 +692,9 @@ class PreviewPage(webapp.RequestHandler):
 				except:
 					annotation = Annotation.get(self.request.query_string)
 					entry = annotation.entry
-			if "imports" in self.request.arguments():
+			if "batch" in self.request.arguments():
 				if member.isLiaison():
-					self.redirect('/liaise/import')
+					self.redirect('/liaise/review')
 				else:
 					self.redirect("/visit/look")
 			elif "profile" in self.request.arguments():

@@ -58,11 +58,18 @@ application = webapp.WSGIApplication(
 									  # helping roles
 									  ('/visit/curate', ReadEntryPage),
 									  ('/visit/flag', FlagOrUnflagItemPage),
+									  ('/curate', CurateFlagsPage),
+									  ('/curate/', CurateFlagsPage),
 									  ('/curate/flags', CurateFlagsPage),
 									  ('/curate/gaps', CurateGapsPage),
+									  ('/guide/', ReviewResourcesPage),
+									  ('/guide', ReviewResourcesPage),
 									  ('/guide/resource', EnterEntryPage),
 									  ('/guide/resources', ReviewResourcesPage),
-									  ('/liaise/import', ImportItemsPage),
+									  ('/liaise/', ReviewOfflineMembersPage),
+									  ('/liaise', ReviewOfflineMembersPage),
+									  ('/liaise/batch', BatchEntryPage),
+									  ('/liaise/review', ReviewBatchEntriesPage),
 									  ('/liaise/members', ReviewOfflineMembersPage),
 									  
 									  # managing

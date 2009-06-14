@@ -144,6 +144,9 @@ class Community(db.Model):
 			i += 1
 		return False
 	
+	def allowsAttachments(self):
+		return self.maxNumAttachments > 0
+	
 	def allowsAtLeastTwoAttachments(self):
 		return self.maxNumAttachments >= 2
 	
@@ -192,6 +195,9 @@ class Community(db.Model):
 	
 	def getInactiveMembers(self):
 		return Member.all().filter("community = ", self.key()).filter("active = ", False).fetch(FETCH_NUMBER)
+	
+	def getActiveOnlineMembers(self):
+		return Member.all().filter("community = ", self.key()).filter("active = ", True).filter("isOnlineMember = ", True).fetch(FETCH_NUMBER)
 	
 	def getActiveOfflineMembers(self):
 		return Member.all().filter("community = ", self.key()).filter("active = ", True).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
@@ -366,6 +372,12 @@ class Community(db.Model):
 	def getEntriesInImportBufferForLiaison(self, liaison):
 		return Entry.all().filter("community = ", self.key()).filter("inImportBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
 	
+	def getCommentsInImportBufferForLiaison(self, liaison):
+		return Annotation.all().filter("community = ", self.key()).filter("type = ", "comment").filter("inImportBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
+		
+	def getTagsetsInImportBufferForLiaison(self, liaison):
+		return Annotation.all().filter("community = ", self.key()).filter("type = ", "tag set").filter("inImportBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
+		
 	def moveImportedEntriesOutOfBuffer(self, items):
 		for item in items:
 			item.draft = False
@@ -964,6 +976,16 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 			if link.entryFrom.type == fromType:
 				result.append(link)
 		return result
+	
+	def copyCollectedDateToAllAnswersAndAnnotations(self):
+		annotations = self.getAnnotations()
+		for annotation in annotations:
+			annotation.collected = self.collected
+			annotation.put()
+		answers = self.getAnswers()
+		for answer in answers:
+			answer.collected = self.collected
+			answer.put()
 	
 	# DISPLAY
 	
