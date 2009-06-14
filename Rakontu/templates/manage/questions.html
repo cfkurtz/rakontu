@@ -29,9 +29,9 @@
 	      		</tr>
 	      		{% for question in questions %}
 	      			<tr>
-	      			<td valign="top">Name<div><input type="text" name="name|{{question.key}}" size="20" value="{{question.name}}"></div>
-	      				<br>Question<div><input type="text" name="text|{{question.key}}" size="20" value="{{question.text}}"></div>
-	      				<br>Explanation<div><input type="text" name="help|{{question.key}}" size="20" value="{{question.help}}"></div></td>
+	      			<td valign="top">Name<div><input type="text" name="name|{{question.key}}" size="20" value="{{question.name}}" maxlength="{{maxlength_name}}"></div>
+	      				<br>Question<div><input type="text" name="text|{{question.key}}" size="20" value="{{question.text}}" maxlength="{{maxlength_subject_or_comment}}"></div>
+	      				<br>Explanation<div><input type="text" name="help|{{question.key}}" size="20" value="{{question.help}}" maxlength="{{maxlength_subject_or_comment}}"></div></td>
 	      			<td valign="top"><div><select name="type|{{question.key}}">
 	      				{% for type in question_types %}
 	      			 		<option value="{{type}}"
@@ -41,14 +41,14 @@
 	      			 		>{{type}}</option>
 	      			 	{% endfor %}
 	      			 	</select></div></td>
-	      			 <td valign="top" align="center"><div><input type="text" name="lengthIfText|{{question.key}}" size="4" value="{{question.lengthIfText}}"></div></td>
-	      			 <td valign="top" align="center"><div><input type="text" name="minIfValue|{{question.key}}" size="4" value="{{question.minIfValue}}"></div>
-	      			 	<div><input type="text" name="maxIfValue|{{question.key}}" size="4" value="{{question.maxIfValue}}"></div>
+	      			 <td valign="top" align="center"><div><input type="text" name="lengthIfText|{{question.key}}" size="4" value="{{question.lengthIfText}}" maxlength="3"></div></td>
+	      			 <td valign="top" align="center"><div><input type="text" name="minIfValue|{{question.key}}" size="4" value="{{question.minIfValue}}" maxlength="{{maxlength_number}}"></div>
+	      			 	<div><input type="text" name="maxIfValue|{{question.key}}" size="4" value="{{question.maxIfValue}}" maxlength="{{maxlength_number}}"></div>
 	      			 	</td>
-	      			 <td valign="top" align="center"><div><input type="text" name="responseIfBoolean|{{question.key}}" size="10" value="{{question.responseIfBoolean}}"></div></td>
+	      			 <td valign="top" align="center"><div><input type="text" name="responseIfBoolean|{{question.key}}" size="10" value="{{question.responseIfBoolean}}" maxlength="{{maxlength_name}}"></div></td>
 	      			 <td valign="top" align="center">
 	      			 	{% for i in max_num_choices|makeRange %}
-	      			 		<input type="text" name="choice{{i}}|{{question.key}}" size="8" value="{{question.choices|listLookup:i|orNothing}}"><br/>
+	      			 		<input type="text" name="choice{{i}}|{{question.key}}" size="8" value="{{question.choices|listLookup:i|orNothing}}" maxlength="{{maxlength_tag_or_choice}}"><br/>
 	      			 	{% endfor %}
 	      			 	</td>
 	     			 <td valign="top" align="center"><label><input type="checkbox" name="multiple|{{question.key}}" value="multiple|{{question.key}}"

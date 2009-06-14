@@ -14,12 +14,12 @@
 			<h3>Name and description</h3>
 			<fieldset>
 			<p>{{"Community name"|tip}}</p>
-			<input type="text" name="name" value="{{ community.name }}" maxlength="40" size="30"/>
+			<input type="text" name="name" value="{{ community.name }}" size="30" maxlength="{{maxlength_name}}"/>
 			<p>{{"Tag line"|tip}}</p>
-			<input type="text" name="tagline" value="{{ community.tagline }}" maxlength="80" size="80"/>
+			<input type="text" name="tagline" value="{{ community.tagline }}" size="80" maxlength="{{maxlength_subject_or_comment}}"/>
 			<p><i>The tag line (if you choose one) shows after your community name at the top of the web page.</i></p>
 			<p>{{"Community contact email"|caution}}</p>
-			<input type="text" name="contactEmail" value="{{ community.contactEmail }}" maxlength="80" size="80"/>
+			<input type="text" name="contactEmail" value="{{ community.contactEmail }}" size="80" maxlength="{{maxlength_name}}"/>
 			<p>{{"Community description"|tip}}</p>
 
 				<table style="width:100%; border:none">
@@ -170,12 +170,12 @@
 			<fieldset>
 			<p><i></i></p>
 			<p>How many nudge points can be asssigned (maximum) per entry? 
-			<input type="text" name="maxNudgePointsPerEntry" size="4" value="{{community.maxNudgePointsPerEntry}}"/>
+			<input type="text" name="maxNudgePointsPerEntry" size="4" value="{{community.maxNudgePointsPerEntry}}" maxlength="4"/>
 			{{"#community_nudgePoints"|info}} {{"#community_nudgePointsPerEntry"|caution}}
 			<p>{{"Enter your nudge category names here."|caution}}</p>
 			<p>
 			{% for i in num_nudge_categories|makeRange %}
-				<input type="text" name="nudgeCategory{{i}}" size="20" value="{{community.nudgeCategories|listLookup:i}}"/>
+				<input type="text" name="nudgeCategory{{i}}" size="20" value="{{community.nudgeCategories|listLookup:i}}" maxlength="{{maxlength_name}}"/>
 			{% endfor %}
 			</p>
 			<p>How many nudge points do members accumulate by participating in the community?</p>

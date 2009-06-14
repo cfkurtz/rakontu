@@ -14,17 +14,12 @@ class ShowAllCommunities(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 			if users.is_current_user_admin():
-				template_values = {
+				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "All communities", 
 						   	   	   'title_extra': None, 
 								   'communities': Community.all().fetch(FETCH_NUMBER), 
 								   'members': Member.all().fetch(FETCH_NUMBER),
-								   'community': community, 
-								   'current_user': users.get_current_user(), 
-								   'current_member': member,
-								   'user_is_admin': users.is_current_user_admin(),
-								   'logout_url': users.create_logout_url("/"),
-								   }
+								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/admin/showAllCommunities.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
@@ -36,16 +31,11 @@ class ShowAllMembers(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 			if users.is_current_user_admin():
-				template_values = {
+				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "All members", 
 						   	   	   'title_extra': None, 
 								   'members': Member.all().fetch(FETCH_NUMBER),
-								   'community': community, 
-								   'current_user': users.get_current_user(), 
-								   'current_member': member,
-								   'user_is_admin': users.is_current_user_admin(),
-								   'logout_url': users.create_logout_url("/"),
-								   }
+								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/admin/showAllMembers.html')
 				self.response.out.write(template.render(path, template_values))
 			else:

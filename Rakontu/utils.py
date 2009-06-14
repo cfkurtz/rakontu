@@ -26,6 +26,32 @@ from google.appengine.api import mail
 
 webapp.template.register_template_library('djangoTemplateExtras')
 import csv
+import pytz
+
+def GetStandardTemplateDictionaryAndAddMore(newItems):
+	items = {
+		# constants
+	   'text_formats': TEXT_FORMATS,
+	   'num_nudge_categories': NUM_NUDGE_CATEGORIES,
+	   'num_tags_in_tag_set': NUM_TAGS_IN_TAG_SET,
+	   'time_zone_names': pytz.all_timezones,
+	   'date_formats': DateFormatStrings(),
+	   'time_formats': TimeFormatStrings(),
+	   'time_frames': TIME_FRAMES, 
+	   'entry_types': ENTRY_TYPES,
+	   'helping_role_names': HELPING_ROLE_TYPES,
+	   'maxlength_subject_or_comment': MAXLENGTH_SUBJECT_OR_COMMENT,
+	   'maxlength_name': MAXLENGTH_NAME,
+	   'maxlength_tag_or_choice': MAXLENGTH_TAG_OR_CHOICE,
+	   'maxlength_number': MAXLENGTH_NUMBER,
+	   # stuff about user
+	   'current_user': users.get_current_user(), 
+	   'user_is_admin': users.is_current_user_admin(),
+	   'logout_url': users.create_logout_url("/"),
+	   }
+	for key in newItems.keys():
+		items[key] = newItems[key]
+	return items
 
 def GenerateHelps():
 	db.delete(Help.all().fetch(FETCH_NUMBER))

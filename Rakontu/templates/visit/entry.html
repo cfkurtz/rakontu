@@ -58,7 +58,7 @@
 			{% else %}
 				<p>Please give this {{entry_type}} a name.</p>
 			{% endif %}
-			<p><input type="text" name="title" size="60" value="{% if entry %}{{entry.title}}{% endif %}"/></p>
+			<p><input type="text" name="title" size="60" value="{% if entry %}{{entry.title}}{% endif %}" maxlength="{{maxlength_name}}"/></p>
 			
 			{% if offline_members and current_member.isLiaison %}
 				<p>Since you are a liaison:</p>
@@ -83,9 +83,9 @@
 					{% endfor %}
 				</select>
 				&nbsp; on 
-	  			 (year) <input type="text" name="year" size="4" value=""/>
-	  			 (month) <input type="text" name="month" size="4" value=""/>
-	  			 (day) <input type="text" name="day" size="4" value=""/>
+	  			 (year) <input type="text" name="year" size="4" value="" maxlength="4"/>
+	  			 (month) <input type="text" name="month" size="4" value="" maxlength="2"/>
+	  			 (day) <input type="text" name="day" size="4" value="" maxlength="2"/>
   			 	{{"#offlineCollectionDate"|tip}}			
 	 			{% if character_allowed %}
 					and attributed to 
@@ -188,7 +188,7 @@
 					why you responded to the invitation?
 				{% endifequal %}
 				</p>
-				<input type="text" name="link_comment" value="" size="60">
+				<input type="text" name="link_comment" value="" size="60" maxlength="{{maxlength_subject_or_comment}}">
 				<input type="hidden" name="link_type" value="{{link_type}}">
 				<input type="hidden" name="entry_from" value="{{entry_from.key}}">
 			{% endif %}
@@ -218,7 +218,7 @@
 		      		<th>Remove?</th>
 		      		<th>{% if entry %} Replace {% else %} Attach {% endif %} </th>
 		      		
-		      		</tr><td><input type="text" name="attachmentName0" value="{{attachments.0.name}}" size="20"/></td>
+		      		</tr><td><input type="text" name="attachmentName0" value="{{attachments.0.name}}" size="20" maxlength="{{maxlength_name}}"/></td>
 					<td>{% if attachments.0.fileName %}
 						<a href="attachment?attachment_id={{attachments.0.key}}">
 						{{attachments.0.fileName}}</a>{% else %}none
@@ -230,7 +230,7 @@
 					<td><input type="file" name="attachment0" size="20"/></p></td></tr>
 
 					{% if community.allowsAtLeastTwoAttachments %}
-			      		</tr><td><input type="text" name="attachmentName1" value="{{attachments.1.name}}" size="20"/></td>
+			      		</tr><td><input type="text" name="attachmentName1" value="{{attachments.1.name}}" size="20" maxlength="{{maxlength_name}}"/></td>
 						<td>{% if attachments.1.fileName %}
 							<a href="attachment?attachment_id={{attachments.1.key}}">
 							{{attachments.1.fileName}}</a>{% else %}none
@@ -242,7 +242,7 @@
 						<td><input type="file" name="attachment1" size="20"/></p></td></tr>
 				
 						{% if community.allowsAtLeastThreeAttachments %}
-				      		</tr><td><input type="text" name="attachmentName2" value="{{attachments.2.name}}" size="20"/></td>
+				      		</tr><td><input type="text" name="attachmentName2" value="{{attachments.2.name}}" size="20" maxlength="{{maxlength_name}}"/></td>
 							<td>{% if attachments.2.fileName %}
 								<a href="attachment?attachment_id={{attachments.2.key}}">
 								{{attachments.2.fileName}}</a>{% else %}none
@@ -254,7 +254,7 @@
 							<td><input type="file" name="attachment2" size="20"/></p></td></tr>
 							
 							{% if community.allowsAtLeastFourAttachments %}
-					      		</tr><td><input type="text" name="attachmentName3" value="{{attachments.3.name}}" size="20"/></td>
+					      		</tr><td><input type="text" name="attachmentName3" value="{{attachments.3.name}}" size="20" maxlength="{{maxlength_name}}"/></td>
 								<td>{% if attachments.3.fileName %}
 									<a href="attachment?attachment_id={{attachments.3.key}}">
 									{{attachments.3.fileName}}</a>{% else %}none
@@ -266,7 +266,7 @@
 								<td><input type="file" name="attachment3" size="20"/></p></td></tr>
 								
 								{% if community.allowsFiveAttachments %}
-					      		</tr><td><input type="text" name="attachmentName4" value="{{attachments.4.name}}" size="20"/></td>
+					      		</tr><td><input type="text" name="attachmentName4" value="{{attachments.4.name}}" size="20" maxlength="{{maxlength_name}}"/></td>
 								<td>{% if attachments.4.fileName %}
 									<a href="attachment?attachment_id={{attachments.4.key}}">
 									{{attachments.4.fileName}}</a>{% else %}none
@@ -300,7 +300,7 @@
 		  				<tr>
 		  				<td><a href="read?{{link.entryTo.key}}">{{link.entryTo.title}}</a></td>
 		  				<td>{{link.entryTo.shortFormattedText|orNone}}</td>
-		  				<td><input type="text" name="linkComment|{{link.key}}" value="{{link.comment}}" size="40"/></td>
+		  				<td><input type="text" name="linkComment|{{link.key}}" value="{{link.comment}}" size="40" maxlength="{{maxlength_subject_or_comment}}"/></td>
 		  				<td width="80">
 		  					<input type="checkbox" name="removeLink|{{ link.key }}" value="yes" id="removeLink|{{ link.key }}"/>
 							<label for="removeLink|{{ link.key }}">Remove</label>
@@ -327,7 +327,7 @@
 	  					</td>
 	  				<td><a href="read?{{anEntry.key}}">{{anEntry.title}}</a></td>
 	  				<td>{{anEntry.shortFormattedText|orNone}}</td>
-	  				<td><input type="text" name="linkComment|{{anEntry.key}}" value="" size="40"/></td>
+	  				<td><input type="text" name="linkComment|{{anEntry.key}}" value="" size="40" maxlength="{{maxlength_subject_or_comment}}"/></td>
 	  				</tr>
 	      		{% endfor %}
 	      	</table>

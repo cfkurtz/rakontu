@@ -23,7 +23,7 @@
 	      		</tr>
 	      		{% for character in characters %}
 	  				<tr>
-	  				<td><p><input type="text" name="name|{{character.key}}" value="{{ character.name }}" size="20"/></p>
+	  				<td><p><input type="text" name="name|{{character.key}}" value="{{ character.name }}" size="20" maxlength="{{maxlength_name}}"/></p>
 						{% if character.image %}
 							<center><img src="img?character_id={{character.key}}"></img></center>
 						{% endif %}

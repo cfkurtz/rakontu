@@ -5,25 +5,18 @@ Things to do before v0.1 is complete
 
 # TO DO
 
-- need to add "send this member a note" thing
-in member page
-- DID THIS but haven't tested it yet
-
-- guide note goes to all guides?
-or choose one?
+test "send this member a note" thing
 
 guide page:
     also that guides are shown in help (as before)
+    guide note goes to all guides
 
 liaison page:
     quick ways to output things for them - this has to be linked to the query system
     
 add import/export of question lists (CSV)
 
-is that "your changes have been saved" page really necessary?
-	
-with markup - allow to refer to image in attachments {1} {2} etc
-also check how handling <img src= tag in simple html version (i think am not handling yet)
+check how handling <img src= tag in simple html version (i think am not handling yet)
 
 start thinking about internationalization
 
@@ -34,8 +27,6 @@ I don't think downdrift is working yet
 need a way to nudge things from the main page - you just want to do it - icon?
 
 need a way for site administrator to DELETE a community (and also disable but not delete)
-
-check all input texts to set maxlength to fit into string property
 
 cannot allow two members in the same community to have the same nickname, because
 offline members are identified by it. not checking for that when somebody sets one.
@@ -48,9 +39,5 @@ resource type / get help /  intro page
 
 number of tags, number of nudges not FULLY updated for flexibility yet - check EVERY use
 
-questions not deleted
-
-attribution in batch
-
-date collected in not batch, if liaison
+make questions not deleted but set as inactive
 

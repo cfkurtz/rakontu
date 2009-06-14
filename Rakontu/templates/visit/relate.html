@@ -79,7 +79,7 @@
 	  					</td>
 	  				<td><a href="read?{{anEntry.key}}">{{anEntry.title}} ({{anEntry.type}})</a></td>
 	  				<td>{{anEntry.shortFormattedText|orNone}}</td>
-	  				<td><input type="text" name="linkComment|{{anEntry.key}}" value="" size="40"/></td>
+	  				<td><input type="text" name="linkComment|{{anEntry.key}}" value="" size="40" maxlength="{{maxlength_subject_or_comment}}"/></td>
 	  				</tr>
 	      		{% endfor %}
 	      	</table>

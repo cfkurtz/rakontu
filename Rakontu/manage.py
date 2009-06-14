@@ -14,18 +14,15 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 			communityMembers = Member.all().filter("community = ", community).fetch(FETCH_NUMBER)
-			template_values = {
+			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': "Manage members of", 
 						   	   'title_extra': community.name, 
 							   'community': community, 
-							   'current_user': users.get_current_user(), 
 							   'current_member': member,
 							   'community_members': community.getActiveMembers(),
 							   'pending_members': community.getPendingMembers(),
 							   'inactive_members': community.getInactiveMembers(),
-							   'user_is_admin': users.is_current_user_admin(),
-							   'logout_url': users.create_logout_url("/"),
-							   }
+							   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/manage/members.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
@@ -93,7 +90,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 			nudgePointIncludes.append('</tr><tr>')
 			for eventType in EVENT_TYPES:
 				if eventType != EVENT_TYPES[0]: # leave time out for nudge accumulations
-					nudgePointIncludes.append('<td><input type="text" name="member|%s" size="3" value="%s"/></td>' \
+					nudgePointIncludes.append('<td><input type="text" name="member|%s" size="3" value="%s" maxlength="{{maxlength_number}}"/></td>' \
 						% (eventType, community.memberNudgePointsPerEvent[i]))
 				i += 1
 			nudgePointIncludes.append('</tr>')
@@ -107,7 +104,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 			i = 0
 			activityPointIncludes.append('</tr><tr>')
 			for eventType in EVENT_TYPES:
-				activityPointIncludes.append('<td><input type="text" name="entry|%s" size="3" value="%s"/></td>' \
+				activityPointIncludes.append('<td><input type="text" name="entry|%s" size="3" value="%s" maxlength="{{maxlength_number}}"/></td>' \
 					% (eventType, community.entryActivityPointsPerEvent[i]))
 				i += 1
 			activityPointIncludes.append('</tr>')
@@ -125,26 +122,18 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 				editingIncludes.append('<input type="checkbox" name="editing|%s" value="yes" %s id="editing|%s"/><label for="editing|%s">%s</label>' \
 						% (entryType, checkedBlank(community.allowEditingAfterPublishing[i]), entryType, entryType, entryType))
 				i += 1
-			template_values = {
+			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': "Manage settings for", 
 						   	   'title_extra': community.name, 
 							   'community': community, 
-							   'current_user': users.get_current_user(), 
 							   'current_member': member,
-							   'time_zone_names': pytz.all_timezones,
-							   'date_formats': DateFormatStrings(),
-							   'time_formats': TimeFormatStrings(),
 							   'current_date': datetime.now(tz=pytz.utc),
 							   'character_includes': characterIncludes,
 							   'editing_includes': editingIncludes,
 							   'nudge_point_includes': nudgePointIncludes,
 							   'activity_point_includes': activityPointIncludes,
 							   'site_allows_attachments': DEFAULT_MAX_NUM_ATTACHMENTS > 0,
-							   'text_formats': TEXT_FORMATS,
-							   'num_nudge_categories': NUM_NUDGE_CATEGORIES,
-							   'user_is_admin': users.is_current_user_admin(),
-							   'logout_url': users.create_logout_url("/"),
-							   }
+							   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/manage/settings.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
@@ -235,11 +224,10 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 				i += 1
 			communityQuestionsOfType = community.getQuestionsOfType(type)
 			systemQuestionsOfType = Question.all().filter("community = ", None).filter("refersTo = ", type).fetch(FETCH_NUMBER)
-			template_values = {
+			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': "Manage %s" % type, 
 						   	   'title_extra': "questions", 
 							   'community': community, 
-							   'current_user': users.get_current_user(), 
 							   'current_member': member,
 							   'questions': communityQuestionsOfType,
 							   'question_types': QUESTION_TYPES,
@@ -248,9 +236,7 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 							   'refer_type': type,
 							   'refer_type_plural': typePlural,
 							   'question_refer_types': QUESTION_REFERS_TO,
-							   'user_is_admin': users.is_current_user_admin(),
-							   'logout_url': users.create_logout_url("/"),
-							   }
+							   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/manage/questions.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
@@ -321,17 +307,13 @@ class ManageCommunityCharactersPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 			characters = Character.all().filter("community = ", community).fetch(FETCH_NUMBER)
-			template_values = {
+			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': "Manage characters for", 
 						   	   'title_extra': community.name, 
 							   'community': community, 
-							   'current_user': users.get_current_user(), 
 							   'current_member': member,
 							   'characters': characters,
-							   'text_formats': TEXT_FORMATS,
-							   'user_is_admin': users.is_current_user_admin(),
-							   'logout_url': users.create_logout_url("/"),
-							   }
+							   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/manage/characters.html')
 			self.response.out.write(template.render(path, template_values))
 		else:

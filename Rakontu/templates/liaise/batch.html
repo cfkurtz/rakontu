@@ -41,9 +41,9 @@
 			{% endif %}
 			<tr><th>Date collected<br/></th>
 			<td>
-	  			 Year <input type="text" name="year|{{i}}" size="4" value=""/>
-	  			 Month <input type="text" name="month|{{i}}" size="4" value=""/>
-	  			 Day <input type="text" name="day|{{i}}" size="4" value=""/>
+	  			 Year <input type="text" name="year|{{i}}" size="4" value="" maxlength="4"/>
+	  			 Month <input type="text" name="month|{{i}}" size="4" value="" maxlength="2"/>
+	  			 Day <input type="text" name="day|{{i}}" size="4" value="" maxlength="2"/>
 	  			 {{"#offlineCollectionDate"|tip}}
 			</td><tr>
 			<tr><th>Title</th><td><input type="text" name="title|{{i}}" size="60" value=""/></td><tr>
@@ -63,7 +63,7 @@
 			{% if community.allowsAttachments %}
 				<tr><th>Attachment(s)</th><td>
 					{% for a in community.maxNumAttachments|makeRange %}
-						<input type="text" name="attachmentName|{{i}}|{{a}}" size="40"/>
+						<input type="text" name="attachmentName|{{i}}|{{a}}" size="40" maxlength="{{maxlength_name}}"/>
 						<input type="file" name="attachment|{{i}}|{{a}}" size="30"/><br/>
 					{% endfor %}
 				</td></tr>
@@ -76,7 +76,7 @@
 							{{ question.text }}
 						</td><td class="noborder">
 							{% ifequal question.type "text" %}
-								<input type="text" size="{{question.lengthIfText}}" name="{{i}}|{{question.key}}" value=""/>
+								<input type="text" size="{{question.lengthIfText}}" name="{{i}}|{{question.key}}" value="" maxlength="{{maxlength_subject_or_comment}}"/>
 							{% endifequal %}
 							{% if question.isOrdinalOrNominal %}
 								{% if question.multiple %}
@@ -100,7 +100,7 @@
 								/><label for="{{i}}|{{question.key}}">{{question.responseIfBoolean}}</label></p>
 							{% endifequal %}
 							{% ifequal question.type "value" %}
-								<input type="text" size="{{question.lengthIfText}}" name="{{i}}|{{question.key}}" value=""/>
+								<input type="text" size="{{question.lengthIfText}}" name="{{i}}|{{question.key}}" value="" maxlength="{{maxlength_number}}"/>
 								<p><i>Please enter a number between {{question.minIfValue}} and {{question.maxIfValue}}.</i></p>
 							{% endifequal %}
 						</td></tr>
@@ -109,7 +109,7 @@
 				</td></tr>
 			{% endif %}
 			<tr><th>Comment</br></th><td>
-				<p>Subject <input type="text" size="60" name="commentSubject|{{i}}" value=""/></p>
+				<p>Subject <input type="text" size="60" name="commentSubject|{{i}}" value="" maxlength="{{maxlength_subject_or_comment}}"/></p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
 				<textarea name="comment|{{i}}" rows="3" cols="60"></textarea>
@@ -124,7 +124,7 @@
 			</td></tr>
 			<tr><th>Tags</br></th><td>
 				{% for j in num_tags|makeRange %}
-					<input type="text" size="12" name="tag|{{i}}|{{j}}" value=""/>
+					<input type="text" size="12" name="tag|{{i}}|{{j}}" value="" maxlength="{{maxlength_tag_or_choice}}"/>
 				{% endfor %}
 			</td></tr>
 			</table>

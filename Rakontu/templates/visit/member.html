@@ -97,7 +97,7 @@
 				<div id="stylized" class="rakontu_form">
 				<form action="/visit/member" method="post">
 				<p>Please give your message a subject line.</p>
-				<p><input type="text" name="subject" size="80" value=""/></p>
+				<p><input type="text" name="subject" size="80" value="" maxlength="{{maxlength_subject_or_comment}}"/></p>
 				<p>Please enter your message here.</p>
 				<textarea name="message" rows="20" cols="60"></textarea>
 				<center><input type="submit" name="message|{{member.key}}" value="Send message" class="button"></center>

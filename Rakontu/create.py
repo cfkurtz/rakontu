@@ -13,13 +13,11 @@ class CreateCommunityPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		user = users.get_current_user()
-		template_values = {
+		template_values = GetStandardTemplateDictionaryAndAddMore({
 						   'title': "Create community",
 						   'title_extra': None,
-						   'text_formats': TEXT_FORMATS,
-						   'user': users.get_current_user(),
-						   'logout_url': users.create_logout_url("/"),
-						   }
+						   'community': community, 
+						   })
 		path = os.path.join(os.path.dirname(__file__), 'templates/createCommunity.html')
 		self.response.out.write(template.render(path, template_values))
 			
@@ -109,10 +107,9 @@ class EnterEntryPage(webapp.RequestHandler):
 			else:
 				entriesThatCanBeIncluded = None
 				includedLinksOutgoing = None
-			template_values = {
+			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': type.capitalize(), 
 						   	   'title_extra': "- %s" % entryName, 
-							   'user': users.get_current_user(),
 							   'current_member': member,
 							   'community': community, 
 							   'entry_type': type,
@@ -127,11 +124,8 @@ class EnterEntryPage(webapp.RequestHandler):
 							   'entry_from': entryFrom,
 							   'entries_that_can_be_linked_to_by_collage': entriesThatCanBeIncluded,
 							   'included_links_outgoing': includedLinksOutgoing,
-							   'text_formats': TEXT_FORMATS,
 							   'refer_type': type,
-							   'user_is_admin': users.is_current_user_admin(),
-							   'logout_url': users.create_logout_url("/"),
-							   }
+							   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/entry.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
@@ -333,10 +327,9 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 			if self.request.query_string:
 				entry = Entry.get(self.request.query_string)
 			if entry:
-				template_values = {
+				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Answers for", 
 						   	   	   'title_extra': entry.title, 
-								   'user': users.get_current_user(),
 								   'current_member': member,
 								   'community': community, 
 								   'entry': entry,
@@ -347,9 +340,7 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 								   'community_members': community.getActiveMembers(),
 								   'offline_members': community.getOfflineMembers(),
 								   'character_allowed': community.allowCharacter[ANSWERS_ENTRY_TYPE_INDEX],
-								   'user_is_admin': users.is_current_user_admin(),
-								   'logout_url': users.create_logout_url("/"),
-								   }
+								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/answers.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
@@ -471,19 +462,16 @@ class PreviewAnswersPage(webapp.RequestHandler):
 				entry = Entry.get(self.request.query_string)
 				answers = entry.getAnswersForMember(member)
 			if entry and answers:
-				template_values = {
+				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Preview of", 
 						   	   	   'title_extra': "Answers for %s " % entry.title, 
-								   'user': users.get_current_user(),
 								   'current_member': member,
 								   'community': community, 
 								   'entry': entry,
 								   'community_has_questions_for_this_entry_type': len(community.getQuestionsOfType(entry.type)) > 0,
 								   'questions': community.getQuestionsOfType(entry.type),
 								   'answers': answers,
-								   'user_is_admin': users.is_current_user_admin(),
-								   'logout_url': users.create_logout_url("/"),
-								   }
+								   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/previewAnswers.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
@@ -542,10 +530,9 @@ class EnterAnnotationPage(webapp.RequestHandler):
 			else:
 				nudgePointsMemberCanAssign = community.maxNudgePointsPerEntry
 			if entry:
-				template_values = {
+				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "%s for" % type.capitalize(), 
 						   	   	   'title_extra': entry.title, 
-								   'user': users.get_current_user(),
 								   'current_member': member,
 								   'community': community, 
 								   'annotation_type': type,
@@ -554,15 +541,10 @@ class EnterAnnotationPage(webapp.RequestHandler):
 								   'offline_members': community.getOfflineMembers(),
 								   'entry': entry,
 								   'nudge_categories': community.nudgeCategories,
-								   'num_nudge_categories': NUM_NUDGE_CATEGORIES,
 								   'nudge_points_member_can_assign': nudgePointsMemberCanAssign,
 								   'character_allowed': community.allowCharacter[entryTypeIndex],
 								   'included_links_outgoing': entry.getOutgoingLinksOfType("included"),
-								   'num_tags_in_tag_set': NUM_TAGS_IN_TAG_SET,
-								   'text_formats': TEXT_FORMATS,
-								   'user_is_admin': users.is_current_user_admin(),
-								   'logout_url': users.create_logout_url("/"),
-								   }
+								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/annotation.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
@@ -718,10 +700,9 @@ class PreviewPage(webapp.RequestHandler):
 					annotation = Annotation.get(self.request.query_string)
 					entry = annotation.entry
 			if entry:
-				template_values = {
+				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Preview", 
 						   	   	   'title_extra': entry.title, 
-								   'user': users.get_current_user(),
 								   'current_member': member,
 								   'community': community, 
 								   'annotation': annotation,
@@ -731,10 +712,7 @@ class PreviewPage(webapp.RequestHandler):
 								   'questions': community.getQuestionsOfType(entry.type),
 								   'answers_with_entry': entry.getAnswersForMember(member),
 								   'nudge_categories': community.nudgeCategories,
-								   'num_nudge_categories': NUM_NUDGE_CATEGORIES,
-								   'user_is_admin': users.is_current_user_admin(),
-								   'logout_url': users.create_logout_url("/"),
-								   }
+								   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/preview.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
@@ -797,7 +775,7 @@ class RelateEntryPage(webapp.RequestHandler):
 					if not found and anEntry.key() != entry.key():
 						entriesThatCanBeRelated.append(anEntry)
 				if entriesThatCanBeRelated:
-					template_values = {
+					template_values = GetStandardTemplateDictionaryAndAddMore({
 									'title': "Relate entries to",
 								   	'title_extra': entry.title,
 									'community': community, 
@@ -805,9 +783,7 @@ class RelateEntryPage(webapp.RequestHandler):
 									'entry': entry,
 									'entries': entriesThatCanBeRelated, 
 									'related_links': links,
-									'user_is_admin': users.is_current_user_admin(), 
-									'logout_url': users.create_logout_url("/"), 
-									}
+									})
 					path = os.path.join(os.path.dirname(__file__), 'templates/visit/relate.html')
 					self.response.out.write(template.render(path, template_values))
 				else:

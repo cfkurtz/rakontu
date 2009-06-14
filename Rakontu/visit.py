@@ -27,7 +27,7 @@ class StartPage(webapp.RequestHandler):
 					communitiesTheyAreInvitedTo.append(pendingMember.community)
 				except:
 					pass # if can't link to community don't use it
-		template_values = {
+		template_values = GetStandardTemplateDictionaryAndAddMore({
 						   'title': None,
 						   'title_extra': None,
 						   'user': user, 
@@ -36,7 +36,7 @@ class StartPage(webapp.RequestHandler):
 						   'DEVELOPMENT': DEVELOPMENT,
 						   'login_url': users.create_login_url("/"),
 						   'logout_url': users.create_logout_url("/"),
-						   }
+						   })
 		path = os.path.join(os.path.dirname(__file__), 'templates/startPage.html')
 		self.response.out.write(template.render(path, template_values))
 
@@ -99,15 +99,12 @@ class NewMemberPage(webapp.RequestHandler):
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-			template_values = {
+			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': "Welcome",
 							'title_extra': member.nickname,
 							'community': community, 
-							'current_user': users.get_current_user(), 
 							'current_member': member,
-							'user_is_admin': users.is_current_user_admin(),
-							'logout_url': users.create_logout_url("/"),
-							}
+							})
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/new.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
@@ -189,7 +186,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 				textsForGrid.reverse()
 			else:
 				textsForGrid = []
-			template_values = {
+			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': "Main page",
 						   	'title_extra': None,
 							'community': community, 
@@ -197,13 +194,9 @@ class BrowseEntriesPage(webapp.RequestHandler):
 							'entries': entries, 
 							'rows_cols': textsForGrid, 
 							'row_headers': rowHeaders, 
-							'time_frames': TIME_FRAMES, 
-							'entry_types': ENTRY_TYPES, 
 							'1_to_31': range(1, 31, 1), 
 							'3_to_10': range(3, 11, 1), 
-							'user_is_admin': users.is_current_user_admin(), 
-							'logout_url': users.create_logout_url("/"), 
-							}
+							})
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/look.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
@@ -377,7 +370,7 @@ class ReadEntryPage(webapp.RequestHandler):
 					thingsUserCanDo["Curate this %s" % entry.type] = "curate?%s" % entry.key()
 				if entry.creator.key() == member.key() and community.allowsPostPublishEditOfEntryType(entry.type):
 					thingsUserCanDo["Change this %s" % entry.type] = "%s?%s" % (entry.type, entry.key())
-				template_values = {
+				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': entry.title, 
 						   		   'title_extra': None,
 								   'community': community, 
@@ -391,8 +384,6 @@ class ReadEntryPage(webapp.RequestHandler):
 								   'member_can_answer_questions': memberCanAnswerQuestionsAboutThisEntry,
 								   'member_can_add_nudge': memberCanAddNudgeToThisEntry,
 								   'community_has_questions_for_this_entry_type': communityHasQuestionsForThisEntryType,
-								   'user_is_admin': users.is_current_user_admin(),
-								   'logout_url': users.create_logout_url("/"),
 								   'answers': entry.getNonDraftAnswers(),
 								   'questions': community.getQuestionsOfType(entry.type),
 								   'attachments': entry.getAttachments(),
@@ -408,7 +399,7 @@ class ReadEntryPage(webapp.RequestHandler):
 								   'links_incoming_from_invitations': entry.getIncomingLinksOfTypeFromType("responded", "invitation"),
 								   'links_incoming_from_collages': entry.getIncomingLinksOfTypeFromType("included", "collage"),
 								   'included_links_outgoing': entry.getOutgoingLinksOfType("included"),
-								   }
+								   })
 				member.lastReadAnything = datetime.now(tz=pytz.utc)
 				member.nudgePoints += community.getMemberNudgePointsForEvent("reading")
 				member.put()
@@ -432,7 +423,7 @@ class ReadAnnotationPage(webapp.RequestHandler):
 		if community and member:
 			annotation = db.get(self.request.query_string)
 			if annotation:
-				template_values = {
+				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': annotation.displayString, 
 						   		   'title_extra': None,
 								   'community': community, 
@@ -440,9 +431,7 @@ class ReadAnnotationPage(webapp.RequestHandler):
 								   'current_member_key': member.key(),
 								   'annotation': annotation,
 								   'included_links_outgoing': annotation.entry.getOutgoingLinksOfType("included"),
-								   'user_is_admin': users.is_current_user_admin(),
-								   'logout_url': users.create_logout_url("/"),
-								   }
+								   })
 				member.lastReadAnything = datetime.now(tz=pytz.utc)
 				member.nudgePoints += community.getNudgePointsPerActivityForActivityName("reading")
 				member.put()
@@ -456,16 +445,14 @@ class SeeCommunityPage(webapp.RequestHandler):
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-				template_values = {
+				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': "About", 
 						   		   'title_extra': community.name, 
 								   'community': community, 
 								   'current_member': member,
 								   'community_members': community.getActiveMembers(),
 								   'characters': community.getCharacters(),
-								   'user_is_admin': users.is_current_user_admin(),
-								   'logout_url': users.create_logout_url("/"),								   
-								   }
+								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/community.html')
 				self.response.out.write(template.render(path, template_values))
 		else:
@@ -476,15 +463,13 @@ class SeeCommunityMembersPage(webapp.RequestHandler):
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-				template_values = {
+				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': "Members of", 
 						   		   'title_extra': community.name, 
 								   'community': community, 
 								   'current_member': member,
 								   'community_members': community.getActiveMembers(),
-								   'user_is_admin': users.is_current_user_admin(),
-								   'logout_url': users.create_logout_url("/"),								   
-								   }
+								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/members.html')
 				self.response.out.write(template.render(path, template_values))
 		else:
@@ -498,7 +483,7 @@ class SeeMemberPage(webapp.RequestHandler):
 				memberKey = self.request.query_string
 				memberToSee = db.get(memberKey)
 				if memberToSee:
-					template_values = {
+					template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': "Member", 
 						   		   'title_extra': member.nickname, 
 						   		   'community': community, 
@@ -510,9 +495,7 @@ class SeeMemberPage(webapp.RequestHandler):
 						   		   'entries_liaisoned': memberToSee.getNonDraftLiaisonedEntries(),
 						   		   'annotations_liaisoned': memberToSee.getNonDraftLiaisonedAnnotations(),
 						   		   'answers_liaisoned': memberToSee.getNonDraftLiaisonedAnswers(),
-						   		   'user_is_admin': users.is_current_user_admin(),
-						   		   'logout_url': users.create_logout_url("/"),								   
-						   		   }
+						   		   })
 					path = os.path.join(os.path.dirname(__file__), 'templates/visit/member.html')
 					self.response.out.write(template.render(path, template_values))
 				else:
@@ -546,7 +529,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 				characterKey = self.request.query_string
 				character = db.get(characterKey)
 				if character:
-					template_values = {
+					template_values = GetStandardTemplateDictionaryAndAddMore({
 								   	   'title': "Character", 
 						   		   	   'title_extra': character.name, 
 									   'community': community, 
@@ -555,9 +538,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 						   		   	   'entries': character.getNonDraftEntriesAttributedToCharacter(),
 						   		       'annotations': character.getNonDraftAnnotationsAttributedToCharacter(),
 						   		       'answers': character.getNonDraftAnswersAboutEntriesAttributedToCharacter(),
-									   'user_is_admin': users.is_current_user_admin(),
-									   'logout_url': users.create_logout_url("/"),								   
-									   }
+									   })
 					path = os.path.join(os.path.dirname(__file__), 'templates/visit/character.html')
 					self.response.out.write(template.render(path, template_values))
 				else:
@@ -583,11 +564,10 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 			for entry in draftAnswerEntries:
 				answers = memberToEdit.getDraftAnswersForEntry(entry)
 				firstDraftAnswerForEachEntry.append(answers[0])
-			template_values = {
+			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': "Profile of", 
 						   	   'title_extra': member.nickname, 
 							   'community': community, 
-							   'current_user': users.get_current_user(), 
 							   'member': memberToEdit,
 							   'current_member': member,
 							   'questions': community.getMemberQuestions(),
@@ -595,15 +575,8 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 							   'draft_entries': memberToEdit.getDraftEntries(),
 							   'draft_annotations': memberToEdit.getDraftAnnotations(),
 							   'first_draft_answer_per_entry': firstDraftAnswerForEachEntry,
-							   'time_zone_names': pytz.all_timezones,
-							   'date_formats': DateFormatStrings(),
-							   'time_formats': TimeFormatStrings(),
-							   'helping_role_names': HELPING_ROLE_TYPES,
 							   'refer_type': "member",
-							   'text_formats': TEXT_FORMATS,
-							   'user_is_admin': users.is_current_user_admin(),
-							   'logout_url': users.create_logout_url("/"),
-							   }
+							   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/profile.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
@@ -706,17 +679,14 @@ class ResultFeedbackPage(webapp.RequestHandler):
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-			template_values = {
+			template_values = GetStandardTemplateDictionaryAndAddMore({
 						   	   'title': "Message", 
 					   	   	   'title_extra': None, 
 							   'community': community, 
 							   'message': self.request.query_string,
 							   "linkback": self.request.headers["Referer"],
-							   'current_user': users.get_current_user(), 
 							   'current_member': member,
-							   'user_is_admin': users.is_current_user_admin(),
-							   'logout_url': users.create_logout_url("/"),
-							   }
+							   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/result.html')
 			self.response.out.write(template.render(path, template_values))
 		else:

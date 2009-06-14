@@ -35,19 +35,14 @@ class CurateFlagsPage(webapp.RequestHandler):
 		if community and member:
 			if member.isCurator():
 				(entries, annotations, answers, links) = community.getAllFlaggedItems()
-				template_values = {
+				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Review flags", 
 						   	   	   'title_extra': None, 
-								   'community': community, 
 								   'entries': entries,
 								   'annotations': annotations,
 								   'answers': answers,
 								   'links': links,
-								   'current_user': users.get_current_user(), 
-								   'current_member': member,
-								   'user_is_admin': users.is_current_user_admin(),
-								   'logout_url': users.create_logout_url("/"),
-								   }
+								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/curate/flags.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
@@ -149,7 +144,7 @@ class CurateGapsPage(webapp.RequestHandler):
 				entriesWithoutComments, \
 				invitationsWithoutResponses,
 				collagesWithoutInclusions) = community.getNonDraftEntriesWithMissingMetadata()
-				template_values = {
+				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Review flags", 
 						   	   	   'title_extra': None, 
 								   'community': community, 
@@ -159,11 +154,8 @@ class CurateGapsPage(webapp.RequestHandler):
 								   'entries_without_comments': entriesWithoutComments,
 								   'invitations_without_responses': invitationsWithoutResponses,
 								   'collages_without_inclusions': collagesWithoutInclusions,
-								   'current_user': users.get_current_user(), 
 								   'current_member': member,
-								   'user_is_admin': users.is_current_user_admin(),
-								   'logout_url': users.create_logout_url("/"),
-								   }
+								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/curate/gaps.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
@@ -177,16 +169,13 @@ class CurateAttachmentsPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 			if member.isCurator():
-				template_values = {
+				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Review attachments", 
 						   	   	   'title_extra': None, 
 								   'community': community, 
 								   'attachments': community.getAttachmentsForAllNonDraftEntries(),
-								   'current_user': users.get_current_user(), 
 								   'current_member': member,
-								   'user_is_admin': users.is_current_user_admin(),
-								   'logout_url': users.create_logout_url("/"),
-								   }
+								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/curate/attachments.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
@@ -200,16 +189,13 @@ class ReviewResourcesPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 			if member.isGuide():
-				template_values = {
+				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Resources", 
 						   	   	   'title_extra': None, 
 								   'community': community, 
 								   'resources': community.getNonDraftEntriesOfType("resource"),
-								   'current_user': users.get_current_user(), 
 								   'current_member': member,
-								   'user_is_admin': users.is_current_user_admin(),
-								   'logout_url': users.create_logout_url("/"),
-								   }
+								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/guide/resources.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
@@ -235,16 +221,14 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 			if member.isLiaison():
-				template_values = {
+				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': "Off-line members", 
 						   		   'title_extra': community.name, 
 								   'community': community, 
 								   'current_member': member,
 								   'active_members': community.getActiveOfflineMembers(),
 								   'inactive_members': community.getInactiveOfflineMembers(),
-								   'user_is_admin': users.is_current_user_admin(),
-								   'logout_url': users.create_logout_url("/"),								   
-								   }
+								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/liaise/members.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
@@ -281,20 +265,17 @@ class ReviewBatchEntriesPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 			if member.isLiaison():
-				template_values = {
+				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Review", 
 						   	   	   'title_extra': None, 
 								   'community': community, 
-								   'current_user': users.get_current_user(), 
 								   'character_allowed': community.allowCharacter[STORY_ENTRY_TYPE_INDEX],
 								   'batch_entries': community.getEntriesInImportBufferForLiaison(member),
 								   'batch_comments': community.getCommentsInImportBufferForLiaison(member),
 								   'batch_tagsets': community.getTagsetsInImportBufferForLiaison(member),
 								   'offline_members': community.getActiveOfflineMembers(),
 								   'current_member': member,
-								   'user_is_admin': users.is_current_user_admin(),
-								   'logout_url': users.create_logout_url("/"),
-								   }
+								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/liaise/review.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
@@ -331,22 +312,17 @@ class BatchEntryPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 			if member.isLiaison():
-				template_values = {
+				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Import", 
 						   	   	   'title_extra': None, 
 								   'community': community, 
 								   'num_entries': NUM_ENTRIES_PER_BATCH_PAGE,
-								   'num_tags': NUM_TAGS_IN_TAG_SET,
-								   'current_user': users.get_current_user(), 
-								   'text_formats': TEXT_FORMATS,
 								   'character_allowed': community.allowCharacter[STORY_ENTRY_TYPE_INDEX],
 								   'questions': community.getQuestionsOfType("story"),
 								   'offline_members': community.getActiveOfflineMembers(),
 								   'online_members': community.getActiveOnlineMembers(),
 								   'current_member': member,
-								   'user_is_admin': users.is_current_user_admin(),
-								   'logout_url': users.create_logout_url("/"),
-								   }
+								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/liaise/batch.html')
 				self.response.out.write(template.render(path, template_values))
 			else:

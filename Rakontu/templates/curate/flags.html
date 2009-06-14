@@ -35,7 +35,7 @@
 	  				<td><a href="/visit/read?{{entry.key}}">{{entry.title}}</a></td>
 	  				<td>{{entry.type}}</td>
 	  				<td>{{entry.text_formatted|upTo:100|orNbsp}}</td>
-	  				<td><input type="text" name="flagComment|{{entry.key}}" value="{{entry.flagComment|orNothing}}"></td>
+	  				<td><input type="text" name="flagComment|{{entry.key}}" value="{{entry.flagComment|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></td>
 	  				<td>
 	  				{% if current_member.isManagerOrOwner %}
 	  						<input type="checkbox" name="remove|{{entry.key}}" value="yes" id="remove|{{entry.key}}"/>

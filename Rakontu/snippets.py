@@ -17,7 +17,7 @@ class JoinCommunityPage(webapp.RequestHandler):
         else:
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
-        template_values = {'url': url, 'url_linktext': url_linktext,'communities': models.Community.all().fetch(1000)}
+        template_values = GetStandardTemplateDictionaryAndAddMore({'url': url, 'url_linktext': url_linktext,'communities': models.Community.all().fetch(1000)}
         if users.get_current_user():
             path = os.path.join(os.path.dirname(__file__), 'templates/joinCommunity.html')
         else:
@@ -58,7 +58,7 @@ class CouldNotJoinPage(webapp.RequestHandler):
         else:
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
-        template_values = {'url': url, 'url_linktext': url_linktext}
+        template_values = GetStandardTemplateDictionaryAndAddMore({'url': url, 'url_linktext': url_linktext}
         path = os.path.join(os.path.dirname(__file__), 'templates/couldNotJoin.html')
         self.response.out.write(template.render(path, template_values))
 

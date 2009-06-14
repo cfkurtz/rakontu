@@ -121,6 +121,26 @@ DEFAULT_ALLOW_EDITING_AFTER_PUBLISHING = [False, False, True, True, True]
 # into the system.
 NUM_ENTRIES_PER_BATCH_PAGE = 10
 
+# These constants determine how input fields are implemented in the html forms (where "maxlength" is how many
+# characters can be entered into a field.) There are two reasons to set these limits: first,
+# because you don't want people to enter really long things; and second (and more importantly)
+# Google App Engine sets an absolute limit of 500 bytes on every model property saved as a string
+# (not the longer Text property which can be of any length). So none of these should be set much higher
+# than 200 characters. However, you may want to set them to smaller numbers if you want to keep things
+# less verbose.
+
+# For the subject lines of comments and requests; for link comments, flag comments, etc.
+MAXLENGTH_SUBJECT_OR_COMMENT = 200
+
+# For the names of all things that have names (including member nicknames)
+MAXLENGTH_NAME = 100
+
+# For tags in tag sets, for choices in questions
+MAXLENGTH_TAG_OR_CHOICE = 40
+
+# For all entered numbers
+MAXLENGTH_NUMBER = 6
+
 # ============================================================================================ 
 # QUESTIONS
 # ============================================================================================ 
