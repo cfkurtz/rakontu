@@ -253,9 +253,6 @@
 					{% if community.roleReadmes_formatted.0 %}
 						<table border="1" cellpadding="4" cellspacing="0">
 						<tr><td bgcolor="#FFFFFF"> {{ community.roleReadmes_formatted.0 }} </td></tr>
-						{% if community.roleAgreements.0 %}
-							<tr><td><i>Clicking the "I am a {{helping_role_names.0}}" box implies that you agree to these terms.</i></td></tr>
-						{% endif %}
 						</table>
 					{% endif %}
 				{% endif %}
@@ -271,9 +268,6 @@
 					{% if community.roleReadmes_formatted.1 %}
 						<table border="1" cellpadding="4" cellspacing="0"><tr>
 						<tr><td bgcolor="#FFFFFF"> {{ community.roleReadmes_formatted.1 }} </td></tr>
-						{% if community.roleAgreements.1 %}
-							<tr><td><i>Clicking the "I am a {{helping_role_names.1}}" box implies that you agree to these terms.</i></td></tr>
-						{% endif %}
 						</table>
 					{% endif %}
 					<p>If you are a guide, what would you like to tell members about what sorts of questions you can answer?</p>
@@ -307,9 +301,6 @@
 					{% if community.roleReadmes_formatted.2 %}
 						<table border="1" cellpadding="4" cellspacing="0">
 						<tr><td bgcolor="#FFFFFF"> {{ community.roleReadmes_formatted.2 }} </td></tr>
-						{% if community.roleAgreements.2 %}
-							<tr><td><i>Clicking the "I am a {{helping_role_names.2}}" box implies that you agree to these terms.</i></td></tr>
-						{% endif %}
 						</table>
 					{% endif %}
 				{% endif %}

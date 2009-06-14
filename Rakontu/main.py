@@ -62,6 +62,7 @@ application = webapp.WSGIApplication(
 									  ('/curate/', CurateFlagsPage),
 									  ('/curate/flags', CurateFlagsPage),
 									  ('/curate/gaps', CurateGapsPage),
+									  ('/curate/attachments', CurateAttachmentsPage),
 									  ('/guide/', ReviewResourcesPage),
 									  ('/guide', ReviewResourcesPage),
 									  ('/guide/resource', EnterEntryPage),

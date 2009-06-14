@@ -12,47 +12,15 @@ in member page
 - guide note goes to all guides?
 or choose one?
 
-- mgrs/owners can get emails
-sent to them when new inappropriate flags are set
-by curators
-(what other times?)
-
--curator page:
-	data centric - see how data is shaped and linked   
-    deep freeze view
-    entry web?
-    attachments list (to review for noxious stuff)
-    faster/easier way to add relate links?
-    faster/easier way to build observations?
-
 guide page:
-	people centric - what people are doing
-    invitations with no responses
-    stories with no annotations
-    resources
-    not full member histories, but
-        some shorter kind of summary
-        of member activity
-        # stories, comments, etc
     also that guides are shown in help (as before)
 
-how add offline members?
-maybe only liaisons can add offline members?
-maybe managers/owners cannot?
-would that be a problem?
-it's not like the offline members can get on the
-system and DO anything
-and if a liaison does rude things with fake offline members
-the mgrs can just ban them from being a liaison
-
 liaison page:
-    your offline members
-    their histories
-    add offline member / remove
-    quick ways to output things for them
-    stories, comments about their stories, etc
+    quick ways to output things for them - this has to be linked to the query system
     
 add import/export of question lists (CSV)
+
+is that "your changes have been saved" page really necessary?
 	
 with markup - allow to refer to image in attachments {1} {2} etc
 also check how handling <img src= tag in simple html version (i think am not handling yet)
@@ -65,15 +33,12 @@ I don't think downdrift is working yet
 
 need a way to nudge things from the main page - you just want to do it - icon?
 
-in the community settings it says you can set it so members have to check a box
-before becoming a curator etc, but you really don't
-
 need a way for site administrator to DELETE a community (and also disable but not delete)
 
 check all input texts to set maxlength to fit into string property
 
 cannot allow two members in the same community to have the same nickname, because
-offline members are identified by it.
+offline members are identified by it. not checking for that when somebody sets one.
 
 still have not implemented user choosing which nudge categories to consider in look page
 
@@ -81,9 +46,5 @@ don't show manager/owner status to group, just that they are a manager. owner st
 
 resource type
 
-preference for member about what text format they want to come up by default
-
 number of tags, number of nudges not FULLY updated for flexibility yet - check EVERY use
 
-DOING RIGHT NOW
-add liaisoned items to contributions that show on member page - started but not finished - need ??

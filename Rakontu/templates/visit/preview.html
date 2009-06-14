@@ -116,7 +116,7 @@
 		<p>
 		<center>
 			{% if annotation %}
-				{% if entry.inImportBuffer %}
+				{% if entry.inBatchEntryBuffer %}
 					<input type="submit" name="edit" value="Change" class="button">
 					<input type="submit" name="batch" value="Return to list" class="button">
 				{% else %}
@@ -125,7 +125,7 @@
 					<input type="submit" name="publish" value="Publish" class="button">
 				{% endif %}
 			{% else %}
-				{% if entry.inImportBuffer %}
+				{% if entry.inBatchEntryBuffer %}
 					<input type="submit" name="edit" value="Change entry" class="button">
 					<input type="submit" name="batch" value="Return to list" class="button">
 				{% else %}

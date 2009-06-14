@@ -61,7 +61,10 @@ class CurateFlagsPage(webapp.RequestHandler):
 		if community and member:
 			items = community.getAllFlaggedItemsAsOneList()
 			for item in items:
-				 if self.request.get("unflag|%s" % item.key()) == "yes":
+				if self.request.get("flagComment|%s" % item.key()):
+					item.flagComment = self.request.get("flagComment|%s" % item.key())
+					item.put()
+				if self.request.get("unflag|%s" % item.key()) == "yes":
 				 	item.flaggedForRemoval = False
 				 	item.put()
 			if member.isManagerOrOwner():
@@ -110,10 +113,10 @@ class CurateFlagsPage(webapp.RequestHandler):
 								commentString = ""
 							displayString = 'A link%s from the %s called "%s" to the %s called "%s"' % \
 								(commentString, item.entryFrom.type, item.entryFrom.title, item.entryTo.type, item.entryTo.title)
-						messageLines.append('* %s\n\n    http://%s/visit/curate?%s\n' % (displayString, URL, linkKey))
+						messageLines.append('* %s\n\n	http://%s/visit/curate?%s\n' % (displayString, URL, linkKey))
 					messageLines.append("Thank you for your attention.\n")
 					messageLines.append("Sincerely,")
-					messageLines.append("    Your Rakontu site")
+					messageLines.append("	Your Rakontu site")
 					message = "\n".join(messageLines)
 					ownersAndManagers = community.getManagersAndOwners()
 					for ownerOrManager in ownersAndManagers:
@@ -162,6 +165,29 @@ class CurateGapsPage(webapp.RequestHandler):
 								   'logout_url': users.create_logout_url("/"),
 								   }
 				path = os.path.join(os.path.dirname(__file__), 'templates/curate/gaps.html')
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect('/visit/look')
+		else:
+			self.redirect("/")
+			
+class CurateAttachmentsPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			if member.isCurator():
+				template_values = {
+							   	   'title': "Review attachments", 
+						   	   	   'title_extra': None, 
+								   'community': community, 
+								   'attachments': community.getAttachmentsForAllNonDraftEntries(),
+								   'current_user': users.get_current_user(), 
+								   'current_member': member,
+								   'user_is_admin': users.is_current_user_admin(),
+								   'logout_url': users.create_logout_url("/"),
+								   }
+				path = os.path.join(os.path.dirname(__file__), 'templates/curate/attachments.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect('/visit/look')
@@ -376,7 +402,7 @@ class BatchEntryPage(webapp.RequestHandler):
 							entry.creator = memberToAttribute
 							entry.collected = date
 							entry.draft = True
-							entry.inImportBuffer = True
+							entry.inBatchEntryBuffer = True
 							entry.collectedOffline = not memberToAttribute.isOnlineMember
 							entry.liaison = member
 							entry.put()
@@ -435,7 +461,7 @@ class BatchEntryPage(webapp.RequestHandler):
 									answer.liaison = member
 									answer.draft = True
 									answer.collected = entry.collected
-									answer.inImportBuffer = True
+									answer.inBatchEntryBuffer = True
 									answer.collectedOffline = not memberToAttribute.isOnlineMember
 									answer.put()
 							if self.request.get("comment|%s" % i):
@@ -447,7 +473,7 @@ class BatchEntryPage(webapp.RequestHandler):
 								comment.longString = text
 								comment.longString_format = format
 								comment.draft = True
-								comment.inImportBuffer = True
+								comment.inBatchEntryBuffer = True
 								comment.liaison = member
 								comment.collected = entry.collected
 								comment.collectedOffline = not memberToAttribute.isOnlineMember
@@ -462,7 +488,7 @@ class BatchEntryPage(webapp.RequestHandler):
 								tagset.tagsIfTagSet = []
 								tagset.tagsIfTagSet.extend(tags)
 								tagset.draft = True
-								tagset.inImportBuffer = True
+								tagset.inBatchEntryBuffer = True
 								tagset.liaison = member
 								tagset.collected = entry.collected
 								tagset.collectedOffline = not memberToAttribute.isOnlineMember

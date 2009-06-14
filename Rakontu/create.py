@@ -296,7 +296,7 @@ class EnterEntryPage(webapp.RequestHandler):
 				entry.publish()
 			if preview:
 				self.redirect("/visit/preview?%s" % entry.key())
-			elif entry.inImportBuffer:
+			elif entry.inBatchEntryBuffer:
 				if member.isLiaison():
 					self.redirect("/liaise/review")
 				else:
@@ -636,7 +636,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 				if preview:
 					self.redirect("/visit/preview?%s" % annotation.key())
 				elif annotation.draft:
-					if annotation.inImportBuffer:
+					if annotation.inBatchEntryBuffer:
 						self.redirect("/liaise/review")
 					else:
 						self.redirect("/visit/profile?%s" % member.key())

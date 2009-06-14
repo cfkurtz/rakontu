@@ -280,7 +280,7 @@
 			<p>
 			<center>
 			{% if entry %}
-				{% if entry.inImportBuffer %}
+				{% if entry.inBatchEntryBuffer %}
 					<input type="submit" name="save|{{entry_type}}" value="Save changes and return" class="button">
 					<input type="submit" name="preview|{{entry_type}}" value="Preview" class="button">
 				{% else %}

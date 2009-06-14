@@ -214,14 +214,6 @@
 					{% endfor %}
 					</select>
 				</td></tr></table>
-
-			<input type="checkbox" name="agreement0" value="agreement0" id="agreement0"
-				{% if community.roleAgreements.0 %}
-					checked="checked"
-				{% endif %}
-				/>
-				<label for="agreement0">Members must check box to agree to terms before becoming curator
-				{{"#terms_check_box"|tip}}</label>
 			<p></p>
 			<p><b>Guide read-before text</b></p>
 				<table style="width:100%; border:none">
@@ -239,13 +231,6 @@
 					{% endfor %}
 					</select>
 				</td></tr></table>
-			<input type="checkbox" name="agreement1"  value="agreement1" id="agreement1"
-				{% if community.roleAgreements.1 %}
-					checked="checked"/>
-				{% else %}
-					/>
-				{% endif %}
-				<label for="agreement1">Members must check box to agree to terms before becoming guide</label>
 			<p></p>
 			<p><b>Liaison read-before text</b></p>
 				<table style="width:100%; border:none">
@@ -263,13 +248,6 @@
 					{% endfor %}
 					</select>
 				</td></tr></table>
-			<input type="checkbox" name="agreement2"  value="agreement2" id="agreement2"
-				{% if community.roleAgreements.2 %}
-					checked="checked"/>
-				{% else %}
-					/>
-				{% endif %}
-				<label for="agreement2">Members must check box to agree to terms before becoming liaison</label>
 			</fieldset>
 		<p></p>
 	    <center><input type="submit" name="changeSettings" value="Change Settings" class="button"></center>

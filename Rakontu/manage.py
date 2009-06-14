@@ -218,7 +218,6 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 				community.roleReadmes[i] = db.Text(self.request.get("readme%s" % i))
 				community.roleReadmes_formatted[i] = db.Text(InterpretEnteredText(self.request.get("readme%s" % i), self.request.get("roleReadmes_formats%s" % i)))
 				community.roleReadmes_formats[i] = self.request.get("roleReadmes_formats%s" % i)
-				community.roleAgreements[i] = self.request.get("agreement%s" % i) == ("agreement%s" % i)
 			community.put()
 		self.redirect('/visit/look')
 				

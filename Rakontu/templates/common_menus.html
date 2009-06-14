@@ -40,6 +40,9 @@
 			<ul>
 				<li><a href="/curate/flags">Review flags</a>
 				<li><a href="/curate/gaps">Review gaps</a>
+				{% if community.allowsAttachments %}
+					<li><a href="/curate/attachments">Review attachments</a>
+				{% endif %}
 			</ul>
 			</li>
 		{% endif %}

@@ -132,7 +132,6 @@ class Community(db.Model):
 	roleReadmes = db.ListProperty(db.Text, default=[db.Text(DEFAULT_ROLE_READMES[0]), db.Text(DEFAULT_ROLE_READMES[1]), db.Text(DEFAULT_ROLE_READMES[2])])
 	roleReadmes_formatted = db.ListProperty(db.Text, default=[db.Text(""), db.Text(""), db.Text("")])
 	roleReadmes_formats = db.StringListProperty(default=DEFAULT_ROLE_READMES_FORMATS)
-	roleAgreements = db.ListProperty(bool, default=DEFAULT_ROLE_AGREEMENTS)
 	
 	# OPTIONS
 	
@@ -311,7 +310,7 @@ class Community(db.Model):
 		entries = Entry.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 		annotations = Annotation.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 		answers = Answer.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
-		links = Link.all().filter("community = ", self.key()).filter("inImportBuffer = ", False).fetch(FETCH_NUMBER)
+		links = Link.all().filter("community = ", self.key()).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
 		return (entries, annotations, answers, links)
 	
 	def addEntriesFromCSV(self, data, liaison):
@@ -362,27 +361,35 @@ class Community(db.Model):
 											entry.collectedOffline = True
 											entry.collected = collected
 											entry.liaison = liaison
-											entry.inImportBuffer = True
+											entry.inBatchEntryBuffer = True
 											entry.draft = True
 											entry.put()	
 										
 	def getEntryInImportBufferWithTitle(self, title):	
-		return Entry.all().filter("community = ", self.key()).filter("inImportBuffer = ", True).filter("title = ", title).get()
+		return Entry.all().filter("community = ", self.key()).filter("inBatchEntryBuffer = ", True).filter("title = ", title).get()
 										
 	def getEntriesInImportBufferForLiaison(self, liaison):
-		return Entry.all().filter("community = ", self.key()).filter("inImportBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
+		return Entry.all().filter("community = ", self.key()).filter("inBatchEntryBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
 	
 	def getCommentsInImportBufferForLiaison(self, liaison):
-		return Annotation.all().filter("community = ", self.key()).filter("type = ", "comment").filter("inImportBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
+		return Annotation.all().filter("community = ", self.key()).filter("type = ", "comment").filter("inBatchEntryBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
 		
 	def getTagsetsInImportBufferForLiaison(self, liaison):
-		return Annotation.all().filter("community = ", self.key()).filter("type = ", "tag set").filter("inImportBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
+		return Annotation.all().filter("community = ", self.key()).filter("type = ", "tag set").filter("inBatchEntryBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
 		
 	def moveImportedEntriesOutOfBuffer(self, items):
 		for item in items:
 			item.draft = False
-			item.inImportBuffer = False
+			item.inBatchEntryBuffer = False
 			item.put()
+			
+	def getAttachmentsForAllNonDraftEntries(self):
+		result = []
+		entries = self.getNonDraftEntries()
+		for entry in entries:
+			attachments =  Attachment.all().filter('entry = ', entry.key())
+			result.extend(attachments)
+		return result
 							
 	# QUESTIONS
 	
@@ -448,7 +455,7 @@ class Question(db.Model):
 	
 	created = TzDateTimeProperty(auto_now_add=True)
 	
-	inImportBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
+	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	
 	def isOrdinalOrNominal(self):
 		return self.type == "ordinal" or self.type == "nominal"
@@ -682,7 +689,8 @@ class Answer(db.Model):
 	
 	draft = db.BooleanProperty(default=True)
 	flaggedForRemoval = db.BooleanProperty(default=False)
-	inImportBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
+	flagComment = db.StringProperty()
+	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	
 	answerIfBoolean = db.BooleanProperty(default=False)
 	answerIfText = db.StringProperty(default="")
@@ -781,7 +789,8 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 	
 	draft = db.BooleanProperty(default=True)
 	flaggedForRemoval = db.BooleanProperty(default=False)
-	inImportBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
+	flagComment = db.StringProperty()
+	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	
 	collected = TzDateTimeProperty(default=None)
 	created = TzDateTimeProperty(auto_now_add=True)
@@ -964,10 +973,10 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 		return result
 	
 	def getOutgoingLinksOfType(self, type):
-		return Link.all().filter("entryFrom =", self.key()).filter("type = ", type).filter("inImportBuffer = ", False).fetch(FETCH_NUMBER)
+		return Link.all().filter("entryFrom =", self.key()).filter("type = ", type).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
 	
 	def getIncomingLinksOfType(self, type):
-		return Link.all().filter("entryTo =", self.key()).filter("type = ", type).filter("inImportBuffer = ", False).fetch(FETCH_NUMBER)
+		return Link.all().filter("entryTo =", self.key()).filter("type = ", type).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
 	
 	def getIncomingLinksOfTypeFromType(self, type, fromType):
 		result = []
@@ -1040,7 +1049,8 @@ class Link(db.Model):                         # related, retold, reminded, respo
 	
 	# links cannot be in draft mode
 	flaggedForRemoval = db.BooleanProperty(default=False)
-	inImportBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
+	flagComment = db.StringProperty()
+	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	
 	published = TzDateTimeProperty(auto_now_add=True)
 	
@@ -1120,7 +1130,8 @@ class Annotation(db.Model):                                # tag set, comment, r
 	
 	draft = db.BooleanProperty(default=True)
 	flaggedForRemoval = db.BooleanProperty(default=False)
-	inImportBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
+	flagComment = db.StringProperty()
+	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	
 	shortString = db.StringProperty() # comment/request subject, nudge comment
 	

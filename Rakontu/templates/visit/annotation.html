@@ -194,7 +194,7 @@
 			<p>
 			<center>
 			{% if annotation %}
-				{% if annotation.inImportBuffer %}
+				{% if annotation.inBatchEntryBuffer %}
 					<input type="submit" name="save|{{annotation_type}}" value="Save changes and return" class="button">
 					<input type="submit" name="preview|{{annotation_type}}" value="Preview" class="button">
 				{% else %}

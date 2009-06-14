@@ -1,0 +1,36 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+	<div id="content">
+	{% if current_member.isCurator %}
+			<h3>Attachments</h3>
+			{% if attachments %}
+		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<tr><th>Attachment</th><th>Entry</th></tr>
+	      		{% for attachment in attachments %}
+	      			<tr>
+	      			 <td>{{attachment.linkString}}</td>
+	      			 <td>
+					<a href="/visit/flag?{{attachment.entry.key}}" class="imagelight"><img src="../images/
+					{% if attachment.entry.flaggedForRemoval %}
+						flag_red.png
+					{% else %}
+						flag_green.png
+					{% endif %}
+					" alt="flag" border="0"></a>
+	      			 {{attachment.entry.linkString}}</td>
+	      			 </tr>
+	      		{% endfor %}
+		      	</table>
+		    {% else %}
+		    	<p>There are no attachments in the data set.</p>
+			{% endif %}
+	{% else %}
+		<p>You are not a curator of this community and cannot review attachments.
+		Either become a curator, or ask a curator to review any attachments you would like to be reviewed.</p>
+	{% endif %}
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>
