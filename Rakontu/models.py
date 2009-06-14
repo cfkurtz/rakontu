@@ -37,13 +37,13 @@ EVENT_TYPES = ["downdrift", \
 			"answering question", "adding tag set", "adding comment", "adding request", "adding nudge"]
 
 
-ARTICLE_TYPES = ["story", "invitation", "collage", "pattern", "resource"]
+ENTRY_TYPES = ["story", "invitation", "collage", "pattern", "resource"]
 LINK_TYPES = ["retold", "reminded", "responded", "related", "included"]
 
 ANNOTATION_TYPES = ["tag set", "comment", "request", "nudge"]
 ANNOTATION_TYPES_URLS = ["tagset", "comment", "request", "nudge"]
-ENTRY_TYPES = ["story", "pattern", "collage", "invitation", "resource", "answer", "tag set", "comment", "request", "nudge"]
-ENTRY_TYPES_URLS = ["story", "pattern", "collage", "invitation", "resource", "answer", "tagset", "comment", "request", "nudge"]
+ENTRY_AND_ANNOTATION_TYPES = ["story", "pattern", "collage", "invitation", "resource", "answer", "tag set", "comment", "request", "nudge"]
+ENTRY_AND_ANNOTATION_TYPES_URLS = ["story", "pattern", "collage", "invitation", "resource", "answer", "tagset", "comment", "request", "nudge"]
 STORY_ENTRY_TYPE_INDEX = 0
 ANSWERS_ENTRY_TYPE_INDEX = 5
 
@@ -120,11 +120,11 @@ class Community(db.Model):
 	
 	maxNumAttachments = db.IntegerProperty(choices=NUM_ATTACHMENT_CHOICES, default=DEFAULT_MAX_NUM_ATTACHMENTS)
 
-	maxNudgePointsPerArticle = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE)
+	maxNudgePointsPerEntry = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ENTRY)
 	memberNudgePointsPerEvent = db.ListProperty(int, default=DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS)
 	nudgeCategories = db.StringListProperty(default=DEFAULT_NUDGE_CATEGORIES)
 
-	articleActivityPointsPerEvent = db.ListProperty(int, default=DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS)
+	entryActivityPointsPerEvent = db.ListProperty(int, default=DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS)
 	
 	allowCharacter = db.ListProperty(bool, default=DEFAULT_ALLOW_CHARACTERS)
 	allowEditingAfterPublishing = db.ListProperty(bool, default=DEFAULT_ALLOW_EDITING_AFTER_PUBLISHING)
@@ -136,10 +136,10 @@ class Community(db.Model):
 	
 	# OPTIONS
 	
-	def allowsPostPublishEditOfArticleType(self, type):
+	def allowsPostPublishEditOfEntryType(self, type):
 		i = 0
-		for articleType in ARTICLE_TYPES:
-			if type == articleType:
+		for entryType in ENTRY_TYPES:
+			if type == entryType:
 				return self.allowEditingAfterPublishing[i]
 			i += 1
 		return False
@@ -243,72 +243,72 @@ class Community(db.Model):
 	def hasAtLeastOneCharacterEntryAllowed(self, entryTypeIndex):
 		return len(self.getCharacters()) > 0 or self.allowCharacter[entryTypeIndex]
 	
-	# ARTICLES
+	# ENTRIES
 	
-	def getNonDraftArticles(self):
-		return Article.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+	def getNonDraftEntries(self):
+		return Entry.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
-	def getNonDraftArticlesOfType(self, type):
-		return Article.all().filter("community = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(FETCH_NUMBER)
+	def getNonDraftEntriesOfType(self, type):
+		return Entry.all().filter("community = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(FETCH_NUMBER)
 	
-	def getNonDraftArticlesWithMissingMetadata(self):
-		articlesWithoutTags = []
-		articlesWithoutLinks = []
-		articlesWithoutAnswers = []
-		articlesWithoutComments = []
+	def getNonDraftEntriesWithMissingMetadata(self):
+		entriesWithoutTags = []
+		entriesWithoutLinks = []
+		entriesWithoutAnswers = []
+		entriesWithoutComments = []
 		invitationsWithoutResponses = []
 		collagesWithoutInclusions = []
-		for article in self.getNonDraftArticles():
-			if not Annotation.all().filter("article = ", article.key()).filter("type = ", "tag set").filter("draft = ", False).get():
-				articlesWithoutTags.append(article)
-			if not Link.all().filter("articleFrom = ", article.key()).get() and not Link.all().filter("articleTo = ", article.key()).get():
-				articlesWithoutLinks.append(article)
-			if not Answer.all().filter("referent = ", article.key()).filter("draft = ", False).get():
-				articlesWithoutAnswers.append(article)
-			if not Annotation.all().filter("article = ", article.key()).filter("type = ", "comment").filter("draft = ", False).get():
-				articlesWithoutComments.append(article)
-		for invitation in self.getNonDraftArticlesOfType("invitation"):
-			if not Link.all().filter("articleFrom = ", invitation.key()).filter("type = ", "responded").get():
+		for entry in self.getNonDraftEntries():
+			if not Annotation.all().filter("entry = ", entry.key()).filter("type = ", "tag set").filter("draft = ", False).get():
+				entriesWithoutTags.append(entry)
+			if not Link.all().filter("entryFrom = ", entry.key()).get() and not Link.all().filter("entryTo = ", entry.key()).get():
+				entriesWithoutLinks.append(entry)
+			if not Answer.all().filter("referent = ", entry.key()).filter("draft = ", False).get():
+				entriesWithoutAnswers.append(entry)
+			if not Annotation.all().filter("entry = ", entry.key()).filter("type = ", "comment").filter("draft = ", False).get():
+				entriesWithoutComments.append(entry)
+		for invitation in self.getNonDraftEntriesOfType("invitation"):
+			if not Link.all().filter("entryFrom = ", invitation.key()).filter("type = ", "responded").get():
 				invitationsWithoutResponses.append(invitation)
-		for collage in self.getNonDraftArticlesOfType("collage"):
-			if not Link.all().filter("articleFrom = ", collage.key()).filter("type = ", "included").get():
+		for collage in self.getNonDraftEntriesOfType("collage"):
+			if not Link.all().filter("entryFrom = ", collage.key()).filter("type = ", "included").get():
 				collagesWithoutInclusions.append(collage)
-		return (articlesWithoutTags, articlesWithoutLinks, articlesWithoutAnswers, articlesWithoutComments, invitationsWithoutResponses, collagesWithoutInclusions)
+		return (entriesWithoutTags, entriesWithoutLinks, entriesWithoutAnswers, entriesWithoutComments, invitationsWithoutResponses, collagesWithoutInclusions)
 	
-	def getArticleActivityPointsForEvent(self, event):
+	def getEntryActivityPointsForEvent(self, event):
 		i = 0
 		for eventType in EVENT_TYPES:
 			if event == eventType:
-				return self.articleActivityPointsPerEvent[i]
+				return self.entryActivityPointsPerEvent[i]
 			i += 1
 		return 0
 	
-	# ARTICLES, ANNOTATIONS, ANSWERS, LINKS - EVERYTHING
+	# ENTRIES, ANNOTATIONS, ANSWERS, LINKS - EVERYTHING
 	
 	def getAllFlaggedItems(self):
-		articles = Article.all().filter("community = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
+		entries = Entry.all().filter("community = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
 		annotations = Annotation.all().filter("community = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
 		answers = Answer.all().filter("community = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
 		links = Link.all().filter("community = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
-		return (articles, annotations, answers, links)
+		return (entries, annotations, answers, links)
 	
 	def getAllFlaggedItemsAsOneList(self):
 		result = []
-		(articles, annotations, answers, links) = self.getAllFlaggedItems()
+		(entries, annotations, answers, links) = self.getAllFlaggedItems()
 		result.extend(links)
 		result.extend(answers)
 		result.extend(annotations)
-		result.extend(articles)
+		result.extend(entries)
 		return result
 
 	def getAllItems(self):
-		articles = Article.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+		entries = Entry.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 		annotations = Annotation.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 		answers = Answer.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 		links = Link.all().filter("community = ", self.key()).filter("inImportBuffer = ", False).fetch(FETCH_NUMBER)
-		return (articles, annotations, answers, links)
+		return (entries, annotations, answers, links)
 	
-	def addArticlesFromCSV(self, data, liaison):
+	def addEntriesFromCSV(self, data, liaison):
 		reader = csv.reader(data.split("\n"), delimiter=',', doublequote='"', quotechar='"')
 		for row in reader:
 			dateOkay = True
@@ -343,30 +343,30 @@ class Community(db.Model):
 									else:
 										title = None
 									if title:
-										foundArticle = self.getArticleInImportBufferWithTitle(title)
-										if not foundArticle:
+										foundEntry = self.getEntryInImportBufferWithTitle(title)
+										if not foundEntry:
 											if len(row) >= 5:
 												text = row[4].strip()
 											else:
 												text = "No text imported."
-											article = Article(community=self, type=type, title=title) 
-											article.text = text
-											article.community = self
-											article.creator = member
-											article.collectedOffline = True
-											article.collected = collected
-											article.liaison = liaison
-											article.inImportBuffer = True
-											article.draft = True
-											article.put()	
+											entry = Entry(community=self, type=type, title=title) 
+											entry.text = text
+											entry.community = self
+											entry.creator = member
+											entry.collectedOffline = True
+											entry.collected = collected
+											entry.liaison = liaison
+											entry.inImportBuffer = True
+											entry.draft = True
+											entry.put()	
 										
-	def getArticleInImportBufferWithTitle(self, title):	
-		return Article.all().filter("community = ", self.key()).filter("inImportBuffer = ", True).filter("title = ", title).get()
+	def getEntryInImportBufferWithTitle(self, title):	
+		return Entry.all().filter("community = ", self.key()).filter("inImportBuffer = ", True).filter("title = ", title).get()
 										
-	def getArticlesInImportBufferForLiaison(self, liaison):
-		return Article.all().filter("community = ", self.key()).filter("inImportBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
+	def getEntriesInImportBufferForLiaison(self, liaison):
+		return Entry.all().filter("community = ", self.key()).filter("inImportBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
 	
-	def moveImportedArticlesOutOfBuffer(self, items):
+	def moveImportedEntriesOutOfBuffer(self, items):
 		for item in items:
 			item.draft = False
 			item.inImportBuffer = False
@@ -413,7 +413,7 @@ class Question(db.Model):
 # ============================================================================================
 
 	community = db.ReferenceProperty(Community, collection_name="questions_to_community")
-	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO, required=True) # member or article
+	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO, required=True) # member or entry
 	
 	name = db.StringProperty(required=True, default=DEFAULT_QUESTION_NAME)
 	text = db.StringProperty(required=True)
@@ -457,7 +457,7 @@ class Member(db.Model):
 	googleAccountID = db.StringProperty() # none if off-line member
 	googleAccountEmail = db.StringProperty() # blank if off-line member
 	
-	# active: members are never removed, just inactivated, so articles can still link to something.
+	# active: members are never removed, just inactivated, so entries can still link to something.
 	# inactive members do not show up in any display, but they can be "reactivated" by issuing an invitation
 	# to the same google email as before.
 	active = db.BooleanProperty(default=True) 
@@ -482,7 +482,7 @@ class Member(db.Model):
 	dateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT) # how they want to see times
 	
 	joined = TzDateTimeProperty(auto_now_add=True)
-	lastEnteredArticle = db.DateTimeProperty()
+	lastEnteredEntry = db.DateTimeProperty()
 	lastEnteredAnnotation = db.DateTimeProperty()
 	lastEnteredLink = db.DateTimeProperty()
 	lastAnsweredQuestion = db.DateTimeProperty()
@@ -576,43 +576,43 @@ class Member(db.Model):
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
 	
-	def getNonDraftArticlesAttributedToMember(self):
-		return Article.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).fetch(FETCH_NUMBER)
+	def getNonDraftEntriesAttributedToMember(self):
+		return Entry.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).fetch(FETCH_NUMBER)
 	
 	def getNonDraftAnnotationsAttributedToMember(self):
 		return Annotation.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).fetch(FETCH_NUMBER)
 	
-	def getNonDraftAnswersAboutArticlesAttributedToMember(self):
-		return Answer.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).filter("referentType = ", "article").fetch(FETCH_NUMBER)
+	def getNonDraftAnswersAboutEntriesAttributedToMember(self):
+		return Answer.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
 	
-	def getNonDraftLiaisonedArticles(self):
-		return Article.all().filter("liaison = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+	def getNonDraftLiaisonedEntries(self):
+		return Entry.all().filter("liaison = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
 	def getNonDraftLiaisonedAnnotations(self):
 		return Annotation.all().filter("liaison = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
 	def getNonDraftLiaisonedAnswers(self):
-		return Answer.all().filter("liaison = ", self.key()).filter("draft = ", False).filter("referentType = ", "article").fetch(FETCH_NUMBER)
+		return Answer.all().filter("liaison = ", self.key()).filter("draft = ", False).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
 	
 		
 	# DRAFTS
 	
-	def getDraftArticles(self):
-		return Article.all().filter("creator = ", self.key()).filter("draft = ", True).fetch(FETCH_NUMBER)
+	def getDraftEntries(self):
+		return Entry.all().filter("creator = ", self.key()).filter("draft = ", True).fetch(FETCH_NUMBER)
 	
-	def getDraftAnswersForArticle(self, article):
-		return Answer.all().filter("creator = ", self.key()).filter("draft = ", True).filter("referent = ", article.key()).fetch(FETCH_NUMBER)
+	def getDraftAnswersForEntry(self, entry):
+		return Answer.all().filter("creator = ", self.key()).filter("draft = ", True).filter("referent = ", entry.key()).fetch(FETCH_NUMBER)
 	
 	def getDraftAnnotations(self):
 		return Annotation.all().filter("creator = ", self.key()).filter("draft = ", True).fetch(FETCH_NUMBER)
 	
-	def getArticlesWithDraftAnswers(self):
-		answers = Answer.all().filter("creator = ", self.key()).filter("draft = ", True).filter("referentType = ", "article").fetch(FETCH_NUMBER)
-		articles = {}
+	def getEntriesWithDraftAnswers(self):
+		answers = Answer.all().filter("creator = ", self.key()).filter("draft = ", True).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
+		entries = {}
 		for answer in answers:
-			if not articles.has_key(answer.referent):
-				articles[answer.referent] = 1
-		return articles.keys()
+			if not entries.has_key(answer.referent):
+				entries[answer.referent] = 1
+		return entries.keys()
 	
 # ============================================================================================
 # ============================================================================================
@@ -643,14 +643,14 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 	
 	image = db.BlobProperty(default=None) # optional
 	
-	def getNonDraftArticlesAttributedToCharacter(self):
-		return Article.all().filter("character = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+	def getNonDraftEntriesAttributedToCharacter(self):
+		return Entry.all().filter("character = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
 	def getNonDraftAnnotationsAttributedToCharacter(self):
 		return Annotation.all().filter("character = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
-	def getNonDraftAnswersAboutArticlesAttributedToCharacter(self):
-		return Answer.all().filter("character = ", self.key()).filter("draft = ", False).filter("referentType = ", "article").fetch(FETCH_NUMBER)
+	def getNonDraftAnswersAboutEntriesAttributedToCharacter(self):
+		return Answer.all().filter("character = ", self.key()).filter("draft = ", False).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
 
 # ============================================================================================
 # ============================================================================================
@@ -660,8 +660,8 @@ class Answer(db.Model):
 
 	community = db.ReferenceProperty(Community, collection_name="answers_to_community")
 	question = db.ReferenceProperty(Question, collection_name="answers_to_questions")
-	referent = db.ReferenceProperty(None, collection_name="answers_to_objects") # article or member
-	referentType = db.StringProperty(default="article") # article or member
+	referent = db.ReferenceProperty(None, collection_name="answers_to_objects") # entry or member
+	referentType = db.StringProperty(default="entry") # entry or member
 	creator = db.ReferenceProperty(Member, collection_name="answers_to_creators") 
 	
 	collectedOffline = db.BooleanProperty(default=False)
@@ -681,19 +681,19 @@ class Answer(db.Model):
 	edited = TzDateTimeProperty(auto_now_add=True)
 	published = TzDateTimeProperty(auto_now_add=True)
 	
-	articleNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
-	articleActivityPointsWhenPublished = db.IntegerProperty(default=0)
+	entryNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
+	entryActivityPointsWhenPublished = db.IntegerProperty(default=0)
 	
 	def publish(self):
-		if self.referentType == "article":
+		if self.referentType == "entry":
 			self.draft = False
 			self.published = datetime.now(pytz.utc)
 			self.put()
 			self.referent.recordAction("added", self)
-			if self.referentType == "article":
+			if self.referentType == "entry":
 				for i in range(NUM_NUDGE_CATEGORIES):
-					self.articleNudgePointsWhenPublished[i] = self.referent.nudgePoints[i]
-				self.articleActivityPointsWhenPublished = self.referent.activityPoints
+					self.entryNudgePointsWhenPublished[i] = self.referent.nudgePoints[i]
+				self.entryActivityPointsWhenPublished = self.referent.activityPoints
 				self.put()
 			self.creator.nudgePoints += self.community.getMemberNudgePointsForEvent("answering question")
 			self.creator.lastAnsweredQuestion = datetime.now(pytz.utc)
@@ -751,20 +751,20 @@ class Answer(db.Model):
 
 # ============================================================================================
 # ============================================================================================
-class Article(db.Model):                       # story, invitation, collage, pattern, resource
+class Entry(db.Model):                       # story, invitation, collage, pattern, resource
 # ============================================================================================
 # ============================================================================================
 
-	type = db.StringProperty(choices=ARTICLE_TYPES, required=True) 
-	title = db.StringProperty(required=True, default=DEFAULT_UNTITLED_ARTICLE_TITLE)
-	text = db.TextProperty(default=NO_TEXT_IN_ARTICLE)
+	type = db.StringProperty(choices=ENTRY_TYPES, required=True) 
+	title = db.StringProperty(required=True, default=DEFAULT_UNTITLED_ENTRY_TITLE)
+	text = db.TextProperty(default=NO_TEXT_IN_ENTRY)
 	text_formatted = db.TextProperty()
 	text_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
 
-	community = db.ReferenceProperty(Community, required=True, collection_name="articles_to_community")
-	creator = db.ReferenceProperty(Member, collection_name="articles")
+	community = db.ReferenceProperty(Community, required=True, collection_name="entries_to_community")
+	creator = db.ReferenceProperty(Member, collection_name="entries")
 	collectedOffline = db.BooleanProperty(default=False)
-	liaison = db.ReferenceProperty(Member, default=None, collection_name="articles_to_liaisons")
+	liaison = db.ReferenceProperty(Member, default=None, collection_name="entries_to_liaisons")
 	character = db.ReferenceProperty(Character, default=None)
 	
 	draft = db.BooleanProperty(default=True)
@@ -791,7 +791,7 @@ class Article(db.Model):                       # story, invitation, collage, pat
 		self.recordAction("added", self)
 		self.put()
 		self.creator.nudgePoints += self.community.getMemberNudgePointsForEvent("adding %s" % self.type)
-		self.creator.lastEnteredArticle = datetime.now(pytz.utc)
+		self.creator.lastEnteredEntry = datetime.now(pytz.utc)
 		self.creator.put()
 		for answer in self.getAnswersForMember(self.creator):
 			answer.publish()
@@ -802,7 +802,7 @@ class Article(db.Model):                       # story, invitation, collage, pat
 		self.community.put()
 		
 	def recordAction(self, action, referent):
-		if referent.__class__.__name__ == "Article":
+		if referent.__class__.__name__ == "Entry":
 			if action == "read":
 				eventType = "reading"
 				self.lastRead = datetime.now(tz=pytz.utc)
@@ -822,7 +822,7 @@ class Article(db.Model):                       # story, invitation, collage, pat
 		elif referent.__class__.__name__ == "Link":
 			eventType = "adding %s link" % referent.type 
 			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
-		self.activityPoints += self.community.getArticleActivityPointsForEvent(eventType)
+		self.activityPoints += self.community.getEntryActivityPointsForEvent(eventType)
 		self.put()
 		
 	def updateForTimeDownDrift(self):
@@ -888,7 +888,7 @@ class Article(db.Model):                       # story, invitation, collage, pat
 	# NUDGE SYSTEM
 
 	def getNudgesForMember(self, member):
-		return Annotation.all().filter("article = ", self.key()).filter("type = ", "nudge").filter("creator = ", member.key()).fetch(FETCH_NUMBER)
+		return Annotation.all().filter("entry = ", self.key()).filter("type = ", "nudge").filter("creator = ", member.key()).fetch(FETCH_NUMBER)
 	
 	def getTotalNudgePointsForMember(self, member):
 		nudges = self.getNudgesForMember(member)
@@ -915,16 +915,16 @@ class Article(db.Model):                       # story, invitation, collage, pat
 	# ANNOTATIONS, ANSWERS, LINKS
 	
 	def getAnnotations(self):
-		return Annotation.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
+		return Annotation.all().filter("entry =", self.key()).fetch(FETCH_NUMBER)
 	
 	def getNonDraftAnnotations(self):
-		return Annotation.all().filter("article =", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+		return Annotation.all().filter("entry =", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
 	def getNonDraftAnnotationsOfType(self, type):
-		return Annotation.all().filter("article =", self.key()).filter("type = ", type).filter("draft = ", False).fetch(FETCH_NUMBER)
+		return Annotation.all().filter("entry =", self.key()).filter("type = ", type).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
 	def getAttachments(self):
-		return Attachment.all().filter("article =", self.key()).fetch(FETCH_NUMBER)
+		return Attachment.all().filter("entry =", self.key()).fetch(FETCH_NUMBER)
 	
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
@@ -937,8 +937,8 @@ class Article(db.Model):                       # story, invitation, collage, pat
 	
 	def getAllLinks(self):
 		result = []
-		outgoingLinks = Link.all().filter("articleFrom =", self.key()).fetch(FETCH_NUMBER)
-		incomingLinks = Link.all().filter("articleTo =", self.key()).fetch(FETCH_NUMBER)
+		outgoingLinks = Link.all().filter("entryFrom =", self.key()).fetch(FETCH_NUMBER)
+		incomingLinks = Link.all().filter("entryTo =", self.key()).fetch(FETCH_NUMBER)
 		result.extend(outgoingLinks)
 		result.extend(incomingLinks)
 		return result
@@ -952,16 +952,16 @@ class Article(db.Model):                       # story, invitation, collage, pat
 		return result
 	
 	def getOutgoingLinksOfType(self, type):
-		return Link.all().filter("articleFrom =", self.key()).filter("type = ", type).filter("inImportBuffer = ", False).fetch(FETCH_NUMBER)
+		return Link.all().filter("entryFrom =", self.key()).filter("type = ", type).filter("inImportBuffer = ", False).fetch(FETCH_NUMBER)
 	
 	def getIncomingLinksOfType(self, type):
-		return Link.all().filter("articleTo =", self.key()).filter("type = ", type).filter("inImportBuffer = ", False).fetch(FETCH_NUMBER)
+		return Link.all().filter("entryTo =", self.key()).filter("type = ", type).filter("inImportBuffer = ", False).fetch(FETCH_NUMBER)
 	
 	def getIncomingLinksOfTypeFromType(self, type, fromType):
 		result = []
 		incomingLinks = self.getIncomingLinksOfType(type)
 		for link in incomingLinks:
-			if link.articleFrom.type == fromType:
+			if link.entryFrom.type == fromType:
 				result.append(link)
 		return result
 	
@@ -1011,8 +1011,8 @@ class Link(db.Model):                         # related, retold, reminded, respo
 	# 	reminded: story or resource to story
 	#   responded: invitation to story
 	#	included: collage to story
-	articleFrom = db.ReferenceProperty(Article, collection_name="linksFrom", required=True)
-	articleTo = db.ReferenceProperty(Article, collection_name="linksTo", required=True)
+	entryFrom = db.ReferenceProperty(Entry, collection_name="linksFrom", required=True)
+	entryTo = db.ReferenceProperty(Entry, collection_name="linksTo", required=True)
 	community = db.ReferenceProperty(Community, required=True, collection_name="links_to_community")
 	creator = db.ReferenceProperty(Member, collection_name="links")
 	
@@ -1024,28 +1024,28 @@ class Link(db.Model):                         # related, retold, reminded, respo
 	
 	comment = db.StringProperty(default="")
 	
-	articleNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
-	articleActivityPointsWhenPublished = db.IntegerProperty(default=0)
+	entryNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
+	entryActivityPointsWhenPublished = db.IntegerProperty(default=0)
 	
 	# IMPORTANT METHODS
 	
 	def publish(self):
 		self.published = datetime.now(pytz.utc)
 		self.put()
-		self.articleFrom.recordAction("added", self)
-		self.articleTo.recordAction("added", self)
+		self.entryFrom.recordAction("added", self)
+		self.entryTo.recordAction("added", self)
 		for i in range(NUM_NUDGE_CATEGORIES):
-			self.articleNudgePointsWhenPublished[i] = self.articleFrom.nudgePoints[i]
-		self.articleActivityPointsWhenPublished = self.articleFrom.activityPoints
+			self.entryNudgePointsWhenPublished[i] = self.entryFrom.nudgePoints[i]
+		self.entryActivityPointsWhenPublished = self.entryFrom.activityPoints
 		self.put()
-		self.creator.nudgePoints = self.articleFrom.community.getMemberNudgePointsForEvent("adding %s link" % self.type)
+		self.creator.nudgePoints = self.entryFrom.community.getMemberNudgePointsForEvent("adding %s link" % self.type)
 		self.creator.lastEnteredLink = datetime.now(pytz.utc)
 		self.creator.put()
-		self.articleFrom.community.lastPublish = self.published
-		if not self.articleFrom.community.firstPublishSet:
-			self.articleFrom.community.firstPublish = self.published
-			self.articleFrom.community.firstPublishSet = True
-		self.articleFrom.community.put()
+		self.entryFrom.community.lastPublish = self.published
+		if not self.entryFrom.community.firstPublishSet:
+			self.entryFrom.community.firstPublish = self.published
+			self.entryFrom.community.firstPublishSet = True
+		self.entryFrom.community.put()
 		
 	# MEMBERS
 		
@@ -1058,7 +1058,7 @@ class Link(db.Model):                         # related, retold, reminded, respo
 		return'<img src="/images/link.png" alt="link" border="0">'
 	
 	def displayString(self):
-		result = '<a href="read?%s">%s</a> (%s' % (self.articleTo.key(), self.articleTo.title, self.type)
+		result = '<a href="read?%s">%s</a> (%s' % (self.entryTo.key(), self.entryTo.title, self.type)
 		if self.comment:
 			result += ", %s)" % self.comment
 		else:
@@ -1070,14 +1070,14 @@ class Link(db.Model):                         # related, retold, reminded, respo
 		
 # ============================================================================================
 # ============================================================================================
-class Attachment(db.Model):                                   # binary attachments to articles
+class Attachment(db.Model):                                   # binary attachments to entries
 # ============================================================================================
 # ============================================================================================
 	name = db.StringProperty()
 	mimeType = db.StringProperty() # from ACCEPTED_ATTACHMENT_MIME_TYPES
 	fileName = db.StringProperty() # as uploaded
 	data = db.BlobProperty() # there is a practical limit on this size - cfk look at
-	article = db.ReferenceProperty(Article, collection_name="attachments")
+	entry = db.ReferenceProperty(Entry, collection_name="attachments")
 	
 	def linkString(self):
 		return '<a href="/visit/attachment?attachment_id=%s">%s</a>' % (self.key(), self.fileName)
@@ -1093,7 +1093,7 @@ class Annotation(db.Model):                                # tag set, comment, r
 
 	type = db.StringProperty(choices=ANNOTATION_TYPES, required=True)
 	community = db.ReferenceProperty(Community, required=True, collection_name="annotations_to_community")
-	article = db.ReferenceProperty(Article, required=True, collection_name="annotations")
+	entry = db.ReferenceProperty(Entry, required=True, collection_name="annotations")
 	creator = db.ReferenceProperty(Member, collection_name="annotations")
 	
 	draft = db.BooleanProperty(default=True)
@@ -1118,8 +1118,8 @@ class Annotation(db.Model):                                # tag set, comment, r
 	edited = TzDateTimeProperty(auto_now_add=True)
 	published = TzDateTimeProperty(auto_now_add=True)
 	
-	articleNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
-	articleActivityPointsWhenPublished = db.IntegerProperty(default=0)
+	entryNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
+	entryActivityPointsWhenPublished = db.IntegerProperty(default=0)
 	
 	# IMPORTANT METHODS
 	
@@ -1127,10 +1127,10 @@ class Annotation(db.Model):                                # tag set, comment, r
 		self.draft = False
 		self.published = datetime.now(pytz.utc)
 		self.put()
-		self.article.recordAction("added", self)
+		self.entry.recordAction("added", self)
 		for i in range(NUM_NUDGE_CATEGORIES):
-			self.articleNudgePointsWhenPublished[i] = self.article.nudgePoints[i]
-		self.articleActivityPointsWhenPublished = self.article.activityPoints
+			self.entryNudgePointsWhenPublished[i] = self.entry.nudgePoints[i]
+		self.entryActivityPointsWhenPublished = self.entry.activityPoints
 		self.put()
 		self.creator.nudgePoints += self.community.getMemberNudgePointsForEvent("adding %s" % self.type)
 		self.creator.put()

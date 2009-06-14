@@ -10,54 +10,54 @@
 		<p></p>
 		<table border="1" cellpadding="4" cellspacing="0">
 	      	<tr>
-	      		<th>Articles without <b>tags</b></th>
-	      		<th>Articles without <b>links</b></th>
-	      		{% if community.getNonMemberQuestions %} <th>Articles without <b>answers</b> to questions</th> {% endif %}
-	      		<th>Articles without <b>comments</b></th>
+	      		<th>Entries without <b>tags</b></th>
+	      		<th>Entries without <b>links</b></th>
+	      		{% if community.getNonMemberQuestions %} <th>Entries without <b>answers</b> to questions</th> {% endif %}
+	      		<th>Entries without <b>comments</b></th>
 	      		<th>Invitations without <b>responses</b></th>
 	      		<th>Collages without <b>links to stories</b></th>
 	      	</tr>
 	      	<tr>
-	      	<td valign="top">{% if articles_without_tags %}
-				{% for article in articles_without_tags %}
-					<p>{{article.linkString}} ({{article.type}})</p>
+	      	<td valign="top">{% if entries_without_tags %}
+				{% for entry in entries_without_tags %}
+					<p>{{entry.linkString}} ({{entry.type}})</p>
 				{% endfor %}
 			{% else %}
 				none
 			{% endif %}</td>
-	      	<td valign="top">{% if articles_without_links %}
-				{% for article in articles_without_links %}
-					<p>{{article.linkString}} ({{article.type}})</p>
+	      	<td valign="top">{% if entries_without_links %}
+				{% for entry in entries_without_links %}
+					<p>{{entry.linkString}} ({{entry.type}})</p>
 				{% endfor %}
 			{% else %}
 				none
 			{% endif %}</td>
 			{% if community.getNonMemberQuestions %} 
-		      	<td valign="top">{% if articles_without_answers %}
-					{% for article in articles_without_answers %}
-						<p>{{article.linkString}} ({{article.type}})</p>
+		      	<td valign="top">{% if entries_without_answers %}
+					{% for entry in entries_without_answers %}
+						<p>{{entry.linkString}} ({{entry.type}})</p>
 					{% endfor %}
 				{% else %}
 					none
 				{% endif %}</td>
 			{% endif %}
-	      	<td valign="top">{% if articles_without_comments %}
-				{% for article in articles_without_comments %}
-					<p>{{article.linkString}} ({{article.type}})</p>
+	      	<td valign="top">{% if entries_without_comments %}
+				{% for entry in entries_without_comments %}
+					<p>{{entry.linkString}} ({{entry.type}})</p>
 				{% endfor %}
 			{% else %}
 				none
 			{% endif %}</td>
 	      	<td valign="top">{% if invitations_without_responses %}
-				{% for article in invitations_without_responses %}
-					<p>{{article.linkString}} ({{article.type}})</p>
+				{% for entry in invitations_without_responses %}
+					<p>{{entry.linkString}} ({{entry.type}})</p>
 				{% endfor %}
 			{% else %}
 				none
 			{% endif %}</td>
 	      	<td valign="top">{% if collages_without_inclusions %}
-				{% for article in collages_without_inclusions %}
-					<p>{{article.linkString}} ({{article.type}})</p>
+				{% for entry in collages_without_inclusions %}
+					<p>{{entry.linkString}} ({{entry.type}})</p>
 				{% endfor %}
 			{% else %}
 				none

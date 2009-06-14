@@ -16,10 +16,10 @@ application = webapp.WSGIApplication(
 									 [('/', StartPage),
 									  
 									  # visiting
-									  ('/visit', BrowseArticlesPage),
-									  ('/visit/', BrowseArticlesPage),
-									  ('/visit/look', BrowseArticlesPage),
-									  ('/visit/read', ReadArticlePage),
+									  ('/visit', BrowseEntriesPage),
+									  ('/visit/', BrowseEntriesPage),
+									  ('/visit/look', BrowseEntriesPage),
+									  ('/visit/read', ReadEntryPage),
 									  ('/visit/readAnnotation', ReadAnnotationPage),
 									  
 									  ('/visit/members', SeeCommunityMembersPage),
@@ -29,19 +29,19 @@ application = webapp.WSGIApplication(
 									  ('/visit/new', NewMemberPage),
 									  ('/visit/profile', ChangeMemberProfilePage),
 									  
-									  # entering articles
-									  ('/visit/story', EnterArticlePage),
-									  ('/visit/retell', EnterArticlePage),
-									  ('/visit/remind', EnterArticlePage),
-									  ('/visit/respond', EnterArticlePage),
-									  ('/visit/pattern', EnterArticlePage),
-									  ('/visit/collage', EnterArticlePage),
-									  ('/visit/invitation', EnterArticlePage),
-									  ('/visit/resource', EnterArticlePage),
-									  ('/visit/article', EnterArticlePage),
+									  # entering entries
+									  ('/visit/story', EnterEntryPage),
+									  ('/visit/retell', EnterEntryPage),
+									  ('/visit/remind', EnterEntryPage),
+									  ('/visit/respond', EnterEntryPage),
+									  ('/visit/pattern', EnterEntryPage),
+									  ('/visit/collage', EnterEntryPage),
+									  ('/visit/invitation', EnterEntryPage),
+									  ('/visit/resource', EnterEntryPage),
+									  ('/visit/entry', EnterEntryPage),
 									  
 									  # answering questions
-									  ('/visit/answers', AnswerQuestionsAboutArticlePage),
+									  ('/visit/answers', AnswerQuestionsAboutEntryPage),
 									  ('/visit/preview', PreviewPage),
 									  ('/visit/previewAnswers', PreviewPage),
 									  
@@ -53,14 +53,14 @@ application = webapp.WSGIApplication(
 									  ('/visit/annotation', EnterAnnotationPage),
 									  
 									  # entering links
-									  ('/visit/relate', RelateArticlePage),
+									  ('/visit/relate', RelateEntryPage),
 									  
 									  # helping roles
-									  ('/visit/curate', ReadArticlePage),
+									  ('/visit/curate', ReadEntryPage),
 									  ('/visit/flag', FlagOrUnflagItemPage),
 									  ('/curate/flags', CurateFlagsPage),
 									  ('/curate/gaps', CurateGapsPage),
-									  ('/guide/resource', EnterArticlePage),
+									  ('/guide/resource', EnterEntryPage),
 									  ('/guide/resources', ReviewResourcesPage),
 									  ('/liaise/import', ImportItemsPage),
 									  ('/liaise/members', ReviewOfflineMembersPage),

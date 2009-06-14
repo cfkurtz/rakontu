@@ -34,12 +34,12 @@ class CurateFlagsPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 			if member.isCuratorOrManagerOrOwner():
-				(articles, annotations, answers, links) = community.getAllFlaggedItems()
+				(entries, annotations, answers, links) = community.getAllFlaggedItems()
 				template_values = {
 							   	   'title': "Review flags", 
 						   	   	   'title_extra': None, 
 								   'community': community, 
-								   'articles': articles,
+								   'entries': entries,
 								   'annotations': annotations,
 								   'answers': answers,
 								   'links': links,
@@ -73,7 +73,7 @@ class CurateFlagsPage(webapp.RequestHandler):
 							item.comment = ""
 						item.put()
 					elif self.request.get("remove|%s" % item.key()) == "yes":
-						if item.__class__.__name__ == "Article":
+						if item.__class__.__name__ == "Entry":
 							item.removeAllDependents()
 						db.delete(item)
 				self.redirect('/result?changessaved')
@@ -89,27 +89,27 @@ class CurateFlagsPage(webapp.RequestHandler):
 					messageLines.append("The curator %s wanted you to know that these items require your attention.\n" % member.nickname)
 					itemsToSendMessageAbout.reverse()
 					for item in itemsToSendMessageAbout:
-						if item.__class__.__name__ == "Article":
+						if item.__class__.__name__ == "Entry":
 							linkKey = item.key()
 							displayString = 'A %s called "%s"' % (item.type, item.title)
 						elif item.__class__.__name__ == "Annotation":
-							linkKey = item.article.key()
+							linkKey = item.entry.key()
 							if item.shortString:
 								shortString = " (%s)" % item.shortString
 							else:
 								shortString = ""
-							displayString = 'A %s%s for the %s called "%s"' % (item.type, shortString, item.article.type, item.article.title)
+							displayString = 'A %s%s for the %s called "%s"' % (item.type, shortString, item.entry.type, item.entry.title)
  						elif item.__class__.__name__ == "Answer":
 							linkKey = item.referent.key()
 							displayString = 'An answer (%s) for the %s called "%s"' % (item.displayString(), item.referent.type, item.referent.title)
 						elif item.__class__.__name__ == "Link":
-							linkKey = item.articleFrom.key()
+							linkKey = item.entryFrom.key()
 							if item.comment:
 								commentString = " (%s)" % item.comment
 							else:
 								commentString = ""
 							displayString = 'A link%s from the %s called "%s" to the %s called "%s"' % \
-								(commentString, item.articleFrom.type, item.articleFrom.title, item.articleTo.type, item.articleTo.title)
+								(commentString, item.entryFrom.type, item.entryFrom.title, item.entryTo.type, item.entryTo.title)
 						messageLines.append('* %s\n\n    http://%s/visit/curate?%s\n' % (displayString, URL, linkKey))
 					messageLines.append("Thank you for your attention.\n")
 					messageLines.append("Sincerely,")
@@ -140,20 +140,20 @@ class CurateGapsPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 			if member.isCuratorOrManagerOrOwner():
-				(articlesWithoutTags, \
-				articlesWithoutLinks, \
-				articlesWithoutAnswers, \
-				articlesWithoutComments, \
+				(entriesWithoutTags, \
+				entriesWithoutLinks, \
+				entriesWithoutAnswers, \
+				entriesWithoutComments, \
 				invitationsWithoutResponses,
-				collagesWithoutInclusions) = community.getNonDraftArticlesWithMissingMetadata()
+				collagesWithoutInclusions) = community.getNonDraftEntriesWithMissingMetadata()
 				template_values = {
 							   	   'title': "Review flags", 
 						   	   	   'title_extra': None, 
 								   'community': community, 
-								   'articles_without_tags': articlesWithoutTags,
-								   'articles_without_links': articlesWithoutLinks,
-								   'articles_without_answers': articlesWithoutAnswers,
-								   'articles_without_comments': articlesWithoutComments,
+								   'entries_without_tags': entriesWithoutTags,
+								   'entries_without_links': entriesWithoutLinks,
+								   'entries_without_answers': entriesWithoutAnswers,
+								   'entries_without_comments': entriesWithoutComments,
 								   'invitations_without_responses': invitationsWithoutResponses,
 								   'collages_without_inclusions': collagesWithoutInclusions,
 								   'current_user': users.get_current_user(), 
@@ -178,7 +178,7 @@ class ReviewResourcesPage(webapp.RequestHandler):
 							   	   'title': "Resources", 
 						   	   	   'title_extra': None, 
 								   'community': community, 
-								   'resources': community.getNonDraftArticlesOfType("resource"),
+								   'resources': community.getNonDraftEntriesOfType("resource"),
 								   'current_user': users.get_current_user(), 
 								   'current_member': member,
 								   'user_is_admin': users.is_current_user_admin(),
@@ -196,7 +196,7 @@ class ReviewResourcesPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 			if member.isGuideOrManagerOrOwner():
-				resources = community.getNonDraftArticlesOfType("resource")
+				resources = community.getNonDraftEntriesOfType("resource")
 				for resource in resources:
 					 if self.request.get("flag|%s" % resource.key()) == "yes":
 					 	resource.flaggedForRemoval = not resource.flaggedForRemoval
@@ -257,7 +257,7 @@ class ImportItemsPage(webapp.RequestHandler):
 						   	   	   'title_extra': None, 
 								   'community': community, 
 								   'current_user': users.get_current_user(), 
-								   'articles': community.getArticlesInImportBufferForLiaison(member),
+								   'entries': community.getEntriesInImportBufferForLiaison(member),
 								   'current_member': member,
 								   'user_is_admin': users.is_current_user_admin(),
 								   'logout_url': users.create_logout_url("/"),
@@ -276,13 +276,13 @@ class ImportItemsPage(webapp.RequestHandler):
 			if member.isLiaisonOrManagerOrOwner():
 				if "finalizeImport" in self.request.arguments():
 					itemsToFinalize = []
-					items = community.getArticlesInImportBufferForLiaison(member)
+					items = community.getEntriesInImportBufferForLiaison(member)
 					for item in items:
 						if self.request.get("import|%s" % item.key()) == "yes":
 							itemsToFinalize.append(item)
 					if itemsToFinalize:
-						community.moveImportedArticlesOutOfBuffer(itemsToFinalize)
+						community.moveImportedEntriesOutOfBuffer(itemsToFinalize)
 				elif self.request.get("import"):
-					community.addArticlesFromCSV(self.request.get("import"), member)
+					community.addEntriesFromCSV(self.request.get("import"), member)
 				self.redirect('/liaise/import')
 

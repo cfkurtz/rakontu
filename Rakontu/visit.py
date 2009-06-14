@@ -113,21 +113,21 @@ class NewMemberPage(webapp.RequestHandler):
 		else:
 			self.redirect('/')
 			
-class BrowseArticlesPage(webapp.RequestHandler):
+class BrowseEntriesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-			articles = community.getNonDraftArticles()
-			if articles:
+			entries = community.getNonDraftEntries()
+			if entries:
 				maxTime = member.viewTimeEnd
 				minTime = member.getViewStartTime()
 				maxNudgePoints = -9999999
 				minNudgePoints = -9999999
 				minActivityPoints = -9999999
 				maxActivityPoints = -9999999
-				for article in articles:
-					nudgePoints = article.nudgePointsCombined()
+				for entry in entries:
+					nudgePoints = entry.nudgePointsCombined()
 					if minNudgePoints == -9999999:
 						minNudgePoints = nudgePoints
 					elif nudgePoints < minNudgePoints:
@@ -136,7 +136,7 @@ class BrowseArticlesPage(webapp.RequestHandler):
 						maxNudgePoints = nudgePoints
 					elif nudgePoints > maxNudgePoints:
 						maxNudgePoints = nudgePoints
-					activityPoints = article.activityPoints
+					activityPoints = entry.activityPoints
 					if minActivityPoints == -9999999:
 						minActivityPoints = activityPoints
 					elif activityPoints < minActivityPoints:
@@ -165,24 +165,24 @@ class BrowseArticlesPage(webapp.RequestHandler):
 						endTime = minTime + timeStep * (col+1)
 						if row == numRows - 1:
 							rowHeaders.append(RelativeTimeDisplayString(startTime, member))
-						for article in articles:
-							shouldBeInRow = article.nudgePointsCombined() >= startNudgePoints and article.nudgePointsCombined() < endNudgePoints
-							if article.lastAnnotatedOrAnsweredOrLinked:
-								timeToCheck = article.lastAnnotatedOrAnsweredOrLinked
+						for entry in entries:
+							shouldBeInRow = entry.nudgePointsCombined() >= startNudgePoints and entry.nudgePointsCombined() < endNudgePoints
+							if entry.lastAnnotatedOrAnsweredOrLinked:
+								timeToCheck = entry.lastAnnotatedOrAnsweredOrLinked
 							else:
-								timeToCheck = article.published
+								timeToCheck = entry.published
 							shouldBeInCol = timeToCheck >= startTime and timeToCheck < endTime
 							if shouldBeInRow and shouldBeInCol:
-								fontSizePercent = min(200, 90 + article.activityPoints - minActivityPoints)
-								if article.attributedToMember():
-									if article.creator.active:
-										nameString = '<a href="member?%s">%s</a>' % (article.creator.key(), article.creator.nickname)
+								fontSizePercent = min(200, 90 + entry.activityPoints - minActivityPoints)
+								if entry.attributedToMember():
+									if entry.creator.active:
+										nameString = '<a href="member?%s">%s</a>' % (entry.creator.key(), entry.creator.nickname)
 									else:
-										nameString = article.creator.nickname
+										nameString = entry.creator.nickname
 								else:
-									nameString = '<a href="character?%s">%s</a>' % (article.character.key(), article.character.name)
+									nameString = '<a href="character?%s">%s</a>' % (entry.character.key(), entry.character.name)
 								text = '<p>%s <span style="font-size:%s%%"><a href="/visit/read?%s" %s>%s</a> (%s)</span></p>' % \
-									(article.getImageLinkForType(), fontSizePercent, article.key(), article.getTooltipText(), article.title, nameString)
+									(entry.getImageLinkForType(), fontSizePercent, entry.key(), entry.getTooltipText(), entry.title, nameString)
 								textsInThisCell.append(text)
 						textsInThisRow.append(textsInThisCell)
 					textsForGrid.append(textsInThisRow)
@@ -194,11 +194,11 @@ class BrowseArticlesPage(webapp.RequestHandler):
 						   	'title_extra': None,
 							'community': community, 
 							'current_member': member, 
-							'articles': articles, 
+							'entries': entries, 
 							'rows_cols': textsForGrid, 
 							'row_headers': rowHeaders, 
 							'time_frames': TIME_FRAMES, 
-							'article_types': ARTICLE_TYPES, 
+							'entry_types': ENTRY_TYPES, 
 							'1_to_31': range(1, 31, 1), 
 							'3_to_10': range(3, 11, 1), 
 							'user_is_admin': users.is_current_user_admin(), 
@@ -252,22 +252,22 @@ class BrowseArticlesPage(webapp.RequestHandler):
 		else:
 			self.redirect("/")
 			
-class ReadArticlePage(webapp.RequestHandler):
+class ReadEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-			article = db.get(self.request.query_string)
-			if article:
+			entry = db.get(self.request.query_string)
+			if entry:
 				curating = self.request.uri.find("curate") >= 0
 				allItems = []
-				allItems.extend(article.getNonDraftAnnotations())
-				allItems.extend(article.getNonDraftAnswers())
-				allItems.extend(article.getAllLinks())
+				allItems.extend(entry.getNonDraftAnnotations())
+				allItems.extend(entry.getNonDraftAnswers())
+				allItems.extend(entry.getAllLinks())
 				haveContent = False
 				if allItems:
-					maxTime = article.lastAnnotatedOrAnsweredOrLinked
-					minTime = article.published
+					maxTime = entry.lastAnnotatedOrAnsweredOrLinked
+					minTime = entry.published
 					maxNudgePoints = -9999999
 					minNudgePoints = -9999999
 					minActivityPoints = -9999999
@@ -275,7 +275,7 @@ class ReadArticlePage(webapp.RequestHandler):
 					for item in allItems:
 						nudgePoints = 0
 						for i in range(NUM_NUDGE_CATEGORIES):
-							nudgePoints += item.articleNudgePointsWhenPublished[i]
+							nudgePoints += item.entryNudgePointsWhenPublished[i]
 						if minNudgePoints == -9999999:
 							minNudgePoints = nudgePoints
 						elif nudgePoints < minNudgePoints:
@@ -284,7 +284,7 @@ class ReadArticlePage(webapp.RequestHandler):
 							maxNudgePoints = nudgePoints
 						elif nudgePoints > maxNudgePoints:
 							maxNudgePoints = nudgePoints
-						activityPoints = item.articleActivityPointsWhenPublished
+						activityPoints = item.entryActivityPointsWhenPublished
 						if minActivityPoints == -9999999:
 							minActivityPoints = activityPoints
 						elif activityPoints < minActivityPoints:
@@ -317,12 +317,12 @@ class ReadArticlePage(webapp.RequestHandler):
 							for item in allItems:
 								nudgePoints = 0
 								for i in range(NUM_NUDGE_CATEGORIES):
-									nudgePoints += item.articleNudgePointsWhenPublished[i]
+									nudgePoints += item.entryNudgePointsWhenPublished[i]
 								shouldBeInRow = nudgePoints >= startNudgePoints and nudgePoints < endNudgePoints
 								shouldBeInCol = item.published >= startTime and item.published < endTime
 								if shouldBeInRow and shouldBeInCol:
-									fontSizePercent = min(200, 90 + item.articleActivityPointsWhenPublished - minActivityPoints)
-									timeLoss = (item.published - article.published).seconds // 60
+									fontSizePercent = min(200, 90 + item.entryActivityPointsWhenPublished - minActivityPoints)
+									timeLoss = (item.published - entry.published).seconds // 60
 									fontSizePercent -= timeLoss
 									if item.attributedToMember():
 										if item.creator.active:
@@ -349,63 +349,63 @@ class ReadArticlePage(webapp.RequestHandler):
 					rowHeaders = None
 				if not haveContent:
 					textsForGrid = None
-				if not article.memberCanNudge(member):
+				if not entry.memberCanNudge(member):
 					nudgePointsMemberCanAssign = 0
 				else:
-					nudgePointsMemberCanAssign = max(0, community.maxNudgePointsPerArticle - article.getTotalNudgePointsForMember(member))
-				communityHasQuestionsForThisArticleType = len(community.getQuestionsOfType(article.type)) > 0
-				memberCanAnswerQuestionsAboutThisArticle = len(article.getAnswersForMember(member)) == 0
-				memberCanAddNudgeToThisArticle = nudgePointsMemberCanAssign > 0
+					nudgePointsMemberCanAssign = max(0, community.maxNudgePointsPerEntry - entry.getTotalNudgePointsForMember(member))
+				communityHasQuestionsForThisEntryType = len(community.getQuestionsOfType(entry.type)) > 0
+				memberCanAnswerQuestionsAboutThisEntry = len(entry.getAnswersForMember(member)) == 0
+				memberCanAddNudgeToThisEntry = nudgePointsMemberCanAssign > 0
 				thingsUserCanDo = {}
-				if article.isStory():
-					thingsUserCanDo["Tell another version of what happened"] = "retell?%s" % article.key()
-				if article.isStory() or article.isResource():
-					thingsUserCanDo["Tell a story this %s reminds me of" % article.type] = "remind?%s" % article.key()
-				if communityHasQuestionsForThisArticleType and memberCanAnswerQuestionsAboutThisArticle:
-					thingsUserCanDo["Answer questions about this %s" % article.type] = "answers?%s" % article.key()
-				if article.isInvitation():
-					thingsUserCanDo["Respond to this invitation with a story"] = "respond?%s" % article.key()
-				thingsUserCanDo["Add a comment about this %s" % article.type] = "comment?%s" % article.key()
-				thingsUserCanDo["Add some tags about this %s" % article.type] = "tagset?%s" % article.key()
-				if memberCanAddNudgeToThisArticle:
-					thingsUserCanDo["Nudge this %s up or down" % article.type] = "nudge?%s" % article.key()
-				thingsUserCanDo["Make a request about this %s" % article.type] = "request?%s" % article.key()
-				thingsUserCanDo["Add or remove relations to this %s" % article.type] = "relate?%s" % article.key()
+				if entry.isStory():
+					thingsUserCanDo["Tell another version of what happened"] = "retell?%s" % entry.key()
+				if entry.isStory() or entry.isResource():
+					thingsUserCanDo["Tell a story this %s reminds me of" % entry.type] = "remind?%s" % entry.key()
+				if communityHasQuestionsForThisEntryType and memberCanAnswerQuestionsAboutThisEntry:
+					thingsUserCanDo["Answer questions about this %s" % entry.type] = "answers?%s" % entry.key()
+				if entry.isInvitation():
+					thingsUserCanDo["Respond to this invitation with a story"] = "respond?%s" % entry.key()
+				thingsUserCanDo["Add a comment about this %s" % entry.type] = "comment?%s" % entry.key()
+				thingsUserCanDo["Add some tags about this %s" % entry.type] = "tagset?%s" % entry.key()
+				if memberCanAddNudgeToThisEntry:
+					thingsUserCanDo["Nudge this %s up or down" % entry.type] = "nudge?%s" % entry.key()
+				thingsUserCanDo["Make a request about this %s" % entry.type] = "request?%s" % entry.key()
+				thingsUserCanDo["Add or remove relations to this %s" % entry.type] = "relate?%s" % entry.key()
 				if member.isCuratorOrManagerOrOwner():
-					thingsUserCanDo["Curate this %s" % article.type] = "curate?%s" % article.key()
-				if article.creator.key() == member.key() and community.allowsPostPublishEditOfArticleType(article.type):
-					thingsUserCanDo["Change this %s" % article.type] = "%s?%s" % (article.type, article.key())
+					thingsUserCanDo["Curate this %s" % entry.type] = "curate?%s" % entry.key()
+				if entry.creator.key() == member.key() and community.allowsPostPublishEditOfEntryType(entry.type):
+					thingsUserCanDo["Change this %s" % entry.type] = "%s?%s" % (entry.type, entry.key())
 				template_values = {
-								   'title': article.title, 
+								   'title': entry.title, 
 						   		   'title_extra': None,
 								   'community': community, 
 								   'current_member': member,
 								   'current_member_key': member.key(),
 								   'curating': curating,
-								   'article': article,
+								   'entry': entry,
 								   'rows_cols': textsForGrid, 
 							       'row_headers': rowHeaders, 
 							       'things_member_can_do': thingsUserCanDo,
-								   'member_can_answer_questions': memberCanAnswerQuestionsAboutThisArticle,
-								   'member_can_add_nudge': memberCanAddNudgeToThisArticle,
-								   'community_has_questions_for_this_article_type': communityHasQuestionsForThisArticleType,
+								   'member_can_answer_questions': memberCanAnswerQuestionsAboutThisEntry,
+								   'member_can_add_nudge': memberCanAddNudgeToThisEntry,
+								   'community_has_questions_for_this_entry_type': communityHasQuestionsForThisEntryType,
 								   'user_is_admin': users.is_current_user_admin(),
 								   'logout_url': users.create_logout_url("/"),
-								   'answers': article.getNonDraftAnswers(),
-								   'questions': community.getQuestionsOfType(article.type),
-								   'attachments': article.getAttachments(),
-								   'requests': article.getNonDraftAnnotationsOfType("request"),
-								   'comments': article.getNonDraftAnnotationsOfType("comment"),
-								   'tag_sets': article.getNonDraftAnnotationsOfType("tag set"),
-								   'nudges': article.getNonDraftAnnotationsOfType("nudge"),
-								   'retold_links_incoming': article.getIncomingLinksOfType("retold"),
-								   'retold_links_outgoing': article.getOutgoingLinksOfType("retold"),
-								   'reminded_links_incoming': article.getIncomingLinksOfType("reminded"),
-								   'reminded_links_outgoing': article.getOutgoingLinksOfType("reminded"),
-								   'related_links': article.getLinksOfType("related"),
-								   'links_incoming_from_invitations': article.getIncomingLinksOfTypeFromType("responded", "invitation"),
-								   'links_incoming_from_collages': article.getIncomingLinksOfTypeFromType("included", "collage"),
-								   'included_links_outgoing': article.getOutgoingLinksOfType("included"),
+								   'answers': entry.getNonDraftAnswers(),
+								   'questions': community.getQuestionsOfType(entry.type),
+								   'attachments': entry.getAttachments(),
+								   'requests': entry.getNonDraftAnnotationsOfType("request"),
+								   'comments': entry.getNonDraftAnnotationsOfType("comment"),
+								   'tag_sets': entry.getNonDraftAnnotationsOfType("tag set"),
+								   'nudges': entry.getNonDraftAnnotationsOfType("nudge"),
+								   'retold_links_incoming': entry.getIncomingLinksOfType("retold"),
+								   'retold_links_outgoing': entry.getOutgoingLinksOfType("retold"),
+								   'reminded_links_incoming': entry.getIncomingLinksOfType("reminded"),
+								   'reminded_links_outgoing': entry.getOutgoingLinksOfType("reminded"),
+								   'related_links': entry.getLinksOfType("related"),
+								   'links_incoming_from_invitations': entry.getIncomingLinksOfTypeFromType("responded", "invitation"),
+								   'links_incoming_from_collages': entry.getIncomingLinksOfTypeFromType("included", "collage"),
+								   'included_links_outgoing': entry.getOutgoingLinksOfType("included"),
 								   }
 				member.lastReadAnything = datetime.now(tz=pytz.utc)
 				member.nudgePoints += community.getMemberNudgePointsForEvent("reading")
@@ -437,7 +437,7 @@ class ReadAnnotationPage(webapp.RequestHandler):
 								   'current_member': member,
 								   'current_member_key': member.key(),
 								   'annotation': annotation,
-								   'included_links_outgoing': annotation.article.getOutgoingLinksOfType("included"),
+								   'included_links_outgoing': annotation.entry.getOutgoingLinksOfType("included"),
 								   'user_is_admin': users.is_current_user_admin(),
 								   'logout_url': users.create_logout_url("/"),
 								   }
@@ -502,10 +502,10 @@ class SeeMemberPage(webapp.RequestHandler):
 						   		   'community': community, 
 						   		   'current_member': member,
 						   		   'member': memberToSee,
-						   		   'articles': memberToSee.getNonDraftArticlesAttributedToMember(),
+						   		   'entries': memberToSee.getNonDraftEntriesAttributedToMember(),
 						   		   'annotations': memberToSee.getNonDraftAnnotationsAttributedToMember(),
-						   		   'answers': memberToSee.getNonDraftAnswersAboutArticlesAttributedToMember(),
-						   		   'articles_liaisoned': memberToSee.getNonDraftLiaisonedArticles(),
+						   		   'answers': memberToSee.getNonDraftAnswersAboutEntriesAttributedToMember(),
+						   		   'entries_liaisoned': memberToSee.getNonDraftLiaisonedEntries(),
 						   		   'annotations_liaisoned': memberToSee.getNonDraftLiaisonedAnnotations(),
 						   		   'answers_liaisoned': memberToSee.getNonDraftLiaisonedAnswers(),
 						   		   'user_is_admin': users.is_current_user_admin(),
@@ -550,9 +550,9 @@ class SeeCharacterPage(webapp.RequestHandler):
 									   'community': community, 
 									   'current_member': member,
 									   'character': character,
-						   		   	   'articles': character.getNonDraftArticlesAttributedToCharacter(),
+						   		   	   'entries': character.getNonDraftEntriesAttributedToCharacter(),
 						   		       'annotations': character.getNonDraftAnnotationsAttributedToCharacter(),
-						   		       'answers': character.getNonDraftAnswersAboutArticlesAttributedToCharacter(),
+						   		       'answers': character.getNonDraftAnswersAboutEntriesAttributedToCharacter(),
 									   'user_is_admin': users.is_current_user_admin(),
 									   'logout_url': users.create_logout_url("/"),								   
 									   }
@@ -576,11 +576,11 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 				memberToEdit = offlineMember
 			else:
 				memberToEdit = member
-			draftAnswerArticles = member.getArticlesWithDraftAnswers()
-			firstDraftAnswerForEachArticle = []
-			for article in draftAnswerArticles:
-				answers = member.getDraftAnswersForArticle(article)
-				firstDraftAnswerForEachArticle.append(answers[0])
+			draftAnswerEntries = member.getEntriesWithDraftAnswers()
+			firstDraftAnswerForEachEntry = []
+			for entry in draftAnswerEntries:
+				answers = member.getDraftAnswersForEntry(entry)
+				firstDraftAnswerForEachEntry.append(answers[0])
 			template_values = {
 							   'title': "Profile of", 
 						   	   'title_extra': member.nickname, 
@@ -590,9 +590,9 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 							   'current_member': member,
 							   'questions': community.getMemberQuestions(),
 							   'answers': member.getAnswers(),
-							   'draft_articles': member.getDraftArticles(),
+							   'draft_entries': member.getDraftEntries(),
 							   'draft_annotations': member.getDraftAnnotations(),
-							   'first_draft_answer_per_article': firstDraftAnswerForEachArticle,
+							   'first_draft_answer_per_entry': firstDraftAnswerForEachEntry,
 							   'time_zone_names': pytz.all_timezones,
 							   'date_formats': DateFormatStrings(),
 							   'time_formats': TimeFormatStrings(),
@@ -652,15 +652,15 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 					memberToEdit.guideIntro_formatted = db.Text(InterpretEnteredText(text, format))
 					memberToEdit.guideIntro_format = format
 				memberToEdit.put()
-				for article in memberToEdit.getDraftArticles():
-					if self.request.get("remove|%s" % article.key()) == "yes":
-						db.delete(article)
+				for entry in memberToEdit.getDraftEntries():
+					if self.request.get("remove|%s" % entry.key()) == "yes":
+						db.delete(entry)
 				for annotation in memberToEdit.getDraftAnnotations():
 					if self.request.get("remove|%s" % annotation.key()) == "yes":
 						db.delete(annotation)
-				for article in memberToEdit.getArticlesWithDraftAnswers():
-					if self.request.get("removeAnswers|%s" % article.key()) == "yes":
-						answers = memberToEdit.getDraftAnswersForArticle(article)
+				for entry in memberToEdit.getEntriesWithDraftAnswers():
+					if self.request.get("removeAnswers|%s" % entry.key()) == "yes":
+						answers = memberToEdit.getDraftAnswersForEntry(entry)
 						for answer in answers:
 							db.delete(answer)
 				questions = Question.all().filter("community = ", community).filter("refersTo = ", "memberToEdit").fetch(FETCH_NUMBER)

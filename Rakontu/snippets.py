@@ -113,8 +113,8 @@ class System(db.Model):
     def getGlobalCommunityQuestions(self):
         return Question.all().filter("community = ", None).filter("refersTo = ", "community").fetch(1000)
     
-    def getGlobalAnnotationQuestions(self, articleType):
-        return Question.all().filter("community = ", None).filter("refersTo = ", articleType).fetch(1000)
+    def getGlobalAnnotationQuestions(self, entryType):
+        return Question.all().filter("community = ", None).filter("refersTo = ", entryType).fetch(1000)
     
     def getGlobalMemberQuestions(self):
         return Question.all().filter("community = ", None).filter("refersTo = ", "member").fetch(1000)
@@ -226,7 +226,7 @@ class Rule(db.Model):
         community:            The Rakontu community this rule belongs to.
                             If None, is in a global list communities can copy from.
         communityQuestion:    What question about the community the rule is based on.
-        annotationQuestion: What question about articles is affected by the rule.
+        annotationQuestion: What question about entries is affected by the rule.
         memberQuestion:     What question about members is affected by the rule.
                             The same rule can affect both annotation and member questions.
 
@@ -308,14 +308,14 @@ class Rule(db.Model):
     <p><a href="/">Main page</a>
 </html>
 
-# ---------------------- SAVE FOR LATER - had annotations editing in article.html but moving it
+# ---------------------- SAVE FOR LATER - had annotations editing in entry.html but moving it
 
             <h3>Annotations</h3>
             <fieldset>
-            {% if article %}
-                <p>Your annotations for this {{article_type}}</p>
+            {% if entry %}
+                <p>Your annotations for this {{entry_type}}</p>
             {% else %}
-                <p>If you like, you can enter some annotations for this {{article_type}}.</p>
+                <p>If you like, you can enter some annotations for this {{entry_type}}.</p>
             {% endif %}
             
             <h4>Tags</h4>
@@ -383,23 +383,23 @@ def GenerateURLs(request):
 # -------------------------------- NOT USING - decided to get rid of extra pattern info. 
 # --------------------------------- instructions can be question, screenshot can be attachment
 
-            {% ifequal article_type "pattern" %}
+            {% ifequal entry_type "pattern" %}
                 <h3>Extra Pattern Information</h3>
                 <fieldset>
-                {% if article %}
+                {% if entry %}
                     <p>Instructions to recreate pattern</p>
                 {% else %}
                     <p>Please enter some instructions to recreate the pattern you observed.</p>
                 {% endif %}
-                <div><textarea name="instructionsIfPattern" rows="3" cols="60">{% if article %} {{article.instructionsIfPattern}} {% endif %}</textarea></div>
-                {% if article %}
+                <div><textarea name="instructionsIfPattern" rows="3" cols="60">{% if entry %} {{entry.instructionsIfPattern}} {% endif %}</textarea></div>
+                {% if entry %}
                     <p>Pattern screenshot</p>
                 {% else %}
                     <p>Please upload a screenshot showing the pattern.</p>
                 {% endif %}
-                {% if article %}
-                    {% if article.screenshotIfPattern %}
-                        <div><img src="img?article_id={{article.key}}"></img></div>
+                {% if entry %}
+                    {% if entry.screenshotIfPattern %}
+                        <div><img src="img?entry_id={{entry.key}}"></img></div>
                     {% endif %}
                 {% endif %}
                 <p><div><input type="file" name="img"/></div></p>
@@ -415,7 +415,7 @@ def GenerateURLs(request):
 
 # querying
 QUERY_TYPES = ["free text", "tags", "answers", "members", "activities", "links"]
-QUERY_TARGETS = ["stories", "patterns", "collages", "invitations", "resources", "articles", "answers", "tags", "comments", "requests", "nudge comments"]
+QUERY_TARGETS = ["stories", "patterns", "collages", "invitations", "resources", "entries", "answers", "tags", "comments", "requests", "nudge comments"]
 BOOLEAN_CHOICES = ["ALL", "ANY"]
 RECENT_TIME_FRAMES = ["last hour", "last day", "last week", "last month", "last six months", "last year", "ever"]
 
@@ -427,7 +427,7 @@ class Query(db.Model):
 		created:			When it was created.
 
 		type:				One of free text, tags, answers, members, activities, links. 
-		targets:			All searches return articles, annotations, or members (no combinations). 
+		targets:			All searches return entries, annotations, or members (no combinations). 
 	"""
 	owner = db.ReferenceProperty(Member, required=True, collection_name="queries")
 	created = TzDateTimeProperty(auto_now_add=True)
@@ -438,7 +438,7 @@ class Query(db.Model):
 	""" Free text search
 	
 	Properties:
-		targets:			Articles or annotations, or specific types of either.
+		targets:			Entries or annotations, or specific types of either.
 		text:				The text to search on. Can include boolean AND, OR, NOT.
 	Usage: 
 		Show [QUERY_TARGETS] with <text> 
@@ -451,7 +451,7 @@ class Query(db.Model):
 	""" Tag search
 	
 	Properties:
-		targets:			Articles or annotations, or specific types of either. 
+		targets:			Entries or annotations, or specific types of either. 
 		tags:				List of tags to search on. 1-n.
 		combination:		Whether to search for all or any of the tags listed.
 	Usage:
@@ -466,7 +466,7 @@ class Query(db.Model):
 	""" Answer search
 	
 	Properties:
-		targets:			Articles or annotations, or specific types of either. 
+		targets:			Entries or annotations, or specific types of either. 
 		questionAnswers:	List of strings denoting question and one or more answers.
 							Saved together and parsed. 1-n.
 		combination:		Whether to search for all or any of the question-answer sets listed.
@@ -474,7 +474,7 @@ class Query(db.Model):
 		Show [QUERY_TARGETS] in which {questions+answers} appear 
 	Examples: 
 		Show [stories] with [ALL OF] <How do you feel ~ includes ~ happy> and <What was the outcome ~ is ~ bad>
-		(with selection) Show [articles] in the selection with <How damaging is this story ~ >= ~ 75>
+		(with selection) Show [entries] in the selection with <How damaging is this story ~ >= ~ 75>
 	"""
 	questionAnswers = db.StringListProperty()
 	
@@ -496,7 +496,7 @@ class Query(db.Model):
 	
 	""" Activity search
 	Properties:
-		targets:			Articles or annotations, or specific types of either. 
+		targets:			Entries or annotations, or specific types of either. 
 		activity:			What the member should have done. 
 		memberIDS:			Who should have done it. 1-n.
 		combination:		Whether to search for all or any of the members listed.
@@ -505,26 +505,26 @@ class Query(db.Model):
 		Show [QUERY_TARGETS] in which [ACTIVITIES_VERB] were done by {members} in [RECENT_TIME_FRAMES]
 	Examples:
 		Show [stories] [retold] by {Joe OR Jim} in [the past 6 months]
-		(with selection) Show which of the selected [articles] {I} have [nudged] [ever]
+		(with selection) Show which of the selected [entries] {I} have [nudged] [ever]
 	"""
 	memberIDs = db.StringListProperty()
 	
 	""" Link search
 	Properties:
-		articleType:		Articles (without annotations). 
+		entryType:		Entries (without annotations). 
 		linkType:			Type of link. 
-		typeLinkedTo:		What sort of article should have been linked to. 
+		typeLinkedTo:		What sort of entry should have been linked to. 
 		memberIDS:			Who should have done it. 1-n.
 		timeFrame:			When the member(s) should have done it. 
 	Usage:
-		Show [ARTICLE_TYPES] {members} connected with [LINK_TYPES] to [ARTICLE_TYPES] in [RECENT_TIME_FRAMES]
+		Show [ENTRY_TYPES] {members} connected with [LINK_TYPES] to [ENTRY_TYPES] in [RECENT_TIME_FRAMES]
 	Examples:
 		Show [resources] {I} have [related] to [stories] in [the past month]
 		(with selection) Show [stories] [included] in the selected pattern by {anyone} [ever]
 	"""
-	articleType = db.StringProperty(choices=ARTICLE_TYPES)
+	entryType = db.StringProperty(choices=ENTRY_TYPES)
 	linkType = db.StringProperty(choices=LINK_TYPES)
-	typeLinkedTo = db.StringProperty(choices=ARTICLE_TYPES)
+	typeLinkedTo = db.StringProperty(choices=ENTRY_TYPES)
 
 
 

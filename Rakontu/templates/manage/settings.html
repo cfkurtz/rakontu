@@ -117,7 +117,7 @@
 			{% if site_allows_attachments %}
 				<h3>Attachments</h3>
 				<fieldset>
-				<p>How many attachments are allowed per article?
+				<p>How many attachments are allowed per entry?
 					<select name="maxNumAttachments" style="width: 60px;">
 					<option value="1"
 						{% ifequal community.maxNumAttachments 1 %}
@@ -159,7 +159,7 @@
 			
 			<h3>Editing</h3>
 			<fieldset>
-			<p>{{"For which of these types of article should editing be allowed after publishing?"|info}}{{"#editing_after_publish"|caution}}</p>
+			<p>{{"For which of these types of entry should editing be allowed after publishing?"|info}}{{"#editing_after_publish"|caution}}</p>
 			{% for text in editing_includes %}
 				{{ text }}
 			{% endfor %}
@@ -169,9 +169,9 @@
 			<h3>Nudge system</h3>
 			<fieldset>
 			<p><i></i></p>
-			<p>How many nudge points can be asssigned (maximum) per article? 
-			<input type="text" name="maxNudgePointsPerArticle" size="4" value="{{community.maxNudgePointsPerArticle}}"/>
-			{{"#community_nudgePoints"|info}} {{"#community_nudgePointsPerArticle"|caution}}
+			<p>How many nudge points can be asssigned (maximum) per entry? 
+			<input type="text" name="maxNudgePointsPerEntry" size="4" value="{{community.maxNudgePointsPerEntry}}"/>
+			{{"#community_nudgePoints"|info}} {{"#community_nudgePointsPerEntry"|caution}}
 			<p>{{"Enter your nudge category names here."|caution}}</p>
 			<p>
 			{% for i in num_nudge_categories|makeRange %}

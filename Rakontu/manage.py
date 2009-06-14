@@ -107,23 +107,23 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 			i = 0
 			activityPointIncludes.append('</tr><tr>')
 			for eventType in EVENT_TYPES:
-				activityPointIncludes.append('<td><input type="text" name="article|%s" size="3" value="%s"/></td>' \
-					% (eventType, community.articleActivityPointsPerEvent[i]))
+				activityPointIncludes.append('<td><input type="text" name="entry|%s" size="3" value="%s"/></td>' \
+					% (eventType, community.entryActivityPointsPerEvent[i]))
 				i += 1
 			activityPointIncludes.append('</tr>')
 			
 			characterIncludes = []
 			i = 0
-			for entryType in ENTRY_TYPES:
+			for entryType in ENTRY_AND_ANNOTATION_TYPES:
 				characterIncludes.append('<input type="checkbox" name="character|%s" value="yes" %s id="character|%s"/><label for="character|%s">%s</label>' \
 						% (entryType, checkedBlank(community.allowCharacter[i]), entryType, entryType, entryType))
 				i += 1
 				
 			editingIncludes = []
 			i = 0
-			for articleType in ARTICLE_TYPES:
+			for entryType in ENTRY_TYPES:
 				editingIncludes.append('<input type="checkbox" name="editing|%s" value="yes" %s id="editing|%s"/><label for="editing|%s">%s</label>' \
-						% (articleType, checkedBlank(community.allowEditingAfterPublishing[i]), articleType, articleType, articleType))
+						% (entryType, checkedBlank(community.allowEditingAfterPublishing[i]), entryType, entryType, entryType))
 				i += 1
 			template_values = {
 							   'title': "Manage settings for", 
@@ -178,18 +178,18 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 			if self.request.get("img"):
 				community.image = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
 			i = 0
-			for entryType in ENTRY_TYPES:
+			for entryType in ENTRY_AND_ANNOTATION_TYPES:
 				community.allowCharacter[i] = self.request.get("character|%s" % entryType) == "yes"
 				i += 1
 			i = 0
-			for articleType in ARTICLE_TYPES:
-				community.allowEditingAfterPublishing[i] = self.request.get("editing|%s" % articleType) == "yes"
+			for entryType in ENTRY_TYPES:
+				community.allowEditingAfterPublishing[i] = self.request.get("editing|%s" % entryType) == "yes"
 				i += 1
-			oldValue = community.maxNudgePointsPerArticle
+			oldValue = community.maxNudgePointsPerEntry
 			try:
-				community.maxNudgePointsPerArticle = int(self.request.get("maxNudgePointsPerArticle"))
+				community.maxNudgePointsPerEntry = int(self.request.get("maxNudgePointsPerEntry"))
 			except:
-				community.maxNudgePointsPerArticle = oldValue
+				community.maxNudgePointsPerEntry = oldValue
 			for i in range(NUM_NUDGE_CATEGORIES):
 				community.nudgeCategories[i] = cgi.escape(self.request.get("nudgeCategory%s" % i))
 			oldValue = community.maxNumAttachments
@@ -208,11 +208,11 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 				i += 1
 			i = 0
 			for eventType in EVENT_TYPES:
-				oldValue = community.articleActivityPointsPerEvent[i]
+				oldValue = community.entryActivityPointsPerEvent[i]
 				try:
-					community.articleActivityPointsPerEvent[i] = int(self.request.get("article|%s" % eventType))
+					community.entryActivityPointsPerEvent[i] = int(self.request.get("entry|%s" % eventType))
 				except:
-					community.articleActivityPointsPerEvent[i] = oldValue
+					community.entryActivityPointsPerEvent[i] = oldValue
 				i += 1
 			for i in range(3):
 				community.roleReadmes[i] = db.Text(self.request.get("readme%s" % i))

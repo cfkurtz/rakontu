@@ -85,13 +85,13 @@ DEFAULT_TIME_FORMAT = "h:i a"
 DEFAULT_TIME_ZONE = "US/Eastern"
 
 # ============================================================================================ 
-# ARTICLES
+# ENTRIES
 # ============================================================================================ 
 
-# This is the title given to articles which are not titled by their creators.
-DEFAULT_UNTITLED_ARTICLE_TITLE = "Untitled"
+# This is the title given to entries which are not titled by their creators.
+DEFAULT_UNTITLED_ENTRY_TITLE = "Untitled"
 
-NO_TEXT_IN_ARTICLE = "No text."
+NO_TEXT_IN_ENTRY = "No text."
 
 # This is the list of numbers of attachments communities can choose from, and the choice
 # that appears chosen by default.
@@ -111,9 +111,9 @@ ACCEPTED_ATTACHMENT_MIME_TYPES = ["image/jpeg", "image/png", "application/pdf", 
 # One setting for each of these entry types: story, pattern, collage, invitation, resource, answer, tag set, comment, request, nudge
 DEFAULT_ALLOW_CHARACTERS = [True,True,True,True,True,True,True,True,True,True]
 
-# This is whether members are allowed to "re-enter" articles of each type after they are published.
+# This is whether members are allowed to "re-enter" entries of each type after they are published.
 # This can be great for things like resources, but it is usually NOT good for things like stories.
-# One setting for each of these article types: story, invitation, collage, pattern, resource
+# One setting for each of these entry types: story, invitation, collage, pattern, resource
 DEFAULT_ALLOW_EDITING_AFTER_PUBLISHING = [False, False, True, True, True]
 
 # ============================================================================================ 
@@ -154,8 +154,8 @@ NUM_NUDGE_CATEGORIES = 5
 # The number of strings in this list MUST match the number of categories above.
 DEFAULT_NUDGE_CATEGORIES = ["appropriate", "important", "useful to new members", "useful for resolving conflicts", "useful for understanding"]
 
-# How many nudge points can be assigned per article, by default.
-DEFAULT_MAX_NUDGE_POINTS_PER_ARTICLE = 25
+# How many nudge points can be assigned per entry, by default.
+DEFAULT_MAX_NUDGE_POINTS_PER_ENTRY = 25
 
 # How many nudge points members gain by doing each of these actions.
 DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS = [
@@ -178,7 +178,7 @@ DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS = [
 					5,	# adding nudge
 					]
 
-# How many activity points articles gain through each of these events.
+# How many activity points entries gain through each of these events.
 DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS = [
 					-1,	# downdrift
 					4,	# reading

@@ -7,17 +7,17 @@
 		<div id="stylized" class="rakontu_form">
 		<form action="/liaise/import" method="post" enctype="multipart/form-data">
 		
-		{% if articles %}
-			<h3>Imported articles</h3>
+		{% if entries %}
+			<h3>Imported entries</h3>
 				<fieldset>
 		      	<table border="1" cellpadding="4" cellspacing="0">
 		      	<tr><th>Import?</th><th>Type</th><th>Title (click to edit)</th></tr>
-	      		{% for article in articles %}
+	      		{% for entry in entries %}
 	      			<tr>
-	      			 <td valign="top" align="center"><input type="checkbox" name="import|{{article.key}}" value="yes" id="import|{{article.key}}"/>
-	      			 <label for="import|{{article.key}}">Import</label></td>
-	      			 <td>{{article.type}}</td>
-	      			 <td><a href="/visit/{{article.type}}?{{article.key}}">{{article.title}}</a></td>
+	      			 <td valign="top" align="center"><input type="checkbox" name="import|{{entry.key}}" value="yes" id="import|{{entry.key}}"/>
+	      			 <label for="import|{{entry.key}}">Import</label></td>
+	      			 <td>{{entry.type}}</td>
+	      			 <td><a href="/visit/{{entry.type}}?{{entry.key}}">{{entry.title}}</a></td>
 	      			</tr>
 	      		{% endfor %}
 		      	</table>
@@ -25,7 +25,7 @@
 		      	<p>
 			    <center><input type="submit" name="finalizeImport" value="Import checked items" class="button"></center>
 		{% else %}
-			<p>Click Browse to choose a CSV file of articles to import.</p>
+			<p>Click Browse to choose a CSV file of entries to import.</p>
 			<td><input type="file" name="import" size="40" accept="csv"/></p></td>
 	      	<p>
 		    <center><input type="submit" name="importFile" value="Import file" class="button"></center>

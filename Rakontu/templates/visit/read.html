@@ -4,11 +4,11 @@
 	{% include "../common_menus.html" %}
 	<div id="content">
 	
-	<img src="/images/{{article.type}}.png" alt="tags" align="left" border="0">
-	<h2>{{article.title}}
+	<img src="/images/{{entry.type}}.png" alt="tags" align="left" border="0">
+	<h2>{{entry.title}}
 	{% if curating %}
-		<a href="/visit/flag?{{article.key}}" class="imagelight"><img src="../images/
-		{% if article.flaggedForRemoval %}
+		<a href="/visit/flag?{{entry.key}}" class="imagelight"><img src="../images/
+		{% if entry.flaggedForRemoval %}
 			flag_red.png
 		{% else %}
 			flag_green.png
@@ -17,13 +17,13 @@
 	{% endif %}	
 	</h2>
 	
-	{% if article.isCollage %}
+	{% if entry.isCollage %}
 		<div class="blurb">
-		{{article.text_formatted}}
+		{{entry.text_formatted}}
 		{% if included_links_outgoing %}
 			<ul>
 			{% for link in included_links_outgoing %}
-				<li class="nobullet"><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a>
+				<li class="nobullet"><a href="read?{{link.entryTo.key}}">{{link.entryTo.title}}</a>
 				{% if link.comment %} ({{link.comment}}) {% endif %}
 				</li>
 			{% endfor %}
@@ -31,7 +31,7 @@
 		{% endif %}
 		</div>
 	{% else %}
-		<div class="blurb">{{article.text_formatted}}</div>
+		<div class="blurb">{{entry.text_formatted}}</div>
 	{% endif %}
 
 	{% if attachments %}
@@ -49,59 +49,59 @@
 		{% endfor %}
 	{% endif %}
 	
-	<p>This {{article.type}} was created by 
+	<p>This {{entry.type}} was created by 
 	
-	{% if article.attributedToMember %}
-			{% if article.creator.active %}
-				<a href="member?{{article.creator.key}}">{{article.creator.nickname}}</a>
-				{% ifequal article.creator.key current_member.key %}
+	{% if entry.attributedToMember %}
+			{% if entry.creator.active %}
+				<a href="member?{{entry.creator.key}}">{{entry.creator.nickname}}</a>
+				{% ifequal entry.creator.key current_member.key %}
 					 (you)
 				{% endifequal %}
 			{% else %}
-				the former member "{{article.creator.nickname}}"
+				the former member "{{entry.creator.nickname}}"
 			{% endif %}
 	{% else %}
-		<a href="character?{{article.character.key}}">{{article.character.name}}</a>
+		<a href="character?{{entry.character.key}}">{{entry.character.name}}</a>
 	{% endif %}
 	
-	{% if article.collectedOffline %}
-		on {{article.collected|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.
-		{% if article.liaison %}
-			It was collected off-line and entered by <a href="/visit/member?{{article.liaison.key}}">{{article.liaison.nickname}}</a>
-			on {{article.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-			at {{article.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+	{% if entry.collectedOffline %}
+		on {{entry.collected|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.
+		{% if entry.liaison %}
+			It was collected off-line and entered by <a href="/visit/member?{{entry.liaison.key}}">{{entry.liaison.nickname}}</a>
+			on {{entry.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+			at {{entry.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
 			</p>
 		{% endif %}
 	{% else %}
-		on {{article.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-		at {{article.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
+		on {{entry.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+		at {{entry.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
 	{% endif %}
 
 	{% if retold_links_incoming or reminded_links_incoming or included_links_incoming_from_invitations or included_links_incoming_from_collages %}
-		{% ifequal article.type "story" %}
+		{% ifequal entry.type "story" %}
 			{% if retold_links_incoming %}
 				{% for link in retold_links_incoming %}
-					<p>This story is a retelling of <a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>
+					<p>This story is a retelling of <a href="read?{{link.entryFrom.key}}">{{link.entryFrom.title}}</a>
 					 {% if link.comment %} ({{link.comment}}) {% endif %}</p>
 				{% endfor %}
 			{% endif %}
 			{% if reminded_links_incoming %}
 				{% for link in reminded_links_incoming %}
-					<p>This story was told because <a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>
+					<p>This story was told because <a href="read?{{link.entryFrom.key}}">{{link.entryFrom.title}}</a>
 					reminded its teller of something. {% if link.comment %} ({{link.comment}}) {% endif %}</p>
 				{% endfor %}
 			{% endif %}
 			{% if links_incoming_from_invitations %}
 				{% for link in included_links_incoming_from_invitations %}
-					<p>This story was told in response to the invitation <a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>
+					<p>This story was told in response to the invitation <a href="read?{{link.entryFrom.key}}">{{link.entryFrom.title}}</a>
 					 {% if link.comment %} ({{link.comment}}) {% endif %}</p>
 				{% endfor %}
 			{% endif %}
 			{% if links_incoming_from_collages %}
-				<li class="nobullet">This {{article.type}} is <b>included</b> in the collages
+				<li class="nobullet">This {{entry.type}} is <b>included</b> in the collages
 				<ul>
 				{% for link in included_links_incoming_from_collages %}
-					<li class="nobullet"><a href="read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</a>
+					<li class="nobullet"><a href="read?{{link.entryFrom.key}}">{{link.entryFrom.title}}</a>
 					 {% if link.comment %} ({{link.comment}}) {% endif %}</li>
 				{% endfor %}
 				</ul>
@@ -125,7 +125,7 @@
 			
 	{% if rows_cols %}
 		<hr>
-		<h3>Annotations to this {{article.type}}</h3>
+		<h3>Annotations to this {{entry.type}}</h3>
 		<center>
 		<table cellpadding="4" cellspacing="0" style="border-top: 1px solid #FF7F00; border-bottom: 1px solid #FF7F00; border-left: none; border-right: 1px solid #FF7F00">
 		{% if row_headers %}

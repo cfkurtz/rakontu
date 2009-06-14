@@ -37,14 +37,14 @@
   			<p>Says {{member.nickname}}:</p><div class="blurb">{{member.profileText_formatted}}</div>
   		{% endif %}
   		
-  		<h3>Articles (stories, invitations, collages, patterns, resources)</h3>
-  		{% if articles %}
+  		<h3>Entries (stories, invitations, collages, patterns, resources)</h3>
+  		{% if entries %}
 	  		<ul>
-	  		{% for article in articles %}
+	  		{% for entry in entries %}
 	  			<li class="nobullet">
-	  			<a href="read?{{article.key}}">{{article.title}}</a> was added
-	  			on {{article.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-				at {{article.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+	  			<a href="read?{{entry.key}}">{{entry.title}}</a> was added
+	  			on {{entry.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+				at {{entry.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
 				</li>
 	  		{% endfor %}
 	  		</ul>
@@ -63,7 +63,7 @@
 	  			{% else %}
 	  				"{{annotation.displayString}}"
 	  			{% endif %}
-	  			was added to the article <a href="read?{{annotation.article.key}}">{{annotation.article.title}}</a> 
+	  			was added to the entry <a href="read?{{annotation.entry.key}}">{{annotation.entry.title}}</a> 
 	  			on {{annotation.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 				at {{annotation.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
 				</li>

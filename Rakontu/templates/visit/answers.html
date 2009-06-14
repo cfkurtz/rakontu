@@ -5,12 +5,12 @@
 		<div id="content">
 		
 		<div id="stylized" class="rakontu_form">
-		<form action="/visit/answers?{{article.key}}
+		<form action="/visit/answers?{{entry.key}}
 		" method="post" enctype="multipart/form-data">
 		
-			<h2>{{article.title}} ({{article.type}})</h2>
+			<h2>{{entry.title}} ({{entry.type}})</h2>
 	
-			<div class="blurb">{{article.text}}</div
+			<div class="blurb">{{entry.text}}</div
 			
 			{% if questions %}
 				{% include "questions.html" %}

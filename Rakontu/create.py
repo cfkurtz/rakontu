@@ -39,7 +39,7 @@ class CreateCommunityPage(webapp.RequestHandler):
 		member.put()
 		self.redirect('/')
 		
-class EnterArticlePage(webapp.RequestHandler):
+class EnterEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
@@ -47,76 +47,76 @@ class EnterArticlePage(webapp.RequestHandler):
 			if self.request.uri.find("retell") >= 0:
 				type = "story"
 				linkType = "retell"
-				articleFromKey = self.request.query_string
-				articleFrom = db.get(articleFromKey)
-				article = None
+				entryFromKey = self.request.query_string
+				entryFrom = db.get(entryFromKey)
+				entry = None
 				entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
-				articleName = None
+				entryName = None
 			elif self.request.uri.find("remind") >= 0:
 				type = "story"
 				linkType = "remind"
-				articleFromKey = self.request.query_string
-				articleFrom = db.get(articleFromKey)
-				article = None
+				entryFromKey = self.request.query_string
+				entryFrom = db.get(entryFromKey)
+				entry = None
 				entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
-				articleName = None
+				entryName = None
 			elif self.request.uri.find("respond") >= 0:
 				type = "story"
 				linkType = "respond"
-				articleFromKey = self.request.query_string
-				articleFrom = db.get(articleFromKey)
-				article = None
+				entryFromKey = self.request.query_string
+				entryFrom = db.get(entryFromKey)
+				entry = None
 				entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
-				articleName = None
+				entryName = None
 			else:
 				linkType = ""
-				articleFrom = None
+				entryFrom = None
 				i = 0
-				for aType in ARTICLE_TYPES:
+				for aType in ENTRY_AND_ANNOTATION_TYPES:
 					if self.request.uri.find(aType) >= 0:
 						type = aType
 						entryTypeIndexForCharacters = i
 						break
 					i += 1
 				if not self.request.uri.find("?") >= 0:
-					article = None
-					articleName = None
+					entry = None
+					entryName = None
 				else:
-					articleKey = self.request.query_string
-					article = db.get(articleKey)
-					articleName = article.title
-			if article:
-				answers = article.getAnswers()
-				attachments = article.getAttachments()
+					entryKey = self.request.query_string
+					entry = db.get(entryKey)
+					entryName = entry.title
+			if entry:
+				answers = entry.getAnswers()
+				attachments = entry.getAttachments()
 			else:
 				answers = None
 				attachments = None
 			if type == "collage":
-				if article:
-					includedLinksOutgoing = article.getOutgoingLinksOfType("included")
+				if entry:
+					includedLinksOutgoing = entry.getOutgoingLinksOfType("included")
 				else:
 					includedLinksOutgoing = []
-				articles = community.getNonDraftArticlesOfType("story")
-				articlesThatCanBeIncluded = []
-				for anArticle in articles:
+				entries = community.getNonDraftEntriesOfType("story")
+				entriesThatCanBeIncluded = []
+				for anEntry in entries:
 					found = False
 					for link in includedLinksOutgoing:
-						if article and link.articleTo.key() == anArticle.key():
+						if entry and link.entryTo.key() == anEntry.key():
 							found = True
 							break
 					if not found:
-						articlesThatCanBeIncluded.append(anArticle)
+						entriesThatCanBeIncluded.append(anEntry)
 			else:
-				articlesThatCanBeIncluded = None
+				entriesThatCanBeIncluded = None
 				includedLinksOutgoing = None
 			template_values = {
 							   'title': type.capitalize(), 
-						   	   'title_extra': "- %s" % articleName, 
+						   	   'title_extra': "- %s" % entryName, 
 							   'user': users.get_current_user(),
 							   'current_member': member,
 							   'community': community, 
-							   'article_type': type,
-							   'article': article,
+							   'entry_type': type,
+							   'entry': entry,
 							   'questions': community.getQuestionsOfType(type),
 							   'answers': answers,
 							   'attachments': attachments,
@@ -124,15 +124,15 @@ class EnterArticlePage(webapp.RequestHandler):
 							   'offline_members': community.getActiveOfflineMembers(),
 							   'character_allowed': community.allowCharacter[entryTypeIndexForCharacters],
 							   'link_type': linkType,
-							   'article_from': articleFrom,
-							   'articles_that_can_be_linked_to_by_collage': articlesThatCanBeIncluded,
+							   'entry_from': entryFrom,
+							   'entries_that_can_be_linked_to_by_collage': entriesThatCanBeIncluded,
 							   'included_links_outgoing': includedLinksOutgoing,
 							   'text_formats': TEXT_FORMATS,
 							   'refer_type': type,
 							   'user_is_admin': users.is_current_user_admin(),
 							   'logout_url': users.create_logout_url("/"),
 							   }
-			path = os.path.join(os.path.dirname(__file__), 'templates/visit/article.html')
+			path = os.path.join(os.path.dirname(__file__), 'templates/visit/entry.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect("/")
@@ -141,53 +141,53 @@ class EnterArticlePage(webapp.RequestHandler):
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-			for aType in ARTICLE_TYPES:
+			for aType in ENTRY_TYPES:
 				for argument in self.request.arguments():
 					if argument.find(aType) >= 0:
 						type = aType
 						break
 			if not self.request.uri.find("?") >= 0:
-				article = None
+				entry = None
 			else:
-				articleKey = self.request.query_string
-				article = db.get(articleKey)
-			newArticle = False
-			if not article:
-				article=Article(community=community, type=type, creator=member, title=DEFAULT_UNTITLED_ARTICLE_TITLE)
-				newArticle = True
+				entryKey = self.request.query_string
+				entry = db.get(entryKey)
+			newEntry = False
+			if not entry:
+				entry=Entry(community=community, type=type, creator=member, title=DEFAULT_UNTITLED_ENTRY_TITLE)
+				newEntry = True
 			preview = False
 			if "save|%s" % type in self.request.arguments():
-				article.draft = True
-				article.edited = datetime.now(tz=pytz.utc)
+				entry.draft = True
+				entry.edited = datetime.now(tz=pytz.utc)
 			elif "preview|%s" % type in self.request.arguments():
-				article.draft = True
+				entry.draft = True
 				preview = True
 			elif "publish|%s" % type in self.request.arguments():
-				article.draft = False
-				article.published = datetime.now(tz=pytz.utc)
+				entry.draft = False
+				entry.published = datetime.now(tz=pytz.utc)
 			if self.request.get("title"):
-				article.title = cgi.escape(self.request.get("title"))
+				entry.title = cgi.escape(self.request.get("title"))
 			text = self.request.get("text")
 			format = self.request.get("text_format").strip()
-			article.text = text
-			article.text_formatted = db.Text(InterpretEnteredText(text, format))
-			article.text_format = format
-			article.collectedOffline = self.request.get("collectedOffline") == "yes"
-			if article.collectedOffline and member.isLiaison():
+			entry.text = text
+			entry.text_formatted = db.Text(InterpretEnteredText(text, format))
+			entry.text_format = format
+			entry.collectedOffline = self.request.get("collectedOffline") == "yes"
+			if entry.collectedOffline and member.isLiaison():
 				for aMember in community.getActiveMembers():
 					if self.request.get("offlineSource") == aMember.key():
-						article.creator = aMember
-						article.liaison = member
+						entry.creator = aMember
+						entry.liaison = member
 						break
 			if self.request.get("attribution") != "member":
-				article.character = Character.get(self.request.get("attribution"))
+				entry.character = Character.get(self.request.get("attribution"))
 			else:
-				article.character = None
-			article.put()
+				entry.character = None
+			entry.put()
 			linkType = None
-			if self.request.get("article_from"):
-				articleFrom = db.get(self.request.get("article_from"))
-				if articleFrom:
+			if self.request.get("entry_from"):
+				entryFrom = db.get(self.request.get("entry_from"))
+				if entryFrom:
 					if self.request.get("link_type") == "retell":
 						linkType = "retold"
 					elif self.request.get("link_type") == "remind":
@@ -198,34 +198,34 @@ class EnterArticlePage(webapp.RequestHandler):
 						linkType = "related"
 					elif self.request.get("link_type") == "include":
 						linkType = "included"
-					link = Link(articleFrom=articleFrom, articleTo=article, type=linkType, \
+					link = Link(entryFrom=entryFrom, entryTo=entry, type=linkType, \
 								creator=member, community=community, \
 								comment=cgi.escape(self.request.get("link_comment")))
 					link.put()
 					link.publish()
-			if article.isCollage():
+			if entry.isCollage():
 				linksToRemove = []
-				for link in article.getOutgoingLinksOfType("included"):
+				for link in entry.getOutgoingLinksOfType("included"):
 					link.comment = self.request.get("linkComment|%s" % link.key())
 					link.put()
 					if self.request.get("removeLink|%s" % link.key()) == "yes":
 						linksToRemove.append(link)
 				for link in linksToRemove:
 					db.delete(link)
-				for anArticle in community.getNonDraftArticlesOfType("story"):
-					if self.request.get("addLink|%s" % anArticle.key()) == "yes":
-						link = Link(articleFrom=article, articleTo=anArticle, type="included", 
+				for anEntry in community.getNonDraftEntriesOfType("story"):
+					if self.request.get("addLink|%s" % anEntry.key()) == "yes":
+						link = Link(entryFrom=entry, entryTo=anEntry, type="included", 
 									creator=member, community=community,
-									comment=cgi.escape(self.request.get("linkComment|%s" % anArticle.key())))
+									comment=cgi.escape(self.request.get("linkComment|%s" % anEntry.key())))
 						link.put()
 						link.publish()
 			questions = Question.all().filter("community = ", community).filter("refersTo = ", type).fetch(FETCH_NUMBER)
 			for question in questions:
-				foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", article.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
+				foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", entry.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
 				if foundAnswers:
 					answerToEdit = foundAnswers[0]
 				else:
-					answerToEdit = Answer(question=question, community=community, creator=member, referent=article, referentType="article")
+					answerToEdit = Answer(question=question, community=community, creator=member, referent=entry, referentType="entry")
 					keepAnswer = False
 					queryText = "%s" % question.key()
 					if question.type == "text":
@@ -256,12 +256,12 @@ class EnterArticlePage(webapp.RequestHandler):
 							if keepAnswer:
 								answerToEdit.answerIfText = self.request.get(queryText)
 					answerToEdit.creator = member
-					answerToEdit.draft = article.draft
+					answerToEdit.draft = entry.draft
 					if keepAnswer:
 						answerToEdit.put()
 						if not answerToEdit.draft:
 							answerToEdit.publish()
-			foundAttachments = Attachment.all().filter("article = ", article.key()).fetch(FETCH_NUMBER)
+			foundAttachments = Attachment.all().filter("entry = ", entry.key()).fetch(FETCH_NUMBER)
 			attachmentsToRemove = []
 			for attachment in foundAttachments:
 				for name, value in self.request.params.items():
@@ -270,7 +270,7 @@ class EnterArticlePage(webapp.RequestHandler):
 			if attachmentsToRemove:
 				for attachment in attachmentsToRemove:
 					db.delete(attachment)
-			foundAttachments = Attachment.all().filter("article = ", article.key()).fetch(FETCH_NUMBER)
+			foundAttachments = Attachment.all().filter("entry = ", entry.key()).fetch(FETCH_NUMBER)
 			for i in range(3):
 				for name, value in self.request.params.items():
 					if name == "attachment%s" % i:
@@ -279,7 +279,7 @@ class EnterArticlePage(webapp.RequestHandler):
 							if len(foundAttachments) > i:
 								attachmentToEdit = foundAttachments[i]
 							else:
-								attachmentToEdit = Attachment(article=article)
+								attachmentToEdit = Attachment(entry=entry)
 							j = 0
 							mimeType = None
 							for type in ACCEPTED_ATTACHMENT_FILE_TYPES:
@@ -292,44 +292,44 @@ class EnterArticlePage(webapp.RequestHandler):
 								attachmentToEdit.name = cgi.escape(self.request.get("attachmentName%s" % i))
 								attachmentToEdit.data = db.Blob(str(self.request.get("attachment%s" % i)))
 								attachmentToEdit.put()
-			if not article.draft:
-				article.publish()
+			if not entry.draft:
+				entry.publish()
 			if preview:
-				self.redirect("/visit/preview?%s" % article.key())
-			elif article.inImportBuffer:
+				self.redirect("/visit/preview?%s" % entry.key())
+			elif entry.inImportBuffer:
 				if member.isLiaison():
 					self.redirect("/liaise/import")
 				else:
 					self.redirect("/visit/look")
-			elif article.draft:
+			elif entry.draft:
 				self.redirect("/visit/profile?%s" % member.key())
 			else:
-				member.viewTimeEnd = article.published + timedelta(seconds=1)
+				member.viewTimeEnd = entry.published + timedelta(seconds=1)
 				member.put()
-				self.redirect("/visit/read?%s" % article.key())
+				self.redirect("/visit/read?%s" % entry.key())
 		else:
 			self.redirect("/visit/look")
 			
-class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
+class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-			article = None
+			entry = None
 			if self.request.query_string:
-				article = Article.get(self.request.query_string)
-			if article:
+				entry = Entry.get(self.request.query_string)
+			if entry:
 				template_values = {
 							   	   'title': "Answers for", 
-						   	   	   'title_extra': article.title, 
+						   	   	   'title_extra': entry.title, 
 								   'user': users.get_current_user(),
 								   'current_member': member,
 								   'community': community, 
-								   'article': article,
-								   'article_type': article.type,
-								   'refer_type': article.type,
-								   'questions': community.getQuestionsOfType(article.type),
-								   'answers': article.getAnswersForMember(member),
+								   'entry': entry,
+								   'entry_type': entry.type,
+								   'refer_type': entry.type,
+								   'questions': community.getQuestionsOfType(entry.type),
+								   'answers': entry.getAnswersForMember(member),
 								   'community_members': community.getActiveMembers(),
 								   'offline_members': community.getOfflineMembers(),
 								   'character_allowed': community.allowCharacter[ANSWERS_ENTRY_TYPE_INDEX],
@@ -347,9 +347,9 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-			articleKey = self.request.query_string
-			article = db.get(articleKey)
-			if article:
+			entryKey = self.request.query_string
+			entry = db.get(entryKey)
+			if entry:
 				character = None
 				if self.request.get("attribution") != "member":
 					characterKey = self.request.get("attribution")
@@ -364,13 +364,13 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
 					preview = True
 				elif "publish" in self.request.arguments():
 					setAsDraft = False
-				questions = Question.all().filter("community = ", community).filter("refersTo = ", article.type).fetch(FETCH_NUMBER)
+				questions = Question.all().filter("community = ", community).filter("refersTo = ", entry.type).fetch(FETCH_NUMBER)
 				for question in questions:
-					foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", article.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
+					foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", entry.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
 					if foundAnswers:
 						answerToEdit = foundAnswers[0]
 					else:
-						answerToEdit = Answer(question=question, community=community, referent=article, referentType="article")
+						answerToEdit = Answer(question=question, community=community, referent=entry, referentType="entry")
 						newAnswers = True
 					answerToEdit.character = character
 					keepAnswer = False
@@ -411,11 +411,11 @@ class AnswerQuestionsAboutArticlePage(webapp.RequestHandler):
 						else:
 							answerToEdit.publish()
 				if preview:
-					self.redirect("/visit/previewAnswers?%s" % article.key())
+					self.redirect("/visit/previewAnswers?%s" % entry.key())
 				elif setAsDraft:
 					self.redirect("/visit/profile?%s" % member.key())
 				else:
-					self.redirect("/visit/read?%s" % article.key())
+					self.redirect("/visit/read?%s" % entry.key())
 		else:
 			self.redirect("/visit/look")
 			
@@ -424,20 +424,20 @@ class PreviewAnswersPage(webapp.RequestHandler):
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-			article = None
+			entry = None
 			if self.request.query_string:
-				article = Article.get(self.request.query_string)
-				answers = article.getAnswersForMember(member)
-			if article and answers:
+				entry = Entry.get(self.request.query_string)
+				answers = entry.getAnswersForMember(member)
+			if entry and answers:
 				template_values = {
 							   	   'title': "Preview of", 
-						   	   	   'title_extra': "Answers for %s " % article.title, 
+						   	   	   'title_extra': "Answers for %s " % entry.title, 
 								   'user': users.get_current_user(),
 								   'current_member': member,
 								   'community': community, 
-								   'article': article,
-								   'community_has_questions_for_this_article_type': len(community.getQuestionsOfType(article.type)) > 0,
-								   'questions': community.getQuestionsOfType(article.type),
+								   'entry': entry,
+								   'community_has_questions_for_this_entry_type': len(community.getQuestionsOfType(entry.type)) > 0,
+								   'questions': community.getQuestionsOfType(entry.type),
 								   'answers': answers,
 								   'user_is_admin': users.is_current_user_admin(),
 								   'logout_url': users.create_logout_url("/"),
@@ -451,16 +451,16 @@ class PreviewAnswersPage(webapp.RequestHandler):
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-			article = None
+			entry = None
 			if self.request.query_string:
-				article = Article.get(self.request.query_string)
-				if article:
+				entry = Entry.get(self.request.query_string)
+				if entry:
 					if "edit" in self.request.arguments():
-						self.redirect("/visit/answers?%s" % article.key())
+						self.redirect("/visit/answers?%s" % entry.key())
 					elif "profile" in self.request.arguments():
 						self.redirect("/visit/profile?%s" % member.key())
 					elif "publish" in self.request.arguments():
-						answers = article.getAnswersForMember(member)
+						answers = entry.getAnswersForMember(member)
 						for answer in answers:
 							answer.draft = False
 							answer.published = datetime.now(tz=pytz.utc)
@@ -479,30 +479,30 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					break
 				i += 1
 			i = 0
-			for aType in ENTRY_TYPES_URLS:
+			for aType in ENTRY_AND_ANNOTATION_TYPES_URLS:
 				if self.request.uri.find(aType) >= 0:
 					entryTypeIndex = i
 					break
 				i += 1
-			article = None
+			entry = None
 			annotation = None
 			if self.request.query_string:
 				try:
-					article = Article.get(self.request.query_string)
+					entry = Entry.get(self.request.query_string)
 				except:
 					annotation = Annotation.get(self.request.query_string)
-					article = annotation.article
-			if article:
-				if not article.memberCanNudge(member):
+					entry = annotation.entry
+			if entry:
+				if not entry.memberCanNudge(member):
 					nudgePointsMemberCanAssign = 0
 				else:
-					nudgePointsMemberCanAssign = max(0, community.maxNudgePointsPerArticle - article.getTotalNudgePointsForMember(member))
+					nudgePointsMemberCanAssign = max(0, community.maxNudgePointsPerEntry - entry.getTotalNudgePointsForMember(member))
 			else:
-				nudgePointsMemberCanAssign = community.maxNudgePointsPerArticle
-			if article:
+				nudgePointsMemberCanAssign = community.maxNudgePointsPerEntry
+			if entry:
 				template_values = {
 							   	   'title': "%s for" % type.capitalize(), 
-						   	   	   'title_extra': article.title, 
+						   	   	   'title_extra': entry.title, 
 								   'user': users.get_current_user(),
 								   'current_member': member,
 								   'community': community, 
@@ -510,12 +510,12 @@ class EnterAnnotationPage(webapp.RequestHandler):
 								   'annotation': annotation,
 								   'community_members': community.getActiveMembers(),
 								   'offline_members': community.getOfflineMembers(),
-								   'article': article,
+								   'entry': entry,
 								   'nudge_categories': community.nudgeCategories,
 								   'num_nudge_categories': NUM_NUDGE_CATEGORIES,
 								   'nudge_points_member_can_assign': nudgePointsMemberCanAssign,
 								   'character_allowed': community.allowCharacter[entryTypeIndex],
-								   'included_links_outgoing': article.getOutgoingLinksOfType("included"),
+								   'included_links_outgoing': entry.getOutgoingLinksOfType("included"),
 								   'num_tags_in_tag_set': NUM_TAGS_IN_TAG_SET,
 								   'text_formats': TEXT_FORMATS,
 								   'user_is_admin': users.is_current_user_admin(),
@@ -537,18 +537,18 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					if argument.find(aType) >= 0:
 						type = aType
 						break
-			article = None
+			entry = None
 			annotation = None
 			newAnnotation = False
 			if self.request.query_string:
 				try:
-					article = Article.get(self.request.query_string)
+					entry = Entry.get(self.request.query_string)
 				except:
 					annotation = Annotation.get(self.request.query_string)
-					article = annotation.article
-			if article:
+					entry = annotation.entry
+			if entry:
 				if not annotation:
-					annotation = Annotation(community=community, type=type, creator=member, article=article)
+					annotation = Annotation(community=community, type=type, creator=member, entry=entry)
 					newAnnotation = True
 				preview = False
 				if "save|%s" % type in self.request.arguments():
@@ -606,7 +606,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 								nudgeValuesTheyWantToSet.append(oldValue)
 							totalNudgeValuesTheyWantToSet += abs(nudgeValuesTheyWantToSet[i])
 					adjustedValues = []
-					maximumAllowedInThisInstance = min(member.nudgePoints, community.maxNudgePointsPerArticle)
+					maximumAllowedInThisInstance = min(member.nudgePoints, community.maxNudgePointsPerEntry)
 					if totalNudgeValuesTheyWantToSet > maximumAllowedInThisInstance:
 						totalNudgePointsAllocated = 0
 						for i in range(NUM_NUDGE_CATEGORIES):
@@ -638,7 +638,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 				elif annotation.draft:
 					self.redirect("/visit/profile?%s" % member.key())
 				else:
-					self.redirect("/visit/read?%s" % article.key())
+					self.redirect("/visit/read?%s" % entry.key())
 			else:
 				self.redirect("/visit/look")
 		else:
@@ -649,27 +649,27 @@ class PreviewPage(webapp.RequestHandler):
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-			article = None
+			entry = None
 			annotation = None
 			if self.request.query_string:
 				try:
-					article = Article.get(self.request.query_string)
+					entry = Entry.get(self.request.query_string)
 				except:
 					annotation = Annotation.get(self.request.query_string)
-					article = annotation.article
-			if article:
+					entry = annotation.entry
+			if entry:
 				template_values = {
 							   	   'title': "Preview", 
-						   	   	   'title_extra': article.title, 
+						   	   	   'title_extra': entry.title, 
 								   'user': users.get_current_user(),
 								   'current_member': member,
 								   'community': community, 
 								   'annotation': annotation,
-								   'article': article,
-								   'included_links_outgoing': article.getOutgoingLinksOfType("included"),
-								   'community_has_questions_for_this_article_type': len(community.getQuestionsOfType(article.type)) > 0,
-								   'questions': community.getQuestionsOfType(article.type),
-								   'answers_with_article': article.getAnswersForMember(member),
+								   'entry': entry,
+								   'included_links_outgoing': entry.getOutgoingLinksOfType("included"),
+								   'community_has_questions_for_this_entry_type': len(community.getQuestionsOfType(entry.type)) > 0,
+								   'questions': community.getQuestionsOfType(entry.type),
+								   'answers_with_entry': entry.getAnswersForMember(member),
 								   'nudge_categories': community.nudgeCategories,
 								   'num_nudge_categories': NUM_NUDGE_CATEGORIES,
 								   'user_is_admin': users.is_current_user_admin(),
@@ -684,14 +684,14 @@ class PreviewPage(webapp.RequestHandler):
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-			article = None
+			entry = None
 			annotation = None
 			if self.request.query_string:
 				try:
-					article = Article.get(self.request.query_string)
+					entry = Entry.get(self.request.query_string)
 				except:
 					annotation = Annotation.get(self.request.query_string)
-					article = annotation.article
+					entry = annotation.entry
 			if "imports" in self.request.arguments():
 				if member.isLiaison():
 					self.redirect('/liaise/import')
@@ -704,46 +704,46 @@ class PreviewPage(webapp.RequestHandler):
 					self.redirect("/visit/%s?%s" % (annotation.typeAsURL(), annotation.key()))
 				elif "publish" in self.request.arguments():
 					annotation.publish()
-					self.redirect("/visit/look?%s" % annotation.article.key())
+					self.redirect("/visit/look?%s" % annotation.entry.key())
 			else:
 				if "edit" in self.request.arguments():
-					self.redirect("/visit/%s?%s" % (article.type, article.key()))
+					self.redirect("/visit/%s?%s" % (entry.type, entry.key()))
 				elif "publish" in self.request.arguments():
-					article.publish()
+					entry.publish()
 					self.redirect("/visit/look")
 		else:
 			self.redirect("/")
 					
-class RelateArticlePage(webapp.RequestHandler):
+class RelateEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-			article = None
+			entry = None
 			if self.request.query_string:
 				try:
-					article = Article.get(self.request.query_string)
+					entry = Entry.get(self.request.query_string)
 				except:
-					article = None
-			if article:
-				links = article.getLinksOfType("related")
-				articles = community.getNonDraftArticles()
-				articlesThatCanBeRelated = []
-				for anArticle in articles:
+					entry = None
+			if entry:
+				links = entry.getLinksOfType("related")
+				entries = community.getNonDraftEntries()
+				entriesThatCanBeRelated = []
+				for anEntry in entries:
 					found = False
 					for link in links:
-						if link.articleTo.key() == anArticle.key() or link.articleFrom.key() == anArticle.key():
+						if link.entryTo.key() == anEntry.key() or link.entryFrom.key() == anEntry.key():
 							found = True
-					if not found and anArticle.key() != article.key():
-						articlesThatCanBeRelated.append(anArticle)
-				if articlesThatCanBeRelated:
+					if not found and anEntry.key() != entry.key():
+						entriesThatCanBeRelated.append(anEntry)
+				if entriesThatCanBeRelated:
 					template_values = {
-									'title': "Relate articles to",
-								   	'title_extra': article.title,
+									'title': "Relate entries to",
+								   	'title_extra': entry.title,
 									'community': community, 
 									'current_member': member, 
-									'article': article,
-									'articles': articlesThatCanBeRelated, 
+									'entry': entry,
+									'entries': entriesThatCanBeRelated, 
 									'related_links': links,
 									'user_is_admin': users.is_current_user_admin(), 
 									'logout_url': users.create_logout_url("/"), 
@@ -751,7 +751,7 @@ class RelateArticlePage(webapp.RequestHandler):
 					path = os.path.join(os.path.dirname(__file__), 'templates/visit/relate.html')
 					self.response.out.write(template.render(path, template_values))
 				else:
-					self.redirect("read?%s" % article.key()) # should not have link in this case CFK FIX
+					self.redirect("read?%s" % entry.key()) # should not have link in this case CFK FIX
 			else:
 				self.redirect('/')
 					
@@ -759,15 +759,15 @@ class RelateArticlePage(webapp.RequestHandler):
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-				article = None
+				entry = None
 				if self.request.query_string:
 					try:
-						article = Article.get(self.request.query_string)
+						entry = Entry.get(self.request.query_string)
 					except:
-						article = None
-				if article:
+						entry = None
+				if entry:
 					linksToRemove = []
-					for link in article.getLinksOfType("related"):
+					for link in entry.getLinksOfType("related"):
 						if self.request.get("linkComment|%s" % link.key()):
 							link.comment = self.request.get("linkComment|%s" % link.key())
 							link.put()
@@ -775,14 +775,14 @@ class RelateArticlePage(webapp.RequestHandler):
 							linksToRemove.append(link)
 					for link in linksToRemove:
 						db.delete(link)
-					for anArticle in community.getNonDraftArticles():
-						if self.request.get("addLink|%s" % anArticle.key()) == "yes":
-							link = Link(articleFrom=article, articleTo=anArticle, type="related", \
+					for anEntry in community.getNonDraftEntries():
+						if self.request.get("addLink|%s" % anEntry.key()) == "yes":
+							link = Link(entryFrom=entry, entryTo=anEntry, type="related", \
 										creator=member, community=community,
-										comment=cgi.escape(self.request.get("linkComment|%s" % anArticle.key())))
+										comment=cgi.escape(self.request.get("linkComment|%s" % anEntry.key())))
 							link.put()
 							link.publish()
-					self.redirect("read?%s" % article.key())
+					self.redirect("read?%s" % entry.key())
 				else:
 					self.redirect("/visit/look")
 		else:

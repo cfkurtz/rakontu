@@ -19,9 +19,9 @@
 			<td>Member type</td><td>{{member.governanceType}}</td></tr>
 		{% endif %}
 		<td>Joined</td><td>{{member.joined|timeZone:member.timeZoneName|date:member.dateFormat}}</td></tr>
-		<td>Last entered article</td><td>
-			{% if member.lastEnteredArticle %} 
-				{{member.lastEnteredArticle|timeZone:member.timeZoneName|date:member.dateFormat}} at {{member.lastEnteredArticle|timeZone:member.timeZoneName|time:member.timeFormat}}
+		<td>Last entered entry</td><td>
+			{% if member.lastEnteredEntry %} 
+				{{member.lastEnteredEntry|timeZone:member.timeZoneName|date:member.dateFormat}} at {{member.lastEnteredEntry|timeZone:member.timeZoneName|time:member.timeFormat}}
 			{% else %}
 				never
 			{% endif %}
@@ -64,33 +64,33 @@
 		{% else %}
 			<h3>This member's saved drafts</h3>
 		{% endif %}
-		{% if draft_articles %}
-			<h4>Articles</h4>
+		{% if draft_entries %}
+			<h4>Entries</h4>
 	      	<table border="1" cellpadding="4" cellspacing="0">
-	      	<tr><th>Article type</th><th>Name</th><th>Created</th><th>Last changed</th><th>Remove?</th>
-	      	{% for article in draft_articles %}
+	      	<tr><th>Entry type</th><th>Name</th><th>Created</th><th>Last changed</th><th>Remove?</th>
+	      	{% for entry in draft_entries %}
 		      	<tr>
-		      	<td>{{article.type}}</td>
-				<td><a href="{{article.type}}?{{article.key}}">{{article.title}}</a></td>
-				<td>{{article.created|timeZone:member.timeZoneName|date:member.dateFormat}} at {{article.created|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
-				<td>{{article.edited|timeZone:member.timeZoneName|date:member.dateFormat}} at {{article.edited|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
-				<td><input type="checkbox" name="remove|{{ article.key }}" value="yes" id="remove|{{ article.key }}"/>
-					<label for="remove|{{ article.key }}">Remove</label></td>
+		      	<td>{{entry.type}}</td>
+				<td><a href="{{entry.type}}?{{entry.key}}">{{entry.title}}</a></td>
+				<td>{{entry.created|timeZone:member.timeZoneName|date:member.dateFormat}} at {{entry.created|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
+				<td>{{entry.edited|timeZone:member.timeZoneName|date:member.dateFormat}} at {{entry.edited|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
+				<td><input type="checkbox" name="remove|{{ entry.key }}" value="yes" id="remove|{{ entry.key }}"/>
+					<label for="remove|{{ entry.key }}">Remove</label></td>
 				</tr>
 			{% endfor %}
 			</table>
 		{% else %}
-			<p><b>Articles</b> - none</p>
+			<p><b>Entries</b> - none</p>
 		{% endif %}
 		{% if draft_annotations %}
 		<h4>Annotations</h4>
 	      	<table border="1" cellpadding="4" cellspacing="0">
-	      	<tr><th>Annotation type</th><th>Name</th><th>In reference to the article</th><th>Created</th><th>Last changed</th><th>Remove?</th>
+	      	<tr><th>Annotation type</th><th>Name</th><th>In reference to the entry</th><th>Created</th><th>Last changed</th><th>Remove?</th>
 	      	{% for annotation in draft_annotations %}
 		      	<tr>
 		      	<td>{{annotation.type}}</td>
 				<td><a href="{{annotation.typeAsURL}}?{{annotation.key}}">{{annotation.displayString}}</a></td>
-				<td><a href="read?{{annotation.article.key}}">{{annotation.article.title}}</a> ({{annotation.article.type}})</td>
+				<td><a href="read?{{annotation.entry.key}}">{{annotation.entry.title}}</a> ({{annotation.entry.type}})</td>
 				<td>{{annotation.created|timeZone:member.timeZoneName|date:member.dateFormat}} at {{annotation.created|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
 				<td>{{annotation.edited|timeZone:member.timeZoneName|date:member.dateFormat}} at {{annotation.edited|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
 				<td><input type="checkbox" name="remove|{{ annotation.key }}" value="yes" id="remove|{{ annotation.key }}"/>
@@ -102,11 +102,11 @@
 		{% else %}
 			<p><b>Annotations</b> - none</p>
 		{% endif %}
-		{% if first_draft_answer_per_article %}
-		<h4>Answer sets for articles</h4>
+		{% if first_draft_answer_per_entry %}
+		<h4>Answer sets for entries</h4>
 	      	<table border="1" cellpadding="4" cellspacing="0">
-	      	<tr><th>Answers about article</th><th>Created</th><th>Last changed</th><th>Remove?</th>
-	      	{% for answer in first_draft_answer_per_article %}
+	      	<tr><th>Answers about entry</th><th>Created</th><th>Last changed</th><th>Remove?</th>
+	      	{% for answer in first_draft_answer_per_entry %}
 		      	<tr>
 				<td><a href="answers?{{answer.referent.key}}">{{answer.referent.title}}</a> ({{answer.referent.type}})</td>
 				<td>{{answer.created|timeZone:member.timeZoneName|date:member.dateFormat}} at {{answer.created|timeZone:member.timeZoneName|time:member.timeFormat}}</td>

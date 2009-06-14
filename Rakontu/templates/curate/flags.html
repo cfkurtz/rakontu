@@ -15,33 +15,33 @@
 				and notify the community's owners and managers if you think an item should be removed quickly.<p>
 			{% endif %}
 			
-			<h3>Flagged articles</h3>
-			{% if articles %}
+			<h3>Flagged entries</h3>
+			{% if entries %}
 				<fieldset>
 		      	<table border="1" cellpadding="4" cellspacing="0">
-		      	<tr><th>Unflag? {{"#unflag_item"|tip}}</th><th>Article</th><th>Type</th><th>Text (first part)</th>
+		      	<tr><th>Unflag? {{"#unflag_item"|tip}}</th><th>Entry</th><th>Type</th><th>Text (first part)</th>
 	      		{% if current_member.isManagerOrOwner %} 
 	      			<th>Remove?{{"#remove_flagged_item"|caution}}</th> 
 	      		{% else %}  
 	      			<th>Notify?</th> 
 	      		{% endif %}
 	      		</tr>
-	      		{% for article in articles %}
+	      		{% for entry in entries %}
 	  				<tr>
 	  				<td>
-	  					<input type="checkbox" name="unflag|{{article.key}}" value="yes" id="unflag|{{article.key}}"/>
-						<label for="unflag|{{article.key}}">Unflag</label>
+	  					<input type="checkbox" name="unflag|{{entry.key}}" value="yes" id="unflag|{{entry.key}}"/>
+						<label for="unflag|{{entry.key}}">Unflag</label>
 	  				</td>	  				
-	  				<td><a href="/visit/read?{{article.key}}">{{article.title}}</a></td>
-	  				<td>{{article.type}}</td>
-	  				<td>{{article.text_formatted|upTo:100|orNbsp}}</td>
+	  				<td><a href="/visit/read?{{entry.key}}">{{entry.title}}</a></td>
+	  				<td>{{entry.type}}</td>
+	  				<td>{{entry.text_formatted|upTo:100|orNbsp}}</td>
 	  				<td>
 	  				{% if current_member.isManagerOrOwner %}
-	  						<input type="checkbox" name="remove|{{article.key}}" value="yes" id="remove|{{article.key}}"/>
-							<label for="remove|{{article.key}}">Remove</label>
+	  						<input type="checkbox" name="remove|{{entry.key}}" value="yes" id="remove|{{entry.key}}"/>
+							<label for="remove|{{entry.key}}">Remove</label>
 	  				{% else %}
-	  						<input type="checkbox" name="notify|{{article.key}}" value="yes" id="notify|{{article.key}}"/>
-							<label for="notify|{{article.key}}">Notify</label>
+	  						<input type="checkbox" name="notify|{{entry.key}}" value="yes" id="notify|{{entry.key}}"/>
+							<label for="notify|{{entry.key}}">Notify</label>
 	  				{% endif %}	
 	  				</td>	  				
 	  				</tr>
@@ -56,7 +56,7 @@
 			{% if annotations %}
 				<fieldset>
 		      	<table border="1" cellpadding="4" cellspacing="0">
-		      	<tr><th>Unflag?</th><th>Article</th><th>Type</th><th>Content</th>
+		      	<tr><th>Unflag?</th><th>Entry</th><th>Type</th><th>Content</th>
 	      		{% if current_member.isManagerOrOwner %} 
 	      			<th>Remove?</th> 
 	      		{% else %}  
@@ -69,7 +69,7 @@
 	  					<input type="checkbox" name="unflag|{{annotation.key}}" value="yes" id="unflag|{{annotation.key}}"/>
 						<label for="unflag|{{annotation.key}}">Unflag</label>
 	  				</td>	  				
-	  				<td><a href="/visit/read?{{annotation.article.key}}">{{annotation.article.title}}</td>
+	  				<td><a href="/visit/read?{{annotation.entry.key}}">{{annotation.entry.title}}</td>
 	  				<td>{{annotation.type}}</td>
 	  				<td>
 	  				{% if annotation.isComment or annotation.isRequest %}
@@ -104,7 +104,7 @@
 			{% if answers %}
 				<fieldset>
 		      	<table border="1" cellpadding="4" cellspacing="0">
-		      	<tr><th>Unflag?</th><th>Article</th><th>Question</th><th>Answer</th>
+		      	<tr><th>Unflag?</th><th>Entry</th><th>Question</th><th>Answer</th>
 	      		{% if current_member.isManagerOrOwner %} 
 	      			<th>Remove?</th> 
 	      		{% else %}  
@@ -153,8 +153,8 @@
 	  					<input type="checkbox" name="unflag|{{link.key}}" value="yes" id="unflag|{{link.key}}"/>
 						<label for="unflag|{{link.key}}">Unflag</label>
 	  				</td>	  				
-	  				<td><a href="/visit/read?{{link.articleFrom.key}}">{{link.articleFrom.title}}</td>
-	  				<td><a href="/visit/read?{{link.articleTo.key}}">{{link.articleTo.title}}</td>
+	  				<td><a href="/visit/read?{{link.entryFrom.key}}">{{link.entryFrom.title}}</td>
+	  				<td><a href="/visit/read?{{link.entryTo.key}}">{{link.entryTo.title}}</td>
 	  				<td>{{link.comment|orNbsp}}
 	  					{% if link.comment and current_member.isManagerOrOwner %}
 		  						<p><input type="checkbox" name="removeComment|{{link.key}}" value="yes" id="removeComment|{{link.key}}"/>
@@ -177,7 +177,7 @@
 	      		<ul><li class="nobullet">none</li></ul>
 	      	{% endif %}
       	
-      	{% if articles or annotations or answers or links %}
+      	{% if entries or annotations or answers or links %}
 			<p>&nbsp; </p>
 		    <center>
 		    {% if current_member.isManagerOrOwner %}

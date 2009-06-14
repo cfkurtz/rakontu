@@ -5,47 +5,47 @@
 		<div id="content">
 		
 		<div id="stylized" class="rakontu_form">
-		<form action="/visit/article
-		{% if article %}
-		?{{article.key}}
+		<form action="/visit/entry
+		{% if entry %}
+		?{{entry.key}}
 		{% endif %}
 		" method="post" enctype="multipart/form-data">
 		
-			{% if article %}
-				<h3>{{article.title}} ({{article_type}})</h3>
+			{% if entry %}
+				<h3>{{entry.title}} ({{entry_type}})</h3>
 			{% else %}
-				<h3>New {{article_type|capfirst}}</h3>
+				<h3>New {{entry_type|capfirst}}</h3>
 			{% endif %}
 			<fieldset>
-			{% if article %}
-				You can change the text of the {{article_type}} here.
+			{% if entry %}
+				You can change the text of the {{entry_type}} here.
 			{% else %}
-				{% ifequal article_type "story" %}
+				{% ifequal entry_type "story" %}
 					Please tell your story here.
 				{% endifequal %}
-				{% ifequal article_type "pattern" %}
+				{% ifequal entry_type "pattern" %}
 					Please describe the pattern of stories you want to make note of here.
 				{% endifequal %}
-				{% ifequal article_type "collage" %}
+				{% ifequal entry_type "collage" %}
 					Please describe your collage here. 
 				{% endifequal %}
-				{% ifequal article_type "invitation" %}
+				{% ifequal entry_type "invitation" %}
 					Please describe to other members what you would like them to tell stories about.
 				{% endifequal %}
-				{% ifequal article_type "resource" %}
+				{% ifequal entry_type "resource" %}
 					Type the text of your resource here.
 				{% endifequal %}
 			{% endif %}
 			
 			<table style="width:100%; border:none">
 			<tr><td class="noborder">
-			<textarea name="text" rows="10" cols="60">{% if article %}{{article.text}}{% endif %}</textarea>
+			<textarea name="text" rows="10" cols="60">{% if entry %}{{entry.text}}{% endif %}</textarea>
 			</td><td class="noborder" width="80">
 			<p>Interpret as</p>
 				<select name="text_format">
 				{% for format in text_formats %}
 					<option value="{{format}}" 
-					{% ifequal article.text_format format %}
+					{% ifequal entry.text_format format %}
 						selected="selected"
 					{% endifequal %}
 					>{{format}}</option>
@@ -53,20 +53,20 @@
 				</select>
 			</td></tr></table>
 			
-			{% if article %}
-				<p>You can change the name of this {{article_type}} here.</p>
+			{% if entry %}
+				<p>You can change the name of this {{entry_type}} here.</p>
 			{% else %}
-				<p>Please give this {{article_type}} a name.</p>
+				<p>Please give this {{entry_type}} a name.</p>
 			{% endif %}
-			<p><input type="text" name="title" size="60" value="{% if article %}{{article.title}}{% endif %}"/></p>
+			<p><input type="text" name="title" size="60" value="{% if entry %}{{entry.title}}{% endif %}"/></p>
 			
 			{% if character_allowed %}
-				This {{article_type}} was added by 
+				This {{entry_type}} was added by 
 				
 				<select name="attribution">
 					<option value="member"
-						{% if article %}
-							{% if article.attributedToMember %}
+						{% if entry %}
+							{% if entry.attributedToMember %}
 								selected="selected"
 							{% endif %}
 						{% endif %}
@@ -74,8 +74,8 @@
 					{% if community.getCharacters %}
 						{% for character in community.getCharacters %}
 							<option value="{{character.key}}"
-							{% if article %}
-								{% ifequal article.character.key character.key %}
+							{% if entry %}
+								{% ifequal entry.character.key character.key %}
 									selected="selected"
 								{% endifequal %}
 							{% endif %}
@@ -87,17 +87,17 @@
 
 			{% if offline_members %}
 				{% if current_member.isLiaison %}
-					<p>Since you are a liaison, was this {{article_type}} collected from an off-line member?</p>
+					<p>Since you are a liaison, was this {{entry_type}} collected from an off-line member?</p>
 					<input type="checkbox" name="collectedOffline" value="yes" id="collectedOffline"
-						{% if article.collectedOffline %}
+						{% if entry.collectedOffline %}
 						checked
 						{% endif %}
 					<label for="collectedOffline">Yes, it was collected from</label>
 					<select name="offlineSource">
 						{% for member in offline_members %}
 							<option value="{{member.key}}"
-							{% if article %}
-								{% ifequal member.key article.creator.key %}
+							{% if entry %}
+								{% ifequal member.key entry.creator.key %}
 									selected="selected"
 								{% endifequal %}
 							>{{member.nickname}}
@@ -108,16 +108,16 @@
 				{% endif %}
 			{% endif %}
 			
-			{% if article_from %}
+			{% if entry_from %}
 				<p>You created this story 
 				{% ifequal link_type "retell" %}
-					as your own version of the story "{{article_from.title}}."
+					as your own version of the story "{{entry_from.title}}."
 				{% endifequal %}
 				{% ifequal link_type "remind" %}
-					because the story "{{article_from.title}}" reminded you of it.
+					because the story "{{entry_from.title}}" reminded you of it.
 				{% endifequal %}
 				{% ifequal link_type "respond" %}
-					in response to the invitation "{{article_from.title}}."
+					in response to the invitation "{{entry_from.title}}."
 				{% endifequal %}
 				Would you like to comment on 
 				{% ifequal link_type "retell" %}
@@ -132,7 +132,7 @@
 				</p>
 				<input type="text" name="link_comment" value="" size="60">
 				<input type="hidden" name="link_type" value="{{link_type}}">
-				<input type="hidden" name="article_from" value="{{article_from.key}}">
+				<input type="hidden" name="entry_from" value="{{entry_from.key}}">
 			{% endif %}
 			
 			</fieldset>
@@ -145,11 +145,11 @@
 			{% ifnotequal community.maxNumAttachments 0 %}
 				<h3>Attachments</h3>
 				<fieldset>
-				{% if article %}
-					<p>This {{article_type}} has these attachments. Click the Browse button to replace any attachment,
+				{% if entry %}
+					<p>This {{entry_type}} has these attachments. Click the Browse button to replace any attachment,
 					or check the Remove box to delete it.
 				{% else %}
-					<p>You can attach up to {{community.maxNumAttachmentsAsText}} files to this {{article_type}} here.
+					<p>You can attach up to {{community.maxNumAttachmentsAsText}} files to this {{entry_type}} here.
 				{% endif %}
 				<i>PDF, TXT, DOC, JPG, PNG only; maximum 10 megabyte limit per attachment.</i></p>
 				
@@ -158,7 +158,7 @@
 		      		<th>Name</th>
 		      		<th>File</th>
 		      		<th>Remove?</th>
-		      		<th>{% if article %} Replace {% else %} Attach {% endif %} </th>
+		      		<th>{% if entry %} Replace {% else %} Attach {% endif %} </th>
 		      		
 		      		</tr><td><input type="text" name="attachmentName0" value="{{attachments.0.name}}" size="20"/></td>
 					<td>{% if attachments.0.fileName %}
@@ -227,7 +227,7 @@
 				</fieldset>
 			{% endifnotequal %}
 			
-		{% ifequal article_type "collage" %}
+		{% ifequal entry_type "collage" %}
 			{% if included_links_outgoing %}
 				<h3>Stories included in the collage</h3>
 				<fieldset>
@@ -240,8 +240,8 @@
 		      		</tr>
 		      		{% for link in included_links_outgoing %}
 		  				<tr>
-		  				<td><a href="read?{{link.articleTo.key}}">{{link.articleTo.title}}</a></td>
-		  				<td>{{link.articleTo.shortFormattedText|orNone}}</td>
+		  				<td><a href="read?{{link.entryTo.key}}">{{link.entryTo.title}}</a></td>
+		  				<td>{{link.entryTo.shortFormattedText|orNone}}</td>
 		  				<td><input type="text" name="linkComment|{{link.key}}" value="{{link.comment}}" size="40"/></td>
 		  				<td width="80">
 		  					<input type="checkbox" name="removeLink|{{ link.key }}" value="yes" id="removeLink|{{ link.key }}"/>
@@ -261,15 +261,15 @@
 	      		<th>Text</th>
 	      		<th>Link comment</th>
 	      		</tr>
-	      		{% for anArticle in articles_that_can_be_linked_to_by_collage %}
+	      		{% for anEntry in entries_that_can_be_linked_to_by_collage %}
 	  				<tr>
 	  				<td width="80">
-	  					<input type="checkbox" name="addLink|{{ anArticle.key }}" value="yes" id="addLink|{{ anArticle.key }}"/>
-						<label for="addLink|{{ anArticle.key }}">Include</label>
+	  					<input type="checkbox" name="addLink|{{ anEntry.key }}" value="yes" id="addLink|{{ anEntry.key }}"/>
+						<label for="addLink|{{ anEntry.key }}">Include</label>
 	  					</td>
-	  				<td><a href="read?{{anArticle.key}}">{{anArticle.title}}</a></td>
-	  				<td>{{anArticle.shortFormattedText|orNone}}</td>
-	  				<td><input type="text" name="linkComment|{{anArticle.key}}" value="" size="40"/></td>
+	  				<td><a href="read?{{anEntry.key}}">{{anEntry.title}}</a></td>
+	  				<td>{{anEntry.shortFormattedText|orNone}}</td>
+	  				<td><input type="text" name="linkComment|{{anEntry.key}}" value="" size="40"/></td>
 	  				</tr>
 	      		{% endfor %}
 	      	</table>
@@ -278,19 +278,19 @@
 			
 			<p>
 			<center>
-			{% if article %}
-				{% if article.collectedOffline %}
-					<input type="submit" name="save|{{article_type}}" value="Save changes to imported article" class="button">
-					<input type="submit" name="preview|{{article_type}}" value="Preview" class="button">
+			{% if entry %}
+				{% if entry.collectedOffline %}
+					<input type="submit" name="save|{{entry_type}}" value="Save changes to imported entry" class="button">
+					<input type="submit" name="preview|{{entry_type}}" value="Preview" class="button">
 				{% else %}
-					<input type="submit" name="save|{{article_type}}" value="Save as draft" class="button">
-					<input type="submit" name="preview|{{article_type}}" value="Preview" class="button">
-					<input type="submit" name="publish|{{article_type}}" value="Publish" class="button">
+					<input type="submit" name="save|{{entry_type}}" value="Save as draft" class="button">
+					<input type="submit" name="preview|{{entry_type}}" value="Preview" class="button">
+					<input type="submit" name="publish|{{entry_type}}" value="Publish" class="button">
 				{% endif %}
 			{% else %}
-				<input type="submit" name="save|{{article_type}}" value="Save as draft" class="button">
-				<input type="submit" name="preview|{{article_type}}" value="Preview" class="button">
-				<input type="submit" name="publish|{{article_type}}" value="Publish" class="button">
+				<input type="submit" name="save|{{entry_type}}" value="Save as draft" class="button">
+				<input type="submit" name="preview|{{entry_type}}" value="Preview" class="button">
+				<input type="submit" name="publish|{{entry_type}}" value="Publish" class="button">
 			{% endif %}
 			</center>
 			

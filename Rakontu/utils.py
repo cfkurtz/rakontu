@@ -94,11 +94,11 @@ class ImageHandler(webapp.RequestHandler):
 				self.response.out.write(community.image)
 			else:
 				self.error(404)
-		elif self.request.get("article_id"):
-			article = db.get(self.request.get("article_id"))
-			if article and article.type == "pattern" and article.screenshotIfPattern:
+		elif self.request.get("entry_id"):
+			entry = db.get(self.request.get("entry_id"))
+			if entry and entry.type == "pattern" and entry.screenshotIfPattern:
 				self.response.headers['Content-Type'] = "image/jpg"
-				self.response.out.write(article.screenshotIfPattern)
+				self.response.out.write(entry.screenshotIfPattern)
 		elif self.request.get("character_id"):
 			character = db.get(self.request.get("character_id"))
 			if character:
@@ -212,18 +212,18 @@ def MakeSomeFakeData():
 	Character(name="Little Bird", community=community).put()
 	Character(name="Old Coot", community=community).put()
 	Character(name="Blooming Idiot", community=community).put()
-	article = Article(community=community, type="story", creator=member, title="The dog", text="The dog sat on a log.", draft=False)
-	article.put()
-	article.publish()
-	annotation = Annotation(community=community, type="comment", creator=member, article=article, shortString="Great!", longString="Wonderful!", draft=False)
+	entry = Entry(community=community, type="story", creator=member, title="The dog", text="The dog sat on a log.", draft=False)
+	entry.put()
+	entry.publish()
+	annotation = Annotation(community=community, type="comment", creator=member, entry=entry, shortString="Great!", longString="Wonderful!", draft=False)
 	annotation.put()
 	annotation.publish()
-	annotation = Annotation(community=community, type="comment", creator=member, article=article, shortString="Dumb", longString="Silly", draft=False)
+	annotation = Annotation(community=community, type="comment", creator=member, entry=entry, shortString="Dumb", longString="Silly", draft=False)
 	annotation.put()
 	annotation.publish()
-	article = Article(community=community, type="story", creator=member, title="The circus", text="I went the the circus. It was great.", draft=False)
-	article.put()
-	article.publish()
+	entry = Entry(community=community, type="story", creator=member, title="The circus", text="I went the the circus. It was great.", draft=False)
+	entry.put()
+	entry.publish()
 
 def checkedBlank(value):
 	if value:
