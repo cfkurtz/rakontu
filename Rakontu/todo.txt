@@ -44,7 +44,13 @@ still have not implemented user choosing which nudge categories to consider in l
 
 don't show manager/owner status to group, just that they are a manager. owner status should not be obvious to all members.
 
-resource type
+resource type / get help /  intro page
 
 number of tags, number of nudges not FULLY updated for flexibility yet - check EVERY use
+
+questions not deleted
+
+attribution in batch
+
+date collected in not batch, if liaison
 

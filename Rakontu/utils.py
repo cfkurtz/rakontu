@@ -32,7 +32,7 @@ def GenerateHelps():
 	file = open('help.csv')
 	helpStrings = csv.reader(file)
 	for row in helpStrings:
-		if len(row) >= 3 and row[0][0] != ";":
+		if len(row) >= 3 and len(row[0]) > 0 and row[0][0] != ";":
 			help = Help(type=row[0].strip(), name=row[1].strip(), text=row[2].strip())
 			help.put()
 	file.close()
@@ -46,6 +46,18 @@ def helpTextLookup(name, type):
 		return match.text
 	else:
 		return None
+	
+def parseDate(yearString, monthString, dayString):
+	if yearString and monthString and dayString:
+		try:
+			year = int(yearString)
+			month = int(monthString)
+			day = int(dayString)
+			date = datetime(year, month, day, tzinfo=pytz.utc)
+			return date
+		except:
+			return datetime.now(tz=pytz.utc)
+	return datetime.now(tz=pytz.utc)
 
 def GenerateSystemQuestions():
 	db.delete(Question.all().filter("community = ", None).fetch(FETCH_NUMBER))

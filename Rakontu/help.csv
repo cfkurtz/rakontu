@@ -18,3 +18,6 @@
 "caution","#editing_after_publish","Making entries easy to re-edit is useful for resources, collages and patterns; but it may be very confusing for stories and invitations. In any case, this setting should not be changed often as it will confuse people. "
 "info","For which of these types of entry should editing be allowed after publishing?","Entries edited again after publishing can be turned into drafts again (and hidden) or re-published with changes. Older versions are replaced and not saved."
 "tip","#title_in_resource_list","Click a green flag icon to flag (mark) the resource for deletion. Click a red flag icon to unflag the item."
+"tip","#offlineCollectionDate","To use the current date, leave the year, month and day blank."
+"caution","Batch Story Entry","Note: Clicking 'Add stories' on this page will not add these entries right away; you will be able to review them in the page that apears afterward."
+,,"   "

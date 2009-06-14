@@ -7,9 +7,7 @@
 		<div id="stylized" class="rakontu_form">
 		<form action="/liaise/batch" method="post" enctype="multipart/form-data">
 		
-		<h2>Batch Story Entry</h2>
-		<p><b><i>Note: Clicking "Add stories" on this page will not add these entries right away; you will be able to
-			review them in the page that apears afterward.</i></b></p>
+		<h2>{{"Batch Story Entry"|caution}}</h2>
 
 		{% for i in num_entries|makeRange %}
 			<h3>Story {{i|add:1}}</h3>
@@ -27,13 +25,26 @@
 						<option value="{{member.key}}">{{member.nickname}}</option>
 					{% endfor %}
 				</select>
-			</td></tr>
+			{% if character_allowed %}
+				<tr><th>Attributed to</th><td>
+					<select name="attribution|{{i}}">
+						<option value="member"
+							>The selected member</option>
+						{% if community.getCharacters %}
+							{% for character in community.getCharacters %}
+								<option value="{{character.key}}"
+								>{{character.name}}</option>
+							{% endfor %}
+						{% endif %}
+					</select></p>
+				</td></tr>
+			{% endif %}
 			<tr><th>Date collected<br/></th>
 			<td>
 	  			 Year <input type="text" name="year|{{i}}" size="4" value=""/>
 	  			 Month <input type="text" name="month|{{i}}" size="4" value=""/>
 	  			 Day <input type="text" name="day|{{i}}" size="4" value=""/>
-	  			 <i>To use the current date, leave these blank.</i>
+	  			 {{"#offlineCollectionDate"|tip}}
 			</td><tr>
 			<tr><th>Title</th><td><input type="text" name="title|{{i}}" size="60" value=""/></td><tr>
 			<th>Text</th><td>
@@ -53,7 +64,7 @@
 				<tr><th>Attachment(s)</th><td>
 					{% for a in community.maxNumAttachments|makeRange %}
 						<input type="text" name="attachmentName|{{i}}|{{a}}" size="40"/>
-						<input type="file" name="attachment|{{i}}|{{a}}" size="15"/><br/>
+						<input type="file" name="attachment|{{i}}|{{a}}" size="30"/><br/>
 					{% endfor %}
 				</td></tr>
 			{% endif %}

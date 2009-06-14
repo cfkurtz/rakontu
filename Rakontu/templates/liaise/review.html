@@ -12,7 +12,11 @@
 			{% if batch_entries %}
 				<fieldset>
 		      	<table border="1" cellpadding="4" cellspacing="0">
-		      	<tr><th>Import?</th><th>Title</th><th>Collected from</th><th>Date</th>
+		      	<tr><th>Import?</th><th>Title</th><th>Collected from</th>
+		      	{% if character_allowed %}
+		      		<th>Attribution</th>
+		      	{% endif %}
+		      	<th>Date</th>
 		      	{% if community.allowsAttachments %}
 		      		<th>Attachments</th>
 		      	{% endif %}
@@ -24,6 +28,15 @@
 	      			 <td>{{entry.title}}<br/>(<a href="/visit/preview?{{entry.key}}">Preview</a>) 
 	      			 (<a href="/visit/{{entry.type}}?{{entry.key}}">Change</a>)</td>
 	      			 <td>{{entry.creator.nickname}}</td>
+	      			 {% if character_allowed %}
+	      			 	<td>
+	      			 	{% if entry.character %}
+	      			 		{{entry.character.linkString}}
+	      			 	{% else %}
+	      			 		member
+	      			 	{% endif %}
+	      			 	</td>
+	      			 {% endif %}
 	      			 <td>
 	      			 Year <input type="text" name="year|{{entry.key}}" size="4" value="{{entry.collected|date:"Y"}}"/>
 	      			 Month <input type="text" name="month|{{entry.key}}" size="2" value="{{entry.collected|date:"m"}}"/>

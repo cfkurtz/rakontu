@@ -354,7 +354,6 @@ class ReadEntryPage(webapp.RequestHandler):
 				else:
 					nudgePointsMemberCanAssign = max(0, community.maxNudgePointsPerEntry - entry.getTotalNudgePointsForMember(member))
 				communityHasQuestionsForThisEntryType = len(community.getQuestionsOfType(entry.type)) > 0
-				DebugPrint(entry.getAnswersForMember(member))
 				memberCanAnswerQuestionsAboutThisEntry = len(entry.getAnswersForMember(member)) == 0
 				memberCanAddNudgeToThisEntry = nudgePointsMemberCanAssign > 0
 				thingsUserCanDo = {}
@@ -364,6 +363,8 @@ class ReadEntryPage(webapp.RequestHandler):
 					thingsUserCanDo["Tell a story this %s reminds me of" % entry.type] = "remind?%s" % entry.key()
 				if communityHasQuestionsForThisEntryType and memberCanAnswerQuestionsAboutThisEntry:
 					thingsUserCanDo["Answer questions about this %s" % entry.type] = "answers?%s" % entry.key()
+				if communityHasQuestionsForThisEntryType and member.isLiaison():
+					thingsUserCanDo["Enter answers about this %s for an off-line member" % entry.type] = "answers?%s" % entry.key()
 				if entry.isInvitation():
 					thingsUserCanDo["Respond to this invitation with a story"] = "respond?%s" % entry.key()
 				thingsUserCanDo["Add a comment about this %s" % entry.type] = "comment?%s" % entry.key()
@@ -372,7 +373,7 @@ class ReadEntryPage(webapp.RequestHandler):
 					thingsUserCanDo["Nudge this %s up or down" % entry.type] = "nudge?%s" % entry.key()
 				thingsUserCanDo["Make a request about this %s" % entry.type] = "request?%s" % entry.key()
 				thingsUserCanDo["Add or remove relations to this %s" % entry.type] = "relate?%s" % entry.key()
-				if member.isCuratorOrManagerOrOwner():
+				if member.isCurator():
 					thingsUserCanDo["Curate this %s" % entry.type] = "curate?%s" % entry.key()
 				if entry.creator.key() == member.key() and community.allowsPostPublishEditOfEntryType(entry.type):
 					thingsUserCanDo["Change this %s" % entry.type] = "%s?%s" % (entry.type, entry.key())
@@ -577,10 +578,10 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 				memberToEdit = offlineMember
 			else:
 				memberToEdit = member
-			draftAnswerEntries = member.getEntriesWithDraftAnswers()
+			draftAnswerEntries = memberToEdit.getEntriesWithDraftAnswers()
 			firstDraftAnswerForEachEntry = []
 			for entry in draftAnswerEntries:
-				answers = member.getDraftAnswersForEntry(entry)
+				answers = memberToEdit.getDraftAnswersForEntry(entry)
 				firstDraftAnswerForEachEntry.append(answers[0])
 			template_values = {
 							   'title': "Profile of", 
@@ -590,9 +591,9 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 							   'member': memberToEdit,
 							   'current_member': member,
 							   'questions': community.getMemberQuestions(),
-							   'answers': member.getAnswers(),
-							   'draft_entries': member.getDraftEntries(),
-							   'draft_annotations': member.getDraftAnnotations(),
+							   'answers': memberToEdit.getAnswers(),
+							   'draft_entries': memberToEdit.getDraftEntries(),
+							   'draft_annotations': memberToEdit.getDraftAnnotations(),
 							   'first_draft_answer_per_entry': firstDraftAnswerForEachEntry,
 							   'time_zone_names': pytz.all_timezones,
 							   'date_formats': DateFormatStrings(),
@@ -706,7 +707,7 @@ class ResultFeedbackPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 			template_values = {
-						   	   'title': "Action successful", 
+						   	   'title': "Message", 
 					   	   	   'title_extra': None, 
 							   'community': community, 
 							   'message': self.request.query_string,

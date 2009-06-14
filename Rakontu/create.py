@@ -153,7 +153,7 @@ class EnterEntryPage(webapp.RequestHandler):
 				entry = db.get(entryKey)
 			newEntry = False
 			if not entry:
-				entry=Entry(community=community, type=type, creator=member, title=DEFAULT_UNTITLED_ENTRY_TITLE)
+				entry=Entry(community=community, type=type, title=DEFAULT_UNTITLED_ENTRY_TITLE)
 				newEntry = True
 			preview = False
 			if "save|%s" % type in self.request.arguments():
@@ -174,13 +174,25 @@ class EnterEntryPage(webapp.RequestHandler):
 			entry.text_format = format
 			entry.collectedOffline = self.request.get("collectedOffline") == "yes"
 			if entry.collectedOffline and member.isLiaison():
-				for aMember in community.getActiveMembers():
-					if self.request.get("offlineSource") == aMember.key():
+				foundMember = False
+				for aMember in community.getActiveOfflineMembers():
+					if self.request.get("offlineSource") == str(aMember.key()):
 						entry.creator = aMember
-						entry.liaison = member
+						foundMember = True
 						break
-			if self.request.get("attribution") != "member":
-				entry.character = Character.get(self.request.get("attribution"))
+				if not foundMember:
+					self.redirect('/result?offlineMemberNotFound') 
+					return
+				entry.liaison = member
+				entry.collected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
+			else:
+				entry.creator = member
+			if entry.collectedOffline:
+				attributionQueryString = "offlineAttribution"
+			else:
+				attributionQueryString = "attribution"
+			if self.request.get(attributionQueryString) != "member":
+				entry.character = Character.get(self.request.get(attributionQueryString))
 			else:
 				entry.character = None
 			entry.put()
@@ -257,6 +269,7 @@ class EnterEntryPage(webapp.RequestHandler):
 								answerToEdit.answerIfText = self.request.get(queryText)
 					answerToEdit.creator = member
 					answerToEdit.draft = entry.draft
+					answerToEdit.collected = entry.collected
 					if keepAnswer:
 						answerToEdit.put()
 						if not answerToEdit.draft:
@@ -296,19 +309,20 @@ class EnterEntryPage(webapp.RequestHandler):
 				entry.publish()
 			if preview:
 				self.redirect("/visit/preview?%s" % entry.key())
-			elif entry.inBatchEntryBuffer:
-				if member.isLiaison():
-					self.redirect("/liaise/review")
-				else:
-					self.redirect("/visit/look")
 			elif entry.draft:
-				self.redirect("/visit/profile?%s" % member.key())
-			else:
-				member.viewTimeEnd = entry.published + timedelta(seconds=1)
-				member.put()
+				if entry.collectedOffline:
+					if entry.inBatchEntryBuffer:
+						self.redirect("/liaise/review")
+					else: # not in batch entry buffer
+						self.redirect("/visit/profile?%s" % entry.creator.key())
+				else: # not collected offline 
+					self.redirect("/visit/profile?%s" % member.key())
+			else: # new entry
+				#member.viewTimeEnd = entry.published + timedelta(seconds=1)
+				#member.put()
 				self.redirect("/visit/read?%s" % entry.key())
-		else:
-			self.redirect("/visit/look")
+		else: # no community or member
+			self.redirect("/")
 			
 class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -350,10 +364,6 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 			entryKey = self.request.query_string
 			entry = db.get(entryKey)
 			if entry:
-				character = None
-				if self.request.get("attribution") != "member":
-					characterKey = self.request.get("attribution")
-					character = Character.get(characterKey)
 				newAnswers = False
 				preview = False
 				setAsDraft = False
@@ -364,6 +374,33 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 					preview = True
 				elif "publish" in self.request.arguments():
 					setAsDraft = False
+				collectedOffline = self.request.get("collectedOffline") == "yes"
+				if collectedOffline and member.isLiaison():
+					foundMember = False
+					for aMember in community.getActiveOfflineMembers():
+						if self.request.get("offlineSource") == str(aMember.key()):
+							answersAlreadyInPlace = aMember.getDraftAnswersForEntry(entry)
+							if answersAlreadyInPlace:
+								self.redirect('/result?offlineMemberAlreadyAnsweredQuestions') 
+								return
+							creator = aMember
+							foundMember = True
+							break
+					if not foundMember:
+						self.redirect('/result?offlineMemberNotFound') 
+						return
+					liaison = member
+					collected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
+				else:
+					creator = member
+				if collectedOffline:
+					attributionQueryString = "offlineAttribution"
+				else:
+					attributionQueryString = "attribution"
+				character = None
+				if self.request.get(attributionQueryString) != "member":
+					characterKey = self.request.get(attributionQueryString)
+					character = Character.get(characterKey)
 				questions = Question.all().filter("community = ", community).filter("refersTo = ", entry.type).fetch(FETCH_NUMBER)
 				for question in questions:
 					foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", entry.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
@@ -372,6 +409,10 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 					else:
 						answerToEdit = Answer(question=question, community=community, referent=entry, referentType="entry")
 						newAnswers = True
+					answerToEdit.creator = creator
+					if collectedOffline:
+						answerToEdit.liaison = liaison
+						answerToEdit.collected = collected
 					answerToEdit.character = character
 					keepAnswer = False
 					queryText = "%s" % question.key()
@@ -402,7 +443,6 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 							keepAnswer = len(self.request.get(queryText)) > 0
 							if keepAnswer:
 								answerToEdit.answerIfText = self.request.get(queryText)
-					answerToEdit.creator = member
 					answerToEdit.draft = setAsDraft
 					if keepAnswer:
 						if setAsDraft:
@@ -413,11 +453,13 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 				if preview:
 					self.redirect("/visit/previewAnswers?%s" % entry.key())
 				elif setAsDraft:
-					self.redirect("/visit/profile?%s" % member.key())
+					self.redirect("/visit/profile?%s" % creator.key()) 
 				else:
-					self.redirect("/visit/read?%s" % entry.key())
+					self.redirect("/visit/read?%s" % entry.key()) 
+			else:
+				self.redirect("/visit/read?%s" % entry.key())
 		else:
-			self.redirect("/visit/look")
+			self.redirect("/")
 			
 class PreviewAnswersPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -548,7 +590,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					entry = annotation.entry
 			if entry:
 				if not annotation:
-					annotation = Annotation(community=community, type=type, creator=member, entry=entry)
+					annotation = Annotation(community=community, type=type, entry=entry)
 					newAnnotation = True
 				preview = False
 				if "save|%s" % type in self.request.arguments():
@@ -562,13 +604,25 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					annotation.published = datetime.now(tz=pytz.utc)
 				annotation.collectedOffline = self.request.get("collectedOffline") == "yes"
 				if annotation.collectedOffline and member.isLiaison():
-					for aMember in community.getActiveMembers():
-						if self.request.get("offlineSource") == aMember.key():
+					foundMember = False
+					for aMember in community.getActiveOfflineMembers():
+						if self.request.get("offlineSource") == str(aMember.key()):
 							annotation.creator = aMember
-							annotation.liaison = member
+							foundMember = True
 							break
-				if self.request.get("attribution") != "member":
-					characterKey = self.request.get("attribution")
+					if not foundMember:
+						self.redirect('/result?offlineMemberNotFound') 
+						return
+					annotation.liaison = member
+					annotation.collected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
+				else:
+					annotation.creator = member
+				if annotation.collectedOffline:
+					attributionQueryString = "offlineAttribution"
+				else:
+					attributionQueryString = "attribution"
+				if self.request.get(attributionQueryString) != "member":
+					characterKey = self.request.get(attributionQueryString)
 					character = Character.get(characterKey)
 					annotation.character = character
 				else:
@@ -579,14 +633,14 @@ class EnterAnnotationPage(webapp.RequestHandler):
 						if self.request.get("tag%s" % i):
 							annotation.tagsIfTagSet.append(cgi.escape(self.request.get("tag%s" % i)))
 				elif type == "comment":
-					annotation.shortString = cgi.escape(self.request.get("shortString"))
+					annotation.shortString = cgi.escape(self.request.get("shortString", default_value="No subject"))
 					text = self.request.get("longString")
 					format = self.request.get("longString_format").strip()
 					annotation.longString = text
 					annotation.longString_formatted = db.Text(InterpretEnteredText(text, format))
 					annotation.longString_format = format
 				elif type == "request":
-					annotation.shortString = cgi.escape(self.request.get("shortString"))
+					annotation.shortString = cgi.escape(self.request.get("shortString", default_value="No subject"))
 					text = self.request.get("longString")
 					format = self.request.get("longString_format").strip()
 					annotation.longString = text
@@ -636,15 +690,18 @@ class EnterAnnotationPage(webapp.RequestHandler):
 				if preview:
 					self.redirect("/visit/preview?%s" % annotation.key())
 				elif annotation.draft:
-					if annotation.inBatchEntryBuffer:
-						self.redirect("/liaise/review")
-					else:
+					if annotation.collectedOffline:
+						if entry.inBatchEntryBuffer:
+							self.redirect("/liaise/review")
+						else: # not in batch entry 
+							self.redirect("/visit/profile?%s" % annotation.creator.key()) 
+					else: # not collected offline
 						self.redirect("/visit/profile?%s" % member.key())
-				else:
+				else: # not draft
 					self.redirect("/visit/read?%s" % entry.key())
-			else:
+			else: # new entry
 				self.redirect("/visit/look")
-		else:
+		else: # no community or member
 			self.redirect("/")
 			
 class PreviewPage(webapp.RequestHandler):

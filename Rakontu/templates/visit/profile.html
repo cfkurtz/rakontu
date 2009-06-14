@@ -11,7 +11,7 @@
 		{% if member.isOnlineMember %}
 			<h3>Your member information</h3>
 		{% else %}
-			<h3>This off-line member's information</h3>
+			<h3>{{member.nickname}}'s information</h3>
 		{% endif %}
       	<table border="1" cellpadding="4" cellspacing="0">
       	<tr>
@@ -62,7 +62,7 @@
 		{% if member.isOnlineMember %}
 			<h3>Your saved drafts</h3>
 		{% else %}
-			<h3>This member's saved drafts</h3>
+			<h3>{{member.nickname}}'s saved drafts</h3>
 		{% endif %}
 		{% if draft_entries %}
 			<h4>Entries</h4>

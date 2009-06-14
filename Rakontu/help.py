@@ -286,6 +286,7 @@ class ReviewBatchEntriesPage(webapp.RequestHandler):
 						   	   	   'title_extra': None, 
 								   'community': community, 
 								   'current_user': users.get_current_user(), 
+								   'character_allowed': community.allowCharacter[STORY_ENTRY_TYPE_INDEX],
 								   'batch_entries': community.getEntriesInImportBufferForLiaison(member),
 								   'batch_comments': community.getCommentsInImportBufferForLiaison(member),
 								   'batch_tagsets': community.getTagsetsInImportBufferForLiaison(member),
@@ -312,21 +313,10 @@ class ReviewBatchEntriesPage(webapp.RequestHandler):
 					entriesToFinalize = []
 					entries = community.getEntriesInImportBufferForLiaison(member)
 					for entry in entries:
-						yearString = self.request.get("year|%s" % entry.key())
-						monthString = self.request.get("month|%s" % entry.key())
-						dayString = self.request.get("day|%s" % entry.key())
-						date = datetime.now(tz=pytz.utc)
-						if yearString and monthString and dayString:
-							try:
-								year = int(yearString)
-								month = int(monthString)
-								day = int(dayString)
-								date = datetime(year, month, day, tzinfo=pytz.utc)
-								entry.collected = date
-								entry.put()
-								entry.copyCollectedDateToAllAnswersAndAnnotations()
-							except:
-								pass
+						date = parseDate(self.request.get("year|%s" % entry.key()), self.request.get("month|%s" % entry.key()), self.request.get("day|%s" % entry.key()))
+						entry.collected = date
+						entry.put()
+						entry.copyCollectedDateToAllAnswersAndAnnotations()
 						if self.request.get("remove|%s" % entry.key()) == "yes":
 							db.delete(entry)
 						elif self.request.get("import|%s" % entry.key()) == "yes":
@@ -349,6 +339,7 @@ class BatchEntryPage(webapp.RequestHandler):
 								   'num_tags': NUM_TAGS_IN_TAG_SET,
 								   'current_user': users.get_current_user(), 
 								   'text_formats': TEXT_FORMATS,
+								   'character_allowed': community.allowCharacter[STORY_ENTRY_TYPE_INDEX],
 								   'questions': community.getQuestionsOfType("story"),
 								   'offline_members': community.getActiveOfflineMembers(),
 								   'online_members': community.getActiveOnlineMembers(),
@@ -405,6 +396,10 @@ class BatchEntryPage(webapp.RequestHandler):
 							entry.inBatchEntryBuffer = True
 							entry.collectedOffline = not memberToAttribute.isOnlineMember
 							entry.liaison = member
+							if self.request.get("attribution|%s" % i) != "member":
+								entry.character = Character.get(self.request.get("attribution|%s" % i))
+							else:
+								entry.character = None
 							entry.put()
 							for j in range(community.maxNumAttachments):
 								for name, value in self.request.params.items():

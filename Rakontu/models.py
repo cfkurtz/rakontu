@@ -671,6 +671,9 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 	def getNonDraftAnswersAboutEntriesAttributedToCharacter(self):
 		return Answer.all().filter("character = ", self.key()).filter("draft = ", False).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
 
+	def linkString(self):
+		return '<a href="/visit/character?%s">%s</a>' % (self.key(), self.name)
+		
 # ============================================================================================
 # ============================================================================================
 class Answer(db.Model):
@@ -1215,7 +1218,12 @@ class Annotation(db.Model):                                # tag set, comment, r
 	
 	def displayString(self):
 		if self.type == "comment" or self.type == "request":
-			return self.shortString
+			if self.shortString:
+				return self.shortString
+			elif self.longString_formatted:
+				return self.longString_formatted
+			else:
+				return "no content"
 		elif self.type == "tag set":
 			return ", ".join(self.tagsIfTagSet)
 		elif self.type == "nudge":

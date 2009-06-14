@@ -6,12 +6,21 @@
 		
 	<h3>
 	{% ifequal message "messagesent" %}
-		Your message has been sent.
+		<p>Your message has been sent.</p>
 	{% endifequal %}
 	
 	{% ifequal message "changessaved" %}
-		Your changes have been saved.
+		<p>Your changes have been saved.</p>
 	{% endifequal %}
+	
+	{% ifequal message "offlineMemberNotFound" %}
+		<p>That off-line member was not found.</p>
+	{% endifequal %}
+	
+	{% ifequal message "offlineMemberAlreadyAnsweredQuestions" %}
+		<p>That off-line member has already answered questions about this entry.</p>
+	{% endifequal %}
+	
 	</h3>
 	<p>Would you like to <b><a href="{{linkback}}">Go back</a></b> to the page you were on?</p>
 		

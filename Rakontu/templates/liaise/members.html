@@ -26,9 +26,10 @@
 	      		{% for aMember in active_members %}
 	  				<tr>
 	  				<td>
-	  					<a href="/visit/member?{{aMember.key}}">{{ aMember.nickname }}</a>
+	  					{{ aMember.nickname }}<br/>
+	  					<a href="/visit/member?{{aMember.key}}">(View member page)</a>
 	  					{% ifequal aMember.liaisonIfOfflineMember.key current_member.key %}
-	  						<br/><a href="/visit/profile?{{aMember.key}}">(Change profile)</a>
+	  						<br/><a href="/visit/profile?{{aMember.key}}">(Change preferences or edit drafts)</a>
 	  					{% endifequal %}
 	  				</td>
 	  				<td width="80" valign="top">
