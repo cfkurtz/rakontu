@@ -636,7 +636,10 @@ class EnterAnnotationPage(webapp.RequestHandler):
 				if preview:
 					self.redirect("/visit/preview?%s" % annotation.key())
 				elif annotation.draft:
-					self.redirect("/visit/profile?%s" % member.key())
+					if annotation.inImportBuffer:
+						self.redirect("/liaise/review")
+					else:
+						self.redirect("/visit/profile?%s" % member.key())
 				else:
 					self.redirect("/visit/read?%s" % entry.key())
 			else:

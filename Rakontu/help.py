@@ -386,12 +386,12 @@ class BatchEntryPage(webapp.RequestHandler):
 										if value != None and value != "":
 											filename = value.filename
 											attachment = Attachment(entry=entry)
-											j = 0
+											k = 0
 											mimeType = None
 											for type in ACCEPTED_ATTACHMENT_FILE_TYPES:
 												if filename.find(".%s" % type) >= 0:
-													mimeType = ACCEPTED_ATTACHMENT_MIME_TYPES[j]
-												j += 1
+													mimeType = ACCEPTED_ATTACHMENT_MIME_TYPES[k]
+												k += 1
 											if mimeType:
 												attachment.mimeType = mimeType
 												attachment.fileName = filename

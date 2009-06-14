@@ -38,7 +38,7 @@
 			{% ifequal annotation_type "tag set" %}
 				<p>Please enter up to {{num_tags_in_tag_set}} words or short phrases that describe this {{entry.type}}.</p>
 				{% for i in num_tags_in_tag_set|makeRange %}
-					<p><input type="text" name="tag{{i}}" size="15" value="{% if annotation %}{{annotation.tagsIfTagSet|listLookup:i}}{% endif %}"/>&nbsp; 
+					<p><input type="text" name="tag{{i}}" size="15" value="{% if annotation %}{{annotation.tagsIfTagSet|listLookup:i|orNothing}}{% endif %}"/>&nbsp; 
 				{% endfor %}
 			{% endifequal %}
 			

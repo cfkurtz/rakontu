@@ -12,10 +12,12 @@
 			review them in the page that apears afterward.</i></b></p>
 
 		{% for i in num_entries|makeRange %}
-			<table  style="border-right:2px solid #FF7F00;border-bottom:2px solid #FF7F00;">
 			<h3>Story {{i|add:1}}</h3>
+			<fieldset>
+			<table style="width:100%;">
 			<tr><th>Collected from</th><td>
 				<select name="source|{{i}}">
+					<option value="none">(choose)</option>
 					{% if current_member.isManagerOrOwner %}
 						{% for member in online_members %}
 							<option value="{{member.key}}">{{member.nickname}}</option>
@@ -31,7 +33,7 @@
 	  			 Year <input type="text" name="year|{{i}}" size="4" value=""/>
 	  			 Month <input type="text" name="month|{{i}}" size="4" value=""/>
 	  			 Day <input type="text" name="day|{{i}}" size="4" value=""/>
-	  			 <i>Leave these blank to use the current date.</i>
+	  			 <i>To use the current date, leave these blank.</i>
 			</td><tr>
 			<tr><th>Title</th><td><input type="text" name="title|{{i}}" size="60" value=""/></td><tr>
 			<th>Text</th><td>
@@ -48,7 +50,7 @@
 				</td></tr></table>
 			</td></tr>
 			{% if community.allowsAttachments %}
-				<tr><th>Attachments</th><td>
+				<tr><th>Attachment(s)</th><td>
 					{% for a in community.maxNumAttachments|makeRange %}
 						<input type="text" name="attachmentName|{{i}}|{{a}}" size="40"/>
 						<input type="file" name="attachment|{{i}}|{{a}}" size="15"/><br/>
@@ -96,7 +98,7 @@
 				</td></tr>
 			{% endif %}
 			<tr><th>Comment</br></th><td>
-				<p>Subject <input type="text" size="40" name="commentSubject|{{i}}" value=""/></p>
+				<p>Subject <input type="text" size="60" name="commentSubject|{{i}}" value=""/></p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
 				<textarea name="comment|{{i}}" rows="3" cols="60"></textarea>
@@ -114,8 +116,8 @@
 					<input type="text" size="12" name="tag|{{i}}|{{j}}" value=""/>
 				{% endfor %}
 			</td></tr>
-
 			</table>
+			</fieldset>
 			<p></p>
 			<center><input type="submit" name="acceptBatchEntry" value="Add stories" class="button"></center>
 		{% endfor %}

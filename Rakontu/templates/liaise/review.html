@@ -12,7 +12,11 @@
 			{% if batch_entries %}
 				<fieldset>
 		      	<table border="1" cellpadding="4" cellspacing="0">
-		      	<tr><th>Import?</th><th>Title</th><th>Collected from</th><th>Date</th><th>Comment</th><th>Tag set</th><th>Remove?</th></tr>
+		      	<tr><th>Import?</th><th>Title</th><th>Collected from</th><th>Date</th>
+		      	{% if community.allowsAttachments %}
+		      		<th>Attachments</th>
+		      	{% endif %}
+		      	<th>Comment</th><th>Tag set</th><th>Remove?</th></tr>
 	      		{% for entry in batch_entries %}
 	      			<tr>
 	      			 <td valign="top" align="center"><input type="checkbox" name="import|{{entry.key}}" value="yes" id="import|{{entry.key}}"/>
@@ -22,16 +26,23 @@
 	      			 <td>{{entry.creator.nickname}}</td>
 	      			 <td>
 	      			 Year <input type="text" name="year|{{entry.key}}" size="4" value="{{entry.collected|date:"Y"}}"/>
-	      			 Month <input type="text" name="month|{{entry.key}}" size="4" value="{{entry.collected|date:"m"}}"/>
-	      			 Day <input type="text" name="day|{{entry.key}}" size="4" value="{{entry.collected|date:"d"}}"/>
+	      			 Month <input type="text" name="month|{{entry.key}}" size="2" value="{{entry.collected|date:"m"}}"/>
+	      			 Day <input type="text" name="day|{{entry.key}}" size="2" value="{{entry.collected|date:"d"}}"/>
 	      			 </td>
-	      			 <td>&nbsp;
+	      			 {% if community.allowsAttachments %}
+	      			 <td>
+	      			 {% for attachment in entry.getAttachments %}
+	      			 	{{attachment.linkString}}<br/>
+	      			 {% endfor %}
+	      			 &nbsp;</td>
+	      			 {% endif %}
+	      			 <td>
 	      			 	{% for comment in batch_comments %}
 	      			 		{% ifequal comment.entry.key entry.key %}
 	      			 			<a href="/visit/comment?{{comment.key}}">{{comment.displayString}}</a>
 	      			 		{% endifequal %}
 	      			 	{% endfor %}
-	      			 </td>
+	      			 &nbsp;</td>
 	      			 <td>&nbsp;
 	      			 	{% for tagset in batch_tagsets %}
 	      			 		{% ifequal tagset.entry.key entry.key %}

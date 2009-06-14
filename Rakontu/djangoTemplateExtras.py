@@ -70,7 +70,10 @@ def orNone(value):
 	
 def orNothing(value):
 	if value:
-		return value
+		if value == "None":
+			return ""
+		else:
+			return value
 	else:
 		return ""
 	
