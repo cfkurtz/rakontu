@@ -39,5 +39,10 @@ resource type / get help /  intro page
 
 number of tags, number of nudges not FULLY updated for flexibility yet - check EVERY use
 
-make questions not deleted but set as inactive
+tag sets in list when do tags
 
+tag view for curators
+
+nudge category questions
+
+questions about characters - one set of answers per community

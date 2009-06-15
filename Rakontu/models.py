@@ -596,6 +596,13 @@ class Member(db.Model):
 		
 	# CONTRIBUTIONS
 	
+	def getAllItemsAttributedToMember(self):
+		allItems = []
+		allItems.extend(self.getNonDraftEntriesAttributedToMember())
+		allItems.extend(self.getNonDraftAnnotationsAttributedToMember())
+		allItems.extend(self.getNonDraftAnswersAboutEntriesAttributedToMember())
+		return allItems
+	
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
 	
@@ -617,6 +624,8 @@ class Member(db.Model):
 	def getNonDraftLiaisonedAnswers(self):
 		return Answer.all().filter("liaison = ", self.key()).filter("draft = ", False).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
 	
+	def getLinksCreatedByMember(self):
+		return Link.all().filter("creator = ", self.key()).fetch(FETCH_NUMBER)
 		
 	# DRAFTS
 	
@@ -637,6 +646,15 @@ class Member(db.Model):
 				entries[answer.referent] = 1
 		return entries.keys()
 	
+	# DISPLAY
+	
+	def linkString(self):
+		if self.isOnlineMember:
+			offlineImageString = ""
+		else:
+			offlineImageString = '<img src="/images/offline.png" alt="offline member">'
+		return '%s <a href="member?%s">%s</a>' % (offlineImageString, self.key(), self.nickname)
+	
 # ============================================================================================
 # ============================================================================================
 class PendingMember(db.Model): # person invited to join community but not yet logged in
@@ -655,6 +673,7 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 
 	community = db.ReferenceProperty(Community, required=True, collection_name="characters_to_community")
 	name = db.StringProperty(required=True)
+	created = TzDateTimeProperty(auto_now_add=True)
 	
 	description = db.TextProperty(default=None) # appears on community page
 	description_formatted = db.TextProperty()
@@ -665,6 +684,13 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 	etiquetteStatement_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
 	
 	image = db.BlobProperty(default=None) # optional
+	
+	def getAllItemsAttributedToCharacter(self):
+		allItems = []
+		allItems.extend(self.getNonDraftEntriesAttributedToCharacter())
+		allItems.extend(self.getNonDraftAnnotationsAttributedToCharacter())
+		allItems.extend(self.getNonDraftAnswersAboutEntriesAttributedToCharacter())
+		return allItems
 	
 	def getNonDraftEntriesAttributedToCharacter(self):
 		return Entry.all().filter("character = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
@@ -1057,8 +1083,7 @@ class Link(db.Model):                         # related, retold, reminded, respo
 	community = db.ReferenceProperty(Community, required=True, collection_name="links_to_community")
 	creator = db.ReferenceProperty(Member, collection_name="links")
 	
-	# links cannot be in draft mode
-	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
+	# links cannot be in draft mode and cannot be entered in batch mode
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	flagComment = db.StringProperty()
 	

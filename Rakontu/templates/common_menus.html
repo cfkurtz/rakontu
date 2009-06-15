@@ -12,7 +12,11 @@
 		<p><img src="/images/Rakontu.jpg" width="100" height="64" alt="Rakontu logo" class="bordered" ></p>
 	{% endif %}
 	
-	</td><td align="left" valign="center" class="noborder">
+	</td><td align="left" valign="center" class="noborder"
+	{% if current_member.isCurator and current_member.isGuide and current_member.isLiaison and current_member.isManagerOrOwner and user_is_admin %}
+		width="650"
+	{% endif %}
+	>
 	<b>{{ community.name }}</b><br/>
 	{% if community.tagline %}
 		<i>{{community.tagline|orNbsp}}</i>

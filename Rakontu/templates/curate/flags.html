@@ -3,7 +3,7 @@
 	<body>
 	{% include "../common_menus.html" %}
 	<div id="content">
-	{% if current_member.isCuratorOrManagerOrOwner %}
+	{% if current_member.isCurator %}
 		<div id="stylized" class="rakontu_form">
 		<form action="/curate/flags" method="post">
 			{% if current_member.isManagerOrOwner %}
@@ -19,7 +19,7 @@
 			{% if entries %}
 				<fieldset>
 		      	<table border="1" cellpadding="4" cellspacing="0">
-		      	<tr><th>Unflag? {{"#unflag_item"|tip}}</th><th>Entry</th><th>Type</th><th>Text (first part)</th><th>Comment</th>
+		      	<tr><th>Unflag? {{"#unflag_item"|tip}}</th><th>Entry</th><th>Type</th><th>Text (first part)</th><th>By</th><th>Comment</th>
 	      		{% if current_member.isManagerOrOwner %} 
 	      			<th>Remove?{{"#remove_flagged_item"|caution}}</th> 
 	      		{% else %}  
@@ -35,6 +35,20 @@
 	  				<td><a href="/visit/read?{{entry.key}}">{{entry.title}}</a></td>
 	  				<td>{{entry.type}}</td>
 	  				<td>{{entry.text_formatted|upTo:100|orNbsp}}</td>
+	  				<td>
+						{% if entry.attributedToMember %}
+								{% if entry.creator.active %}
+									<a href="member?{{entry.creator.key}}">{{entry.creator.nickname}}</a>
+									{% ifequal entry.creator.key current_member.key %}
+										 (you)
+									{% endifequal %}
+								{% else %}
+									the former member "{{entry.creator.nickname}}"
+								{% endif %}
+						{% else %}
+							<a href="character?{{entry.character.key}}">{{entry.character.name}}</a>
+						{% endif %}
+	  				</td>
 	  				<td><input type="text" name="flagComment|{{entry.key}}" value="{{entry.flagComment|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></td>
 	  				<td>
 	  				{% if current_member.isManagerOrOwner %}
@@ -57,7 +71,7 @@
 			{% if annotations %}
 				<fieldset>
 		      	<table border="1" cellpadding="4" cellspacing="0">
-		      	<tr><th>Unflag?</th><th>Entry</th><th>Type</th><th>Content</th>
+		      	<tr><th>Unflag?</th><th>Entry</th><th>Type</th><th>Content</th><th>By</th>
 	      		{% if current_member.isManagerOrOwner %} 
 	      			<th>Remove?</th> 
 	      		{% else %}  
@@ -86,6 +100,20 @@
 	  				{% endif %}
 	  				</td>
 	  				<td>
+						{% if annotation.attributedToMember %}
+								{% if annotation.creator.active %}
+									<a href="member?{{annotation.creator.key}}">{{annotation.creator.nickname}}</a>
+									{% ifequal annotation.creator.key current_member.key %}
+										 (you)
+									{% endifequal %}
+								{% else %}
+									the former member "{{annotation.creator.nickname}}"
+								{% endif %}
+						{% else %}
+							<a href="character?{{annotation.character.key}}">{{annotation.character.name}}</a>
+						{% endif %}
+	  				</td>
+	  				<td>
 	  				{% if current_member.isManagerOrOwner %}
 	  						<input type="checkbox" name="remove|{{annotation.key}}" value="yes" id="remove|{{annotation.key}}"/>
 							<label for="remove|{{annotation.key}}">Remove</label>
@@ -105,7 +133,7 @@
 			{% if answers %}
 				<fieldset>
 		      	<table border="1" cellpadding="4" cellspacing="0">
-		      	<tr><th>Unflag?</th><th>Entry</th><th>Question</th><th>Answer</th>
+		      	<tr><th>Unflag?</th><th>Entry</th><th>Question</th><th>Answer</th><th>By</th>
 	      		{% if current_member.isManagerOrOwner %} 
 	      			<th>Remove?</th> 
 	      		{% else %}  
@@ -121,6 +149,20 @@
 	  				<td><a href="/visit/read?{{answer.referent.key}}">{{answer.referent.title}}</td>
 	  				<td>{{answer.question.text}}</td>
 	  				<td>{{answer.displayStringShort}}</td>
+	  				<td>
+						{% if answer.attributedToMember %}
+								{% if answer.creator.active %}
+									<a href="member?{{answer.creator.key}}">{{answer.creator.nickname}}</a>
+									{% ifequal answer.creator.key current_member.key %}
+										 (you)
+									{% endifequal %}
+								{% else %}
+									the former member "{{answer.creator.nickname}}"
+								{% endif %}
+						{% else %}
+							<a href="character?{{answer.character.key}}">{{answer.character.name}}</a>
+						{% endif %}
+	  				</td>
 	  				<td>
 	  				{% if current_member.isManagerOrOwner %}
 	  						<input type="checkbox" name="remove|{{answer.key}}" value="yes" id="remove|{{answer.key}}"/>
@@ -192,7 +234,7 @@
 		</div>
 	{% else %}
 		<p>You are not a curator of this community and cannot review removal flags.
-		Either become a curator or ask a curator, manager or owner to make any changes you would like to see made.</p>
+		Either become a curator or ask a curator to make any changes you would like to see made.</p>
 	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}

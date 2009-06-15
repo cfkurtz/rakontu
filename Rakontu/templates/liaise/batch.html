@@ -87,12 +87,21 @@
 										{% endif %}
 									{% endfor %}
 								{% else %}
+									<select name="{{i}}|{{question.key}}"><option value="none">(choose)</option>
 									{% for choice in question.choices %}
 										{% if choice|slugify %}
-										<p><label><input type="radio" name="{{i}}|{{question.key}}" value="{{choice}}" 
-										/>{{choice}}</label></p>
+										<option value="{{choice}}"
+											{% for answer in answers %}
+												{% ifequal answer.questionKey question.key %}
+													{% ifequal answer.answerIfText choice %}
+														selected="selected"
+													{% endifequal %}
+												{% endifequal %}
+											{% endfor %}
+										/>{{choice}}</option>
 										{% endif %}
-									{% endfor %}				
+									{% endfor %}
+									</select>			
 								{% endif %}
 							{% endif %}
 							{% ifequal question.type "boolean" %}
@@ -123,7 +132,7 @@
 				</td></tr></table>
 			</td></tr>
 			<tr><th>Tags</br></th><td>
-				{% for j in num_tags|makeRange %}
+				{% for j in num_tags_in_tag_set|makeRange %}
 					<input type="text" size="12" name="tag|{{i}}|{{j}}" value="" maxlength="{{maxlength_tag_or_choice}}"/>
 				{% endfor %}
 			</td></tr>

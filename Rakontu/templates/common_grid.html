@@ -1,0 +1,29 @@
+	  	{% if rows_cols %}
+			<h3>{{text_to_display_before_grid}}</h3>
+			<center>
+			<table cellpadding="4" cellspacing="0" style="border-top: 1px solid #FF7F00; border-bottom: 1px solid #FF7F00; border-left: none; border-right: 1px solid #FF7F00">
+			{% if row_headers %}
+				<tr>
+				{% for header in row_headers %}
+				<th style="border-right: 1px solid #FF7F00; border-top: 1px solid #FF7F00; border-bottom: 1px solid #FF7F00; border-left: 1px solid #FF7F00">{{header}}</th>
+				{% endfor %}
+				</tr>
+			{% endif %}
+			{% for row_list in rows_cols %}
+				<tr>
+				{% for col_list in row_list %}
+				<td style="border-left: 1px solid #FF7F00; border-top: none; border-bottom: none; border-right: none">
+				{% if col_list %}
+					{% for text in col_list %}
+						{{text}}
+					{% endfor %}
+				{% else %}
+				&nbsp; 
+				{% endif %}
+				</td>
+				{% endfor %}
+				</tr>
+			{% endfor %}
+			</table>
+			</center>
+		{% endif %}

@@ -24,3 +24,4 @@
 "tip","#addNewQuestions","Add names here for each question you want to add. Place each name on a separate line. Then return to this page and add details for the new questions."
 "tip","#copySampleQuestions","You can copy the same question more than once."
 "info","#responseIfBoolean","This is the text that shows on a checkbox after the question. For example, if the question is 'Do you think this story is important?' the positive response might be 'Yes, I do think so.'"
+"info","#onlineMemberGetsMessagesThroughLiaison","This is an off-line member of the community, so your message will actually be sent to the member's liaison, who will contact the off-line member."

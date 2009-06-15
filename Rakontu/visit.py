@@ -8,6 +8,26 @@
 
 from utils import *
 
+def ItemDisplayStringForGrid(item, curating, includeName=True):
+	if includeName:
+		if item.attributedToMember():
+			if item.creator.isOnlineMember:
+				nameString = ' (<a href="member?%s">%s</a>)' % (item.creator.key(), item.creator.nickname)
+			else:
+				nameString = ' (<img src="/images/offline.png" alt="offline member"><a href="member?%s">%s</a>)' % (item.creator.key(), item.creator.nickname)
+		else:
+			nameString = ' (<a href="character?%s">%s</a>)' % (item.character.key(), item.character.name)
+	else:
+		nameString = ""
+	if curating:
+		if item.flaggedForRemoval:
+			curateString = '<a href="flag?%s" class="imagelight"><img src="../images/flag_red.png" alt="flag" border="0"></a>' % item.key()
+		else:
+			curateString = '<a href="flag?%s" class="imagelight"><img src="../images/flag_green.png" alt="flag" border="0"></a>' % item.key()
+	else:
+		curateString = ""
+	return '<p>%s %s %s%s</p>' % (item.getImageLinkForType(), curateString, item.linkString(), nameString)
+
 class StartPage(webapp.RequestHandler):
 	def get(self):
 		user = users.get_current_user()
@@ -314,24 +334,7 @@ class ReadEntryPage(webapp.RequestHandler):
 								shouldBeInRow = nudgePoints >= startNudgePoints and nudgePoints < endNudgePoints
 								shouldBeInCol = item.published >= startTime and item.published < endTime
 								if shouldBeInRow and shouldBeInCol:
-									fontSizePercent = min(200, 90 + item.entryActivityPointsWhenPublished - minActivityPoints)
-									timeLoss = (item.published - entry.published).seconds // 60
-									fontSizePercent -= timeLoss
-									if item.attributedToMember():
-										if item.creator.active:
-											nameString = '<a href="member?%s">%s</a>' % (item.creator.key(), item.creator.nickname)
-										else:
-											nameString = item.creator.nickname
-									else:
-										nameString = '<a href="character?%s">%s</a>' % (item.character.key(), item.character.name)
-									if curating:
-										if item.flaggedForRemoval:
-											curateString = '<a href="flag?%s" class="imagelight"><img src="../images/flag_red.png" alt="flag" border="0"></a>' % item.key()
-										else:
-											curateString = '<a href="flag?%s" class="imagelight"><img src="../images/flag_green.png" alt="flag" border="0"></a>' % item.key()
-									else:
-										curateString = ""
-									text = '<p>%s %s (%s) %s</p>' % (item.getImageLinkForType(), item.linkString(), nameString, curateString)
+									text = ItemDisplayStringForGrid(item, curating)
 									textsInThisCell.append(text)
 							haveContent = haveContent or len(textsInThisCell) > 0
 							textsInThisRow.append(textsInThisCell)
@@ -380,6 +383,7 @@ class ReadEntryPage(webapp.RequestHandler):
 								   'entry': entry,
 								   'rows_cols': textsForGrid, 
 							       'row_headers': rowHeaders, 
+							       'text_to_display_before_grid': "Annotations to this %s" % entry.type,
 							       'things_member_can_do': thingsUserCanDo,
 								   'member_can_answer_questions': memberCanAnswerQuestionsAboutThisEntry,
 								   'member_can_add_nudge': memberCanAddNudgeToThisEntry,
@@ -480,21 +484,53 @@ class SeeMemberPage(webapp.RequestHandler):
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-				memberKey = self.request.query_string
+				keyAndCurate = self.request.query_string.split("&")
+				memberKey = keyAndCurate[0]
 				memberToSee = db.get(memberKey)
 				if memberToSee:
+					curating = member.isCurator() and len(keyAndCurate) > 1 and keyAndCurate[1] == "curate"
+					allItems = memberToSee.getAllItemsAttributedToMember()
+					allItems.extend(memberToSee.getNonDraftLiaisonedEntries())
+					allItems.extend(memberToSee.getNonDraftLiaisonedAnnotations())
+					allItems.extend(memberToSee.getNonDraftLiaisonedAnswers())
+					if allItems:
+						maxTime = datetime.now(tz=pytz.utc)
+						minTime = memberToSee.joined
+						numRows = 1
+						numCols = 6
+						timeStep = (maxTime - minTime) // numCols
+						textsForGrid = []
+						rowHeaders = []
+						for row in range(numRows):
+							textsInThisRow = []
+							for col in range(numCols):
+								textsInThisCell = []
+								startTime = minTime + timeStep * col
+								endTime = minTime + timeStep * (col+1)
+								if row == numRows - 1:
+									rowHeaders.append(RelativeTimeDisplayString(startTime, member))
+								for item in allItems:
+									shouldBeInRow = True
+									shouldBeInCol = item.published >= startTime and item.published < endTime
+									if shouldBeInRow and shouldBeInCol:
+										text = ItemDisplayStringForGrid(item, curating, includeName=memberToSee.isLiaison())
+										textsInThisCell.append(text)
+								textsInThisRow.append(textsInThisCell)
+							textsForGrid.append(textsInThisRow)
+						textsForGrid.reverse()
+					else:
+						textsForGrid = None
+						rowHeaders = None
 					template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': "Member", 
 						   		   'title_extra': member.nickname, 
 						   		   'community': community, 
 						   		   'current_member': member,
 						   		   'member': memberToSee,
-						   		   'entries': memberToSee.getNonDraftEntriesAttributedToMember(),
-						   		   'annotations': memberToSee.getNonDraftAnnotationsAttributedToMember(),
-						   		   'answers': memberToSee.getNonDraftAnswersAboutEntriesAttributedToMember(),
-						   		   'entries_liaisoned': memberToSee.getNonDraftLiaisonedEntries(),
-						   		   'annotations_liaisoned': memberToSee.getNonDraftLiaisonedAnnotations(),
-						   		   'answers_liaisoned': memberToSee.getNonDraftLiaisonedAnswers(),
+						   		   'rows_cols': textsForGrid,
+						   		   'row_headers': rowHeaders,
+						   		   'text_to_display_before_grid': "%s's history" % memberToSee.nickname,
+						   		   'no_profile_text': NO_PROFILE_TEXT,
 						   		   })
 					path = os.path.join(os.path.dirname(__file__), 'templates/visit/member.html')
 					self.response.out.write(template.render(path, template_values))
@@ -526,18 +562,49 @@ class SeeCharacterPage(webapp.RequestHandler):
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-				characterKey = self.request.query_string
+				keyAndCurate = self.request.query_string.split("&")
+				characterKey = keyAndCurate[0]
 				character = db.get(characterKey)
 				if character:
+					curating = member.isCurator() and len(keyAndCurate) > 1 and keyAndCurate[1] == "curate"
+					allItems = character.getAllItemsAttributedToCharacter()
+					if allItems:
+						maxTime = datetime.now(tz=pytz.utc)
+						minTime = character.created
+						numRows = 1
+						numCols = 6
+						timeStep = (maxTime - minTime) // numCols
+						textsForGrid = []
+						rowHeaders = []
+						for row in range(numRows):
+							textsInThisRow = []
+							for col in range(numCols):
+								textsInThisCell = []
+								startTime = minTime + timeStep * col
+								endTime = minTime + timeStep * (col+1)
+								if row == numRows - 1:
+									rowHeaders.append(RelativeTimeDisplayString(startTime, member))
+								for item in allItems:
+									shouldBeInRow = True
+									shouldBeInCol = item.published >= startTime and item.published < endTime
+									if shouldBeInRow and shouldBeInCol:
+										text = ItemDisplayStringForGrid(item, curating, includeName=False)
+										textsInThisCell.append(text)
+								textsInThisRow.append(textsInThisCell)
+							textsForGrid.append(textsInThisRow)
+						textsForGrid.reverse()
+					else:
+						textsForGrid = None
+						rowHeaders = None
 					template_values = GetStandardTemplateDictionaryAndAddMore({
 								   	   'title': "Character", 
 						   		   	   'title_extra': character.name, 
 									   'community': community, 
 									   'current_member': member,
 									   'character': character,
-						   		   	   'entries': character.getNonDraftEntriesAttributedToCharacter(),
-						   		       'annotations': character.getNonDraftAnnotationsAttributedToCharacter(),
-						   		       'answers': character.getNonDraftAnswersAboutEntriesAttributedToCharacter(),
+						   		   	   'rows_cols': textsForGrid,
+						   		   	   'text_to_display_before_grid': "%s's history" % character.name,
+						   		   	   'row_headers': rowHeaders,
 									   })
 					path = os.path.join(os.path.dirname(__file__), 'templates/visit/character.html')
 					self.response.out.write(template.render(path, template_values))
