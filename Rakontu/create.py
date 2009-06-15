@@ -558,6 +558,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 								   'nudge_points_member_can_assign': nudgePointsMemberCanAssign,
 								   'character_allowed': community.allowCharacter[entryTypeIndex],
 								   'included_links_outgoing': entry.getOutgoingLinksOfType("included"),
+								   'already_there_tags': community.getNonDraftTags(),
 								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/annotation.html')
 				self.response.out.write(template.render(path, template_values))
@@ -629,6 +630,8 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					for i in range (NUM_TAGS_IN_TAG_SET):
 						if self.request.get("tag%s" % i):
 							annotation.tagsIfTagSet.append(cgi.escape(self.request.get("tag%s" % i)))
+						elif self.request.get("alreadyThereTag%i" %i) and self.request.get("alreadyThereTag%i" %i) != "none":
+							annotation.tagsIfTagSet.append(cgi.escape(self.request.get("alreadyThereTag%s" % i)))
 				elif type == "comment":
 					annotation.shortString = cgi.escape(self.request.get("shortString", default_value="No subject"))
 					text = self.request.get("longString")

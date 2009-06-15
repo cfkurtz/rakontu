@@ -39,7 +39,5 @@ resource type / get help /  intro page
 
 number of tags, number of nudges not FULLY updated for flexibility yet - check EVERY use
 
-tag sets in list when do tags
-
-tag view for curators
+tag cloud view?
 

@@ -184,6 +184,42 @@ class CurateAttachmentsPage(webapp.RequestHandler):
 		else:
 			self.redirect("/")
 			
+class CurateTagsPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			if member.isCurator():
+				template_values = GetStandardTemplateDictionaryAndAddMore({
+							   	   'title': "Review attachments", 
+						   	   	   'title_extra': None, 
+								   'community': community, 
+								   'tag_sets': community.getNonDraftTagSets(),
+								   'current_member': member,
+								   })
+				path = os.path.join(os.path.dirname(__file__), 'templates/curate/tags.html')
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect('/visit/look')
+		else:
+			self.redirect("/")
+			
+	@RequireLogin 
+	def post(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			if member.isCurator():
+				tagsets = community.getNonDraftTagSets()
+				for tagset in tagsets:
+					tagset.tagsIfTagSet = []
+					for i in range(NUM_TAGS_IN_TAG_SET):
+						if self.request.get("tag%s|%s" % (i, tagset.key())):
+							tagset.tagsIfTagSet.append(self.request.get("tag%s|%s" % (i, tagset.key())))
+						else:
+							tagset.tagsIfTagSet.append("")
+					tagset.put()
+				self.redirect('/curate/tags')
+
 class ReviewResourcesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):

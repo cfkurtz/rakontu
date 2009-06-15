@@ -394,7 +394,22 @@ class Community(db.Model):
 			attachments =  Attachment.all().filter('entry = ', entry.key())
 			result.extend(attachments)
 		return result
-							
+	
+	def getNonDraftTagSets(self):
+		return Annotation.all().filter("community = ", self.key()).filter("type = ", "tag set").filter("draft = ", False).fetch(FETCH_NUMBER)
+	
+	def getNonDraftTags(self):
+		# cfk check - this may be too slow and may need to be updated instead when a tag set is added or removed
+		tags = {}
+		tagsets = self.getNonDraftTagSets()
+		for tagset in tagsets:
+			for tag in tagset.tagsIfTagSet:
+				tags[tag] = 1
+		tagsSorted = []
+		tagsSorted.extend(tags.keys())
+		tagsSorted.sort()
+		return tagsSorted
+						
 	# QUESTIONS
 	
 	def getQuestions(self):

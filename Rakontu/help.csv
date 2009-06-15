@@ -30,3 +30,4 @@
 "info","#nudgePointExplanation","Enter positive or negative numbers in any or all of these categories."
 "caution","Inactive characters","These characters have been removed from the active characters list. To reinstate an inactive character, copy its name to the 'Add new characters' box. Reinstated characters will reconnect to their old profiles and histories. (This also means that you cannot re-use character names.)"
 "tip","#addNewCharacters","Add names here for each character you want to add. Place each name on a separate line. Then return to this page and add details for the new characters."
+"caution","Change tags on entries","These are all the tags on all the entries for the community. You can change them here (carefully) to merge tags with similar words (like 'cat' and 'cats')."

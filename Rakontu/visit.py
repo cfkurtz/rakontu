@@ -375,12 +375,12 @@ class ReadEntryPage(webapp.RequestHandler):
 					thingsUserCanDo["Enter answers about this %s for an off-line member" % entry.type] = "answers?%s" % entry.key()
 				if entry.isInvitation():
 					thingsUserCanDo["Respond to this invitation with a story"] = "respond?%s" % entry.key()
-				thingsUserCanDo["Add a comment about this %s" % entry.type] = "comment?%s" % entry.key()
-				thingsUserCanDo["Add some tags about this %s" % entry.type] = "tagset?%s" % entry.key()
+				thingsUserCanDo["Comment on this %s" % entry.type] = "comment?%s" % entry.key()
+				thingsUserCanDo["Tag this %s" % entry.type] = "tagset?%s" % entry.key()
 				if memberCanAddNudgeToThisEntry:
 					thingsUserCanDo["Nudge this %s up or down" % entry.type] = "nudge?%s" % entry.key()
-				thingsUserCanDo["Make a request about this %s" % entry.type] = "request?%s" % entry.key()
-				thingsUserCanDo["Add or remove relations to this %s" % entry.type] = "relate?%s" % entry.key()
+				thingsUserCanDo["Request something about this %s" % entry.type] = "request?%s" % entry.key()
+				thingsUserCanDo["Relate this %s to others" % entry.type] = "relate?%s" % entry.key()
 				if member.isCurator():
 					thingsUserCanDo["Curate this %s" % entry.type] = "curate?%s" % entry.key()
 				if entry.creator.key() == member.key() and community.allowsPostPublishEditOfEntryType(entry.type):

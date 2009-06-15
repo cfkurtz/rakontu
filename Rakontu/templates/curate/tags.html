@@ -1,0 +1,40 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+	<div id="content">
+	{% if current_member.isCurator %}
+		<div id="stylized" class="rakontu_form">
+		<form action="/curate/tags" method="post">
+			
+			<h3>{{"Change tags on entries"|caution}}</h3>
+			{% if tag_sets %}
+				<fieldset>
+				{% for tag_set in tag_sets %}
+					<p>
+					{% for i in num_tags_in_tag_set|makeRange %}
+						<input type="text" name="tag{{i}}|{{tag_set.key}}" size="15" 
+						value="{{tag_set.tagsIfTagSet|listLookup:i|orNothing}}" maxlength="{{maxlength_tag_or_choice}}"/>&nbsp; 
+					{% endfor %}
+					<a href="/visit/read?{{tag_set.entry.key}}">{{tag_set.entry.title}}</a>
+					</p>
+				{% endfor %}
+				</fieldset>
+			{% endif %}
+      	
+      	{% if tag_sets %}
+			<p>&nbsp; </p>
+		    <center>
+		    <p><i><b>Please make changes carefully. Deleted or changed tags cannot be recovered.</b></i></p>
+		    <input type="submit" name="submitChanges" value="Change tags" class="button"></center>
+		{% endif %}
+		</form>	
+		</div>
+	{% else %}
+		<p>You are not a curator of this community and cannot review removal flags.
+		Either become a curator or ask a curator to make any changes you would like to see made.</p>
+	{% endif %}
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

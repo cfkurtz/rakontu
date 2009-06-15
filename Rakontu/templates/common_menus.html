@@ -6,11 +6,13 @@
 	<tr>
 	
 	<td align="left" valign="center" class="noborder" width="70">
+	<a href="/visit/look">
 	{% if community.image %}
 		<img src="img?community_id={{community.key}}" class="bordered">
 	{% else %}
 		<p><img src="/images/Rakontu.jpg" width="100" height="64" alt="Rakontu logo" class="bordered" ></p>
 	{% endif %}
+	</a>
 	
 	</td><td align="left" valign="center" class="noborder"
 	{% if current_member.isCurator and current_member.isGuide and current_member.isLiaison and current_member.isManagerOrOwner and user_is_admin %}
@@ -42,10 +44,13 @@
 		{% if current_member.isCurator %}
 			<li><a href="/curate/flags">Curate</a>
 			<ul>
-				<li><a href="/curate/flags">Review flags</a>
-				<li><a href="/curate/gaps">Review gaps</a>
+				<li><a href="/curate/flags">Flags</a>
+				<li><a href="/curate/gaps">Gaps</a>
 				{% if community.allowsAttachments %}
-					<li><a href="/curate/attachments">Review attachments</a>
+					<li><a href="/curate/attachments">Attachments</a>
+				{% endif %}
+				{% if num_tags_in_tag_set %}
+					<li><a href="/curate/tags">Tags</a>
 				{% endif %}
 			</ul>
 			</li>
