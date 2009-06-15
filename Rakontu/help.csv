@@ -20,4 +20,7 @@
 "tip","#title_in_resource_list","Click a green flag icon to flag (mark) the resource for deletion. Click a red flag icon to unflag the item."
 "tip","#offlineCollectionDate","To use the current date, leave the year, month and day blank."
 "caution","Batch Story Entry","Note: Clicking 'Add stories' on this page will not add these entries right away; you will be able to review them in the page that apears afterward."
-,,"   "
+"caution","Inactive questions","These questions have been removed from the active questions list. To reinstate an inactive question, copy its name to the 'Add new questions' box. Reinstated questions will reconnect to their old answers. (This also means that you cannot re-use question names.)"
+"tip","#addNewQuestions","Add names here for each question you want to add. Place each name on a separate line. Then return to this page and add details for the new questions."
+"tip","#copySampleQuestions","You can copy the same question more than once."
+"info","#responseIfBoolean","This is the text that shows on a checkbox after the question. For example, if the question is 'Do you think this story is important?' the positive response might be 'Yes, I do think so.'"

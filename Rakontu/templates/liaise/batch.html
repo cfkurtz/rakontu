@@ -76,7 +76,7 @@
 							{{ question.text }}
 						</td><td class="noborder">
 							{% ifequal question.type "text" %}
-								<input type="text" size="{{question.lengthIfText}}" name="{{i}}|{{question.key}}" value="" maxlength="{{maxlength_subject_or_comment}}"/>
+								<input type="text" size="80"" name="{{i}}|{{question.key}}" value="" maxlength="{{maxlength_subject_or_comment}}"/>
 							{% endifequal %}
 							{% if question.isOrdinalOrNominal %}
 								{% if question.multiple %}
@@ -100,7 +100,7 @@
 								/><label for="{{i}}|{{question.key}}">{{question.responseIfBoolean}}</label></p>
 							{% endifequal %}
 							{% ifequal question.type "value" %}
-								<input type="text" size="{{question.lengthIfText}}" name="{{i}}|{{question.key}}" value="" maxlength="{{maxlength_number}}"/>
+								<input type="text" size="60" name="{{i}}|{{question.key}}" value="" maxlength="{{maxlength_number}}"/>
 								<p><i>Please enter a number between {{question.minIfValue}} and {{question.maxIfValue}}.</i></p>
 							{% endifequal %}
 						</td></tr>

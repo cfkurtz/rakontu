@@ -148,11 +148,6 @@ MAXLENGTH_NUMBER = 6
 # This is the name given to questions not named by their creators.
 DEFAULT_QUESTION_NAME = "Unnamed question"
 
-# This is how long a text answer to a question is allowed to be, by default.
-# Should not be set too high to avoid really long answers.
-# Max storage space is 500 bytes (CFK FIX - unicode
-DEFAULT_QUESTION_TEXT_LENGTH = 40
-
 # Defaults for question value ranges.
 DEFAULT_QUESTION_VALUE_MIN = 0
 DEFAULT_QUESTION_VALUE_MAX = 1000

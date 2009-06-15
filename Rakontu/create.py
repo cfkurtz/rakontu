@@ -160,6 +160,7 @@ class EnterEntryPage(webapp.RequestHandler):
 				preview = True
 			elif "publish|%s" % type in self.request.arguments():
 				entry.draft = False
+				entry.inBatchEntryBuffer = False
 				entry.published = datetime.now(tz=pytz.utc)
 			if self.request.get("title"):
 				entry.title = cgi.escape(self.request.get("title"))
@@ -266,7 +267,9 @@ class EnterEntryPage(webapp.RequestHandler):
 					answerToEdit.creator = member
 					answerToEdit.character = entry.character
 					answerToEdit.draft = entry.draft
+					answerToEdit.inBatchEntryBuffer = entry.inBatchEntryBuffer
 					answerToEdit.collected = entry.collected
+					DebugPrint(answerToEdit.answerIfText)
 					if keepAnswer:
 						answerToEdit.put()
 						if not answerToEdit.draft:
@@ -594,6 +597,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					preview = True
 				elif "publish|%s" % type in self.request.arguments():
 					annotation.draft = False
+					annotation.inBatchEntryBuffer = False
 					annotation.published = datetime.now(tz=pytz.utc)
 				annotation.collectedOffline = self.request.get("collectedOffline") == "yes"
 				if annotation.collectedOffline and member.isLiaison():

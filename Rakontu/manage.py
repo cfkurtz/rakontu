@@ -223,6 +223,7 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 					break
 				i += 1
 			communityQuestionsOfType = community.getQuestionsOfType(type)
+			inactiveQuestionsOfType = community.getInactiveQuestionsOfType(type)
 			systemQuestionsOfType = Question.all().filter("community = ", None).filter("refersTo = ", type).fetch(FETCH_NUMBER)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': "Manage %s" % type, 
@@ -230,6 +231,7 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 							   'community': community, 
 							   'current_member': member,
 							   'questions': communityQuestionsOfType,
+							   'inactive_questions': inactiveQuestionsOfType,
 							   'question_types': QUESTION_TYPES,
 							   'system_questions': systemQuestionsOfType,
 							   'max_num_choices': MAX_NUM_CHOICES_PER_QUESTION,
@@ -263,11 +265,6 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 				question.choices = []
 				for i in range(10):
 					question.choices.append(cgi.escape(self.request.get("choice%s|%s" % (i, question.key()))))
-				oldValue = question.lengthIfText
-				try:
-					question.lengthIfText = int(self.request.get("lengthIfText|%s" % question.key()))
-				except:
-					question.lengthIfText = oldValue
 				oldValue = question.minIfValue
 				try:
 					question.minIfValue = int(self.request.get("minIfValue|%s" % question.key()))
@@ -281,21 +278,23 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 				question.responseIfBoolean = self.request.get("responseIfBoolean|%s" % question.key())
 				question.multiple = self.request.get("multiple|%s" % question.key()) == "multiple|%s" % question.key()
 				question.put()
-			questionsToRemove = []
 			for question in communityQuestionsOfType:
-				if self.request.get("remove|%s" % question.key()):
-					questionsToRemove.append(question)
-			if questionsToRemove:
-				for question in questionsToRemove:
-					answersWithThisQuestion = Answer().all().filter("question = ", question.key()).fetch(FETCH_NUMBER)
-					for answer in answersWithThisQuestion:
-						db.delete(answer)
-					db.delete(question)
+				if self.request.get("inactivate|%s" % question.key()):
+					question.active = False
+					question.put()
 			questionNamesToAdd = cgi.escape(self.request.get("newQuestionNames")).split('\n')
 			for name in questionNamesToAdd:
 				if name.strip():
-					question = Question(name=name, refersTo=type, community=community)
-					question.put()
+					foundQuestion = False
+					for oldQuestion in community.getInactiveQuestionsOfType(type):
+						if oldQuestion.name == name.strip():
+							foundQuestion = True
+							oldQuestion.active = True
+							oldQuestion.put()
+							break
+					if not foundQuestion:
+						question = Question(name=name, refersTo=type, community=community, text="No question text.")
+						question.put()
 			for sysQuestion in systemQuestionsOfType:
 				if self.request.get("copy|%s" % sysQuestion.key()) == "copy|%s" % sysQuestion.key():
 					community.AddCopyOfQuestion(sysQuestion)

@@ -394,16 +394,19 @@ class Community(db.Model):
 	# QUESTIONS
 	
 	def getQuestions(self):
-		return Question.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+		return Question.all().filter("community = ", self.key()).filter("active = ", True).fetch(FETCH_NUMBER)
 	
 	def getQuestionsOfType(self, type):
-		return Question.all().filter("community = ", self.key()).filter("refersTo = ", type).fetch(FETCH_NUMBER)
+		return Question.all().filter("community = ", self.key()).filter("refersTo = ", type).filter("active = ", True).fetch(FETCH_NUMBER)
+	
+	def getInactiveQuestionsOfType(self, type):
+		return Question.all().filter("community = ", self.key()).filter("refersTo = ", type).filter("active = ", False).fetch(FETCH_NUMBER)
 	
 	def getMemberQuestions(self):
 		return self.getQuestionsOfType("member")
 	
 	def getNonMemberQuestions(self):
-		return Question.all().filter("community = ", self.key()).filter("refersTo !=", "member").fetch(FETCH_NUMBER)
+		return Question.all().filter("community = ", self.key()).filter("refersTo !=", "member").filter("active = ", True).fetch(FETCH_NUMBER)
 		
 	def hasQuestionWithSameTypeAndName(self, question):
 		allQuestions = self.getQuestions()
@@ -438,7 +441,8 @@ class Question(db.Model):
 	text = db.StringProperty(required=True)
 	type = db.StringProperty(choices=QUESTION_TYPES, default="text") # text, boolean, ordinal, nominal, value
 	
-	lengthIfText = db.IntegerProperty(default=DEFAULT_QUESTION_TEXT_LENGTH)
+	active = db.BooleanProperty(default=True) # used to hide questions no longer being used, same as members
+	
 	minIfValue = db.IntegerProperty(default=DEFAULT_QUESTION_VALUE_MIN)
 	maxIfValue = db.IntegerProperty(default=DEFAULT_QUESTION_VALUE_MAX)
 	responseIfBoolean = db.StringProperty(default=DEFAULT_QUESTION_BOOLEAN_RESPONSE) # what the checkbox label should say
@@ -691,9 +695,9 @@ class Answer(db.Model):
 	character = db.ReferenceProperty(Character, default=None)
 	
 	draft = db.BooleanProperty(default=True)
+	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	flagComment = db.StringProperty()
-	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	
 	answerIfBoolean = db.BooleanProperty(default=False)
 	answerIfText = db.StringProperty(default="")
@@ -745,11 +749,14 @@ class Answer(db.Model):
 		elif self.question.type == "text":
 			result += self.answerIfText
 		elif self.question.type == "ordinal" or self.question.type == "nominal":
-			answersToReport = []
-			for answer in self.answerIfMultiple:
-				if len(answer):
-					answersToReport.append(answer)
-			result +=  ", ".join(answersToReport)
+			if self.question.multiple:
+				answersToReport = []
+				for answer in self.answerIfMultiple:
+					if len(answer):
+						answersToReport.append(answer)
+				result +=  ", ".join(answersToReport)
+			else:
+				result +=  self.answerIfText
 		elif self.question.type == "value":
 			result +=  "%s" % self.answerIfValue
 		return result
@@ -791,9 +798,9 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 	character = db.ReferenceProperty(Character, default=None)
 	
 	draft = db.BooleanProperty(default=True)
+	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	flagComment = db.StringProperty()
-	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	
 	collected = TzDateTimeProperty(default=None)
 	created = TzDateTimeProperty(auto_now_add=True)
@@ -1051,9 +1058,9 @@ class Link(db.Model):                         # related, retold, reminded, respo
 	creator = db.ReferenceProperty(Member, collection_name="links")
 	
 	# links cannot be in draft mode
+	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	flagComment = db.StringProperty()
-	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	
 	published = TzDateTimeProperty(auto_now_add=True)
 	
@@ -1132,9 +1139,9 @@ class Annotation(db.Model):                                # tag set, comment, r
 	creator = db.ReferenceProperty(Member, collection_name="annotations")
 	
 	draft = db.BooleanProperty(default=True)
+	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	flagComment = db.StringProperty()
-	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	
 	shortString = db.StringProperty() # comment/request subject, nudge comment
 	

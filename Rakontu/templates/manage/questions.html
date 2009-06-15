@@ -6,11 +6,9 @@
 	{% if current_member.isManagerOrOwner %}
 		<div id="stylized" class="rakontu_form">
 		<form action="/manage/questions_{{refer_type}}" method="post" enctype="multipart/form-data">
-		<h3>Add New {{refer_type|capfirst}} Questions</h3>
+		<h3>Add New {{refer_type|capfirst}} Questions{{"#addNewQuestions"|tip}}</h3>
 		<fieldset>
 		<textarea name="newQuestionNames" rows="6" cols="40"></textarea>
-		<p><i>Add names here for each question you want to add.
-		(Place each name on a separate line.) Then return to this page and add details for the questions.</i></p>
 		</fieldset>
 
 		{% if questions %}
@@ -20,12 +18,11 @@
 	      	<tr>
 	      		<th>Name, question, and explanation</th>
 	      		<th>Type</th>
-	      		<th>Maximum characters<br><i>if text</i></th>
 	      		<th>Minimum and maximum<br><i>if value</i></th>
-	      		<th>Response<br><i>if boolean</i></th>
+	      		<th>Response<br><i>if boolean</i>{{"#responseIfBoolean"|info}}</th>
 	      		<th>Choices<br><i>if ordinal or nominal</i></i></th>
 	      		<th>Multiple answers allowed?<br><i>if ordinal or nominal</i></th>
-	      		<th>Remove</th>
+	      		<th>Inactivate?</th>
 	      		</tr>
 	      		{% for question in questions %}
 	      			<tr>
@@ -41,7 +38,6 @@
 	      			 		>{{type}}</option>
 	      			 	{% endfor %}
 	      			 	</select></div></td>
-	      			 <td valign="top" align="center"><div><input type="text" name="lengthIfText|{{question.key}}" size="4" value="{{question.lengthIfText}}" maxlength="3"></div></td>
 	      			 <td valign="top" align="center"><div><input type="text" name="minIfValue|{{question.key}}" size="4" value="{{question.minIfValue}}" maxlength="{{maxlength_number}}"></div>
 	      			 	<div><input type="text" name="maxIfValue|{{question.key}}" size="4" value="{{question.maxIfValue}}" maxlength="{{maxlength_number}}"></div>
 	      			 	</td>
@@ -56,18 +52,24 @@
 	     			 		checked="checked"
 	     			 	{% endif %}
 	     			 	>Multiple</label></div></td>
-	      			 <td valign="top" align="center"><input type="checkbox" name="remove|{{question.key}}" />Remove</td>
+	      			 <td valign="top" align="center"><input type="checkbox" name="inactivate|{{question.key}}" />Inactivate</td>
 	      				</tr>
 	      		{% endfor %}
 	      	</table>
-	      	<p><i>Note: Removing a question from the community also removes <b>all</b> answers people have made
-	      		to it. If people have answered the question already, you should make a backup of your data
-	      		before removing the question, so that the information is not completely gone.</i></p>
 	      	</fieldset>
 	    {% endif %}
 	      	
+		{% if inactive_questions %}
+			<h3>{{"Inactive questions"|caution}}</h3>
+			<ul>
+			{% for question in inactive_questions %}
+				<li class="nobullet">{{question.name}}</li>
+			{% endfor %}
+			</ul>
+		{% endif %}
+
 	    {% if system_questions %}
-			<h3>Copy {{refer_type|capfirst}} Questions from Samples</h3>
+			<h3>Copy {{refer_type|capfirst}} Questions from Samples{{"#copySampleQuestions"|tip}}</h3>
 			<fieldset>
 	      	<table border="1" cellpadding="4" cellspacing="0">
 	      	<tr>
@@ -108,7 +110,6 @@
 					</tr>
 				{% endfor %}
 				</table>
-				<p><i>Note: You can copy the same question multiple times.</i></p>
 				</fieldset>
 			{% endif %}
 
