@@ -60,112 +60,8 @@
 			{% endif %}
 			<p><input type="text" name="title" size="60" value="{% if entry %}{{entry.title}}{% endif %}" maxlength="{{maxlength_name}}"/></p>
 			
-			{% if offline_members and current_member.isLiaison %}
-				<p>Since you are a liaison:</p>
-				<fieldset>
-				Was this {{entry_type}} collected from an off-line member?</p>
-				<input type="radio" name="collectedOffline" value="yes" id="collectedOffline"
-					{% if entry.collectedOffline %}
-					checked
-					{% endif %}
-				<label for="collectedOffline">Yes, it was collected from</label>
-				<select name="offlineSource">
-					<option value="none">(choose)</option>
-					{% for aMember in offline_members %}
-						<option value="{{aMember.key}}"
-						{% if entry %}
-							{% ifequal aMember.key entry.creator.key %}
-								selected="selected"
-							{% endifequal %}
-						{% endif %}
-						>{{aMember.nickname}}
-						</option>
-					{% endfor %}
-				</select>
-				&nbsp; on 
-	  			 (year) <input type="text" name="year" size="4" value="" maxlength="4"/>
-	  			 (month) <input type="text" name="month" size="4" value="" maxlength="2"/>
-	  			 (day) <input type="text" name="day" size="4" value="" maxlength="2"/>
-  			 	{{"#offlineCollectionDate"|tip}}			
-	 			{% if character_allowed %}
-					and attributed to 
-					<select name="offlineAttribution">
-						<option value="member"
-							{% if entry %}
-								{% if entry.attributedToMember %}
-									selected="selected"
-								{% endif %}
-							{% endif %}
-							>The selected member</option>
-						{% if community.getCharacters %}
-							{% for character in community.getCharacters %}
-								<option value="{{character.key}}"
-								{% if entry %}
-									{% ifequal entry.character.key character.key %}
-										selected="selected"
-									{% endifequal %}
-								{% endif %}
-								>{{character.name}}</option>
-							{% endfor %}
-						{% endif %}
-					</select>
-				{% endif %}
-				<br/><input type="radio" name="collectedOffline" value="no" id="notCollectedOffline"
-					{% if not entry.collectedOffline %}
-					checked
-					{% endif %}
-				<label for="notCollectedOffline">No, this is my {{entry_type}}.</label>
-				{% if character_allowed %}
-					&nbsp;  I'd like to say it was contributed by
-					<select name="attribution">
-						<option value="member"
-							{% if entry %}
-								{% if entry.attributedToMember %}
-									selected="selected"
-								{% endif %}
-							{% endif %}
-							>Me ({{current_member.nickname}})</option>
-						{% if community.getCharacters %}
-							{% for character in community.getCharacters %}
-								<option value="{{character.key}}"
-								{% if entry %}
-									{% ifequal entry.character.key character.key %}
-										selected="selected"
-									{% endifequal %}
-								{% endif %}
-								>{{character.name}}</option>
-							{% endfor %}
-						{% endif %}
-					</select></p>
-				{% endif %}
-				</fieldset>
-			{% else %}
-				{% if character_allowed %}
-					Who would you like to say contributed this {{entry_type}}?
-					<select name="attribution">
-						<option value="member"
-							{% if entry %}
-								{% if entry.attributedToMember %}
-									selected="selected"
-								{% endif %}
-							{% endif %}
-							>Me ({{current_member.nickname}})</option>
-						{% if community.getCharacters %}
-							{% for character in community.getCharacters %}
-								<option value="{{character.key}}"
-								{% if entry %}
-									{% ifequal entry.character.key character.key %}
-										selected="selected"
-									{% endifequal %}
-								{% endif %}
-								>{{character.name}}</option>
-							{% endfor %}
-						{% endif %}
-					</select></p>
-				{% endif %}
-			{% endif %}
+			{% include "../common_attribution.html" %}
 
-			
 			{% if entry_from %}
 				<p>You created this story 
 				{% ifequal link_type "retell" %}
@@ -197,7 +93,7 @@
 			
 			<p>
 			{% if questions %}
-				{% include "questions.html" %}
+				{% include "../common_questions.html" %}
 			{% endif %}
 			
 			{% ifnotequal community.maxNumAttachments 0 %}

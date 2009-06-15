@@ -114,6 +114,8 @@ class EnterEntryPage(webapp.RequestHandler):
 							   'community': community, 
 							   'entry_type': type,
 							   'entry': entry,
+							   'attribution_referent_type': type,
+							   'attribution_referent': entry,
 							   'questions': community.getQuestionsOfType(type),
 							   'answers': answers,
 							   'attachments': attachments,
@@ -262,6 +264,7 @@ class EnterEntryPage(webapp.RequestHandler):
 							if keepAnswer:
 								answerToEdit.answerIfText = self.request.get(queryText)
 					answerToEdit.creator = member
+					answerToEdit.character = entry.character
 					answerToEdit.draft = entry.draft
 					answerToEdit.collected = entry.collected
 					if keepAnswer:
@@ -327,16 +330,22 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 			if self.request.query_string:
 				entry = Entry.get(self.request.query_string)
 			if entry:
+				answers = entry.getAnswersForMember(member)
+				if len(answers):
+					answerRefForQuestions =  answers[0]
+				else:
+					answerRefForQuestions = None
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Answers for", 
 						   	   	   'title_extra': entry.title, 
 								   'current_member': member,
 								   'community': community, 
 								   'entry': entry,
-								   'entry_type': entry.type,
+							   	   'attribution_referent_type': "answer set",
+							       'attribution_referent': answerRefForQuestions,
 								   'refer_type': entry.type,
 								   'questions': community.getQuestionsOfType(entry.type),
-								   'answers': entry.getAnswersForMember(member),
+								   'answers': answers,
 								   'community_members': community.getActiveMembers(),
 								   'offline_members': community.getOfflineMembers(),
 								   'character_allowed': community.allowCharacter[ANSWERS_ENTRY_TYPE_INDEX],
@@ -537,6 +546,8 @@ class EnterAnnotationPage(webapp.RequestHandler):
 								   'community': community, 
 								   'annotation_type': type,
 								   'annotation': annotation,
+							   	   'attribution_referent_type': type,
+							       'attribution_referent': annotation,
 								   'community_members': community.getActiveMembers(),
 								   'offline_members': community.getOfflineMembers(),
 								   'entry': entry,

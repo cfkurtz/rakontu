@@ -638,13 +638,13 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 						answers = memberToEdit.getDraftAnswersForEntry(entry)
 						for answer in answers:
 							db.delete(answer)
-				questions = Question.all().filter("community = ", community).filter("refersTo = ", "memberToEdit").fetch(FETCH_NUMBER)
+				questions = Question.all().filter("community = ", community).filter("refersTo = ", "member").fetch(FETCH_NUMBER)
 				for question in questions:
 					foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", memberToEdit.key()).fetch(FETCH_NUMBER)
 					if foundAnswers:
 						answerToEdit = foundAnswers[0]
 					else:
-						answerToEdit = Answer(question=question, community=community, referent=memberToEdit, referentType="memberToEdit")
+						answerToEdit = Answer(question=question, community=community, referent=memberToEdit, referentType="member")
 					if question.type == "text":
 						answerToEdit.answerIfText = cgi.escape(self.request.get("%s" % question.key()))
 					elif question.type == "value":
