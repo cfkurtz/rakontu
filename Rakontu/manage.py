@@ -181,6 +181,8 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 				community.maxNudgePointsPerEntry = oldValue
 			for i in range(NUM_NUDGE_CATEGORIES):
 				community.nudgeCategories[i] = cgi.escape(self.request.get("nudgeCategory%s" % i))
+			for i in range(NUM_NUDGE_CATEGORIES):
+				community.nudgeCategoryQuestions[i] = cgi.escape(self.request.get("nudgeCategoryQuestion%s" % i))
 			oldValue = community.maxNumAttachments
 			try:
 				community.maxNumAttachments = int(self.request.get("maxNumAttachments"))

@@ -103,37 +103,31 @@
 			{% endifequal %}
 			
 			{% ifequal annotation_type "nudge" %}
-					<table>
-					{% if annotation %}
-						<p>You can change the number of points to nudge this {{entry.type}} up (positive) or down (negative)
-						in any or all of these categories here.</p>
-					{% else %}
-						<p>Please enter the number of points to nudge this {{entry.type}} up (positive) or down (negative)
-						in any or all of these categories.<p>
-					{% endif %}
-					<p><i>You have
-						<b>{{nudge_points_member_can_assign}}</b> points left that you can assign on this {{entry.type}}. You have
-						<b>{{current_member.nudgePoints}}</b> points remaining to assign in general. If you assign more
-						points here than you have available or the community allows per {{entry.type}},
-						your 
-						{% if annotation %}
-						change
+					<table class="noborder">
+					{% for i in num_nudge_categories|makeRange %}
+						<tr>
+						<td class="noborder"><input type="text" name="nudge{{i}}" size="4" value="{{annotation.valuesIfNudge|listLookup:i|orNothing}}" maxlength="{{maxlength_number}}"/></td>
+						<td class="noborder">
+						{% if community.nudgeCategoryQuestions|listLookup:i %}
+							{{community.nudgeCategoryQuestions|listLookup:i}}
+							(<i>{{community.nudgeCategories|listLookup:i}}</i>)
 						{% else %}
-						nudge values
+							{{community.nudgeCategories|listLookup:i}}
 						{% endif %}
-						will be reduced to what is available, starting with the last ones in the list.</i></p>
-					<tr><th>Category</th><th>Nudge</th></tr>
-						{% for i in num_nudge_categories|makeRange %}
-							<tr><td align="right">{{community.nudgeCategories|listLookup:i}}</td><td align="left">
-							<input type="text" name="nudge{{i}}" size="4" value="{{annotation.valuesIfNudge|listLookup:i|orNothing}}" maxlength="{{maxlength_number}}"/></td></tr>
-						{% endfor %}
+						</td>
+						</tr>
+					{% endfor %}
 					</table>
+					You can assign <b>{{nudge_points_member_can_assign}}</b> points to this {{entry.type}} and 
+					have <b>{{current_member.nudgePoints}}</b> points remaining in general.
+					{{"#nudgePointExplanation"|info}}
+					{{"#nudgePointAllocation"|caution}}</p>
 					{% if annotation %}
 						<p>You can change your comment on this nudge here.</p>
 					{% else %}
 						<p>You can enter a comment on this nudge here.</p>
 					{% endif %}
-					<input type="text" name="shortString" size="80" value="{% if annotation %}{{annotation.shortString}}{% endif %}" maxlength="{{maxlength_subject_or_comment}}"/>
+					&nbsp; &nbsp; <input type="text" name="shortString" size="80" value="{% if annotation %}{{annotation.shortString}}{% endif %}" maxlength="{{maxlength_subject_or_comment}}"/>
 			{% endifequal %}
 
 			{% if offline_members and current_member.isLiaison %}

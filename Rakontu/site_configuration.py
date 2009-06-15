@@ -172,7 +172,19 @@ NUM_NUDGE_CATEGORIES = 5
 
 # The default nudge category names that come up in community settings. 
 # The number of strings in this list MUST match the number of categories above.
-DEFAULT_NUDGE_CATEGORIES = ["appropriate", "important", "useful to new members", "useful for resolving conflicts", "useful for understanding"]
+DEFAULT_NUDGE_CATEGORIES = ["appropriate", 
+						"important", 
+						"useful to new members", 
+						"useful for resolving conflicts", 
+						"useful for understanding"]
+
+# These questions appear next to the category names and give information about how to made nudge decisions.
+# They must match up with the nudge category names in order.
+DEFAULT_NUDGE_CATEGORY_QUESTIONS = ["Is it helpful or harmful to the community?", 
+						"It is earth-shaking or trivial in impact?", 
+						"Would new members be especially interested in it?", 
+						"Would people in conflict be helped by it?", 
+						"Would it help people to make sense of things in our community?"]
 
 # How many nudge points can be assigned per entry, by default.
 DEFAULT_MAX_NUDGE_POINTS_PER_ENTRY = 25

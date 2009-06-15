@@ -172,11 +172,16 @@
 			<p>How many nudge points can be asssigned (maximum) per entry? 
 			<input type="text" name="maxNudgePointsPerEntry" size="4" value="{{community.maxNudgePointsPerEntry}}" maxlength="4"/>
 			{{"#community_nudgePoints"|info}} {{"#community_nudgePointsPerEntry"|caution}}
-			<p>{{"Enter your nudge category names here."|caution}}</p>
-			<p>
+			<p>{{"Enter your nudge category names and questions here."|caution}}</p>
+			<table  border="1" cellpadding="4" cellspacing="0">
+			<tr><th>Name</th><th>Question {{"#nudgeCategoryQuestion"|tip}}</th></tr>
 			{% for i in num_nudge_categories|makeRange %}
-				<input type="text" name="nudgeCategory{{i}}" size="20" value="{{community.nudgeCategories|listLookup:i}}" maxlength="{{maxlength_name}}"/>
+				<tr>
+				<td><input type="text" name="nudgeCategory{{i}}" size="20" value="{{community.nudgeCategories|listLookup:i}}" maxlength="{{maxlength_name}}"/>
+				</td><td><input type="text" name="nudgeCategoryQuestion{{i}}" size="60" value="{{community.nudgeCategoryQuestions|listLookup:i}}" maxlength="{{maxlength_subject_or_comment}}"/>
+				</tr>
 			{% endfor %}
+			</table>
 			</p>
 			<p>How many nudge points do members accumulate by participating in the community?</p>
 			<table  border="1" cellpadding="4" cellspacing="0">
