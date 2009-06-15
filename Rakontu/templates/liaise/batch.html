@@ -30,8 +30,8 @@
 					<select name="attribution|{{i}}">
 						<option value="member"
 							>The selected member</option>
-						{% if community.getCharacters %}
-							{% for character in community.getCharacters %}
+						{% if community.getActiveCharacters %}
+							{% for character in community.getActiveCharacters %}
 								<option value="{{character.key}}"
 								>{{character.name}}</option>
 							{% endfor %}

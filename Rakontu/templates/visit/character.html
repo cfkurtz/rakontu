@@ -6,19 +6,37 @@
 	
 		<h3>Information about {{character.name}}</h3>
 		
-		 		{% if character.image %}
-					<div><img src="img?character_id={{character.key}}" ></img></div>
-				{% endif %}
-				<p>
-  				{% if character.description %}<p>About {{character.name}}:</p><div class="blurb">{{character.description}}</div>{% endif %}
-	  			{% if character.etiquetteStatement %}<p>How to be {{character.name}}:</p><div class="blurb">{{character.etiquetteStatement}}</div>{% endif %}
+		 {% if character.image %}
+			<div><img src="img?character_id={{character.key}}" ></img></div>
+		{% endif %}
+  		{% if character.description|orNothing %}
+  			<p>About {{character.name}}:</p>
+  			<div class="blurb">{{character.description}}</div>
+  		{% endif %}
+	  	{% if character.etiquetteStatement|orNothing %}
+	  		<p>How to be {{character.name}}:</p>
+	  		<div class="blurb">{{character.etiquetteStatement}}</div>
+	  	{% endif %}
 
+		{% if answers %}
+			<p>{{character.name}}'s answers to questions about them:</p>
+			<ul>
+			{% for answer in answers %}
+				<li class="nobullet">{{answer.question.text}} &nbsp; {{answer.displayStringShort}}</li>
+			{% endfor %}
+			</ul>
+		{% endif %}
+		
 		{% include "../common_grid.html" %}
 		
 	<div class="rightalign"><a href="/visit/community">See all characters</a></div>
+  	{% if current_member.isManagerOrOwner %}
+  		<div class="rightalign"><p><a href="/manage/character?{{character.key}}">Change this character</a></p></div>
+  	{% endif %}
   	{% if current_member.isCurator %}
   		<div class="rightalign"><p><a href="/visit/character?{{character.key}}&curate">Curate this character's entries</a></p></div>
   	{% endif %}
+  	
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

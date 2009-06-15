@@ -43,6 +43,3 @@ tag sets in list when do tags
 
 tag view for curators
 
-nudge category questions
-
-questions about characters - one set of answers per community

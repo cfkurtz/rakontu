@@ -12,11 +12,20 @@ def ItemDisplayStringForGrid(item, curating, includeName=True):
 	if includeName:
 		if item.attributedToMember():
 			if item.creator.isOnlineMember:
-				nameString = ' (<a href="member?%s">%s</a>)' % (item.creator.key(), item.creator.nickname)
+				if item.creator.active:
+					nameString = ' (<a href="member?%s">%s</a>)' % (item.creator.key(), item.creator.nickname)
+				else:
+					nameString = ' (%s)' % item.creator.nickname
 			else:
-				nameString = ' (<img src="/images/offline.png" alt="offline member"><a href="member?%s">%s</a>)' % (item.creator.key(), item.creator.nickname)
+				if item.creator.active:
+					nameString = ' (<img src="/images/offline.png" alt="offline member"><a href="member?%s">%s</a>)' % (item.creator.key(), item.creator.nickname)
+				else:
+					nameString = ' (<img src="/images/offline.png" alt="offline member"> %s)' % item.creator.nickname
 		else:
-			nameString = ' (<a href="character?%s">%s</a>)' % (item.character.key(), item.character.name)
+			if item.character.active:
+				nameString = ' (<a href="character?%s">%s</a>)' % (item.character.key(), item.character.name)
+			else:
+				nameString = ' (%s)' % item.character.name
 	else:
 		nameString = ""
 	if curating:
@@ -197,8 +206,11 @@ class BrowseEntriesPage(webapp.RequestHandler):
 									else:
 										nameString = entry.creator.nickname
 								else:
-									nameString = '<a href="character?%s">%s</a>' % (entry.character.key(), entry.character.name)
-								text = '<p>%s <span style="font-size:%s%%"><a href="/visit/read?%s" %s>%s</a> (%s)</span></p>' % \
+									if entry.character.active:
+										nameString = '<a href="character?%s">%s</a>' % (entry.character.key(), entry.character.name)
+									else:
+										nameString = entry.character.name
+								text = '<p>%s <span style="font-size:%s%%"><a href="/visit/read?%s" %s>%s</a></span> (%s)</p>' % \
 									(entry.getImageLinkForType(), fontSizePercent, entry.key(), entry.getTooltipText(), entry.title, nameString)
 								textsInThisCell.append(text)
 						textsInThisRow.append(textsInThisCell)
@@ -455,7 +467,7 @@ class SeeCommunityPage(webapp.RequestHandler):
 								   'community': community, 
 								   'current_member': member,
 								   'community_members': community.getActiveMembers(),
-								   'characters': community.getCharacters(),
+								   'characters': community.getActiveCharacters(),
 								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/community.html')
 				self.response.out.write(template.render(path, template_values))
@@ -527,9 +539,10 @@ class SeeMemberPage(webapp.RequestHandler):
 						   		   'community': community, 
 						   		   'current_member': member,
 						   		   'member': memberToSee,
+						   		   'answers': memberToSee.getAnswers(),
 						   		   'rows_cols': textsForGrid,
 						   		   'row_headers': rowHeaders,
-						   		   'text_to_display_before_grid': "%s's history" % memberToSee.nickname,
+						   		   'text_to_display_before_grid': "%s's entries" % memberToSee.nickname,
 						   		   'no_profile_text': NO_PROFILE_TEXT,
 						   		   })
 					path = os.path.join(os.path.dirname(__file__), 'templates/visit/member.html')
@@ -596,14 +609,16 @@ class SeeCharacterPage(webapp.RequestHandler):
 					else:
 						textsForGrid = None
 						rowHeaders = None
+					DebugPrint(character.getAnswers())
 					template_values = GetStandardTemplateDictionaryAndAddMore({
 								   	   'title': "Character", 
 						   		   	   'title_extra': character.name, 
 									   'community': community, 
 									   'current_member': member,
 									   'character': character,
+									   'answers': character.getAnswers(),
 						   		   	   'rows_cols': textsForGrid,
-						   		   	   'text_to_display_before_grid': "%s's history" % character.name,
+						   		   	   'text_to_display_before_grid': "%s's entries" % character.name,
 						   		   	   'row_headers': rowHeaders,
 									   })
 					path = os.path.join(os.path.dirname(__file__), 'templates/visit/character.html')

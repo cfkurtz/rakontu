@@ -85,8 +85,10 @@ application = webapp.WSGIApplication(
 									  ('/manage/questions_invitation', ManageCommunityQuestionsPage),
 									  ('/manage/questions_resource', ManageCommunityQuestionsPage),
 									  ('/manage/questions_member', ManageCommunityQuestionsPage),
+									  ('/manage/questions_character', ManageCommunityQuestionsPage),
 									  ('/manage/questions_questions', ManageCommunityQuestionsPage),
 									  ('/manage/characters', ManageCommunityCharactersPage),
+									  ('/manage/character', ManageCommunityCharacterPage),
 									  ('/manage/technical', ManageCommunityTechnicalPage),
 									  
 									  # general result handler

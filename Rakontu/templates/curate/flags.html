@@ -46,7 +46,11 @@
 									the former member "{{entry.creator.nickname}}"
 								{% endif %}
 						{% else %}
-							<a href="character?{{entry.character.key}}">{{entry.character.name}}</a>
+							{% if entry.character.active %}
+								<a href="character?{{entry.character.key}}">{{entry.character.name}}</a>
+							{% else %}
+								the former character "{{entry.character.name}}"
+							{% endif %}
 						{% endif %}
 	  				</td>
 	  				<td><input type="text" name="flagComment|{{entry.key}}" value="{{entry.flagComment|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></td>

@@ -11,13 +11,16 @@
 			</h3>
 		<fieldset>
 		{% for question in questions %}
-			<p><b>{{ question.text }}</b>
+			<p>{{ question.text }}
+			{% ifequal question.type "value" %}
+				<i>Please enter a number between {{question.minIfValue}} and {{question.maxIfValue}}. </i>
+			{% endifequal %}
 			{% if question.help|notNone %}
 				<i>{{question.help}}</i>
 			{% endif %}
+			</p>
 			
 			{% ifequal question.type "text" %}
-				</p>
 				&nbsp; &nbsp; <input type="text" size="80" name="{{question.key}}" value="
 				{% for answer in answers %}
 					{% ifequal answer.questionKey question.key %}
@@ -28,7 +31,6 @@
 			{% endifequal %}
 			
 			{% if question.isOrdinalOrNominal %}
-				</p>
 				{% if question.multiple %}
 					{% for choice in question.choices %}
 						{% if choice|slugify %}
@@ -65,7 +67,6 @@
 			{% endif %}
 			
 			{% ifequal question.type "boolean" %}
-				</p>
 				&nbsp; &nbsp; <input type="checkbox" name="{{question.key}}" value="{{question.key}}" id="{{question.key}}"
 				{% for answer in answers %}
 					{% ifequal answer.questionKey question.key %}
@@ -78,8 +79,7 @@
 			{% endifequal %}
 			
 			{% ifequal question.type "value" %}
-				<i>Please enter a number between {{question.minIfValue}} and {{question.maxIfValue}}.</i></p>
-				&nbsp; &nbsp; <input type="text" size="60" name="{{question.key}}" value="
+				&nbsp; &nbsp; <input type="text" size="{{maxlength_number}}" name="{{question.key}}" value="
 				{% for answer in answers %}
 					{% ifequal answer.questionKey question.key %}
 						{{ answer.answerIfValue }}

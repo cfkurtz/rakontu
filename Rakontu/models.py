@@ -60,8 +60,8 @@ TIME_UNIT_STRINGS = {"minute": MINUTE_SECONDS,
 					"month": MONTH_SECONDS,
 					"year": YEAR_SECONDS,}
 
-QUESTION_REFERS_TO = ["story", "pattern", "collage", "invitation", "resource", "member"]
-QUESTION_REFERS_TO_PLURAL = ["stories", "patterns", "collages", "invitations", "resources", "members"]
+QUESTION_REFERS_TO = ["story", "pattern", "collage", "invitation", "resource", "member", "character"]
+QUESTION_REFERS_TO_PLURAL = ["stories", "patterns", "collages", "invitations", "resources", "members", "characters"]
 QUESTION_TYPES = ["boolean", "text", "ordinal", "nominal", "value"]
 
 # from http://www.letsyouandhimfight.com/2008/04/12/time-zones-in-google-app-engine/
@@ -243,11 +243,14 @@ class Community(db.Model):
 	
 	# CHARACTERS
 	
-	def getCharacters(self):
-		return Character.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+	def getActiveCharacters(self):
+		return Character.all().filter("community = ", self.key()).filter("active = ", True).fetch(FETCH_NUMBER)
+	
+	def getInactiveCharacters(self):
+		return Character.all().filter("community = ", self.key()).filter("active = ", False).fetch(FETCH_NUMBER)
 	
 	def hasAtLeastOneCharacterEntryAllowed(self, entryTypeIndex):
-		return len(self.getCharacters()) > 0 or self.allowCharacter[entryTypeIndex]
+		return self.allowCharacter[entryTypeIndex] or len(self.getActiveCharacters()) > 0
 	
 	# ENTRIES
 	
@@ -675,6 +678,7 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 	community = db.ReferenceProperty(Community, required=True, collection_name="characters_to_community")
 	name = db.StringProperty(required=True)
 	created = TzDateTimeProperty(auto_now_add=True)
+	active = db.BooleanProperty(default=True)
 	
 	description = db.TextProperty(default=None) # appears on community page
 	description_formatted = db.TextProperty()
@@ -705,6 +709,9 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 	def linkString(self):
 		return '<a href="/visit/character?%s">%s</a>' % (self.key(), self.name)
 		
+	def getAnswers(self):
+		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
+	
 # ============================================================================================
 # ============================================================================================
 class Answer(db.Model):

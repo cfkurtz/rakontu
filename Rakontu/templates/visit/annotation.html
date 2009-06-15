@@ -167,8 +167,8 @@
 								{% endif %}
 							{% endif %}
 							>The selected member</option>
-						{% if community.getCharacters %}
-							{% for character in community.getCharacters %}
+						{% if community.getActiveCharacters %}
+							{% for character in community.getActiveCharacters %}
 								<option value="{{character.key}}"
 								{% if annotation %}
 									{% ifequal annotation.character.key character.key %}
@@ -195,8 +195,8 @@
 								{% endif %}
 							{% endif %}
 							>Me ({{current_member.nickname}})</option>
-						{% if community.getCharacters %}
-							{% for character in community.getCharacters %}
+						{% if community.getActiveCharacters %}
+							{% for character in community.getActiveCharacters %}
 								<option value="{{character.key}}"
 								{% if annotation %}
 									{% ifequal annotation.character.key character.key %}
@@ -220,8 +220,8 @@
 								{% endif %}
 							{% endif %}
 							>Me ({{current_member.nickname}})</option>
-						{% if community.getCharacters %}
-							{% for character in community.getCharacters %}
+						{% if community.getActiveCharacters %}
+							{% for character in community.getActiveCharacters %}
 								<option value="{{character.key}}"
 								{% if annotation %}
 									{% ifequal annotation.character.key character.key %}

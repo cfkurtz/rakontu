@@ -31,12 +31,20 @@
   		{% if member.nicknameIsRealName %}
   			<p>This nickname is {{member.nickname}}'s real name.</p>
 		{% endif %}
-  		{% if member.profileText_formatted %}
+  		{% if member.profileText_formatted|orNothing %}
   			{% ifnotequal member.profileText_formatted no_profile_text %}
   				<p>About {{member.nickname}}:</p><div class="blurb">{{member.profileText_formatted}}</div>
   			{% endifnotequal %}
   		{% endif %}
   		
+		{% if answers %}
+			<p>{{member.nickname}}'s answers to the member questions:</p>
+			<ul>
+			{% for answer in answers %}
+				<li class="nobullet">{{answer.question.text}} &nbsp; {{answer.displayStringShort}}</li>
+			{% endfor %}
+			</ul>
+		{% endif %}
   		{% include "../common_grid.html" %}
   		
 		{% ifnotequal member.key current_member.key %}

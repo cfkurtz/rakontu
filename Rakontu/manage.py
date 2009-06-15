@@ -307,13 +307,13 @@ class ManageCommunityCharactersPage(webapp.RequestHandler):
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-			characters = Character.all().filter("community = ", community).fetch(FETCH_NUMBER)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': "Manage characters for", 
 						   	   'title_extra': community.name, 
 							   'community': community, 
 							   'current_member': member,
-							   'characters': characters,
+							   'characters': community.getActiveCharacters(),
+							   'inactive_characters': community.getInactiveCharacters(),
 							   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/manage/characters.html')
 			self.response.out.write(template.render(path, template_values))
@@ -324,36 +324,114 @@ class ManageCommunityCharactersPage(webapp.RequestHandler):
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
-			characters = Character.all().filter("community = ", community).fetch(FETCH_NUMBER)
-			charactersToRemove = []
-			for character in characters:
-				character.name = cgi.escape(self.request.get("name|%s" % character.key()))
-				text = self.request.get("description|%s" % character.key())
-				format = self.request.get("description_format|%s" % character.key()).strip()
-				character.description = text
-				character.description_formatted = db.Text(InterpretEnteredText(text, format))
-				character.description_format = format
-				text = self.request.get("etiquetteStatement|%s" % character.key())
-				format = self.request.get("etiquetteStatement_format|%s" % character.key()).strip()
-				character.etiquetteStatement = text
-				character.etiquetteStatement_formatted = db.Text(InterpretEnteredText(text, format))
-				character.etiquetteStatement_format = format
-				imageQueryKey = "image|%s" % character.key()
-				if self.request.get(imageQueryKey):
-					character.image = db.Blob(images.resize(str(self.request.get(imageQueryKey)), 100, 60))
-				character.put()
+			for character in community.getActiveCharacters():
 				if self.request.get("remove|%s" % character.key()):
-					charactersToRemove.append(character)
-			if charactersToRemove:
-				for character in charactersToRemove:
-					db.delete(character)
+					character.active = False
+					character.put()
 			namesToAdd = cgi.escape(self.request.get("newCharacterNames")).split('\n')
 			for name in namesToAdd:
 				if name.strip():
-					newCharacter = Character(name=name, community=community)
-					newCharacter.put()
+					foundCharacter = False
+					for oldCharacter in community.getInactiveCharacters():
+						if oldCharacter.name == name.strip():
+							foundCharacter = True
+							oldCharacter.active = True
+							oldCharacter.put()
+							break
+					if not foundCharacter:
+						newCharacter = Character(name=name, community=community)
+						newCharacter.put()
 			community.put()
-		self.redirect('/visit/community')
+		self.redirect('/manage/characters')
+		
+class ManageCommunityCharacterPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			try:
+				character = db.get(self.request.query_string)
+			except:
+				character = None
+			template_values = GetStandardTemplateDictionaryAndAddMore({
+							   'title': "Profile of", 
+						   	   'title_extra': member.nickname, 
+							   'community': community, 
+							   'character': character,
+							   'current_member': member,
+							   'questions': community.getQuestionsOfType("character"),
+							   'answers': character.getAnswers(),
+							   'refer_type': "character",
+							   })
+			path = os.path.join(os.path.dirname(__file__), 'templates/manage/character.html')
+			self.response.out.write(template.render(path, template_values))
+		else:
+			self.redirect('/')
+							 
+	@RequireLogin 
+	def post(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			goAhead = True
+			for argument in self.request.arguments():
+				if argument.find("|") >= 0:
+					for aCharacter in community.getActiveCharacters():
+						if argument == "changeSettings|%s" % aCharacter.key():
+							try:
+								character = aCharacter
+							except: 
+								character = None
+								goAhead = False
+							break
+			if goAhead:
+				character.name = cgi.escape(self.request.get("name")).strip()
+				text = self.request.get("description")
+				format = self.request.get("description_format").strip()
+				character.description = text
+				character.description_formatted = db.Text(InterpretEnteredText(text, format))
+				character.description_format = format
+				text = self.request.get("etiquetteStatement")
+				format = self.request.get("etiquetteStatement_format").strip()
+				character.etiquetteStatement = text
+				character.etiquetteStatement_formatted = db.Text(InterpretEnteredText(text, format))
+				character.etiquetteStatement_format = format
+				if self.request.get("removeImage") == "yes":
+					character.image = None
+				elif self.request.get("img"):
+					character.image = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
+				character.put()
+				questions = Question.all().filter("community = ", community).filter("refersTo = ", "character").fetch(FETCH_NUMBER)
+				for question in questions:
+					foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", character.key()).fetch(FETCH_NUMBER)
+					if foundAnswers:
+						answerToEdit = foundAnswers[0]
+					else:
+						answerToEdit = Answer(question=question, community=community, referent=character, referentType="character")
+					if question.type == "text":
+						answerToEdit.answerIfText = cgi.escape(self.request.get("%s" % question.key()))
+					elif question.type == "value":
+						oldValue = answerToEdit.answerIfValue
+						try:
+							answerToEdit.answerIfValue = int(self.request.get("%s" % question.key()))
+						except:
+							answerToEdit.answerIfValue = oldValue
+					elif question.type == "boolean":
+						answerToEdit.answerIfBoolean = self.request.get("%s" % question.key()) == "%s" % question.key()
+					elif question.type == "nominal" or question.type == "ordinal":
+						if question.multiple:
+							answerToEdit.answerIfMultiple = []
+							for choice in question.choices:
+								if self.request.get("%s|%s" % (question.key(), choice)) == "yes":
+									answerToEdit.answerIfMultiple.append(choice)
+						else:
+							answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
+					answerToEdit.creator = member
+					answerToEdit.put()
+				self.redirect('/manage/characters')
+			else:
+				self.redirect("/visit/look")
+		else:
+			self.redirect("/")
 		
 class ManageCommunityTechnicalPage(webapp.RequestHandler):
 	pass

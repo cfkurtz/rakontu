@@ -7,60 +7,55 @@
 		{% if current_member.isManagerOrOwner %}
 			<div id="stylized" class="rakontu_form">
 			<form action="/manage/characters" method="post" enctype="multipart/form-data">
-			<h3>Add New Characters</h3>
+			<h3>Add new characters{{"#addNewCharacters"|tip}}</h3>
 			<fieldset>
 			<div><textarea name="newCharacterNames" rows="6" cols="40"></textarea></div>
-			<p><i>Add names on separate lines.</i></p>
 			</fieldset>
+			
 			<h3>Change Characters</h3>
 			<fieldset>
 	      	<table border="1" cellpadding="4" cellspacing="0">
 	      	<tr>
-	      		<th>Name and image</th>
+	      		<th>Name</th>
+	      		<th>Picture</th>
 	      		<th>Description</th>
-	      		<th>Etiquette statement (optional)</th>
-	      		<th>Remove</th>
+	      		<th>Inactivate?</th>
 	      		</tr>
 	      		{% for character in characters %}
 	  				<tr>
-	  				<td><p><input type="text" name="name|{{character.key}}" value="{{ character.name }}" size="20" maxlength="{{maxlength_name}}"/></p>
-						{% if character.image %}
-							<center><img src="img?character_id={{character.key}}"></img></center>
-						{% endif %}
-						<p><input type="file" name="image|{{character.key}}" accept="jpg/png" size="10"></p>
-						</td>
 	  				<td>
-	  					<textarea name="description|{{character.key}}" rows="4" cols="60">{{ character.description }}</textarea>
-						<div class="rightalign">Interpret as <select name="description_format|{{character.key}}">
-							{% for format in text_formats %}
-								<option value="{{format}}" 
-								{% ifequal character.description_format format %}
-									selected="selected"
-								{% endifequal %}
-								>{{format}}</option>
-							{% endfor %}
-							</select></div>
-	  					</td>
+	  					{{ character.name }}<br/>
+	  					<a href="/visit/character?{{character.key}}">(View character page)</a>
+	  					<br/><a href="/manage/character?{{character.key}}">(Change character)</a>
+	  				</td>
+	  				<td width="80" valign="top">
+			 		{% if character.image %}
+						<img src="/visit/img?character_id={{character.key}}">
+					{% else %}
+						none
+					{% endif %}
+					</td>
+					<td>{{character.description_formatted}}</td>
 	  				<td>
-	  					<textarea name="etiquetteStatement|{{character.key}}" rows="4" cols="60">{{ character.etiquetteStatement }}</textarea>
-						<div class="rightalign">Interpret as <select name="etiquetteStatement_format|{{character.key}}">
-							{% for format in text_formats %}
-								<option value="{{format}}" 
-								{% ifequal character.etiquetteStatement_format format %}
-									selected="selected"
-								{% endifequal %}
-								>{{format}}</option>
-							{% endfor %}
-							</select></div>
-	  					</td>
-	  				<td>
-	  					<input type="checkbox" name="remove|{{character.key}}" />Remove
+	  					<input type="checkbox" name="remove|{{ character.key }}" value="yes" id="remove|{{ character.key }}"/>
+						<label for="remove|{{ character.key }}">Inactivate</label>
 	  					</td>
 	  				</tr>
 	      		{% endfor %}
 	      	</table>
-	      <p><i>The best picture size is 100 x 60.</i></p>
-	      </fieldset>
+			</fieldset>
+			
+			{% if inactive_characters %}
+				<h3>{{"Inactive characters"|caution}}</h3>
+				<fieldset>
+				<ul>
+				{% for character in inactive_characters %}
+					<li class="nobullet">{{character.name}}</li>
+				{% endfor %}
+				</ul>
+				</fieldset>
+			{% endif %}
+			
 		<p>
 	    <center><input type="submit" name="submitChanges" value="Submit Changes" class="button"></center>
 		</form>

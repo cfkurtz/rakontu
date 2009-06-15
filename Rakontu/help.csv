@@ -28,3 +28,5 @@
 "tip","#nudgeCategoryQuestion","These questions are shown in the page where the member enters their nudge values. They should help them understand what the nudge categories mean. (They don't have to be questions, either.)"
 "caution","#nudgePointAllocation","If you assign more points here than you have available or the community allows per entry, the remaining nudge points will be reduced to what is available (starting with the last ones in your list)."
 "info","#nudgePointExplanation","Enter positive or negative numbers in any or all of these categories."
+"caution","Inactive characters","These characters have been removed from the active characters list. To reinstate an inactive character, copy its name to the 'Add new characters' box. Reinstated characters will reconnect to their old profiles and histories. (This also means that you cannot re-use character names.)"
+"tip","#addNewCharacters","Add names here for each character you want to add. Place each name on a separate line. Then return to this page and add details for the new characters."

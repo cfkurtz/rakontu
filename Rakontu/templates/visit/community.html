@@ -14,7 +14,7 @@
 			<div class="blurb">{{community.etiquetteStatement_formatted}}</div>
 		{% endif %}
 		
-		{% if community.getCharacters %}
+		{% if community.getActiveCharacters %}
 			<h3>Characters</h3>
 			<p><i>Community characters are fictional names you can "take on" when you tell a story,
 				make a comment, and so on, if you don't want to say it as yourself.</i></p>
@@ -43,7 +43,7 @@
       	{% if current_member.isManagerOrOwner %}
       		<div class="rightalign">
       		Make changes to community-level <a href="/manage/settings">settings</a>
-      		{% if community.getCharacters %}
+      		{% if community.getActiveCharacters %}
       			or <a href="/manage/characters">characters</a>
       		{% endif %}
       		</div>
