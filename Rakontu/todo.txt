@@ -24,14 +24,14 @@ UNICODE
 
 I don't think downdrift is working yet
 
-need a way to nudge things from the main page - you just want to do it - icon?
-
 need a way for site administrator to DELETE a community (and also disable but not delete)
 
 cannot allow two members in the same community to have the same nickname, because
 offline members are identified by it. not checking for that when somebody sets one.
 
 still have not implemented user choosing which nudge categories to consider in look page
+
+really need that "ALL" button on main page
 
 don't show manager/owner status to group, just that they are a manager. owner status should not be obvious to all members.
 

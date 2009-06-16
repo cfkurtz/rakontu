@@ -9,8 +9,7 @@
 			<form action="/manage/settings" method="post" enctype="multipart/form-data">
 			<p>This community was created 
 			on {{community.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.</p>
-			
-	
+
 			<h3>Name and description</h3>
 			<fieldset>
 			<p>{{"Community name"|tip}}</p>
@@ -163,7 +162,13 @@
 			{% for text in editing_includes %}
 				{{ text }}
 			{% endfor %}
-			</table>
+			<p>{{"Should curators who are not managers be able to edit existing tags?"|caution}}</p>
+				<input type="checkbox" name="allowNonManagerCuratorsToEditTags" value="yes" id="allowNonManagerCuratorsToEditTags"
+				{% if community.allowNonManagerCuratorsToEditTags %}
+					checked="checked"
+				{% endif %}
+				>
+				<label for="allowNonManagerCuratorsToEditTags">Yes, curators who are not managers can edit all tags</label>
 			</fieldset>
 			
 			<h3>Nudge system</h3>
@@ -177,7 +182,7 @@
 			<tr><th>Name</th><th>Question {{"#nudgeCategoryQuestion"|tip}}</th></tr>
 			{% for i in num_nudge_categories|makeRange %}
 				<tr>
-				<td><input type="text" name="nudgeCategory{{i}}" size="20" value="{{community.nudgeCategories|listLookup:i}}" maxlength="{{maxlength_name}}"/>
+				<td><input type="text" name="nudgeCategory{{i}}" size="30" value="{{community.nudgeCategories|listLookup:i}}" maxlength="{{maxlength_name}}"/>
 				</td><td><input type="text" name="nudgeCategoryQuestion{{i}}" size="60" value="{{community.nudgeCategoryQuestions|listLookup:i}}" maxlength="{{maxlength_subject_or_comment}}"/>
 				</tr>
 			{% endfor %}

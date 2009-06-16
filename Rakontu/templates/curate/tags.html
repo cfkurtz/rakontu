@@ -3,7 +3,7 @@
 	<body>
 	{% include "../common_menus.html" %}
 	<div id="content">
-	{% if current_member.isCurator %}
+	{% if current_member.canEditTags %}
 		<div id="stylized" class="rakontu_form">
 		<form action="/curate/tags" method="post">
 			
@@ -31,8 +31,13 @@
 		</form>	
 		</div>
 	{% else %}
-		<p>You are not a curator of this community and cannot review removal flags.
-		Either become a curator or ask a curator to make any changes you would like to see made.</p>
+		{% if community.allowNonManagerCuratorsToEditTags %}
+			<p>You are not a curator of this community and cannot review tags.
+			Either become a curator or ask a curator to make any changes you would like to see made.</p>
+		{% else %}
+			<p>You are not a manager of this community and cannot review tags.
+			Please ask a manager to make any changes you would like to see made.</p>
+		{% endif %}
 	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}

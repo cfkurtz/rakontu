@@ -164,6 +164,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 			community.defaultTimeZoneName = self.request.get("defaultTimeZoneName")
 			community.defaultDateFormat = self.request.get("defaultDateFormat")
 			community.defaultTimeFormat = self.request.get("defaultTimeFormat")
+			community.allowNonManagerCuratorsToEditTags = self.request.get("allowNonManagerCuratorsToEditTags") == "yes"
 			if self.request.get("img"):
 				community.image = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
 			i = 0

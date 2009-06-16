@@ -129,6 +129,7 @@ class Community(db.Model):
 	
 	allowCharacter = db.ListProperty(bool, default=DEFAULT_ALLOW_CHARACTERS)
 	allowEditingAfterPublishing = db.ListProperty(bool, default=DEFAULT_ALLOW_EDITING_AFTER_PUBLISHING)
+	allowNonManagerCuratorsToEditTags = db.BooleanProperty(default=False)
 	
 	roleReadmes = db.ListProperty(db.Text, default=[db.Text(DEFAULT_ROLE_READMES[0]), db.Text(DEFAULT_ROLE_READMES[1]), db.Text(DEFAULT_ROLE_READMES[2])])
 	roleReadmes_formatted = db.ListProperty(db.Text, default=[db.Text(""), db.Text(""), db.Text("")])
@@ -590,6 +591,9 @@ class Member(db.Model):
 
 	def canTakeOnAnyHelpingRole(self):
 		return self.helpingRolesAvailable[0] or self.helpingRolesAvailable[1] or self.helpingRolesAvailable[2]
+	
+	def canEditTags(self):
+		return (NUM_TAGS_IN_TAG_SET) and (self.isCurator() and self.isManagerOrOwner()) or (self.isCurator() and self.community.allowNonManagerCuratorsToEditTags)
 	
 	# BROWSING
 	

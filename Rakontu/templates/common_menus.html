@@ -49,7 +49,7 @@
 				{% if community.allowsAttachments %}
 					<li><a href="/curate/attachments">Attachments</a>
 				{% endif %}
-				{% if num_tags_in_tag_set %}
+				{% if current_member.canEditTags %}
 					<li><a href="/curate/tags">Tags</a>
 				{% endif %}
 			</ul>
