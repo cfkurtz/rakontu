@@ -874,7 +874,6 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 	published = TzDateTimeProperty(auto_now_add=True)
 	
 	lastRead = TzDateTimeProperty(default=None)
-	lastDowndrifted = TzDateTimeProperty(default=None)
 	lastAnnotatedOrAnsweredOrLinked = TzDateTimeProperty(default=None)
 	
 	activityPoints = db.IntegerProperty(default=0)
@@ -903,9 +902,6 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 			if action == "read":
 				eventType = "reading"
 				self.lastRead = datetime.now(tz=pytz.utc)
-			elif action == "downdrift":
-				eventType = "downdrift"
-				self.lastDowndrifted = datetime.now(tz=pytz.utc)
 			elif action =="added":
 				eventType = "adding %s" % self.type
 		elif referent.__class__.__name__ == "Annotation":
@@ -922,14 +918,17 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 		self.activityPoints += self.community.getEntryActivityPointsForEvent(eventType)
 		self.put()
 		
-	def updateForTimeDownDrift(self):
-		if self.lastDowndrifted:
-			timeOfPreviousAction = self.lastDowndrifted
+	def lastTouched(self):
+		if self.lastRead and self.lastAnnotatedOrAnsweredOrLinked and self.published:
+			return max(self.lastRead, max(self.lastAnnotatedOrAnsweredOrLinked, self.published))
+		elif self.lastRead and self.published:
+			return max(self.lastRead, self.published)
+		elif self.lastAnnotatedOrAnsweredOrLinked and self.published:
+			return max(self.lastAnnotatedOrAnsweredOrLinked, self.published)
+		elif self.published:
+			return self.published
 		else:
-			timeOfPreviousAction = self.published
-		daysSinceLastDowndrift = datetime.now(tz=pytz.utc) - lastDowndrifted
-		if daysSinceLastDowndrift > 0:
-			self.recordAction("downdrift", self)
+			return None
 		
 	def removeAllDependents(self):
 		for attachment in self.getAttachments():

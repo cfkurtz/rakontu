@@ -32,3 +32,4 @@
 "tip","#addNewCharacters","Add names here for each character you want to add. Place each name on a separate line. Then return to this page and add details for the new characters."
 "caution","Change tags on entries","These are all the tags on all the entries for the community. You can change them here (carefully) to merge tags with similar words (like 'cat' and 'cats')."
 "caution","Should curators who are not managers be able to edit existing tags?","You should only allow non-manager curators (that is, everyone) to edit tags if you are sure everyone in your community can be trusted not to wreak havoc on the tags."
+"tip","#downdriftExplanation","Downdrift is how each entry 'drifts down' in activity points each day. This number will usually be negative. If you don't want entries to drift down, set the downdrift number to zero."

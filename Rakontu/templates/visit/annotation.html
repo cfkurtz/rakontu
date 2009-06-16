@@ -44,11 +44,13 @@
 						<select name="alreadyThereTag{{i}}">
 						<option value="none">(choose)</option>
 						{% for tag in already_there_tags %}
-							<option value="{{tag}}"
-							{% ifequal annotation.tagsIfTagSet|listLookup:i tag %}
-								selected="selected"
-							{% endifequal %}
-							>{{tag}}</option>
+							{% if tag|orNothing %}
+								<option value="{{tag}}"
+								{% ifequal annotation.tagsIfTagSet|listLookup:i tag %}
+									selected="selected"
+								{% endifequal %}
+								>{{tag}}</option>
+							{% endif %}
 						{% endfor %}
 						</select>
 					{% endif %}

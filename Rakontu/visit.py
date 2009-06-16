@@ -200,6 +200,12 @@ class BrowseEntriesPage(webapp.RequestHandler):
 							shouldBeInCol = timeToCheck >= startTime and timeToCheck < endTime
 							if shouldBeInRow and shouldBeInCol:
 								fontSizePercent = min(200, 90 + entry.activityPoints - minActivityPoints)
+								downdrift = community.getEntryActivityPointsForEvent("downdrift")
+								if downdrift:
+									daysSinceTouched = 1.0 * (datetime.now(tz=pytz.utc) - entry.lastTouched()).seconds / DAY_SECONDS
+									timeLoss = daysSinceTouched * downdrift
+									fontSizePercent += timeLoss
+									fontSizePercent = int(max(MIN_BROWSE_FONT_SIZE_PERCENT, min(fontSizePercent, MAX_BROWSE_FONT_SIZE_PERCENT)))
 								if entry.attributedToMember():
 									if entry.creator.active:
 										nameString = '<a href="member?%s">%s</a>' % (entry.creator.key(), entry.creator.nickname)

@@ -121,6 +121,11 @@ DEFAULT_ALLOW_EDITING_AFTER_PUBLISHING = [False, False, True, True, True]
 # into the system.
 NUM_ENTRIES_PER_BATCH_PAGE = 10
 
+# These determine how big and small entry titles can get on the main browse page.
+# In some circumstances you might want to allow a wider or narrower range.
+MIN_BROWSE_FONT_SIZE_PERCENT = 70
+MAX_BROWSE_FONT_SIZE_PERCENT = 300
+
 # These constants determine how input fields are implemented in the html forms (where "maxlength" is how many
 # characters can be entered into a field.) There are two reasons to set these limits: first,
 # because you don't want people to enter really long things; and second (and more importantly)

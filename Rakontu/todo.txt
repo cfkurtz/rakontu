@@ -22,8 +22,6 @@ start thinking about internationalization
 
 UNICODE
 
-I don't think downdrift is working yet
-
 need a way for site administrator to DELETE a community (and also disable but not delete)
 
 still have not implemented user choosing which nudge categories to consider in look page
@@ -32,7 +30,5 @@ really need that "ALL" button on main page
 
 resource type / get help /  intro page
 
-number of tags, number of nudges not FULLY updated for flexibility yet - check EVERY use
-
-tag cloud view?
+tag cloud view? in look page?
 
