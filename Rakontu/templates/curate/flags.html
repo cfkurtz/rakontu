@@ -7,12 +7,12 @@
 		<div id="stylized" class="rakontu_form">
 		<form action="/curate/flags" method="post">
 			{% if current_member.isManagerOrOwner %}
-				<p>You are a{% ifequal current_member.governanceType "owner" %}n{% endifequal %} 
+				<p>You are a{% if current_member.isOwner %}n{% endif %} 
 				<b>{{current_member.governanceType}}</b> of this community, so you can remove any item
 				added to the system.</p>
 			{% else %}
 				<p>You are a <b>curator</b> in this community, so you can flag items for removal
-				and notify the community's owners and managers if you think an item should be removed quickly.<p>
+				and notify the community's managers if you think an item should be removed quickly.<p>
 			{% endif %}
 			
 			<h3>Flagged entries</h3>

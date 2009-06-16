@@ -191,6 +191,9 @@ class Community(db.Model):
 	def getMemberForGoogleAccountId(self, id):
 		return Member.all().filter("community = ", self.key()).filter("googleAccountID = ", id).fetch(1)
 		
+	def getActiveAndInactiveMembers(self):
+		return Member.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+	
 	def getActiveMembers(self):
 		return Member.all().filter("community = ", self.key()).filter("active = ", True).fetch(FETCH_NUMBER)
 	
@@ -206,6 +209,9 @@ class Community(db.Model):
 	def getInactiveOfflineMembers(self):
 		return Member.all().filter("community = ", self.key()).filter("active = ", False).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
 	
+	def getActiveAndInactiveOfflineMembers(self):
+		return Member.all().filter("community = ", self.key()).filter("active = ", False).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
+	
 	def hasMemberWithGoogleEmail(self, email):
 		members = self.getActiveMembers()
 		for member in members:
@@ -213,15 +219,22 @@ class Community(db.Model):
 				return True
 		return False
 	
+	def memberWithNickname(self, nickname):
+		members = self.getActiveAndInactiveMembers()
+		for member in members:
+			if member.nickname == nickname:
+				return member
+		return None
+	
 	def hasMemberWithNickname(self, nickname):
-		members = self.getActiveMembers()
+		members = self.getActiveAndInactiveMembers()
 		for member in members:
 			if member.nickname == nickname:
 				return True
 		return False
 	
 	def getOfflineMemberForNickname(self, nickname):
-		members = self.getActiveOfflineMembers()
+		members = self.getActiveAndInactiveOfflineMembers()
 		for member in members:
 			if member.nickname == nickname:
 				return member
@@ -1284,7 +1297,11 @@ class Annotation(db.Model):                                # tag set, comment, r
 			else:
 				return "no content"
 		elif self.type == "tag set":
-			return ", ".join(self.tagsIfTagSet)
+			tagsToReport = []
+			for tag in self.tagsIfTagSet:
+				if len(tag):
+					tagsToReport.append(tag)
+			return  ", ".join(tagsToReport)
 		elif self.type == "nudge":
 			result = []
 			for i in range(NUM_NUDGE_CATEGORIES):

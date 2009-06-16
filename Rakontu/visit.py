@@ -685,7 +685,11 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 					memberToEdit = offlineMember
 				else:
 					memberToEdit = member
-				memberToEdit.nickname = cgi.escape(self.request.get("nickname")).strip()
+				nicknameTheyWantToUse = cgi.escape(self.request.get("nickname")).strip()
+				if community.memberWithNickname(nicknameTheyWantToUse).key() != member.key():
+					self.redirect('/result?nicknameAlreadyInUse') 
+					return
+				memberToEdit.nickname = nicknameTheyWantToUse
 				memberToEdit.nicknameIsRealName = self.request.get('nickname_is_real_name') =="yes"
 				memberToEdit.acceptsMessages = self.request.get("acceptsMessages") == "yes"
 				text = self.request.get("profileText")

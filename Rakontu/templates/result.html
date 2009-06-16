@@ -21,6 +21,10 @@
 		<p>That off-line member has already answered questions about this entry.</p>
 	{% endifequal %}
 	
+	{% ifequal message "nicknameAlreadyInUse" %}
+		<p>That nickname is already in use. Could you please choose another?</p>
+	{% endifequal %}
+	
 	</h3>
 	<p>Would you like to <b><a href="{{linkback}}">Go back</a></b> to the page you were on?</p>
 		
