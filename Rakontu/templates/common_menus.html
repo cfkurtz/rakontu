@@ -29,7 +29,6 @@
 			<li><a href="/visit/look">Look at stories</a></li>
  			<li><a href="/visit/community">About the community</a></li>
 			<li><a href="/visit/members">About the members</a></li>
-			<li><a href="/visit/members">Get help</a></li>
 			<li><a href="/">Exit community</a></li>
 			</ul>
 		</li>
@@ -103,7 +102,7 @@
       	</ul>
     </td><td align="right" class="noborder">
     <p>&nbsp; You are logged in as <b>{{ current_member.nickname }}</b>.<br/>
-    <a href="xxx">Help</a> | <a href="/visit/profile">Preferences</a> | <a href="{{logout_url}}">Log out</a></p>
+    <a href="/visit/help">Help</a> | <a href="/visit/profile">Preferences</a> | <a href="{{logout_url}}">Log out</a></p>
 	{% if current_member.profileImage %}
 	</td><td align="center" width="20" class="noborder">
 		<div><img src="img?member_id={{current_member.key}}"></img></div>

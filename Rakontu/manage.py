@@ -35,7 +35,7 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
 			communityMembers = community.getActiveMembers()
 			for aMember in communityMembers:
 				for name, value in self.request.params.items():
-					if value.find(aMember.googleAccountID) >= 0:
+					if aMember.googleAccountID and value.find(aMember.googleAccountID) >= 0:
 						(newType, id) = value.split("|") 
 						okayToSet = False
 						if newType != aMember.governanceType:

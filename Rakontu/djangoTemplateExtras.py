@@ -44,11 +44,14 @@ def add(numberString, addString):
 		return numberString
 	
 def timeZone(time, zoneName):
-	if time.tzinfo:
-		return time.astimezone(timezone(zoneName))
+	if time:
+		if time.tzinfo:
+			return time.astimezone(timezone(zoneName))
+		else:
+			timeUTC = time.replace(tzinfo=pytz.utc)
+			return timeUTC.astimezone(timezone(zoneName))
 	else:
-		timeUTC = time.replace(tzinfo=pytz.utc)
-		return timeUTC.astimezone(timezone(zoneName))
+		return None
 	
 def notNone(value):
 	return value != None and value != "None"

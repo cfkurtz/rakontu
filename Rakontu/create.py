@@ -192,6 +192,9 @@ class EnterEntryPage(webapp.RequestHandler):
 				entry.character = Character.get(self.request.get(attributionQueryString))
 			else:
 				entry.character = None
+			if type == "resource":
+				entry.resourceForHelpPage = self.request.get("resourceForHelpPage") == "yes"
+				entry.resourceForNewMemberPage = self.request.get("resourceForNewMemberPage") == "yes"
 			entry.put()
 			linkType = None
 			if self.request.get("entry_from"):

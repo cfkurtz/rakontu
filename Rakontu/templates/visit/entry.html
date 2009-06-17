@@ -63,16 +63,17 @@
 			{% include "../common_attribution.html" %}
 
 			{% if entry_from %}
-				<p>You created this story 
+				<p>Since you created this story 
 				{% ifequal link_type "retell" %}
-					as your own version of the story "{{entry_from.title}}."
+					as your own version of the story "{{entry_from.title}},"
 				{% endifequal %}
 				{% ifequal link_type "remind" %}
-					because the story "{{entry_from.title}}" reminded you of it.
+					because the story "{{entry_from.title}}" reminded you of it,
 				{% endifequal %}
 				{% ifequal link_type "respond" %}
-					in response to the invitation "{{entry_from.title}}."
+					in response to the invitation "{{entry_from.title}},"
 				{% endifequal %}
+				<fieldset>
 				Would you like to comment on 
 				{% ifequal link_type "retell" %}
 					why you retold the original story?
@@ -83,12 +84,37 @@
 				{% ifequal link_type "respond" %}
 					why you responded to the invitation?
 				{% endifequal %}
-				</p>
+				</fieldset>
 				<input type="text" name="link_comment" value="" size="60" maxlength="{{maxlength_subject_or_comment}}">
 				<input type="hidden" name="link_type" value="{{link_type}}">
 				<input type="hidden" name="entry_from" value="{{entry_from.key}}">
 			{% endif %}
 			
+			{% ifequal entry_type "resource" %}
+				<p>Since this is a resource,</p>
+				<fieldset>
+				<p>Should it be listed on the help page?</p>
+				<input type="checkbox" name="resourceForHelpPage" value="yes" 
+				{% if entry %}
+					{% if entry.resourceForHelpPage %}
+						checked="checked"
+					{% endif %}
+				{% endif %}
+				id="resourceForHelpPage">
+				<label for="resourceForHelpPage">Yes, mark this as a help resource</label>
+				
+				<p>Should it be listed on the page that new members see first?</p>
+				<input type="checkbox" name="resourceForNewMemberPage" value="yes" 
+				{% if entry %}
+					{% if entry.resourceForNewMemberPage %}
+						checked
+					{% endif %}
+				{% endif %}
+				id="resourceForNewMemberPage">
+				<label for="resourceForNewMemberPage">Yes, mark this as a new-member resource</label>
+				</fieldset>
+			{% endifequal %}
+				
 			</fieldset>
 			
 			<p>

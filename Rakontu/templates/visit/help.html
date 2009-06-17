@@ -1,0 +1,51 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+	<div id="content">
+	
+	<h3>Help resources</h3>
+	
+	{% if resources %}
+		<p>You may find these resources helpful in using this community site.</p>
+		<ul>
+		{% for resource in resources %}
+		<li class="nobullet">{{resource.linkString}}</li>
+		{% endfor %}
+		</ul>
+	{% endif %}
+	
+	{% if guides %}
+		<h3>Ask a community guide a question</h3>
+		<p>Guides are community members who have agreed to answer questions about the community and the site. Here they have described
+		which sorts of questions they are most able and willing to answer. To ask a question, click on a guide's
+		name and send them a message.
+      		<hr>
+      		{% for guide in guides %}
+  				<table style="width:100%;" class="noborder">
+  				<tr>
+  				<td style="border:none; border-right:1px solid #FF7F00;" width="100" valign="center" align="center">
+			 		{% if guide.profileImage %}
+						<a href="/visit/member?{{guide.key}}"><img src="/visit/img?member_id={{guide.key}}"></a>
+					{% else %}
+						&nbsp;
+					{% endif %}
+				</td>
+				<td style="border:none;padding-left:16px;">
+	 				<p>{{guide.linkString}}  
+	  				{% ifequal guide.key current_member.key %}<i>(that's you)</i> {% endifequal %} 
+	  				</p>
+	  				{% if guide.guideIntro_formatted %}
+	  					<div class="blurb">{{guide.guideIntro_formatted}}</div>
+	  				{% endif %}
+  				</td>
+   				</tr>
+  				</table>
+  				<hr>
+      		{% endfor %}
+	{% endif %}
+	
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

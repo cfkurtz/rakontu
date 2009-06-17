@@ -133,8 +133,26 @@ class NewMemberPage(webapp.RequestHandler):
 							'title_extra': member.nickname,
 							'community': community, 
 							'current_member': member,
+							'resources': community.getNonDraftNewMemberResources(),
 							})
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/new.html')
+			self.response.out.write(template.render(path, template_values))
+		else:
+			self.redirect('/')
+			
+class GetHelpPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			template_values = GetStandardTemplateDictionaryAndAddMore({
+							'title': "Help",
+							'community': community, 
+							'current_member': member,
+							'resources': community.getNonDraftHelpResources(),
+							'guides': community.getGuides(),
+							})
+			path = os.path.join(os.path.dirname(__file__), 'templates/visit/help.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect('/')
@@ -563,18 +581,29 @@ class SeeMemberPage(webapp.RequestHandler):
 		community, member = GetCurrentCommunityAndMemberFromSession()
 		if community and member:
 			messageMember = None
-			for aMember in community.getActiveMembers():
-				for argument in self.request.arguments():
-					if argument.find(aMember.key()) >= 0:
-						messageMember = aMember
-						break
-			if messageMember:
+			goAhead = True
+			for argument in self.request.arguments():
+				if argument.find("|") >= 0:
+					for aMember in community.getActiveMembers():
+						if argument == "message|%s" % aMember.key():
+							try:
+								messageMember = aMember
+							except: 
+								messageMember = None
+								goAhead = False
+							break
+			if goAhead and messageMember:
 				message = mail.EmailMessage()
 				message.sender = community.contactEmail
 				message.subject = cgi.escape(self.request.get("subject"))
 				message.to = messageMember.googleAccountEmail
 				message.body = cgi.escape(self.request.get("message"))
 				message.send()
+				self.redirect('/result?messagesent')
+			else:
+				self.redirect('/result?memberNotFound')
+		else:
+			self.redirect('/')
    
 class SeeCharacterPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -692,7 +721,8 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 				else:
 					memberToEdit = member
 				nicknameTheyWantToUse = cgi.escape(self.request.get("nickname")).strip()
-				if community.memberWithNickname(nicknameTheyWantToUse).key() != member.key():
+				memberUsingNickname = community.memberWithNickname(nicknameTheyWantToUse)
+				if memberUsingNickname and memberUsingNickname.key() != member.key():
 					self.redirect('/result?nicknameAlreadyInUse') 
 					return
 				memberToEdit.nickname = nicknameTheyWantToUse

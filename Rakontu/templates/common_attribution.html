@@ -1,12 +1,12 @@
 			{% if offline_members and current_member.isLiaison %}
-				<p>Since you are a liaison:</p>
+				<p>Since you are a liaison,</p>
 				<fieldset>
 				Was this {{attribution_referent_type}} collected from an off-line member?</p>
 				<input type="radio" name="collectedOffline" value="yes" id="collectedOffline"
 					{% if attribution_referent.collectedOffline %}
 					checked
 					{% endif %}
-				<label for="collectedOffline">Yes, it was collected from</label>
+				><label for="collectedOffline">Yes, it was collected from</label>
 				<select name="offlineSource">
 					<option value="none">(choose)</option>
 					{% for aMember in offline_members %}
@@ -52,7 +52,7 @@
 					{% if not attribution_referent.collectedOffline %}
 					checked
 					{% endif %}
-				<label for="notCollectedOffline">No, this is my {{attribution_referent_type}}.</label>
+				><label for="notCollectedOffline">No, this is my {{attribution_referent_type}}.</label>
 				{% if character_allowed %}
 					&nbsp;  I'd like to say it was contributed by
 					<select name="attribution">

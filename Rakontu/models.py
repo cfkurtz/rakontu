@@ -212,6 +212,14 @@ class Community(db.Model):
 	def getActiveAndInactiveOfflineMembers(self):
 		return Member.all().filter("community = ", self.key()).filter("active = ", False).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
 	
+	def getGuides(self):
+		result = []
+		onlineMembers = Member.all().filter("community = ", self.key()).filter("active = ", True).filter("isOnlineMember = ", True).fetch(FETCH_NUMBER)
+		for member in onlineMembers:
+			if member.isGuide():
+				result.append(member)
+		return result
+	
 	def hasMemberWithGoogleEmail(self, email):
 		members = self.getActiveMembers()
 		for member in members:
@@ -305,6 +313,20 @@ class Community(db.Model):
 				return self.entryActivityPointsPerEvent[i]
 			i += 1
 		return 0
+	
+	def getNonDraftNewMemberResources(self):
+		return Entry.all().filter("community = ", self.key()). \
+			filter("draft = ", False). \
+			filter("type = ", "resource"). \
+			filter("resourceForNewMemberPage =", True). \
+			fetch(FETCH_NUMBER)
+	
+	def getNonDraftHelpResources(self):
+		return Entry.all().filter("community = ", self.key()). \
+			filter("draft = ", False). \
+			filter("type = ", "resource"). \
+			filter("resourceForHelpPage = ", True). \
+			fetch(FETCH_NUMBER)
 	
 	# ENTRIES, ANNOTATIONS, ANSWERS, LINKS - EVERYTHING
 	
@@ -856,6 +878,9 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 	text = db.TextProperty(default=NO_TEXT_IN_ENTRY)
 	text_formatted = db.TextProperty()
 	text_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	
+	resourceForHelpPage = db.BooleanProperty(default=False)
+	resourceForNewMemberPage = db.BooleanProperty(default=False)
 
 	community = db.ReferenceProperty(Community, required=True, collection_name="entries_to_community")
 	creator = db.ReferenceProperty(Member, collection_name="entries")

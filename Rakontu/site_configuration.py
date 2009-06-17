@@ -25,17 +25,23 @@
 # This determines how texts will be interpreted by default all over the site.
 # Change this only if the people on your site will be MUCH more likely to prefer a simple HTML or Wiki format.
 # MUST be (exactly) one of "plain text", "simple HTML", and "Wiki markup".
-DEFAULT_TEXT_FORMAT = "plain text"
+DEFAULT_TEXT_FORMAT = u"plain text"
+
+# Note: The reason many of these texts have a "u" in front of them is to mark them as a unicode string.
+# I have done this mainly to prepare (a little) for translation of things like these default strings
+# and templates for use in other languages. If you need "special characters" like accents in these
+# strings, make sure there is a "u" in front of them. There are a few exceptions where a unicode
+# string will break things, mainly in the time/date formatting strings which must be ASCII.
 
 # ============================================================================================ 
 # MEMBERS
 # ============================================================================================ 
 
 # This is what members are called before they have set themselves a nickname.
-NO_NICKNAME_SET = "No nickname set"
+NO_NICKNAME_SET = u"No nickname set"
 
 # This is what shows if people don't enter anything in the "Please describe yourself to other members." area.
-NO_PROFILE_TEXT = "No profile information."
+NO_PROFILE_TEXT = u"No profile information."
 
 # How many nudge points members should get when they join.
 # Giving people something to start with is encouraging.
@@ -47,7 +53,7 @@ DEFAULT_START_NUDGE_POINTS = 50
 DEFAULT_CONTACT_EMAIL = "support@rakontu.org"
 
 DEFAULT_WELCOME_MESSAGE = \
-"""
+u"""
 Hello and welcome to our community! 
 """
 
@@ -59,7 +65,7 @@ Hello and welcome to our community!
 # You can remove time frames from this list, but you cannot change them or add any. 
 # (They must match other names in the system.)
 # However, depending on your community one or two of these may not apply (perhaps minutes or years).
-TIME_FRAMES = ["minute", "hour", "day", "week", "month", "year"]
+TIME_FRAMES = [u"minute", u"hour", u"day", u"week", u"month", u"year"]
 
 # These are the available date and time formats. They affect all places where the date or time is displayed.
 # The key in each dictionary (before the colon) is the django template format string.
@@ -89,9 +95,9 @@ DEFAULT_TIME_ZONE = "US/Eastern"
 # ============================================================================================ 
 
 # This is the title given to entries which are not titled by their creators.
-DEFAULT_UNTITLED_ENTRY_TITLE = "Untitled"
+DEFAULT_UNTITLED_ENTRY_TITLE = u"Untitled"
 
-NO_TEXT_IN_ENTRY = "No text."
+NO_TEXT_IN_ENTRY = u"No text."
 
 # This is the list of numbers of attachments communities can choose from, and the choice
 # that appears chosen by default.
@@ -151,7 +157,7 @@ MAXLENGTH_NUMBER = 6
 # ============================================================================================ 
 
 # This is the name given to questions not named by their creators.
-DEFAULT_QUESTION_NAME = "Unnamed question"
+DEFAULT_QUESTION_NAME = u"Unnamed question"
 
 # Defaults for question value ranges.
 DEFAULT_QUESTION_VALUE_MIN = 0
@@ -177,19 +183,19 @@ NUM_NUDGE_CATEGORIES = 5
 
 # The default nudge category names that come up in community settings. 
 # The number of strings in this list MUST match the number of categories above.
-DEFAULT_NUDGE_CATEGORIES = ["appropriate", 
-						"important", 
-						"useful to new members", 
-						"useful for resolving conflicts", 
-						"useful for understanding"]
+DEFAULT_NUDGE_CATEGORIES = [u"appropriate", 
+						u"important", 
+						u"useful to new members", 
+						u"useful for resolving conflicts", 
+						u"useful for understanding"]
 
 # These questions appear next to the category names and give information about how to made nudge decisions.
 # They must match up with the nudge category names in order.
-DEFAULT_NUDGE_CATEGORY_QUESTIONS = ["Is it helpful or harmful to the community?", 
-						"It is earth-shaking or trivial in impact?", 
-						"Would new members be especially interested in it?", 
-						"Would people in conflict be helped by it?", 
-						"Would it help people to make sense of things in our community?"]
+DEFAULT_NUDGE_CATEGORY_QUESTIONS = [u"Is it helpful or harmful to the community?", 
+						u"It is earth-shaking or trivial in impact?", 
+						u"Would new members be especially interested in it?", 
+						u"Would people in conflict be helped by it?", 
+						u"Would it help people to make sense of things in our community?"]
 
 # How many nudge points can be assigned per entry, by default.
 DEFAULT_MAX_NUDGE_POINTS_PER_ENTRY = 25
@@ -250,25 +256,26 @@ NUM_TAGS_IN_TAG_SET = 5
 # These appear in each member's profile page, in the section where they are deciding whether 
 # to take on each of the helping roles. You can add site-specific information here.
 DEFAULT_ROLE_READMES = [
-"""
+u"""
 A curator pays attention to the community's accumulated data. Curators add information, check for problems, create links, 
 and in general maintain the vitality of the story bank.""",
 
-"""
+u"""
 A guide pays attention to the on-line human community. Guides answer questions, write tutorials, 
 encourage people to tell and use stories, create patterns, write and respond to invitations,
-and in general maintain the vitality of the on-line member community.
+and in general maintain the vitality of the on-line member community. Guides must agree to
+receive email messages from the system so that they can answer questions.
 """,
 
-"""
+u"""
 A liaison guides stories and other information over the barrier between on-line and off-line worlds. 
 Liaisons conduct external interviews and add the stories people tell in them, read stories to people and gather 
-comments, nudges, and other annotations, and in general make the system work for both on-line and off-line community members.
+comments and other annotations, and in general make the system work for both on-line and off-line community members.
 """]
 
 # These are the formats in which the default role readmes (above) are to be interpreted.
 # Each setting MUST be (exactly) one of "plain text", "simple HTML", and "Wiki markup".
-DEFAULT_ROLE_READMES_FORMATS = ["plain text", "plain text", "plain text"]
+DEFAULT_ROLE_READMES_FORMATS = [u"plain text", u"plain text", u"plain text"]
 
 # Whether people have to click "I agree" to become a curator, guide or liaison.
 # One setting for each of these helping roles: curator, guide, liaison.

@@ -12,6 +12,8 @@
 	      		<th>Name{{"#title_in_resource_list"|tip}}</th>
 	      		<th>Text</th>
 	      		<th>Attachments</th>
+	      		<th>Help?</th>
+	      		<th>For new members?</th>
 	      		<th>Created</th>
 	      		<th>Last changed</th>
 	      		<th>Last published</th>
@@ -36,6 +38,8 @@
 	  					<p>none</p>
 	  				{% endif %}
 					</td>
+					<td>{{resource.resourceForHelpPage|yesno:"yes, no"}}</td>
+					<td>{{resource.resourceForNewMemberPage|yesno:"yes, no"}}</td>
 					<td>{{resource.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 						<br/> {{resource.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
 					</td>

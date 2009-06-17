@@ -25,6 +25,10 @@
 		<p>That nickname is already in use. Could you please choose another?</p>
 	{% endifequal %}
 	
+	{% ifequal message "memberNotFound" %}
+		<p>That member was not found.</p>
+	{% endifequal %}
+	
 	</h3>
 	<p>Would you like to <b><a href="{{linkback}}">Go back</a></b> to the page you were on?</p>
 		

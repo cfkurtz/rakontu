@@ -20,15 +20,25 @@ check how handling <img src= tag in simple html version (i think am not handling
 
 start thinking about internationalization
 
-UNICODE
-
 need a way for site administrator to DELETE a community (and also disable but not delete)
 
 still have not implemented user choosing which nudge categories to consider in look page
 
 really need that "ALL" button on main page
 
-resource type / get help /  intro page
-
 tag cloud view? in look page?
 
+backup/restore (gaeutilities)?
+
+change manage questions menu - submenu or start page - messy looking
+
+consider indexing of some fields for speed
+
+sharding counters? what happens if more than 1000 in a query?
+
+some "canned" system resources - a quick intro help file
+
+change help.csv so that it never uses non-# items (too confusing)
+
+add option for resources that they can be seen by only people in some roles
+this is a way to add help resources for say curators only or for managers only.

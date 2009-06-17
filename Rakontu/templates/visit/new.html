@@ -8,6 +8,15 @@
 	
 	{{community.welcomeMessage}}
 	
+	{% if resources %}
+		<p>You may find these resources of help in getting started:</p>
+		<ul>
+		{% for resource in resources %}
+		<li class="nobullet">{{resource.linkString}}</li>
+		{% endfor %}
+		</ul>
+	{% endif %}
+	
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

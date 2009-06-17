@@ -41,22 +41,23 @@
 			<p>{{member.nickname}}'s answers to the member questions:</p>
 			<ul>
 			{% for answer in answers %}
-				<li class="nobullet">{{answer.question.text}} &nbsp; {{answer.displayStringShort}}</li>
+				{% if answer.question.active %}
+					<li class="nobullet">{{answer.question.text}} &nbsp; {{answer.displayStringShort}}</li>
+				{% endif %}
 			{% endfor %}
 			</ul>
 		{% endif %}
-  		{% include "../common_grid.html" %}
-  		
+		
 		{% ifnotequal member.key current_member.key %}
-			{% if member.acceptsMessages %}
+			{% if member.isGuide or member.acceptsMessages %}
 				<h4>Send this member a message {% if not member.isOnlineMember %} {{"#onlineMemberGetsMessagesThroughLiaison"|info}} {% endif %}</h4>
 				<fieldset>
 				<div id="stylized" class="rakontu_form">
-				<form action="/visit/member" method="post">
+				<form action="/visit/member?{{member.key}}" method="post">
 				<p>Please give your message a subject line.</p>
 				<p><input type="text" name="subject" size="80" value="" maxlength="{{maxlength_subject_or_comment}}"/></p>
 				<p>Please enter your message here.</p>
-				<textarea name="message" rows="10" cols="60"></textarea>
+				<textarea name="message" rows="5" cols="60"></textarea>
 				<center><input type="submit" name="message|{{member.key}}" value="Send message" class="button"></center>
 				</form>
 				</div>
@@ -64,6 +65,8 @@
 			{% endif %}
 		{% endifnotequal %}
 
+  		{% include "../common_grid.html" %}
+  		
       	{% ifequal member.key current_member.key %}
       		<div class="rightalign"><p><a href="/visit/profile?{{member.key}}">Change your profile</a></p></div>
       	{% endifequal %}

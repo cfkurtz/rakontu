@@ -139,17 +139,27 @@
 			{% endif %}
 			><label for="nickname_is_real_name">Yes, this nickname is {% if member.isOnlineMember %}my{% else %}the member's{% endif %} real name</label></p>
 		{% if member.isOnlineMember %}
-			<p>Do you want other community members to be able to send you messages via email?
-			<i>(Senders will not see your email address.)</i></p>
+			<p>Do you want other community members to be able to send you messages via email? 
+			{% if member.isGuide %}
+				<i>(Actually, since you are a guide you have to accept messages so you can answer questions.)</i>
+			{% endif %}
+			{{"#emailNotShown"|tip}} </p>
 		{% else %}
 			<p>Do you want other community members to be able to send this member messages via email?
-			<i>(You, as the member's liaison, will get the messages. Senders will not see your email address.)</i></p>
+			<i>(You, as the member's liaison, will get the messages.)</i></p>
 		{% endif %}
-		<p><input type="checkbox" name="acceptsMessages" value="yes" id="acceptsMessages"
-			{% if member.acceptsMessages %}
-				checked
-			{% endif %}
-			><label for="acceptsMessages">Yes, people can send {% if member.isOnlineMember %}me messages{% else %}the member messages through me{% endif %}</label></p>
+		
+		{% if member.isGuide %}
+			<p><input type="checkbox" name="guideAlwaysAcceptsMessages" value="yes" id="guideAlwaysAcceptsMessages"
+				checked disabled>
+			<label for="guideAlwaysAcceptsMessages">Yes, people can send me messages</label></p>
+		{% else %}
+			<p><input type="checkbox" name="acceptsMessages" value="yes" id="acceptsMessages"
+				{% if member.acceptsMessages %}
+					checked
+				{% endif %}
+				><label for="acceptsMessages">Yes, people can send {% if member.isOnlineMember %}me messages{% else %}the member messages through me{% endif %}</label></p>
+		{% endif %}
 		{% if member.isOnlineMember %}
 			<p>Please describe yourself to other members.</p>
 		{% else %}
@@ -274,10 +284,10 @@
 
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
-				<textarea name="guideIntro" rows="10" cols="60">{{member.guideIntro}}</textarea>
+				<textarea name="guideIntro" rows="5" cols="60">{{member.guideIntro}}</textarea>
 				</td><td class="noborder" width="80">
 				<p>Interpret as</p>
-					<select name="text_format">
+					<select name="guideIntro_format">
 					{% for format in text_formats %}
 						<option value="{{format}}" 
 						{% ifequal member.guideIntro_format format %}

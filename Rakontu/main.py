@@ -28,6 +28,7 @@ application = webapp.WSGIApplication(
 									  ('/visit/community', SeeCommunityPage),
 									  ('/visit/new', NewMemberPage),
 									  ('/visit/profile', ChangeMemberProfilePage),
+									  ('/visit/help', GetHelpPage),
 									  
 									  # entering entries
 									  ('/visit/story', EnterEntryPage),
