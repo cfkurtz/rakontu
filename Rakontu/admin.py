@@ -63,3 +63,14 @@ class GenerateHelpsPage(webapp.RequestHandler):
 			else:
 				self.redirect('/')
 				
+class GenerateSystemResourcesPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			if users.is_current_user_admin():
+				GenerateSystemResources(community, member)
+				self.redirect(self.request.headers["Referer"])
+			else:
+				self.redirect('/')
+				

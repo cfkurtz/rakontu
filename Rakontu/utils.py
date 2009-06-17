@@ -39,6 +39,7 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'time_formats': TimeFormatStrings(),
 	   'time_frames': TIME_FRAMES, 
 	   'entry_types': ENTRY_TYPES,
+	   'request_types': REQUEST_TYPES,
 	   'helping_role_names': HELPING_ROLE_TYPES,
 	   'maxlength_subject_or_comment': MAXLENGTH_SUBJECT_OR_COMMENT,
 	   'maxlength_name': MAXLENGTH_NAME,
@@ -115,11 +116,36 @@ def GenerateSystemQuestions():
 			question.put()
 	file.close()
 	
+def MakeSystemResource(community, member, title, text, format):
+	thereResource = Entry.all().filter("community = ", community).filter("creator = ", member.key()).filter("title = ", title).get()
+	if thereResource:
+		db.delete(thereResource)
+	newResource = Entry(community=community, 
+					type="resource",
+					title=title,
+					text=text,
+					text_format=format,
+					text_formatted=db.Text(InterpretEnteredText(text, format)),
+					creator=member,
+					draft=False,
+					inBatchEntryBuffer=False,
+					published=datetime.now(tz=pytz.utc),
+					resourceForHelpPage=True,
+					resourceForNewMemberPage=True,
+					)
+	newResource.put()
+	
+def GenerateSystemResources(community, member):
+	for resourceArray in SYSTEM_RESOURCES:
+		title = resourceArray[0]
+		format = resourceArray[1]
+		text = resourceArray[2]
+		MakeSystemResource(community, member, title, text, format)
+	
 class ImageHandler(webapp.RequestHandler):
 	def get(self):
 		if self.request.get("member_id"):
 			member = db.get(self.request.get("member_id"))
-			DebugPrint(member, "MEMBER")
 			if member and member.profileImage:
 				self.response.headers['Content-Type'] = "image/jpg"
 				self.response.out.write(member.profileImage)
@@ -268,6 +294,7 @@ SIMPLE_HTML_REPLACEMENTS = [
 							("<b>", "{{startBold}}"), ("</b>", "{{stopBold}}"),
 							("<i>", "{{startItalic}}"), ("</i>", "{{stopItalic}}"),
 							("<del>", "{{startStrike}}"), ("</del>", "{{stopStrike}}"),
+							("<code>", "{{startCode}}"), ("</code>", "{{stopCode}}"),
 							("<ul>", "{{startUL}}"), ("</ul>", "{{stopUL}}"),
 							("<ol>", "{{startOL}}"), ("</ol>", "{{stopOL}}"),
 							("<li>", "{{startLI}}"), ("</li>", "{{stopLI}}"),
@@ -276,6 +303,7 @@ SIMPLE_HTML_REPLACEMENTS = [
 							("<h3>", "{{startH3}}"), ("</h3>", "{{stopH3}}"),
 							("<br/>", "{{BR}}"),
 							("<hr>", "{{HR}}"),
+							("&nbsp;", "{{NBSP}}")
 							]
 
 TEXT_FORMATS = ["plain text", "simple HTML", "Wiki markup"]
@@ -291,42 +319,44 @@ def InterpretEnteredText(text, mode="text"):
 		result = "\n".join(changedLines)
 	elif mode == "simple HTML":
 		""" Simple HTML support:
-			p, b, i, del, ul, ol, h1, h2, h3, br, hr
+			p, b, i, del, code, ul, ol, h1, h2, h3, br, hr, href, img
 		"""
-		expression = re.compile(r'<a href="(.+?)">(.+)</a>')
-		links = expression.findall(result)
+		# links
+		linkExpression = re.compile(r'<a href="(.+?)">(.+?)</a>')
+		links = linkExpression.findall(result)
 		for url, label in links:
 			result = result.replace('<a href="%s">' % url, '{{BEGINHREF}}%s{{ENDHREF}}' % url)
 			result = result.replace('%s</a>' % label, '%s{{ENDLINK}}' % label)
+		# image links
+		imageLinkExpression = re.compile(r'<img src="(.+?)" alt="(.+?)"/>')
+		imageLinks = imageLinkExpression.findall(result)
+		for url, alt in imageLinks:
+			result = result.replace('<img src="%s" alt="%s"/>' % (url, alt), '{{BEGINIMG}}%s|%s{{ENDIMG}}' % (url,alt))
+		# bold, italic, etc
 		for htmlVersion, longVersion in SIMPLE_HTML_REPLACEMENTS:
 			result = result.replace(htmlVersion, longVersion)
+		# now escape it
 		result = cgi.escape(result)
+		# bold, italic, etc
 		for htmlVersion, longVersion in SIMPLE_HTML_REPLACEMENTS:
 			result = result.replace(longVersion, htmlVersion)
+		# links
 		for url, label in links:
 			result = result.replace('{{BEGINHREF}}%s{{ENDHREF}}' % url, '<a href="%s">' % url)
 			result = result.replace('%s{{ENDLINK}}' % label, '%s</a>' % label)
+		# image links
+		for url, alt in imageLinks:
+			result = result.replace('{{BEGINIMG}}%s|%s{{ENDIMG}}' % (url, alt), '<img src="%s" alt="%s"/>' % (url,alt))
 	elif mode == "Wiki markup":
-		""" Wiki markup:
-			*text* becomes <b>text</b>
-			_text_ becomes <i>text</i>
-			`text` bcomes <code>text</code>
-			~text~ becomes <span style="text-decoration: line-through">text</span> (strike out)
-			= text becomes <h1>text</h1>
-			== text becomes <h2>text</h2>
-			=== text becomes <h3>text</h3>
-			  * text becomes <ul><li>text</li></ul> (two spaces before)
-			  # text becomes <ol><li>text</li></ol> (two spaces before)
-			---- on a line by itself becomes <hr>
-			[link] becomes <a href="link">link</a>
-			[link(name)] becomes <a href="link">name</a>
-		"""
 		result = cgi.escape(result)
 		lines = result.split("\n")
 		changedLines = []
+		changedLines.append("<p>")
 		bulletedListGoingOn = False
 		numberedListGoingOn = False
 		for line in lines:
+			if len(line.strip()) == 0:
+				changedLines.append("</p>\n<p>")
 			if len(line) >= 3 and line[:3] == "===":
 				if bulletedListGoingOn:
 					bulletedListGoingOn = False
@@ -370,32 +400,34 @@ def InterpretEnteredText(text, mode="text"):
 					changedLines.append("</ol>")
 				changedLines.append("<hr>")
 			else:
-				if bulletedListGoingOn:
-					bulletedListGoingOn = False
-					changedLines.append("</ul>")
-				if numberedListGoingOn:
-					numberedListGoingOn = False
-					changedLines.append("</ol>")
-				changedLines.append("<p>%s</p>" % line)
+				if len(line) >= 2 and line[:2] != "  ":
+					if bulletedListGoingOn:
+						bulletedListGoingOn = False
+						changedLines.append("</ul>")
+					if numberedListGoingOn:
+						numberedListGoingOn = False
+						changedLines.append("</ol>")
+				changedLines.append(line)
 		if bulletedListGoingOn:
 			changedLines.append("</ul>")
 		if numberedListGoingOn:
 			changedLines.append("</ol>")
+		changedLines.append("</p>")
 		result = "\n".join(changedLines)
 		for bold in re.compile(r'\*(.+?)\*').findall(result):
 			result = result.replace('*%s*' % bold, '<b>%s</b>' % bold)
 		for italic in re.compile(r'\_(.+?)\_').findall(result):
 			result = result.replace('_%s_' % italic, '<i>%s</i>' % italic)
-		for code in re.compile(r'\`(.+?)\`').findall(result):
-			result = result.replace('`%s`' % code, '<code>%s</code>' % code)
+		for code in re.compile(r'\^(.+?)\^').findall(result):
+			result = result.replace('^%s^' % code, '<code>%s</code>' % code)
 		for strike in re.compile(r'\~(.+?)\~').findall(result):
 			result = result.replace('~%s~' % strike, '<span style="text-decoration: line-through">%s</span>' % strike)
 		for link, name in re.compile(r'\[(.+?)\((.+?)\)\]').findall(result):
 			result = result.replace('[%s(%s)]' % (link,name), '<a href="%s">%s</a>' % (link, name))
 		for link in re.compile(r'\[(.+?)\]').findall(result):
-			if link.find(".jpg") >= 0 or link.find(".png") >= 0 or link.find(".gif") >= 0:
-				result = result.replace('[%s]' % link, '<img src="%s" alt="%s">' % (link, link))
-			else:
-				result = result.replace('[%s]' % link, '<a href="%s">%s</a>' % (link, link))
+			result = result.replace('[%s]' % link, '<a href="%s">%s</a>' % (link, link))
+		for imageLink, alt in re.compile(r'\{(.+?)\((.+?)\)\}').findall(result):
+			result = result.replace('{%s(%s)}' % (imageLink,alt), '<img src="%s" alt="%s"/>' % (imageLink, alt))
+
 	return result
 

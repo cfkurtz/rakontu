@@ -249,6 +249,12 @@ DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS = [
 # The number of tags in each tag set. Reasonable values are between 3 and 7.
 NUM_TAGS_IN_TAG_SET = 5
 
+# These are types of request people can set. They can be anything you like. 
+# Everyone can see them, and guides have a "review requests" page where they see all requests by type.
+# They should be worded in reference to an entry, like "transcribe it"
+# CAUTION: The last type in this list should always be "other" or some other no-category name.
+REQUEST_TYPES = ["transcribe it", "read it aloud", "translate it", "comment on it", "tag it", "answer questions about it", "other"]
+
 # ============================================================================================ 
 # HELPING ROLES
 # ============================================================================================ 
@@ -281,8 +287,5 @@ DEFAULT_ROLE_READMES_FORMATS = [u"plain text", u"plain text", u"plain text"]
 # One setting for each of these helping roles: curator, guide, liaison.
 DEFAULT_ROLE_AGREEMENTS = [False, False, False]
 
-
-
-
-
-
+# Information that builds system resources (mainly help pages) is in a separate file.
+from site_resources import *

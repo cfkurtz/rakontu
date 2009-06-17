@@ -7,7 +7,7 @@
 		<div id="stylized" class="rakontu_form">
 		<form action="/liaise/batch" method="post" enctype="multipart/form-data">
 		
-		<h2>{{"Batch Story Entry"|caution}}</h2>
+		<h2>Batch Story Entry{{"batch_story_entry"|caution}}</h2>
 
 		{% for i in num_entries|makeRange %}
 			<h3>Story {{i|add:1}}</h3>
@@ -44,7 +44,7 @@
 	  			 Year <input type="text" name="year|{{i}}" size="4" value="" maxlength="4"/>
 	  			 Month <input type="text" name="month|{{i}}" size="4" value="" maxlength="2"/>
 	  			 Day <input type="text" name="day|{{i}}" size="4" value="" maxlength="2"/>
-	  			 {{"#offlineCollectionDate"|tip}}
+	  			 {{"offline_collection_date"|tip}}
 			</td><tr>
 			<tr><th>Title</th><td><input type="text" name="title|{{i}}" size="60" value=""/></td><tr>
 			<th>Text</th><td>

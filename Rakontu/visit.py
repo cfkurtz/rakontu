@@ -445,6 +445,8 @@ class ReadEntryPage(webapp.RequestHandler):
 				member.put()
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/read.html')
 				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect('/result?entryNotFound')
 		else:
 			self.redirect('/')
 			
@@ -644,7 +646,6 @@ class SeeCharacterPage(webapp.RequestHandler):
 					else:
 						textsForGrid = None
 						rowHeaders = None
-					DebugPrint(character.getAnswers())
 					template_values = GetStandardTemplateDictionaryAndAddMore({
 								   	   'title': "Character", 
 						   		   	   'title_extra': character.name, 

@@ -19,9 +19,9 @@
 			{% if entries %}
 				<fieldset>
 		      	<table border="1" cellpadding="4" cellspacing="0">
-		      	<tr><th>Unflag? {{"#unflag_item"|tip}}</th><th>Entry</th><th>Type</th><th>Text (first part)</th><th>By</th><th>Comment</th>
+		      	<tr><th>Unflag? {{"unflag_item"|tip}}</th><th>Entry</th><th>Type</th><th>Text (first part)</th><th>By</th><th>Comment</th>
 	      		{% if current_member.isManagerOrOwner %} 
-	      			<th>Remove?{{"#remove_flagged_item"|caution}}</th> 
+	      			<th>Remove?{{"remove_flagged_item"|caution}}</th> 
 	      		{% else %}  
 	      			<th>Notify?</th> 
 	      		{% endif %}

@@ -16,11 +16,10 @@ liaison page:
     
 add import/export of question lists (CSV)
 
-check how handling <img src= tag in simple html version (i think am not handling yet)
-
 start thinking about internationalization
 
 need a way for site administrator to DELETE a community (and also disable but not delete)
+no, an OWNER can delete a community. but they need a way to do it.
 
 still have not implemented user choosing which nudge categories to consider in look page
 
@@ -32,13 +31,19 @@ backup/restore (gaeutilities)?
 
 change manage questions menu - submenu or start page - messy looking
 
-consider indexing of some fields for speed
-
 sharding counters? what happens if more than 1000 in a query?
 
-some "canned" system resources - a quick intro help file
-
-change help.csv so that it never uses non-# items (too confusing)
-
 add option for resources that they can be seen by only people in some roles
-this is a way to add help resources for say curators only or for managers only.
+this is a way to add help resources for say curators only or for managers only. ?? or not ??
+
+new member CONFIRM membership on that page. also enter nickname and whether it is real name.
+
+not reporting whether nickname is real name. keep or get rid of?
+
+add guide screen with all requests by type
+
+need a way for a member to QUIT the community. on their profile page? confirm page needed.
+
+need way to reference attachment in entry text and show inline
+
+should have page where admin can choose which system help resources to include ?

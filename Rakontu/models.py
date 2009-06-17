@@ -1240,6 +1240,7 @@ class Annotation(db.Model):                                # tag set, comment, r
 	
 	tagsIfTagSet = db.StringListProperty(default=[""] * NUM_TAGS_IN_TAG_SET)
 	valuesIfNudge = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
+	typeIfRequest = db.StringProperty(choices=REQUEST_TYPES)
 
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="annotations_liaisoned")
@@ -1313,11 +1314,18 @@ class Annotation(db.Model):                                # tag set, comment, r
 		return "tagset"
 	
 	def displayString(self):
-		if self.type == "comment" or self.type == "request":
+		if self.type == "comment":
 			if self.shortString:
 				return self.shortString
 			elif self.longString_formatted:
 				return self.longString_formatted
+			else:
+				return "no content"
+		if self.type == "request":
+			if self.shortString:
+				return "%s (%s)" % (self.shortString, self.typeIfRequest)
+			elif self.longString_formatted:
+				return "%s (%s)" % (self.longString_formatted, self.typeIfRequest)
 			else:
 				return "no content"
 		elif self.type == "tag set":

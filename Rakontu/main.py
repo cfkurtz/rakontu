@@ -107,6 +107,7 @@ application = webapp.WSGIApplication(
 									  ('/admin/showAllMembers', ShowAllMembers),
 									  ('/admin/generateSystemQuestions', GenerateSystemQuestionsPage),
 									  ('/admin/generateHelps', GenerateHelpsPage),
+									  ('/admin/generateSystemResources', GenerateSystemResourcesPage),
 									  ],
 									 debug=True)
 

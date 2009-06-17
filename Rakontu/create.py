@@ -107,9 +107,13 @@ class EnterEntryPage(webapp.RequestHandler):
 			else:
 				entriesThatCanBeIncluded = None
 				includedLinksOutgoing = None
+			if entryName:
+				pageTitleExtra = "- %s" % entryName
+			else:
+				pageTitleExtra = ""
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': type.capitalize(), 
-						   	   'title_extra': "- %s" % entryName, 
+						   	   'title_extra': pageTitleExtra, 
 							   'current_member': member,
 							   'community': community, 
 							   'entry_type': type,
@@ -272,7 +276,6 @@ class EnterEntryPage(webapp.RequestHandler):
 					answerToEdit.draft = entry.draft
 					answerToEdit.inBatchEntryBuffer = entry.inBatchEntryBuffer
 					answerToEdit.collected = entry.collected
-					DebugPrint(answerToEdit.answerIfText)
 					if keepAnswer:
 						answerToEdit.put()
 						if not answerToEdit.draft:
@@ -649,6 +652,10 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					annotation.longString = text
 					annotation.longString_formatted = db.Text(InterpretEnteredText(text, format))
 					annotation.longString_format = format
+					if self.request.get("typeIfRequest") in REQUEST_TYPES:
+						annotation.typeIfRequest = self.request.get("typeIfRequest")
+					else:
+						annotation.typeIfRequest = REQUEST_TYPES[len(REQUEST_TYPES) - 1]
 				elif type == "nudge":
 					oldTotalNudgePointsInThisNudge = annotation.totalNudgePointsAbsolute()
 					nudgeValuesTheyWantToSet = []
