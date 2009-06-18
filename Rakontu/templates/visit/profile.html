@@ -132,12 +132,6 @@
 			the new nickname will display on all of the member's previous entries as well as new ones.</i></p>
 		{% endif %}
 		<input type="text" name="nickname" value="{{ member.nickname }}" maxlength="{{maxlength_name}}"/>
-		<p>Is this {% if member.isOnlineMember %}your{% else %}the member's{% endif %} real name?</p>
-		<p><input type="checkbox" name="nickname_is_real_name" value="yes" id="nickname_is_real_name"
-			{% if member.nicknameIsRealName %}
-				checked
-			{% endif %}
-			><label for="nickname_is_real_name">Yes, this nickname is {% if member.isOnlineMember %}my{% else %}the member's{% endif %} real name</label></p>
 		{% if member.isOnlineMember %}
 			<p>Do you want other community members to be able to send you messages via email? 
 			{% if member.isGuide %}
@@ -189,7 +183,7 @@
 		      	<table border="1" cellpadding="4" cellspacing="0">
 		      	<tr>
 		      		<th>Image</th>
-		      		<th>{% if member.profileImage %} Replace {% else %} Attach {% endif %} </th>
+		      		<th>{% if member.profileImage %} Replace {% else %} Attach {% endif %} {{"profile_image"|tip}}</th>
 		      		<th>Remove?</th>
 		      		
 		      	</tr>

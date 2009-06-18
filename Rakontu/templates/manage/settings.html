@@ -12,14 +12,14 @@
 
 			<h3>Name and description</h3>
 			<fieldset>
-			<p>{{"Community name"|tip}}</p>
+			<p>Community name{{"community_name"|tip}}</p>
 			<input type="text" name="name" value="{{ community.name }}" size="30" maxlength="{{maxlength_name}}"/>
-			<p>{{"Tag line"|tip}}</p>
+			<p>Tag line{{"tag_line"|tip}}</p>
 			<input type="text" name="tagline" value="{{ community.tagline }}" size="80" maxlength="{{maxlength_subject_or_comment}}"/>
 			<p><i>The tag line (if you choose one) shows after your community name at the top of the web page.</i></p>
 			<p>Community contact email{{"community_contact_email"|caution}}</p>
 			<input type="text" name="contactEmail" value="{{ community.contactEmail }}" size="80" maxlength="{{maxlength_name}}"/>
-			<p>{{"Community description"|tip}}</p>
+			<p>Community description{{"community_description"|tip}}</p>
 
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
@@ -37,7 +37,7 @@
 					</select>
 				</td></tr></table>
 				
-			<p>{{"Welcome message for new members"|tip}}</p>
+			<p>Welcome message for new members{{"welcome_message"|tip}}</p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
 				<textarea name="welcomeMessage" rows="10" cols="60">{{community.welcomeMessage}}</textarea>
@@ -54,7 +54,7 @@
 					</select>
 				</td></tr></table>
 
-			<p>{{"Community etiquette statement"|tip}}</p>
+			<p>Community etiquette statement{{"community_etiquette_statement"|tip}}</p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
 				<textarea name="etiquetteStatement" rows="10" cols="60">{{community.etiquetteStatement}}</textarea>
@@ -71,7 +71,7 @@
 					</select>
 				</td></tr></table>
 
-			<p>{{"Community image"|tip}}</p>
+			<p>Community image{{"community_image"|tip}}</p>
 			{% if community.image %}
 				<img src="img?community_id={{community.key}}" class="bordered"></img>
 				<input type="checkbox" name="removeImage" value="removeImage" id="removeImage"><label for="removeImage">Remove</label>
@@ -149,7 +149,7 @@
 	
 			<h3>Fictional characters</h3>
 			<fieldset>
-			<p>{{"Is entry via fictional character allowed for each of these entry types?"|caution}}</p>
+			<p>Is entry via fictional character allowed for each of these entry types?{{"fictional_entry"|caution}}</p>
 			{% for text in character_includes %}
 				{{ text }}
 			{% endfor %}

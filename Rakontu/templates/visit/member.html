@@ -28,9 +28,6 @@
 	  	who joined the community on 
 	  	on {{member.joined|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.
 	  	</p>
-  		{% if member.nicknameIsRealName %}
-  			<p>This nickname is {{member.nickname}}'s real name.</p>
-		{% endif %}
   		{% if member.profileText_formatted|orNothing %}
   			{% ifnotequal member.profileText_formatted no_profile_text %}
   				<p>About {{member.nickname}}:</p><div class="blurb">{{member.profileText_formatted}}</div>

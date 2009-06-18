@@ -727,7 +727,6 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 					self.redirect('/result?nicknameAlreadyInUse') 
 					return
 				memberToEdit.nickname = nicknameTheyWantToUse
-				memberToEdit.nicknameIsRealName = self.request.get('nickname_is_real_name') =="yes"
 				memberToEdit.acceptsMessages = self.request.get("acceptsMessages") == "yes"
 				text = self.request.get("profileText")
 				format = self.request.get("profileText_format").strip()

@@ -549,7 +549,6 @@ class Member(db.Model):
 	guideIntro_formatted = db.TextProperty()
 	guideIntro_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
 	
-	nicknameIsRealName = db.BooleanProperty(default=False) # shows on member page only
 	profileText = db.TextProperty(default=NO_PROFILE_TEXT)
 	profileText_formatted = db.TextProperty()
 	profileText_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)

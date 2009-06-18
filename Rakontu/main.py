@@ -8,7 +8,9 @@
 
 from visit import *
 from create import *
-from help import *
+from curate import *
+from guide import *
+from liaise import *
 from manage import *
 from admin import *
 
