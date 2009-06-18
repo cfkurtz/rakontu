@@ -1,0 +1,24 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+	
+	
+	<div id="content">
+	
+		<div id="stylized" class="rakontu_form">
+		<form action="/visit/leave" method="post" enctype="multipart/form-data">
+		<h1>Are you sure?</h1>
+		<p>Are you <b>absolutely completely really totally certain</b> that you want to leave this community?</p>
+		<p>If you are sure you want to leave, click the Really And Truly Leave button. If not, click <a href="{{linkback}}">here</a> to return
+		to your preferences page.
+		</p>
+				
+      	<p></p>
+    <center><input type="submit" name="leave|{{current_member.key}}" value="Really And Truly Leave" class="button"></center>
+	</form>	
+	</div>
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

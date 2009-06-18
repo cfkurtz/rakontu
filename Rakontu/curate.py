@@ -12,7 +12,7 @@ class FlagOrUnflagItemPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			item = None
 			if self.request.query_string:
 				try:
@@ -32,7 +32,7 @@ class CurateFlagsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			if member.isCurator():
 				(entries, annotations, answers, links) = community.getAllFlaggedItems()
 				template_values = GetStandardTemplateDictionaryAndAddMore({
@@ -54,7 +54,7 @@ class CurateFlagsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			items = community.getAllFlaggedItemsAsOneList()
 			for item in items:
 				if self.request.get("flagComment|%s" % item.key()):
@@ -137,7 +137,7 @@ class CurateGapsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			if member.isCurator():
 				(entriesWithoutTags, \
 				entriesWithoutLinks, \
@@ -168,7 +168,7 @@ class CurateAttachmentsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			if member.isCurator():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Review attachments", 
@@ -188,7 +188,7 @@ class CurateTagsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			if member.isCurator():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Review attachments", 
@@ -207,7 +207,7 @@ class CurateTagsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			if member.isCurator():
 				tagsets = community.getNonDraftTagSets()
 				for tagset in tagsets:

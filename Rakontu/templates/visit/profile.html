@@ -175,6 +175,9 @@
 					{% endfor %}
 					</select>
 				</td></tr></table>
+		{% if show_leave_link %}
+			<div class="rightalign">To leave the community, click <a href="/visit/leave?{{member.key}}">here</a>.</div>
+		{% endif %}
 
 			</fieldset>
 			
@@ -202,6 +205,10 @@
 				</tr>
 				</table>
 		</fieldset>
+		
+		{% if questions %}
+			{% include "../common_questions.html" %}
+		{% endif %}
 		
 		<h3>Time zones and time reporting</h3>
 		<fieldset>
@@ -310,10 +317,6 @@
 				{% endif %}
 				</fieldset>
 			{% endif %}
-		{% endif %}
-		
-		{% if questions %}
-			{% include "../common_questions.html" %}
 		{% endif %}
 		
       	<p>

@@ -12,7 +12,7 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			if member.isLiaison():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': "Off-line members", 
@@ -32,7 +32,7 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			if member.isLiaison():
 				offlineMembers = community.getActiveOfflineMembers()
 				for aMember in offlineMembers:
@@ -56,7 +56,7 @@ class ReviewBatchEntriesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			if member.isLiaison():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Review", 
@@ -79,7 +79,7 @@ class ReviewBatchEntriesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			if member.isLiaison():
 				if "addMore" in self.request.arguments():
 					self.redirect("/liaise/batch")
@@ -103,7 +103,7 @@ class BatchEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			if member.isLiaison():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Import", 
@@ -126,7 +126,7 @@ class BatchEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			if member.isLiaison():
 				for i in range(NUM_ENTRIES_PER_BATCH_PAGE):
 					if self.request.get("title|%s" % i):

@@ -58,7 +58,7 @@ application = webapp.WSGIApplication(
 									  # entering links
 									  ('/visit/relate', RelateEntryPage),
 									  
-									  # helping roles
+									  # curating
 									  ('/visit/curate', ReadEntryPage),
 									  ('/visit/flag', FlagOrUnflagItemPage),
 									  ('/curate', CurateFlagsPage),
@@ -67,11 +67,15 @@ application = webapp.WSGIApplication(
 									  ('/curate/gaps', CurateGapsPage),
 									  ('/curate/attachments', CurateAttachmentsPage),
 									  ('/curate/tags', CurateTagsPage),
+									  
+									  # guiding
 									  ('/guide/', ReviewResourcesPage),
 									  ('/guide', ReviewResourcesPage),
 									  ('/guide/resource', EnterEntryPage),
 									  ('/guide/resources', ReviewResourcesPage),
 									  ('/guide/requests', ReviewRequestsPage),
+									  
+									  # liaising
 									  ('/liaise/', ReviewOfflineMembersPage),
 									  ('/liaise', ReviewOfflineMembersPage),
 									  ('/liaise/batch', BatchEntryPage),
@@ -96,6 +100,9 @@ application = webapp.WSGIApplication(
 									  ('/manage/characters', ManageCommunityCharactersPage),
 									  ('/manage/character', ManageCommunityCharacterPage),
 									  ('/manage/technical', ManageCommunityTechnicalPage),
+									  
+									  # quitting
+									  ('/visit/leave', LeaveCommunityPage),
 									  
 									  # general result handler
 									   ('/result', ResultFeedbackPage),

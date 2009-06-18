@@ -127,7 +127,7 @@ class NewMemberPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': "Welcome",
 							'title_extra': member.nickname,
@@ -144,7 +144,7 @@ class GetHelpPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': "Help",
 							'community': community, 
@@ -161,7 +161,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			entries = community.getNonDraftEntries()
 			if entries:
 				maxTime = member.viewTimeEnd
@@ -261,7 +261,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			if "changeTimeFrame" in self.request.arguments():
 				member.setViewTimeFrameFromTimeUnitString(self.request.get("timeFrame"))
 				oldValue = member.viewNumTimeFrames
@@ -305,7 +305,7 @@ class ReadEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			entry = db.get(self.request.query_string)
 			if entry:
 				curating = self.request.uri.find("curate") >= 0
@@ -453,7 +453,7 @@ class ReadEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			self.redirect(self.request.get("nextAction"))
 		else:
 			self.redirect("/visit/look")
@@ -462,7 +462,7 @@ class ReadAnnotationPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			annotation = db.get(self.request.query_string)
 			if annotation:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
@@ -486,7 +486,7 @@ class SeeCommunityPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': "About", 
 						   		   'title_extra': community.name, 
@@ -504,7 +504,7 @@ class SeeCommunityMembersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': "Members of", 
 						   		   'title_extra': community.name, 
@@ -521,67 +521,67 @@ class SeeMemberPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
-				keyAndCurate = self.request.query_string.split("&")
-				memberKey = keyAndCurate[0]
-				memberToSee = db.get(memberKey)
-				if memberToSee:
-					curating = member.isCurator() and len(keyAndCurate) > 1 and keyAndCurate[1] == "curate"
-					allItems = memberToSee.getAllItemsAttributedToMember()
-					allItems.extend(memberToSee.getNonDraftLiaisonedEntries())
-					allItems.extend(memberToSee.getNonDraftLiaisonedAnnotations())
-					allItems.extend(memberToSee.getNonDraftLiaisonedAnswers())
-					if allItems:
-						maxTime = datetime.now(tz=pytz.utc)
-						minTime = memberToSee.joined
-						numRows = 1
-						numCols = 6
-						timeStep = (maxTime - minTime) // numCols
-						textsForGrid = []
-						rowHeaders = []
-						for row in range(numRows):
-							textsInThisRow = []
-							for col in range(numCols):
-								textsInThisCell = []
-								startTime = minTime + timeStep * col
-								endTime = minTime + timeStep * (col+1)
-								if row == numRows - 1:
-									rowHeaders.append(RelativeTimeDisplayString(startTime, member))
-								for item in allItems:
-									shouldBeInRow = True
-									shouldBeInCol = item.published >= startTime and item.published < endTime
-									if shouldBeInRow and shouldBeInCol:
-										text = ItemDisplayStringForGrid(item, curating, includeName=memberToSee.isLiaison())
-										textsInThisCell.append(text)
-								textsInThisRow.append(textsInThisCell)
-							textsForGrid.append(textsInThisRow)
-						textsForGrid.reverse()
-					else:
-						textsForGrid = None
-						rowHeaders = None
-					template_values = GetStandardTemplateDictionaryAndAddMore({
-								   'title': "Member", 
-						   		   'title_extra': member.nickname, 
-						   		   'community': community, 
-						   		   'current_member': member,
-						   		   'member': memberToSee,
-						   		   'answers': memberToSee.getAnswers(),
-						   		   'rows_cols': textsForGrid,
-						   		   'row_headers': rowHeaders,
-						   		   'text_to_display_before_grid': "%s's entries" % memberToSee.nickname,
-						   		   'no_profile_text': NO_PROFILE_TEXT,
-						   		   })
-					path = os.path.join(os.path.dirname(__file__), 'templates/visit/member.html')
-					self.response.out.write(template.render(path, template_values))
+		if community and member and member.active:
+			keyAndCurate = self.request.query_string.split("&")
+			memberKey = keyAndCurate[0]
+			memberToSee = db.get(memberKey)
+			if memberToSee:
+				curating = member.isCurator() and len(keyAndCurate) > 1 and keyAndCurate[1] == "curate"
+				allItems = memberToSee.getAllItemsAttributedToMember()
+				allItems.extend(memberToSee.getNonDraftLiaisonedEntries())
+				allItems.extend(memberToSee.getNonDraftLiaisonedAnnotations())
+				allItems.extend(memberToSee.getNonDraftLiaisonedAnswers())
+				if allItems:
+					maxTime = datetime.now(tz=pytz.utc)
+					minTime = memberToSee.joined
+					numRows = 1
+					numCols = 6
+					timeStep = (maxTime - minTime) // numCols
+					textsForGrid = []
+					rowHeaders = []
+					for row in range(numRows):
+						textsInThisRow = []
+						for col in range(numCols):
+							textsInThisCell = []
+							startTime = minTime + timeStep * col
+							endTime = minTime + timeStep * (col+1)
+							if row == numRows - 1:
+								rowHeaders.append(RelativeTimeDisplayString(startTime, member))
+							for item in allItems:
+								shouldBeInRow = True
+								shouldBeInCol = item.published >= startTime and item.published < endTime
+								if shouldBeInRow and shouldBeInCol:
+									text = ItemDisplayStringForGrid(item, curating, includeName=memberToSee.isLiaison())
+									textsInThisCell.append(text)
+							textsInThisRow.append(textsInThisCell)
+						textsForGrid.append(textsInThisRow)
+					textsForGrid.reverse()
 				else:
-					self.redirect('/visit/look')
+					textsForGrid = None
+					rowHeaders = None
+				template_values = GetStandardTemplateDictionaryAndAddMore({
+							   'title': "Member", 
+					   		   'title_extra': member.nickname, 
+					   		   'community': community, 
+					   		   'current_member': member,
+					   		   'member': memberToSee,
+					   		   'answers': memberToSee.getAnswers(),
+					   		   'rows_cols': textsForGrid,
+					   		   'row_headers': rowHeaders,
+					   		   'text_to_display_before_grid': "%s's entries" % memberToSee.nickname,
+					   		   'no_profile_text': NO_PROFILE_TEXT,
+					   		   })
+				path = os.path.join(os.path.dirname(__file__), 'templates/visit/member.html')
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect('/visit/look')
 		else:
 			self.redirect('/')
 
 	@RequireLogin 
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			messageMember = None
 			goAhead = True
 			for argument in self.request.arguments():
@@ -611,7 +611,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 				keyAndCurate = self.request.query_string.split("&")
 				characterKey = keyAndCurate[0]
 				character = db.get(characterKey)
@@ -668,7 +668,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			try:
 				offlineMember = db.get(self.request.query_string)
 			except:
@@ -694,6 +694,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 							   'draft_annotations': memberToEdit.getDraftAnnotations(),
 							   'first_draft_answer_per_entry': firstDraftAnswerForEachEntry,
 							   'refer_type': "member",
+							   'show_leave_link': not community.memberIsOnlyOwner(member),
 							   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/profile.html')
 			self.response.out.write(template.render(path, template_values))
@@ -703,7 +704,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 	@RequireLogin 
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			goAhead = True
 			offlineMember = None
 			for argument in self.request.arguments():
@@ -795,12 +796,48 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 				self.redirect("/visit/look")
 		else:
 			self.redirect("/")
+			
+class LeaveCommunityPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member and member.active:
+			template_values = GetStandardTemplateDictionaryAndAddMore({
+						   	   'title': "Leave community", 
+					   	   	   'title_extra': None, 
+							   'community': community, 
+							   'message': self.request.query_string,
+							   "linkback": self.request.headers["Referer"],
+							   'current_member': member,
+							   })
+			path = os.path.join(os.path.dirname(__file__), 'templates/visit/leave.html')
+			self.response.out.write(template.render(path, template_values))
+		else:
+			self.redirect("/")
+			
+	@RequireLogin 
+	def post(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member and member.active:
+			DebugPrint(self.request.arguments())
+			if "leave|%s" % member.key() in self.request.arguments():
+				if community.memberIsOnlyOwner(member):
+					self.redirect("/result?ownerCannotLeave")
+					return
+				else:
+					member.active = False
+					member.put()
+					self.redirect("/")
+			else:
+				self.redirect('/visit/look')
+		else:
+			self.redirect("/")
 		
 class ResultFeedbackPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 						   	   'title': "Message", 
 					   	   	   'title_extra': None, 
@@ -813,4 +850,5 @@ class ResultFeedbackPage(webapp.RequestHandler):
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect("/")
+				
 				

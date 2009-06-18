@@ -12,7 +12,7 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			communityMembers = Member.all().filter("community = ", community).fetch(FETCH_NUMBER)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': "Manage members of", 
@@ -31,7 +31,7 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			communityMembers = community.getActiveMembers()
 			for aMember in communityMembers:
 				for name, value in self.request.params.items():
@@ -78,7 +78,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			nudgePointIncludes = []
 			nudgePointIncludes.append('<tr>')
 			i = 0
@@ -142,7 +142,7 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			community.name = cgi.escape(self.request.get("name"))
 			community.tagline = cgi.escape(self.request.get("tagline"))
 			text = self.request.get("description")
@@ -217,7 +217,7 @@ class ManageCommunityQuestionsListPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			counts = []
 			for type in QUESTION_REFERS_TO:
 				questions = community.getQuestionsOfType(type)
@@ -245,7 +245,7 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			i = 0
 			for aType in QUESTION_REFERS_TO:
 				if self.request.uri.find(aType) >= 0:
@@ -278,7 +278,7 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			for aType in QUESTION_REFERS_TO:
 				for argument in self.request.arguments():
 					if argument == "changesTo|%s" % aType:
@@ -335,7 +335,7 @@ class ManageCommunityCharactersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': "Manage characters for", 
 						   	   'title_extra': community.name, 
@@ -352,7 +352,7 @@ class ManageCommunityCharactersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			for character in community.getActiveCharacters():
 				if self.request.get("remove|%s" % character.key()):
 					character.active = False
@@ -377,7 +377,7 @@ class ManageCommunityCharacterPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			try:
 				character = db.get(self.request.query_string)
 			except:
@@ -400,7 +400,7 @@ class ManageCommunityCharacterPage(webapp.RequestHandler):
 	@RequireLogin 
 	def post(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			goAhead = True
 			for argument in self.request.arguments():
 				if argument.find("|") >= 0:

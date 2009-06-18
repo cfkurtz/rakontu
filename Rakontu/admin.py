@@ -12,7 +12,7 @@ class ShowAllCommunities(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			if users.is_current_user_admin():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "All communities", 
@@ -24,12 +24,14 @@ class ShowAllCommunities(webapp.RequestHandler):
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect('/')
+		else:
+			self.redirect('/')
 
 class ShowAllMembers(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			if users.is_current_user_admin():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "All members", 
@@ -40,37 +42,45 @@ class ShowAllMembers(webapp.RequestHandler):
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect('/')
+		else:
+			self.redirect('/')
 				
 class GenerateSystemQuestionsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			if users.is_current_user_admin():
 				GenerateSystemQuestions()
 				self.redirect(self.request.headers["Referer"])
 			else:
 				self.redirect('/')
+		else:
+			self.redirect('/')
 				
 class GenerateHelpsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			if users.is_current_user_admin():
 				GenerateHelps()
 				self.redirect(self.request.headers["Referer"])
 			else:
 				self.redirect('/')
+		else:
+			self.redirect('/')
 				
 class GenerateSystemResourcesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member:
+		if community and member and member.active:
 			if users.is_current_user_admin():
 				GenerateSystemResources(community, member)
 				self.redirect(self.request.headers["Referer"])
 			else:
 				self.redirect('/')
+		else:
+			self.redirect('/')
 				

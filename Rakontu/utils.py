@@ -242,24 +242,27 @@ def TimeFormatStrings():
 	return result
 
 def RelativeTimeDisplayString(whenUTC, member):
-	when = whenUTC.astimezone(timezone(member.timeZoneName))
-	delta = datetime.now(tz=timezone(member.timeZoneName)) - when
-	if delta.days < 1 and delta.seconds < 1: 
-		return "Now"
-	elif delta.days < 1 and delta.seconds < 60: # one minute
-		return "Moments ago"
-	elif delta.days < 1 and delta.seconds < 60*60: # one hour
-		return "%s minutes ago" % (delta.seconds // 60)
-	elif delta.days < 1:
-		return when.strftime(DjangoToPythonTimeFormat(member.timeFormat))
-	elif delta.days < 2:
-		return "Yesterday at %s" % when.strftime(DjangoToPythonTimeFormat(member.timeFormat))
-	elif delta.days < 7:
-		return when.strftime("%s at %s" % (DjangoToPythonDateFormat(member.dateFormat), 
-										DjangoToPythonTimeFormat(member.timeFormat)))
+	if member and member.timeZoneName:
+		when = whenUTC.astimezone(timezone(member.timeZoneName))
+		delta = datetime.now(tz=timezone(member.timeZoneName)) - when
+		if delta.days < 1 and delta.seconds < 1: 
+			return "Now"
+		elif delta.days < 1 and delta.seconds < 60: # one minute
+			return "Moments ago"
+		elif delta.days < 1 and delta.seconds < 60*60: # one hour
+			return "%s minutes ago" % (delta.seconds // 60)
+		elif delta.days < 1:
+			return when.strftime(DjangoToPythonTimeFormat(member.timeFormat))
+		elif delta.days < 2:
+			return "Yesterday at %s" % when.strftime(DjangoToPythonTimeFormat(member.timeFormat))
+		elif delta.days < 7:
+			return when.strftime("%s at %s" % (DjangoToPythonDateFormat(member.dateFormat), 
+											DjangoToPythonTimeFormat(member.timeFormat)))
+		else:
+			return when.strftime("%s at %s" % (DjangoToPythonDateFormat(member.dateFormat), 
+											DjangoToPythonTimeFormat(member.timeFormat)))
 	else:
-		return when.strftime("%s at %s" % (DjangoToPythonDateFormat(member.dateFormat), 
-										DjangoToPythonTimeFormat(member.timeFormat)))
+		return None
 
 def MakeSomeFakeData():
 	user = users.get_current_user()

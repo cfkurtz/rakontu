@@ -91,7 +91,7 @@ def infoTipCaution(value, type):
 	if helpText:
 		return '<img src="../images/%s.png" alt="help" border="0" valign="center" title="%s"/>' % (type, helpText)
 	else:
-		return textToShow
+		return ""
 
 def info(value):
 	return infoTipCaution(value, "info")
