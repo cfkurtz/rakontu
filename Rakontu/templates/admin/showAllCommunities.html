@@ -3,20 +3,65 @@
 	<body>
 	{% include "../common_menus.html" %}
 	<div id="content">
-
-	{% if communities %}
-    	{% for community in communities %}
-      	<p>{{ community.name|escape }}<p>
-      	&nbsp; &nbsp; members:<br>
-      		{% for member in members %}
-      			{% ifequal member.community.key community.key %}
-      				&nbsp; &nbsp; &nbsp; &nbsp; {{ member.nickname }}<br>
-      			{% endifequal %}
-      		{% endfor %}
-    	{% endfor %}
-    {% else %}
-    	No communities.
-    {% endif %}	
+	{% if user_is_admin %}
+		<div id="stylized" class="rakontu_form">
+		<form action="/admin/communities" method="post" enctype="multipart/form-data">
+		{% if communities %}
+			<h3>Communities in this Rakontu installation</h3>
+			<fieldset>
+			<table>
+			<tr>
+				<th>Name</th>
+				<th>Created</th>
+				<th>Last activity</th>
+				<th>Active members</th>
+				<th>Inactive members</th>
+				<th>Pending members (invitations)</th>
+				<th>Active?{{"activeCommunityBox"|caution}}</th>
+				<th>Backup?</th>
+				<th>Remove?{{"removeCommunityBox"|caution}}</th>
+				</tr>
+	    	{% for community in communities %}
+		    	<tr>
+		    	<td>{{community.name}}</td>
+		    	<td>{{community.created|timeZone:"UTC"|date:"F j, Y"}} (UTC)</td>
+		    	<td>{{community.lastPublish|timeZone:"UTC"|date:"F j, Y"}} (UTC)</td>
+		    	<td align="center">{{community.getActiveMembers|length}}</td>
+		    	<td align="center">{{community.getInactiveMembers|length}}</td>
+		    	<td align="center">{{community.getPendingMembers|length}}</td>
+				<td align="center">
+					{{community.active|yesno:"active, inactive"}}<br/>
+	  					{% if community.active %}
+	  						<input type="submit" name="toggleActiveState|{{community.key}}" value="Inactivate" class="button"
+							onClick="javascript:return confirm('Are you sure you want to INACTIVATE the community {{community.name}}?')">
+	  					{% else %}
+	  						<input type="submit" name="toggleActiveState|{{community.key}}" value="Activate" class="button"
+							onClick="javascript:return confirm('Are you sure you want to ACTIVATE the community {{community.name}}?')">
+	  					{% endif %}
+	  					</td>
+				<td>
+				<input type="submit" name="export|{{community.key}}" value="Export all data" class="button">
+	  				</td>
+				</td>
+				<td>
+				<input type="submit" name="remove|{{community.key}}" value="PERMANENTLY REMOVE" class="button" 
+				onClick="javascript:return confirm('Are you REALLY SURE you want to PERMANENTLY REMOVE the community {{community.name}}?')">
+	  					</td>
+				</td>
+	    	{% endfor %}
+	    	</table>
+	    	</fieldset>
+	    {% else %}
+	    	<p>There are no communities in this Rakontu installation. <a href="/createCommunity">Make one</a></p>
+	    {% endif %}	
+		<p></p>
+		<center><p><i><b>Please remove communities VERY carefully.</p><p>Deleted communities cannot be recovered.</p><p>It is best to backup first.</b></i></p>
+		</form>
+		</div>
+	{% else %}
+		<p>You are not a manager of this community and cannot change its settings.
+		Please ask a manager to make any changes you would like to see made.</p>
+	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

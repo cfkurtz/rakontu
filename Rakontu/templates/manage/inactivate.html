@@ -1,0 +1,31 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+	
+	
+	<div id="content">
+	
+	{% if current_member.isOwner %}
+		<div id="stylized" class="rakontu_form">
+		<form action="/manage/inactivate" method="post" enctype="multipart/form-data">
+		<h1>Are you sure?</h1>
+		<p><b>Are you <b>absolutely completely really totally certain</b> that you want to inactivate this community?</b></p>
+		<p>If you do, you will have to ask your site administrator if you want to either reinstate the community or
+		remove its content.</p>
+		</p>
+				
+      	<p>&nbsp; </p>
+    <center><input type="submit" name="inactivate|{{current_member.key}}" value="Really And Truly Inactivate This Community" class="button">
+    <p>or</p><input type="submit" name="return" value="Go Back to the Settings Page" class="button"></center>
+	</form>	
+	</div>
+	
+	{% else %}
+		<p>You are not a manager of this community and cannot change its settings.
+		Please ask a manager to make any changes you would like to see made.</p>
+	{% endif %}
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

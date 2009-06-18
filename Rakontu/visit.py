@@ -126,8 +126,8 @@ class StartPage(webapp.RequestHandler):
 class NewMemberPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': "Welcome",
 							'title_extra': member.nickname,
@@ -143,8 +143,8 @@ class NewMemberPage(webapp.RequestHandler):
 class GetHelpPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': "Help",
 							'community': community, 
@@ -160,8 +160,8 @@ class GetHelpPage(webapp.RequestHandler):
 class BrowseEntriesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			entries = community.getNonDraftEntries()
 			if entries:
 				maxTime = member.viewTimeEnd
@@ -260,8 +260,8 @@ class BrowseEntriesPage(webapp.RequestHandler):
 			
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			if "changeTimeFrame" in self.request.arguments():
 				member.setViewTimeFrameFromTimeUnitString(self.request.get("timeFrame"))
 				oldValue = member.viewNumTimeFrames
@@ -304,8 +304,8 @@ class BrowseEntriesPage(webapp.RequestHandler):
 class ReadEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			entry = db.get(self.request.query_string)
 			if entry:
 				curating = self.request.uri.find("curate") >= 0
@@ -452,8 +452,8 @@ class ReadEntryPage(webapp.RequestHandler):
 			
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			self.redirect(self.request.get("nextAction"))
 		else:
 			self.redirect("/visit/look")
@@ -461,8 +461,8 @@ class ReadEntryPage(webapp.RequestHandler):
 class ReadAnnotationPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			annotation = db.get(self.request.query_string)
 			if annotation:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
@@ -485,8 +485,8 @@ class ReadAnnotationPage(webapp.RequestHandler):
 class SeeCommunityPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': "About", 
 						   		   'title_extra': community.name, 
@@ -503,8 +503,8 @@ class SeeCommunityPage(webapp.RequestHandler):
 class SeeCommunityMembersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': "Members of", 
 						   		   'title_extra': community.name, 
@@ -520,8 +520,8 @@ class SeeCommunityMembersPage(webapp.RequestHandler):
 class SeeMemberPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			keyAndCurate = self.request.query_string.split("&")
 			memberKey = keyAndCurate[0]
 			memberToSee = db.get(memberKey)
@@ -580,8 +580,8 @@ class SeeMemberPage(webapp.RequestHandler):
 
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			messageMember = None
 			goAhead = True
 			for argument in self.request.arguments():
@@ -610,8 +610,8 @@ class SeeMemberPage(webapp.RequestHandler):
 class SeeCharacterPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 				keyAndCurate = self.request.query_string.split("&")
 				characterKey = keyAndCurate[0]
 				character = db.get(characterKey)
@@ -667,8 +667,8 @@ class SeeCharacterPage(webapp.RequestHandler):
 class ChangeMemberProfilePage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			try:
 				offlineMember = db.get(self.request.query_string)
 			except:
@@ -703,8 +703,8 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 							 
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			goAhead = True
 			offlineMember = None
 			for argument in self.request.arguments():
@@ -800,8 +800,8 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 class LeaveCommunityPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 						   	   'title': "Leave community", 
 					   	   	   'title_extra': None, 
@@ -817,9 +817,8 @@ class LeaveCommunityPage(webapp.RequestHandler):
 			
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
-			DebugPrint(self.request.arguments())
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			if "leave|%s" % member.key() in self.request.arguments():
 				if community.memberIsOnlyOwner(member):
 					self.redirect("/result?ownerCannotLeave")
@@ -829,15 +828,15 @@ class LeaveCommunityPage(webapp.RequestHandler):
 					member.put()
 					self.redirect("/")
 			else:
-				self.redirect('/visit/look')
+				self.redirect('/visit/profile?%s' % member.key())
 		else:
 			self.redirect("/")
 		
 class ResultFeedbackPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 						   	   'title': "Message", 
 					   	   	   'title_extra': None, 

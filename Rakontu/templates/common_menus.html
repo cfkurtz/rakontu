@@ -5,106 +5,115 @@
 	<table cellpadding="2" class="fullwidth">
 	<tr>
 	
-	<td align="left" valign="center" class="noborder" width="70">
-	<a href="/visit/look">
-	{% if community.image %}
-		<img src="/img?community_id={{community.key}}" class="bordered">
-	{% else %}
-		<p><img src="/images/Rakontu.jpg" width="100" height="64" alt="Rakontu logo" class="bordered" ></p>
-	{% endif %}
-	</a>
+	{% if current_member %}
 	
-	</td><td align="left" valign="center" class="noborder"
-	{% if current_member.isCurator and current_member.isGuide and current_member.isLiaison and current_member.isManagerOrOwner and user_is_admin %}
-		width="650"
-	{% endif %}
-	>
-	<b>{{ community.name }}</b><br/>
-	{% if community.tagline %}
-		<i>{{community.tagline|orNbsp}}</i>
-	{% endif %}
-	<ul id="topmenu">
-  		<li><a href="/visit/look">Visit</a>
-			<ul>
-			<li><a href="/visit/look">Look at stories</a></li>
- 			<li><a href="/visit/community">About the community</a></li>
-			<li><a href="/visit/members">About the members</a></li>
-			<li><a href="/">Exit community</a></li>
-			</ul>
-		</li>
-		<li><a href="/visit/story">Talk</a>
-			<ul>
-			<li><a href="/visit/story">Tell a story</a></li>
-  			<li><a href="/visit/invitation">Invite people to tell stories</a></li>
-  			<li><a href="/visit/collage">Build a story collage</a></li>
-  			<li><a href="/visit/pattern">Describe a pattern</a> </li>
-  			</ul>
-		</li>
-		{% if current_member.isCurator %}
-			<li><a href="/curate/flags">Curate</a>
-			<ul>
-				<li><a href="/curate/flags">Flags</a>
-				<li><a href="/curate/gaps">Gaps</a>
-				{% if community.allowsAttachments %}
-					<li><a href="/curate/attachments">Attachments</a>
-				{% endif %}
-				{% if current_member.canEditTags %}
-					<li><a href="/curate/tags">Tags</a>
-				{% endif %}
-			</ul>
-			</li>
+		<td align="left" valign="center" class="noborder" width="70">
+		<a href="/visit/look">
+		{% if community.image %}
+			<img src="/img?community_id={{community.key}}" class="bordered">
+		{% else %}
+			<p><img src="/images/Rakontu.jpg" width="100" height="64" alt="Rakontu logo" class="bordered" ></p>
 		{% endif %}
-		{% if current_member.isGuide %}
-			<li><a href="/guide/resources">Guide</a>
-			<ul>
-				<li><a href="/guide/resource">Add a resource</a></li>
-				<li><a href="/guide/resources">Review resources</a>
-				<li><a href="/guide/requests">Review requests</a></li>
-			</ul>
-			</li>
+		</a>
+		
+		</td><td align="left" valign="center" class="noborder"
+		{% if current_member.isCurator and current_member.isGuide and current_member.isLiaison and current_member.isManagerOrOwner and user_is_admin %}
+			width="650"
 		{% endif %}
-		{% if current_member.isLiaison %}
-			<li><a href="/liaise/members">Liaise</a>
-			<ul>
-				<li><a href="/liaise/members">Manage off-line members</a>
-				<li><a href="/liaise/batch">Add a batch of stories</a>
-				<li><a href="/liaise/review">Review entered batches</a>
-			</ul>
-			</li>
+		>
+		<b>{{ community.name }}</b><br/>
+		{% if community.tagline %}
+			<i>{{community.tagline|orNbsp}}</i>
 		{% endif %}
-		{% if current_member.isManagerOrOwner %}
-			<li><a href="/manage/settings">Manage</a>
+		<ul id="topmenu">
+	  		<li><a href="/visit/look">Visit</a>
 				<ul>
-				<li><a href="/manage/settings">Settings</a></li>
-	      		<li><a href="/manage/members">Members</a></li>
-	      		<li><a href="/manage/characters">Characters</a></li>
-	      		<li><a href="/manage/questions_list">Questions</a></li>
-		      	<li><a href="/manage/technical">Backup</a></li>
-	      		</ul>
-	      	</li>
-	    {% endif %}
-		{% if user_is_admin %}
- 			<li><a href="/admin/showAllCommunities">Administer</a>
-				<ul>
-				<li><a href="/admin/showAllCommunities">See all communities</a></li>
-				<li><a href="/admin/showAllMembers">See all members</a></li>
-				<li><a href="/admin/generateSystemQuestions">Generate system questions</a></li>
-				<li><a href="/admin/generateHelps">Generate help messages</a></li>
-				<li><a href="/admin/generateSystemResources">Generate system resources</a></li>
+				<li><a href="/visit/look">Look at stories</a></li>
+	 			<li><a href="/visit/community">About the community</a></li>
+				<li><a href="/visit/members">About the members</a></li>
+				<li><a href="/">Exit community</a></li>
 				</ul>
 			</li>
+			<li><a href="/visit/story">Talk</a>
+				<ul>
+				<li><a href="/visit/story">Tell a story</a></li>
+	  			<li><a href="/visit/invitation">Invite people to tell stories</a></li>
+	  			<li><a href="/visit/collage">Build a story collage</a></li>
+	  			<li><a href="/visit/pattern">Describe a pattern</a> </li>
+	  			</ul>
+			</li>
+			{% if current_member.isCurator %}
+				<li><a href="/curate/flags">Curate</a>
+				<ul>
+					<li><a href="/curate/flags">Flags</a>
+					<li><a href="/curate/gaps">Gaps</a>
+					{% if community.allowsAttachments %}
+						<li><a href="/curate/attachments">Attachments</a>
+					{% endif %}
+					{% if current_member.canEditTags %}
+						<li><a href="/curate/tags">Tags</a>
+					{% endif %}
+				</ul>
+				</li>
+			{% endif %}
+			{% if current_member.isGuide %}
+				<li><a href="/guide/resources">Guide</a>
+				<ul>
+					<li><a href="/guide/resource">Add a resource</a></li>
+					<li><a href="/guide/resources">Review resources</a>
+					<li><a href="/guide/requests">Review requests</a></li>
+				</ul>
+				</li>
+			{% endif %}
+			{% if current_member.isLiaison %}
+				<li><a href="/liaise/members">Liaise</a>
+				<ul>
+					<li><a href="/liaise/members">Manage off-line members</a>
+					<li><a href="/liaise/batch">Add a batch of stories</a>
+					<li><a href="/liaise/review">Review entered batches</a>
+				</ul>
+				</li>
+			{% endif %}
+			{% if current_member.isManagerOrOwner %}
+				<li><a href="/manage/settings">Manage</a>
+					<ul>
+					<li><a href="/manage/settings">Settings</a></li>
+		      		<li><a href="/manage/members">Members</a></li>
+		      		<li><a href="/manage/characters">Characters</a></li>
+		      		<li><a href="/manage/questions_list">Questions</a></li>
+			      	<li><a href="/manage/export">Export data</a></li>
+		      		</ul>
+		      	</li>
+		    {% endif %}
+			{% if user_is_admin %}
+	 			<li><a href="/admin/communities">Administer</a>
+					<ul>
+					<li><a href="/admin/generateSystemQuestions">Generate system questions</a></li>
+					<li><a href="/admin/generateHelps">Generate help messages</a></li>
+					<li><a href="/admin/generateSystemResources">Generate system resources</a></li>
+					<li><a href="/admin/communities">Review all communities</a></li>
+					</ul>
+				</li>
+			{% endif %}
+			
+	      	</ul>
+	    </td><td align="right" class="noborder">
+    	<p>&nbsp; You are logged in as <b>{{ current_member.nickname }}</b>.<br/>
+	    <a href="/visit/help">Help</a> | <a href="/visit/profile">Preferences</a> | <a href="{{logout_url}}">Log out</a></p>
+		{% if current_member.profileImage %}
+		</td><td align="center" width="20" class="noborder">
+			<div><img src="/img?member_id={{current_member.key}}"></img></div>
 		{% endif %}
-		
-      	</ul>
-    </td><td align="right" class="noborder">
-    <p>&nbsp; You are logged in as <b>{{ current_member.nickname }}</b>.<br/>
-    <a href="/visit/help">Help</a> | <a href="/visit/profile">Preferences</a> | <a href="{{logout_url}}">Log out</a></p>
-	{% if current_member.profileImage %}
-	</td><td align="center" width="20" class="noborder">
-		<div><img src="/img?member_id={{current_member.key}}"></img></div>
-	{% endif %}
-	</td><td valign="center" class="noborder">
+		</td><td valign="center" class="noborder">
 	
+		{% else %}
+			{% if user_is_admin %}
+				<td class="noborder">
+				<h1>Rakontu site administration</h1>
+			{% else %}
+				<p>No user is found.</p>
+			{% endif %}
+	    {% endif %}
 	</td></tr></table>
 
 </div>

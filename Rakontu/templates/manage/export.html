@@ -1,0 +1,22 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+	<div id="content">
+	
+	{% if current_member.isManagerOrOwner or user_is_admin %}
+
+		{% if export %}
+			<p><b>Exported data</b></p>
+			<p><a href="/export?export_id={{export.key}}">{{community.name}} export</a><p>
+		{% endif %}
+	
+	{% else %}
+		<p>You are not a manager of this community (or a site administrator) and cannot export its data.
+		Please ask a manager to export the community's data.</p>
+	{% endif %}
+	
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

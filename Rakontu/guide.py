@@ -11,8 +11,8 @@ from utils import *
 class ReviewResourcesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			if member.isGuide():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Resources", 
@@ -30,8 +30,8 @@ class ReviewResourcesPage(webapp.RequestHandler):
 			
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			if member.isGuide():
 				resources = community.getNonDraftEntriesOfType("resource")
 				for resource in resources:
@@ -43,8 +43,8 @@ class ReviewResourcesPage(webapp.RequestHandler):
 class ReviewRequestsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			if member.isGuide():
 				requestsByType = []
 				for type in REQUEST_TYPES:

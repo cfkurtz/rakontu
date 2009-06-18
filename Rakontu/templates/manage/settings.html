@@ -77,6 +77,10 @@
 				<input type="checkbox" name="removeImage" value="removeImage" id="removeImage"><label for="removeImage">Remove</label>
 			{% endif %}
 			<p><input type="file" name="img" accept="jpg/png"/></p>
+			
+			{% if current_member.isOwner %}
+				<div class="rightalign">You are an owner of this community; you can <a href="/manage/inactivate">inactivate</a> it.</div>
+			{% endif %}
 			</fieldset>
 			
 			<h3>Time zones and time reporting</h3>

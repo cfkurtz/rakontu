@@ -25,6 +25,9 @@ def listLookup(list, index):
 	else:
 		return None
 	
+def length(list):
+	return len(list)
+	
 def makeRange(numberString):
 	result = []
 	try:
@@ -139,5 +142,6 @@ register.filter(upTo)
 register.filter(yourOrThis)
 register.filter(youOrThis)
 register.filter(add)
+register.filter(length)
 
 

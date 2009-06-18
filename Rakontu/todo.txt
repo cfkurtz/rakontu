@@ -7,10 +7,6 @@ Things to do before v0.1 is complete
 
 test "send this member a note" thing
 
-guide page:
-    also that guides are shown in help (as before)
-    guide note goes to all guides
-
 liaison page:
     quick ways to output things for them - this has to be linked to the query system
     
@@ -20,6 +16,8 @@ start thinking about internationalization
 
 need a way for site administrator to DELETE a community (and also disable but not delete)
 no, an OWNER can delete a community. but they need a way to do it.
+	- have inactivation working, but need a screen for sys admin to reactivate OR remove all data for a community
+	- NEED TO FINISH THIS
 
 still have not implemented user choosing which nudge categories to consider in look page
 
@@ -40,4 +38,4 @@ ask member what text format they want to come up by default for entries and anno
 
 check "keepAnswer" - seems like answers are being kept when None
 
-address that ?xx= issue in urls
+address that ?xx= issue in urls ??

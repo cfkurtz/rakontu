@@ -34,3 +34,5 @@
 "tip","downdrift_explanation","Downdrift is how each entry 'drifts down' in activity points each day. This number will usually be negative. If you don't want entries to drift down, set the downdrift number to zero."
 "tip","email_not_shown","Senders will not see your email address."
 "tip","profile_image","Click Browse to choose a personal picture. This will display on the top of all screens. The best image size is width 100, height 60."
+"caution","activeCommunityBox","Check or uncheck this box to change whether members can access this community. Inactive communities cannot be accessed by ANY of their members (not even their owners)."
+"caution","removeCommunityBox","Check the box to REMOVE ALL CONTENT along with the selected community. PLEASE DO THIS CAREFULLY."

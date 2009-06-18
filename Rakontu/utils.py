@@ -188,6 +188,17 @@ class AttachmentHandler(webapp.RequestHandler):
 			else:
 				self.error(404)
 				
+class ExportHandler(webapp.RequestHandler):
+	def get(self):
+		if self.request.get("export_id"):
+			export = db.get(self.request.get("export_id"))
+			if export and export.data:
+				self.response.headers.add_header('Content-Disposition', 'export; filename="%s"' % "test.xml")
+				self.response.headers.add_header('Content-Type', "XML")
+				self.response.out.write(export.data)
+			else:
+				self.error(404)
+				
 def RequireLogin(func):
 	def check_login(request):
 		if not users.get_current_user():
@@ -217,7 +228,18 @@ def GetCurrentCommunityAndMemberFromSession():
 			member = None
 	else:
 		member = None
-	return community, member
+	okayToAccess = community and community.active and member and member.active
+	return community, member, okayToAccess
+
+def GetKeyFromQueryString(queryString, keyname):
+	if queryString:
+		nameAndKey = queryString.split("=")
+		if len(nameAndKey) > 1:
+			return nameAndKey[1]
+		else:
+			return None
+	else:
+		return None
 
 def DjangoToPythonDateFormat(format):
 	if DATE_FORMATS.has_key(format):

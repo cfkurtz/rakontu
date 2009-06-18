@@ -11,8 +11,8 @@ from utils import *
 class ReviewOfflineMembersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			if member.isLiaison():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': "Off-line members", 
@@ -31,8 +31,8 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 			
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			if member.isLiaison():
 				offlineMembers = community.getActiveOfflineMembers()
 				for aMember in offlineMembers:
@@ -55,8 +55,8 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 class ReviewBatchEntriesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			if member.isLiaison():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Review", 
@@ -78,8 +78,8 @@ class ReviewBatchEntriesPage(webapp.RequestHandler):
 
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			if member.isLiaison():
 				if "addMore" in self.request.arguments():
 					self.redirect("/liaise/batch")
@@ -102,8 +102,8 @@ class ReviewBatchEntriesPage(webapp.RequestHandler):
 class BatchEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			if member.isLiaison():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Import", 
@@ -125,8 +125,8 @@ class BatchEntryPage(webapp.RequestHandler):
 			
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			if member.isLiaison():
 				for i in range(NUM_ENTRIES_PER_BATCH_PAGE):
 					if self.request.get("title|%s" % i):

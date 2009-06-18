@@ -17,21 +17,27 @@ from admin import *
 application = webapp.WSGIApplication(
 									 [('/', StartPage),
 									  
-									  # visiting
+									  # looking at objects
 									  ('/visit', BrowseEntriesPage),
 									  ('/visit/', BrowseEntriesPage),
 									  ('/visit/look', BrowseEntriesPage),
 									  ('/visit/read', ReadEntryPage),
 									  ('/visit/readAnnotation', ReadAnnotationPage),
 									  
+									  # looking at people
 									  ('/visit/members', SeeCommunityMembersPage),
 									  ('/visit/member', SeeMemberPage),
 									  ('/visit/character', SeeCharacterPage),
 									  ('/visit/community', SeeCommunityPage),
+									  
+									  # membership
 									  ('/visit/new', NewMemberPage),
 									  ('/visit/profile', ChangeMemberProfilePage),
-									  ('/visit/help', GetHelpPage),
+									  ('/visit/leave', LeaveCommunityPage),
 									  
+									  # help
+									  ('/visit/help', GetHelpPage),
+
 									  # entering entries
 									  ('/visit/story', EnterEntryPage),
 									  ('/visit/retell', EnterEntryPage),
@@ -100,11 +106,18 @@ application = webapp.WSGIApplication(
 									  ('/manage/characters', ManageCommunityCharactersPage),
 									  ('/manage/character', ManageCommunityCharacterPage),
 									  ('/manage/technical', ManageCommunityTechnicalPage),
+									  ('/manage/inactivate', InactivateCommunityPage),
+									  ('/manage/export', ExportCommunityDataPage),
 									  
-									  # quitting
-									  ('/visit/leave', LeaveCommunityPage),
-									  
-									  # general result handler
+									  # site admin
+									  ('/admin/', AdministerCommunitiesPage),
+									  ('/admin', AdministerCommunitiesPage),
+									  ('/admin/communities', AdministerCommunitiesPage),
+									  ('/admin/generateSystemQuestions', GenerateSystemQuestionsPage),
+									  ('/admin/generateHelps', GenerateHelpsPage),
+									  ('/admin/generateSystemResources', GenerateSystemResourcesPage),
+
+									  # general message-to-user page
 									   ('/result', ResultFeedbackPage),
 									  
 									  # file handlers
@@ -112,13 +125,8 @@ application = webapp.WSGIApplication(
 									  ('/visit/img', ImageHandler),
 									  ('/manage/img', ImageHandler),
 									  ('/visit/attachment', AttachmentHandler),
+									  ('/export', ExportHandler),
 									  
-									  # site admin
-									  ('/admin/showAllCommunities', ShowAllCommunities),
-									  ('/admin/showAllMembers', ShowAllMembers),
-									  ('/admin/generateSystemQuestions', GenerateSystemQuestionsPage),
-									  ('/admin/generateHelps', GenerateHelpsPage),
-									  ('/admin/generateSystemResources', GenerateSystemResourcesPage),
 									  ],
 									 debug=True)
 

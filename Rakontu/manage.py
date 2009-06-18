@@ -11,8 +11,8 @@ from utils import *
 class ManageCommunityMembersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			communityMembers = Member.all().filter("community = ", community).fetch(FETCH_NUMBER)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': "Manage members of", 
@@ -30,8 +30,8 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
 				
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			communityMembers = community.getActiveMembers()
 			for aMember in communityMembers:
 				for name, value in self.request.params.items():
@@ -77,8 +77,8 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
 class ManageCommunitySettingsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			nudgePointIncludes = []
 			nudgePointIncludes.append('<tr>')
 			i = 0
@@ -141,8 +141,8 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 	
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			community.name = cgi.escape(self.request.get("name"))
 			community.tagline = cgi.escape(self.request.get("tagline"))
 			text = self.request.get("description")
@@ -216,8 +216,8 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 class ManageCommunityQuestionsListPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			counts = []
 			for type in QUESTION_REFERS_TO:
 				questions = community.getQuestionsOfType(type)
@@ -244,8 +244,8 @@ class ManageCommunityQuestionsListPage(webapp.RequestHandler):
 class ManageCommunityQuestionsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			i = 0
 			for aType in QUESTION_REFERS_TO:
 				if self.request.uri.find(aType) >= 0:
@@ -277,8 +277,8 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 	
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			for aType in QUESTION_REFERS_TO:
 				for argument in self.request.arguments():
 					if argument == "changesTo|%s" % aType:
@@ -334,8 +334,8 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 class ManageCommunityCharactersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': "Manage characters for", 
 						   	   'title_extra': community.name, 
@@ -351,8 +351,8 @@ class ManageCommunityCharactersPage(webapp.RequestHandler):
 				
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			for character in community.getActiveCharacters():
 				if self.request.get("remove|%s" % character.key()):
 					character.active = False
@@ -376,8 +376,8 @@ class ManageCommunityCharactersPage(webapp.RequestHandler):
 class ManageCommunityCharacterPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			try:
 				character = db.get(self.request.query_string)
 			except:
@@ -399,8 +399,8 @@ class ManageCommunityCharacterPage(webapp.RequestHandler):
 							 
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			goAhead = True
 			for argument in self.request.arguments():
 				if argument.find("|") >= 0:
@@ -464,3 +464,68 @@ class ManageCommunityCharacterPage(webapp.RequestHandler):
 		
 class ManageCommunityTechnicalPage(webapp.RequestHandler):
 	pass
+
+class ExportCommunityDataPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if not community:
+			communityKey = None
+			if self.request.query_string:
+				communityKey = GetKeyFromQueryString(self.request.query_string, "community_id")
+			if communityKey:
+				try:
+					community = db.get(communityKey)
+				except:
+					pass
+		if (community and member and member.isManagerOrOwner()) or (community and users.is_current_user_admin()):
+			# remove any old exports
+			oldExports = Export.all().filter('community = ', community.key()).fetch(FETCH_NUMBER)
+			db.delete(oldExports)
+			export = community.exportData()
+			template_values = GetStandardTemplateDictionaryAndAddMore({
+							   	   'title': "Export community data", 
+						   	   	   'title_extra': None, 
+								   'community': community,
+								   'current_member': member,
+								   'export': export,
+								   })
+			path = os.path.join(os.path.dirname(__file__), 'templates/manage/export.html')
+			self.response.out.write(template.render(path, template_values))
+		else:
+			self.redirect('/')
+				
+class InactivateCommunityPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access: 
+			if member.isOwner():
+				template_values = GetStandardTemplateDictionaryAndAddMore({
+								   'title': "Inactivate community", 
+							   	   'title_extra': community.name, 
+								   'community': community, 
+								   'current_member': member,
+								   })
+				path = os.path.join(os.path.dirname(__file__), 'templates/manage/inactivate.html')
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect("/visit/look")
+		else:
+			self.redirect("/")
+			
+	@RequireLogin 
+	def post(self):
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
+			if member.isOwner():
+				if "inactivate|%s" % member.key() in self.request.arguments():
+					community.active = False
+					community.put()
+					self.redirect("/")
+				else:
+					self.redirect('/manage/settings')
+			else:
+				self.redirect("/visit/look")
+		else:
+			self.redirect("/")

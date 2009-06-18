@@ -110,6 +110,8 @@ class Community(db.Model):
 	welcomeMessage_formatted = db.TextProperty()
 	welcomeMessage_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
 	
+	active = db.BooleanProperty(default=True)
+	
 	defaultTimeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE) # appears on member preferences page
 	defaultTimeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT) # appears on member preferences page
 	defaultDateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT) # appears on member preferences page
@@ -484,6 +486,26 @@ class Community(db.Model):
 							   community=self)
 		newQuestion.put()
 		
+	# REMOVAL
+	
+	def removeAllDependents(self):
+		entries = Entry.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+		for entry in entries:
+			entry.removeAllDependents()
+		db.delete(entries)
+		db.delete(Member.all().filter("community = ", self.key()).fetch(FETCH_NUMBER))
+		db.delete(PendingMember.all().filter("community = ", self.key()).fetch(FETCH_NUMBER))
+		db.delete(Character.all().filter("community = ", self.key()).fetch(FETCH_NUMBER))
+		db.delete(Question.all().filter("community = ", self.key()).fetch(FETCH_NUMBER))
+		
+	# EXPORT
+	
+	def exportData(self):
+		export = Export(community=self.key())
+		export.data = db.Text(self.to_xml())
+		export.put()
+		return export
+		
 # ============================================================================================
 # ============================================================================================
 class Question(db.Model):
@@ -851,6 +873,64 @@ class Answer(db.Model):
 	
 	def linkString(self):
 		return self.displayString()
+	
+	def csvLine(self, header=False):
+		parts = []
+		if header: 
+			parts.append("answer key") 
+		else: 
+			parts.append(self.key())
+			
+		if header:
+			parts.append("refers to")
+		else:
+			parts.append(self.referentType)
+			
+		if header:
+			parts.append("referent key")
+		else:
+			parts.append(self.referent.key())
+		
+		if header:
+			parts.append("question name")
+		else:	
+			parts.append(self.question.name)
+
+		if header:
+			parts.append("question type")
+		else:	
+			parts.append(self.question.type)
+			
+		if header:
+			parts.append("question key")
+		else:	
+			parts.append(self.question.key())
+			
+		if header:
+			parts.append("answer if boolean")
+		else:	
+			parts.append(self.answerIfBoolean)
+			
+		if header:
+			parts.append("answer if text")
+		else:	
+			parts.append(self.answerIfText)
+			
+		if header:
+			parts.append("answer if multiple")
+		else:	
+			parts.append(", ".join(self.answerIfMultiple))
+			
+		if header:
+			parts.append("answer if value")
+		else:	
+			parts.append("%s" % self.answerIfValue)
+			
+		if header:
+			parts.append("answer if boolean")
+		else:	
+			parts.append(self.answerIfBoolean)
+		return '"' + '", "'.join(parts) + '"'
 		
 	# ATTRIBUTION
 	
@@ -956,14 +1036,10 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 			return None
 		
 	def removeAllDependents(self):
-		for attachment in self.getAttachments():
-			db.delete(attachment)
-		for link in self.getAllLinks():
-			db.delete(link)
-		for answer in self.getAnswers():
-			db.delete(answer)
-		for annotation in self.getAnnotations():
-			db.delete(annotation)
+		db.delete(self.getAttachments())
+		db.delete(self.getAllLinks())
+		db.delete(self.getAnswers())
+		db.delete(self.getAnnotations())
 
 	# TYPE
 	
@@ -1228,6 +1304,34 @@ class Attachment(db.Model):                                   # binary attachmen
 	def isImage(self):
 		return self.mimeType == "image/jpeg" or self.mimeType == "image/png"
 	
+	def csvLine(self, header=False):
+		parts = []
+		if header: 
+			parts.append("link key") 
+		else: 
+			parts.append(self.key())
+			
+		if header:
+			parts.append("entry key")
+		else:
+			parts.append(self.entry.key())
+			
+		if header:
+			parts.append("name")
+		else:
+			parts.append(self.name)
+		
+		if header:
+			parts.append("MIME type")
+		else:	
+			parts.append(self.mimeType)
+
+		if header:
+			parts.append("file name")
+		else:	
+			parts.append(self.fileName)
+		return '"' + '", "'.join(parts) + '"'
+
 # ============================================================================================
 # ============================================================================================
 class Annotation(db.Model):                                # tag set, comment, request, nudge
@@ -1386,6 +1490,51 @@ class Annotation(db.Model):                                # tag set, comment, r
 			imageText = '<img src="/images/nudges.png" alt="nudge" border="0">'
 		return imageText
 	
+	# EXPORT
+	
+	def csvLine(self, header=False):
+		parts = []
+		if header: 
+			parts.append("annotation key") 
+		else: 
+			parts.append(self.key())
+			
+		if header: 
+			parts.append("type") 
+		else: 
+			parts.append(self.type)
+			
+		if header:
+			parts.append("entry key")
+		else:
+			parts.append(self.entry.key())
+			
+		if header:
+			parts.append("subject or comment")
+		else:
+			parts.append(self.shortString)
+		
+		if header:
+			parts.append("body")
+		else:	
+			parts.append(self.longString_formatted)
+
+		if header:
+			parts.append("tags if tag set")
+		else:	
+			parts.append(self.tagsIfTagSet)
+
+		if header:
+			parts.append("values if nudge")
+		else:	
+			parts.append(self.valuesIfNudge)
+
+		if header:
+			parts.append("type if request")
+		else:	
+			parts.append(self.typeIfRequest)
+		return '"' + '", "'.join(parts) + '"'
+	
 # ============================================================================================
 # ============================================================================================
 class Help(db.Model):	     # context-sensitive help string - appears as title hover on icon 
@@ -1396,4 +1545,11 @@ class Help(db.Model):	     # context-sensitive help string - appears as title ho
 	name = db.StringProperty() # links to name in template
 	text = db.StringProperty() # text to show user (plain text)
 	
+# ============================================================================================
+# ============================================================================================
+class Export(db.Model):	     # data prepared for export, in XML format
+# ============================================================================================
+# ============================================================================================
 	
+	community = db.ReferenceProperty(Community, required=True, collection_name="export_to_community")
+	data = db.TextProperty()

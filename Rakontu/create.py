@@ -40,8 +40,8 @@ class CreateCommunityPage(webapp.RequestHandler):
 class EnterEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			if self.request.uri.find("retell") >= 0:
 				type = "story"
 				linkType = "retell"
@@ -139,8 +139,8 @@ class EnterEntryPage(webapp.RequestHandler):
 			
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			for aType in ENTRY_TYPES:
 				for argument in self.request.arguments():
 					if argument.find(aType) >= 0:
@@ -333,8 +333,8 @@ class EnterEntryPage(webapp.RequestHandler):
 class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			entry = None
 			if self.request.query_string:
 				entry = Entry.get(self.request.query_string)
@@ -368,8 +368,8 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 				
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			entryKey = self.request.query_string
 			entry = db.get(entryKey)
 			if entry:
@@ -473,8 +473,8 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 class PreviewAnswersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			entry = None
 			if self.request.query_string:
 				entry = Entry.get(self.request.query_string)
@@ -497,8 +497,8 @@ class PreviewAnswersPage(webapp.RequestHandler):
 		
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			entry = None
 			if self.request.query_string:
 				entry = Entry.get(self.request.query_string)
@@ -518,8 +518,8 @@ class PreviewAnswersPage(webapp.RequestHandler):
 class EnterAnnotationPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			i = 0
 			for aType in ANNOTATION_TYPES_URLS:
 				if self.request.uri.find(aType) >= 0:
@@ -575,8 +575,8 @@ class EnterAnnotationPage(webapp.RequestHandler):
 			
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			for aType in ANNOTATION_TYPES:
 				for argument in self.request.arguments():
 					if argument.find(aType) >= 0:
@@ -717,8 +717,8 @@ class EnterAnnotationPage(webapp.RequestHandler):
 class PreviewPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			entry = None
 			annotation = None
 			if self.request.query_string:
@@ -748,8 +748,8 @@ class PreviewPage(webapp.RequestHandler):
 		
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			entry = None
 			annotation = None
 			if self.request.query_string:
@@ -783,8 +783,8 @@ class PreviewPage(webapp.RequestHandler):
 class RelateEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 			entry = None
 			if self.request.query_string:
 				try:
@@ -821,8 +821,8 @@ class RelateEntryPage(webapp.RequestHandler):
 					
 	@RequireLogin 
 	def post(self):
-		community, member = GetCurrentCommunityAndMemberFromSession()
-		if community and member and member.active:
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
 				entry = None
 				if self.request.query_string:
 					try:
