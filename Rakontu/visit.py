@@ -466,7 +466,7 @@ class ReadAnnotationPage(webapp.RequestHandler):
 			annotation = db.get(self.request.query_string)
 			if annotation:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-								   'title': annotation.displayString, 
+								   'title': annotation.displayString(includeType=False), 
 						   		   'title_extra': None,
 								   'community': community, 
 								   'current_member': member,
@@ -475,7 +475,7 @@ class ReadAnnotationPage(webapp.RequestHandler):
 								   'included_links_outgoing': annotation.entry.getOutgoingLinksOfType("included"),
 								   })
 				member.lastReadAnything = datetime.now(tz=pytz.utc)
-				member.nudgePoints += community.getNudgePointsPerActivityForActivityName("reading")
+				member.nudgePoints += community.getMemberNudgePointsForEvent("reading")
 				member.put()
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/readAnnotation.html')
 				self.response.out.write(template.render(path, template_values))

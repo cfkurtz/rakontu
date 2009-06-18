@@ -18,7 +18,7 @@
 	
 	{% if entry.isCollage %}
 		<div class="blurb">
-		{{entry.text_formatted}}
+		{{entry.displayTextWithInlineAttachmentLinks}}
 		{% if included_links_outgoing %}
 			<ul>
 			{% for link in included_links_outgoing %}
@@ -30,14 +30,14 @@
 		{% endif %}
 		</div>
 	{% else %}
-		<div class="blurb">{{entry.text_formatted}}</div>
+		<div class="blurb">{{entry.displayTextWithInlineAttachmentLinks}}</div>
 	{% endif %}
 
 	{% if attachments %}
 		<p><b>Attachments</b></p>
 		{% for attachment in attachments %}
 			{% if attachment.isImage %}
-				<img src="img?attachment_id={{attachment.key}}"\>
+				<img src="/img?attachment_id={{attachment.key}}">
 			{% else %}
 				<p>&nbsp; &nbsp; 
 				{% if attachment.name %}

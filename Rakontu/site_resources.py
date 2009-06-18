@@ -1,4 +1,4 @@
-SYSTEM_HELP_RESOURCE = [u"About Rakontu", u"Wiki markup", 
+SYSTEM_INTRO_RESOURCE = [u"About Rakontu", u"Wiki markup", 
 u"""
 = About Rakontu
 
@@ -60,7 +60,7 @@ becomes <h1>&nbsp; &nbsp; header 1 text</h1><p>
 in each list item (if they spill over), thus:</p><p>&nbsp; * unordered list item</p><p>&nbsp; continuation of line</p><p>
 becomes <ul><li>unordered list item continuation of line</li></ul> </p>
 
-<p>To write an ordered (numbered) list item, put a pound sign with two spaces before it.. Keep two spaces in front of every line
+<p>To write an ordered (numbered) list item, put a pound sign with two spaces before it. Keep two spaces in front of every line
 in each list item (if they spill over), thus:</p><p>&nbsp; # ordered list item</p><p>&nbsp; continuation of  line</p><p>
 becomes <ol><li>ordered list item continuation of line</li></ol> </p>
 
@@ -72,12 +72,54 @@ becomes <a href="http://www.rakontu.org">http://www.rakontu.org</a></p>
 <p>To write a named link, put the name in parentheses after the link but inside the 
 square brackets: [http://www.rakontu.org(Rakontu)] becomes <a href="http://www.rakontu.org">Rakontu</a></p>
 
-<p>To include an inline picture link, place the link in curly brackets, and include an alt tag in 
+<p>To include an URL-based inline picture link, place the link in curly brackets, and include an alt tag in 
 parentheses: {http://www.rakontu.org/Rakontu.jpg(Rakontu picture)} 
 becomes <img src="http://www.rakontu.org/Rakontu.jpg" alt="Rakontu picture"/>
 
+<p>To refer to an attachment within the text of an entry, put pound signs around the number of the attachment, like this: #1# or #2#. 
+If the attachment is an image it will be shown in the document where you put the pound signs. If the attachment is another
+kind of file (pdf, etc) a link will appear there that people can click on to download the file.</p>
+
 <p>&nbsp; </p>
 <p>Tables and nested lists are not supported.
+"""]
+
+SYSTEM_SIMPLE_HTML_RESOURCE = [u"Simple HTML in Rakontu", u"Wiki markup",
+u"""
+You can enter these simple HTML elements into any Rakontu text box:
+
+<p>paragraph</p>
+
+<b>bold</b>
+
+<i>italic</i>
+
+<del>strikeout</del>
+
+<code>code</code>
+
+<ul> <li>...<li> </ul>
+
+<ol> <li>...<li> </ol>
+
+<h1>header 1</h1>
+
+<h2>header 2</h2>
+
+<h3>header 3</h3>
+
+line ending <br/>
+
+<hr>
+
+non-breaking space &nbsp; 
+
+links <a href=""></a>
+
+image tags <img src="" alt=""/> (these MUST include alt tags)
+
+Tables and nested lists are not supported.
+
 """]
 
 SYSTEM_TERMS_RESOURCE = [u"Terms in Rakontu", u"Wiki markup",
@@ -187,5 +229,11 @@ character attribution.
 
 """]
 
-SYSTEM_RESOURCES = [SYSTEM_HELP_RESOURCE, SYSTEM_WIKI_MARKUP_RESOURCE, SYSTEM_TERMS_RESOURCE, SYSTEM_PEOPLE_RESOURCE]
+SYSTEM_RESOURCES = [
+				SYSTEM_INTRO_RESOURCE, 
+				SYSTEM_TERMS_RESOURCE, 
+				SYSTEM_PEOPLE_RESOURCE,
+				SYSTEM_WIKI_MARKUP_RESOURCE, 
+				SYSTEM_SIMPLE_HTML_RESOURCE,
+				]
 

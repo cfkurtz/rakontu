@@ -252,6 +252,32 @@ class ReviewResourcesPage(webapp.RequestHandler):
 					 	resource.put()
 				self.redirect('/result?changessaved')
 						
+class ReviewRequestsPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			if member.isGuide():
+				requestsByType = []
+				for type in REQUEST_TYPES:
+					requests = Annotation.all().filter("community = ", community.key()).filter("draft = ", False).filter("typeIfRequest = ", type).fetch(FETCH_NUMBER)
+					requestsByType.append(requests)
+				template_values = GetStandardTemplateDictionaryAndAddMore({
+							   	   'title': "Resources", 
+						   	   	   'title_extra': None, 
+								   'community': community, 
+								   'current_member': member,
+								   'requests': requestsByType,
+								   'num_types': NUM_REQUEST_TYPES,
+								   'request_types': REQUEST_TYPES,
+								   })
+				path = os.path.join(os.path.dirname(__file__), 'templates/guide/requests.html')
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect("/visit/look")
+		else:
+			self.redirect("/")
+			
 class ReviewOfflineMembersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):

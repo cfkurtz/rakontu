@@ -212,6 +212,34 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 				community.roleReadmes_formats[i] = self.request.get("roleReadmes_formats%s" % i)
 			community.put()
 		self.redirect('/visit/look')
+		
+class ManageCommunityQuestionsListPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member = GetCurrentCommunityAndMemberFromSession()
+		if community and member:
+			counts = []
+			for type in QUESTION_REFERS_TO:
+				questions = community.getQuestionsOfType(type)
+				countsForThisType = []
+				for question in questions:
+					answerCount = Answer.all().filter("question = ", question.key()).count(FETCH_NUMBER)
+					countsForThisType.append((question.text, answerCount))
+				counts.append(countsForThisType)
+			template_values = GetStandardTemplateDictionaryAndAddMore({
+							   'title': "Manage %s" % type, 
+						   	   'title_extra': "questions", 
+							   'community': community, 
+							   'current_member': member,
+							   'counts': counts,
+							   'refer_types': QUESTION_REFERS_TO,
+							   'refer_types_plural': QUESTION_REFERS_TO_PLURAL,
+							   'num_types': NUM_QUESTION_REFERS_TO,
+							   })
+			path = os.path.join(os.path.dirname(__file__), 'templates/manage/questionsList.html')
+			self.response.out.write(template.render(path, template_values))
+		else:
+			self.redirect("/")
 				
 class ManageCommunityQuestionsPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -301,7 +329,7 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 			for sysQuestion in systemQuestionsOfType:
 				if self.request.get("copy|%s" % sysQuestion.key()) == "copy|%s" % sysQuestion.key():
 					community.AddCopyOfQuestion(sysQuestion)
-		self.redirect(self.request.uri)
+		self.redirect("/manage/questions_list")
 		
 class ManageCommunityCharactersPage(webapp.RequestHandler):
 	@RequireLogin 

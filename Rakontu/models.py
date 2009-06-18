@@ -60,6 +60,7 @@ TIME_UNIT_STRINGS = {"minute": MINUTE_SECONDS,
 					"month": MONTH_SECONDS,
 					"year": YEAR_SECONDS,}
 
+NUM_QUESTION_REFERS_TO = 7
 QUESTION_REFERS_TO = ["story", "pattern", "collage", "invitation", "resource", "member", "character"]
 QUESTION_REFERS_TO_PLURAL = ["stories", "patterns", "collages", "invitations", "resources", "members", "characters"]
 QUESTION_TYPES = ["boolean", "text", "ordinal", "nominal", "value"]
@@ -445,7 +446,7 @@ class Community(db.Model):
 		tagsSorted.extend(tags.keys())
 		tagsSorted.sort()
 		return tagsSorted
-						
+	
 	# QUESTIONS
 	
 	def getQuestions(self):
@@ -482,7 +483,7 @@ class Community(db.Model):
 							   multiple=question.multiple,
 							   community=self)
 		newQuestion.put()
-	
+		
 # ============================================================================================
 # ============================================================================================
 class Question(db.Model):
@@ -1130,6 +1131,18 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 			imageText = '<img src="/images/resource.png" alt="resource" border="0" %s\>' % text
 		return imageText
 	
+	def displayTextWithInlineAttachmentLinks(self):
+		result = self.text_formatted
+		attachments = self.getAttachments()
+		for i in range(len(attachments)):
+			findString = "#%s#" % (i+1)
+			if result.find(findString) >= 0:
+				if attachments[i].isImage():
+					result = result.replace(findString, '<img src="/img?attachment_id=%s">' % attachments[i].key())
+				else:
+					result = result.replace(findString, '<a href="/visit/attachment?attachment_id=%s">%s</a>' % (attachments[i].key(), attachments[i].fileName))
+		return result
+	
 # ============================================================================================
 # ============================================================================================
 class Link(db.Model):                         # related, retold, reminded, responded, included
@@ -1313,7 +1326,7 @@ class Annotation(db.Model):                                # tag set, comment, r
 			return self.type
 		return "tagset"
 	
-	def displayString(self):
+	def displayString(self, includeType=True):
 		if self.type == "comment":
 			if self.shortString:
 				return self.shortString
@@ -1323,9 +1336,15 @@ class Annotation(db.Model):                                # tag set, comment, r
 				return "no content"
 		if self.type == "request":
 			if self.shortString:
-				return "%s (%s)" % (self.shortString, self.typeIfRequest)
+				if includeType:
+					return "%s (%s)" % (self.shortString, self.typeIfRequest)
+				else:
+					return self.shortString
 			elif self.longString_formatted:
-				return "%s (%s)" % (self.longString_formatted, self.typeIfRequest)
+				if includeType:
+					return "%s (%s)" % (self.longString_formatted, self.typeIfRequest)
+				else:
+					return self.longString_formatted
 			else:
 				return "no content"
 		elif self.type == "tag set":
@@ -1342,6 +1361,9 @@ class Annotation(db.Model):                                # tag set, comment, r
 			if self.shortString:
 				result.append("(%s)" % self.shortString)
 			return ", ".join(result)
+		
+	def displayStringShortAndWithoutTags(self):
+		return self.displayString(includeType=False)
 	
 	def linkString(self):
 		if self.type == "comment" or self.type == "request":

@@ -29,21 +29,17 @@ tag cloud view? in look page?
 
 backup/restore (gaeutilities)?
 
-change manage questions menu - submenu or start page - messy looking
-
 sharding counters? what happens if more than 1000 in a query?
 
 add option for resources that they can be seen by only people in some roles
 this is a way to add help resources for say curators only or for managers only. ?? or not ??
 
 new member CONFIRM membership on that page. also enter nickname and whether it is real name.
-
-not reporting whether nickname is real name. keep or get rid of?
-
-add guide screen with all requests by type
+not reporting whether nickname is real name. keep or get rid of? maybe not necessary? silly?
 
 need a way for a member to QUIT the community. on their profile page? confirm page needed.
 
-need way to reference attachment in entry text and show inline
-
 should have page where admin can choose which system help resources to include ?
+
+ask member what text format they want to come up by default for entries and annotations (not for community things)
+

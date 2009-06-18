@@ -8,7 +8,7 @@
 	<td align="left" valign="center" class="noborder" width="70">
 	<a href="/visit/look">
 	{% if community.image %}
-		<img src="img?community_id={{community.key}}" class="bordered">
+		<img src="/img?community_id={{community.key}}" class="bordered">
 	{% else %}
 		<p><img src="/images/Rakontu.jpg" width="100" height="64" alt="Rakontu logo" class="bordered" ></p>
 	{% endif %}
@@ -57,8 +57,9 @@
 		{% if current_member.isGuide %}
 			<li><a href="/guide/resources">Guide</a>
 			<ul>
-				<li><a href="/guide/resources">Review resources</a>
 				<li><a href="/guide/resource">Add a resource</a></li>
+				<li><a href="/guide/resources">Review resources</a>
+				<li><a href="/guide/requests">Review requests</a></li>
 			</ul>
 			</li>
 		{% endif %}
@@ -77,14 +78,8 @@
 				<li><a href="/manage/settings">Settings</a></li>
 	      		<li><a href="/manage/members">Members</a></li>
 	      		<li><a href="/manage/characters">Characters</a></li>
-	      		<li><a href="/manage/questions_story">Questions about stories</a></li>
-		      	<li><a href="/manage/questions_invitation">Questions about invitations</a></li>
-		      	<li><a href="/manage/questions_collage">Questions about collages</a></li>
-		      	<li><a href="/manage/questions_pattern">Questions about patterns</a></li>
-		      	<li><a href="/manage/questions_resource">Questions about resources</a></li>
-		      	<li><a href="/manage/questions_member">Questions about members</a></li>
-		      	<li><a href="/manage/questions_character">Questions about characters</a></li>
-		      	<li><a href="/manage/technical">Backup / export</a></li>
+	      		<li><a href="/manage/questions_list">Questions</a></li>
+		      	<li><a href="/manage/technical">Backup</a></li>
 	      		</ul>
 	      	</li>
 	    {% endif %}
@@ -106,7 +101,7 @@
     <a href="/visit/help">Help</a> | <a href="/visit/profile">Preferences</a> | <a href="{{logout_url}}">Log out</a></p>
 	{% if current_member.profileImage %}
 	</td><td align="center" width="20" class="noborder">
-		<div><img src="img?member_id={{current_member.key}}"></img></div>
+		<div><img src="/img?member_id={{current_member.key}}"></img></div>
 	{% endif %}
 	</td><td valign="center" class="noborder">
 	

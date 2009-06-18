@@ -1,0 +1,30 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+		<div id="content">
+	
+	{% if current_member.isGuide %}
+
+		{% for i in num_types|makeRange %}
+			<h3>{{request_types|listLookup:i|capfirst}} requests</h3>
+      		<ul>
+      		{% if requests|listLookup:i %}
+	      		{% for request in requests|listLookup:i %}
+	      			<li class="nobullet">{{request.entry.linkString}} - 
+	      			<a href="/visit/readAnnotation?{{request.key}}">{{request.shortString}}</a></li>
+	      		{% endfor %}
+	      	{% else %}
+	      		<li class="nobullet">none</li>
+	      	{% endif %}
+      		</ul>
+      	{% endfor %}
+       	
+	{% else %}
+		<p>You are not a guide of this community and cannot review requests.
+		Please ask a guide to make any changes you would like to see made.</p>
+	{% endif %}
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

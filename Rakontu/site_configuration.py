@@ -253,7 +253,8 @@ NUM_TAGS_IN_TAG_SET = 5
 # Everyone can see them, and guides have a "review requests" page where they see all requests by type.
 # They should be worded in reference to an entry, like "transcribe it"
 # CAUTION: The last type in this list should always be "other" or some other no-category name.
-REQUEST_TYPES = ["transcribe it", "read it aloud", "translate it", "comment on it", "tag it", "answer questions about it", "other"]
+REQUEST_TYPES = ["transcribe", "read aloud", "translate", "comment on", "tag", "answer questions about", "other"]
+NUM_REQUEST_TYPES = 7
 
 # ============================================================================================ 
 # HELPING ROLES

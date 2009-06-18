@@ -7,9 +7,10 @@
 	<h3>{{annotation.shortString}}</h3>
 	<div class="blurb">{{annotation.longString_formatted}}</div>
 
-	<p>This {{annotation.type}} refers to the {{annotation.entry.type}} <a href="read?{{annotation.entry.key}}">{{annotation.entry.title}}</a>.</p>
+	<p>This {{annotation.type}} refers to the {{annotation.entry.type}} 
+	<a href="read?{{annotation.entry.key}}">{{annotation.entry.title}}</a>.
 	
-	<p>It was entered by 
+	It was entered by 
 	
 	{% if annotation.attributedToMember %}
 			{% if annotation.creator.active %}
