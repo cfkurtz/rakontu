@@ -116,7 +116,7 @@ def GenerateSystemQuestions():
 			question.put()
 	file.close()
 	
-def MakeSystemResource(community, member, title, text, format):
+def MakeSystemResource(community, member, title, text, format, managersOnly):
 	thereResource = Entry.all().filter("community = ", community).filter("creator = ", member.key()).filter("title = ", title).get()
 	if thereResource:
 		db.delete(thereResource)
@@ -132,15 +132,21 @@ def MakeSystemResource(community, member, title, text, format):
 					published=datetime.now(tz=pytz.utc),
 					resourceForHelpPage=True,
 					resourceForNewMemberPage=True,
+					resourceForManagersAndOwnersOnly=managersOnly,
+					resourceAtSystemLevel=True,
 					)
 	newResource.put()
 	
-def GenerateSystemResources(community, member):
-	for resourceArray in SYSTEM_RESOURCES:
-		title = resourceArray[0]
-		format = resourceArray[1]
-		text = resourceArray[2]
-		MakeSystemResource(community, member, title, text, format)
+def GenerateSystemResource(community, member, index):
+	resourceArray = SYSTEM_RESOURCES[index]
+	title = resourceArray[0]
+	format = resourceArray[1]
+	managersOnly = resourceArray[2]
+	text = resourceArray[3]
+	systemResource = Entry.all().filter("community = ", community.key()).filter("resourceAtSystemLevel = ", True).filter("title = ", title).get()
+	if systemResource:
+		db.delete(systemResource)
+	MakeSystemResource(community, member, title, text, format, managersOnly)
 	
 class ImageHandler(webapp.RequestHandler):
 	def get(self):
@@ -193,7 +199,7 @@ class ExportHandler(webapp.RequestHandler):
 		if self.request.get("export_id"):
 			export = db.get(self.request.get("export_id"))
 			if export and export.data:
-				self.response.headers.add_header('Content-Disposition', 'export; filename="%s"' % "test.xml")
+				self.response.headers.add_header('Content-Disposition', 'export; filename="%s"' % "test.csv")
 				self.response.headers.add_header('Content-Type', "XML")
 				self.response.out.write(export.data)
 			else:
@@ -458,6 +464,6 @@ def InterpretEnteredText(text, mode="text"):
 			result = result.replace('[%s]' % link, '<a href="%s">%s</a>' % (link, link))
 		for imageLink, alt in re.compile(r'\{(.+?)\((.+?)\)\}').findall(result):
 			result = result.replace('{%s(%s)}' % (imageLink,alt), '<img src="%s" alt="%s"/>' % (imageLink, alt))
-
 	return result
+
 

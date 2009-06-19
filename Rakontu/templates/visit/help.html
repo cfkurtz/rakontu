@@ -15,6 +15,15 @@
 		</ul>
 	{% endif %}
 	
+	{% if manager_resources %}
+		<p>You may find these resources helpful in managing this community site.</p>
+		<ul>
+		{% for resource in manager_resources %}
+		<li class="nobullet">{{resource.linkString}}</li>
+		{% endfor %}
+		</ul>
+	{% endif %}
+	
 	{% if guides %}
 		<h3>Ask a community guide a question</h3>
 		<p>Guides are community members who have agreed to answer questions about the community and the site. Here they have described

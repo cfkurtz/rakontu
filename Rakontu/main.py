@@ -108,6 +108,7 @@ application = webapp.WSGIApplication(
 									  ('/manage/technical', ManageCommunityTechnicalPage),
 									  ('/manage/inactivate', InactivateCommunityPage),
 									  ('/manage/export', ExportCommunityDataPage),
+									  ('/manage/systemResources', SystemResourcesPage),
 									  
 									  # site admin
 									  ('/admin/', AdministerCommunitiesPage),
@@ -115,8 +116,7 @@ application = webapp.WSGIApplication(
 									  ('/admin/communities', AdministerCommunitiesPage),
 									  ('/admin/generateSystemQuestions', GenerateSystemQuestionsPage),
 									  ('/admin/generateHelps', GenerateHelpsPage),
-									  ('/admin/generateSystemResources', GenerateSystemResourcesPage),
-
+									  
 									  # general message-to-user page
 									   ('/result', ResultFeedbackPage),
 									  

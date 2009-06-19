@@ -52,7 +52,7 @@ class GenerateSystemQuestionsPage(webapp.RequestHandler):
 		if access:
 			if users.is_current_user_admin():
 				GenerateSystemQuestions()
-				self.redirect(self.request.headers["Referer"])
+				self.redirect('/result?systemQuestionsGenerated')
 			else:
 				self.redirect('/')
 		else:
@@ -65,20 +65,7 @@ class GenerateHelpsPage(webapp.RequestHandler):
 		if access:
 			if users.is_current_user_admin():
 				GenerateHelps()
-				self.redirect(self.request.headers["Referer"])
-			else:
-				self.redirect('/')
-		else:
-			self.redirect('/')
-				
-class GenerateSystemResourcesPage(webapp.RequestHandler):
-	@RequireLogin 
-	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
-		if access:
-			if users.is_current_user_admin():
-				GenerateSystemResources(community, member)
-				self.redirect(self.request.headers["Referer"])
+				self.redirect('/result?helpsGenerated')
 			else:
 				self.redirect('/')
 		else:

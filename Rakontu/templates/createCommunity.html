@@ -10,7 +10,7 @@
 		<form action="/createCommunity" method="post">
 			<p>Please <b>name</b> the new Rakontu community. <i>You can change the name and add a description later.</i></p>
 			<input type="text" name="name" value="" size="40" maxlength="{{maxlength_name}}"/>
-			<p><i>You, {{ user.nickname|escape }}, will be the community's first <b>member</b>. You will also be an <b>owner</b>
+			<p><i>You, {{ current_user.nickname }}, will be the community's first <b>member</b>. You will also be an <b>owner</b>
 			of the community, which means you can add more members and change settings.</i></p>
 			<p>Please choose a <b>nickname</b> to represent yourself in the community, either your real name or a "screen name."
 			<i>You can change your nickname later.</i></p>

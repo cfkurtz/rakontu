@@ -6,9 +6,14 @@
 	
 	{% if current_member.isManagerOrOwner or user_is_admin %}
 
-		{% if export %}
-			<p><b>Exported data</b></p>
-			<p><a href="/export?export_id={{export.key}}">{{community.name}} export</a><p>
+		{% if entry_export %}
+			<p><b>Entries - with annotations, answers, attachment names and links</b></p>
+			<p>&nbsp; &nbsp; <a href="/export?export_id={{entry_export.key}}">{{community.name}} entries</a><p>
+		{% endif %}
+		
+		{% if community_export %}
+			<p><b>Community data - description, questions and characters</b></p>
+			<p>&nbsp; &nbsp; <a href="/export?export_id={{community_export.key}}">{{community.name}} settings</a><p>
 		{% endif %}
 	
 	{% else %}

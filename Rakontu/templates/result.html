@@ -38,6 +38,20 @@
 		you designate at least one other member as an owner.</p.
 	{% endifequal %}
 	
+	{% ifequal message "systemQuestionsGenerated" %}
+		<p>The system questions have been generated.</h3><p>You can do this again if you need to change the questions.csv file.</p>
+	{% endifequal %}
+	
+	{% ifequal message "helpsGenerated" %}
+		<p>Contextual help database objects have been generated.</h3><p>You can do this again if you need to change the help.csv file.</p>
+	{% endifequal %}
+	
+	{% ifequal message "systemResourcesGenerated" %}
+		<p>System resource database objects have been generated.</h3><p>
+		You can do this again if you need to change the site_resources.py file.</p><p>If you don't want to keep some of the
+		system resources you have just created, delete them in the curator flags screen (you may have to become a curator first).</p>
+	{% endifequal %}
+	
 	</h3>
 	<p>Would you like to <b><a href="{{linkback}}">Go back</a></b> to the page you were on?</p>
 	<p>Or perhaps you would like to return to the <b><a href="/visit/look">main community page</a></b>?</p>

@@ -113,6 +113,8 @@ class StartPage(webapp.RequestHandler):
 				self.redirect('/')
 		elif "createCommunity" in self.request.arguments():
 			self.redirect("/createCommunity")
+		elif "reviewAllCommunities" in self.request.arguments():
+			self.redirect("/admin/communities")
 		elif "makeFakeData" in self.request.arguments():
 			MakeSomeFakeData()
 			self.redirect("/")
@@ -145,11 +147,16 @@ class GetHelpPage(webapp.RequestHandler):
 	def get(self):
 		community, member, access = GetCurrentCommunityAndMemberFromSession()
 		if access:
+			if member.isManagerOrOwner():
+				managerResources = community.getNonDraftManagerOnlyHelpResources()
+			else:
+				managerResources = None
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': "Help",
 							'community': community, 
 							'current_member': member,
 							'resources': community.getNonDraftHelpResources(),
+							'manager_resources': managerResources,
 							'guides': community.getGuides(),
 							})
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/help.html')
@@ -242,6 +249,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 				textsForGrid.reverse()
 			else:
 				textsForGrid = []
+				rowHeaders = []
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': "Main page",
 						   	'title_extra': None,

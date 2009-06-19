@@ -34,12 +34,21 @@
 		<p></p>
 	
 		<input type="submit" name="createCommunity" value="Create a New Rakontu Community" class="button">
-		{% if DEVELOPMENT %}
-			<p></p>
-			<input type="submit" name="makeFakeData" value="Make Some Fake Data"><br/>
-			<input type="submit" name="generateSystemQuestions" value="Generate System Questions"><br/>
-			<input type="submit" name="generateHelps" value="Generate Helps">
+		{% if user_is_admin %}
+			<h3>For the system administrator</h3>
+			<fieldset>
+			<input type="submit" name="reviewAllCommunities" value="Review All Communities" class="button"><br/>
+			<input type="submit" name="generateSystemQuestions" value="Generate System Questions" class="button"><br/>
+			<input type="submit" name="generateHelps" value="Generate Helps" class="button">
+			</fieldset>
 		{% endif %}
+		{% if DEVELOPMENT %}
+			<h3>For the developer</h3>
+			<fieldset>
+			<input type="submit" name="makeFakeData" value="Make Some Fake Data" class="button"><br/>
+			</fieldset>
+		{% endif %}
+
 		</form>
 		</div>
 	

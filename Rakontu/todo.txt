@@ -1,41 +1,30 @@
 Things to do before v0.1 is complete
 
-# BUGS RIGHT NOW
+RIGHT NOW:
 
+QUERY
 
-# TO DO
-
-test "send this member a note" thing
+PIVOT
 
 liaison page:
     quick ways to output things for them - this has to be linked to the query system
     
 add import/export of question lists (CSV)
 
-start thinking about internationalization
-
-need a way for site administrator to DELETE a community (and also disable but not delete)
-no, an OWNER can delete a community. but they need a way to do it.
-	- have inactivation working, but need a screen for sys admin to reactivate OR remove all data for a community
-	- NEED TO FINISH THIS
-
 still have not implemented user choosing which nudge categories to consider in look page
-
-really need that "ALL" button on main page
-
-tag cloud view? in look page?
-
-backup/restore (gaeutilities)?
-
-sharding counters? what happens if more than 1000 in a query?
-
-add option for resources that they can be seen by only people in some roles
-this is a way to add help resources for say curators only or for managers only. ?? or not ??
-
-should have page where admin can choose which system help resources to include ?
 
 ask member what text format they want to come up by default for entries and annotations (not for community things)
 
 check "keepAnswer" - seems like answers are being kept when None
 
+PUT OFF until a little later :)
+
+test "send this member a note" thing
 address that ?xx= issue in urls ??
+backup/restore (gaeutilities)?
+sharding counters? 
+what happens if more than 1000 in a query?
+start thinking about internationalization
+really need that "ALL" button on main page
+tag cloud view? in look page?
+

@@ -23,7 +23,20 @@ def DebugPrint(text, msg="print"):
 def stripTags(text):
     pattern = re.compile(r'<.*?>')
     return pattern.sub('', text)
-		
+   
+def CleanUpCSV(parts):
+	partsWithCommasQuoted = []
+	for part in parts:
+		if part:
+			cleanPart = part
+			cleanPart = cleanPart.replace('"', '""')
+			if cleanPart.find(",") >= 0:
+				cleanPart = '"%s"' % cleanPart
+			partsWithCommasQuoted.append(cleanPart)
+		else:
+			partsWithCommasQuoted.append("")
+	return ','.join(partsWithCommasQuoted) 
+
 DEVELOPMENT = True
 FETCH_NUMBER = 1000
 
@@ -322,6 +335,7 @@ class Community(db.Model):
 			filter("draft = ", False). \
 			filter("type = ", "resource"). \
 			filter("resourceForNewMemberPage =", True). \
+			filter("resourceForManagersAndOwnersOnly = ", False). \
 			fetch(FETCH_NUMBER)
 	
 	def getNonDraftHelpResources(self):
@@ -329,6 +343,14 @@ class Community(db.Model):
 			filter("draft = ", False). \
 			filter("type = ", "resource"). \
 			filter("resourceForHelpPage = ", True). \
+			filter("resourceForManagersAndOwnersOnly = ", False). \
+			fetch(FETCH_NUMBER)
+			
+	def getNonDraftManagerOnlyHelpResources(self):
+		return Entry.all().filter("community = ", self.key()). \
+			filter("draft = ", False). \
+			filter("type = ", "resource"). \
+			filter("resourceForManagersAndOwnersOnly = ", True). \
 			fetch(FETCH_NUMBER)
 	
 	# ENTRIES, ANNOTATIONS, ANSWERS, LINKS - EVERYTHING
@@ -356,58 +378,6 @@ class Community(db.Model):
 		links = Link.all().filter("community = ", self.key()).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
 		return (entries, annotations, answers, links)
 	
-	def addEntriesFromCSV(self, data, liaison):
-		reader = csv.reader(data.split("\n"), delimiter=',', doublequote='"', quotechar='"')
-		for row in reader:
-			dateOkay = True
-			if len(row) > 0 and len(row[0]) > 0 and row[0][0] != ";" and row[0][0] != "#":
-				nickname = row[0].strip()
-				member = self.getOfflineMemberForNickname(nickname)
-				if member:
-					if len(row) >= 1:
-						dateString = row[1].strip()
-					else:
-						dateString = None
-						dateOkay = False
-					if dateOkay:
-						try:
-							(year, month, day) = dateString.split("-")
-						except:
-							dateOkay = False
-						if dateOkay:
-							try:
-								collected = datetime(int(year), int(month), int(day))
-							except:
-								collected = None
-								dateOkay = False
-							if dateOkay:
-								if len(row) >= 3:
-									type = row[2].strip()
-								else:
-									type = None
-								if type:
-									if len(row) >= 4:
-										title = row[3].strip()
-									else:
-										title = None
-									if title:
-										foundEntry = self.getEntryInImportBufferWithTitle(title)
-										if not foundEntry:
-											if len(row) >= 5:
-												text = row[4].strip()
-											else:
-												text = "No text imported."
-											entry = Entry(community=self, type=type, title=title) 
-											entry.text = text
-											entry.community = self
-											entry.creator = member
-											entry.collectedOffline = True
-											entry.collected = collected
-											entry.liaison = liaison
-											entry.inBatchEntryBuffer = True
-											entry.draft = True
-											entry.put()	
-										
 	def getEntryInImportBufferWithTitle(self, title):	
 		return Entry.all().filter("community = ", self.key()).filter("inBatchEntryBuffer = ", True).filter("title = ", title).get()
 										
@@ -500,12 +470,95 @@ class Community(db.Model):
 		
 	# EXPORT
 	
-	def exportData(self):
+	def exportEntryData(self):
 		export = Export(community=self.key())
-		export.data = db.Text(self.to_xml())
+		csvText = '"Export of entries, answers, annotations, attachments and links for community %s"\n' % self.name
+		entries = self.getNonDraftEntries()
+		csvText += "(entry columns)," + entries[0].csvLine(header=True) + "\n"
+		for entry in entries:
+			csvText += "\nentry," + entry.csvLine() + "\n"
+			annotations = entry.getNonDraftAnnotations()
+			if annotations:
+				csvText += "(annotation columns)," + annotations[0].csvLine(header=True) + "\n"
+			for annotation in annotations:
+				csvText += "annotation," + annotation.csvLine() + "\n"
+			answers = entry.getNonDraftAnswers()
+			if answers:
+				csvText += "(answer columns)," + answers[0].csvLine(header=True) + "\n"
+			for answer in answers:
+				csvText += "answer," + answer.csvLine() + "\n"
+			attachments = entry.getAttachments()
+			if attachments:
+				csvText += "(attachment columns)," + attachments[0].csvLine(header=True) + "\n"
+			for attachment in attachments:
+				csvText += "attachment," + attachment.csvLine() + "\n"
+			links = entry.getOutgoingLinks()
+			if links:
+				csvText = "(link columns)," + links[0].csvLine(header=True) + "\n"
+			for link in links:
+				csvText += "link," + link.csvLine() + "\n"
+		export.data = db.Text(csvText)
+		export.put()
+		return export
+
+	def exportCommunityData(self):
+		export = Export(community=self.key())
+		csvText = '"Export of settings, questions and characters for community %s"\n' % self.name
+		questions = self.getQuestions()
+		if questions:
+			csvText += "(question columns)," + questions[0].csvLine(header=True) + "\n"
+		for question in questions:
+			csvText += "question," + question.csvLine() + "\n"
+		characters = self.getActiveCharacters()
+		if characters:
+			csvText += "(character columns)," + characters[0].csvLine(header=True) + "\n"
+		for character in characters:
+			csvText += "characters," + character.csvLine() + "\n"
+		csvText += '(community columns),' + self.csvLine(header=True) + "\n"
+		csvText += "community," + self.csvLine() + "\n"
+		export.data = db.Text(csvText)
 		export.put()
 		return export
 		
+	def csvLine(self, header=False):
+		parts = []
+		if header:
+			parts.append("name")
+		else:
+			parts.append(self.name)
+			
+		if header:
+			parts.append("description")
+		else:
+			parts.append(self.description_formatted)
+
+		if header:
+			parts.append("etiquette statement")
+		else:
+			parts.append(self.etiquetteStatement_formatted)
+
+		if header:
+			parts.append("welcome message")
+		else:
+			parts.append(self.welcomeMessage_formatted)
+			
+		if header:
+			parts.append("curator readme")
+		else:
+			parts.append(self.roleReadmes_formatted[0])
+
+		if header:
+			parts.append("guide readme")
+		else:
+			parts.append(self.roleReadmes_formatted[1])
+
+		if header:
+			parts.append("liaison readme")
+		else:
+			parts.append(self.roleReadmes_formatted[2])
+
+		return CleanUpCSV(parts)
+
 # ============================================================================================
 # ============================================================================================
 class Question(db.Model):
@@ -544,7 +597,56 @@ class Question(db.Model):
 	
 	def numChoices(self):
 		return len(self.choices)
-		
+	
+	def csvLine(self, header=False):
+		parts = []
+		if header:
+			parts.append("name")
+		else:
+			parts.append(self.name)
+			
+		if header:
+			parts.append("question")
+		else:
+			parts.append(self.text)
+			
+		if header:
+			parts.append("refers to")
+		else:
+			parts.append(self.refersTo)
+
+		if header:
+			parts.append("type")
+		else:
+			parts.append(self.type)
+
+		if header:
+			parts.append("response if boolean")
+		else:
+			parts.append(self.responseIfBoolean)
+
+		if header:
+			parts.append("multiple?")
+		else:
+			parts.append(str(self.multiple))
+
+		if header:
+			parts.append("choices")
+		else:
+			parts.append(",".join(self.choices))
+			
+		if header:
+			parts.append("help")
+		else:
+			parts.append(str(self.help_formatted))
+
+		if header:
+			parts.append("min and max if value")
+		else:
+			parts.append("%s,%s" % (self.minIfValue, self.maxIfValue))
+
+		return CleanUpCSV(parts)
+
 # ============================================================================================
 # ============================================================================================
 class Member(db.Model):
@@ -591,9 +693,9 @@ class Member(db.Model):
 	nudgePoints = db.IntegerProperty(default=DEFAULT_START_NUDGE_POINTS) # accumulated through participation
 	
 	viewTimeEnd = TzDateTimeProperty(auto_now_add=True)
-	viewTimeFrameInSeconds = db.IntegerProperty(default=3600)
+	viewTimeFrameInSeconds = db.IntegerProperty(default=DAY_SECONDS)
 	viewNumTimeFrames = db.IntegerProperty(default=1)
-	viewNumTimeColumns = db.IntegerProperty(default=10)
+	viewNumTimeColumns = db.IntegerProperty(default=5)
 	
 	# CREATION
 	
@@ -788,6 +890,24 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
 	
+	def csvLine(self, header=False):
+		parts = []
+		if header:
+			parts.append("name")
+		else:
+			parts.append(self.name)
+			
+		if header:
+			parts.append("description")
+		else:
+			parts.append(str(self.description_formatted))
+			
+		if header:
+			parts.append("etiquette statement")
+		else:
+			parts.append(str(self.etiquetteStatement_formatted))
+		return CleanUpCSV(parts)
+
 # ============================================================================================
 # ============================================================================================
 class Answer(db.Model):
@@ -876,61 +996,34 @@ class Answer(db.Model):
 	
 	def csvLine(self, header=False):
 		parts = []
-		if header: 
-			parts.append("answer key") 
-		else: 
-			parts.append(self.key())
+		if header:
+			parts.append("question and type")
+		else:	
+			parts.append("%s (%s)" % (self.question.text, self.question.type))
 			
 		if header:
-			parts.append("refers to")
-		else:
-			parts.append(self.referentType)
+			parts.append("by")
+		else:	
+			if self.character:
+				parts.append(self.character.name)
+			else:
+				parts.append(self.creator.nickname)
 			
 		if header:
-			parts.append("referent key")
-		else:
-			parts.append(self.referent.key())
-		
-		if header:
-			parts.append("question name")
+			parts.append("answer")
 		else:	
-			parts.append(self.question.name)
-
-		if header:
-			parts.append("question type")
-		else:	
-			parts.append(self.question.type)
-			
-		if header:
-			parts.append("question key")
-		else:	
-			parts.append(self.question.key())
-			
-		if header:
-			parts.append("answer if boolean")
-		else:	
-			parts.append(self.answerIfBoolean)
-			
-		if header:
-			parts.append("answer if text")
-		else:	
-			parts.append(self.answerIfText)
-			
-		if header:
-			parts.append("answer if multiple")
-		else:	
-			parts.append(", ".join(self.answerIfMultiple))
-			
-		if header:
-			parts.append("answer if value")
-		else:	
-			parts.append("%s" % self.answerIfValue)
-			
-		if header:
-			parts.append("answer if boolean")
-		else:	
-			parts.append(self.answerIfBoolean)
-		return '"' + '", "'.join(parts) + '"'
+			if self.type == "boolean":
+				parts.append(self.answerIfBoolean)
+			elif self.type == "text":
+				parts.append(self.answerIfText)
+			elif self.type == "ordinal" or self.type == "nominal":
+				if self.multiple:
+					parts.append(", ".join(self.answerIfMultiple))
+				else:
+					parts.append(self.answerIfText)
+			elif self.type == "value":
+				parts.append("%s" % self.answerIfValue)
+		return CleanUpCSV(parts)
 		
 	# ATTRIBUTION
 	
@@ -961,6 +1054,8 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 	
 	resourceForHelpPage = db.BooleanProperty(default=False)
 	resourceForNewMemberPage = db.BooleanProperty(default=False)
+	resourceForManagersAndOwnersOnly = db.BooleanProperty(default=False)
+	resourceAtSystemLevel = db.BooleanProperty(default=False)
 
 	community = db.ReferenceProperty(Community, required=True, collection_name="entries_to_community")
 	creator = db.ReferenceProperty(Member, collection_name="entries")
@@ -1154,6 +1249,9 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 	def getIncomingLinksOfType(self, type):
 		return Link.all().filter("entryTo =", self.key()).filter("type = ", type).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
 	
+	def getOutgoingLinks(self):
+		return Link.all().filter("entryFrom =", self.key()).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
+	
 	def getIncomingLinksOfTypeFromType(self, type, fromType):
 		result = []
 		incomingLinks = self.getIncomingLinksOfType(type)
@@ -1218,6 +1316,35 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 					result = result.replace(findString, '<a href="/visit/attachment?attachment_id=%s">%s</a>' % (attachments[i].key(), attachments[i].fileName))
 		return result
 	
+	def csvLine(self, header=False):
+		parts = []
+		if header: 
+			parts.append("type") 
+		else: 
+			parts.append(self.type)
+			
+		if header:
+			parts.append("by")
+		else:	
+			if self.character:
+				parts.append(self.character.name)
+			else:
+				parts.append(self.creator.nickname)
+			
+		if header:
+			parts.append("title")
+		else:
+			parts.append(self.title)
+			
+		if header:
+			parts.append("content")
+		else:
+			if self.text_formatted:
+				parts.append(self.text_formatted)
+			else:
+				parts.append(self.text)
+		return CleanUpCSV(parts)
+
 # ============================================================================================
 # ============================================================================================
 class Link(db.Model):                         # related, retold, reminded, responded, included
@@ -1286,7 +1413,30 @@ class Link(db.Model):                         # related, retold, reminded, respo
 	
 	def linkString(self):
 		return self.displayString()
-		
+	
+	def csvLine(self, header=False):
+		parts = []
+		if header: 
+			parts.append("from") 
+		else: 
+			parts.append(self.entryFrom.title)
+			
+		if header:
+			parts.append("to")
+		else:
+			parts.append(self.entryTo.title)
+			
+		if header:
+			parts.append("by")
+		else:	
+			parts.append(self.creator.nickname)
+			
+		if header:
+			parts.append("comment")
+		else:
+			parts.append(self.comment)
+		return CleanUpCSV(parts)
+
 # ============================================================================================
 # ============================================================================================
 class Attachment(db.Model):                                   # binary attachments to entries
@@ -1306,23 +1456,13 @@ class Attachment(db.Model):                                   # binary attachmen
 	
 	def csvLine(self, header=False):
 		parts = []
-		if header: 
-			parts.append("link key") 
-		else: 
-			parts.append(self.key())
-			
-		if header:
-			parts.append("entry key")
-		else:
-			parts.append(self.entry.key())
-			
 		if header:
 			parts.append("name")
 		else:
 			parts.append(self.name)
 		
 		if header:
-			parts.append("MIME type")
+			parts.append("type")
 		else:	
 			parts.append(self.mimeType)
 
@@ -1330,7 +1470,7 @@ class Attachment(db.Model):                                   # binary attachmen
 			parts.append("file name")
 		else:	
 			parts.append(self.fileName)
-		return '"' + '", "'.join(parts) + '"'
+		return CleanUpCSV(parts)
 
 # ============================================================================================
 # ============================================================================================
@@ -1495,45 +1635,28 @@ class Annotation(db.Model):                                # tag set, comment, r
 	def csvLine(self, header=False):
 		parts = []
 		if header: 
-			parts.append("annotation key") 
-		else: 
-			parts.append(self.key())
-			
-		if header: 
 			parts.append("type") 
 		else: 
 			parts.append(self.type)
 			
 		if header:
-			parts.append("entry key")
-		else:
-			parts.append(self.entry.key())
+			parts.append("by")
+		else:	
+			if self.character:
+				parts.append(self.character.name)
+			else:
+				parts.append(self.creator.nickname)
 			
 		if header:
-			parts.append("subject or comment")
+			parts.append("content")
 		else:
-			parts.append(self.shortString)
-		
-		if header:
-			parts.append("body")
-		else:	
-			parts.append(self.longString_formatted)
-
-		if header:
-			parts.append("tags if tag set")
-		else:	
-			parts.append(self.tagsIfTagSet)
-
-		if header:
-			parts.append("values if nudge")
-		else:	
-			parts.append(self.valuesIfNudge)
-
-		if header:
-			parts.append("type if request")
-		else:	
-			parts.append(self.typeIfRequest)
-		return '"' + '", "'.join(parts) + '"'
+			if self.type == "comment":
+				parts.append("%s: %s" % (self.shortString, self.longString_formatted))
+			elif self.type == "request":
+				parts.append("%s (%s): %s" % (self.shortString, self.typeIfRequest, self.longString_formatted))
+			else:
+				parts.append(self.displayString())
+		return CleanUpCSV(parts)
 	
 # ============================================================================================
 # ============================================================================================

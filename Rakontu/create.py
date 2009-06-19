@@ -16,7 +16,6 @@ class CreateCommunityPage(webapp.RequestHandler):
 		template_values = GetStandardTemplateDictionaryAndAddMore({
 						   'title': "Create community",
 						   'title_extra': None,
-						   'community': community, 
 						   })
 		path = os.path.join(os.path.dirname(__file__), 'templates/createCommunity.html')
 		self.response.out.write(template.render(path, template_values))
@@ -199,6 +198,7 @@ class EnterEntryPage(webapp.RequestHandler):
 			if type == "resource":
 				entry.resourceForHelpPage = self.request.get("resourceForHelpPage") == "yes"
 				entry.resourceForNewMemberPage = self.request.get("resourceForNewMemberPage") == "yes"
+				entry.resourceForManagersAndOwnersOnly = self.request.get("resourceForManagersAndOwnersOnly") == "yes"
 			entry.put()
 			linkType = None
 			if self.request.get("entry_from"):

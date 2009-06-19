@@ -25,7 +25,13 @@
 		    	<tr>
 		    	<td>{{community.name}}</td>
 		    	<td>{{community.created|timeZone:"UTC"|date:"F j, Y"}} (UTC)</td>
-		    	<td>{{community.lastPublish|timeZone:"UTC"|date:"F j, Y"}} (UTC)</td>
+		    	<td>
+		    		{% if community.lastPublish %}
+		    			{{community.lastPublish|timeZone:"UTC"|date:"F j, Y"}} (UTC)
+		    		{% else %}
+		    			none
+		    		{% endif %}
+		    		</td>
 		    	<td align="center">{{community.getActiveMembers|length}}</td>
 		    	<td align="center">{{community.getInactiveMembers|length}}</td>
 		    	<td align="center">{{community.getPendingMembers|length}}</td>
@@ -51,13 +57,13 @@
 	    	{% endfor %}
 	    	</table>
 	    	</fieldset>
+			<p></p>
+			<center><p><i><b>Please remove communities VERY carefully.</p><p>Deleted communities cannot be recovered.</p><p>It is best to backup first.</b></i></p>
+			</form>
+			</div>
 	    {% else %}
-	    	<p>There are no communities in this Rakontu installation. <a href="/createCommunity">Make one</a></p>
+	    	<p><center>There are no communities in this Rakontu installation.</p><p><a href="/createCommunity">Make one</a></center></p>
 	    {% endif %}	
-		<p></p>
-		<center><p><i><b>Please remove communities VERY carefully.</p><p>Deleted communities cannot be recovered.</p><p>It is best to backup first.</b></i></p>
-		</form>
-		</div>
 	{% else %}
 		<p>You are not a manager of this community and cannot change its settings.
 		Please ask a manager to make any changes you would like to see made.</p>

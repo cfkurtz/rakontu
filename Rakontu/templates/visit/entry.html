@@ -112,6 +112,20 @@
 				{% endif %}
 				id="resourceForNewMemberPage">
 				<label for="resourceForNewMemberPage">Yes, mark this as a new-member resource</label>
+				
+				{% if current_member.isManagerOrOwner %}
+				<p>Should it be available only to community managers and owners?</p>
+				<input type="checkbox" name="resourceForManagersAndOwnersOnly" value="yes" 
+				{% if entry %}
+					{% if entry.resourceForManagersAndOwnersOnly %}
+						checked
+					{% endif %}
+				{% endif %}
+				id="resourceForManagersAndOwnersOnly">
+				<label for="resourceForManagersAndOwnersOnly">Yes, make this only available to managers and owners</label>
+				
+				{% endif %}
+			
 				</fieldset>
 			{% endifequal %}
 				

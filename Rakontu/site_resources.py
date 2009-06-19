@@ -1,4 +1,15 @@
-SYSTEM_INTRO_RESOURCE = [u"About Rakontu", u"Wiki markup", 
+# --------------------------------------------------------------------------------------------
+# RAKONTU
+# Description: Rakontu is open source story sharing software.
+# Version: pre-0.1
+# License: GPL 3.0
+# Google Code Project: http://code.google.com/p/rakontu/
+# --------------------------------------------------------------------------------------------
+
+# These are site-wide system resources, mainly help resources, that all communities in the installation can copy and use.
+# NOTE: All system resources MUST have unique names.
+
+SYSTEM_INTRO_RESOURCE = [u"About Rakontu", u"Wiki markup", False, # boolean is whether it is for managers/owners only
 u"""
 = About Rakontu
 
@@ -33,7 +44,7 @@ and off-line members (people who tell and hear stories but don't use the web sit
 To get started, click on a story title and start reading!
 """]
 
-SYSTEM_WIKI_MARKUP_RESOURCE = [u"Wiki markup in Rakontu", u"simple HTML",
+SYSTEM_WIKI_MARKUP_RESOURCE = [u"Wiki markup in Rakontu", u"simple HTML", False,
 u"""
 <h1>Wiki markup in Rakontu</h1>
 
@@ -84,7 +95,7 @@ kind of file (pdf, etc) a link will appear there that people can click on to dow
 <p>Tables and nested lists are not supported.
 """]
 
-SYSTEM_SIMPLE_HTML_RESOURCE = [u"Simple HTML in Rakontu", u"Wiki markup",
+SYSTEM_SIMPLE_HTML_RESOURCE = [u"Simple HTML in Rakontu", u"Wiki markup", False,
 u"""
 You can enter these simple HTML elements into any Rakontu text box:
 
@@ -122,7 +133,7 @@ Tables and nested lists are not supported.
 
 """]
 
-SYSTEM_TERMS_RESOURCE = [u"Terms in Rakontu", u"Wiki markup",
+SYSTEM_TERMS_RESOURCE = [u"Terms in Rakontu", u"Wiki markup", False,
 u"""
 = Terms in Rakontu
 
@@ -178,7 +189,7 @@ interesting queries, like "Show me stories told by members under 20 in which peo
 
 """]
 
-SYSTEM_PEOPLE_RESOURCE = [u"People in Rakontu", u"Wiki markup",
+SYSTEM_PEOPLE_RESOURCE = [u"People in Rakontu", u"Wiki markup", False,
 u"""
 = People in Rakontu
 
@@ -229,11 +240,17 @@ character attribution.
 
 """]
 
+SYSTEM_MANAGING_RESOURCE = [u"How to manage a Rakontu community", u"Wiki markup", True,
+u"""
+Here is how you do it.
+"""]
+
 SYSTEM_RESOURCES = [
 				SYSTEM_INTRO_RESOURCE, 
 				SYSTEM_TERMS_RESOURCE, 
 				SYSTEM_PEOPLE_RESOURCE,
 				SYSTEM_WIKI_MARKUP_RESOURCE, 
 				SYSTEM_SIMPLE_HTML_RESOURCE,
+				SYSTEM_MANAGING_RESOURCE,
 				]
 

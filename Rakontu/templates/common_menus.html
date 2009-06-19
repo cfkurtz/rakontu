@@ -81,17 +81,17 @@
 		      		<li><a href="/manage/members">Members</a></li>
 		      		<li><a href="/manage/characters">Characters</a></li>
 		      		<li><a href="/manage/questions_list">Questions</a></li>
-			      	<li><a href="/manage/export">Export data</a></li>
+			      	<li><a href="/manage/export">Export</a></li>
+		      		<li><a href="/manage/systemResources">Add system resources</a></li>
 		      		</ul>
 		      	</li>
 		    {% endif %}
 			{% if user_is_admin %}
 	 			<li><a href="/admin/communities">Administer</a>
 					<ul>
-					<li><a href="/admin/generateSystemQuestions">Generate system questions</a></li>
-					<li><a href="/admin/generateHelps">Generate help messages</a></li>
-					<li><a href="/admin/generateSystemResources">Generate system resources</a></li>
 					<li><a href="/admin/communities">Review all communities</a></li>
+					<li><a href="/admin/generateSystemQuestions">Generate site-level sample questions</a></li>
+					<li><a href="/admin/generateHelps">Generate site-level help messages</a></li>
 					</ul>
 				</li>
 			{% endif %}

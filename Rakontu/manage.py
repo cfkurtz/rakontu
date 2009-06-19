@@ -482,13 +482,15 @@ class ExportCommunityDataPage(webapp.RequestHandler):
 			# remove any old exports
 			oldExports = Export.all().filter('community = ', community.key()).fetch(FETCH_NUMBER)
 			db.delete(oldExports)
-			export = community.exportData()
+			entries_export = community.exportEntryData()
+			community_export = community.exportCommunityData()
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Export community data", 
 						   	   	   'title_extra': None, 
 								   'community': community,
 								   'current_member': member,
-								   'export': export,
+								   'entry_export': entries_export,
+								   'community_export': community_export,
 								   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/manage/export.html')
 			self.response.out.write(template.render(path, template_values))
@@ -525,6 +527,42 @@ class InactivateCommunityPage(webapp.RequestHandler):
 					self.redirect("/")
 				else:
 					self.redirect('/manage/settings')
+			else:
+				self.redirect("/visit/look")
+		else:
+			self.redirect("/")
+
+class SystemResourcesPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
+			if member.isManagerOrOwner():
+				template_values = GetStandardTemplateDictionaryAndAddMore({
+								   'title': "Add system resources", 
+							   	   'title_extra': community.name, 
+								   'community': community, 
+								   'current_member': member,
+								   'resources': SYSTEM_RESOURCES,
+								   'num_resources': len(SYSTEM_RESOURCES),
+								   })
+				path = os.path.join(os.path.dirname(__file__), 'templates/manage/systemResources.html')
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect('/')
+		else:
+			self.redirect('/')
+			
+	@RequireLogin 
+	def post(self):
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
+			if member.isManagerOrOwner():
+				for i in range(len(SYSTEM_RESOURCES)):
+					if self.request.get("add|%s" % i) == "yes":
+						DebugPrint(i, "generating")
+						GenerateSystemResource(community, member, i)
+				self.redirect("/result?systemResourcesGenerated")
 			else:
 				self.redirect("/visit/look")
 		else:

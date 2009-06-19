@@ -14,6 +14,9 @@
 	      		<th>Attachments</th>
 	      		<th>Help?</th>
 	      		<th>For new members?</th>
+	      		{% if current_member.isManagerOrOwner %}
+	      			<th>For managers/owners only?</th>
+	      		{% endif %}
 	      		<th>Created</th>
 	      		<th>Last changed</th>
 	      		<th>Last published</th>
@@ -40,6 +43,9 @@
 					</td>
 					<td>{{resource.resourceForHelpPage|yesno:"yes, no"}}</td>
 					<td>{{resource.resourceForNewMemberPage|yesno:"yes, no"}}</td>
+					{% if current_member.isManagerOrOwner %}
+						<td>{{resource.resourceForManagersAndOwnersOnly|yesno:"yes, no"}}</td>
+					{% endif %}
 					<td>{{resource.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 						<br/> {{resource.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
 					</td>
