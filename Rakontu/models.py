@@ -51,6 +51,7 @@ EVENT_TYPES = ["downdrift", \
 
 
 ENTRY_TYPES = ["story", "invitation", "collage", "pattern", "resource"]
+ENTRY_TYPES_PLURAL = ["stories", "invitations", "collages", "patterns", "resources"]
 LINK_TYPES = ["retold", "reminded", "responded", "related", "included"]
 
 ANNOTATION_TYPES = ["tag set", "comment", "request", "nudge"]
@@ -421,23 +422,26 @@ class Community(db.Model):
 	
 	# QUESTIONS
 	
-	def getQuestions(self):
+	def getAllQuestions(self):
+		return Question.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+	
+	def getActiveQuestions(self):
 		return Question.all().filter("community = ", self.key()).filter("active = ", True).fetch(FETCH_NUMBER)
 	
-	def getQuestionsOfType(self, type):
+	def getActiveQuestionsOfType(self, type):
 		return Question.all().filter("community = ", self.key()).filter("refersTo = ", type).filter("active = ", True).fetch(FETCH_NUMBER)
 	
 	def getInactiveQuestionsOfType(self, type):
 		return Question.all().filter("community = ", self.key()).filter("refersTo = ", type).filter("active = ", False).fetch(FETCH_NUMBER)
 	
-	def getMemberQuestions(self):
-		return self.getQuestionsOfType("member")
+	def getActiveMemberQuestions(self):
+		return self.getActiveQuestionsOfType("member")
 	
-	def getNonMemberQuestions(self):
+	def getActiveNonMemberQuestions(self):
 		return Question.all().filter("community = ", self.key()).filter("refersTo !=", "member").filter("active = ", True).fetch(FETCH_NUMBER)
 		
 	def hasQuestionWithSameTypeAndName(self, question):
-		allQuestions = self.getQuestions()
+		allQuestions = self.getAllQuestions()
 		for aQuestion in allQuestions:
 			if aQuestion.refersTo == question.refersTo and aQuestion.name == question.name:
 				return True
@@ -470,56 +474,75 @@ class Community(db.Model):
 		
 	# EXPORT
 	
-	def exportEntryData(self):
-		export = Export(community=self.key())
-		csvText = '"Export of entries, answers, annotations, attachments and links for community %s"\n' % self.name
-		entries = self.getNonDraftEntries()
-		csvText += "(entry columns)," + entries[0].csvLine(header=True) + "\n"
-		for entry in entries:
-			csvText += "\nentry," + entry.csvLine() + "\n"
-			annotations = entry.getNonDraftAnnotations()
-			if annotations:
-				csvText += "(annotation columns)," + annotations[0].csvLine(header=True) + "\n"
-			for annotation in annotations:
-				csvText += "annotation," + annotation.csvLine() + "\n"
-			answers = entry.getNonDraftAnswers()
-			if answers:
-				csvText += "(answer columns)," + answers[0].csvLine(header=True) + "\n"
-			for answer in answers:
-				csvText += "answer," + answer.csvLine() + "\n"
-			attachments = entry.getAttachments()
-			if attachments:
-				csvText += "(attachment columns)," + attachments[0].csvLine(header=True) + "\n"
-			for attachment in attachments:
-				csvText += "attachment," + attachment.csvLine() + "\n"
-			links = entry.getOutgoingLinks()
-			if links:
-				csvText = "(link columns)," + links[0].csvLine(header=True) + "\n"
-			for link in links:
-				csvText += "link," + link.csvLine() + "\n"
-		export.data = db.Text(csvText)
-		export.put()
-		return export
+	def getExportOfType(self, type):
+		return Export.all().filter("community = ", self.key()).filter("type = ", type).get()
 
-	def exportCommunityData(self):
-		export = Export(community=self.key())
-		csvText = '"Export of settings, questions and characters for community %s"\n' % self.name
-		questions = self.getQuestions()
-		if questions:
-			csvText += "(question columns)," + questions[0].csvLine(header=True) + "\n"
-		for question in questions:
-			csvText += "question," + question.csvLine() + "\n"
-		characters = self.getActiveCharacters()
-		if characters:
-			csvText += "(character columns)," + characters[0].csvLine(header=True) + "\n"
-		for character in characters:
-			csvText += "characters," + character.csvLine() + "\n"
-		csvText += '(community columns),' + self.csvLine(header=True) + "\n"
-		csvText += "community," + self.csvLine() + "\n"
+	def createOrRefreshExport(self, type):
+		exportAlreadyThereForType = self.getExportOfType(type)
+		if exportAlreadyThereForType:
+			db.delete(exportAlreadyThereForType)
+		export = Export(community=self.key(), type=type)
+		if type == "entries":
+			csvText = '"Export of entries, answers, annotations, attachments and links for community %s"\n' % self.name
+			entries = self.getNonDraftEntries()
+			csvText += "(entry columns)," + entries[0].csvLine(header=True) + "\n"
+			for entry in entries:
+				csvText += "\nentry," + entry.csvLine() + "\n"
+				annotations = entry.getNonDraftAnnotations()
+				if annotations:
+					csvText += "(annotation columns)," + annotations[0].csvLine(header=True) + "\n"
+				for annotation in annotations:
+					csvText += "annotation," + annotation.csvLine() + "\n"
+				answers = entry.getNonDraftAnswers()
+				if answers:
+					csvText += "(answer columns)," + answers[0].csvLine(header=True) + "\n"
+				for answer in answers:
+					csvText += "answer," + answer.csvLine() + "\n"
+				attachments = entry.getAttachments()
+				if attachments:
+					csvText += "(attachment columns)," + attachments[0].csvLine(header=True) + "\n"
+				for attachment in attachments:
+					csvText += "attachment," + attachment.csvLine() + "\n"
+				links = entry.getOutgoingLinks()
+				if links:
+					csvText = "(link columns)," + links[0].csvLine(header=True) + "\n"
+				for link in links:
+					csvText += "link," + link.csvLine() + "\n"
+		elif type == "entries_with_answers":
+			csvText = '"Export of entries with answers for community %s"\n' % self.name
+			members = self.getActiveMembers()
+			characters = self.getActiveCharacters()
+			typeCount = 0
+			for type in ENTRY_TYPES:
+				entries = self.getNonDraftEntriesOfType(type)
+				if entries:
+					questions = self.getActiveQuestionsOfType(type)
+					csvText += '%s\nNumber,Title,' % ENTRY_TYPES_PLURAL[typeCount].upper()
+					for question in questions:
+						csvText += question.name + ","
+					csvText += '\n'
+					i = 0
+					for entry in entries:
+						csvText += entry.csvLineWithAnswers(i+1, members, characters, questions) 
+						i += 1
+				typeCount += 1
+		elif type == "community":
+			csvText = '"Export of settings, questions and characters for community %s"\n' % self.name
+			questions = self.getAllQuestions()
+			if questions:
+				csvText += "(question columns)," + questions[0].csvLine(header=True) + "\n"
+			for question in questions:
+				csvText += "question," + question.csvLine() + "\n"
+			characters = self.getActiveCharacters()
+			if characters:
+				csvText += "(character columns)," + characters[0].csvLine(header=True) + "\n"
+			for character in characters:
+				csvText += "characters," + character.csvLine() + "\n"
+			csvText += '(community columns),' + self.csvLine(header=True) + "\n"
+			csvText += "community," + self.csvLine() + "\n"
 		export.data = db.Text(csvText)
 		export.put()
-		return export
-		
+
 	def csvLine(self, header=False):
 		parts = []
 		if header:
@@ -678,6 +701,7 @@ class Member(db.Model):
 	profileText_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
 	profileImage = db.BlobProperty(default=None) # optional, resized to 100x60
 	acceptsMessages = db.BooleanProperty(default=True) # other members can send emails to their google email (without seeing it)
+	preferredTextFormat = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
 	
 	timeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE) # members choose these in their prefs page
 	timeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT) # how they want to see dates
@@ -695,7 +719,7 @@ class Member(db.Model):
 	viewTimeEnd = TzDateTimeProperty(auto_now_add=True)
 	viewTimeFrameInSeconds = db.IntegerProperty(default=DAY_SECONDS)
 	viewNumTimeFrames = db.IntegerProperty(default=1)
-	viewNumTimeColumns = db.IntegerProperty(default=5)
+	viewNudgeCategories = db.ListProperty(bool, default=[True] * NUM_NUDGE_CATEGORIES)
 	
 	# CREATION
 	
@@ -1204,6 +1228,14 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 	def nudgePointsCombined(self):
 		return self.nudgePoints[0] + self.nudgePoints[1] + self.nudgePoints[2] + self.nudgePoints[3] + self.nudgePoints[4]
 	
+	def nudgePointsForMemberViewOptions(self, options):
+		result = 0
+		for nudge in self.getNonDraftAnnotationsOfType("nudge"):
+			for i in range(NUM_NUDGE_CATEGORIES):
+				if options[i]:
+					result += nudge.valuesIfNudge[i]
+		return result
+	
 	# ANNOTATIONS, ANSWERS, LINKS
 	
 	def getAnnotations(self):
@@ -1226,6 +1258,15 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 
 	def getAnswersForMember(self, member):
 		return Answer.all().filter("referent = ", self.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
+	
+	def getAnswersForCharacter(self, character):
+		return Answer.all().filter("referent = ", self.key()).filter("creator = ", character.key()).fetch(FETCH_NUMBER)
+	
+	def getAnswerForMemberAndQuestion(self, member, question):
+		return Answer.all().filter("referent = ", self.key()).filter("creator = ", member.key()).filter("question = ", question.key()).get()
+	
+	def getAnswerForCharacterAndQuestion(self, character, question):
+		return Answer.all().filter("referent = ", self.key()).filter("character = ", character.key()).filter("question = ", question.key()).get()
 	
 	def getAllLinks(self):
 		result = []
@@ -1344,6 +1385,32 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 			else:
 				parts.append(self.text)
 		return CleanUpCSV(parts)
+	
+	def csvLineWithAnswers(self, index, members, characters, questions):
+		parts = []
+		for member in members:
+			if len(self.getAnswersForMember(member)):
+				parts.append(str(index))
+				parts.append(self.title)
+				for question in questions:
+					answer = self.getAnswerForMemberAndQuestion(member, question)
+					if answer: 
+						parts.append(answer.displayStringShort())
+					else:
+						parts.append("")
+				parts.append('\n')
+		for character in characters:
+			if len(self.getAnswersForCharacter(character)):
+				parts.append(str(index))
+				parts.append(self.title)
+				for question in questions:
+					answer = self.getAnswerForCharacterAndQuestion(character, question)
+					if answer: 
+						parts.append(answer.displayStringShort())
+					else:
+						parts.append("")
+		return CleanUpCSV(parts)
+		
 
 # ============================================================================================
 # ============================================================================================
@@ -1675,4 +1742,6 @@ class Export(db.Model):	     # data prepared for export, in XML format
 # ============================================================================================
 	
 	community = db.ReferenceProperty(Community, required=True, collection_name="export_to_community")
+	type = db.StringProperty()
+	created = TzDateTimeProperty(auto_now_add=True)
 	data = db.TextProperty()

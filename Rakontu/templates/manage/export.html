@@ -6,16 +6,48 @@
 	
 	{% if current_member.isManagerOrOwner or user_is_admin %}
 
+		<div id="stylized" class="rakontu_form">
+		<form action="/manage/export" method="post" enctype="multipart/form-data">
+		
+		<p><b>Export entries - with annotations, answers, attachment names and links</b></p>
 		{% if entry_export %}
-			<p><b>Entries - with annotations, answers, attachment names and links</b></p>
-			<p>&nbsp; &nbsp; <a href="/export?export_id={{entry_export.key}}">{{community.name}} entries</a><p>
+			<p>&nbsp; &nbsp; <a href="/export?export_id={{entry_export.key}}">Entries for {{community.name}}</a>
+			was last generated 
+			on {{entry_export.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+			at {{entry_export.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
+			<p>&nbsp; &nbsp; <input type="submit" name="entriesExport" value="Regenerate Entries Export" class="button"></p>
+		{% else %}
+			<p>&nbsp; &nbsp; (none)</p>
+			<p>&nbsp; &nbsp; <input type="submit" name="entriesExport" value="Generate Entries Export" class="button"></p>
 		{% endif %}
 		
-		{% if community_export %}
-			<p><b>Community data - description, questions and characters</b></p>
-			<p>&nbsp; &nbsp; <a href="/export?export_id={{community_export.key}}">{{community.name}} settings</a><p>
+		<p><b>Export entries - with answers only, one line per answer set</b></p>
+		{% if entry_with_answers_export %}
+			<p>&nbsp; &nbsp; <a href="/export?export_id={{entry_with_answers_export.key}}">Entries with answers for {{community.name}}</a>
+			was last generated 
+			on {{entry_with_answers_export.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+			at {{entry_with_answers_export.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
+			<p>&nbsp; &nbsp; <input type="submit" name="entriesWithAnswersExport" value="Regenerate Entries-Answers Export" class="button"></p>
+		{% else %}
+			<p>&nbsp; &nbsp; (none)</p>
+			<p>&nbsp; &nbsp; <input type="submit" name="entriesWithAnswersExport" value="Generate Entries-Answers Export" class="button"></p>
 		{% endif %}
-	
+		
+		<p><b>Export community data - description, questions and characters</b></p>
+		{% if community_export %}
+			<p>&nbsp; &nbsp; <a href="/export?export_id={{community_export.key}}">Community data for {{community.name}}</a>
+			was last generated 
+			on {{community_export.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+			at {{community_export.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
+			<p>&nbsp; &nbsp; <input type="submit" name="communityExport" value="Regenerate Community Data Export" class="button"></p>
+		{% else %}
+			<p>&nbsp; &nbsp; (none)</p>
+			<p>&nbsp; &nbsp; <input type="submit" name="communityExport" value="Generate Community Data Export" class="button"></p>
+		{% endif %}
+		
+      	<p>
+	</form>	
+	</div>
 	{% else %}
 		<p>You are not a manager of this community (or a site administrator) and cannot export its data.
 		Please ask a manager to export the community's data.</p>

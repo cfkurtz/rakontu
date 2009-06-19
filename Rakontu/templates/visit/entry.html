@@ -45,9 +45,15 @@
 				<select name="text_format">
 				{% for format in text_formats %}
 					<option value="{{format}}" 
-					{% ifequal entry.text_format format %}
-						selected="selected"
-					{% endifequal %}
+					{% if entry %}
+						{% ifequal entry.text_format format %}
+							selected="selected"
+						{% endifequal %}
+					{% else %}
+						{% ifequal current_member.preferredTextFormat format %}
+							selected="selected"
+						{% endifequal %}
+					{% endif %}
 					>{{format}}</option>
 				{% endfor %}
 				</select>

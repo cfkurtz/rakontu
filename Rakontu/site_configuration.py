@@ -90,6 +90,18 @@ DEFAULT_TIME_FORMAT = "h:i a"
 # This time zone will show up in all community settings pages.
 DEFAULT_TIME_ZONE = "US/Eastern"
 
+# This is the top (hex) color for the browsing tables for the main "look at" and for each entry. 
+GRID_DISPLAY_ROW_COLORS_TOP = "FAEBD7"
+
+# Lower rows in the main and entry browse tables get darker and darker by this increment.
+COLOR_DECREMENT = 5
+
+# This is how many rows there are (nudge values) in the main and entry browse tables.
+BROWSE_NUM_ROWS = 10
+
+# This is how many columns there are (time slices) in the main and entry browse tables.
+BROWSE_NUM_COLS = 7
+
 # ============================================================================================ 
 # ENTRIES
 # ============================================================================================ 

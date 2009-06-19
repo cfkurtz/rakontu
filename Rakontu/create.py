@@ -119,7 +119,7 @@ class EnterEntryPage(webapp.RequestHandler):
 							   'entry': entry,
 							   'attribution_referent_type': type,
 							   'attribution_referent': entry,
-							   'questions': community.getQuestionsOfType(type),
+							   'questions': community.getActiveQuestionsOfType(type),
 							   'answers': answers,
 							   'attachments': attachments,
 							   'community_members': community.getActiveMembers(),
@@ -245,11 +245,11 @@ class EnterEntryPage(webapp.RequestHandler):
 					keepAnswer = False
 					queryText = "%s" % question.key()
 					if question.type == "text":
-						keepAnswer = len(self.request.get(queryText)) > 0
+						keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
 						if keepAnswer:
 							answerToEdit.answerIfText = cgi.escape(self.request.get(queryText))
 					elif question.type == "value":
-						keepAnswer = len(self.request.get(queryText)) > 0
+						keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
 						if keepAnswer:
 							oldValue = answerToEdit.answerIfValue
 							try:
@@ -268,7 +268,7 @@ class EnterEntryPage(webapp.RequestHandler):
 									answerToEdit.answerIfMultiple.append(choice)
 									keepAnswer = True
 						else:
-							keepAnswer = len(self.request.get(queryText)) > 0
+							keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
 							if keepAnswer:
 								answerToEdit.answerIfText = self.request.get(queryText)
 					answerToEdit.creator = member
@@ -353,7 +353,7 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 							   	   'attribution_referent_type': "answer set",
 							       'attribution_referent': answerRefForQuestions,
 								   'refer_type': entry.type,
-								   'questions': community.getQuestionsOfType(entry.type),
+								   'questions': community.getActiveQuestionsOfType(entry.type),
 								   'answers': answers,
 								   'community_members': community.getActiveMembers(),
 								   'offline_members': community.getOfflineMembers(),
@@ -426,11 +426,11 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 					keepAnswer = False
 					queryText = "%s" % question.key()
 					if question.type == "text":
-						keepAnswer = len(self.request.get(queryText)) > 0
+						keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
 						if keepAnswer:
 							answerToEdit.answerIfText = cgi.escape(self.request.get(queryText))
 					elif question.type == "value":
-						keepAnswer = len(self.request.get(queryText)) > 0
+						keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
 						if keepAnswer:
 							oldValue = answerToEdit.answerIfValue
 							try:
@@ -449,7 +449,7 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 									answerToEdit.answerIfMultiple.append(choice)
 									keepAnswer = True
 						else:
-							keepAnswer = len(self.request.get(queryText)) > 0
+							keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
 							if keepAnswer:
 								answerToEdit.answerIfText = self.request.get(queryText)
 					answerToEdit.draft = setAsDraft
@@ -486,8 +486,8 @@ class PreviewAnswersPage(webapp.RequestHandler):
 								   'current_member': member,
 								   'community': community, 
 								   'entry': entry,
-								   'community_has_questions_for_this_entry_type': len(community.getQuestionsOfType(entry.type)) > 0,
-								   'questions': community.getQuestionsOfType(entry.type),
+								   'community_has_questions_for_this_entry_type': len(community.getActiveQuestionsOfType(entry.type)) > 0,
+								   'questions': community.getActiveQuestionsOfType(entry.type),
 								   'answers': answers,
 								   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/previewAnswers.html')
@@ -736,8 +736,8 @@ class PreviewPage(webapp.RequestHandler):
 								   'annotation': annotation,
 								   'entry': entry,
 								   'included_links_outgoing': entry.getOutgoingLinksOfType("included"),
-								   'community_has_questions_for_this_entry_type': len(community.getQuestionsOfType(entry.type)) > 0,
-								   'questions': community.getQuestionsOfType(entry.type),
+								   'community_has_questions_for_this_entry_type': len(community.getActiveQuestionsOfType(entry.type)) > 0,
+								   'questions': community.getActiveQuestionsOfType(entry.type),
 								   'answers_with_entry': entry.getAnswersForMember(member),
 								   'nudge_categories': community.nudgeCategories,
 								   })

@@ -77,9 +77,15 @@
 					<select name="longString_format">
 					{% for format in text_formats %}
 						<option value="{{format}}" 
-						{% ifequal annotation.longString_format format %}
-							selected="selected"
-						{% endifequal %}
+						{% if annotation %}
+							{% ifequal annotation.longString_format format %}
+								selected="selected"
+							{% endifequal %}
+						{% else %}
+							{% ifequal current_member.preferredTextFormat format %}
+								selected="selected"
+							{% endifequal %}
+						{% endif %}
 						>{{format}}</option>
 					{% endfor %}
 					</select>
@@ -121,9 +127,16 @@
 					<select name="longString_format">
 					{% for format in text_formats %}
 						<option value="{{format}}" 
-						{% ifequal annotation.longString_format format %}
-							selected="selected"
-						{% endifequal %}
+						{% if annotation %}
+							{% ifequal annotation.longString_format format %}
+								selected="selected"
+							{% endifequal %}
+						{% else %}
+							{% ifequal current_member.preferredTextFormat format %}
+								selected="selected"
+							{% endifequal %}
+						{% endif %}
+						>{{format}}</option>
 						>{{format}}</option>
 					{% endfor %}
 					</select>

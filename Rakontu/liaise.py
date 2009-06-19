@@ -111,7 +111,7 @@ class BatchEntryPage(webapp.RequestHandler):
 								   'community': community, 
 								   'num_entries': NUM_ENTRIES_PER_BATCH_PAGE,
 								   'character_allowed': community.allowCharacter[STORY_ENTRY_TYPE_INDEX],
-								   'questions': community.getQuestionsOfType("story"),
+								   'questions': community.getActiveQuestionsOfType("story"),
 								   'offline_members': community.getActiveOfflineMembers(),
 								   'online_members': community.getActiveOnlineMembers(),
 								   'current_member': member,
@@ -194,11 +194,11 @@ class BatchEntryPage(webapp.RequestHandler):
 								keepAnswer = False
 								queryText = "%s|%s" % (i, question.key())
 								if question.type == "text":
-									keepAnswer = len(self.request.get(queryText)) > 0
+									keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
 									if keepAnswer:
 										answer.answerIfText = cgi.escape(self.request.get(queryText))
 								elif question.type == "value":
-									keepAnswer = len(self.request.get(queryText)) > 0
+									keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
 									if keepAnswer:
 										oldValue = answer.answerIfValue
 										try:
@@ -217,7 +217,7 @@ class BatchEntryPage(webapp.RequestHandler):
 												answer.answerIfMultiple.append(choice)
 												keepAnswer = True
 									else:
-										keepAnswer = len(self.request.get(queryText)) > 0
+										keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
 										if keepAnswer:
 											answer.answerIfText = self.request.get(queryText)
 								if keepAnswer:

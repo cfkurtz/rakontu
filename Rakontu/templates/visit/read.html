@@ -128,6 +128,23 @@
 	
 	{% include "../common_grid.html" %}
 	
+	{% if rows_cols %}
+		<div id="stylized" class="rakontu_form">
+		<form name="read" action="/visit/read" method="post">
+		<p>Height means
+		{% for i in community.nudgeCategories|makeRangeFromListLength %}
+			<input type="checkbox" name="showCategory|{{i}}" value="yes" id="{{community.nudgeCategories|listLookup:i}}"
+			{% if current_member.viewNudgeCategories|listLookup:i %}
+				checked
+			{% endif %}
+			>
+			<label for="{{community.nudgeCategories|listLookup:i}}">{{community.nudgeCategories|listLookup:i}}</label>
+		{% endfor %}
+		<input type="submit" name="changeNudgeCategoriesShowing" value="Change" class="button_small"></p>
+		</form>
+		</div>
+	{% endif %}
+		
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

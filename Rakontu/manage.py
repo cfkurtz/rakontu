@@ -220,7 +220,7 @@ class ManageCommunityQuestionsListPage(webapp.RequestHandler):
 		if access:
 			counts = []
 			for type in QUESTION_REFERS_TO:
-				questions = community.getQuestionsOfType(type)
+				questions = community.getActiveQuestionsOfType(type)
 				countsForThisType = []
 				for question in questions:
 					answerCount = Answer.all().filter("question = ", question.key()).count(FETCH_NUMBER)
@@ -253,7 +253,7 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 					typePlural = QUESTION_REFERS_TO_PLURAL[i]
 					break
 				i += 1
-			communityQuestionsOfType = community.getQuestionsOfType(type)
+			communityQuestionsOfType = community.getActiveQuestionsOfType(type)
 			inactiveQuestionsOfType = community.getInactiveQuestionsOfType(type)
 			systemQuestionsOfType = Question.all().filter("community = ", None).filter("refersTo = ", type).fetch(FETCH_NUMBER)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
@@ -284,7 +284,7 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 					if argument == "changesTo|%s" % aType:
 						type = aType
 						break
-			communityQuestionsOfType = community.getQuestionsOfType(type)
+			communityQuestionsOfType = community.getActiveQuestionsOfType(type)
 			systemQuestionsOfType = Question.all().filter("community = ", None).filter("refersTo = ", type).fetch(FETCH_NUMBER)
 			for question in communityQuestionsOfType:
 				question.name = cgi.escape(self.request.get("name|%s" % question.key()))
@@ -388,7 +388,7 @@ class ManageCommunityCharacterPage(webapp.RequestHandler):
 							   'community': community, 
 							   'character': character,
 							   'current_member': member,
-							   'questions': community.getQuestionsOfType("character"),
+							   'questions': community.getActiveQuestionsOfType("character"),
 							   'answers': character.getAnswers(),
 							   'refer_type': "character",
 							   })
@@ -479,24 +479,37 @@ class ExportCommunityDataPage(webapp.RequestHandler):
 				except:
 					pass
 		if (community and member and member.isManagerOrOwner()) or (community and users.is_current_user_admin()):
-			# remove any old exports
-			oldExports = Export.all().filter('community = ', community.key()).fetch(FETCH_NUMBER)
-			db.delete(oldExports)
-			entries_export = community.exportEntryData()
-			community_export = community.exportCommunityData()
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Export community data", 
 						   	   	   'title_extra': None, 
 								   'community': community,
 								   'current_member': member,
-								   'entry_export': entries_export,
-								   'community_export': community_export,
+								   'entry_export': community.getExportOfType("entries"),
+								   'community_export': community.getExportOfType("community"),
+								   'entry_with_answers_export': community.getExportOfType("entries_with_answers"),
 								   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/manage/export.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect('/')
 				
+	@RequireLogin 
+	def post(self):
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
+			if member.isManagerOrOwner():
+				if "entriesExport" in self.request.arguments():
+					community.createOrRefreshExport(type="entries")
+				elif "entriesWithAnswersExport" in self.request.arguments():
+					community.createOrRefreshExport(type="entries_with_answers")
+				elif "communityExport" in self.request.arguments():
+					community.createOrRefreshExport(type="community")
+				self.redirect('/manage/export')
+			else:
+				self.redirect("/visit/look")
+		else:
+			self.redirect("/")
+
 class InactivateCommunityPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):

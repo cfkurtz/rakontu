@@ -38,6 +38,9 @@ def makeRange(numberString):
 		result.append(i)
 	return result
 
+def makeRangeFromListLength(list):
+	return range(len(list))
+
 def add(numberString, addString):
 	try:
 		number = int(numberString)
@@ -129,6 +132,7 @@ def youOrThis(value):
 register.filter(listLookup)
 register.filter(dictLookup)
 register.filter(makeRange)
+register.filter(makeRangeFromListLength)
 register.filter(timeZone)
 register.filter(notNone)
 register.filter(orNbsp)

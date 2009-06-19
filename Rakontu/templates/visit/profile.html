@@ -154,6 +154,20 @@
 				{% endif %}
 				><label for="acceptsMessages">Yes, people can send {% if member.isOnlineMember %}me messages{% else %}the member messages through me{% endif %}</label></p>
 		{% endif %}
+		
+		{% if member.isOnlineMember %}
+			<p>What text format would you prefer to use by default when you create a new entry or other item with text in it?</i></p>
+			<select name="preferredTextFormat">
+				{% for format in text_formats %}
+					<option value="{{format}}"
+					{% ifequal member.preferredTextFormat format %}
+						selected="selected"
+					{% endifequal %}
+					>{{format}}</option>
+				{% endfor %}
+			</select>
+		{% endif %}
+		
 		{% if member.isOnlineMember %}
 			<p>Please describe yourself to other members.</p>
 		{% else %}

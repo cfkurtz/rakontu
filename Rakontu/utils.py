@@ -116,6 +116,25 @@ def GenerateSystemQuestions():
 			question.put()
 	file.close()
 	
+def HTMLColorToRGB(colorstring):
+    colorstring = colorstring.strip()
+    r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:]
+    r, g, b = [int(n, 16) for n in (r, g, b)]
+    return (r, g, b)
+
+def RGBToHTMLColor(rgb_tuple):
+    return '%02x%02x%02x' % rgb_tuple
+	
+def HexColorStringForRowIndex(index):
+	if index == 0:
+		return GRID_DISPLAY_ROW_COLORS_TOP
+	else:
+		r,g,b = HTMLColorToRGB(GRID_DISPLAY_ROW_COLORS_TOP)
+		r -= index * COLOR_DECREMENT
+		g -= index * COLOR_DECREMENT
+		b -= index * COLOR_DECREMENT
+		return RGBToHTMLColor((r,g,b))
+	
 def MakeSystemResource(community, member, title, text, format, managersOnly):
 	thereResource = Entry.all().filter("community = ", community).filter("creator = ", member.key()).filter("title = ", title).get()
 	if thereResource:

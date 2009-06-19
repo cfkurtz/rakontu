@@ -277,7 +277,7 @@ class Rule(db.Model):
                 {% for question in system_questions %}
                     {% ifequal question.refersTo refer_type %}
                         <label><input type="checkbox" name="{{refer_type}}|{{question.name}}" value="{{refer_type}}|{{question.name}}" 
-                        {% for commQuestion in community.getQuestions %}
+                        {% for commQuestion in community.getActiveQuestions %}
                             {% ifequal commQuestion.refersTo question.refersTo %}
                                 {% ifequal commQuestion.name question.name %}
                                     checked="checked"

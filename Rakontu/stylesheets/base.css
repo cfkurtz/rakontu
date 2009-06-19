@@ -103,31 +103,7 @@ fieldset {
 	width: auto;
 	border: 1px solid #FF7F00;
 	}
-	
-textarea{
-	font-family: Verdana, Helvetica, sans-serif;
-	font-size: 110%;
-	border: solid 1px #FF7F00;
-	width: 95%;
-	margin: 0px 0px 0px 10px;
-	padding: 2px 2px 2px 2px;
-	}
-	
-label{
-	font-weight: plain;
-	padding-bottom: 0px;
-	margin-bottom: 2px;
-	vertical-align:middle;
-	}
-	
-input{
-	font-family: Verdana, Helvetica, sans-serif;
-	font-size: 110%;
-	border: solid 1px #FF7F00;
-	padding: 2px 2px 2px 2px;
-	margin: 0px 0px 0px 10px;
-	}
-	
+		
 ul li.nobullet {
 	display: compact;
 	list-style: none;
@@ -176,50 +152,7 @@ ul li.nobullet {
 	border: 1px solid #FF7F00;
 	}
 	
-#sidebar {
-	float: right;
-	height: auto;
-	top: 130px;
-	bottom: 4px;
-	width: 190px;
-	border-bottom: 1px solid #FF7F00;
-	border-left: 1px solid #FF7F00;
-	border-right: 1px solid #FF7F00;
-	}
-	
-#sidebar h1 {
-	color: #993300;
-	font-size: 120%;
-	border-bottom: 1px solid #FF7F00;
-	padding: 0px 4px 0px 8px;
-	}
-	
-#sidebar p {
-	color: #616161;
-	font-size: 100%;
-	padding: 0px 4px 0px 8px;
-	}
-	
-#sidebar ul li {
-	color: #616161;
-	font-size: 100%;
-	margin-left: 2px;
-	display: compact;
-	list-style: none;
-	}
-	
-#sidebar a {
-	color: #8B4500;
-	text-decoration: none;
-	}
-	
-#sidebar a:hover {
-	background: #993300;
-	color: #FFFFFF;
-	}
-
 #content {
-    float: none;
     top: 130px;
     bottom: 4px;
 	margin-right: 0px;
@@ -279,14 +212,14 @@ ul li.nobullet {
 
 /* ----------- forms ----------- */
 
-.rakontu_form_centered{
+.rakontu_form_centered {
 	margin: 0 auto;
 	width: 400px;
 	padding: 14px;
 	border: solid 1px #FF7F00;
 	}
 	
-.rakontu_form{
+.rakontu_form {
 	margin: 0 auto;
 	padding: 2px;
 	}
@@ -301,11 +234,7 @@ ul li.nobullet {
 	margin-bottom: 8px;
 	}
 	
-#stylized p{
-	font-size: 100%;
-	}
-	
-#stylized label{
+#stylized label {
 	font-weight: plain;
 	vertical-align: middle;
 	margin-left: 4px;
@@ -316,7 +245,7 @@ ul li.nobullet {
 	color: #993300;
 	}
 	
-#stylized select{
+#stylized select {
 	font-size: 12px;
 	padding: 4px 2px;
 	border: solid 1px #FF7F00;

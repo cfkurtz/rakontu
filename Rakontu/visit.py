@@ -178,7 +178,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 				minActivityPoints = -9999999
 				maxActivityPoints = -9999999
 				for entry in entries:
-					nudgePoints = entry.nudgePointsCombined()
+					nudgePoints = entry.nudgePointsForMemberViewOptions(member.viewNudgeCategories)
 					if minNudgePoints == -9999999:
 						minNudgePoints = nudgePoints
 					elif nudgePoints < minNudgePoints:
@@ -196,14 +196,17 @@ class BrowseEntriesPage(webapp.RequestHandler):
 						maxActivityPoints = activityPoints
 					elif activityPoints > maxActivityPoints:
 						maxActivityPoints = activityPoints
-				numRows = 10
-				numCols = member.viewNumTimeColumns
+				numRows = BROWSE_NUM_ROWS
+				numCols = BROWSE_NUM_COLS
 				nudgeStep = max(1, (maxNudgePoints - minNudgePoints) // numRows)
 				timeStep = (maxTime - minTime) // numCols
 				
 				textsForGrid = []
-				rowHeaders = []
+				colHeaders = []
+				rowColors = []
+				rowIndex = 0
 				for row in range(numRows):
+					rowColors.append(HexColorStringForRowIndex(rowIndex))
 					textsInThisRow = []
 					startNudgePoints = minNudgePoints + nudgeStep * row
 					if row == numRows - 1:
@@ -215,9 +218,10 @@ class BrowseEntriesPage(webapp.RequestHandler):
 						startTime = minTime + timeStep * col
 						endTime = minTime + timeStep * (col+1)
 						if row == numRows - 1:
-							rowHeaders.append(RelativeTimeDisplayString(startTime, member))
+							colHeaders.append(RelativeTimeDisplayString(startTime, member))
 						for entry in entries:
-							shouldBeInRow = entry.nudgePointsCombined() >= startNudgePoints and entry.nudgePointsCombined() < endNudgePoints
+							nudgePoints = entry.nudgePointsForMemberViewOptions(member.viewNudgeCategories)
+							shouldBeInRow = nudgePoints >= startNudgePoints and nudgePoints < endNudgePoints
 							if entry.lastAnnotatedOrAnsweredOrLinked:
 								timeToCheck = entry.lastAnnotatedOrAnsweredOrLinked
 							else:
@@ -246,10 +250,12 @@ class BrowseEntriesPage(webapp.RequestHandler):
 								textsInThisCell.append(text)
 						textsInThisRow.append(textsInThisCell)
 					textsForGrid.append(textsInThisRow)
+					rowIndex += 1
 				textsForGrid.reverse()
 			else:
 				textsForGrid = []
-				rowHeaders = []
+				colHeaders = []
+				rowColors = []
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': "Main page",
 						   	'title_extra': None,
@@ -257,9 +263,9 @@ class BrowseEntriesPage(webapp.RequestHandler):
 							'current_member': member, 
 							'entries': entries, 
 							'rows_cols': textsForGrid, 
-							'row_headers': rowHeaders, 
+							'col_headers': colHeaders, 
 							'1_to_31': range(1, 31, 1), 
-							'3_to_10': range(3, 11, 1), 
+							'row_colors': rowColors,
 							})
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/look.html')
 			self.response.out.write(template.render(path, template_values))
@@ -270,19 +276,17 @@ class BrowseEntriesPage(webapp.RequestHandler):
 	def post(self):
 		community, member, access = GetCurrentCommunityAndMemberFromSession()
 		if access:
-			if "changeTimeFrame" in self.request.arguments():
+			if "changeNudgeCategoriesShowing" in self.request.arguments():
+				member.viewNudgeCategories = []
+				for i in range(NUM_NUDGE_CATEGORIES):
+					member.viewNudgeCategories.append(self.request.get("showCategory|%s" % i) == "yes")
+			elif "changeTimeFrame" in self.request.arguments():
 				member.setViewTimeFrameFromTimeUnitString(self.request.get("timeFrame"))
 				oldValue = member.viewNumTimeFrames
 				try:
 					member.viewNumTimeFrames = int(self.request.get("numberOf"))
 				except:
 					member.viewNumTimeFrames = oldValue
-				oldValue = member.viewNumTimeColumns
-				try:
-					member.viewNumTimeColumns = int(self.request.get("numColumns"))
-				except:
-					member.viewNumTimeColumns = oldValue
-
 			else:
 				if "setToLast" in self.request.arguments():
 					if community.lastPublish:
@@ -332,7 +336,8 @@ class ReadEntryPage(webapp.RequestHandler):
 					for item in allItems:
 						nudgePoints = 0
 						for i in range(NUM_NUDGE_CATEGORIES):
-							nudgePoints += item.entryNudgePointsWhenPublished[i]
+							if member.viewNudgeCategories[i]:
+								nudgePoints += item.entryNudgePointsWhenPublished[i]
 						if minNudgePoints == -9999999:
 							minNudgePoints = nudgePoints
 						elif nudgePoints < minNudgePoints:
@@ -350,15 +355,18 @@ class ReadEntryPage(webapp.RequestHandler):
 							maxActivityPoints = activityPoints
 						elif activityPoints > maxActivityPoints:
 							maxActivityPoints = activityPoints
-					numRows = 20
-					numCols = 6
+					numRows = BROWSE_NUM_ROWS
+					numCols = BROWSE_NUM_COLS
 					nudgeStep = max(1, (maxNudgePoints - minNudgePoints) // numRows)
 					timeStep = (maxTime - minTime) // numCols
 					
 					textsForGrid = []
-					rowHeaders = []
+					colHeaders = []
+					rowColors = []
 					haveContent = False
+					rowIndex = 0
 					for row in range(numRows):
+						rowColors.append(HexColorStringForRowIndex(rowIndex))
 						textsInThisRow = []
 						startNudgePoints = minNudgePoints + nudgeStep * row
 						if row == numRows - 1:
@@ -370,11 +378,12 @@ class ReadEntryPage(webapp.RequestHandler):
 							startTime = minTime + timeStep * col
 							endTime = minTime + timeStep * (col+1)
 							if row == numRows - 1:
-								rowHeaders.append(RelativeTimeDisplayString(startTime, member))
+								colHeaders.append(RelativeTimeDisplayString(startTime, member))
 							for item in allItems:
 								nudgePoints = 0
 								for i in range(NUM_NUDGE_CATEGORIES):
-									nudgePoints += item.entryNudgePointsWhenPublished[i]
+									if member.viewNudgeCategories[i]:
+										nudgePoints += item.entryNudgePointsWhenPublished[i]
 								shouldBeInRow = nudgePoints >= startNudgePoints and nudgePoints < endNudgePoints
 								shouldBeInCol = item.published >= startTime and item.published < endTime
 								if shouldBeInRow and shouldBeInCol:
@@ -383,17 +392,19 @@ class ReadEntryPage(webapp.RequestHandler):
 							haveContent = haveContent or len(textsInThisCell) > 0
 							textsInThisRow.append(textsInThisCell)
 						textsForGrid.append(textsInThisRow)
+						rowIndex += 1
 					textsForGrid.reverse()
 				else:
 					textsForGrid = None
-					rowHeaders = None
+					colHeaders = None
+					rowColors = []
 				if not haveContent:
 					textsForGrid = None
 				if not entry.memberCanNudge(member):
 					nudgePointsMemberCanAssign = 0
 				else:
 					nudgePointsMemberCanAssign = max(0, community.maxNudgePointsPerEntry - entry.getTotalNudgePointsForMember(member))
-				communityHasQuestionsForThisEntryType = len(community.getQuestionsOfType(entry.type)) > 0
+				communityHasQuestionsForThisEntryType = len(community.getActiveQuestionsOfType(entry.type)) > 0
 				memberCanAnswerQuestionsAboutThisEntry = len(entry.getAnswersForMember(member)) == 0
 				memberCanAddNudgeToThisEntry = nudgePointsMemberCanAssign > 0
 				thingsUserCanDo = {}
@@ -426,14 +437,14 @@ class ReadEntryPage(webapp.RequestHandler):
 								   'curating': curating,
 								   'entry': entry,
 								   'rows_cols': textsForGrid, 
-							       'row_headers': rowHeaders, 
+							       'col_headers': colHeaders, 
 							       'text_to_display_before_grid': "Annotations to this %s" % entry.type,
 							       'things_member_can_do': thingsUserCanDo,
 								   'member_can_answer_questions': memberCanAnswerQuestionsAboutThisEntry,
 								   'member_can_add_nudge': memberCanAddNudgeToThisEntry,
 								   'community_has_questions_for_this_entry_type': communityHasQuestionsForThisEntryType,
 								   'answers': entry.getNonDraftAnswers(),
-								   'questions': community.getQuestionsOfType(entry.type),
+								   'questions': community.getActiveQuestionsOfType(entry.type),
 								   'attachments': entry.getAttachments(),
 								   'requests': entry.getNonDraftAnnotationsOfType("request"),
 								   'comments': entry.getNonDraftAnnotationsOfType("comment"),
@@ -447,6 +458,7 @@ class ReadEntryPage(webapp.RequestHandler):
 								   'links_incoming_from_invitations': entry.getIncomingLinksOfTypeFromType("responded", "invitation"),
 								   'links_incoming_from_collages': entry.getIncomingLinksOfTypeFromType("included", "collage"),
 								   'included_links_outgoing': entry.getOutgoingLinksOfType("included"),
+								   'row_colors': rowColors,
 								   })
 				member.lastReadAnything = datetime.now(tz=pytz.utc)
 				member.nudgePoints += community.getMemberNudgePointsForEvent("reading")
@@ -462,7 +474,14 @@ class ReadEntryPage(webapp.RequestHandler):
 	def post(self):
 		community, member, access = GetCurrentCommunityAndMemberFromSession()
 		if access:
-			self.redirect(self.request.get("nextAction"))
+			if "changeNudgeCategoriesShowing" in self.request.arguments():
+				member.viewNudgeCategories = []
+				for i in range(NUM_NUDGE_CATEGORIES):
+					member.viewNudgeCategories.append(self.request.get("showCategory|%s" % i) == "yes")
+				member.put()
+				self.redirect(self.request.headers["Referer"])
+			else:
+				self.redirect(self.request.get("nextAction"))
 		else:
 			self.redirect("/visit/look")
 			
@@ -543,10 +562,10 @@ class SeeMemberPage(webapp.RequestHandler):
 					maxTime = datetime.now(tz=pytz.utc)
 					minTime = memberToSee.joined
 					numRows = 1
-					numCols = 6
+					numCols = BROWSE_NUM_COLS
 					timeStep = (maxTime - minTime) // numCols
 					textsForGrid = []
-					rowHeaders = []
+					colHeaders = []
 					for row in range(numRows):
 						textsInThisRow = []
 						for col in range(numCols):
@@ -554,7 +573,7 @@ class SeeMemberPage(webapp.RequestHandler):
 							startTime = minTime + timeStep * col
 							endTime = minTime + timeStep * (col+1)
 							if row == numRows - 1:
-								rowHeaders.append(RelativeTimeDisplayString(startTime, member))
+								colHeaders.append(RelativeTimeDisplayString(startTime, member))
 							for item in allItems:
 								shouldBeInRow = True
 								shouldBeInCol = item.published >= startTime and item.published < endTime
@@ -566,7 +585,7 @@ class SeeMemberPage(webapp.RequestHandler):
 					textsForGrid.reverse()
 				else:
 					textsForGrid = None
-					rowHeaders = None
+					colHeaders = None
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': "Member", 
 					   		   'title_extra': member.nickname, 
@@ -575,7 +594,7 @@ class SeeMemberPage(webapp.RequestHandler):
 					   		   'member': memberToSee,
 					   		   'answers': memberToSee.getAnswers(),
 					   		   'rows_cols': textsForGrid,
-					   		   'row_headers': rowHeaders,
+					   		   'col_headers': colHeaders,
 					   		   'text_to_display_before_grid': "%s's entries" % memberToSee.nickname,
 					   		   'no_profile_text': NO_PROFILE_TEXT,
 					   		   })
@@ -633,7 +652,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 						numCols = 6
 						timeStep = (maxTime - minTime) // numCols
 						textsForGrid = []
-						rowHeaders = []
+						colHeaders = []
 						for row in range(numRows):
 							textsInThisRow = []
 							for col in range(numCols):
@@ -641,7 +660,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 								startTime = minTime + timeStep * col
 								endTime = minTime + timeStep * (col+1)
 								if row == numRows - 1:
-									rowHeaders.append(RelativeTimeDisplayString(startTime, member))
+									colHeaders.append(RelativeTimeDisplayString(startTime, member))
 								for item in allItems:
 									shouldBeInRow = True
 									shouldBeInCol = item.published >= startTime and item.published < endTime
@@ -653,7 +672,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 						textsForGrid.reverse()
 					else:
 						textsForGrid = None
-						rowHeaders = None
+						colHeaders = None
 					template_values = GetStandardTemplateDictionaryAndAddMore({
 								   	   'title': "Character", 
 						   		   	   'title_extra': character.name, 
@@ -663,7 +682,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 									   'answers': character.getAnswers(),
 						   		   	   'rows_cols': textsForGrid,
 						   		   	   'text_to_display_before_grid': "%s's entries" % character.name,
-						   		   	   'row_headers': rowHeaders,
+						   		   	   'col_headers': colHeaders,
 									   })
 					path = os.path.join(os.path.dirname(__file__), 'templates/visit/character.html')
 					self.response.out.write(template.render(path, template_values))
@@ -696,7 +715,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 							   'community': community, 
 							   'member': memberToEdit,
 							   'current_member': member,
-							   'questions': community.getMemberQuestions(),
+							   'questions': community.getActiveMemberQuestions(),
 							   'answers': memberToEdit.getAnswers(),
 							   'draft_entries': memberToEdit.getDraftEntries(),
 							   'draft_annotations': memberToEdit.getDraftAnnotations(),
@@ -757,6 +776,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 					memberToEdit.guideIntro = text
 					memberToEdit.guideIntro_formatted = db.Text(InterpretEnteredText(text, format))
 					memberToEdit.guideIntro_format = format
+					memberToEdit.preferredTextFormat = self.request.get("preferredTextFormat")
 				memberToEdit.put()
 				for entry in memberToEdit.getDraftEntries():
 					if self.request.get("remove|%s" % entry.key()) == "yes":
