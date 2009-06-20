@@ -10,8 +10,11 @@ import utils
 register = webapp.template.create_template_register()
 
 def dictLookup(dict, key):
-	if key in dict:
-		return dict[key]
+	if dict:
+		if key in dict:
+			return dict[key]
+		else:
+			return None
 	else:
 		return None
 	
@@ -20,7 +23,7 @@ def listLookup(list, index):
 		number = int(index)
 	except:
 		return None
-	if number <= len(list) - 1:
+	if number >= 0 and number <= len(list) - 1:
 		return list[number]
 	else:
 		return None
@@ -129,6 +132,20 @@ def youOrThis(value):
 	else:
 		return "this member"
 	
+def toString(value):
+	return "%s" % value
+
+def toUnicode(value):
+	if value:
+		return unicode(value)
+	else:
+		return None
+	
+def equalTest(value, otherValue):
+	if value == otherValue:
+		return True
+	return False
+	
 register.filter(listLookup)
 register.filter(dictLookup)
 register.filter(makeRange)
@@ -147,5 +164,8 @@ register.filter(yourOrThis)
 register.filter(youOrThis)
 register.filter(add)
 register.filter(length)
+register.filter(toString)
+register.filter(toUnicode)
+register.filter(equalTest)
 
 

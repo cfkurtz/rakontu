@@ -7,7 +7,13 @@
 	<p></p>
 	{% if rows_cols %}
 		<div id="stylized" class="rakontu_form">
-		<form action="/visit/look" method="post">
+		<form action=
+		{% if current_search %}
+			"/visit/look?{{current_search.key}}"
+		{% else %}
+			"/visit/look"
+		{% endif %}
+		method="post">
 		
 		<table style="border:none;width:100%;"><tr><td align="left" style="border:none;">
 		<input type="submit" name="setToFirst" value=" |< " class="button_small">
@@ -68,6 +74,259 @@
 			<label for="{{community.nudgeCategories|listLookup:i}}">{{community.nudgeCategories|listLookup:i}}</label>
 		{% endfor %}
 		<input type="submit" name="changeNudgeCategoriesShowing" value="Change" class="button_small"></p>
+		
+		{% if community_searches or member_searches %}
+			<hr>
+			<p><center>
+				Saved searches:
+				<select name="savedSearch"><option>(choose)</option>
+				{% for search in member_searches %}
+					<option value="{{search.key}}"
+					{% ifequal search.key current_search.key %}
+						selected="selected"
+					{% endifequal %}
+					>
+					{{search.name}} - by {{search.creator.nickname}} 
+					on {{search.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+					at {{search.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}} (private)
+					</option>
+				{% endfor %}
+				{% for search in community_searches %}
+					<option value="{{search.key}}"
+					{% ifequal search.key current_search.key %}
+						selected="selected"
+					{% endifequal %}
+					>
+					{{search.name}} - by {{search.creator.nickname}} 
+					on {{search.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+					at {{search.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					</option>
+				{% endfor %}
+				</select>
+			<input type="submit" name="loadAndApplySavedSearch" value="Load and apply" class="button_small">
+			</p></center>
+		{% endif %}
+			
+		<fieldset>
+		<p>Show &nbsp; 
+			{% for i in entry_types|makeRangeFromListLength %}
+				<input type="checkbox" name="{{entry_types|listLookup:i}}" value="yes" id="{{entry_types|listLookup:i}}"
+				{% if current_search %}
+					{% if current_search.entryTypes|listLookup:i %}
+						checked
+					{% endif %}
+				{% endif %}
+				>
+				<label for="{{entry_types|listLookup:i}}">{{entry_types_plural|listLookup:i}}</label>&nbsp; &nbsp; 
+			{% endfor %}
+			</p>
+		<hr>
+		
+		<p>with 
+		<select name="words_anyOrAll">
+		{% for choice in any_or_all_choices %}
+			<option value="{{choice}}"
+			{% if current_search %}
+				{% ifequal current_search.words_anyOrAll choice %}
+					selected="selected"
+				{% endifequal %}
+			{% endif %}
+			>{{choice}}</option>
+		{% endfor %}
+		</select>
+		of these words or phrases:
+		{% for i in num_search_fields|makeRange %} 
+			<input name="words|{{i}}" type="text" 
+			{% if current_search %}
+				value="{{current_search.words|listLookup:i|orNothing}}"
+			{% endif %}
+			size="20"> 
+		{% endfor %}
+		<br/>
+		&nbsp; &nbsp; 
+		{% for i in search_locations|makeRangeFromListLength %}
+			<input type="checkbox" name="location|{{i}}" value="yes" id="location|{{i}}"
+			{% if current_search %}
+				{% if current_search.words_locations|listLookup:i %}
+					checked
+				{% endif %}
+			{% endif %}
+			>
+			<label for="location|{{i}}">{{search_locations|listLookup:i}}</label>&nbsp; &nbsp; 
+		{% endfor %}
+		</p>
+		
+		<hr>
+		<p>with
+		<select name="tags_anyOrAll">
+		{% for choice in any_or_all_choices %}
+			<option value="{{choice}}"
+			{% if current_search %}
+				{% ifequal current_search.tags_anyOrAll choice %}
+					selected="selected"
+				{% endifequal %}
+			{% endif %}
+			>{{choice}}</option>
+		{% endfor %}
+		</select>
+		of these tags:
+		{% for i in num_search_fields|makeRange %} 
+			<input type="text" name="tags|{{i}}" 
+			{% if current_search %}
+				value="{{current_search.tags|listLookup:i|orNothing}}"
+			{% endif %}
+			size="20"> 
+		{% endfor %}
+		</p>
+		
+		{% for search_dict in questions_and_refs_dict_list %}
+			<hr>
+			<p>{{search_dict|dictLookup:"withText"}}
+			<select name="{{search_dict|dictLookup:"result_preface"}}|anyOrAll">
+			{% for choice in any_or_all_choices %}
+				<option value="{{choice}}"
+				{% ifequal search_dict|dictLookup:"anyOrAll" choice %}
+					selected="selected"
+				{% endifequal %}
+				>{{choice}}</option>
+			{% endfor %}
+			</select>{{search_dict|dictLookup:"afterAnyText"}}<br/>
+			{% for i in num_search_fields|makeRange %} 
+				&nbsp; &nbsp; <select name="{{search_dict|dictLookup:"result_preface"}}|question|{{i}}"><option>(choose)</option>
+				{% for question in search_dict|dictLookup:"questions" %}
+					{% if question.isTextOrValue %}
+						<option value="{{question.key}}"
+						{% for ref in search_dict|dictLookup:"references" %}
+							{% ifequal ref.question.key question.key %}
+								{% ifequal ref.order i %}
+									selected="selected"
+								{% endifequal %}
+							{% endifequal %}
+						{% endfor %}
+						>{{question.refersTo}} - {{question.text}} --&gt;</option>
+					{% endif %}
+					{% ifequal question.type "boolean" %}
+						<option value="yes|{{question.key}}"
+						{% for ref in search_dict|dictLookup:"references" %}
+							{% ifequal ref.question.key question.key %}
+								{% ifequal ref.order i %}
+									{% ifequal ref.answer "yes" %}
+										selected="selected"
+									{% endifequal %}
+								{% endifequal %}
+							{% endifequal %}
+						{% endfor %}
+						>{{question.refersTo}} - {{question.text}} yes</option>
+						<option value="no|{{question.key}}"
+						{% for ref in search_dict|dictLookup:"references" %}
+							{% ifequal ref.question.key question.key %}
+								{% ifequal ref.order i %}
+									{% ifequal ref.answer "no" %}
+										selected="selected"
+									{% endifequal %}
+								{% endifequal %}
+							{% endifequal %}
+						{% endfor %}
+						>{{question.refersTo}} - {{question.text}} no</option>
+					{% endifequal %}
+					{% if question.isOrdinalOrNominal %}
+						{% for choice in question.choices %}
+							<option value="{{choice}}|{{question.key}}"
+							{% for ref in search_dict|dictLookup:"references" %}
+								{% ifequal ref.question.key question.key %}
+									{% ifequal ref.order i %}
+										{% ifequal ref.answer choice %}
+											selected="selected"
+										{% endifequal %}
+									{% endifequal %}
+								{% endifequal %}
+							{% endfor %}
+							>{{question.refersTo}} - {{question.text}} {{choice}}</option>
+						{% endfor %}
+					{% endif %}
+				{% endfor %} {# question list #}
+				</select>
+				<select name="{{search_dict|dictLookup:"result_preface"}}|comparison|{{i}}"><option></option>
+				{% for choice in answer_comparison_types %}
+					<option value="{{choice}}"
+					{% for ref in search_dict|dictLookup:"references" %}
+						{% ifequal ref.order i %}
+							{% ifequal ref.comparison choice %}
+								selected="selected"
+							{% endifequal %}
+						{% endifequal %}
+					{% endfor %}
+					>{{choice}}</option>
+				{% endfor %} {# num_search_fields #}
+				</select>
+				<input type="text" name="{{search_dict|dictLookup:"result_preface"}}|answer|{{i}}" 
+				{% for ref in search_dict|dictLookup:"references" %}
+					{% ifequal ref.order i %}
+						{% if ref.question.isTextOrValue %} 
+							value="{{ref.answer}}"
+						{% endif %}
+					{% endifequal %}
+				{% endfor %}
+				size="20"> 
+				<br/>
+			{% endfor %} {# iterations #}
+		{% endfor %} {# list of dictionaries #}
+		
+		</fieldset>
+		
+		<center><p>
+		{% if current_search %}
+			<p>This search is called
+			<input name="searchName" type="text" size="20" maxlength="{{maxlength_name}}" value="{{current_search.name}}">
+			and it is
+			<select name="privateOrSharedSearch">
+				<option value="private"
+				{% if current_search.private %}
+					selected="selected"
+				{% endif %}
+				>private</option>
+				<option value="shared"
+				{% if not current_search.private %}
+					selected="selected"
+				{% endif %}
+				>shared</option>
+			</select>
+			{% ifequal current_member.key current_search.creator.key %}
+				<input type="submit" name="changeSearch" value="Apply and save" class="button_small">
+			{% endifequal %}
+		{% endif %}
+		{% if current_search %}
+			{% ifequal current_member.key current_search.creator.key %}
+				<input type="submit" name="applyAndSaveSearchAs" value="Apply and save as new search" class="button_small">
+			{% else %}
+				<input type="submit" name="copySearchAs" value="Copy to private search" class="button_small">
+			{% endifequal %}
+		{% else %}
+			<input type="submit" name="applyAndSaveSearchAs" value="Apply and save as new search" class="button_small">
+		{% endif %}
+		{% if not current_search %}
+			named <input name="searchName" type="text" size="20" maxlength="{{maxlength_name}}" value="untitled">
+		{% endif %}
+		{% if current_search %}
+			<input type="submit" name="clearSearch" value="Unload" class="button_small">
+		{% endif %}	
+		{% if current_search and current_search.private %}
+			<input type="submit" name="deleteSearchByCreator" value="Delete" class="button_small">
+		{% endif %}	
+		{% if current_search and current_search.notPrivate %}
+			{% if current_member.isManagerOrOwner %}
+				<input type="submit" name="removeSearchByManager" value="Remove" class="button_small">
+			{% else %}
+				{% if current_member.isCurator %}
+					{% if current_search.flaggedForRemoval %}
+						<input type="submit" name="flagSearchByCurator" value="Unflag" class="button_small">
+					{% else %}
+						<input type="submit" name="flagSearchByCurator" value="Flag" class="button_small">
+					{% endif %}
+				{% endif %}
+			{% endif %}
+		{% endif %}	
+		</center></p>		
 		
 	</form>	
 	</div>

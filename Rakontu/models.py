@@ -79,6 +79,10 @@ QUESTION_REFERS_TO = ["story", "pattern", "collage", "invitation", "resource", "
 QUESTION_REFERS_TO_PLURAL = ["stories", "patterns", "collages", "invitations", "resources", "members", "characters"]
 QUESTION_TYPES = ["boolean", "text", "ordinal", "nominal", "value"]
 
+ANY_ALL = ["any", "all"]
+SEARCH_LOCATIONS = ["in the entry text", "in a comment", "in a request", "in a nudge comment", "in a link comment"]
+ANSWER_COMPARISON_TYPES = ["contains", "is", "is greater than", "is less than"]
+
 # from http://www.letsyouandhimfight.com/2008/04/12/time-zones-in-google-app-engine/
 # with a few changes
 class TzDateTimeProperty(db.DateTimeProperty):
@@ -361,15 +365,17 @@ class Community(db.Model):
 		annotations = Annotation.all().filter("community = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
 		answers = Answer.all().filter("community = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
 		links = Link.all().filter("community = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
-		return (entries, annotations, answers, links)
+		searches = SavedSearch.all().filter("community = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
+		return (entries, annotations, answers, links, searches)
 	
 	def getAllFlaggedItemsAsOneList(self):
 		result = []
-		(entries, annotations, answers, links) = self.getAllFlaggedItems()
+		(entries, annotations, answers, links, searches) = self.getAllFlaggedItems()
 		result.extend(links)
 		result.extend(answers)
 		result.extend(annotations)
 		result.extend(entries)
+		result.extend(searches)
 		return result
 
 	def getAllItems(self):
@@ -440,6 +446,9 @@ class Community(db.Model):
 	def getActiveNonMemberQuestions(self):
 		return Question.all().filter("community = ", self.key()).filter("refersTo !=", "member").filter("active = ", True).fetch(FETCH_NUMBER)
 		
+	def getActiveMemberAndCharacterQuestions(self):
+		return Question.all().filter("community = ", self.key()).filter("refersTo IN ", ["character", "member"]).filter("active = ", True).fetch(FETCH_NUMBER)
+	
 	def hasQuestionWithSameTypeAndName(self, question):
 		allQuestions = self.getAllQuestions()
 		for aQuestion in allQuestions:
@@ -459,6 +468,11 @@ class Community(db.Model):
 							   multiple=question.multiple,
 							   community=self)
 		newQuestion.put()
+		
+	# SEARCHES
+	
+	def getNonPrivateSavedSearches(self):
+		return SavedSearch.all().filter("community = ", self.key()).filter("private = ", False).fetch(FETCH_NUMBER)
 		
 	# REMOVAL
 	
@@ -581,7 +595,7 @@ class Community(db.Model):
 			parts.append(self.roleReadmes_formatted[2])
 
 		return CleanUpCSV(parts)
-
+	
 # ============================================================================================
 # ============================================================================================
 class Question(db.Model):
@@ -589,7 +603,7 @@ class Question(db.Model):
 # ============================================================================================
 
 	community = db.ReferenceProperty(Community, collection_name="questions_to_community")
-	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO, required=True) # member or entry
+	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO, required=True) 
 	
 	name = db.StringProperty(required=True, default=DEFAULT_QUESTION_NAME)
 	text = db.StringProperty(required=True)
@@ -618,8 +632,21 @@ class Question(db.Model):
 	def isOrdinalOrNominal(self):
 		return self.type == "ordinal" or self.type == "nominal"
 	
+	def isTextOrValue(self):
+		return self.type == "text" or self.type == "value"
+	
 	def numChoices(self):
 		return len(self.choices)
+
+	def refersToEntryType(self):
+		return self.refersTo == "story" \
+			or self.refersTo == "pattern" \
+			or self.refersTo == "collage" \
+			or self.refersTo == "invitation" \
+			or self.refersTo == "resource" 
+			
+	def refersToMemberOrCharacter(self):
+		return self.refersTo == "member" or self.refersTo == "character"
 	
 	def csvLine(self, header=False):
 		parts = []
@@ -669,6 +696,9 @@ class Question(db.Model):
 			parts.append("%s,%s" % (self.minIfValue, self.maxIfValue))
 
 		return CleanUpCSV(parts)
+	
+	def keyAsString(self):
+		return "%s" % self.key()
 
 # ============================================================================================
 # ============================================================================================
@@ -720,7 +750,8 @@ class Member(db.Model):
 	viewTimeFrameInSeconds = db.IntegerProperty(default=DAY_SECONDS)
 	viewNumTimeFrames = db.IntegerProperty(default=1)
 	viewNudgeCategories = db.ListProperty(bool, default=[True] * NUM_NUDGE_CATEGORIES)
-	
+	viewSearchKey = db.StringProperty() # reference property?
+ 	
 	# CREATION
 	
 	def initialize(self):
@@ -861,6 +892,9 @@ class Member(db.Model):
 			offlineImageString = '<img src="/images/offline.png" alt="offline member">'
 		return '%s <a href="member?%s">%s</a>' % (offlineImageString, self.key(), self.nickname)
 	
+	def getSavedSearches(self):
+		return SavedSearch.all().filter("creator = ", self.key()).fetch(FETCH_NUMBER)
+	
 # ============================================================================================
 # ============================================================================================
 class PendingMember(db.Model): # person invited to join community but not yet logged in
@@ -932,6 +966,67 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 			parts.append(str(self.etiquetteStatement_formatted))
 		return CleanUpCSV(parts)
 
+# ============================================================================================
+# ============================================================================================
+class SavedSearch(db.Model):
+# ============================================================================================
+# ============================================================================================
+
+	community = db.ReferenceProperty(Community, required=True, collection_name="searches_to_community")
+	creator = db.ReferenceProperty(Member, required=True, collection_name="searches_to_member")
+	private = db.BooleanProperty(default=True)
+	created = TzDateTimeProperty(auto_now_add=True)
+	name = db.StringProperty(default="Untitled search")
+	
+	flaggedForRemoval = db.BooleanProperty(default=False)
+	flagComment = db.StringProperty()
+
+	entryTypes = db.ListProperty(bool, default=[True] * len(ENTRY_TYPES))
+	
+	words_anyOrAll = db.StringProperty(choices=ANY_ALL, default="any")
+	words_locations = db.ListProperty(bool, default=[True] * (len(ANNOTATION_TYPES) + 1))
+	words = db.StringListProperty()
+	
+	tags_anyOrAll = db.StringProperty(choices=ANY_ALL)
+	tags = db.StringListProperty()
+	
+	answers_anyOrAll = db.StringProperty(choices=ANY_ALL, default="any")
+	creatorAnswers_anyOrAll = db.StringProperty(choices=ANY_ALL, default="any")
+	
+	def getQuestionReferences(self):
+		return SavedSearchQuestionReference.all().filter("search = ", self.key()).fetch(FETCH_NUMBER)
+	
+	def getQuestionReferencesOfType(self, type):
+		return SavedSearchQuestionReference.all().filter("search = ", self.key()).filter("type = ", type).fetch(FETCH_NUMBER)
+	
+	def getEntryQuestionRefs(self):
+		return self.getQuestionReferencesOfType("entry")
+	
+	def getCreatorQuestionRefs(self):
+		return self.getQuestionReferencesOfType("creator")
+	
+	def deleteAllDependents(self):
+		for ref in self.getQuestionReferences():
+			db.delete(ref)
+			
+	def notPrivate(self):
+		return self.private == False
+	
+# ============================================================================================
+# ============================================================================================
+class SavedSearchQuestionReference(db.Model):
+# ============================================================================================
+# ============================================================================================
+
+	community = db.ReferenceProperty(Community, required=True, collection_name="searchrefs_to_community")
+	search = db.ReferenceProperty(SavedSearch, required=True, collection_name="question_refs_to_saved_search")
+	question = db.ReferenceProperty(Question, required=True, collection_name="question_refs_to_question")
+	
+	type = db.StringProperty() # entry or creator
+	order = db.IntegerProperty()
+	answer = db.StringProperty()
+	comparison = db.StringProperty()
+	
 # ============================================================================================
 # ============================================================================================
 class Answer(db.Model):
@@ -1230,10 +1325,9 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 	
 	def nudgePointsForMemberViewOptions(self, options):
 		result = 0
-		for nudge in self.getNonDraftAnnotationsOfType("nudge"):
-			for i in range(NUM_NUDGE_CATEGORIES):
-				if options[i]:
-					result += nudge.valuesIfNudge[i]
+		for i in range(NUM_NUDGE_CATEGORIES):
+			if options[i]:
+				result += self.nudgePoints[i]
 		return result
 	
 	# ANNOTATIONS, ANSWERS, LINKS

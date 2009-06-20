@@ -34,7 +34,7 @@ class CurateFlagsPage(webapp.RequestHandler):
 		community, member, access = GetCurrentCommunityAndMemberFromSession()
 		if access:
 			if member.isCurator():
-				(entries, annotations, answers, links) = community.getAllFlaggedItems()
+				(entries, annotations, answers, links, searches) = community.getAllFlaggedItems()
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Review flags", 
 						   	   	   'title_extra': None, 
@@ -43,6 +43,8 @@ class CurateFlagsPage(webapp.RequestHandler):
 								   'annotations': annotations,
 								   'answers': answers,
 								   'links': links,
+								   'searches': searches,
+								   'search_locations': SEARCH_LOCATIONS,
 								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/curate/flags.html')
 				self.response.out.write(template.render(path, template_values))
@@ -74,6 +76,8 @@ class CurateFlagsPage(webapp.RequestHandler):
 					elif self.request.get("remove|%s" % item.key()) == "yes":
 						if item.__class__.__name__ == "Entry":
 							item.removeAllDependents()
+						elif item.__class__.__name__ == "SavedSearch":
+							item.deleteAllDependents()
 						db.delete(item)
 				self.redirect('/result?changessaved')
 			elif member.isCurator():
@@ -109,7 +113,13 @@ class CurateFlagsPage(webapp.RequestHandler):
 								commentString = ""
 							displayString = 'A link%s from the %s called "%s" to the %s called "%s"' % \
 								(commentString, item.entryFrom.type, item.entryFrom.title, item.entryTo.type, item.entryTo.title)
-						messageLines.append('* %s\n\n	http://%s/visit/curate?%s\n' % (displayString, URL, linkKey))
+						elif item.__class__.__name__ == "SavedSearch":
+							linkKey = item.key()
+							displayString = item.name
+						if item.__class__.__name__ == "SavedSearch":
+							messageLines.append('* %s\n\n	http://%s/visit/look?%s (%s)\n' % (displayString, URL, linkKey, item.flagComment))
+						else:
+							messageLines.append('* %s\n\n	http://%s/visit/curate?%s (%s)\n' % (displayString, URL, linkKey, item.flagComment))
 					messageLines.append("Thank you for your attention.\n")
 					messageLines.append("Sincerely,")
 					messageLines.append("	Your Rakontu site")

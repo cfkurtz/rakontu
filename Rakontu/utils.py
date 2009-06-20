@@ -39,6 +39,8 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'time_formats': TimeFormatStrings(),
 	   'time_frames': TIME_FRAMES, 
 	   'entry_types': ENTRY_TYPES,
+	   'entry_types_plural': ENTRY_TYPES_PLURAL,
+	   'annotation_types': ANNOTATION_TYPES,
 	   'request_types': REQUEST_TYPES,
 	   'helping_role_names': HELPING_ROLE_TYPES,
 	   'maxlength_subject_or_comment': MAXLENGTH_SUBJECT_OR_COMMENT,
