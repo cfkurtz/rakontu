@@ -62,11 +62,11 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
 					aMember.active = False
 					aMember.put()
 			for pendingMember in community.getPendingMembers():
-				pendingMember.email = cgi.escape(self.request.get("email|%s" % pendingMember.key()))
+				pendingMember.email = htmlEscape(self.request.get("email|%s" % pendingMember.key()))
 				pendingMember.put()
 				if self.request.get("removePendingMember|%s" % pendingMember.key()):
 					db.delete(pendingMember)
-			memberEmailsToAdd = cgi.escape(self.request.get("newMemberEmails")).split('\n')
+			memberEmailsToAdd = htmlEscape(self.request.get("newMemberEmails")).split('\n')
 			for email in memberEmailsToAdd:
 				if email.strip():
 					if not community.hasMemberWithGoogleEmail(email.strip()):
@@ -143,8 +143,8 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 	def post(self):
 		community, member, access = GetCurrentCommunityAndMemberFromSession()
 		if access:
-			community.name = cgi.escape(self.request.get("name"))
-			community.tagline = cgi.escape(self.request.get("tagline"))
+			community.name = htmlEscape(self.request.get("name"))
+			community.tagline = htmlEscape(self.request.get("tagline"))
 			text = self.request.get("description")
 			format = self.request.get("description_format").strip()
 			community.description = text
@@ -181,9 +181,9 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 			except:
 				community.maxNudgePointsPerEntry = oldValue
 			for i in range(NUM_NUDGE_CATEGORIES):
-				community.nudgeCategories[i] = cgi.escape(self.request.get("nudgeCategory%s" % i))
+				community.nudgeCategories[i] = htmlEscape(self.request.get("nudgeCategory%s" % i))
 			for i in range(NUM_NUDGE_CATEGORIES):
-				community.nudgeCategoryQuestions[i] = cgi.escape(self.request.get("nudgeCategoryQuestion%s" % i))
+				community.nudgeCategoryQuestions[i] = htmlEscape(self.request.get("nudgeCategoryQuestion%s" % i))
 			oldValue = community.maxNumAttachments
 			try:
 				community.maxNumAttachments = int(self.request.get("maxNumAttachments"))
@@ -287,15 +287,15 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 			communityQuestionsOfType = community.getActiveQuestionsOfType(type)
 			systemQuestionsOfType = Question.all().filter("community = ", None).filter("refersTo = ", type).fetch(FETCH_NUMBER)
 			for question in communityQuestionsOfType:
-				question.name = cgi.escape(self.request.get("name|%s" % question.key()))
+				question.name = htmlEscape(self.request.get("name|%s" % question.key()))
 				if not question.name:
 					question.name = DEFAULT_QUESTION_NAME
-				question.text = cgi.escape(self.request.get("text|%s" % question.key()))
-				question.help = cgi.escape(self.request.get("help|%s" % question.key()))
+				question.text = htmlEscape(self.request.get("text|%s" % question.key()))
+				question.help = htmlEscape(self.request.get("help|%s" % question.key()))
 				question.type = self.request.get("type|%s" % question.key())
 				question.choices = []
 				for i in range(10):
-					question.choices.append(cgi.escape(self.request.get("choice%s|%s" % (i, question.key()))))
+					question.choices.append(htmlEscape(self.request.get("choice%s|%s" % (i, question.key()))))
 				oldValue = question.minIfValue
 				try:
 					question.minIfValue = int(self.request.get("minIfValue|%s" % question.key()))
@@ -313,7 +313,7 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 				if self.request.get("inactivate|%s" % question.key()):
 					question.active = False
 					question.put()
-			questionNamesToAdd = cgi.escape(self.request.get("newQuestionNames")).split('\n')
+			questionNamesToAdd = htmlEscape(self.request.get("newQuestionNames")).split('\n')
 			for name in questionNamesToAdd:
 				if name.strip():
 					foundQuestion = False
@@ -357,7 +357,7 @@ class ManageCommunityCharactersPage(webapp.RequestHandler):
 				if self.request.get("remove|%s" % character.key()):
 					character.active = False
 					character.put()
-			namesToAdd = cgi.escape(self.request.get("newCharacterNames")).split('\n')
+			namesToAdd = htmlEscape(self.request.get("newCharacterNames")).split('\n')
 			for name in namesToAdd:
 				if name.strip():
 					foundCharacter = False
@@ -413,7 +413,7 @@ class ManageCommunityCharacterPage(webapp.RequestHandler):
 								goAhead = False
 							break
 			if goAhead:
-				character.name = cgi.escape(self.request.get("name")).strip()
+				character.name = htmlEscape(self.request.get("name")).strip()
 				text = self.request.get("description")
 				format = self.request.get("description_format").strip()
 				character.description = text
@@ -437,7 +437,7 @@ class ManageCommunityCharacterPage(webapp.RequestHandler):
 					else:
 						answerToEdit = Answer(question=question, community=community, referent=character, referentType="character")
 					if question.type == "text":
-						answerToEdit.answerIfText = cgi.escape(self.request.get("%s" % question.key()))
+						answerToEdit.answerIfText = htmlEscape(self.request.get("%s" % question.key()))
 					elif question.type == "value":
 						oldValue = answerToEdit.answerIfValue
 						try:

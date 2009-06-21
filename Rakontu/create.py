@@ -23,7 +23,7 @@ class CreateCommunityPage(webapp.RequestHandler):
 	@RequireLogin 
 	def post(self):
 		user = users.get_current_user()
-		community = Community(name=cgi.escape(self.request.get('name')))
+		community = Community(name=htmlEscape(self.request.get('name')))
 		community.put()
 		member = Member(
 			googleAccountID=user.user_id(),
@@ -31,7 +31,7 @@ class CreateCommunityPage(webapp.RequestHandler):
 			active=True,
 			community=community,
 			governanceType="owner",
-			nickname = cgi.escape(self.request.get('nickname')))
+			nickname = htmlEscape(self.request.get('nickname')))
 		member.initialize()
 		member.put()
 		self.redirect('/')
@@ -166,7 +166,7 @@ class EnterEntryPage(webapp.RequestHandler):
 				entry.inBatchEntryBuffer = False
 				entry.published = datetime.now(tz=pytz.utc)
 			if self.request.get("title"):
-				entry.title = cgi.escape(self.request.get("title"))
+				entry.title = htmlEscape(self.request.get("title"))
 			text = self.request.get("text")
 			format = self.request.get("text_format").strip()
 			entry.text = text
@@ -216,7 +216,7 @@ class EnterEntryPage(webapp.RequestHandler):
 						linkType = "included"
 					link = Link(entryFrom=entryFrom, entryTo=entry, type=linkType, \
 								creator=member, community=community, \
-								comment=cgi.escape(self.request.get("link_comment")))
+								comment=htmlEscape(self.request.get("link_comment")))
 					link.put()
 					link.publish()
 			if entry.isCollage():
@@ -232,7 +232,7 @@ class EnterEntryPage(webapp.RequestHandler):
 					if self.request.get("addLink|%s" % anEntry.key()) == "yes":
 						link = Link(entryFrom=entry, entryTo=anEntry, type="included", 
 									creator=member, community=community,
-									comment=cgi.escape(self.request.get("linkComment|%s" % anEntry.key())))
+									comment=htmlEscape(self.request.get("linkComment|%s" % anEntry.key())))
 						link.put()
 						link.publish()
 			questions = Question.all().filter("community = ", community).filter("refersTo = ", type).fetch(FETCH_NUMBER)
@@ -247,7 +247,7 @@ class EnterEntryPage(webapp.RequestHandler):
 					if question.type == "text":
 						keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
 						if keepAnswer:
-							answerToEdit.answerIfText = cgi.escape(self.request.get(queryText))
+							answerToEdit.answerIfText = htmlEscape(self.request.get(queryText))
 					elif question.type == "value":
 						keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
 						if keepAnswer:
@@ -308,7 +308,7 @@ class EnterEntryPage(webapp.RequestHandler):
 							if mimeType:
 								attachmentToEdit.mimeType = mimeType
 								attachmentToEdit.fileName = filename
-								attachmentToEdit.name = cgi.escape(self.request.get("attachmentName%s" % i))
+								attachmentToEdit.name = htmlEscape(self.request.get("attachmentName%s" % i))
 								attachmentToEdit.data = db.Blob(str(self.request.get("attachment%s" % i)))
 								attachmentToEdit.put()
 			if not entry.draft:
@@ -428,7 +428,7 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 					if question.type == "text":
 						keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
 						if keepAnswer:
-							answerToEdit.answerIfText = cgi.escape(self.request.get(queryText))
+							answerToEdit.answerIfText = htmlEscape(self.request.get(queryText))
 					elif question.type == "value":
 						keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
 						if keepAnswer:
@@ -635,18 +635,18 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					annotation.tagsIfTagSet = []
 					for i in range (NUM_TAGS_IN_TAG_SET):
 						if self.request.get("tag%s" % i):
-							annotation.tagsIfTagSet.append(cgi.escape(self.request.get("tag%s" % i)))
+							annotation.tagsIfTagSet.append(htmlEscape(self.request.get("tag%s" % i)))
 						elif self.request.get("alreadyThereTag%i" %i) and self.request.get("alreadyThereTag%i" %i) != "none":
-							annotation.tagsIfTagSet.append(cgi.escape(self.request.get("alreadyThereTag%s" % i)))
+							annotation.tagsIfTagSet.append(htmlEscape(self.request.get("alreadyThereTag%s" % i)))
 				elif type == "comment":
-					annotation.shortString = cgi.escape(self.request.get("shortString", default_value="No subject"))
+					annotation.shortString = htmlEscape(self.request.get("shortString", default_value="No subject"))
 					text = self.request.get("longString")
 					format = self.request.get("longString_format").strip()
 					annotation.longString = text
 					annotation.longString_formatted = db.Text(InterpretEnteredText(text, format))
 					annotation.longString_format = format
 				elif type == "request":
-					annotation.shortString = cgi.escape(self.request.get("shortString", default_value="No subject"))
+					annotation.shortString = htmlEscape(self.request.get("shortString", default_value="No subject"))
 					text = self.request.get("longString")
 					format = self.request.get("longString_format").strip()
 					annotation.longString = text
@@ -689,7 +689,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					for value in adjustedValues:
 						annotation.valuesIfNudge[i] = value
 						i += 1
-					annotation.shortString = cgi.escape(self.request.get("shortString"))
+					annotation.shortString = htmlEscape(self.request.get("shortString"))
 					newTotalNudgePointsInThisNudge = annotation.totalNudgePointsAbsolute()
 					member.nudgePoints += oldTotalNudgePointsInThisNudge
 					member.nudgePoints -= newTotalNudgePointsInThisNudge
@@ -843,7 +843,7 @@ class RelateEntryPage(webapp.RequestHandler):
 						if self.request.get("addLink|%s" % anEntry.key()) == "yes":
 							link = Link(entryFrom=entry, entryTo=anEntry, type="related", \
 										creator=member, community=community,
-										comment=cgi.escape(self.request.get("linkComment|%s" % anEntry.key())))
+										comment=htmlEscape(self.request.get("linkComment|%s" % anEntry.key())))
 							link.put()
 							link.publish()
 					self.redirect("read?%s" % entry.key())

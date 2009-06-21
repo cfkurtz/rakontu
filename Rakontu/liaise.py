@@ -39,7 +39,7 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 					if self.request.get("remove|%s" % aMember.key()) == "yes":
 						aMember.active = False
 						aMember.put()
-				memberNicknamesToAdd = cgi.escape(self.request.get("newMemberNicknames")).split('\n')
+				memberNicknamesToAdd = htmlEscape(self.request.get("newMemberNicknames")).split('\n')
 				for nickname in memberNicknamesToAdd:
 					if nickname.strip():
 						if not community.hasMemberWithNickname(nickname.strip()):
@@ -185,7 +185,7 @@ class BatchEntryPage(webapp.RequestHandler):
 											if mimeType:
 												attachment.mimeType = mimeType
 												attachment.fileName = filename
-												attachment.name = cgi.escape(self.request.get("attachmentName|%s|%s" % (i, j)))
+												attachment.name = htmlEscape(self.request.get("attachmentName|%s|%s" % (i, j)))
 												attachment.data = db.Blob(str(self.request.get("attachment|%s|%s" % (i, j))))
 												attachment.put()
 							questions = Question.all().filter("community = ", community).filter("refersTo = ", "story").fetch(FETCH_NUMBER)
@@ -196,7 +196,7 @@ class BatchEntryPage(webapp.RequestHandler):
 								if question.type == "text":
 									keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
 									if keepAnswer:
-										answer.answerIfText = cgi.escape(self.request.get(queryText))
+										answer.answerIfText = htmlEscape(self.request.get(queryText))
 								elif question.type == "value":
 									keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
 									if keepAnswer:

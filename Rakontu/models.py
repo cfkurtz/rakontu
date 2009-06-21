@@ -901,6 +901,9 @@ class Member(db.Model):
 	def getSavedSearches(self):
 		return SavedSearch.all().filter("creator = ", self.key()).fetch(FETCH_NUMBER)
 	
+	def getPrivateSavedSearches(self):
+		return SavedSearch.all().filter("creator = ", self.key()).filter("private = ", True).fetch(FETCH_NUMBER)
+	
 # ============================================================================================
 # ============================================================================================
 class PendingMember(db.Model): # person invited to join community but not yet logged in
@@ -999,6 +1002,42 @@ class SavedSearch(db.Model):
 	answers_anyOrAll = db.StringProperty(choices=ANY_ALL, default="any")
 	creatorAnswers_anyOrAll = db.StringProperty(choices=ANY_ALL, default="any")
 	
+	comment = db.TextProperty(default="")
+	comment_formatted = db.TextProperty()
+	comment_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+
+	def copyDataFromOtherSearchAndPut(self, search):
+		self.private = True
+		self.name = "Copy of " + search.name
+		self.entryTypes = []
+		self.entryTypes.extend(search.entrytTypes)
+		self.words_anyOrAll = search.words_anyOrAll
+		self.words_locations = []
+		self.words_locations.extend(search.words_locations)
+		self.words = []
+		self.words.extend(search.words)
+		self.tags_anyOrAll = search.tags_anyOrAll
+		self.tags = []
+		self.tags.extend(search.tags)
+		self.answers_anyOrAll = search.answers_anyOrAll
+		self.creatorAnswers_anyOrAll = search.creatorAnswers_anyOrAll
+		self.comment = db.Text(search.comment)
+		self.comment_formatted = db.Text(search.comment_formatted)
+		self.comment_format = search.comment_format
+		for ref in search.getQuestionReferences():
+			myRef = SavedSearchQuestionReference(
+												community=self.community, 
+												creator=self.creator,
+												search=self,
+												question=ref.question,
+												type=ref.type,
+												order=ref.order,
+												answer=ref.answer,
+												comparison=ref.comparison
+												)
+			myRef.put()
+		self.put()
+	
 	def getQuestionReferences(self):
 		return SavedSearchQuestionReference.all().filter("search = ", self.key()).fetch(FETCH_NUMBER)
 	
@@ -1017,6 +1056,12 @@ class SavedSearch(db.Model):
 			
 	def notPrivate(self):
 		return self.private == False
+	
+	def displayString(self):
+		if self.private:
+			return self.name
+		else:
+			return "%s (%s)" % (self.name, self.creator.nickname)
 	
 # ============================================================================================
 # ============================================================================================

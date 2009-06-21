@@ -28,6 +28,20 @@ webapp.template.register_template_library('djangoTemplateExtras')
 import csv
 import pytz
 
+HTML_ESCAPES = {
+ 	"&": "&amp;",
+ 	'"': "&quot;",
+ 	"'": "&apos;",
+ 	">": "&gt;",
+ 	"<": "&lt;",
+ 	 }
+
+def htmlEscape(text):
+	result = []
+	for character in text:
+		result.append(HTML_ESCAPES.get(character, character))
+	return "".join(result)
+
 def GetStandardTemplateDictionaryAndAddMore(newItems):
 	items = {
 		# constants
@@ -368,7 +382,7 @@ TEXT_FORMATS = ["plain text", "simple HTML", "Wiki markup"]
 def InterpretEnteredText(text, mode="text"):
 	result = text
 	if mode == "plain text":
-		result = cgi.escape(result)
+		result = htmlEscape(result)
 		lines = result.split("\n")
 		changedLines = []
 		for line in lines:
@@ -393,7 +407,7 @@ def InterpretEnteredText(text, mode="text"):
 		for htmlVersion, longVersion in SIMPLE_HTML_REPLACEMENTS:
 			result = result.replace(htmlVersion, longVersion)
 		# now escape it
-		result = cgi.escape(result)
+		result = htmlEscape(result)
 		# bold, italic, etc
 		for htmlVersion, longVersion in SIMPLE_HTML_REPLACEMENTS:
 			result = result.replace(longVersion, htmlVersion)
@@ -405,7 +419,7 @@ def InterpretEnteredText(text, mode="text"):
 		for url, alt in imageLinks:
 			result = result.replace('{{BEGINIMG}}%s|%s{{ENDIMG}}' % (url, alt), '<img src="%s" alt="%s"/>' % (url,alt))
 	elif mode == "Wiki markup":
-		result = cgi.escape(result)
+		result = htmlEscape(result)
 		lines = result.split("\n")
 		changedLines = []
 		changedLines.append("<p>")

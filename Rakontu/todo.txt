@@ -11,6 +11,10 @@ liaison page:
     
 add import/export of question lists (CSV)
 
+grid/list display
+
+turn names on and off
+
 ===== PUT OFF until a little later :)
 
 test "send this member a note" thing
