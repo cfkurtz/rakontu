@@ -37,3 +37,8 @@
 "caution","activeCommunityBox","Check or uncheck this box to change whether members can access this community. Inactive communities cannot be accessed by ANY of their members (not even their owners)."
 "caution","removeCommunityBox","Check the box to REMOVE ALL CONTENT along with the selected community. PLEASE DO THIS CAREFULLY."
 "tip","systemResourceOverwrites","If you have already loaded a system resource, checking it here will load it again."
+"tip","giveFiltersGoodNames","You should give your filter a short but informative name about what it finds."
+"info","privateAndSharedFilters","Private filters are visible and available only to you. Shared filters can be seen and used (but not changed) by everyone in the community. Patterns can only connect to shared filters. You can change a shared filter, if you were the one who created it."
+"tip","filterComment","This is mainly for the benefit of people using shared filters in patterns. It's a good place to describe why the filter is useful."
+"tip","filterEntryTypes","You have to choose at least one of these types (otherwise there will be nothing to see). If you don't check any of these boxes, the filter will show only stories."
+"tip","filterWordLocations","You have to choose at least one of these locations (otherwise there will be nothing to see). If you don't check any of these boxes, the filter will show only entries with the words in the entry text itself (the first choice)."

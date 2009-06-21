@@ -85,6 +85,10 @@ TIME_FRAMES = [(u"an hour", HOUR_SECONDS),
 			 ]
 TIME_FRAME_EVERYTHING_STRING = "everything"
 
+# These would only be changed for internationalization. The first must always be the grid and the second the list.
+GRID_OR_LIST = ["grid", "list"]
+DEFAULT_GRID_OR_LIST = "grid"
+
 # These are the available date and time formats. They affect all places where the date or time is displayed.
 # The key in each dictionary (before the colon) is the django template format string.
 # The value in each dictionary (after the colon) is the Python datetime format string.

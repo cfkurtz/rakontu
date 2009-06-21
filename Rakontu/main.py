@@ -21,7 +21,7 @@ application = webapp.WSGIApplication(
 									  ('/visit', BrowseEntriesPage),
 									  ('/visit/', BrowseEntriesPage),
 									  ('/visit/look', BrowseEntriesPage),
-									  ('/visit/filter', FilterEntryPage),
+									  ('/visit/filter', SavedSearchEntryPage),
 									  ('/visit/read', ReadEntryPage),
 									  ('/visit/readAnnotation', ReadAnnotationPage),
 									  

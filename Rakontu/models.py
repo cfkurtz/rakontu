@@ -294,6 +294,20 @@ class Community(db.Model):
 	def getNonDraftEntries(self):
 		return Entry.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
+	def getNonDraftEntriesInReverseTimeOrder(self):
+		return Entry.all().filter("community = ", self.key()).filter("draft = ", False).order("-published").fetch(FETCH_NUMBER)
+	
+	def getNonDraftEntriesAnnotationsAndAnswersInReverseTimeOrder(self):
+		result = []
+		entries = Entry.all().filter("community = ", self.key()).filter("draft = ", False).order("-published").fetch(FETCH_NUMBER)
+		annotations = Annotation.all().filter("community = ", self.key()).filter("draft = ", False).order("-published").fetch(FETCH_NUMBER)
+		answers = Answer.all().filter("community = ", self.key()).filter("draft = ", False).order("-published").fetch(FETCH_NUMBER)
+		result.extend(entries)
+		result.extend(annotations)
+		result.extend(answers)
+		result.sort(lambda a,b: cmp(b.published, a.published))
+		return result
+	
 	def getNonDraftEntriesOfType(self, type):
 		return Entry.all().filter("community = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(FETCH_NUMBER)
 	
@@ -752,7 +766,11 @@ class Member(db.Model):
 	viewTimeEnd = TzDateTimeProperty(auto_now_add=True)
 	viewTimeFrameInSeconds = db.IntegerProperty(default=DAY_SECONDS)
 	viewNudgeCategories = db.ListProperty(bool, default=[True] * NUM_NUDGE_CATEGORIES)
-	viewSearchKey = db.StringProperty() # reference property?
+	viewSearch = db.ReferenceProperty(None, collection_name="member_to_search")
+	viewGridOrList = db.StringProperty(choices=GRID_OR_LIST, default=DEFAULT_GRID_OR_LIST)
+	
+	def showGrid(self):
+		return self.viewGridOrList == "grid"
  	
 	# CREATION
 	
@@ -1111,6 +1129,11 @@ class Answer(db.Model):
 	entryNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
 	entryActivityPointsWhenPublished = db.IntegerProperty(default=0)
 	
+	def isAnswer(self):
+		return True
+	
+	# IMPORTANT METHODS
+	
 	def publish(self):
 		if self.referentType == "entry":
 			self.draft = False
@@ -1248,6 +1271,9 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 	
 	activityPoints = db.IntegerProperty(default=0)
 	nudgePoints = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
+	
+	def isEntry(self):
+		return True
 	
 	# IMPORTANT METHODS
 	
@@ -1725,6 +1751,9 @@ class Annotation(db.Model):                                # tag set, comment, r
 	
 	entryNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
 	entryActivityPointsWhenPublished = db.IntegerProperty(default=0)
+	
+	def isAnnotation(self):
+		return True
 	
 	# IMPORTANT METHODS
 	

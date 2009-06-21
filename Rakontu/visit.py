@@ -169,100 +169,116 @@ class BrowseEntriesPage(webapp.RequestHandler):
 	def get(self):
 		community, member, access = GetCurrentCommunityAndMemberFromSession()
 		if access:
-			entries = community.getNonDraftEntries()
+			entries = community.getNonDraftEntriesInReverseTimeOrder()
 			if entries:
-				currentSearch = None
-				if self.request.query_string:
-					currentSearchKey = self.request.query_string
-					try: 
-						currentSearch = SavedSearch.get(currentSearchKey)
-					except:
-						pass
+				currentSearch = GetCurrentSearchForMember(member)
 				maxTime = member.viewTimeEnd
 				minTime = member.getViewStartTime()
-				maxNudgePoints = -9999999
-				minNudgePoints = -9999999
-				minActivityPoints = -9999999
-				maxActivityPoints = -9999999
-				for entry in entries:
-					nudgePoints = entry.nudgePointsForMemberViewOptions(member.viewNudgeCategories)
-					if minNudgePoints == -9999999:
-						minNudgePoints = nudgePoints
-					elif nudgePoints < minNudgePoints:
-						minNudgePoints = nudgePoints
-					if maxNudgePoints == -9999999:
-						maxNudgePoints = nudgePoints
-					elif nudgePoints > maxNudgePoints:
-						maxNudgePoints = nudgePoints
-					activityPoints = entry.activityPoints
-					if minActivityPoints == -9999999:
-						minActivityPoints = activityPoints
-					elif activityPoints < minActivityPoints:
-						minActivityPoints = activityPoints
-					if maxActivityPoints == -9999999:
-						maxActivityPoints = activityPoints
-					elif activityPoints > maxActivityPoints:
-						maxActivityPoints = activityPoints
-				numRows = BROWSE_NUM_ROWS
-				numCols = BROWSE_NUM_COLS
-				nudgeStep = max(1, (maxNudgePoints - minNudgePoints) // numRows)
-				timeStep = (maxTime - minTime) // numCols
-				
-				textsForGrid = []
-				colHeaders = []
-				rowColors = []
-				rowIndex = 0
-				for row in range(numRows):
-					rowColors.append(HexColorStringForRowIndex(rowIndex))
-					textsInThisRow = []
-					startNudgePoints = minNudgePoints + nudgeStep * row
-					if row == numRows - 1:
-						endNudgePoints = 100000000
-					else:
-						endNudgePoints = minNudgePoints + nudgeStep * (row+1)
-					for col in range(numCols):
-						textsInThisCell = []
-						startTime = minTime + timeStep * col
-						endTime = minTime + timeStep * (col+1)
+				if member.viewGridOrList == "grid":
+					maxNudgePoints = -9999999
+					minNudgePoints = -9999999
+					minActivityPoints = -9999999
+					maxActivityPoints = -9999999
+					for entry in entries:
+						nudgePoints = entry.nudgePointsForMemberViewOptions(member.viewNudgeCategories)
+						if minNudgePoints == -9999999:
+							minNudgePoints = nudgePoints
+						elif nudgePoints < minNudgePoints:
+							minNudgePoints = nudgePoints
+						if maxNudgePoints == -9999999:
+							maxNudgePoints = nudgePoints
+						elif nudgePoints > maxNudgePoints:
+							maxNudgePoints = nudgePoints
+						activityPoints = entry.activityPoints
+						if minActivityPoints == -9999999:
+							minActivityPoints = activityPoints
+						elif activityPoints < minActivityPoints:
+							minActivityPoints = activityPoints
+						if maxActivityPoints == -9999999:
+							maxActivityPoints = activityPoints
+						elif activityPoints > maxActivityPoints:
+							maxActivityPoints = activityPoints
+					numRows = BROWSE_NUM_ROWS
+					numCols = BROWSE_NUM_COLS
+					nudgeStep = max(1, (maxNudgePoints - minNudgePoints) // numRows)
+					timeStep = (maxTime - minTime) // numCols
+					
+					textsForGrid = []
+					colHeaders = []
+					rowColors = []
+					rowIndex = 0
+					for row in range(numRows):
+						rowColors.append(HexColorStringForRowIndex(rowIndex))
+						textsInThisRow = []
+						startNudgePoints = minNudgePoints + nudgeStep * row
 						if row == numRows - 1:
-							colHeaders.append(RelativeTimeDisplayString(startTime, member))
-						for entry in entries:
-							nudgePoints = entry.nudgePointsForMemberViewOptions(member.viewNudgeCategories)
-							shouldBeInRow = nudgePoints >= startNudgePoints and nudgePoints < endNudgePoints
-							if entry.lastAnnotatedOrAnsweredOrLinked:
-								timeToCheck = entry.lastAnnotatedOrAnsweredOrLinked
-							else:
-								timeToCheck = entry.published
-							shouldBeInCol = timeToCheck >= startTime and timeToCheck < endTime
-							if shouldBeInRow and shouldBeInCol:
-								fontSizePercent = min(200, 90 + entry.activityPoints - minActivityPoints)
-								downdrift = community.getEntryActivityPointsForEvent("downdrift")
-								if downdrift:
-									daysSinceTouched = 1.0 * (datetime.now(tz=pytz.utc) - entry.lastTouched()).seconds / DAY_SECONDS
-									timeLoss = daysSinceTouched * downdrift
-									fontSizePercent += timeLoss
-									fontSizePercent = int(max(MIN_BROWSE_FONT_SIZE_PERCENT, min(fontSizePercent, MAX_BROWSE_FONT_SIZE_PERCENT)))
-								if entry.attributedToMember():
-									if entry.creator.active:
-										nameString = '<a href="member?%s">%s</a>' % (entry.creator.key(), entry.creator.nickname)
-									else:
-										nameString = entry.creator.nickname
+							endNudgePoints = 100000000
+						else:
+							endNudgePoints = minNudgePoints + nudgeStep * (row+1)
+						for col in range(numCols):
+							textsInThisCell = []
+							startTime = minTime + timeStep * col
+							endTime = minTime + timeStep * (col+1)
+							if row == numRows - 1:
+								colHeaders.append(RelativeTimeDisplayString(startTime, member))
+							for entry in entries:
+								nudgePoints = entry.nudgePointsForMemberViewOptions(member.viewNudgeCategories)
+								shouldBeInRow = nudgePoints >= startNudgePoints and nudgePoints < endNudgePoints
+								if entry.lastAnnotatedOrAnsweredOrLinked:
+									timeToCheck = entry.lastAnnotatedOrAnsweredOrLinked
 								else:
-									if entry.character.active:
-										nameString = '<a href="character?%s">%s</a>' % (entry.character.key(), entry.character.name)
+									timeToCheck = entry.published
+								shouldBeInCol = timeToCheck >= startTime and timeToCheck < endTime
+								if shouldBeInRow and shouldBeInCol:
+									fontSizePercent = min(200, 90 + entry.activityPoints - minActivityPoints)
+									downdrift = community.getEntryActivityPointsForEvent("downdrift")
+									if downdrift:
+										daysSinceTouched = 1.0 * (datetime.now(tz=pytz.utc) - entry.lastTouched()).seconds / DAY_SECONDS
+										timeLoss = daysSinceTouched * downdrift
+										fontSizePercent += timeLoss
+										fontSizePercent = int(max(MIN_BROWSE_FONT_SIZE_PERCENT, min(fontSizePercent, MAX_BROWSE_FONT_SIZE_PERCENT)))
+									if entry.attributedToMember():
+										if entry.creator.active:
+											nameString = '<a href="member?%s">%s</a>' % (entry.creator.key(), entry.creator.nickname)
+										else:
+											nameString = entry.creator.nickname
 									else:
-										nameString = entry.character.name
-								text = '<p>%s <span style="font-size:%s%%"><a href="/visit/read?%s" %s>%s</a></span> (%s)</p>' % \
-									(entry.getImageLinkForType(), fontSizePercent, entry.key(), entry.getTooltipText(), entry.title, nameString)
-								textsInThisCell.append(text)
-						textsInThisRow.append(textsInThisCell)
-					textsForGrid.append(textsInThisRow)
-					rowIndex += 1
-				textsForGrid.reverse()
+										if entry.character.active:
+											nameString = '<a href="character?%s">%s</a>' % (entry.character.key(), entry.character.name)
+										else:
+											nameString = entry.character.name
+									text = '<p>%s <span style="font-size:%s%%"><a href="/visit/read?%s" %s>%s</a></span> (%s)</p>' % \
+										(entry.getImageLinkForType(), fontSizePercent, entry.key(), entry.getTooltipText(), entry.title, nameString)
+									textsInThisCell.append(text)
+							textsInThisRow.append(textsInThisCell)
+						textsForGrid.append(textsInThisRow)
+						rowIndex += 1
+					textsForGrid.reverse()
+					itemsToShow = []
+				else:
+					itemsToShow = []
+					allItems = community.getNonDraftEntriesAnnotationsAndAnswersInReverseTimeOrder()
+					for item in allItems:
+						if item.__class__.__name__ == "Entry":
+							if item.lastAnnotatedOrAnsweredOrLinked:
+								timeToCheck = item.lastAnnotatedOrAnsweredOrLinked
+							else:
+								timeToCheck = item.published
+						elif item.__class__.__name__ == "Annotation":
+							timeToCheck = item.published
+						elif item.__class__.__name__ == "Answer":
+							timeToCheck = item.published
+						show = timeToCheck >= minTime and timeToCheck < maxTime
+						if show:
+							itemsToShow.append(item)
+					textsForGrid = []
+					colHeaders = []
+					rowColors = []
 			else:
 				textsForGrid = []
 				colHeaders = []
 				rowColors = []
+				itemsToShow = []
 			questionsAndRefsDictList = []
 			entryQuestions = community.getActiveNonMemberQuestions()
 			if entryQuestions:
@@ -293,7 +309,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 						   	'title_extra': None,
 							'community': community, 
 							'current_member': member, 
-							'entries': entries, 
+							'items_to_show': itemsToShow, 
 							'rows_cols': textsForGrid, 
 							'col_headers': colHeaders, 
 							'1_to_31': range(1, 31, 1), 
@@ -317,11 +333,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 	def post(self):
 		community, member, access = GetCurrentCommunityAndMemberFromSession()
 		if access:
-			search = None
-			try:
-				search = db.get(self.request.query_string)
-			except:
-				pass
+			search = GetCurrentSearchForMember(member)
 			if "changeNudgeCategoriesShowing" in self.request.arguments():
 				member.viewNudgeCategories = []
 				for i in range(NUM_NUDGE_CATEGORIES):
@@ -330,6 +342,14 @@ class BrowseEntriesPage(webapp.RequestHandler):
 				self.redirect("/visit/look")
 			elif "changeTimeFrame" in self.request.arguments():
 				member.setViewTimeFrameFromTimeFrameString(self.request.get("timeFrame"))
+				member.viewGridOrList = self.request.get("gridOrList")
+				member.put()
+				self.redirect("/visit/look")
+			elif "refreshView" in self.request.arguments():
+				if community.lastPublish:
+					member.viewTimeEnd = community.lastPublish + timedelta(seconds=10)
+				else:
+					member.viewTimeEnd = datetime.now(tz=pytz.utc)
 				member.put()
 				self.redirect("/visit/look")
 			elif "loadAndApplySavedSearch" in self.request.arguments():
@@ -337,38 +357,31 @@ class BrowseEntriesPage(webapp.RequestHandler):
 				if searchKey:
 					search = SavedSearch.get(searchKey)
 					if search:
-						self.redirect("/visit/look?%s" % search.key())
+						member.viewSearch = search
+						member.put()
+						self.redirect("/visit/look")
 						return
 				else:
 					self.redirect("/visit/look")
 			elif "clearSearch" in self.request.arguments():
-				self.redirect("/visit/look")
-			elif "deleteSearchByCreator" in self.request.arguments():
-				if search:
-					db.delete(search)
-				self.redirect("/visit/look")
-			elif "flagSearchByCurator" in self.request.arguments():
-				if search:
-					search.flaggedForRemoval = not search.flaggedForRemoval
-					search.put()
-					self.redirect("/visit/look?%s" % search.key())
-				else:
-					self.redirect("/visit/look")
-			elif "removeSearchByManager" in self.request.arguments():
-				if search:
-					db.delete(search)
+				member.viewSearch = None
+				member.put()
 				self.redirect("/visit/look")
 			elif "copySearchAs" in self.request.arguments():
 				newSearch = SavedSearch(community=community, creator=member)
 				newSearch.copyDataFromOtherSearchAndPut(search)
-				self.redirect('/visit/filter?%s' % newSearch.key())
+				member.viewSearch = newSearch
+				member.put()
+				self.redirect('/visit/filter')
 			elif "makeNewSavedSearch" in self.request.arguments() or "changeSearch" in self.request.arguments():
 				if "makeNewSavedSearch" in self.request.arguments():
 					self.redirect('/visit/filter')
 				else:
 					if search:
-						self.redirect("/visit/filter?%s" % search.key())
+						self.redirect("/visit/filter")
 					else:
+						member.viewSearch = None
+						member.put()
 						self.redirect('/visit/filter')
 			else:
 				if "setToLast" in self.request.arguments():
@@ -395,18 +408,12 @@ class BrowseEntriesPage(webapp.RequestHandler):
 		else:
 			self.redirect("/")
 			
-class FilterEntryPage(webapp.RequestHandler):
+class SavedSearchEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member, access = GetCurrentCommunityAndMemberFromSession()
 		if access:
-			currentSearch = None
-			if self.request.query_string:
-				currentSearchKey = self.request.query_string
-				try: 
-					currentSearch = SavedSearch.get(currentSearchKey)
-				except:
-					pass
+			currentSearch = GetCurrentSearchForMember(member)
 			questionsAndRefsDictList = []
 			entryQuestions = community.getActiveNonMemberQuestions()
 			if entryQuestions:
@@ -453,25 +460,25 @@ class FilterEntryPage(webapp.RequestHandler):
 	def post(self):
 		community, member, access = GetCurrentCommunityAndMemberFromSession()
 		if access:
-			search = None
-			try:
-				search = db.get(self.request.query_string)
-			except:
-				pass
+			search = GetCurrentSearchForMember(member)
 			if "deleteSearchByCreator" in self.request.arguments():
 				if search:
 					db.delete(search)
+					member.viewSearch = None
+					member.put()
 				self.redirect("/visit/look")
 			elif "flagSearchByCurator" in self.request.arguments():
 				if search:
 					search.flaggedForRemoval = not search.flaggedForRemoval
 					search.put()
-					self.redirect("/visit/filter?%s" % search.key())
+					self.redirect("/visit/filter")
 				else:
 					self.redirect("/visit/look")
 			elif "removeSearchByManager" in self.request.arguments():
 				if search:
 					db.delete(search)
+					member.viewSearch = None
+					member.put()
 				self.redirect("/visit/look")
 			elif "cancel" in self.request.arguments():
 				self.redirect("/visit/look")
@@ -547,7 +554,9 @@ class FilterEntryPage(webapp.RequestHandler):
 								ref.order = i
 								ref.type = preface
 								ref.put()
-				self.redirect("/visit/look?%s" % search.key())
+				member.viewSearch = search
+				member.put()
+				self.redirect("/visit/look")
 			else:
 				self.redirect("/visit/look")
 		else:

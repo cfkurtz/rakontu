@@ -272,6 +272,17 @@ def GetCurrentCommunityAndMemberFromSession():
 	okayToAccess = community and community.active and member and member.active
 	return community, member, okayToAccess
 
+def GetCurrentSearchForMember(member):
+	if member.viewSearch:
+		try:
+			# this is to check if the search was deleted in the meantime
+			key = member.viewSearch.key()
+			return member.viewSearch
+		except:
+			return None
+	else:
+		return None
+
 def GetKeyFromQueryString(queryString, keyname):
 	if queryString:
 		nameAndKey = queryString.split("=")

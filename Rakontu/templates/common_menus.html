@@ -45,13 +45,13 @@
 			{% if current_member.isCurator %}
 				<li><a href="/curate/flags">Curate</a>
 				<ul>
-					<li><a href="/curate/flags">Flags</a>
-					<li><a href="/curate/gaps">Gaps</a>
+					<li><a href="/curate/flags">Flags</a></li>
+					<li><a href="/curate/gaps">Gaps</a></li>
 					{% if community.allowsAttachments %}
-						<li><a href="/curate/attachments">Attachments</a>
+						<li><a href="/curate/attachments">Attachments</a></li>
 					{% endif %}
 					{% if current_member.canEditTags %}
-						<li><a href="/curate/tags">Tags</a>
+						<li><a href="/curate/tags">Tags</a></li>
 					{% endif %}
 				</ul>
 				</li>
@@ -68,9 +68,9 @@
 			{% if current_member.isLiaison %}
 				<li><a href="/liaise/members">Liaise</a>
 				<ul>
-					<li><a href="/liaise/members">Manage off-line members</a>
-					<li><a href="/liaise/batch">Add a batch of stories</a>
-					<li><a href="/liaise/review">Review entered batches</a>
+					<li><a href="/liaise/members">Manage off-line members</a></li>
+					<li><a href="/liaise/batch">Add a batch of stories</a></li>
+					<li><a href="/liaise/review">Review entered batches</a></li>
 				</ul>
 				</li>
 			{% endif %}

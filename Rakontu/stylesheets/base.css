@@ -132,6 +132,10 @@ ul li.nobullet {
 	margin-bottom: 8px;
 	}
 	
+.indented {
+	padding: 4px 30px 4px 30px;
+	}
+	
 .footer {
 	text-align: right;
 	font-size: 80%;
