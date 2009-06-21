@@ -15,28 +15,27 @@
 		{% endif %}
 		method="post">
 		
-		<table style="border:none;width:100%;"><tr><td align="left" style="border:none;">
-		<input type="submit" name="setToFirst" value=" |< " class="button_small">
-		<input type="submit" name="moveTimeBack" value=" < " class="button_small">
-		<input type="submit" name="moveTimeForward" value=" > " class="button_small">
-		<input type="submit" name="setToLast" value=" >| " class="button_small">
-		</td><td align="right" style="border:none;">
+		<table style="border:none;width:100%;">
+		<tr>
+		<td align="left" style="border:none;">
 		Show
-		<select name="numberOf">
-		{% for i in 1_to_31 %}
-			<option value="{{i}}" {% ifequal i current_member.viewNumTimeFrames %}selected="selected"{% endifequal %}>{{i}}</option>
-			{% endfor %}
-			</select>
 		<select name="timeFrame">
 			{% for time_frame in time_frames %}
-				<option value="{{time_frame}}"
-				{% ifequal current_member.getUnitStringForViewTimeFrame time_frame %}
+				<option value="{{time_frame|listLookup:0}}"
+				{% if time_frame|listLookup:0|equalTest:member_time_frame_string %}
 					selected="selected"
-				{% endifequal %}
-				>{{time_frame}}(s)</option>
+				{% endif %}
+				>{{time_frame|listLookup:0}}</option>
 			{% endfor %}
 			</select>
 		<input type="submit" name="changeTimeFrame" value="Change" class="button_small">
+		{% ifnotequal member_time_frame_string "everything" %}
+			</td><td align="right" style="border:none;">
+			<input type="submit" name="setToFirst" value=" |< " class="button_small">
+			<input type="submit" name="moveTimeBack" value=" < " class="button_small">
+			<input type="submit" name="moveTimeForward" value=" > " class="button_small">
+			<input type="submit" name="setToLast" value=" >| " class="button_small">
+		{% endifnotequal %}
 		</td></tr></table>
 	
 		<table cellpadding="4" cellspacing="0" style="width: 100%; border-top: none; border-bottom: 1px solid #FF7F00; border-left: none; border-right: 1px solid #FF7F00">
@@ -80,34 +79,88 @@
 			<p><center>
 				Saved searches:
 				<select name="savedSearch"><option>(choose)</option>
+				{% if member_searches %}
+				<option value="">-------- Private searches --------</option>
 				{% for search in member_searches %}
 					<option value="{{search.key}}"
 					{% ifequal search.key current_search.key %}
 						selected="selected"
 					{% endifequal %}
 					>
-					{{search.name}} - by {{search.creator.nickname}} 
-					on {{search.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-					at {{search.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}} (private)
+					&nbsp; {{search.name}}
+					({{search.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}})
 					</option>
 				{% endfor %}
+				{% endif %}
+				{% if community_searches %}
+				<option value="">-------- Shared searches --------</option>
 				{% for search in community_searches %}
 					<option value="{{search.key}}"
 					{% ifequal search.key current_search.key %}
 						selected="selected"
 					{% endifequal %}
 					>
-					{{search.name}} - by {{search.creator.nickname}} 
-					on {{search.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-					at {{search.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					&nbsp; {{search.name}} ({{search.creator.nickname}}, 
+					{{search.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}})
 					</option>
 				{% endfor %}
+				{% endif %}
 				</select>
-			<input type="submit" name="loadAndApplySavedSearch" value="Load and apply" class="button_small">
+			<input type="submit" name="loadAndApplySavedSearch" value="Search" class="button_small">
+			{% if current_search %}
+				<input type="submit" name="clearSearch" value="Reset" class="button_small">
+			{% endif %}	
 			</p></center>
 		{% endif %}
 			
 		<fieldset>
+		
+		<p>
+		{% if current_search %}
+			<p>This saved search is called
+			<input name="searchName" type="text" size="20" maxlength="{{maxlength_name}}" value="{{current_search.name}}">
+			and it is
+			<select name="privateOrSharedSearch">
+				<option value="private"
+				{% if current_search.private %}
+					selected="selected"
+				{% endif %}
+				>private</option>
+				<option value="shared"
+				{% if not current_search.private %}
+					selected="selected"
+				{% endif %}
+				>shared</option>
+			</select>
+			{% ifequal current_member.key current_search.creator.key %}
+				<input type="submit" name="changeSearch" value="Apply and save" class="button_small">
+			{% endifequal %}
+		{% endif %}
+		{% if current_search %}
+			{% ifequal current_member.key current_search.creator.key %}
+				<input type="submit" name="applyAndSaveSearchAs" value="Apply and save as new search" class="button_small">
+			{% else %}
+				<input type="submit" name="copySearchAs" value="Copy to private search" class="button_small">
+			{% endifequal %}
+		{% endif %}
+		{% if current_search and current_search.private %}
+			<input type="submit" name="deleteSearchByCreator" value="Delete" class="button_small">
+		{% endif %}	
+		{% if current_search and current_search.notPrivate %}
+			{% if current_member.isManagerOrOwner %}
+				<input type="submit" name="removeSearchByManager" value="Delete" class="button_small">
+			{% else %}
+				{% if current_member.isCurator %}
+					{% if current_search.flaggedForRemoval %}
+						<input type="submit" name="flagSearchByCurator" value="Unflag" class="button_small">
+					{% else %}
+						<input type="submit" name="flagSearchByCurator" value="Flag" class="button_small">
+					{% endif %}
+				{% endif %}
+			{% endif %}
+		{% endif %}	
+		</p>		
+
 		<p>Show &nbsp; 
 			{% for i in entry_types|makeRangeFromListLength %}
 				<input type="checkbox" name="{{entry_types|listLookup:i}}" value="yes" id="{{entry_types|listLookup:i}}"
@@ -272,61 +325,18 @@
 			{% endfor %} {# iterations #}
 		{% endfor %} {# list of dictionaries #}
 		
-		</fieldset>
-		
-		<center><p>
-		{% if current_search %}
-			<p>This search is called
-			<input name="searchName" type="text" size="20" maxlength="{{maxlength_name}}" value="{{current_search.name}}">
-			and it is
-			<select name="privateOrSharedSearch">
-				<option value="private"
-				{% if current_search.private %}
-					selected="selected"
-				{% endif %}
-				>private</option>
-				<option value="shared"
-				{% if not current_search.private %}
-					selected="selected"
-				{% endif %}
-				>shared</option>
-			</select>
-			{% ifequal current_member.key current_search.creator.key %}
-				<input type="submit" name="changeSearch" value="Apply and save" class="button_small">
-			{% endifequal %}
-		{% endif %}
-		{% if current_search %}
-			{% ifequal current_member.key current_search.creator.key %}
-				<input type="submit" name="applyAndSaveSearchAs" value="Apply and save as new search" class="button_small">
-			{% else %}
-				<input type="submit" name="copySearchAs" value="Copy to private search" class="button_small">
-			{% endifequal %}
-		{% else %}
-			<input type="submit" name="applyAndSaveSearchAs" value="Apply and save as new search" class="button_small">
-		{% endif %}
 		{% if not current_search %}
+			<center>
+			<input type="submit" name="applyAndSaveSearchAs" value="Apply and save as new search" class="button_small">
 			named <input name="searchName" type="text" size="20" maxlength="{{maxlength_name}}" value="untitled">
+			and marked as 
+			<select name="privateOrSharedSearch">
+				<option value="private">private</option>
+				<option value="shared">shared</option>
+			</select>
+			</center>
 		{% endif %}
-		{% if current_search %}
-			<input type="submit" name="clearSearch" value="Unload" class="button_small">
-		{% endif %}	
-		{% if current_search and current_search.private %}
-			<input type="submit" name="deleteSearchByCreator" value="Delete" class="button_small">
-		{% endif %}	
-		{% if current_search and current_search.notPrivate %}
-			{% if current_member.isManagerOrOwner %}
-				<input type="submit" name="removeSearchByManager" value="Remove" class="button_small">
-			{% else %}
-				{% if current_member.isCurator %}
-					{% if current_search.flaggedForRemoval %}
-						<input type="submit" name="flagSearchByCurator" value="Unflag" class="button_small">
-					{% else %}
-						<input type="submit" name="flagSearchByCurator" value="Flag" class="button_small">
-					{% endif %}
-				{% endif %}
-			{% endif %}
-		{% endif %}	
-		</center></p>		
+		</fieldset>
 		
 	</form>	
 	</div>

@@ -61,11 +61,29 @@ Hello and welcome to our community!
 # BROWSING
 # ============================================================================================ 
 
+# Don't change these. They are just here because they are needed by what follows.
+MINUTE_SECONDS = 60
+HOUR_SECONDS = 60 * MINUTE_SECONDS
+DAY_SECONDS = 24 * HOUR_SECONDS
+WEEK_SECONDS = 7 * DAY_SECONDS
+MONTH_SECONDS = 30 * DAY_SECONDS
+YEAR_SECONDS = 365 * DAY_SECONDS
+
 # These are the time frames shown in the main "Look at stories" browser window.
-# You can remove time frames from this list, but you cannot change them or add any. 
-# (They must match other names in the system.)
-# However, depending on your community one or two of these may not apply (perhaps minutes or years).
-TIME_FRAMES = [u"minute", u"hour", u"day", u"week", u"month", u"year"]
+# The names can be anything you like, but the number of seconds must match the time frame stated.
+TIME_FRAMES = [(u"an hour", HOUR_SECONDS),
+			 (u"12 hours", HOUR_SECONDS * 12),
+			 (u"a day", DAY_SECONDS),
+			 (u"3 days", DAY_SECONDS * 3),
+			 (u"a week", WEEK_SECONDS),
+			 (u"2 weeks", WEEK_SECONDS * 2),
+			 (u"a month", MONTH_SECONDS),
+			 (u"3 months", MONTH_SECONDS * 3),
+			 (u"6 months", MONTH_SECONDS * 6),
+			 (u"a year", YEAR_SECONDS),
+			 (u"everything", 0), 
+			 ]
+TIME_FRAME_EVERYTHING_STRING = "everything"
 
 # These are the available date and time formats. They affect all places where the date or time is displayed.
 # The key in each dictionary (before the colon) is the django template format string.

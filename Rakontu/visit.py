@@ -308,6 +308,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 							'member_searches': member.getSavedSearches(),
 							'current_search': currentSearch,
 							'questions_and_refs_dict_list': questionsAndRefsDictList,
+							'member_time_frame_string': member.getFrameStringForViewTimeFrame(),
 							})
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/look.html')
 			self.response.out.write(template.render(path, template_values))
@@ -330,12 +331,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 				member.put()
 				self.redirect("/visit/look")
 			elif "changeTimeFrame" in self.request.arguments():
-				member.setViewTimeFrameFromTimeUnitString(self.request.get("timeFrame"))
-				oldValue = member.viewNumTimeFrames
-				try:
-					member.viewNumTimeFrames = int(self.request.get("numberOf"))
-				except:
-					member.viewNumTimeFrames = oldValue
+				member.setViewTimeFrameFromTimeFrameString(self.request.get("timeFrame"))
 				member.put()
 				self.redirect("/visit/look")
 			elif "loadAndApplySavedSearch" in self.request.arguments():
@@ -451,11 +447,10 @@ class BrowseEntriesPage(webapp.RequestHandler):
 					else:
 						member.viewTimeEnd = datetime.now(tz=pytz.utc)
 				elif "moveTimeBack" in self.request.arguments() or "moveTimeForward" in self.request.arguments():
-					changeSeconds = member.viewTimeFrameInSeconds * member.viewNumTimeFrames
 					if "moveTimeBack" in self.request.arguments():
-						member.viewTimeEnd = member.viewTimeEnd - timedelta(seconds=changeSeconds)
+						member.viewTimeEnd = member.viewTimeEnd - timedelta(seconds=member.viewTimeFrameInSeconds)
 					else:
-						member.viewTimeEnd = member.viewTimeEnd + timedelta(seconds=changeSeconds)
+						member.viewTimeEnd = member.viewTimeEnd + timedelta(seconds=member.viewTimeFrameInSeconds)
 				if community.firstPublish and member.getViewStartTime() < community.firstPublish:
 				 	member.setTimeFrameToStartAtFirstPublish()
 				if member.viewTimeEnd > datetime.now(tz=pytz.utc):

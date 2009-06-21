@@ -61,12 +61,6 @@ ENTRY_AND_ANNOTATION_TYPES_URLS = ["story", "pattern", "collage", "invitation", 
 STORY_ENTRY_TYPE_INDEX = 0
 ANSWERS_ENTRY_TYPE_INDEX = 5
 
-MINUTE_SECONDS = 60
-HOUR_SECONDS = 60 * MINUTE_SECONDS
-DAY_SECONDS = 24 * HOUR_SECONDS
-WEEK_SECONDS = 7 * DAY_SECONDS
-MONTH_SECONDS = 30 * DAY_SECONDS
-YEAR_SECONDS = 365 * DAY_SECONDS
 TIME_UNIT_STRINGS = {"minute": MINUTE_SECONDS, 
 					"hour": HOUR_SECONDS,
 					"day": DAY_SECONDS,
@@ -426,6 +420,15 @@ class Community(db.Model):
 		tagsSorted.sort()
 		return tagsSorted
 	
+	def firstPublishOrCreatedWhicheverExists(self):
+		if self.firstPublishSet and self.firstPublish:
+			# the reason this "padding" is needed is in the case of data being generated at community creation,
+			# when the time of item creation may actually be slightly before the "firstPublish" flag is set
+			# it won't hurt to have an extra second in otherwise, anyway
+			return self.firstPublish - timedelta(seconds=1)
+		else:
+			return self.created
+	
 	# QUESTIONS
 	
 	def getAllQuestions(self):
@@ -748,7 +751,6 @@ class Member(db.Model):
 	
 	viewTimeEnd = TzDateTimeProperty(auto_now_add=True)
 	viewTimeFrameInSeconds = db.IntegerProperty(default=DAY_SECONDS)
-	viewNumTimeFrames = db.IntegerProperty(default=1)
 	viewNudgeCategories = db.ListProperty(bool, default=[True] * NUM_NUDGE_CATEGORIES)
 	viewSearchKey = db.StringProperty() # reference property?
  	
@@ -812,24 +814,28 @@ class Member(db.Model):
 	# BROWSING
 	
 	def getViewStartTime(self):
-		deltaSeconds = self.viewTimeFrameInSeconds * self.viewNumTimeFrames
-		return self.viewTimeEnd - timedelta(seconds=deltaSeconds)
+		return self.viewTimeEnd - timedelta(seconds=self.viewTimeFrameInSeconds)
 			
-	def setViewTimeFrameFromTimeUnitString(self, unit):
-		for aUnit in TIME_UNIT_STRINGS.keys():
-			if unit == aUnit:
-				self.viewTimeFrameInSeconds = TIME_UNIT_STRINGS[aUnit]
-				break
+	def setViewTimeFrameFromTimeFrameString(self, frame):
+		for aFrame, seconds in TIME_FRAMES:
+			if frame == aFrame:
+				if aFrame == TIME_FRAME_EVERYTHING_STRING:
+					self.viewTimeEnd = datetime.now(tz=pytz.utc)
+					self.viewTimeFrameInSeconds = (self.viewTimeEnd - self.community.firstPublishOrCreatedWhicheverExists()).seconds
+				else:
+					self.viewTimeFrameInSeconds = seconds
 				# caller should do the put
+				break
 			
-	def getUnitStringForViewTimeFrame(self):
-		for key, value in TIME_UNIT_STRINGS.items():
-			if self.viewTimeFrameInSeconds == value:
-				return key
+	def getFrameStringForViewTimeFrame(self):
+		for aFrame, seconds in TIME_FRAMES:
+			if self.viewTimeFrameInSeconds == seconds:
+				return aFrame
+		return TIME_FRAME_EVERYTHING_STRING
 			
 	def setTimeFrameToStartAtFirstPublish(self):
-		deltaSeconds = self.viewTimeFrameInSeconds * self.viewNumTimeFrames
-		self.viewTimeEnd = self.community.firstPublish + timedelta(seconds=deltaSeconds)
+		self.viewTimeEnd = self.community.firstPublish + timedelta(seconds=self.viewTimeFrameInSeconds)
+		# caller should do the put
 		
 	# CONTRIBUTIONS
 	
@@ -1505,6 +1511,10 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 						parts.append("")
 		return CleanUpCSV(parts)
 		
+	# SEARCH
+	
+	def satisfiesSearch(self, search, refs):
+		pass
 
 # ============================================================================================
 # ============================================================================================
