@@ -85,9 +85,9 @@ TIME_FRAMES = [(u"an hour", HOUR_SECONDS),
 			 ]
 TIME_FRAME_EVERYTHING_STRING = "everything"
 
-# These would only be changed for internationalization. The first must always be the grid and the second the list.
-GRID_OR_LIST = ["grid", "list"]
-DEFAULT_GRID_OR_LIST = "grid"
+# This is how much of a text is shown when the "Show details" setting is in place,
+# on both the main screen and the per-entry screen.
+DEFAULT_DETAILS_TEXT_LENGTH = 150
 
 # These are the available date and time formats. They affect all places where the date or time is displayed.
 # The key in each dictionary (before the colon) is the django template format string.

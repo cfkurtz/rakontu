@@ -115,13 +115,13 @@
 	{% if things_member_can_do %}
 		<div id="stylized" class="rakontu_form">
 		<form name="read" action="/visit/read" method="post">
-		What would you like to do next?
+		&nbsp; What would you like to do next?
 		<select name="nextAction">
 		{% for key in things_member_can_do.keys|sorted %}
 			<option value="{{things_member_can_do|dictLookup:key}}">{{key}}</option>
 		{% endfor %}
 		</select>
-		<input type="submit" name="doSomething" value="Go" class="button_small"></p>
+		<input type="submit" name="doSomething" value="Go" class="button_small">
 		</form>
 		</div>
 	{% endif %}
@@ -129,6 +129,7 @@
 	{% include "../common_grid.html" %}
 	
 	{% if rows_cols %}
+		<p></p>
 		<div id="stylized" class="rakontu_form">
 		<form name="read" action="/visit/read" method="post">
 		<p>Height means

@@ -767,11 +767,8 @@ class Member(db.Model):
 	viewTimeFrameInSeconds = db.IntegerProperty(default=DAY_SECONDS)
 	viewNudgeCategories = db.ListProperty(bool, default=[True] * NUM_NUDGE_CATEGORIES)
 	viewSearch = db.ReferenceProperty(None, collection_name="member_to_search")
-	viewGridOrList = db.StringProperty(choices=GRID_OR_LIST, default=DEFAULT_GRID_OR_LIST)
+	viewDetails = db.BooleanProperty(default=False)
 	
-	def showGrid(self):
-		return self.viewGridOrList == "grid"
- 	
 	# CREATION
 	
 	def initialize(self):
@@ -1132,6 +1129,9 @@ class Answer(db.Model):
 	def isAnswer(self):
 		return True
 	
+	def getClassName(self):
+		return self.__class__.__name__
+	
 	# IMPORTANT METHODS
 	
 	def publish(self):
@@ -1157,13 +1157,14 @@ class Answer(db.Model):
 		return'<img src="/images/answers.png" alt="answer" border="0">'
 	
 	def displayStringShort(self):
-		return self.displayString(includeQuestionName=False)
+		return self.displayString(includeQuestionText=False, includeQuestionName=False)
 	
-	def displayString(self, includeQuestionName=True):
+	def displayString(self, includeQuestionText=True, includeQuestionName=False):
+		result = ""
+		if includeQuestionText:
+			result += self.question.text + " "
 		if includeQuestionName:
-			result = self.question.name + ": "
-		else: 
-			result = ""
+			result += self.question.name + ": "
 		if self.question.type == "boolean":
 			if self.answerIfBoolean: 
 				result += "yes"
@@ -1186,6 +1187,12 @@ class Answer(db.Model):
 	
 	def linkString(self):
 		return self.displayString()
+	
+	def linkStringWithQuestionName(self):
+		return self.displayString(includeQuestionName=True, includeQuestionText=False)
+	
+	def linkStringWithQuestionText(self):
+		return self.displayString(includeQuestionName=False, includeQuestionText=True, )
 	
 	def csvLine(self, header=False):
 		parts = []
@@ -1274,6 +1281,9 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 	
 	def isEntry(self):
 		return True
+	
+	def getClassName(self):
+		return self.__class__.__name__
 	
 	# IMPORTANT METHODS
 	
@@ -1754,6 +1764,9 @@ class Annotation(db.Model):                                # tag set, comment, r
 	
 	def isAnnotation(self):
 		return True
+	
+	def getClassName(self):
+		return self.__class__.__name__
 	
 	# IMPORTANT METHODS
 	

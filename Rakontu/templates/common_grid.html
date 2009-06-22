@@ -1,7 +1,16 @@
 	  	{% if rows_cols %}
-			<h3>{{text_to_display_before_grid}}</h3>
-			<center>
-			<table cellpadding="4" cellspacing="0" style="border-top: 1px solid #FF7F00; border-bottom: 1px solid #FF7F00; border-left: none; border-right: 1px solid #FF7F00">
+		 	<div id="stylized" class="rakontu_form">
+			<form name="form" action="{{grid_form_url}}" method="post">
+			<h3>{{text_to_display_before_grid}}
+		  	{% if current_member.viewDetails %}
+				<input type="submit" name="toggleShowDetails" value="Hide details" class="button_small">
+			{% else %}
+				<input type="submit" name="toggleShowDetails" value="Show details" class="button_small">
+			{% endif %}
+			</h3>
+			</form>
+			</div>
+			<table cellpadding="4" cellspacing="0" style="width:100%; border-top: 1px solid #FF7F00; border-bottom: 1px solid #FF7F00; border-left: none; border-right: 1px solid #FF7F00">
 			{% if col_headers %}
 				<tr>
 				{% for header in col_headers %}
@@ -25,5 +34,4 @@
 				</tr>
 			{% endfor %}
 			</table>
-			</center>
 		{% endif %}

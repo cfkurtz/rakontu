@@ -27,11 +27,6 @@
 			>{{time_frame|listLookup:0}}</option>
 		{% endfor %}
 		</select>
-	in a
-	<select name="gridOrList">
-		<option value="grid" {% ifequal current_member.viewGridOrList "grid" %} selected="selected" {% endifequal %}>grid</option>
-		<option value="list" {% ifequal current_member.viewGridOrList "list" %} selected="selected" {% endifequal %}>list</option>
-		</select>
 	<input type="submit" name="changeTimeFrame" value="Change" class="button_small">
 	{% ifnotequal member_time_frame_string "everything" %}
 		<input type="submit" name="setToFirst" value=" |< " class="button_small">
@@ -41,6 +36,11 @@
 	{% else %}
 		<input type="submit" name="refreshView" value="Refresh" class="button_small">
 	{% endifnotequal %}
+	{% if current_member.viewDetails %}
+		<input type="submit" name="toggleShowDetails" value="Hide details" class="button_small">
+	{% else %}
+		<input type="submit" name="toggleShowDetails" value="Show details" class="button_small">
+	{% endif %}
 	
 	</td><td align="right" style="border:none;">
 	{% if community_searches or member_searches %}
@@ -116,69 +116,6 @@
 			<label for="{{community.nudgeCategories|listLookup:i}}">{{community.nudgeCategories|listLookup:i}}</label>
 		{% endfor %}
 		<input type="submit" name="changeNudgeCategoriesShowing" value="Change" class="button_small"></p>
-		
-	{% else %}
-	
-		<hr>
-		{% for item in items_to_show %}
-			{% if item.isEntry or item.isAnnotation %}
-				The {{item.type}} {{item.linkString}} 
-				was added 
-				{% if item.isAnnotation %}
-					to the {{item.entry.type}} {{item.entry.linkString}}
-				{% endif %}
-				by
-				{% if item.attributedToMember %}
-						{% if item.creator.active %}
-							<a href="member?{{item.creator.key}}">{{item.creator.nickname}}</a>
-							{% ifequal item.creator.key current_member.key %}
-								 (you)
-							{% endifequal %}
-						{% else %}
-							the former member "{{item.creator.nickname}}"
-						{% endif %}
-				{% else %}
-					{% if item.character.active %}
-						<a href="character?{{item.character.key}}">{{item.character.name}}</a>
-					{% else %}
-						the former character "{{item.character.name}}"
-					{% endif %}
-				{% endif %}
-				on {{item.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-				at {{item.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
-				{% if item.isEntry %}
-					<div class="indented">{{item.text_formatted|upTo:400}}</div>
-				{% endif %}
-				{% if item.isComment or item.isRequest %}
-					<div class="indented">{{item.longString_formatted|upTo:400}}</div>
-				{% endif %}
-			{% endif %}
-			{% if item.isAnswer %}
-				With reference to the {{item.referent.type}} {{item.referent.linkString}},
-				the question "{{item.question.text}}"
-				was answered "{{item.displayStringShort}}"
-				 by
-				{% if item.attributedToMember %}
-						{% if item.creator.active %}
-							<a href="member?{{item.creator.key}}">{{item.creator.nickname}}</a>
-							{% ifequal item.creator.key current_member.key %}
-								 (you)
-							{% endifequal %}
-						{% else %}
-							the former member "{{item.creator.nickname}}"
-						{% endif %}
-				{% else %}
-					{% if item.character.active %}
-						<a href="character?{{item.character.key}}">{{item.character.name}}</a>
-					{% else %}
-						the former character "{{item.character.name}}"
-					{% endif %}
-				{% endif %}
-				on {{item.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-				at {{item.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
-			{% endif %}
-			<hr>
-		{% endfor %}
 	{% endif %}
 		
 	</form>	

@@ -8,7 +8,7 @@
 
 from utils import *
 
-def ItemDisplayStringForGrid(item, curating, includeName=True):
+def ItemDisplayStringForGrid(item, curating, includeName=True, includeFirstPartOfText=False):
 	if includeName:
 		if item.attributedToMember():
 			if item.creator.isOnlineMember:
@@ -35,7 +35,27 @@ def ItemDisplayStringForGrid(item, curating, includeName=True):
 			curateString = '<a href="flag?%s" class="imagelight"><img src="../images/flag_green.png" alt="flag" border="0"></a>' % item.key()
 	else:
 		curateString = ""
-	return '<p>%s %s %s%s</p>' % (item.getImageLinkForType(), curateString, item.linkString(), nameString)
+	if includeFirstPartOfText:
+		if item.__class__.__name__ == "Annotation":
+			if item.type == "comment" or item.type == "request":
+				if item.longString_formatted:
+					textString = ": %s" % upToWithLink(stripTags(item.longString_formatted), DEFAULT_DETAILS_TEXT_LENGTH, '/visit/readAnnotation?%s' % item.key())
+				else:
+					textString = ""
+			else:
+				textString = ""
+		else:
+			textString = ""
+	else:
+		textString = ""
+	if item.__class__.__name__ == "Answer":
+		if includeFirstPartOfText:
+			linkString = item.linkStringWithQuestionText()
+		else:
+			linkString = item.linkStringWithQuestionName()
+	else:
+		linkString = item.linkString()
+	return '<p>%s %s %s%s%s</p>' % (item.getImageLinkForType(), curateString, linkString, nameString, textString)
 
 class StartPage(webapp.RequestHandler):
 	def get(self):
@@ -174,145 +194,104 @@ class BrowseEntriesPage(webapp.RequestHandler):
 				currentSearch = GetCurrentSearchForMember(member)
 				maxTime = member.viewTimeEnd
 				minTime = member.getViewStartTime()
-				if member.viewGridOrList == "grid":
-					maxNudgePoints = -9999999
-					minNudgePoints = -9999999
-					minActivityPoints = -9999999
-					maxActivityPoints = -9999999
-					for entry in entries:
-						nudgePoints = entry.nudgePointsForMemberViewOptions(member.viewNudgeCategories)
-						if minNudgePoints == -9999999:
-							minNudgePoints = nudgePoints
-						elif nudgePoints < minNudgePoints:
-							minNudgePoints = nudgePoints
-						if maxNudgePoints == -9999999:
-							maxNudgePoints = nudgePoints
-						elif nudgePoints > maxNudgePoints:
-							maxNudgePoints = nudgePoints
-						activityPoints = entry.activityPoints
-						if minActivityPoints == -9999999:
-							minActivityPoints = activityPoints
-						elif activityPoints < minActivityPoints:
-							minActivityPoints = activityPoints
-						if maxActivityPoints == -9999999:
-							maxActivityPoints = activityPoints
-						elif activityPoints > maxActivityPoints:
-							maxActivityPoints = activityPoints
-					numRows = BROWSE_NUM_ROWS
-					numCols = BROWSE_NUM_COLS
-					nudgeStep = max(1, (maxNudgePoints - minNudgePoints) // numRows)
-					timeStep = (maxTime - minTime) // numCols
-					
-					textsForGrid = []
-					colHeaders = []
-					rowColors = []
-					rowIndex = 0
-					for row in range(numRows):
-						rowColors.append(HexColorStringForRowIndex(rowIndex))
-						textsInThisRow = []
-						startNudgePoints = minNudgePoints + nudgeStep * row
+				maxNudgePoints = -9999999
+				minNudgePoints = -9999999
+				minActivityPoints = -9999999
+				maxActivityPoints = -9999999
+				for entry in entries:
+					nudgePoints = entry.nudgePointsForMemberViewOptions(member.viewNudgeCategories)
+					if minNudgePoints == -9999999:
+						minNudgePoints = nudgePoints
+					elif nudgePoints < minNudgePoints:
+						minNudgePoints = nudgePoints
+					if maxNudgePoints == -9999999:
+						maxNudgePoints = nudgePoints
+					elif nudgePoints > maxNudgePoints:
+						maxNudgePoints = nudgePoints
+					activityPoints = entry.activityPoints
+					if minActivityPoints == -9999999:
+						minActivityPoints = activityPoints
+					elif activityPoints < minActivityPoints:
+						minActivityPoints = activityPoints
+					if maxActivityPoints == -9999999:
+						maxActivityPoints = activityPoints
+					elif activityPoints > maxActivityPoints:
+						maxActivityPoints = activityPoints
+				numRows = BROWSE_NUM_ROWS
+				numCols = BROWSE_NUM_COLS
+				nudgeStep = max(1, (maxNudgePoints - minNudgePoints) // numRows)
+				timeStep = (maxTime - minTime) // numCols
+				
+				textsForGrid = []
+				colHeaders = []
+				rowColors = []
+				rowIndex = 0
+				for row in range(numRows):
+					rowColors.append(HexColorStringForRowIndex(rowIndex))
+					textsInThisRow = []
+					startNudgePoints = minNudgePoints + nudgeStep * row
+					if row == numRows - 1:
+						endNudgePoints = 100000000
+					else:
+						endNudgePoints = minNudgePoints + nudgeStep * (row+1)
+					for col in range(numCols):
+						textsInThisCell = []
+						startTime = minTime + timeStep * col
+						endTime = minTime + timeStep * (col+1)
 						if row == numRows - 1:
-							endNudgePoints = 100000000
-						else:
-							endNudgePoints = minNudgePoints + nudgeStep * (row+1)
-						for col in range(numCols):
-							textsInThisCell = []
-							startTime = minTime + timeStep * col
-							endTime = minTime + timeStep * (col+1)
-							if row == numRows - 1:
-								colHeaders.append(RelativeTimeDisplayString(startTime, member))
-							for entry in entries:
-								nudgePoints = entry.nudgePointsForMemberViewOptions(member.viewNudgeCategories)
-								shouldBeInRow = nudgePoints >= startNudgePoints and nudgePoints < endNudgePoints
-								if entry.lastAnnotatedOrAnsweredOrLinked:
-									timeToCheck = entry.lastAnnotatedOrAnsweredOrLinked
-								else:
-									timeToCheck = entry.published
-								shouldBeInCol = timeToCheck >= startTime and timeToCheck < endTime
-								if shouldBeInRow and shouldBeInCol:
-									fontSizePercent = min(200, 90 + entry.activityPoints - minActivityPoints)
-									downdrift = community.getEntryActivityPointsForEvent("downdrift")
-									if downdrift:
-										daysSinceTouched = 1.0 * (datetime.now(tz=pytz.utc) - entry.lastTouched()).seconds / DAY_SECONDS
-										timeLoss = daysSinceTouched * downdrift
-										fontSizePercent += timeLoss
-										fontSizePercent = int(max(MIN_BROWSE_FONT_SIZE_PERCENT, min(fontSizePercent, MAX_BROWSE_FONT_SIZE_PERCENT)))
+							colHeaders.append(RelativeTimeDisplayString(startTime, member))
+						for entry in entries:
+							nudgePoints = entry.nudgePointsForMemberViewOptions(member.viewNudgeCategories)
+							shouldBeInRow = nudgePoints >= startNudgePoints and nudgePoints < endNudgePoints
+							if entry.lastAnnotatedOrAnsweredOrLinked:
+								timeToCheck = entry.lastAnnotatedOrAnsweredOrLinked
+							else:
+								timeToCheck = entry.published
+							shouldBeInCol = timeToCheck >= startTime and timeToCheck < endTime
+							if shouldBeInRow and shouldBeInCol:
+								fontSizePercent = min(200, 90 + entry.activityPoints - minActivityPoints)
+								downdrift = community.getEntryActivityPointsForEvent("downdrift")
+								if downdrift:
+									daysSinceTouched = 1.0 * (datetime.now(tz=pytz.utc) - entry.lastTouched()).seconds / DAY_SECONDS
+									timeLoss = daysSinceTouched * downdrift
+									fontSizePercent += timeLoss
+									fontSizePercent = int(max(MIN_BROWSE_FONT_SIZE_PERCENT, min(fontSizePercent, MAX_BROWSE_FONT_SIZE_PERCENT)))
+								if member.viewDetails:
 									if entry.attributedToMember():
 										if entry.creator.active:
-											nameString = '<a href="member?%s">%s</a>' % (entry.creator.key(), entry.creator.nickname)
+											nameString = ' (<a href="member?%s">%s</a>)' % (entry.creator.key(), entry.creator.nickname)
 										else:
-											nameString = entry.creator.nickname
+											nameString = " (%s)" % entry.creator.nickname
 									else:
 										if entry.character.active:
-											nameString = '<a href="character?%s">%s</a>' % (entry.character.key(), entry.character.name)
+											nameString = ' (<a href="character?%s">%s</a>)' % (entry.character.key(), entry.character.name)
 										else:
-											nameString = entry.character.name
-									text = '<p>%s <span style="font-size:%s%%"><a href="/visit/read?%s" %s>%s</a></span> (%s)</p>' % \
-										(entry.getImageLinkForType(), fontSizePercent, entry.key(), entry.getTooltipText(), entry.title, nameString)
-									textsInThisCell.append(text)
-							textsInThisRow.append(textsInThisCell)
-						textsForGrid.append(textsInThisRow)
-						rowIndex += 1
-					textsForGrid.reverse()
-					itemsToShow = []
-				else:
-					itemsToShow = []
-					allItems = community.getNonDraftEntriesAnnotationsAndAnswersInReverseTimeOrder()
-					for item in allItems:
-						if item.__class__.__name__ == "Entry":
-							if item.lastAnnotatedOrAnsweredOrLinked:
-								timeToCheck = item.lastAnnotatedOrAnsweredOrLinked
-							else:
-								timeToCheck = item.published
-						elif item.__class__.__name__ == "Annotation":
-							timeToCheck = item.published
-						elif item.__class__.__name__ == "Answer":
-							timeToCheck = item.published
-						show = timeToCheck >= minTime and timeToCheck < maxTime
-						if show:
-							itemsToShow.append(item)
-					textsForGrid = []
-					colHeaders = []
-					rowColors = []
+											nameString = " (%s)" % entry.character.name
+									if entry.text_formatted:
+										textString = ": %s" % upToWithLink(stripTags(entry.text_formatted), DEFAULT_DETAILS_TEXT_LENGTH, '/visit/read?%s' % entry.key())
+									else:
+										textString = ""
+								else:
+									nameString = ""
+									textString = ""
+								text = '<p>%s <span style="font-size:%s%%"><a href="/visit/read?%s" %s>%s</a></span>%s%s</p>' % \
+									(entry.getImageLinkForType(), fontSizePercent, entry.key(), entry.getTooltipText(), entry.title, nameString, textString)
+								textsInThisCell.append(text)
+						textsInThisRow.append(textsInThisCell)
+					textsForGrid.append(textsInThisRow)
+					rowIndex += 1
+				textsForGrid.reverse()
 			else:
 				textsForGrid = []
 				colHeaders = []
 				rowColors = []
-				itemsToShow = []
-			questionsAndRefsDictList = []
-			entryQuestions = community.getActiveNonMemberQuestions()
-			if entryQuestions:
-				entryQuestionsAndRefsDictionary = {
-					"result_preface": "entry", "withText": "with", "afterAnyText":"of these answers to questions:",
-					"questions": entryQuestions}
-				if currentSearch:
-					entryQuestionsAndRefsDictionary["references"] = currentSearch.getQuestionReferencesOfType("entry") 
-					entryQuestionsAndRefsDictionary["anyOrAll"] = currentSearch.answers_anyOrAll
-				else:
-					entryQuestionsAndRefsDictionary["references"] = []
-					entryQuestionsAndRefsDictionary["anyOrAll"] = None
-				questionsAndRefsDictList.append(entryQuestionsAndRefsDictionary)
-			creatorQuestions = community.getActiveMemberAndCharacterQuestions()
-			if creatorQuestions:
-				creatorQuestionsAndRefsDictionary = {
-					"result_preface": "creator", "withText": "whose creators had", "afterAnyText":"of these answers to questions about them:",
-					"questions": creatorQuestions}
-				if currentSearch:
-					creatorQuestionsAndRefsDictionary["references"] = currentSearch.getQuestionReferencesOfType("creator") 
-					creatorQuestionsAndRefsDictionary["anyOrAll"] = currentSearch.creatorAnswers_anyOrAll
-				else:
-					creatorQuestionsAndRefsDictionary["references"] = []
-					creatorQuestionsAndRefsDictionary["anyOrAll"] = None
-				questionsAndRefsDictList.append(creatorQuestionsAndRefsDictionary)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': "Main page",
 						   	'title_extra': None,
 							'community': community, 
 							'current_member': member, 
-							'items_to_show': itemsToShow, 
 							'rows_cols': textsForGrid, 
 							'col_headers': colHeaders, 
-							'1_to_31': range(1, 31, 1), 
 							'row_colors': rowColors,
 							'num_search_fields': NUM_SEARCH_FIELDS,
 							'search_locations': SEARCH_LOCATIONS,
@@ -321,7 +300,6 @@ class BrowseEntriesPage(webapp.RequestHandler):
 							'community_searches': community.getNonPrivateSavedSearches(),
 							'member_searches': member.getPrivateSavedSearches(),
 							'current_search': currentSearch,
-							'questions_and_refs_dict_list': questionsAndRefsDictList,
 							'member_time_frame_string': member.getFrameStringForViewTimeFrame(),
 							})
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/look.html')
@@ -342,7 +320,6 @@ class BrowseEntriesPage(webapp.RequestHandler):
 				self.redirect("/visit/look")
 			elif "changeTimeFrame" in self.request.arguments():
 				member.setViewTimeFrameFromTimeFrameString(self.request.get("timeFrame"))
-				member.viewGridOrList = self.request.get("gridOrList")
 				member.put()
 				self.redirect("/visit/look")
 			elif "refreshView" in self.request.arguments():
@@ -365,6 +342,10 @@ class BrowseEntriesPage(webapp.RequestHandler):
 					self.redirect("/visit/look")
 			elif "clearSearch" in self.request.arguments():
 				member.viewSearch = None
+				member.put()
+				self.redirect("/visit/look")
+			elif "toggleShowDetails" in self.request.arguments():
+				member.viewDetails = not member.viewDetails
 				member.put()
 				self.redirect("/visit/look")
 			elif "copySearchAs" in self.request.arguments():
@@ -636,7 +617,7 @@ class ReadEntryPage(webapp.RequestHandler):
 								shouldBeInRow = nudgePoints >= startNudgePoints and nudgePoints < endNudgePoints
 								shouldBeInCol = item.published >= startTime and item.published < endTime
 								if shouldBeInRow and shouldBeInCol:
-									text = ItemDisplayStringForGrid(item, curating)
+									text = ItemDisplayStringForGrid(item, curating, includeName=member.viewDetails, includeFirstPartOfText=member.viewDetails)
 									textsInThisCell.append(text)
 							haveContent = haveContent or len(textsInThisCell) > 0
 							textsInThisRow.append(textsInThisCell)
@@ -708,6 +689,7 @@ class ReadEntryPage(webapp.RequestHandler):
 								   'links_incoming_from_collages': entry.getIncomingLinksOfTypeFromType("included", "collage"),
 								   'included_links_outgoing': entry.getOutgoingLinksOfType("included"),
 								   'row_colors': rowColors,
+								   'grid_form_url': "/visit/read"
 								   })
 				member.lastReadAnything = datetime.now(tz=pytz.utc)
 				member.nudgePoints += community.getMemberNudgePointsForEvent("reading")
@@ -727,6 +709,10 @@ class ReadEntryPage(webapp.RequestHandler):
 				member.viewNudgeCategories = []
 				for i in range(NUM_NUDGE_CATEGORIES):
 					member.viewNudgeCategories.append(self.request.get("showCategory|%s" % i) == "yes")
+				member.put()
+				self.redirect(self.request.headers["Referer"])
+			elif "toggleShowDetails" in self.request.arguments():
+				member.viewDetails = not member.viewDetails
 				member.put()
 				self.redirect(self.request.headers["Referer"])
 			else:
@@ -827,7 +813,7 @@ class SeeMemberPage(webapp.RequestHandler):
 								shouldBeInRow = True
 								shouldBeInCol = item.published >= startTime and item.published < endTime
 								if shouldBeInRow and shouldBeInCol:
-									text = ItemDisplayStringForGrid(item, curating, includeName=memberToSee.isLiaison())
+									text = ItemDisplayStringForGrid(item, curating, includeName=memberToSee.isLiaison(), includeFirstPartOfText=member.viewDetails)
 									textsInThisCell.append(text)
 							textsInThisRow.append(textsInThisCell)
 						textsForGrid.append(textsInThisRow)
@@ -845,6 +831,7 @@ class SeeMemberPage(webapp.RequestHandler):
 					   		   'rows_cols': textsForGrid,
 					   		   'col_headers': colHeaders,
 					   		   'text_to_display_before_grid': "%s's entries" % memberToSee.nickname,
+					   		   'grid_form_url': "/visit/member?%s" % memberToSee.key(),
 					   		   'no_profile_text': NO_PROFILE_TEXT,
 					   		   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/member.html')
@@ -860,26 +847,31 @@ class SeeMemberPage(webapp.RequestHandler):
 		if access:
 			messageMember = None
 			goAhead = True
-			for argument in self.request.arguments():
-				if argument.find("|") >= 0:
-					for aMember in community.getActiveMembers():
-						if argument == "message|%s" % aMember.key():
-							try:
-								messageMember = aMember
-							except: 
-								messageMember = None
-								goAhead = False
-							break
-			if goAhead and messageMember:
-				message = mail.EmailMessage()
-				message.sender = community.contactEmail
-				message.subject = htmlEscape(self.request.get("subject"))
-				message.to = messageMember.googleAccountEmail
-				message.body = htmlEscape(self.request.get("message"))
-				message.send()
-				self.redirect('/result?messagesent')
+			if "toggleShowDetails" in self.request.arguments():
+				member.viewDetails = not member.viewDetails
+				member.put()
+				self.redirect(self.request.headers["Referer"])
 			else:
-				self.redirect('/result?memberNotFound')
+				for argument in self.request.arguments():
+					if argument.find("|") >= 0:
+						for aMember in community.getActiveMembers():
+							if argument == "message|%s" % aMember.key():
+								try:
+									messageMember = aMember
+								except: 
+									messageMember = None
+									goAhead = False
+								break
+				if goAhead and messageMember:
+					message = mail.EmailMessage()
+					message.sender = community.contactEmail
+					message.subject = htmlEscape(self.request.get("subject"))
+					message.to = messageMember.googleAccountEmail
+					message.body = htmlEscape(self.request.get("message"))
+					message.send()
+					self.redirect('/result?messagesent')
+				else:
+					self.redirect('/result?memberNotFound')
 		else:
 			self.redirect('/')
    
@@ -914,7 +906,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 									shouldBeInRow = True
 									shouldBeInCol = item.published >= startTime and item.published < endTime
 									if shouldBeInRow and shouldBeInCol:
-										text = ItemDisplayStringForGrid(item, curating, includeName=False)
+										text = ItemDisplayStringForGrid(item, curating, includeName=False, includeFirstPartOfText=member.viewDetails)
 										textsInThisCell.append(text)
 								textsInThisRow.append(textsInThisCell)
 							textsForGrid.append(textsInThisRow)
@@ -931,6 +923,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 									   'answers': character.getAnswers(),
 						   		   	   'rows_cols': textsForGrid,
 						   		   	   'text_to_display_before_grid': "%s's entries" % character.name,
+						   		   	   'grid_form_url': "/visit/character?%s" % character.key(),
 						   		   	   'col_headers': colHeaders,
 									   })
 					path = os.path.join(os.path.dirname(__file__), 'templates/visit/character.html')
@@ -940,6 +933,17 @@ class SeeCharacterPage(webapp.RequestHandler):
 		else:
 			self.redirect('/')
 
+	@RequireLogin 
+	def post(self):
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
+			if "toggleShowDetails" in self.request.arguments():
+				member.viewDetails = not member.viewDetails
+				member.put()
+			self.redirect(self.request.headers["Referer"])
+		else:
+			self.redirect('/')
+   
 class ChangeMemberProfilePage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):

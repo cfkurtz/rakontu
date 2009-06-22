@@ -512,4 +512,23 @@ def InterpretEnteredText(text, mode="text"):
 			result = result.replace('{%s(%s)}' % (imageLink,alt), '<img src="%s" alt="%s"/>' % (imageLink, alt))
 	return result
 
+def upTo(value, number):
+	if value:
+		result = value[:number]
+		if len(value) > number:
+			result += "..."
+	else:
+		result = value
+	return result
+
+def upToWithLink(value, number, link):
+	if value:
+		result = value[:number]
+		if len(value) > number:
+			result += ' <a href="%s">...</a>' % link
+	else:
+		result = value
+	return result
+
+
 
