@@ -34,6 +34,7 @@ application = webapp.WSGIApplication(
 									  # membership
 									  ('/visit/new', NewMemberPage),
 									  ('/visit/profile', ChangeMemberProfilePage),
+									  ('/visit/drafts', ChangeMemberDraftsPage),
 									  ('/visit/leave', LeaveCommunityPage),
 									  
 									  # help
@@ -88,6 +89,8 @@ application = webapp.WSGIApplication(
 									  ('/liaise/batch', BatchEntryPage),
 									  ('/liaise/review', ReviewBatchEntriesPage),
 									  ('/liaise/members', ReviewOfflineMembersPage),
+									  ('/liaise/printSearch', PrintSearchPage),
+									  ('/liaise/printSelect', PrintSelectItemsPage),
 									  
 									  # managing
 									  ('/createCommunity', CreateCommunityPage),

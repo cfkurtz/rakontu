@@ -1,0 +1,145 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+	
+	
+	<div id="content">
+	
+		<div id="stylized" class="rakontu_form">
+		<form action="/visit/drafts" method="post" enctype="multipart/form-data">
+		
+		{% if member.isOnlineMember %}
+			<h3>Your saved drafts</h3>
+		{% else %}
+			<h3>{{member.nickname}}'s saved drafts</h3>
+		{% endif %}
+		{% if draft_entries %}
+			<h4>Entries</h4>
+	      	<table border="1" cellpadding="4" cellspacing="0">
+	      	<tr><th>Entry type</th><th>Name</th><th>Created</th><th>Last changed</th><th>Remove?</th>
+	      	{% for entry in draft_entries %}
+		      	<tr>
+		      	<td>{{entry.type}}</td>
+				<td><a href="{{entry.type}}?{{entry.key}}">{{entry.title}}</a></td>
+				<td>{{entry.created|timeZone:member.timeZoneName|date:member.dateFormat}} at {{entry.created|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
+				<td>{{entry.edited|timeZone:member.timeZoneName|date:member.dateFormat}} at {{entry.edited|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
+				<td><input type="checkbox" name="remove|{{ entry.key }}" value="yes" id="remove|{{ entry.key }}"/>
+					<label for="remove|{{ entry.key }}">Remove</label></td>
+				</tr>
+			{% endfor %}
+			</table>
+		{% else %}
+			<p><b>Entries</b> - none</p>
+		{% endif %}
+		{% if draft_annotations %}
+		<h4>Annotations</h4>
+	      	<table border="1" cellpadding="4" cellspacing="0">
+	      	<tr><th>Annotation type</th><th>Name</th><th>In reference to the entry</th><th>Created</th><th>Last changed</th><th>Remove?</th>
+	      	{% for annotation in draft_annotations %}
+		      	<tr>
+		      	<td>{{annotation.type}}</td>
+				<td><a href="{{annotation.typeAsURL}}?{{annotation.key}}">{{annotation.displayString}}</a></td>
+				<td><a href="read?{{annotation.entry.key}}">{{annotation.entry.title}}</a> ({{annotation.entry.type}})</td>
+				<td>{{annotation.created|timeZone:member.timeZoneName|date:member.dateFormat}} at {{annotation.created|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
+				<td>{{annotation.edited|timeZone:member.timeZoneName|date:member.dateFormat}} at {{annotation.edited|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
+				<td><input type="checkbox" name="remove|{{ annotation.key }}" value="yes" id="remove|{{ annotation.key }}"/>
+					<label for="remove|{{ annotation.key }}">Remove</label>
+					</td>
+				</tr>
+			{% endfor %}
+			</table>
+		{% else %}
+			<p><b>Annotations</b> - none</p>
+		{% endif %}
+		{% if first_draft_answer_per_entry %}
+			<h4>Answer sets for entries</h4>
+		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<tr><th>Answers about entry</th><th>Created</th><th>Last changed</th><th>Remove?</th>
+		      	{% for answer in first_draft_answer_per_entry %}
+			      	<tr>
+					<td><a href="answers?{{answer.referent.key}}">{{answer.referent.title}}</a> ({{answer.referent.type}})</td>
+					<td>{{answer.created|timeZone:member.timeZoneName|date:member.dateFormat}} at {{answer.created|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
+					<td>{{answer.edited|timeZone:member.timeZoneName|date:member.dateFormat}} at {{answer.edited|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
+					<td><input type="checkbox" name="removeAnswers|{{answer.referent.key}}" value="yes" id="removeAnswers|{{answer.referent.key}}"/>
+						<label for="removeAnswers|{{answer.referent.key}}">Remove</label>
+						</td>
+					</tr>
+				{% endfor %}
+				</table>
+		{% else %}
+			<p><b>Answer sets</b> - none</p>
+		{% endif %}
+		
+		
+		{% if searches %}
+			<h4>Saved search filters</h4>
+		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<tr>
+		      		<th>Name</th>
+		      		<th>Look in </th>
+		      		<th>Words</th>
+		      		<th>Tags</th>
+		      		<th>Questions about entries</th>
+		      		<th>Questions about members/characters</th>
+		      		<th>Created</th>
+		      		<th>Private?</th>
+		      		<th>Remove?</th>
+		      	{% for search in searches %}
+			      	<tr>
+			      	<td><a href="/visit/look?{{search.key}}">{{search.name}}</a></td>
+			      	<td>
+			      		{% for i in entry_types|makeRangeFromListLength %}
+			      			{% if search.entryTypes|listLookup:i %}
+			      				{{entry_types|listLookup:i}}<br/>
+			      			{% endif %}
+			      		{% endfor %}&nbsp;
+			      		</td>
+			      	<td>
+			      		{% if search.words %}
+			      			{{search.words_anyOrAll}} of {{search.words|join:", "}} <br/>
+				      		{% for i in search_locations|makeRangeFromListLength %}
+				      			{% if search.words_locations|listLookup:i %}
+				      				{{search_locations|listLookup:i}}<br/>
+				      			{% endif %}
+				      		{% endfor %}
+			      		{% else %}
+			      			&nbsp;
+			      		{% endif %}
+			      		</td>
+			      	<td>{% if search.tags %}
+			      			{{search.tags_anyOrAll}} of {{search.tags|join:", "}}
+			      		{% endif %}&nbsp;
+			      		</td>
+			      	<td>
+			      		{% for ref in search.getEntryQuestionRefs %}
+			      			{{ref.question.text}} {{ref.answer}}<br/>
+			      		{% endfor %}
+			      		&nbsp;
+			      		</td>
+			      	<td>
+			      		{% for ref in search.getCreatorQuestionRefs %}
+			      			{{ref.question.text}} {{ref.answer}}<br/>
+			      		{% endfor %}
+			      		&nbsp;
+			      		</td>
+					<td>{{search.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}<br/>at {{search.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</td>
+					<td>{{search.private|yesno:"yes, no"}}</td>
+					<td width="80"><input type="checkbox" name="remove|{{ search.key }}" value="yes" id="remove|{{ search.key }}"/>
+						<label for="remove|{{ search.key }}">Remove</label>
+						</td>
+					</tr>
+				{% endfor %}
+				</table>
+		{% else %}
+			<p><b>Saved search filters</b> - none</p>
+		{% endif %}
+		
+      	<p>
+    <center><input type="submit" name="changeSettings|{{member.key}}" value="Save changes" class="button"></center>
+	</form>	
+	</div>
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

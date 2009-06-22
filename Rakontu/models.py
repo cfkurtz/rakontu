@@ -21,8 +21,11 @@ def DebugPrint(text, msg="print"):
 	logging.info(">>>>>>>> %s >>>>>>>> %s" %(msg, text))
 
 def stripTags(text):
-	pattern = re.compile(r'<.*?>')
-	return pattern.sub('', text)
+	if text:
+		pattern = re.compile(r'<.*?>')
+		return pattern.sub('', text)
+	else:
+		return "none"
    
 def CleanUpCSV(parts):
 	partsWithCommasQuoted = []
@@ -399,6 +402,14 @@ class Community(db.Model):
 		links = Link.all().filter("community = ", self.key()).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
 		return (entries, annotations, answers, links)
 	
+	def getAllEntriesAnnotationsAndAnswersAsOneList(self):
+		result = []
+		(entries, annotations, answers, links) = self.getAllItems()
+		result.extend(entries)
+		result.extend(answers)
+		result.extend(annotations)
+		return result
+
 	def getEntryInImportBufferWithTitle(self, title):	
 		return Entry.all().filter("community = ", self.key()).filter("inBatchEntryBuffer = ", True).filter("title = ", title).get()
 										
@@ -517,7 +528,7 @@ class Community(db.Model):
 	def getExportOfType(self, type):
 		return Export.all().filter("community = ", self.key()).filter("type = ", type).get()
 
-	def createOrRefreshExport(self, type):
+	def createOrRefreshExport(self, type, itemList=None, member=None):
 		exportAlreadyThereForType = self.getExportOfType(type)
 		if exportAlreadyThereForType:
 			db.delete(exportAlreadyThereForType)
@@ -580,8 +591,25 @@ class Community(db.Model):
 				csvText += "characters," + character.csvLine() + "\n"
 			csvText += '(community columns),' + self.csvLine(header=True) + "\n"
 			csvText += "community," + self.csvLine() + "\n"
+		elif type == "liaisonPrint_simple":
+			csvText = "Entries from %s\n\n" % self.name
+			if itemList:
+				for item in itemList:
+					try:
+						csvText += item.PrintText()
+					except: 
+						pass
+			elif member:
+				if member.viewSearchResultList:
+					for entry in self.getNonDraftEntries():
+						if entry.key() in member.viewSearchResultList:
+							try:
+								csvText += entry.PrintText()
+							except:
+								pass
 		export.data = db.Text(csvText)
 		export.put()
+		return export
 
 	def csvLine(self, header=False):
 		parts = []
@@ -1216,6 +1244,10 @@ class Answer(db.Model):
 		
 	def linkStringWithQuestionTextAndReferentLink(self):
 		return "%s for %s" % (self.linkStringWithQuestionText(), self.referent.linkString())
+	
+	def PrintText(self):
+		return '<p>With reference to the %s "%s":</p><ul><li>The question "%s" was answered "%s" by "%s"</li></ul>' \
+			% (self.referent.type, self.referent.title, self.question.text, self.displayStringShort(), self.memberNickNameOrCharacterName())
 		
 	def csvLine(self, header=False):
 		parts = []
@@ -1416,36 +1448,43 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 				answers = self.getAnswersForQuestion(ref.question)
 			if answers:
 				for answer in answers:
-					if ref.question.type == "text":
-						if comparison == "contains":
-							match = caseInsensitiveFind(answer.answerIfText, ref.answer)
-						elif comparison == "is":
-							match = answer.answerIfText.lower() == ref.answer.lower()
-					elif ref.question.type == "value":
-						if comparison == "is less than":
-							try:
-								answerValue = int(ref.answer)
-								match = answer.answerIfValue < answerValue
-							except:
-								match = False
-						elif comparison == "is greater than":
-							try:
-								answerValue = int(ref.answer)
-								match = answer.answerIfValue > answerValue
-							except:
-								match = False
-					elif ref.question.type == "ordinal" or ref.question.type == "nominal":
-						if ref.question.multiple:
-							match = ref.answer in answer.answerIfMultiple
-						else:
-							match = ref.answer == answer.answerIfText
-					elif ref.question.type == "boolean":
-						if ref.answer == "yes":
-							match = answer.answerIfBoolean == True
-						else:
-							match = answer.answerIfBoolean == False
-					if match:
-						break # don't need to check if more than one answer matches
+					if answer:
+						if ref.question.type == "text":
+							if comparison == "contains":
+								match = caseInsensitiveFind(answer.answerIfText, ref.answer)
+							elif comparison == "is":
+								match = answer.answerIfText.lower() == ref.answer.lower()
+						elif ref.question.type == "value":
+							if comparison == "is less than":
+								try:
+									answerValue = int(ref.answer)
+									match = answer.answerIfValue < answerValue
+								except:
+									match = False
+							elif comparison == "is greater than":
+								try:
+									answerValue = int(ref.answer)
+									match = answer.answerIfValue > answerValue
+								except:
+									match = False
+							elif comparison == "is":
+								try:
+									answerValue = int(ref.answer)
+									match = answer.answerIfValue == answerValue
+								except:
+									match = False
+						elif ref.question.type == "ordinal" or ref.question.type == "nominal":
+							if ref.question.multiple:
+								match = ref.answer in answer.answerIfMultiple
+							else:
+								match = ref.answer == answer.answerIfText
+						elif ref.question.type == "boolean":
+							if ref.answer == "yes":
+								match = answer.answerIfBoolean == True
+							else:
+								match = answer.answerIfBoolean == False
+						if match:
+							break # don't need to check if more than one answer matches
 			if match:
 				numAnswerSearchesSatisfied += 1
 		if anyOrAll == "any":
@@ -1769,6 +1808,9 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 					else:
 						parts.append("")
 		return CleanUpCSV(parts)
+	
+	def PrintText(self):
+		return "<p>%s %s %s</p><p>%s</p><p>&nbsp;</p>" % (PRINT_DELIMITER, self.title, PRINT_DELIMITER, self.text_formatted)
 		
 	# SEARCH
 	
@@ -1946,6 +1988,9 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 	def getClassName(self):
 		return self.__class__.__name__
 	
+	def isCommentOrRequest(self):
+		return self.type == "comment" or self.type == "request"
+	
 	# IMPORTANT METHODS
 	
 	def publish(self):
@@ -2044,6 +2089,14 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 	def displayStringShortAndWithoutTags(self):
 		return self.displayString(includeType=False)
 	
+	def PrintText(self):
+		if self.isCommentOrRequest():
+			return '<p>With reference to the %s "%s":</p><ul><li>%s entered the %s labeled "%s" of "%s"</li></ul>' % \
+				(self.entry.type, self.entry.title, self.memberNickNameOrCharacterName(), self.type, self.shortString, self.longString_formatted)
+		else:
+			return '<p>With reference to the %s "%s":</p><ul><li>a %s of "%s" was entered by %s</li></ul>' % \
+				(self.entry.type, self.entry.title, self.type, self.displayString(), self.memberNickNameOrCharacterName())
+		
 	def linkString(self):
 		if self.type == "comment" or self.type == "request":
 			if self.longString_formatted and len(self.longString_formatted) > 30:

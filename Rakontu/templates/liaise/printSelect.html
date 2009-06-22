@@ -1,0 +1,153 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+		<div id="content">
+		
+	{% if current_member.isLiaison %}
+
+		<div id="stylized" class="rakontu_form">
+		<form action="/liaise/printSelect" method="post" enctype="multipart/form-data">
+		
+		<h3>Select entries, annotations and answers to print</h3>
+		
+		<p>Please choose entries from this list to print. {{"canPrintSearchResult"|tip}}</p>
+		
+		<h3>Entries</h3>
+		{% if entries %}
+			<fieldset>
+	      	<table border="1" cellpadding="4" cellspacing="0">
+	      	<tr>
+	      		<th>Print?</th>
+	      		<th>Title</th>
+	      		<th>By</th>
+	      		<th>Text</th>
+	      		</tr>
+	      		{% for entry in entries %}
+	  				<tr>
+	  				<td width="80">
+	  					<input type="checkbox" name="print|{{ entry.key }}" value="yes" id="print|{{ entry.key }}"/>
+						<label for="print|{{ entry.key }}">Print</label>
+	  					</td>
+	  				<td>{{entry.linkString}}</td>
+	  				<td>
+				 	{% if entry.attributedToMember %}
+							{% if entry.creator.active %}
+								<a href="member?{{entry.creator.key}}">{{entry.creator.nickname}}</a>
+								{% ifequal entry.creator.key current_member.key %}
+									 (you)
+								{% endifequal %}
+							{% else %}
+								the former member "{{entry.creator.nickname}}"
+							{% endif %}
+					{% else %}
+						{% if entry.character.active %}
+							<a href="character?{{entry.character.key}}">{{entry.character.name}}</a>
+						{% else %}
+							the former character "{{entry.character.name}}"
+						{% endif %}
+					{% endif %}
+	 				</td>
+	  				<td>{{entry.shortFormattedText|orNone}}</td>
+	  				</tr>
+	      		{% endfor %}
+	      	</table>
+	      	</fieldset>
+     	{% else %}
+      		<ul><li class="nobullet">none</li></ul>
+      	{% endif %}
+      	
+		<h3>Annotations</h3>
+		{% if annotations %}
+			<fieldset>
+	      	<table border="1" cellpadding="4" cellspacing="0">
+	      	<tr><th>Print?</th><th>Entry</th><th>Type</th><th>Content</th><th>By</th>
+      		</tr>
+      		{% for annotation in annotations %}
+  				<tr>
+  				<td>
+  					<input type="checkbox" name="print|{{annotation.key}}" value="yes" id="print|{{annotation.key}}"/>
+					<label for="print|{{annotation.key}}">Print</label>
+  				</td>	  				
+  				<td><a href="/visit/read?{{annotation.entry.key}}">{{annotation.entry.title}}</td>
+  				<td>{{annotation.type}}</td>
+  				<td>
+  				{% if annotation.isComment or annotation.isRequest %}
+  					{{annotation.linkString|orNbsp}}
+  				{% else %}
+  					{{annotation.displayString|orNbsp}}
+  				{% endif %}
+  				</td>
+  				<td>
+					{% if annotation.attributedToMember %}
+							{% if annotation.creator.active %}
+								<a href="member?{{annotation.creator.key}}">{{annotation.creator.nickname}}</a>
+								{% ifequal annotation.creator.key current_member.key %}
+									 (you)
+								{% endifequal %}
+							{% else %}
+								the former member "{{annotation.creator.nickname}}"
+							{% endif %}
+					{% else %}
+						<a href="character?{{annotation.character.key}}">{{annotation.character.name}}</a>
+					{% endif %}
+  				</td>
+  				</tr>
+      		{% endfor %}
+	      	</table>
+	      	</fieldset>
+      	{% else %}
+      		<ul><li class="nobullet">none</li></ul>
+      	{% endif %}
+  
+		<h3>Answers</h3>
+		{% if answers %}
+			<fieldset>
+	      	<table border="1" cellpadding="4" cellspacing="0">
+	      	<tr><th>Print?</th><th>Entry</th><th>Question</th><th>Answer</th><th>By</th>
+      		</tr>
+      		{% for answer in answers %}
+  				<tr>
+  				<td>
+  					<input type="checkbox" name="print|{{answer.key}}" value="yes" id="print|{{answer.key}}"/>
+					<label for="print|{{answer.key}}">Print</label>
+  				</td>	  				
+  				<td><a href="/visit/read?{{answer.referent.key}}">{{answer.referent.title}}</td>
+  				<td>{{answer.question.text}}</td>
+  				<td>{{answer.displayStringShort}}</td>
+  				<td>
+					{% if answer.attributedToMember %}
+							{% if answer.creator.active %}
+								<a href="member?{{answer.creator.key}}">{{answer.creator.nickname}}</a>
+								{% ifequal answer.creator.key current_member.key %}
+									 (you)
+								{% endifequal %}
+							{% else %}
+								the former member "{{answer.creator.nickname}}"
+							{% endif %}
+					{% else %}
+						<a href="character?{{answer.character.key}}">{{answer.character.name}}</a>
+					{% endif %}
+  				</td>
+  				</tr>
+      		{% endfor %}
+	      	</table>
+	      	</fieldset>
+      	{% else %}
+      		<ul><li class="nobullet">none</li></ul>
+      	{% endif %}
+	      	
+		<p><center><input type="submit" name="printSelected" value="Download texts of selected items to print" class="button"></center></p>
+			
+		</form>
+		</div>
+		
+	{% else %}
+		<p>You are not a liaison of this community and cannot print entries for off-line use.
+		Please become a liaison or ask a liaison to print entries.</p>
+	{% endif %}
+	
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

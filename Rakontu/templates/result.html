@@ -52,6 +52,15 @@
 		system resources you have just created, delete them in the curator flags screen (you may have to become a curator first).</p>
 	{% endifequal %}
 	
+	{% ifequal message "noSearchResultForPrinting" %}
+		<p>There is no search filter result to print. You need to go to the main community page and apply a search filter, 
+		then come back to the print page.</p>
+	{% endifequal %}
+	
+	{% ifequal message "noItemsSelectedForPrinting" %}
+		<p>No items were selected for printing.</p>
+	{% endifequal %}
+	
 	</h3>
 	
 	<hr>

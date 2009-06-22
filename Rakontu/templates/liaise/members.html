@@ -15,39 +15,44 @@
 			<form action="/liaise/members" method="post">
 			
 			<h3>Active off-line members</h3>
-			<fieldset>
-	      	<table border="1" cellpadding="4" cellspacing="0">
-	      	<tr>
-	      		<th>Nickname</th>
-	      		<th>Picture</th>
-	      		<th>Liaison</th>
-	      		<th>Inactivate?</th>
-	      		</tr>
-	      		{% for aMember in active_members %}
-	  				<tr>
-	  				<td>
-	  					{{ aMember.nickname }}<br/>
-	  					<a href="/visit/member?{{aMember.key}}">(View member page)</a>
-	  					{% ifequal aMember.liaisonIfOfflineMember.key current_member.key %}
-	  						<br/><a href="/visit/profile?{{aMember.key}}">(Change preferences or edit drafts)</a>
-	  					{% endifequal %}
-	  				</td>
-	  				<td width="80" valign="top">
-			 		{% if aMember.profileImage %}
-						<img src="/visit/img?member_id={{aMember.key}}">
-					{% else %}
-						none
-					{% endif %}
-					</td>
-	  				<td><a href="/visit/member?{{aMember.liaisonIfOfflineMember.key}}">{{aMember.liaisonIfOfflineMember.nickname}}</a></td>
-	  				<td>
-	  					<input type="checkbox" name="remove|{{ aMember.key }}" value="yes" id="remove|{{ aMember.key }}"/>
-						<label for="remove|{{ aMember.key }}">Inactivate</label>
-	  					</td>
-	  				</tr>
-	      		{% endfor %}
-	      	</table>
-	      	</fieldset>
+			{% if  active_members %}
+				<fieldset>
+		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<tr>
+		      		<th>Nickname</th>
+		      		<th>Picture</th>
+		      		<th>Liaison</th>
+		      		<th>Inactivate?</th>
+		      		</tr>
+		      		{% for aMember in active_members %}
+		  				<tr>
+		  				<td>
+		  					{{ aMember.nickname }}<br/>
+		  					<a href="/visit/member?{{aMember.key}}">(View member page)</a>
+		  					{% ifequal aMember.liaisonIfOfflineMember.key current_member.key %}
+		  						<br/><a href="/visit/profile?{{aMember.key}}">(Change preferences)</a>
+		  						<br/><a href="/visit/drafts?{{aMember.key}}">(Edit drafts)</a>
+		  					{% endifequal %}
+		  				</td>
+		  				<td width="80" valign="top">
+				 		{% if aMember.profileImage %}
+							<img src="/visit/img?member_id={{aMember.key}}">
+						{% else %}
+							none
+						{% endif %}
+						</td>
+		  				<td><a href="/visit/member?{{aMember.liaisonIfOfflineMember.key}}">{{aMember.liaisonIfOfflineMember.nickname}}</a></td>
+		  				<td>
+		  					<input type="checkbox" name="remove|{{ aMember.key }}" value="yes" id="remove|{{ aMember.key }}"/>
+							<label for="remove|{{ aMember.key }}">Inactivate</label>
+		  					</td>
+		  				</tr>
+		      		{% endfor %}
+		      	</table>
+		      	</fieldset>
+		    {% else %}
+		    	<p>&nbsp; &nbsp; <i>There are no active off-line members at this time.</i></p>
+		    {% endif %}
 			
 	 		<h3>Add off-line members</h3>
 			<fieldset>

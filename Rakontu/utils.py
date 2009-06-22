@@ -234,8 +234,16 @@ class ExportHandler(webapp.RequestHandler):
 		if self.request.get("export_id"):
 			export = db.get(self.request.get("export_id"))
 			if export and export.data:
-				self.response.headers.add_header('Content-Disposition', 'export; filename="%s"' % "test.csv")
+				self.response.headers.add_header('Content-Disposition', 'export; filename="%s"' % "export.csv")
 				self.response.headers.add_header('Content-Type', "XML")
+				self.response.out.write(export.data)
+			else:
+				self.error(404)
+		if self.request.get("print_id"):
+			export = db.get(self.request.get("print_id"))
+			if export and export.data:
+				self.response.headers.add_header('Content-Disposition', 'export; filename="%s"' % "print.html")
+				self.response.headers.add_header('Content-Type', "text/html")
 				self.response.out.write(export.data)
 			else:
 				self.error(404)

@@ -259,7 +259,7 @@ class EnterEntryPage(webapp.RequestHandler):
 					elif question.type == "boolean":
 						keepAnswer = queryText in self.request.params.keys()
 						if keepAnswer:
-							answerToEdit.answerIfBoolean = self.request.get(queryText) == queryText
+							answerToEdit.answerIfBoolean = self.request.get(queryText) == "yes"
 					elif question.type == "nominal" or question.type == "ordinal":
 						if question.multiple:
 							answerToEdit.answerIfMultiple = []
@@ -440,7 +440,7 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 					elif question.type == "boolean":
 						keepAnswer = queryText in self.request.params.keys()
 						if keepAnswer:
-							answerToEdit.answerIfBoolean = self.request.get(queryText) == queryText
+							answerToEdit.answerIfBoolean = self.request.get(queryText) == "yes"
 					elif question.type == "nominal" or question.type == "ordinal":
 						if question.multiple:
 							answerToEdit.answerIfMultiple = []

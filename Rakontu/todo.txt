@@ -2,19 +2,13 @@ Things to do before v0.1 is complete
 
 ===== RIGHT NOW:
 
-PIVOT (??)
-
-liaison page:
-    quick ways to output things for them - this has to be linked to the query system
-    
 add import/export of question lists (CSV)
 
 patterns connected to saved searches
 
-keepAnswer problem with answers being saved with no content
-
 ===== PUT OFF until a little later :)
 
+go through all fields finding ones that don't need indexes
 test "send this member a note" thing
 address that ?xx= issue in urls ??
 backup/restore (to SQL)?

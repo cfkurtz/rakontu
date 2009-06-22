@@ -606,7 +606,10 @@ class ReadEntryPage(webapp.RequestHandler):
 	def get(self):
 		community, member, access = GetCurrentCommunityAndMemberFromSession()
 		if access:
-			entry = db.get(self.request.query_string)
+			try:
+				entry = db.get(self.request.query_string)
+			except:
+				entry = None
 			if entry:
 				curating = self.request.uri.find("curate") >= 0
 				allItems = []
@@ -1015,23 +1018,14 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 				memberToEdit = offlineMember
 			else:
 				memberToEdit = member
-			draftAnswerEntries = memberToEdit.getEntriesWithDraftAnswers()
-			firstDraftAnswerForEachEntry = []
-			for entry in draftAnswerEntries:
-				answers = memberToEdit.getDraftAnswersForEntry(entry)
-				firstDraftAnswerForEachEntry.append(answers[0])
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': "Profile of", 
-						   	   'title_extra': member.nickname, 
+						   	   'title_extra': memberToEdit.nickname, 
 							   'community': community, 
 							   'member': memberToEdit,
 							   'current_member': member,
 							   'questions': community.getActiveMemberQuestions(),
 							   'answers': memberToEdit.getAnswers(),
-							   'searches': member.getSavedSearches(),
-							   'draft_entries': memberToEdit.getDraftEntries(),
-							   'draft_annotations': memberToEdit.getDraftAnnotations(),
-							   'first_draft_answer_per_entry': firstDraftAnswerForEachEntry,
 							   'refer_type': "member",
 							   'show_leave_link': not community.memberIsOnlyOwner(member),
 							   'search_locations': SEARCH_LOCATIONS,
@@ -1091,6 +1085,111 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 					memberToEdit.guideIntro_format = format
 					memberToEdit.preferredTextFormat = self.request.get("preferredTextFormat")
 				memberToEdit.put()
+				questions = Question.all().filter("community = ", community).filter("refersTo = ", "member").fetch(FETCH_NUMBER)
+				for question in questions:
+					foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", memberToEdit.key()).fetch(FETCH_NUMBER)
+					if foundAnswers:
+						answerToEdit = foundAnswers[0]
+					else:
+						answerToEdit = Answer(question=question, community=community, referent=memberToEdit, referentType="member")
+					keepAnswer = False
+					queryText = "%s" % question.key()
+					if question.type == "text":
+						keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
+						if keepAnswer:
+							answerToEdit.answerIfText = htmlEscape(self.request.get(queryText))
+					elif question.type == "value":
+						keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
+						if keepAnswer:
+							oldValue = answerToEdit.answerIfValue
+							try:
+								answerToEdit.answerIfValue = int(self.request.get(queryText))
+							except:
+								answerToEdit.answerIfValue = oldValue
+					elif question.type == "boolean":
+						keepAnswer = queryText in self.request.params.keys()
+						if keepAnswer:
+							answerToEdit.answerIfBoolean = self.request.get(queryText) == "yes"
+					elif question.type == "nominal" or question.type == "ordinal":
+						if question.multiple:
+							answerToEdit.answerIfMultiple = []
+							for choice in question.choices:
+								if self.request.get("%s|%s" % (question.key(), choice)) == "yes":
+									answerToEdit.answerIfMultiple.append(choice)
+									keepAnswer = True
+						else:
+							keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
+							if keepAnswer:
+								answerToEdit.answerIfText = self.request.get(queryText)
+					answerToEdit.creator = memberToEdit
+					if keepAnswer:
+						answerToEdit.put()
+				if offlineMember:
+					self.redirect('/liaise/members')
+				else:
+					self.redirect('/visit/member?%s' % memberToEdit.key())
+			else:
+				self.redirect("/visit/look")
+		else:
+			self.redirect("/")
+			
+class ChangeMemberDraftsPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
+			try:
+				offlineMember = db.get(self.request.query_string)
+			except:
+				offlineMember = None
+			if offlineMember:
+				memberToEdit = offlineMember
+			else:
+				memberToEdit = member
+			draftAnswerEntries = memberToEdit.getEntriesWithDraftAnswers()
+			firstDraftAnswerForEachEntry = []
+			for entry in draftAnswerEntries:
+				answers = memberToEdit.getDraftAnswersForEntry(entry)
+				firstDraftAnswerForEachEntry.append(answers[0])
+			template_values = GetStandardTemplateDictionaryAndAddMore({
+							   'title': "Drafts by", 
+						   	   'title_extra': memberToEdit.nickname, 
+							   'community': community, 
+							   'member': memberToEdit,
+							   'current_member': member,
+							   'searches': member.getSavedSearches(),
+							   'draft_entries': memberToEdit.getDraftEntries(),
+							   'draft_annotations': memberToEdit.getDraftAnnotations(),
+							   'first_draft_answer_per_entry': firstDraftAnswerForEachEntry,
+							   'refer_type': "member",
+							   'search_locations': SEARCH_LOCATIONS,
+							   })
+			path = os.path.join(os.path.dirname(__file__), 'templates/visit/drafts.html')
+			self.response.out.write(template.render(path, template_values))
+		else:
+			self.redirect('/')
+							 
+	@RequireLogin 
+	def post(self):
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
+			goAhead = True
+			offlineMember = None
+			for argument in self.request.arguments():
+				if argument.find("|") >= 0:
+					for aMember in community.getActiveOfflineMembers():
+						if argument == "changeSettings|%s" % aMember.key():
+							try:
+								offlineMember = aMember
+							except: 
+								offlineMember = None
+								goAhead = False
+							break
+			if goAhead:
+				if offlineMember:
+					memberToEdit = offlineMember
+				else:
+					memberToEdit = member
 				for entry in memberToEdit.getDraftEntries():
 					if self.request.get("remove|%s" % entry.key()) == "yes":
 						db.delete(entry)
@@ -1106,37 +1205,10 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 					if self.request.get("remove|%s" % search.key()) == "yes":
 						search.deleteAllDependents()
 						db.delete(search)
-				questions = Question.all().filter("community = ", community).filter("refersTo = ", "member").fetch(FETCH_NUMBER)
-				for question in questions:
-					foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", memberToEdit.key()).fetch(FETCH_NUMBER)
-					if foundAnswers:
-						answerToEdit = foundAnswers[0]
-					else:
-						answerToEdit = Answer(question=question, community=community, referent=memberToEdit, referentType="member")
-					if question.type == "text":
-						answerToEdit.answerIfText = htmlEscape(self.request.get("%s" % question.key()))
-					elif question.type == "value":
-						oldValue = answerToEdit.answerIfValue
-						try:
-							answerToEdit.answerIfValue = int(self.request.get("%s" % question.key()))
-						except:
-							answerToEdit.answerIfValue = oldValue
-					elif question.type == "boolean":
-						answerToEdit.answerIfBoolean = self.request.get("%s" % question.key()) == "%s" % question.key()
-					elif question.type == "nominal" or question.type == "ordinal":
-						if question.multiple:
-							answerToEdit.answerIfMultiple = []
-							for choice in question.choices:
-								if self.request.get("%s|%s" % (question.key(), choice)) == "yes":
-									answerToEdit.answerIfMultiple.append(choice)
-						else:
-							answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
-					answerToEdit.creator = memberToEdit
-					answerToEdit.put()
 				if offlineMember:
 					self.redirect('/liaise/members')
 				else:
-					self.redirect('/visit/member?%s' % memberToEdit.key())
+					self.redirect('/visit/drafts?%s' % memberToEdit.key())
 			else:
 				self.redirect("/visit/look")
 		else:

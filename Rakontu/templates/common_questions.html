@@ -67,7 +67,7 @@
 			{% endif %}
 			
 			{% ifequal question.type "boolean" %}
-				&nbsp; &nbsp; <input type="checkbox" name="{{question.key}}" value="{{question.key}}" id="{{question.key}}"
+				&nbsp; &nbsp; <input type="checkbox" name="{{question.key}}" value="yes" id="{{question.key}}"
 				{% for answer in answers %}
 					{% ifequal answer.questionKey question.key %}
 						{% if answer.answerIfBoolean %}
