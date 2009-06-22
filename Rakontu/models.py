@@ -1211,6 +1211,12 @@ class Answer(db.Model):
 	def linkStringWithQuestionText(self):
 		return self.displayString(includeQuestionName=False, includeQuestionText=True, )
 	
+	def linkStringWithQuestionNameAndReferentLink(self):
+		return "%s for %s" % (self.linkStringWithQuestionName(), self.referent.linkString())
+		
+	def linkStringWithQuestionTextAndReferentLink(self):
+		return "%s for %s" % (self.linkStringWithQuestionText(), self.referent.linkString())
+		
 	def csvLine(self, header=False):
 		parts = []
 		if header:
@@ -2048,6 +2054,9 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 				return self.shortString
 		else:
 			return self.displayString()
+		
+	def linkStringWithEntryLink(self):
+		return "%s for %s" % (self.linkString(), self.entry.linkString())
 		
 	def getImageLinkForType(self):
 		if self.type == "comment":

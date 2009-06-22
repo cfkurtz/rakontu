@@ -8,8 +8,8 @@
 
 from utils import *
 
-def ItemDisplayStringForGrid(item, curating, includeName=True, includeFirstPartOfText=False):
-	if includeName:
+def ItemDisplayStringForGrid(item, curating=False, showingMember=False, showDetails=False):
+	if not showingMember:
 		if item.attributedToMember():
 			if item.creator.isOnlineMember:
 				if item.creator.active:
@@ -35,7 +35,7 @@ def ItemDisplayStringForGrid(item, curating, includeName=True, includeFirstPartO
 			curateString = '<a href="flag?%s" class="imagelight"><img src="../images/flag_green.png" alt="flag" border="0"></a>' % item.key()
 	else:
 		curateString = ""
-	if includeFirstPartOfText:
+	if showDetails:
 		if item.__class__.__name__ == "Annotation":
 			if item.type == "comment" or item.type == "request":
 				if item.longString_formatted:
@@ -44,15 +44,25 @@ def ItemDisplayStringForGrid(item, curating, includeName=True, includeFirstPartO
 					textString = ""
 			else:
 				textString = ""
+		elif item.__class__.__name__ == "Entry":
+			textString = ": %s" % upToWithLink(stripTags(item.text_formatted), DEFAULT_DETAILS_TEXT_LENGTH, '/visit/read?%s' % item.key())
 		else:
 			textString = ""
 	else:
 		textString = ""
 	if item.__class__.__name__ == "Answer":
-		if includeFirstPartOfText:
-			linkString = item.linkStringWithQuestionText()
+		if showDetails:
+			if not showingMember:
+				linkString = item.linkStringWithQuestionText()
+			else:
+				linkString = item.linkStringWithQuestionTextAndReferentLink()
 		else:
-			linkString = item.linkStringWithQuestionName()
+			if not showingMember:
+				linkString = item.linkStringWithQuestionName()
+			else:
+				linkString = item.linkStringWithQuestionNameAndReferentLink()
+	elif item.__class__.__name__ == "Annotation":
+		linkString = item.linkStringWithEntryLink()
 	else:
 		linkString = item.linkString()
 	return '<p>%s %s %s%s%s</p>' % (item.getImageLinkForType(), curateString, linkString, nameString, textString)
@@ -665,7 +675,7 @@ class ReadEntryPage(webapp.RequestHandler):
 								shouldBeInRow = nudgePoints >= startNudgePoints and nudgePoints < endNudgePoints
 								shouldBeInCol = item.published >= startTime and item.published < endTime
 								if shouldBeInRow and shouldBeInCol:
-									text = ItemDisplayStringForGrid(item, curating, includeName=member.viewDetails, includeFirstPartOfText=member.viewDetails)
+									text = ItemDisplayStringForGrid(item, curating, showingMember=False, showDetails=member.viewDetails)
 									textsInThisCell.append(text)
 							haveContent = haveContent or len(textsInThisCell) > 0
 							textsInThisRow.append(textsInThisCell)
@@ -861,7 +871,7 @@ class SeeMemberPage(webapp.RequestHandler):
 								shouldBeInRow = True
 								shouldBeInCol = item.published >= startTime and item.published < endTime
 								if shouldBeInRow and shouldBeInCol:
-									text = ItemDisplayStringForGrid(item, curating, includeName=memberToSee.isLiaison(), includeFirstPartOfText=member.viewDetails)
+									text = ItemDisplayStringForGrid(item, curating, showingMember=not memberToSee.isLiaison(), showDetails=member.viewDetails)
 									textsInThisCell.append(text)
 							textsInThisRow.append(textsInThisCell)
 						textsForGrid.append(textsInThisRow)
@@ -954,7 +964,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 									shouldBeInRow = True
 									shouldBeInCol = item.published >= startTime and item.published < endTime
 									if shouldBeInRow and shouldBeInCol:
-										text = ItemDisplayStringForGrid(item, curating, includeName=False, includeFirstPartOfText=member.viewDetails)
+										text = ItemDisplayStringForGrid(item, curating, showingMember=True, showDetails=member.viewDetails)
 										textsInThisCell.append(text)
 								textsInThisRow.append(textsInThisCell)
 							textsForGrid.append(textsInThisRow)
