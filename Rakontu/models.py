@@ -21,8 +21,8 @@ def DebugPrint(text, msg="print"):
 	logging.info(">>>>>>>> %s >>>>>>>> %s" %(msg, text))
 
 def stripTags(text):
-    pattern = re.compile(r'<.*?>')
-    return pattern.sub('', text)
+	pattern = re.compile(r'<.*?>')
+	return pattern.sub('', text)
    
 def CleanUpCSV(parts):
 	partsWithCommasQuoted = []
@@ -36,6 +36,9 @@ def CleanUpCSV(parts):
 		else:
 			partsWithCommasQuoted.append("")
 	return ','.join(partsWithCommasQuoted) 
+
+def caseInsensitiveFind(text, searchFor):
+	return text.lower().find(searchFor.lower()) >= 0
 
 DEVELOPMENT = True
 FETCH_NUMBER = 1000
@@ -288,6 +291,9 @@ class Community(db.Model):
 	
 	def hasAtLeastOneCharacterEntryAllowed(self, entryTypeIndex):
 		return self.allowCharacter[entryTypeIndex] or len(self.getActiveCharacters()) > 0
+
+	def hasActiveCharacters(self):
+		return Character.all().filter("community = ", self.key()).filter("active = ", True).count() > 0
 	
 	# ENTRIES
 	
@@ -465,6 +471,9 @@ class Community(db.Model):
 		
 	def getActiveMemberAndCharacterQuestions(self):
 		return Question.all().filter("community = ", self.key()).filter("refersTo IN ", ["character", "member"]).filter("active = ", True).fetch(FETCH_NUMBER)
+	
+	def hasActiveQuestionsOfType(self, type):
+		return Question.all().filter("community = ", self.key()).filter("refersTo = ", type).filter("active = ", True).count() > 0
 	
 	def hasQuestionWithSameTypeAndName(self, question):
 		allQuestions = self.getAllQuestions()
@@ -768,6 +777,7 @@ class Member(db.Model):
 	viewNudgeCategories = db.ListProperty(bool, default=[True] * NUM_NUDGE_CATEGORIES)
 	viewSearch = db.ReferenceProperty(None, collection_name="member_to_search")
 	viewDetails = db.BooleanProperty(default=False)
+	viewSearchResultList = db.ListProperty(db.Key)
 	
 	# CREATION
 	
@@ -884,6 +894,9 @@ class Member(db.Model):
 	
 	def getLinksCreatedByMember(self):
 		return Link.all().filter("creator = ", self.key()).fetch(FETCH_NUMBER)
+	
+	def getAnswerForQuestion(self, question):
+		return Answer.all().filter("referent = ", self.key()).filter("question = ", question.key()).get()
 		
 	# DRAFTS
 	
@@ -972,6 +985,9 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
 	
+	def getAnswerForQuestion(self, question):
+		return Answer.all().filter("referent = ", self.key()).filter("question = ", question.key()).get()
+		
 	def csvLine(self, header=False):
 		parts = []
 		if header:
@@ -1014,6 +1030,7 @@ class SavedSearch(db.Model):
 	tags_anyOrAll = db.StringProperty(choices=ANY_ALL)
 	tags = db.StringListProperty()
 	
+	overall_anyOrAll = db.StringProperty(choices=ANY_ALL, default="any")
 	answers_anyOrAll = db.StringProperty(choices=ANY_ALL, default="any")
 	creatorAnswers_anyOrAll = db.StringProperty(choices=ANY_ALL, default="any")
 	
@@ -1242,7 +1259,7 @@ class Answer(db.Model):
 
 # ============================================================================================
 # ============================================================================================
-class Entry(db.Model):                       # story, invitation, collage, pattern, resource
+class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 # ============================================================================================
 # ============================================================================================
 
@@ -1341,6 +1358,158 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 		db.delete(self.getAllLinks())
 		db.delete(self.getAnswers())
 		db.delete(self.getAnnotations())
+		
+	def satisfiesSearchCriteria(self, search, entryRefs, creatorRefs):
+		i = 0
+		for type in ENTRY_TYPES:
+			if type == self.type:
+				if not search.entryTypes[i]:
+					return False
+			i += 1
+		if search.overall_anyOrAll == "any":
+			satisfiesWords = False
+			satisfiesTags = False
+			satisfiesEntryQuestions = False
+			satisfiesCreatorQuestions = False
+		else:
+			satisfiesWords = True
+			satisfiesTags = True
+			satisfiesEntryQuestions = True
+			satisfiesCreatorQuestions = True
+		if search.words:
+			satisfiesWords = self.satisfiesWordSearch(search.words_anyOrAll, search.words_locations, search.words)
+		if search.tags:
+			satisfiesTags = self.satisfiesTagSearch(search.tags_anyOrAll, search.tags)
+		if entryRefs:
+			satisfiesEntryQuestions = self.satisfiesQuestionSearch(search.answers_anyOrAll, entryRefs, False)
+		if creatorRefs:
+			DebugPrint(creatorRefs, "creatorRefs")
+			satisfiesCreatorQuestions = self.satisfiesQuestionSearch(search.creatorAnswers_anyOrAll, creatorRefs, True)
+		if search.overall_anyOrAll == "any":
+			return satisfiesWords or satisfiesTags or satisfiesEntryQuestions or satisfiesCreatorQuestions
+		else:
+			return satisfiesWords and satisfiesTags and satisfiesEntryQuestions and satisfiesCreatorQuestions
+	
+	def satisfiesQuestionSearch(self, anyOrAll, refs, aboutCreator):
+		numAnswerSearchesSatisfied = 0
+		for ref in refs:
+			match = False
+			if aboutCreator:
+				try: # in case creator doesn't exist
+					if self.character:
+						answer = self.character.getAnswerForQuestion(ref.question)
+					else:
+						if self.creator.active:
+							answer = self.creator.getAnswerForQuestion(ref.question)
+						else:
+							return False
+					answers = [answer]
+				except:
+					return False
+			else:
+				answers = self.getAnswersForQuestion(ref.question)
+			if answers:
+				for answer in answers:
+					if ref.question.type == "text":
+						if comparison == "contains":
+							match = caseInsensitiveFind(answer.answerIfText, ref.answer)
+						elif comparison == "is":
+							match = answer.answerIfText.lower() == ref.answer.lower()
+					elif ref.question.type == "value":
+						if comparison == "is less than":
+							try:
+								answerValue = int(ref.answer)
+								match = answer.answerIfValue < answerValue
+							except:
+								match = False
+						elif comparison == "is greater than":
+							try:
+								answerValue = int(ref.answer)
+								match = answer.answerIfValue > answerValue
+							except:
+								match = False
+					elif ref.question.type == "ordinal" or ref.question.type == "nominal":
+						if ref.question.multiple:
+							match = ref.answer in answer.answerIfMultiple
+						else:
+							match = ref.answer == answer.answerIfText
+					elif ref.question.type == "boolean":
+						if ref.answer == "yes":
+							match = answer.answerIfBoolean == True
+						else:
+							match = answer.answerIfBoolean == False
+					if match:
+						break # don't need to check if more than one answer matches
+			if match:
+				numAnswerSearchesSatisfied += 1
+		if anyOrAll == "any":
+			return numAnswerSearchesSatisfied > 0
+		else:
+			return numAnswerSearchesSatisfied >= len(refs)
+	
+	def satisfiesWordSearch(self, anyOrAll, locations, words):
+		numWordSearchesSatisfied = 0
+		for word in words:
+			match = False
+			if locations[0]: #"in the entry text"
+				match = match or caseInsensitiveFind(self.text, word) 
+			if locations[0]: #"in a comment"
+				match = match or self.wordIsFoundInAComment(word)
+			if locations[0]: #"in a request"
+				match = match or self.wordIsFoundInARequest(word)
+			if locations[0]: #"in a nudge comment"
+				match = match or self.wordIsFoundInANudgeComment(word)
+			if locations[0]: #"in a link comment"
+				match = match or self.wordIsFoundInALinkComment(word)
+			if match:
+				numWordSearchesSatisfied += 1
+		if anyOrAll == "any":
+			return numWordSearchesSatisfied > 0
+		else:
+			return numWordSearchesSatisfied >= len(words)
+
+	def wordIsFoundInAComment(self, word):
+		comments = self.getNonDraftAnnotationsOfType("comment")
+		for comment in comments:
+			if caseInsensitiveFind(comment.longString, word):
+				return True
+		return False
+	
+	def wordIsFoundInARequest(self, word):
+		requests = self.getNonDraftAnnotationsOfType("request")
+		for request in requests:
+			if caseInsensitiveFind(request.longString, word):
+				return True
+		return False
+	
+	def wordIsFoundInANudgeComment(self, word):
+		nudges = self.getNonDraftAnnotationsOfType("nudge")
+		for nudge in nudges:
+			if caseInsensitiveFind(nudge.shortString, word):
+				return True
+		return False
+	
+	def wordIsFoundInALinkComment(self, word):
+		links = self.getAllLinks()
+		for link in links:
+			if caseInsensitiveFind(link.comment, word):
+				return True
+		return False
+	
+	def satisfiesTagSearch(self, anyOrAll, words):
+		numWordSearchesSatisfied = 0
+		for word in words:
+			match = False
+			tagsets = self.getNonDraftAnnotationsOfType("tag set")
+			for tagset in tagsets:
+				for tag in tagset.tagsIfTagSet:
+					match = match or caseInsensitiveFind(tag, word)
+			if match:
+				numWordSearchesSatisfied += 1
+		if anyOrAll == "any":
+			return numWordSearchesSatisfied > 0
+		else:
+			return numWordSearchesSatisfied >= len(words)
 
 	# TYPE
 	
@@ -1433,6 +1602,9 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 	
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
+	
+	def getAnswersForQuestion(self, question):
+		return Answer.all().filter("referent = ", self.key()).filter("question = ", question.key()).fetch(FETCH_NUMBER)
 	
 	def getNonDraftAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
@@ -1599,7 +1771,7 @@ class Entry(db.Model):                       # story, invitation, collage, patte
 
 # ============================================================================================
 # ============================================================================================
-class Link(db.Model):                         # related, retold, reminded, responded, included
+class Link(db.Model):						 # related, retold, reminded, responded, included
 # ============================================================================================
 # ============================================================================================
 	type = db.StringProperty(choices=LINK_TYPES, required=True) 
@@ -1691,7 +1863,7 @@ class Link(db.Model):                         # related, retold, reminded, respo
 
 # ============================================================================================
 # ============================================================================================
-class Attachment(db.Model):                                   # binary attachments to entries
+class Attachment(db.Model):								   # binary attachments to entries
 # ============================================================================================
 # ============================================================================================
 	name = db.StringProperty()
@@ -1726,7 +1898,7 @@ class Attachment(db.Model):                                   # binary attachmen
 
 # ============================================================================================
 # ============================================================================================
-class Annotation(db.Model):                                # tag set, comment, request, nudge
+class Annotation(db.Model):								# tag set, comment, request, nudge
 # ============================================================================================
 # ============================================================================================
 
@@ -1918,7 +2090,7 @@ class Annotation(db.Model):                                # tag set, comment, r
 	
 # ============================================================================================
 # ============================================================================================
-class Help(db.Model):	     # context-sensitive help string - appears as title hover on icon 
+class Help(db.Model):		 # context-sensitive help string - appears as title hover on icon 
 # ============================================================================================
 # ============================================================================================
 
@@ -1928,7 +2100,7 @@ class Help(db.Model):	     # context-sensitive help string - appears as title ho
 	
 # ============================================================================================
 # ============================================================================================
-class Export(db.Model):	     # data prepared for export, in XML format
+class Export(db.Model):		 # data prepared for export, in XML format
 # ============================================================================================
 # ============================================================================================
 	

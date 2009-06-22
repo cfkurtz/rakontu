@@ -45,7 +45,7 @@
 	</td><td align="right" style="border:none;">
 	{% if community_searches or member_searches %}
 			{% if current_search %}
-				Applied search filter: <b>{{current_search.displayString}}</b>
+				Applied search filter: {{current_search.displayString}}
 			{% else %}
 				Search filters
 				<select name="savedSearch"><option>(choose)</option>

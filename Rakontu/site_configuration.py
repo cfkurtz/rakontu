@@ -284,6 +284,7 @@ DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS = [
 # ============================================================================================ 
 
 # The number of tags in each tag set. Reasonable values are between 3 and 7.
+# CAUTION: You cannot set this number to zero; the system expects it to be at least one.
 NUM_TAGS_IN_TAG_SET = 5
 
 # These are types of request people can set. They can be anything you like. 

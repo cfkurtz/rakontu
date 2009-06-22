@@ -71,12 +71,25 @@
 					{% endifequal %}
 				{% endif %}
 				>
-				<label for="{{entry_types|listLookup:i}}">{{entry_types_plural|listLookup:i}}</label>&nbsp; &nbsp; 
+				<label for="{{entry_types|listLookup:i}}">{{entry_types_plural|listLookup:i}}</label>&nbsp; 
 			{% endfor %}
 			{{"filterEntryTypes"|tip}}</p>
+		<p>&nbsp; &nbsp; with
+		<select name="overall_anyOrAll"
+		{% for choice in any_or_all_choices %}
+			<option value="{{choice}}"
+			{% if current_search %}
+				{% ifequal current_search.overall_anyOrAll choice %}
+					selected="selected"
+				{% endifequal %}
+			{% endif %}
+			>{{choice}}</option>
+		{% endfor %}
+		</select>
+		of the following selection criteria:</p>
 		<hr>
 		
-		<p>with 
+		<p> 
 		<select name="words_anyOrAll">
 		{% for choice in any_or_all_choices %}
 			<option value="{{choice}}"
@@ -94,7 +107,7 @@
 			{% if current_search %}
 				value="{{current_search.words|listLookup:i|orNothing}}"
 			{% endif %}
-			size="20"> 
+			size="16" maxlength="{{maxlength_tag_or_choice}}"> 
 		{% endfor %}
 		<br/>
 		&nbsp; &nbsp; 
@@ -115,7 +128,7 @@
 		{{"filterWordLocations"|tip}}</p>
 		
 		<hr>
-		<p>with
+		<p>
 		<select name="tags_anyOrAll">
 		{% for choice in any_or_all_choices %}
 			<option value="{{choice}}"
@@ -133,13 +146,13 @@
 			{% if current_search %}
 				value="{{current_search.tags|listLookup:i|orNothing}}"
 			{% endif %}
-			size="20"> 
+			size="16" maxlength="{{maxlength_tag_or_choice}}"> 
 		{% endfor %}
 		</p>
 		
 		{% for search_dict in questions_and_refs_dict_list %}
 			<hr>
-			<p>{{search_dict|dictLookup:"withText"}}
+			<p>
 			<select name="{{search_dict|dictLookup:"result_preface"}}|anyOrAll">
 			{% for choice in any_or_all_choices %}
 				<option value="{{choice}}"
@@ -148,7 +161,7 @@
 				{% endifequal %}
 				>{{choice}}</option>
 			{% endfor %}
-			</select>{{search_dict|dictLookup:"afterAnyText"}}<br/>
+			</select> {{search_dict|dictLookup:"afterAnyText"}}<br/>
 			{% for i in num_search_fields|makeRange %} 
 				&nbsp; &nbsp; <select name="{{search_dict|dictLookup:"result_preface"}}|question|{{i}}"><option>(choose)</option>
 				{% for question in search_dict|dictLookup:"questions" %}
@@ -225,7 +238,7 @@
 						{% endif %}
 					{% endifequal %}
 				{% endfor %}
-				size="20"> 
+				size="16" maxlength="{{maxlength_tag_or_choice}}"> 
 				<br/>
 			{% endfor %} {# iterations #}
 		{% endfor %} {# list of dictionaries #}
