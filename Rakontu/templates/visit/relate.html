@@ -63,14 +63,32 @@
 			<h3>Relate this {{entry.type}} to other entries</h3>
 			<fieldset>
 			<table  style="border:none;padding:0;margin:0;"><tr>
-	      		{% for anEntry in entries %}
+			{% for i in num_rows|makeRange %}
 	  				<td style="border:none;padding:0;margin:0;">
-	  					<input type="checkbox" name="addLink|{{ anEntry.key }}" value="yes" id="addLink|{{ anEntry.key }}"/>
-						<label for="addLink|{{ anEntry.key }}"><a href="read?{{anEntry.key}}">{{anEntry.title}}</a></label>
-	  					</td>
+	  				{% if entries_first_column|listLookup:i %}
+	  					<input type="checkbox" name="addLink|{{entries_first_column|listLookup:i|get:"key"}}" value="yes" 
+	  					id="addLink|{{entries_first_column|listLookup:i|get:"key"}}"/>
+						<label for="addLink|{{entries_first_column|listLookup:i|get:"key"}}">
+						<a href="read?{{entries_first_column|listLookup:i|get:"key"}}">{{entries_first_column|listLookup:i|get:"title"}}</a></label>
+	  				{% endif %}
+	  				</td>
 	  				<td style="border:none;padding:0;margin:0;">
-	  				<input type="text" name="linkComment|{{anEntry.key}}" value="" size="40" maxlength="{{maxlength_subject_or_comment}}"/>
-	  				</td></tr>
+	  				{% if entries_second_column|listLookup:i %}
+	  					<input type="checkbox" name="addLink|{{entries_second_column|listLookup:i|get:"key"}}" value="yes" 
+	  					id="addLink|{{entries_second_column|listLookup:i|get:"key"}}"/>
+						<label for="addLink|{{entries_second_column|listLookup:i|get:"key"}}">
+						<a href="read?{{entries_second_column|listLookup:i|get:"key"}}">{{entries_second_column|listLookup:i|get:"title"}}</a></label>
+	  				{% endif %}
+	  				</td>
+	  				<td style="border:none;padding:0;margin:0;">
+	  				{% if entries_third_column|listLookup:i %}
+	  					<input type="checkbox" name="addLink|{{entries_third_column|listLookup:i|get:"key"}}" value="yes" 
+	  					id="addLink|{{entries_third_column|listLookup:i|get:"key"}}"/>
+						<label for="addLink|{{entries_third_column|listLookup:i|get:"key"}}">
+						<a href="read?{{entries_third_column|listLookup:i|get:"key"}}">{{entries_third_column|listLookup:i|get:"title"}}</a></label>
+	  				{% endif %}
+	  				</td>
+	  				</tr>
 	      		{% endfor %}
 	      	</table>
 	      	</table>

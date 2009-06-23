@@ -252,9 +252,38 @@
 		      	</table>
 		      	</fieldset>
 	      {% endif %}
+	      {% if num_collage_rows %}
 			<h3>Add stories to the collage</h3>
 			<fieldset>
 			<table  style="border:none;padding:0;margin:0;"><tr>
+			{% for i in num_collage_rows|makeRange %}
+	  				<td style="border:none;padding:0;margin:0;">
+	  				{% if collage_first_column|listLookup:i %}
+	  					<input type="checkbox" name="addLink|{{collage_first_column|listLookup:i|get:"key"}}" value="yes" 
+	  					id="addLink|{{collage_first_column|listLookup:i|get:"key"}}"/>
+						<label for="addLink|{{collage_first_column|listLookup:i|get:"key"}}">
+						<a href="read?{{collage_first_column|listLookup:i|get:"key"}}">{{collage_first_column|listLookup:i|get:"title"}}</a></label>
+	  				{% endif %}
+	  				</td>
+	  				<td style="border:none;padding:0;margin:0;">
+	  				{% if collage_second_column|listLookup:i %}
+	  					<input type="checkbox" name="addLink|{{collage_second_column|listLookup:i|get:"key"}}" value="yes" 
+	  					id="addLink|{{collage_second_column|listLookup:i|get:"key"}}"/>
+						<label for="addLink|{{collage_second_column|listLookup:i|get:"key"}}">
+						<a href="read?{{collage_second_column|listLookup:i|get:"key"}}">{{collage_second_column|listLookup:i|get:"title"}}</a></label>
+	  				{% endif %}
+	  				</td>
+	  				<td style="border:none;padding:0;margin:0;">
+	  				{% if collage_third_column|listLookup:i %}
+	  					<input type="checkbox" name="addLink|{{collage_third_column|listLookup:i|get:"key"}}" value="yes" 
+	  					id="addLink|{{collage_third_column|listLookup:i|get:"key"}}"/>
+						<label for="addLink|{{collage_third_column|listLookup:i|get:"key"}}">
+						<a href="read?{{collage_third_column|listLookup:i|get:"key"}}">{{collage_third_column|listLookup:i|get:"title"}}</a></label>
+	  				{% endif %}
+	  				</td>
+	  				</tr>
+	      		{% endfor %}			
+
 	      		{% for anEntry in entries_that_can_be_linked_to_by_collage %}
 	  				<td style="border:none;padding:0;margin:0;">
 	  					<input type="checkbox" name="addLink|{{ anEntry.key }}" value="yes" id="addLink|{{ anEntry.key }}"/>
@@ -266,6 +295,7 @@
 	      		{% endfor %}
 	      	</table>
 	      	</fieldset>
+	      	{% endif %}
 	  {% endifequal %}
 	  
 			<p>

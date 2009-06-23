@@ -6,6 +6,8 @@ add import/export of question lists (CSV)
 
 patterns connected to saved searches
 
+add cancel button on all pages that save things
+
 ===== PUT OFF until a little later :)
 
 test "send this member a note" thing

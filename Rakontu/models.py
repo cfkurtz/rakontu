@@ -306,6 +306,12 @@ class Community(db.Model):
 	def getNonDraftEntriesInReverseTimeOrder(self):
 		return Entry.all().filter("community = ", self.key()).filter("draft = ", False).order("-published").fetch(FETCH_NUMBER)
 	
+	def getNonDraftEntriesInAlphabeticalOrder(self):
+		return Entry.all().filter("community = ", self.key()).filter("draft = ", False).order("-title").fetch(FETCH_NUMBER)
+	
+	def getNonDraftStoriesInAlphabeticalOrder(self):
+		return Entry.all().filter("community = ", self.key()).filter("type = ", "story").filter("draft = ", False).order("-title").fetch(FETCH_NUMBER)
+	
 	def getNonDraftEntriesAnnotationsAndAnswersInReverseTimeOrder(self):
 		result = []
 		entries = Entry.all().filter("community = ", self.key()).filter("draft = ", False).order("-published").fetch(FETCH_NUMBER)
@@ -1669,8 +1675,8 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	
 	def getAllLinks(self):
 		result = []
-		outgoingLinks = Link.all().filter("entryFrom =", self.key()).fetch(FETCH_NUMBER)
-		incomingLinks = Link.all().filter("entryTo =", self.key()).fetch(FETCH_NUMBER)
+		outgoingLinks = Link.all().filter("entryFrom = ", self.key()).fetch(FETCH_NUMBER)
+		incomingLinks = Link.all().filter("entryTo = ", self.key()).fetch(FETCH_NUMBER)
 		result.extend(outgoingLinks)
 		result.extend(incomingLinks)
 		return result
@@ -1684,13 +1690,16 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		return result
 	
 	def getOutgoingLinksOfType(self, type):
-		return Link.all().filter("entryFrom =", self.key()).filter("type = ", type).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
+		return Link.all().filter("entryFrom = ", self.key()).filter("type = ", type).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
 	
 	def getIncomingLinksOfType(self, type):
-		return Link.all().filter("entryTo =", self.key()).filter("type = ", type).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
+		return Link.all().filter("entryTo = ", self.key()).filter("type = ", type).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
 	
 	def getOutgoingLinks(self):
-		return Link.all().filter("entryFrom =", self.key()).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
+		return Link.all().filter("entryFrom = ", self.key()).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
+	
+	def getIncomingLinks(self):
+		return Link.all().filter("entryTo = ", self.key()).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
 	
 	def getIncomingLinksOfTypeFromType(self, type, fromType):
 		result = []
@@ -1830,8 +1839,8 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 	# 	reminded: story or resource to story
 	#   responded: invitation to story
 	#	included: collage to story
-	entryFrom = db.ReferenceProperty(Entry, collection_name="linksFrom", required=True)
-	entryTo = db.ReferenceProperty(Entry, collection_name="linksTo", required=True)
+	entryFrom = db.ReferenceProperty(Entry, collection_name="fromLinks", required=True)
+	entryTo = db.ReferenceProperty(Entry, collection_name="toLinks", required=True)
 	community = db.ReferenceProperty(Community, required=True, collection_name="links_to_community")
 	creator = db.ReferenceProperty(Member, collection_name="links")
 	
@@ -1840,6 +1849,7 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 	flagComment = db.StringProperty(indexed=False)
 	
 	published = TzDateTimeProperty(auto_now_add=True)
+	inBatchEntryBuffer = db.BooleanProperty(default=False)
 	
 	comment = db.StringProperty(default="", indexed=False)
 	

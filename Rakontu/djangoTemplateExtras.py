@@ -19,12 +19,25 @@ def dictLookup(dict, key):
 		return None
 	
 def listLookup(list, index):
-	try:
-		number = int(index)
-	except:
+	if list:
+		try:
+			number = int(index)
+		except:
+			return None
+		if number >= 0 and number <= len(list) - 1:
+			return list[number]
+		else:
+			return None
+	else:
 		return None
-	if number >= 0 and number <= len(list) - 1:
-		return list[number]
+	
+def get(object, fieldName):
+	if object:
+		if callable(getattr(object, fieldName)):
+			function = getattr(object, fieldName)
+			return function()
+		else:
+			return getattr(object, fieldName)
 	else:
 		return None
 	
@@ -167,5 +180,6 @@ register.filter(length)
 register.filter(toString)
 register.filter(toUnicode)
 register.filter(equalTest)
+register.filter(get)
 
 

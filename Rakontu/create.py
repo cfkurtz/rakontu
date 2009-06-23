@@ -93,7 +93,7 @@ class EnterEntryPage(webapp.RequestHandler):
 					includedLinksOutgoing = entry.getOutgoingLinksOfType("included")
 				else:
 					includedLinksOutgoing = []
-				entries = community.getNonDraftEntriesOfType("story")
+				entries = community.getNonDraftStoriesInAlphabeticalOrder()
 				entriesThatCanBeIncluded = []
 				for anEntry in entries:
 					found = False
@@ -103,8 +103,23 @@ class EnterEntryPage(webapp.RequestHandler):
 							break
 					if not found:
 						entriesThatCanBeIncluded.append(anEntry)
+				if entriesThatCanBeIncluded:
+					firstColumn = []
+					secondColumn = []
+					thirdColumn = []
+					numEntries = len(entriesThatCanBeIncluded)
+					for i in range(numEntries):
+						if i < numEntries // 3:
+							firstColumn.append(entriesThatCanBeIncluded[i])
+						elif i < 2 * numEntries // 3:
+							secondColumn.append(entriesThatCanBeIncluded[i])
+						else:
+							thirdColumn.append(entriesThatCanBeIncluded[i])
 			else:
 				entriesThatCanBeIncluded = None
+				firstColumn = []
+				secondColumn = []
+				thirdColumn = []
 				includedLinksOutgoing = None
 			if entryName:
 				pageTitleExtra = "- %s" % entryName
@@ -127,8 +142,10 @@ class EnterEntryPage(webapp.RequestHandler):
 							   'character_allowed': community.allowCharacter[entryTypeIndexForCharacters],
 							   'link_type': linkType,
 							   'entry_from': entryFrom,
-							   'entries_that_can_be_linked_to_by_collage': entriesThatCanBeIncluded,
-							   'included_links_outgoing': includedLinksOutgoing,
+							    'collage_first_column': firstColumn, 
+								'collage_second_column': secondColumn, 
+								'collage_third_column': thirdColumn, 
+								'num_collage_rows': max(len(firstColumn), max(len(secondColumn), len(thirdColumn))),							   'included_links_outgoing': includedLinksOutgoing,
 							   'refer_type': type,
 							   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/entry.html')
@@ -231,10 +248,11 @@ class EnterEntryPage(webapp.RequestHandler):
 				for anEntry in community.getNonDraftEntriesOfType("story"):
 					if self.request.get("addLink|%s" % anEntry.key()) == "yes":
 						link = Link(entryFrom=entry, entryTo=anEntry, type="included", 
-									creator=member, community=community,
+									creator=member, community=community, inBatchEntryBuffer=False,
 									comment=htmlEscape(self.request.get("linkComment|%s" % anEntry.key())))
 						link.put()
-						link.publish()
+						if not entry.draft:
+							link.publish()
 			questions = Question.all().filter("community = ", community).filter("refersTo = ", type).fetch(FETCH_NUMBER)
 			for question in questions:
 				foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", entry.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
@@ -793,7 +811,7 @@ class RelateEntryPage(webapp.RequestHandler):
 					entry = None
 			if entry:
 				links = entry.getLinksOfType("related")
-				entries = community.getNonDraftEntries()
+				entries = community.getNonDraftEntriesInAlphabeticalOrder()
 				entriesThatCanBeRelated = []
 				for anEntry in entries:
 					found = False
@@ -803,13 +821,27 @@ class RelateEntryPage(webapp.RequestHandler):
 					if not found and anEntry.key() != entry.key():
 						entriesThatCanBeRelated.append(anEntry)
 				if entriesThatCanBeRelated:
+					firstColumn = []
+					secondColumn = []
+					thirdColumn = []
+					numEntries = len(entriesThatCanBeRelated)
+					for i in range(numEntries):
+						if i < numEntries // 3:
+							firstColumn.append(entriesThatCanBeRelated[i])
+						elif i < 2 * numEntries // 3:
+							secondColumn.append(entriesThatCanBeRelated[i])
+						else:
+							thirdColumn.append(entriesThatCanBeRelated[i])
 					template_values = GetStandardTemplateDictionaryAndAddMore({
 									'title': "Relate entries to",
 								   	'title_extra': entry.title,
 									'community': community, 
 									'current_member': member, 
 									'entry': entry,
-									'entries': entriesThatCanBeRelated, 
+									'entries_first_column': firstColumn, 
+									'entries_second_column': secondColumn, 
+									'entries_third_column': thirdColumn, 
+									'num_rows': max(len(firstColumn), max(len(secondColumn), len(thirdColumn))),
 									'related_links': links,
 									})
 					path = os.path.join(os.path.dirname(__file__), 'templates/visit/relate.html')
