@@ -21,7 +21,7 @@
 			{% if included_links_outgoing %}
 				<ul>
 				{% for link in included_links_outgoing %}
-					<li class="nobullet"><a href="read?{{link.entryTo.key}}">{{link.entryTo.title}}</a>
+					<li class="nobullet">{{link.itemTo.linkString}}</a>
 					{% if link.comment %} ({{link.comment}}) {% endif %}
 					</li>
 				{% endfor %}

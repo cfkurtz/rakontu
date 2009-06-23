@@ -16,22 +16,22 @@
 	{% endif %}	
 	{{entry.title}}</h2>
 	
-	{% if entry.isCollage %}
-		<div class="blurb">
-		{{entry.displayTextWithInlineAttachmentLinks}}
-		{% if included_links_outgoing %}
-			<ul>
-			{% for link in included_links_outgoing %}
-				<li class="nobullet"><a href="read?{{link.entryTo.key}}">{{link.entryTo.title}}</a>
-				{% if link.comment %} ({{link.comment}}) {% endif %}
-				</li>
-			{% endfor %}
-			</ul>
-		{% endif %}
-		</div>
-	{% else %}
-		<div class="blurb">{{entry.displayTextWithInlineAttachmentLinks}}</div>
+	<div class="blurb">{{entry.displayTextWithInlineAttachmentLinks}}
+	{% if entry.isCollage and included_links_outgoing %}
+		<ul>
+		{% for link in included_links_outgoing %}
+			<li class="nobullet">{% if link.comment %} {{link.comment}}  - {% endif %} {{link.itemTo.linkString}}</li>
+		{% endfor %}
+		</ul>
 	{% endif %}
+	{% if entry.isPattern and referenced_links_outgoing %}
+		<ul>
+		{% for link in referenced_links_outgoing %}
+			<li class="nobullet">{% if link.comment %} {{link.comment}}  - {% endif %} {{link.itemTo.linkString}}</li>
+		{% endfor %}
+		</ul>
+	{% endif %}
+	</div>
 
 	{% if attachments %}
 		<p><b>Attachments</b></p>
@@ -84,19 +84,19 @@
 		{% ifequal entry.type "story" %}
 			{% if retold_links_incoming %}
 				{% for link in retold_links_incoming %}
-					<p>This story is a retelling of <a href="read?{{link.entryFrom.key}}">{{link.entryFrom.title}}</a>
+					<p>This story is a retelling of {{link.itemFrom.linkString}}</a>
 					 {% if link.comment %} ({{link.comment}}) {% endif %}</p>
 				{% endfor %}
 			{% endif %}
 			{% if reminded_links_incoming %}
 				{% for link in reminded_links_incoming %}
-					<p>This story was told because <a href="read?{{link.entryFrom.key}}">{{link.entryFrom.title}}</a>
+					<p>This story was told because {{link.itemFrom.linkString}}</a>
 					reminded its teller of something. {% if link.comment %} ({{link.comment}}) {% endif %}</p>
 				{% endfor %}
 			{% endif %}
 			{% if links_incoming_from_invitations %}
 				{% for link in included_links_incoming_from_invitations %}
-					<p>This story was told in response to the invitation <a href="read?{{link.entryFrom.key}}">{{link.entryFrom.title}}</a>
+					<p>This story was told in response to the invitation {{link.itemFrom.linkString}}</a>
 					 {% if link.comment %} ({{link.comment}}) {% endif %}</p>
 				{% endfor %}
 			{% endif %}
@@ -104,7 +104,7 @@
 				<li class="nobullet">This {{entry.type}} is <b>included</b> in the collages
 				<ul>
 				{% for link in included_links_incoming_from_collages %}
-					<li class="nobullet"><a href="read?{{link.entryFrom.key}}">{{link.entryFrom.title}}</a>
+					<li class="nobullet">{{link.itemFrom.linkString}}</a>
 					 {% if link.comment %} ({{link.comment}}) {% endif %}</li>
 				{% endfor %}
 				</ul>

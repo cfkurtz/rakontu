@@ -8,65 +8,6 @@
 
 from utils import *
 
-def ItemDisplayStringForGrid(item, curating=False, showingMember=False, showDetails=False):
-	if not showingMember:
-		if item.attributedToMember():
-			if item.creator.isOnlineMember:
-				if item.creator.active:
-					nameString = ' (<a href="member?%s">%s</a>)' % (item.creator.key(), item.creator.nickname)
-				else:
-					nameString = ' (%s)' % item.creator.nickname
-			else:
-				if item.creator.active:
-					nameString = ' (<img src="/images/offline.png" alt="offline member"><a href="member?%s">%s</a>)' % (item.creator.key(), item.creator.nickname)
-				else:
-					nameString = ' (<img src="/images/offline.png" alt="offline member"> %s)' % item.creator.nickname
-		else:
-			if item.character.active:
-				nameString = ' (<a href="character?%s">%s</a>)' % (item.character.key(), item.character.name)
-			else:
-				nameString = ' (%s)' % item.character.name
-	else:
-		nameString = ""
-	if curating:
-		if item.flaggedForRemoval:
-			curateString = '<a href="flag?%s" class="imagelight"><img src="../images/flag_red.png" alt="flag" border="0"></a>' % item.key()
-		else:
-			curateString = '<a href="flag?%s" class="imagelight"><img src="../images/flag_green.png" alt="flag" border="0"></a>' % item.key()
-	else:
-		curateString = ""
-	if showDetails:
-		if item.__class__.__name__ == "Annotation":
-			if item.type == "comment" or item.type == "request":
-				if item.longString_formatted:
-					textString = ": %s" % upToWithLink(stripTags(item.longString_formatted), DEFAULT_DETAILS_TEXT_LENGTH, '/visit/readAnnotation?%s' % item.key())
-				else:
-					textString = ""
-			else:
-				textString = ""
-		elif item.__class__.__name__ == "Entry":
-			textString = ": %s" % upToWithLink(stripTags(item.text_formatted), DEFAULT_DETAILS_TEXT_LENGTH, '/visit/read?%s' % item.key())
-		else:
-			textString = ""
-	else:
-		textString = ""
-	if item.__class__.__name__ == "Answer":
-		if showDetails:
-			if not showingMember:
-				linkString = item.linkStringWithQuestionText()
-			else:
-				linkString = item.linkStringWithQuestionTextAndReferentLink()
-		else:
-			if not showingMember:
-				linkString = item.linkStringWithQuestionName()
-			else:
-				linkString = item.linkStringWithQuestionNameAndReferentLink()
-	elif item.__class__.__name__ == "Annotation":
-		linkString = item.linkStringWithEntryLink()
-	else:
-		linkString = item.linkString()
-	return '<p>%s %s %s%s%s</p>' % (item.getImageLinkForType(), curateString, linkString, nameString, textString)
-
 class StartPage(webapp.RequestHandler):
 	def get(self):
 		user = users.get_current_user()
@@ -202,6 +143,17 @@ class BrowseEntriesPage(webapp.RequestHandler):
 		community, member, access = GetCurrentCommunityAndMemberFromSession()
 		if access:
 			currentSearch = GetCurrentSearchForMember(member)
+			querySearch = None
+			if self.request.query_string:
+				try:
+					querySearch = db.get(self.request.query_string)
+				except:
+					pass
+			if querySearch:
+				currentSearch = querySearch
+				member.viewSearch = querySearch
+				member.viewSearchResultList = []
+				member.put()
 			textsForGrid = []
 			colHeaders = []
 			rowColors = []
@@ -216,10 +168,6 @@ class BrowseEntriesPage(webapp.RequestHandler):
 							'rows_cols': textsForGrid, 
 							'col_headers': colHeaders, 
 							'row_colors': rowColors,
-							'num_search_fields': NUM_SEARCH_FIELDS,
-							'search_locations': SEARCH_LOCATIONS,
-							'any_or_all_choices': ANY_ALL,
-							'answer_comparison_types': ANSWER_COMPARISON_TYPES,
 							'community_searches': community.getNonPrivateSavedSearches(),
 							'member_searches': member.getPrivateSavedSearches(),
 							'current_search': currentSearch,
@@ -440,169 +388,6 @@ class BrowseEntriesPage(webapp.RequestHandler):
 		else:
 			self.redirect("/")
 			
-class SavedSearchEntryPage(webapp.RequestHandler):
-	@RequireLogin 
-	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
-		if access:
-			currentSearch = GetCurrentSearchForMember(member)
-			questionsAndRefsDictList = []
-			entryQuestions = community.getActiveNonMemberQuestions()
-			if entryQuestions:
-				entryQuestionsAndRefsDictionary = {
-					"result_preface": "entry", "afterAnyText":"of these answers to questions:",
-					"questions": entryQuestions}
-				if currentSearch:
-					entryQuestionsAndRefsDictionary["references"] = currentSearch.getQuestionReferencesOfType("entry") 
-					entryQuestionsAndRefsDictionary["anyOrAll"] = currentSearch.answers_anyOrAll
-				else:
-					entryQuestionsAndRefsDictionary["references"] = []
-					entryQuestionsAndRefsDictionary["anyOrAll"] = None
-				questionsAndRefsDictList.append(entryQuestionsAndRefsDictionary)
-			creatorQuestions = community.getActiveMemberAndCharacterQuestions()
-			if creatorQuestions:
-				if community.hasActiveCharacters() and community.hasActiveQuestionsOfType("character"):
-					afterAnyText = "of these answers to questions about their creators (members or characters):"
-				else:
-					afterAnyText = "of these answers to questions about their creators:"
-				creatorQuestionsAndRefsDictionary = {
-					"result_preface": "creator", "afterAnyText": afterAnyText,
-					"questions": creatorQuestions}
-				if currentSearch:
-					creatorQuestionsAndRefsDictionary["references"] = currentSearch.getQuestionReferencesOfType("creator") 
-					creatorQuestionsAndRefsDictionary["anyOrAll"] = currentSearch.creatorAnswers_anyOrAll
-				else:
-					creatorQuestionsAndRefsDictionary["references"] = []
-					creatorQuestionsAndRefsDictionary["anyOrAll"] = None
-				questionsAndRefsDictList.append(creatorQuestionsAndRefsDictionary)
-			template_values = GetStandardTemplateDictionaryAndAddMore({
-							'title': "Filter",
-						   	'title_extra': None,
-							'community': community, 
-							'current_member': member, 
-							'num_search_fields': NUM_SEARCH_FIELDS,
-							'search_locations': SEARCH_LOCATIONS,
-							'any_or_all_choices': ANY_ALL,
-							'answer_comparison_types': ANSWER_COMPARISON_TYPES,
-							'current_search': currentSearch,
-							'questions_and_refs_dict_list': questionsAndRefsDictList,
-							})
-			path = os.path.join(os.path.dirname(__file__), 'templates/visit/filter.html')
-			self.response.out.write(template.render(path, template_values))
-		else:
-			self.redirect('/')
-			
-	@RequireLogin 
-	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
-		if access:
-			search = GetCurrentSearchForMember(member)
-			if "deleteSearchByCreator" in self.request.arguments():
-				if search:
-					db.delete(search)
-					member.viewSearch = None
-					member.viewSearchResultList = []
-					member.put()
-				self.redirect("/visit/look")
-			elif "flagSearchByCurator" in self.request.arguments():
-				if search:
-					search.flaggedForRemoval = not search.flaggedForRemoval
-					search.put()
-					self.redirect("/visit/filter")
-				else:
-					self.redirect("/visit/look")
-			elif "removeSearchByManager" in self.request.arguments():
-				if search:
-					db.delete(search)
-					member.viewSearch = None
-					member.viewSearchResultList = []
-					member.put()
-				self.redirect("/visit/look")
-			elif "cancel" in self.request.arguments():
-				self.redirect("/visit/look")
-			elif "saveAs" in self.request.arguments() or "save" in self.request.arguments():
-				if not search or "saveAs" in self.request.arguments():
-					search = SavedSearch(community=community, creator=member)
-				search.private = self.request.get("privateOrSharedSearch") == "private"
-				search.name = htmlEscape(self.request.get("searchName", default_value="Untitled"))
-				text = self.request.get("comment")
-				format = self.request.get("comment_format").strip()
-				search.comment = text
-				search.comment_formatted = db.Text(InterpretEnteredText(text, format))
-				search.comment_format = format
-				search.entryTypes = []
-				for i in range(len(ENTRY_TYPES)):
-					search.entryTypes.append(self.request.get(ENTRY_TYPES[i]) == "yes")
-				search.overall_anyOrAll = self.request.get("overall_anyOrAll")
-				# words
-				search.words_anyOrAll = self.request.get("words_anyOrAll")
-				search.words_locations = []
-				for i in range(len(SEARCH_LOCATIONS)):
-					search.words_locations.append(self.request.get("location|%s" % i) == "yes")
-				if not search.words_locations:
-					search.words_locations = SEARCH_LOCATIONS[0]
-				search.words = []
-				for i in range(NUM_SEARCH_FIELDS):
-					response = self.request.get("words|%s" % i).strip()
-					if response and response != "None" :
-						search.words.append(response)
-				# tags
-				search.tags_anyOrAll = self.request.get("tags_anyOrAll")
-				search.tags = []
-				for i in range(NUM_SEARCH_FIELDS):
-					if self.request.get("tags|%s" % i) and self.request.get("tags|%s" % i) != "None":
-						search.tags.append(self.request.get("tags|%s" % i))
-				search.put()
-				# questions
-				for preface in ["entry", "creator"]:
-					if preface == "entry":
-						search.answers_anyOrAll = self.request.get("entry|anyOrAll")
-						questions = community.getActiveNonMemberQuestions()
-					else:
-						search.creatornswers_anyOrAll = self.request.get("creator|anyOrAll")
-						questions = community.getActiveMemberAndCharacterQuestions()
-					for i in range(NUM_SEARCH_FIELDS):
-						response = self.request.get("%s|question|%s" % (preface, i))
-						for question in questions:
-							foundQuestion = False
-							comparison = ""
-							answer = ""
-							if question.isTextOrValue():
-								if response == "%s" % question.key():
-									foundQuestion = True
-									answer = self.request.get("%s|answer|%s" % (preface, i)).strip()
-									comparison = self.request.get("%s|comparison|%s" % (preface, i))
-							elif question.type == "boolean":
-								if response == "yes|%s" % question.key():
-									foundQuestion = True
-									answer = "yes"
-								elif response == "no|%s" % question.key():
-									foundQuestion = True
-									answer = "no"
-							elif question.isOrdinalOrNominal():
-								for choice in question.choices:
-									if response == "%s|%s" % (choice, question.key()):
-										foundQuestion = True
-										answer = choice
-							if foundQuestion and answer:
-								ref = SavedSearchQuestionReference.all().filter("search = ", search).\
-									filter("question = ", question).filter("order = ", i).get()
-								if not ref:
-									ref = SavedSearchQuestionReference(community=community, search=search, question=question)
-								ref.answer = answer
-								ref.comparison = comparison
-								ref.order = i
-								ref.type = preface
-								ref.put()
-				member.viewSearch = search
-				member.viewSearchResultList = []
-				member.put()
-				self.redirect("/visit/look")
-			else:
-				self.redirect("/visit/look")
-		else:
-			self.redirect("/")
-			
 class ReadEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
@@ -723,6 +508,14 @@ class ReadEntryPage(webapp.RequestHandler):
 					thingsUserCanDo["Change this %s" % entry.type] = "/visit/%s?%s" % (entry.type, entry.key())
 				if member.isLiaison():
 					thingsUserCanDo["Print this %s with its answers and annotations" % entry.type] = '/liaise/printEntryAndAnnotations?%s' % entry.key()
+				if entry.isCollage():
+					includedLinksOutgoing = entry.getOutgoingLinksOfType("included")
+				else:
+					includedLinksOutgoing = None
+				if entry.isPattern():
+					referencedLinksOutgoing = entry.getOutgoingLinksOfType("referenced")
+				else:
+					referencedLinksOutgoing = None
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': entry.title, 
 						   		   'title_extra': None,
@@ -731,30 +524,18 @@ class ReadEntryPage(webapp.RequestHandler):
 								   'current_member_key': member.key(),
 								   'curating': curating,
 								   'entry': entry,
+								   # to show above grid
+								   'attachments': entry.getAttachments(),
+								   'included_links_outgoing': includedLinksOutgoing,
+								   'referenced_links_outgoing': referencedLinksOutgoing,
+								   # grid
 								   'rows_cols': textsForGrid, 
 								   'col_headers': colHeaders, 
 								   'text_to_display_before_grid': "Annotations to this %s" % entry.type,
-								   'things_member_can_do': thingsUserCanDo,
-								   'member_can_answer_questions': memberCanAnswerQuestionsAboutThisEntry,
-								   'member_can_add_nudge': memberCanAddNudgeToThisEntry,
-								   'community_has_questions_for_this_entry_type': communityHasQuestionsForThisEntryType,
-								   'answers': entry.getNonDraftAnswers(),
-								   'questions': community.getActiveQuestionsOfType(entry.type),
-								   'attachments': entry.getAttachments(),
-								   'requests': entry.getNonDraftAnnotationsOfType("request"),
-								   'comments': entry.getNonDraftAnnotationsOfType("comment"),
-								   'tag_sets': entry.getNonDraftAnnotationsOfType("tag set"),
-								   'nudges': entry.getNonDraftAnnotationsOfType("nudge"),
-								   'retold_links_incoming': entry.getIncomingLinksOfType("retold"),
-								   'retold_links_outgoing': entry.getOutgoingLinksOfType("retold"),
-								   'reminded_links_incoming': entry.getIncomingLinksOfType("reminded"),
-								   'reminded_links_outgoing': entry.getOutgoingLinksOfType("reminded"),
-								   'related_links': entry.getLinksOfType("related"),
-								   'links_incoming_from_invitations': entry.getIncomingLinksOfTypeFromType("responded", "invitation"),
-								   'links_incoming_from_collages': entry.getIncomingLinksOfTypeFromType("included", "collage"),
-								   'included_links_outgoing': entry.getOutgoingLinksOfType("included"),
 								   'row_colors': rowColors,
-								   'grid_form_url': "/visit/read"
+								   'grid_form_url': "/visit/read",
+								   # actions
+								   'things_member_can_do': thingsUserCanDo,
 								   })
 				member.lastReadAnything = datetime.now(tz=pytz.utc)
 				member.nudgePoints += community.getMemberNudgePointsForEvent("reading")
@@ -1253,6 +1034,169 @@ class LeaveCommunityPage(webapp.RequestHandler):
 		else:
 			self.redirect("/")
 		
+class SavedSearchEntryPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
+			currentSearch = GetCurrentSearchForMember(member)
+			questionsAndRefsDictList = []
+			entryQuestions = community.getActiveNonMemberQuestions()
+			if entryQuestions:
+				entryQuestionsAndRefsDictionary = {
+					"result_preface": "entry", "afterAnyText":"of these answers to questions:",
+					"questions": entryQuestions}
+				if currentSearch:
+					entryQuestionsAndRefsDictionary["references"] = currentSearch.getQuestionReferencesOfType("entry") 
+					entryQuestionsAndRefsDictionary["anyOrAll"] = currentSearch.answers_anyOrAll
+				else:
+					entryQuestionsAndRefsDictionary["references"] = []
+					entryQuestionsAndRefsDictionary["anyOrAll"] = None
+				questionsAndRefsDictList.append(entryQuestionsAndRefsDictionary)
+			creatorQuestions = community.getActiveMemberAndCharacterQuestions()
+			if creatorQuestions:
+				if community.hasActiveCharacters() and community.hasActiveQuestionsOfType("character"):
+					afterAnyText = "of these answers to questions about their creators (members or characters):"
+				else:
+					afterAnyText = "of these answers to questions about their creators:"
+				creatorQuestionsAndRefsDictionary = {
+					"result_preface": "creator", "afterAnyText": afterAnyText,
+					"questions": creatorQuestions}
+				if currentSearch:
+					creatorQuestionsAndRefsDictionary["references"] = currentSearch.getQuestionReferencesOfType("creator") 
+					creatorQuestionsAndRefsDictionary["anyOrAll"] = currentSearch.creatorAnswers_anyOrAll
+				else:
+					creatorQuestionsAndRefsDictionary["references"] = []
+					creatorQuestionsAndRefsDictionary["anyOrAll"] = None
+				questionsAndRefsDictList.append(creatorQuestionsAndRefsDictionary)
+			template_values = GetStandardTemplateDictionaryAndAddMore({
+							'title': "Filter",
+						   	'title_extra': None,
+							'community': community, 
+							'current_member': member, 
+							'num_search_fields': NUM_SEARCH_FIELDS,
+							'search_locations': SEARCH_LOCATIONS,
+							'any_or_all_choices': ANY_ALL,
+							'answer_comparison_types': ANSWER_COMPARISON_TYPES,
+							'current_search': currentSearch,
+							'questions_and_refs_dict_list': questionsAndRefsDictList,
+							})
+			path = os.path.join(os.path.dirname(__file__), 'templates/visit/filter.html')
+			self.response.out.write(template.render(path, template_values))
+		else:
+			self.redirect('/')
+			
+	@RequireLogin 
+	def post(self):
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
+			search = GetCurrentSearchForMember(member)
+			if "deleteSearchByCreator" in self.request.arguments():
+				if search:
+					db.delete(search)
+					member.viewSearch = None
+					member.viewSearchResultList = []
+					member.put()
+				self.redirect("/visit/look")
+			elif "flagSearchByCurator" in self.request.arguments():
+				if search:
+					search.flaggedForRemoval = not search.flaggedForRemoval
+					search.put()
+					self.redirect("/visit/filter")
+				else:
+					self.redirect("/visit/look")
+			elif "removeSearchByManager" in self.request.arguments():
+				if search:
+					db.delete(search)
+					member.viewSearch = None
+					member.viewSearchResultList = []
+					member.put()
+				self.redirect("/visit/look")
+			elif "cancel" in self.request.arguments():
+				self.redirect("/visit/look")
+			elif "saveAs" in self.request.arguments() or "save" in self.request.arguments():
+				if not search or "saveAs" in self.request.arguments():
+					search = SavedSearch(community=community, creator=member)
+				search.private = self.request.get("privateOrSharedSearch") == "private"
+				search.name = htmlEscape(self.request.get("searchName", default_value="Untitled"))
+				text = self.request.get("comment")
+				format = self.request.get("comment_format").strip()
+				search.comment = text
+				search.comment_formatted = db.Text(InterpretEnteredText(text, format))
+				search.comment_format = format
+				search.entryTypes = []
+				for i in range(len(ENTRY_TYPES)):
+					search.entryTypes.append(self.request.get(ENTRY_TYPES[i]) == "yes")
+				search.overall_anyOrAll = self.request.get("overall_anyOrAll")
+				# words
+				search.words_anyOrAll = self.request.get("words_anyOrAll")
+				search.words_locations = []
+				for i in range(len(SEARCH_LOCATIONS)):
+					search.words_locations.append(self.request.get("location|%s" % i) == "yes")
+				if not search.words_locations:
+					search.words_locations = SEARCH_LOCATIONS[0]
+				search.words = []
+				for i in range(NUM_SEARCH_FIELDS):
+					response = self.request.get("words|%s" % i).strip()
+					if response and response != "None" :
+						search.words.append(response)
+				# tags
+				search.tags_anyOrAll = self.request.get("tags_anyOrAll")
+				search.tags = []
+				for i in range(NUM_SEARCH_FIELDS):
+					if self.request.get("tags|%s" % i) and self.request.get("tags|%s" % i) != "None":
+						search.tags.append(self.request.get("tags|%s" % i))
+				search.put()
+				# questions
+				for preface in ["entry", "creator"]:
+					if preface == "entry":
+						search.answers_anyOrAll = self.request.get("entry|anyOrAll")
+						questions = community.getActiveNonMemberQuestions()
+					else:
+						search.creatornswers_anyOrAll = self.request.get("creator|anyOrAll")
+						questions = community.getActiveMemberAndCharacterQuestions()
+					for i in range(NUM_SEARCH_FIELDS):
+						response = self.request.get("%s|question|%s" % (preface, i))
+						for question in questions:
+							foundQuestion = False
+							comparison = ""
+							answer = ""
+							if question.isTextOrValue():
+								if response == "%s" % question.key():
+									foundQuestion = True
+									answer = self.request.get("%s|answer|%s" % (preface, i)).strip()
+									comparison = self.request.get("%s|comparison|%s" % (preface, i))
+							elif question.type == "boolean":
+								if response == "yes|%s" % question.key():
+									foundQuestion = True
+									answer = "yes"
+								elif response == "no|%s" % question.key():
+									foundQuestion = True
+									answer = "no"
+							elif question.isOrdinalOrNominal():
+								for choice in question.choices:
+									if response == "%s|%s" % (choice, question.key()):
+										foundQuestion = True
+										answer = choice
+							if foundQuestion and answer:
+								ref = SavedSearchQuestionReference.all().filter("search = ", search).\
+									filter("question = ", question).filter("order = ", i).get()
+								if not ref:
+									ref = SavedSearchQuestionReference(community=community, search=search, question=question)
+								ref.answer = answer
+								ref.comparison = comparison
+								ref.order = i
+								ref.type = preface
+								ref.put()
+				member.viewSearch = search
+				member.viewSearchResultList = []
+				member.put()
+				self.redirect("/visit/look")
+			else:
+				self.redirect("/visit/look")
+		else:
+			self.redirect("/")
+			
 class ResultFeedbackPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):

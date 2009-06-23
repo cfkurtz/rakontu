@@ -52,13 +52,13 @@ GOVERNANCE_ROLE_TYPES = ["member", "manager", "owner"]
 
 EVENT_TYPES = ["downdrift", \
 			"reading", "adding story", "adding pattern", "adding collage", "adding invitation", "adding resource", \
-			"adding retold link", "adding reminded link", "adding related link", "adding included link", "adding responded link", \
+			"adding retold link", "adding reminded link", "adding related link", "adding included link", "adding responded link", "adding referenced link", \
 			"answering question", "adding tag set", "adding comment", "adding request", "adding nudge"]
 
 
 ENTRY_TYPES = ["story", "invitation", "collage", "pattern", "resource"]
 ENTRY_TYPES_PLURAL = ["stories", "invitations", "collages", "patterns", "resources"]
-LINK_TYPES = ["retold", "reminded", "responded", "related", "included"]
+LINK_TYPES = ["retold", "reminded", "responded", "related", "included", "referenced"]
 
 ANNOTATION_TYPES = ["tag set", "comment", "request", "nudge"]
 ANNOTATION_TYPES_URLS = ["tagset", "comment", "request", "nudge"]
@@ -80,7 +80,7 @@ QUESTION_REFERS_TO_PLURAL = ["stories", "patterns", "collages", "invitations", "
 QUESTION_TYPES = ["boolean", "text", "ordinal", "nominal", "value"]
 
 ANY_ALL = ["any", "all"]
-SEARCH_LOCATIONS = ["in the entry text", "in a comment", "in a request", "in a nudge comment", "in a link comment"]
+SEARCH_LOCATIONS = ["in the title", "in the text", "in a comment", "in a request", "in a nudge comment", "in a link comment"]
 ANSWER_COMPARISON_TYPES = ["contains", "is", "is greater than", "is less than"]
 
 # from http://www.letsyouandhimfight.com/2008/04/12/time-zones-in-google-app-engine/
@@ -336,17 +336,17 @@ class Community(db.Model):
 		for entry in self.getNonDraftEntries():
 			if not Annotation.all().filter("entry = ", entry.key()).filter("type = ", "tag set").filter("draft = ", False).get():
 				entriesWithoutTags.append(entry)
-			if not Link.all().filter("entryFrom = ", entry.key()).get() and not Link.all().filter("entryTo = ", entry.key()).get():
+			if not Link.all().filter("itemFrom = ", entry.key()).get() and not Link.all().filter("itemTo = ", entry.key()).get():
 				entriesWithoutLinks.append(entry)
 			if not Answer.all().filter("referent = ", entry.key()).filter("draft = ", False).get():
 				entriesWithoutAnswers.append(entry)
 			if not Annotation.all().filter("entry = ", entry.key()).filter("type = ", "comment").filter("draft = ", False).get():
 				entriesWithoutComments.append(entry)
 		for invitation in self.getNonDraftEntriesOfType("invitation"):
-			if not Link.all().filter("entryFrom = ", invitation.key()).filter("type = ", "responded").get():
+			if not Link.all().filter("itemFrom = ", invitation.key()).filter("type = ", "responded").get():
 				invitationsWithoutResponses.append(invitation)
 		for collage in self.getNonDraftEntriesOfType("collage"):
-			if not Link.all().filter("entryFrom = ", collage.key()).filter("type = ", "included").get():
+			if not Link.all().filter("itemFrom = ", collage.key()).filter("type = ", "included").get():
 				collagesWithoutInclusions.append(collage)
 		return (entriesWithoutTags, entriesWithoutLinks, entriesWithoutAnswers, entriesWithoutComments, invitationsWithoutResponses, collagesWithoutInclusions)
 	
@@ -1053,6 +1053,8 @@ class SavedSearch(db.Model):
 	private = db.BooleanProperty(default=True)
 	created = TzDateTimeProperty(auto_now_add=True)
 	name = db.StringProperty(default="Untitled search")
+	# the type is mainly to make it display in a list of entries, but it may be useful later anyway
+	type = db.StringProperty(default="search filter") 
 	
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	flagComment = db.StringProperty(indexed=False)
@@ -1118,6 +1120,9 @@ class SavedSearch(db.Model):
 	def getCreatorQuestionRefs(self):
 		return self.getQuestionReferencesOfType("creator")
 	
+	def getIncomingLinks(self):
+		return Link.all().filter("itemTo = ", self.key()).fetch(FETCH_NUMBER)
+	
 	def deleteAllDependents(self):
 		for ref in self.getQuestionReferences():
 			db.delete(ref)
@@ -1130,6 +1135,35 @@ class SavedSearch(db.Model):
 			return self.name
 		else:
 			return "%s (%s)" % (self.name, self.creator.nickname)
+	
+	# LINKING TO PATTERNS
+		
+	def linkString(self):
+		return '<a href="/visit/look?%s">%s</a>' % (self.key(), self.name)
+	
+	def shortFormattedText(self):
+		result = ""
+		if self.words:
+			result += '<p>%s of the words "%s"</p>' % (self.words_anyOrAll, ",".join(self.words))
+		if self.tags:
+			result += '<p>%s of the tags"%s"</p>' % (self.tags_anyOrAll, ",".join(self.tags))
+		entryRefs = self.getEntryQuestionRefs()
+		if entryRefs:
+			result += "<p>%s of the entry questions " % self.answers_anyOrAll
+			for ref in entryRefs:
+				result += '%s %s ' % (ref.question.text, ref.answer)
+			result += "</p>"
+		creatorRefs = self.getCreatorQuestionRefs()
+		if creatorRefs:
+			result += "<p>%s of the creator questions " % self.creatorAnswers_anyOrAll
+			for ref in creatorRefs:
+				result += ' %s %s ' % (ref.question.text, ref.answer)
+			result += "</p>"
+		return result
+	
+	def isEntry(self):
+		# has to do with linking to patterns
+		return False 
 	
 # ============================================================================================
 # ============================================================================================
@@ -1503,15 +1537,17 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		numWordSearchesSatisfied = 0
 		for word in words:
 			match = False
-			if locations[0]: #"in the entry text"
+			if locations[0]: #"in the title"
+				match = match or caseInsensitiveFind(self.title, word) 
+			if locations[1]: #"in the text"
 				match = match or caseInsensitiveFind(self.text, word) 
-			if locations[0]: #"in a comment"
+			if locations[2]: #"in a comment"
 				match = match or self.wordIsFoundInAComment(word)
-			if locations[0]: #"in a request"
+			if locations[3]: #"in a request"
 				match = match or self.wordIsFoundInARequest(word)
-			if locations[0]: #"in a nudge comment"
+			if locations[4]: #"in a nudge comment"
 				match = match or self.wordIsFoundInANudgeComment(word)
-			if locations[0]: #"in a link comment"
+			if locations[5]: #"in a link comment"
 				match = match or self.wordIsFoundInALinkComment(word)
 			if match:
 				numWordSearchesSatisfied += 1
@@ -1675,8 +1711,8 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	
 	def getAllLinks(self):
 		result = []
-		outgoingLinks = Link.all().filter("entryFrom = ", self.key()).fetch(FETCH_NUMBER)
-		incomingLinks = Link.all().filter("entryTo = ", self.key()).fetch(FETCH_NUMBER)
+		outgoingLinks = Link.all().filter("itemFrom = ", self.key()).fetch(FETCH_NUMBER)
+		incomingLinks = Link.all().filter("itemTo = ", self.key()).fetch(FETCH_NUMBER)
 		result.extend(outgoingLinks)
 		result.extend(incomingLinks)
 		return result
@@ -1690,22 +1726,22 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		return result
 	
 	def getOutgoingLinksOfType(self, type):
-		return Link.all().filter("entryFrom = ", self.key()).filter("type = ", type).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
+		return Link.all().filter("itemFrom = ", self.key()).filter("type = ", type).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
 	
 	def getIncomingLinksOfType(self, type):
-		return Link.all().filter("entryTo = ", self.key()).filter("type = ", type).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
+		return Link.all().filter("itemTo = ", self.key()).filter("type = ", type).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
 	
 	def getOutgoingLinks(self):
-		return Link.all().filter("entryFrom = ", self.key()).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
+		return Link.all().filter("itemFrom = ", self.key()).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
 	
 	def getIncomingLinks(self):
-		return Link.all().filter("entryTo = ", self.key()).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
+		return Link.all().filter("itemTo = ", self.key()).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
 	
 	def getIncomingLinksOfTypeFromType(self, type, fromType):
 		result = []
 		incomingLinks = self.getIncomingLinksOfType(type)
 		for link in incomingLinks:
-			if link.entryFrom.type == fromType:
+			if link.itemFrom.type == fromType:
 				result.append(link)
 		return result
 	
@@ -1834,13 +1870,14 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 # ============================================================================================
 	type = db.StringProperty(choices=LINK_TYPES, required=True) 
 	# how links go: 
-	#	related: either way
+	#	related: any entry to any entry
 	#	retold: story to story
 	# 	reminded: story or resource to story
 	#   responded: invitation to story
 	#	included: collage to story
-	entryFrom = db.ReferenceProperty(Entry, collection_name="fromLinks", required=True)
-	entryTo = db.ReferenceProperty(Entry, collection_name="toLinks", required=True)
+	#   referenced: pattern to saved search - note, this is the only non-entry link item, and it is ALWAYS itemTo
+	itemFrom = db.ReferenceProperty(None, collection_name="fromLinks", required=True)
+	itemTo = db.ReferenceProperty(None, collection_name="toLinks", required=True)
 	community = db.ReferenceProperty(Community, required=True, collection_name="links_to_community")
 	creator = db.ReferenceProperty(Member, collection_name="links")
 	
@@ -1861,20 +1898,21 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 	def publish(self):
 		self.published = datetime.now(pytz.utc)
 		self.put()
-		self.entryFrom.recordAction("added", self)
-		self.entryTo.recordAction("added", self)
+		if self.itemTo.isEntry():
+			self.itemTo.recordAction("added", self)
+		self.itemFrom.recordAction("added", self)
 		for i in range(NUM_NUDGE_CATEGORIES):
-			self.entryNudgePointsWhenPublished[i] = self.entryFrom.nudgePoints[i]
-		self.entryActivityPointsWhenPublished = self.entryFrom.activityPoints
+			self.entryNudgePointsWhenPublished[i] = self.itemFrom.nudgePoints[i]
+		self.entryActivityPointsWhenPublished = self.itemFrom.activityPoints
 		self.put()
-		self.creator.nudgePoints = self.entryFrom.community.getMemberNudgePointsForEvent("adding %s link" % self.type)
+		self.creator.nudgePoints = self.itemFrom.community.getMemberNudgePointsForEvent("adding %s link" % self.type)
 		self.creator.lastEnteredLink = datetime.now(pytz.utc)
 		self.creator.put()
-		self.entryFrom.community.lastPublish = self.published
-		if not self.entryFrom.community.firstPublishSet:
-			self.entryFrom.community.firstPublish = self.published
-			self.entryFrom.community.firstPublishSet = True
-		self.entryFrom.community.put()
+		self.itemFrom.community.lastPublish = self.published
+		if not self.itemFrom.community.firstPublishSet:
+			self.itemFrom.community.firstPublish = self.published
+			self.itemFrom.community.firstPublishSet = True
+		self.itemFrom.community.put()
 		
 	# MEMBERS
 		
@@ -1887,27 +1925,31 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 		return'<img src="/images/link.png" alt="link" border="0">'
 	
 	def displayString(self):
-		result = '<a href="read?%s">%s</a> (%s' % (self.entryTo.key(), self.entryTo.title, self.type)
+		result = '%s, %s' % (self.itemTo.linkString(), self.type)
 		if self.comment:
-			result += ", %s)" % self.comment
-		else:
-			result += ")"
+			result += ", (%s)" % self.comment
 		return result
 	
 	def linkString(self):
 		return self.displayString()
+	
+	def linkStringWithFromItem(self):
+		result = self.itemFrom.linkString()
+		if self.comment:
+			result += ", (%s)" % self.comment
+		return result
 	
 	def csvLine(self, header=False):
 		parts = []
 		if header: 
 			parts.append("from") 
 		else: 
-			parts.append(self.entryFrom.title)
+			parts.append(self.itemFrom.displayString())
 			
 		if header:
 			parts.append("to")
 		else:
-			parts.append(self.entryTo.title)
+			parts.append(self.itemTo.displayString())
 			
 		if header:
 			parts.append("by")

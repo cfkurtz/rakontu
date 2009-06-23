@@ -26,14 +26,14 @@
 		      		{% for link in related_links %}
 		  				<tr>
 		  				<td>
-		  				{% ifequal entry.key link.entryTo.key %}
-		  					<a href="read?{{link.entryFrom.key}}">{{link.entryFrom.title}}</a> ({{link.entryFrom.type}})
+		  				{% ifequal entry.key link.itemTo.key %}
+		  					{{link.itemFrom.linkString}}</a> ({{link.itemFrom.type}})
 		  				{% else %}
-		  					<a href="read?{{link.entryTo.key}}">{{link.entryTo.title}}</a> ({{link.entryTo.type}})
+		  					{{link.itemTo.linkString}} ({{link.itemTo.type}})
 		  				{% endifequal %}
 		  				</td>
 		  				<td>
-		  				{% ifequal entry.key link.entryTo.key %}
+		  				{% ifequal entry.key link.itemTo.key %}
 		  					incoming
 		  				{% else %}
 		  					outgoing
@@ -49,7 +49,7 @@
 								the former member "{{link.creator.nickname}}"
 							{% endif %}
 		  				</td>
-		  				<td>{{link.entryTo.shortFormattedText|orNone}}</td>
+		  				<td>{{link.itemTo.shortFormattedText|orNone}}</td>
 		  				<td><input type="text" name="linkComment|{{link.key}}" value="{{link.comment}}" size="40"/></td>
 		  				<td>
 		  					<input type="checkbox" name="removeLink|{{ link.key }}" value="yes" id="removeLink|{{ link.key }}"/>

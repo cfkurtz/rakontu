@@ -4,8 +4,6 @@ Things to do before v0.1 is complete
 
 add import/export of question lists (CSV)
 
-patterns connected to saved searches
-
 add cancel button on all pages that save things
 
 ===== PUT OFF until a little later :)

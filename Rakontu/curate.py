@@ -106,13 +106,13 @@ class CurateFlagsPage(webapp.RequestHandler):
 							linkKey = item.referent.key()
 							displayString = 'An answer (%s) for the %s called "%s"' % (item.displayString(), item.referent.type, item.referent.title)
 						elif item.__class__.__name__ == "Link":
-							linkKey = item.entryFrom.key()
+							linkKey = item.itemFrom.key()
 							if item.comment:
 								commentString = " (%s)" % item.comment
 							else:
 								commentString = ""
 							displayString = 'A link%s from the %s called "%s" to the %s called "%s"' % \
-								(commentString, item.entryFrom.type, item.entryFrom.title, item.entryTo.type, item.entryTo.title)
+								(commentString, item.itemFrom.type, item.itemFrom.displayString(), item.itemTo.type, item.itemTo.displayString())
 						elif item.__class__.__name__ == "SavedSearch":
 							linkKey = item.key()
 							displayString = item.name

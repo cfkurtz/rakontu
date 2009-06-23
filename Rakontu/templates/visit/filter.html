@@ -248,7 +248,7 @@
 		<p></p>
 		<center>
 		<input type="submit" name="save" value="Save and apply" class="button">&nbsp; 
-		<input type="submit" name="cancel" value="Cancel changes" class="button">&nbsp; 
+		<input type="submit" name="cancel" value="Cancel" class="button">&nbsp; 
 		{% if current_search %}
 			{% ifequal current_member.key current_search.creator.key %}
 				<input type="submit" name="saveAs" value="Save as new search and apply" class="button">&nbsp; 
@@ -257,14 +257,15 @@
 		{% endif %}
 		{% if current_search and current_search.notPrivate %}
 			{% if current_member.isManagerOrOwner %}
-				<input type="submit" name="removeSearchByManager" value="Delete" class="button">&nbsp; 
-			{% else %}
-				{% if current_member.isCurator %}
-					{% if current_search.flaggedForRemoval %}
-						<input type="submit" name="flagSearchByCurator" value="Unflag" class="button">&nbsp; 
-					{% else %}
-						<input type="submit" name="flagSearchByCurator" value="Flag" class="button">&nbsp; 
-					{% endif %}
+				{% ifnotequal current_member.key current_search.creator.key %}
+					<input type="submit" name="removeSearchByManager" value="Delete" class="button">&nbsp; 
+				{% endifnotequal %}
+			{% endif %}
+			{% if current_member.isCurator %}
+				{% if current_search.flaggedForRemoval %}
+					<input type="submit" name="flagSearchByCurator" value="Unflag" class="button">&nbsp; 
+				{% else %}
+					<input type="submit" name="flagSearchByCurator" value="Flag" class="button">&nbsp; 
 				{% endif %}
 			{% endif %}
 		{% endif %}	

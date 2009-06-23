@@ -280,14 +280,19 @@ def GetCurrentCommunityAndMemberFromSession():
 	okayToAccess = community and community.active and member and member.active
 	return community, member, okayToAccess
 
+"""
+When an entity whose key is the value of a reference property is deleted, the reference property does not change. 
+A reference property value can be a key that is no longer valid. If an application expects that a reference could be 
+invalid, it can test for the existence of the object using an if statement:
+
+obj1 = obj2.reference
+
+if not obj1:
+  # Referenced entity was deleted.
+"""
 def GetCurrentSearchForMember(member):
 	if member.viewSearch:
-		try:
-			# this is to check if the search was deleted in the meantime
-			key = member.viewSearch.key()
-			return member.viewSearch
-		except:
-			return None
+		return member.viewSearch
 	else:
 		return None
 
@@ -300,6 +305,69 @@ def GetKeyFromQueryString(queryString, keyname):
 			return None
 	else:
 		return None
+
+def ItemDisplayStringForGrid(item, curating=False, showingMember=False, showDetails=False):
+	# link 
+	if item.__class__.__name__ == "Answer":
+		if showDetails:
+			if not showingMember:
+				linkString = item.linkStringWithQuestionText()
+			else:
+				linkString = item.linkStringWithQuestionTextAndReferentLink()
+		else:
+			if not showingMember:
+				linkString = item.linkStringWithQuestionName()
+			else:
+				linkString = item.linkStringWithQuestionNameAndReferentLink()
+	elif item.__class__.__name__ == "Annotation":
+		linkString = item.linkStringWithEntryLink()
+	else:
+		linkString = item.linkString()
+	# name
+	if not showingMember:
+		if item.attributedToMember():
+			if item.creator.isOnlineMember:
+				if item.creator.active:
+					nameString = ' (<a href="member?%s">%s</a>)' % (item.creator.key(), item.creator.nickname)
+				else:
+					nameString = ' (%s)' % item.creator.nickname
+			else:
+				if item.creator.active:
+					nameString = ' (<img src="/images/offline.png" alt="offline member"><a href="member?%s">%s</a>)' % (item.creator.key(), item.creator.nickname)
+				else:
+					nameString = ' (<img src="/images/offline.png" alt="offline member"> %s)' % item.creator.nickname
+		else:
+			if item.character.active:
+				nameString = ' (<a href="character?%s">%s</a>)' % (item.character.key(), item.character.name)
+			else:
+				nameString = ' (%s)' % item.character.name
+	else:
+		nameString = ""
+	# curating flag
+	if curating:
+		if item.flaggedForRemoval:
+			curateString = '<a href="flag?%s" class="imagelight"><img src="../images/flag_red.png" alt="flag" border="0"></a>' % item.key()
+		else:
+			curateString = '<a href="flag?%s" class="imagelight"><img src="../images/flag_green.png" alt="flag" border="0"></a>' % item.key()
+	else:
+		curateString = ""
+	# longer text if showing details
+	if showDetails:
+		if item.__class__.__name__ == "Annotation":
+			if item.type == "comment" or item.type == "request":
+				if item.longString_formatted:
+					textString = ": %s" % upToWithLink(stripTags(item.longString_formatted), DEFAULT_DETAILS_TEXT_LENGTH, '/visit/readAnnotation?%s' % item.key())
+				else:
+					textString = ""
+			else:
+				textString = ""
+		elif item.__class__.__name__ == "Entry":
+			textString = ": %s" % upToWithLink(stripTags(item.text_formatted), DEFAULT_DETAILS_TEXT_LENGTH, '/visit/read?%s' % item.key())
+		else:
+			textString = ""
+	else:
+		textString = ""
+	return '<p>%s %s %s%s%s</p>' % (item.getImageLinkForType(), curateString, linkString, nameString, textString)
 
 def DjangoToPythonDateFormat(format):
 	if DATE_FORMATS.has_key(format):

@@ -68,16 +68,16 @@
 			
 			{% include "../common_attribution.html" %}
 
-			{% if entry_from %}
+			{% if link_item_from %}
 				<p>Since you created this story 
 				{% ifequal link_type "retell" %}
-					as your own version of the story "{{entry_from.title}},"
+					as your own version of the story "{{link_item_from.title}},"
 				{% endifequal %}
 				{% ifequal link_type "remind" %}
-					because the story "{{entry_from.title}}" reminded you of it,
+					because the story "{{link_item_from.title}}" reminded you of it,
 				{% endifequal %}
 				{% ifequal link_type "respond" %}
-					in response to the invitation "{{entry_from.title}},"
+					in response to the invitation "{{link_item_from.title}},"
 				{% endifequal %}
 				<fieldset>
 				Would you like to comment on 
@@ -93,7 +93,7 @@
 				</fieldset>
 				<input type="text" name="link_comment" value="" size="60" maxlength="{{maxlength_subject_or_comment}}">
 				<input type="hidden" name="link_type" value="{{link_type}}">
-				<input type="hidden" name="entry_from" value="{{entry_from.key}}">
+				<input type="hidden" name="link_item_from" value="{{link_item_from.key}}">
 			{% endif %}
 			
 			{% ifequal entry_type "resource" %}
@@ -229,7 +229,7 @@
 			
 		{% ifequal entry_type "collage" %}
 			{% if included_links_outgoing %}
-				<h3>Stories included in the collage</h3>
+				<h3>Stories included in this collage</h3>
 				<fieldset>
 		      	<table border="1" cellpadding="4" cellspacing="0">
 		      	<tr>
@@ -240,9 +240,9 @@
 		      		</tr>
 		      		{% for link in included_links_outgoing %}
 		  				<tr>
-		  				<td><a href="read?{{link.entryTo.key}}">{{link.entryTo.title}}</a></td>
-		  				<td>{{link.entryTo.shortFormattedText|orNone}}</td>
-		  				<td><input type="text" name="linkComment|{{link.key}}" value="{{link.comment}}" size="40" maxlength="{{maxlength_subject_or_comment}}"/></td>
+		  				<td>{{link.itemTo.linkString}}</a></td>
+		  				<td>{{link.itemTo.shortFormattedText|orNone}}</td>
+		  				<td><input type="text" name="linkComment|{{link.key}}" value="{{link.comment}}" size="60" maxlength="{{maxlength_subject_or_comment}}"/></td>
 		  				<td width="80">
 		  					<input type="checkbox" name="removeLink|{{ link.key }}" value="yes" id="removeLink|{{ link.key }}"/>
 							<label for="removeLink|{{ link.key }}">Remove</label>
@@ -253,7 +253,7 @@
 		      	</fieldset>
 	      {% endif %}
 	      {% if num_collage_rows %}
-			<h3>Add stories to the collage</h3>
+			<h3>Add stories to the collage {{"addCollageLinkCommentsLater"|tip}}</h3>
 			<fieldset>
 			<table  style="border:none;padding:0;margin:0;"><tr>
 			{% for i in num_collage_rows|makeRange %}
@@ -262,7 +262,7 @@
 	  					<input type="checkbox" name="addLink|{{collage_first_column|listLookup:i|get:"key"}}" value="yes" 
 	  					id="addLink|{{collage_first_column|listLookup:i|get:"key"}}"/>
 						<label for="addLink|{{collage_first_column|listLookup:i|get:"key"}}">
-						<a href="read?{{collage_first_column|listLookup:i|get:"key"}}">{{collage_first_column|listLookup:i|get:"title"}}</a></label>
+						{{collage_first_column|listLookup:i|get:"linkString"}}</label>
 	  				{% endif %}
 	  				</td>
 	  				<td style="border:none;padding:0;margin:0;">
@@ -270,7 +270,7 @@
 	  					<input type="checkbox" name="addLink|{{collage_second_column|listLookup:i|get:"key"}}" value="yes" 
 	  					id="addLink|{{collage_second_column|listLookup:i|get:"key"}}"/>
 						<label for="addLink|{{collage_second_column|listLookup:i|get:"key"}}">
-						<a href="read?{{collage_second_column|listLookup:i|get:"key"}}">{{collage_second_column|listLookup:i|get:"title"}}</a></label>
+						{{collage_second_column|listLookup:i|get:"linkString"}}</label>
 	  				{% endif %}
 	  				</td>
 	  				<td style="border:none;padding:0;margin:0;">
@@ -278,23 +278,53 @@
 	  					<input type="checkbox" name="addLink|{{collage_third_column|listLookup:i|get:"key"}}" value="yes" 
 	  					id="addLink|{{collage_third_column|listLookup:i|get:"key"}}"/>
 						<label for="addLink|{{collage_third_column|listLookup:i|get:"key"}}">
-						<a href="read?{{collage_third_column|listLookup:i|get:"key"}}">{{collage_third_column|listLookup:i|get:"title"}}</a></label>
+						{{collage_third_column|listLookup:i|get:"linkString"}}</label>
 	  				{% endif %}
 	  				</td>
 	  				</tr>
 	      		{% endfor %}			
-
-	      		{% for anEntry in entries_that_can_be_linked_to_by_collage %}
-	  				<td style="border:none;padding:0;margin:0;">
-	  					<input type="checkbox" name="addLink|{{ anEntry.key }}" value="yes" id="addLink|{{ anEntry.key }}"/>
-						<label for="addLink|{{ anEntry.key }}"><a href="read?{{anEntry.key}}">{{anEntry.title}}</a></label>
-	  					</td>
-	  				<td style="border:none;padding:0;margin:0;">
-	  				<input type="text" name="linkComment|{{anEntry.key}}" value="" size="40" maxlength="{{maxlength_subject_or_comment}}"/>
-	  				</td></tr>
-	      		{% endfor %}
 	      	</table>
 	      	</fieldset>
+	      	{% endif %}
+	  {% endifequal %}
+	  
+		{% ifequal entry_type "pattern" %}
+			{% if referenced_links_outgoing %}
+				<h3>Search filters referred to by this pattern</h3>
+				<fieldset>
+		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<tr>
+		      		<th>Name</th>
+		      		<th>Description</th>
+		      		<th>Link comment</th>
+		      		<th>Remove?</th>
+		      		</tr>
+		      		{% for link in referenced_links_outgoing %}
+		  				<tr>
+		  				<td>{{link.itemTo.linkString}}</a></td>
+		  				<td>{{link.itemTo.shortFormattedText|orNone}}</td>
+		  				<td><input type="text" name="linkComment|{{link.key}}" value="{{link.comment}}" size="60" maxlength="{{maxlength_subject_or_comment}}"/></td>
+		  				<td width="80">
+		  					<input type="checkbox" name="removeLink|{{ link.key }}" value="yes" id="removeLink|{{ link.key }}"/>
+							<label for="removeLink|{{ link.key }}">Remove</label>
+		  					</td>
+		  				</tr>
+		      		{% endfor %}
+		      	</table>
+		      	</fieldset>
+	      {% endif %}
+			<h3>Add search filters to the pattern {{"addPatternLinkCommentsLater"|tip}}</h3>
+			{% if searches_that_can_be_added_to_pattern %}
+			<fieldset>
+			<ul>
+			{% for search in searches_that_can_be_added_to_pattern %}
+				<li class="nobullet"><input type="checkbox" name="addLink|{{search.key}}" value="yes" id="addLink|{{search.key}}"/>
+					<label for="addLink|{{search.key}}">{{search.linkString}}</a></label></li>
+	      		{% endfor %}			
+			</ul>
+	      	</fieldset>
+	      	{% else %}
+	      		<ul><li class="nobullet">There are no shared searches available.</li></ul>
 	      	{% endif %}
 	  {% endifequal %}
 	  

@@ -44,30 +44,30 @@ class EnterEntryPage(webapp.RequestHandler):
 			if self.request.uri.find("retell") >= 0:
 				type = "story"
 				linkType = "retell"
-				entryFromKey = self.request.query_string
-				entryFrom = db.get(entryFromKey)
+				itemFromKey = self.request.query_string
+				itemFrom = db.get(itemFromKey)
 				entry = None
 				entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
 				entryName = None
 			elif self.request.uri.find("remind") >= 0:
 				type = "story"
 				linkType = "remind"
-				entryFromKey = self.request.query_string
-				entryFrom = db.get(entryFromKey)
+				itemFromKey = self.request.query_string
+				itemFrom = db.get(itemFromKey)
 				entry = None
 				entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
 				entryName = None
 			elif self.request.uri.find("respond") >= 0:
 				type = "story"
 				linkType = "respond"
-				entryFromKey = self.request.query_string
-				entryFrom = db.get(entryFromKey)
+				itemFromKey = self.request.query_string
+				itemFrom = db.get(itemFromKey)
 				entry = None
 				entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
 				entryName = None
 			else:
 				linkType = ""
-				entryFrom = None
+				itemFrom = None
 				i = 0
 				for aType in ENTRY_AND_ANNOTATION_TYPES:
 					if self.request.uri.find(aType) >= 0:
@@ -98,7 +98,7 @@ class EnterEntryPage(webapp.RequestHandler):
 				for anEntry in entries:
 					found = False
 					for link in includedLinksOutgoing:
-						if entry and link.entryTo.key() == anEntry.key():
+						if entry and link.itemTo.key() == anEntry.key():
 							found = True
 							break
 					if not found:
@@ -121,6 +121,24 @@ class EnterEntryPage(webapp.RequestHandler):
 				secondColumn = []
 				thirdColumn = []
 				includedLinksOutgoing = None
+			if type == "pattern":
+				if entry:
+					referencedLinksOutgoing = entry.getOutgoingLinksOfType("referenced")
+				else:
+					referencedLinksOutgoing = []
+				searches = community.getNonPrivateSavedSearches()
+				searchesThatCanBeIncluded = []
+				for aSearch in searches:
+					found = False
+					for link in referencedLinksOutgoing:
+						if entry and link.itemTo.key() == aSearch.key():
+							found = True
+							break
+					if not found:
+						searchesThatCanBeIncluded.append(aSearch)
+			else:
+				searchesThatCanBeIncluded = []
+				referencedLinksOutgoing = []
 			if entryName:
 				pageTitleExtra = "- %s" % entryName
 			else:
@@ -132,21 +150,28 @@ class EnterEntryPage(webapp.RequestHandler):
 							   'community': community, 
 							   'entry_type': type,
 							   'entry': entry,
+							   'attachments': attachments,
+							   # used by common_attribution
 							   'attribution_referent_type': type,
 							   'attribution_referent': entry,
-							   'questions': community.getActiveQuestionsOfType(type),
-							   'answers': answers,
-							   'attachments': attachments,
-							   'community_members': community.getActiveMembers(),
 							   'offline_members': community.getActiveOfflineMembers(),
 							   'character_allowed': community.allowCharacter[entryTypeIndexForCharacters],
+							   # used by common_questions
+							   'refer_type': type,
+							   'questions': community.getActiveQuestionsOfType(type),
+							   'answers': answers,
+							   # for a retold or remined story
 							   'link_type': linkType,
-							   'entry_from': entryFrom,
+							   'link_item_from': itemFrom,
+							   # for a collage
 							    'collage_first_column': firstColumn, 
 								'collage_second_column': secondColumn, 
 								'collage_third_column': thirdColumn, 
-								'num_collage_rows': max(len(firstColumn), max(len(secondColumn), len(thirdColumn))),							   'included_links_outgoing': includedLinksOutgoing,
-							   'refer_type': type,
+								'num_collage_rows': max(len(firstColumn), max(len(secondColumn), len(thirdColumn))),							   
+								'included_links_outgoing': includedLinksOutgoing,
+								# for a pattern
+								'referenced_links_outgoing': referencedLinksOutgoing,
+							    'searches_that_can_be_added_to_pattern': searchesThatCanBeIncluded,
 							   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/entry.html')
 			self.response.out.write(template.render(path, template_values))
@@ -217,10 +242,12 @@ class EnterEntryPage(webapp.RequestHandler):
 				entry.resourceForNewMemberPage = self.request.get("resourceForNewMemberPage") == "yes"
 				entry.resourceForManagersAndOwnersOnly = self.request.get("resourceForManagersAndOwnersOnly") == "yes"
 			entry.put()
+			if not entry.draft:
+				entry.publish()
 			linkType = None
-			if self.request.get("entry_from"):
-				entryFrom = db.get(self.request.get("entry_from"))
-				if entryFrom:
+			if self.request.get("link_item_from"):
+				itemFrom = db.get(self.request.get("link_item_from"))
+				if itemFrom:
 					if self.request.get("link_type") == "retell":
 						linkType = "retold"
 					elif self.request.get("link_type") == "remind":
@@ -231,7 +258,9 @@ class EnterEntryPage(webapp.RequestHandler):
 						linkType = "related"
 					elif self.request.get("link_type") == "include":
 						linkType = "included"
-					link = Link(entryFrom=entryFrom, entryTo=entry, type=linkType, \
+					elif self.request.get("link_type") == "reference":
+						linkType = "referenced"
+					link = Link(itemFrom=itemFrom, itemTo=entry, type=linkType, \
 								creator=member, community=community, \
 								comment=htmlEscape(self.request.get("link_comment")))
 					link.put()
@@ -247,9 +276,22 @@ class EnterEntryPage(webapp.RequestHandler):
 					db.delete(link)
 				for anEntry in community.getNonDraftEntriesOfType("story"):
 					if self.request.get("addLink|%s" % anEntry.key()) == "yes":
-						link = Link(entryFrom=entry, entryTo=anEntry, type="included", 
-									creator=member, community=community, inBatchEntryBuffer=False,
-									comment=htmlEscape(self.request.get("linkComment|%s" % anEntry.key())))
+						link = Link(itemFrom=entry, itemTo=anEntry, type="included", creator=member, community=community)
+						link.put()
+						if not entry.draft:
+							link.publish()
+			if entry.isPattern():
+				linksToRemove = []
+				for link in entry.getOutgoingLinksOfType("referenced"):
+					link.comment = self.request.get("linkComment|%s" % link.key())
+					link.put()
+					if self.request.get("removeLink|%s" % link.key()) == "yes":
+						linksToRemove.append(link)
+				for link in linksToRemove:
+					db.delete(link)
+				for aSearch in community.getNonPrivateSavedSearches():
+					if self.request.get("addLink|%s" % aSearch.key()) == "yes":
+						link = Link(itemFrom=entry, itemTo=aSearch, type="referenced", creator=member, community=community)
 						link.put()
 						if not entry.draft:
 							link.publish()
@@ -329,8 +371,6 @@ class EnterEntryPage(webapp.RequestHandler):
 								attachmentToEdit.name = htmlEscape(self.request.get("attachmentName%s" % i))
 								attachmentToEdit.data = db.Blob(str(self.request.get("attachment%s" % i)))
 								attachmentToEdit.put()
-			if not entry.draft:
-				entry.publish()
 			if preview:
 				self.redirect("/visit/preview?%s" % entry.key())
 			elif entry.draft:
@@ -338,9 +378,9 @@ class EnterEntryPage(webapp.RequestHandler):
 					if entry.inBatchEntryBuffer:
 						self.redirect("/liaise/review")
 					else: # not in batch entry buffer
-						self.redirect("/visit/profile?%s" % entry.creator.key())
+						self.redirect("/visit/drafts?%s" % entry.creator.key())
 				else: # not collected offline 
-					self.redirect("/visit/profile?%s" % member.key())
+					self.redirect("/visit/drafts?%s" % member.key())
 			else: # new entry
 				#member.viewTimeEnd = entry.published + timedelta(seconds=1)
 				#member.put()
@@ -480,7 +520,7 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 				if preview:
 					self.redirect("/visit/previewAnswers?%s" % entry.key())
 				elif setAsDraft:
-					self.redirect("/visit/profile?%s" % creator.key()) 
+					self.redirect("/visit/drafts?%s" % creator.key()) 
 				else:
 					self.redirect("/visit/read?%s" % entry.key()) 
 			else:
@@ -722,9 +762,9 @@ class EnterAnnotationPage(webapp.RequestHandler):
 						if entry.inBatchEntryBuffer:
 							self.redirect("/liaise/review")
 						else: # not in batch entry 
-							self.redirect("/visit/profile?%s" % annotation.creator.key()) 
+							self.redirect("/visit/drafts?%s" % annotation.creator.key()) 
 					else: # not collected offline
-						self.redirect("/visit/profile?%s" % member.key())
+						self.redirect("/visit/drafts?%s" % member.key())
 				else: # not draft
 					self.redirect("/visit/read?%s" % entry.key())
 			else: # new entry
@@ -816,7 +856,7 @@ class RelateEntryPage(webapp.RequestHandler):
 				for anEntry in entries:
 					found = False
 					for link in links:
-						if link.entryTo.key() == anEntry.key() or link.entryFrom.key() == anEntry.key():
+						if link.itemTo.key() == anEntry.key() or link.itemFrom.key() == anEntry.key():
 							found = True
 					if not found and anEntry.key() != entry.key():
 						entriesThatCanBeRelated.append(anEntry)
@@ -873,7 +913,7 @@ class RelateEntryPage(webapp.RequestHandler):
 						db.delete(link)
 					for anEntry in community.getNonDraftEntries():
 						if self.request.get("addLink|%s" % anEntry.key()) == "yes":
-							link = Link(entryFrom=entry, entryTo=anEntry, type="related", \
+							link = Link(itemFrom=entry, itemTo=anEntry, type="related", \
 										creator=member, community=community,
 										comment=htmlEscape(self.request.get("linkComment|%s" % anEntry.key())))
 							link.put()
