@@ -402,6 +402,8 @@ class BrowseEntriesPage(webapp.RequestHandler):
 				member.viewSearchResultList = []
 				member.put()
 				self.redirect('/visit/filter')
+			elif "printSearchResults" in self.request.arguments():
+				self.redirect('/liaise/printSearch')
 			elif "makeNewSavedSearch" in self.request.arguments() or "changeSearch" in self.request.arguments():
 				if "makeNewSavedSearch" in self.request.arguments():
 					self.redirect('/visit/filter')
@@ -700,25 +702,27 @@ class ReadEntryPage(webapp.RequestHandler):
 				memberCanAddNudgeToThisEntry = nudgePointsMemberCanAssign > 0
 				thingsUserCanDo = {}
 				if entry.isStory():
-					thingsUserCanDo["Tell another version of what happened"] = "retell?%s" % entry.key()
+					thingsUserCanDo["Tell another version of what happened"] = "/visit/retell?%s" % entry.key()
 				if entry.isStory() or entry.isResource():
-					thingsUserCanDo["Tell a story this %s reminds me of" % entry.type] = "remind?%s" % entry.key()
+					thingsUserCanDo["Tell a story this %s reminds you of" % entry.type] = "/visit/remind?%s" % entry.key()
 				if communityHasQuestionsForThisEntryType and memberCanAnswerQuestionsAboutThisEntry:
-					thingsUserCanDo["Answer questions about this %s" % entry.type] = "answers?%s" % entry.key()
+					thingsUserCanDo["Answer questions about this %s" % entry.type] = "/visit/answers?%s" % entry.key()
 				if communityHasQuestionsForThisEntryType and member.isLiaison():
-					thingsUserCanDo["Enter answers about this %s for an off-line member" % entry.type] = "answers?%s" % entry.key()
+					thingsUserCanDo["Enter answers about this %s for an off-line member" % entry.type] = "/visit/answers?%s" % entry.key()
 				if entry.isInvitation():
-					thingsUserCanDo["Respond to this invitation with a story"] = "respond?%s" % entry.key()
-				thingsUserCanDo["Comment on this %s" % entry.type] = "comment?%s" % entry.key()
-				thingsUserCanDo["Tag this %s" % entry.type] = "tagset?%s" % entry.key()
+					thingsUserCanDo["Respond to this invitation with a story"] = "/visit/respond?%s" % entry.key()
+				thingsUserCanDo["Comment on this %s" % entry.type] = "/visit/comment?%s" % entry.key()
+				thingsUserCanDo["Tag this %s" % entry.type] = "/visit/tagset?%s" % entry.key()
 				if memberCanAddNudgeToThisEntry:
-					thingsUserCanDo["Nudge this %s up or down" % entry.type] = "nudge?%s" % entry.key()
-				thingsUserCanDo["Request something about this %s" % entry.type] = "request?%s" % entry.key()
-				thingsUserCanDo["Relate this %s to others" % entry.type] = "relate?%s" % entry.key()
+					thingsUserCanDo["Nudge this %s up or down" % entry.type] = "/visit/nudge?%s" % entry.key()
+				thingsUserCanDo["Request something about this %s" % entry.type] = "/visit/request?%s" % entry.key()
+				thingsUserCanDo["Relate this %s to others" % entry.type] = "/visit/relate?%s" % entry.key()
 				if member.isCurator():
-					thingsUserCanDo["Curate this %s" % entry.type] = "curate?%s" % entry.key()
+					thingsUserCanDo["Curate this %s" % entry.type] = "/visit/curate?%s" % entry.key()
 				if entry.creator.key() == member.key() and community.allowsPostPublishEditOfEntryType(entry.type):
-					thingsUserCanDo["Change this %s" % entry.type] = "%s?%s" % (entry.type, entry.key())
+					thingsUserCanDo["Change this %s" % entry.type] = "/visit/%s?%s" % (entry.type, entry.key())
+				if member.isLiaison():
+					thingsUserCanDo["Print this %s with its answers and annotations" % entry.type] = '/liaise/printEntryAndAnnotations?%s' % entry.key()
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': entry.title, 
 						   		   'title_extra': None,

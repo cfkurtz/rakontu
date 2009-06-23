@@ -45,7 +45,7 @@
 	</td><td align="right" style="border:none;">
 	{% if community_searches or member_searches %}
 			{% if current_search %}
-				Applied search filter: {{current_search.displayString}}
+				Filtered by: {{current_search.displayString}}
 			{% else %}
 				Search filters
 				<select name="savedSearch"><option>(choose)</option>
@@ -74,6 +74,9 @@
 			<input type="submit" name="loadAndApplySavedSearch" value="Apply" class="button_small">
 		{% endif %}	
 		<input type="submit" name="makeNewSavedSearch" value="New" class="button_small">
+		{% if current_search and current_member.isLiaison %}
+			<input type="submit" name="printSearchResults" value="Print" class="button_small">
+		{% endif %}
 	{% else %}
 		<input type="submit" name="makeNewSavedSearch" value="Create search filter" class="button_small">
 	{% endif %}

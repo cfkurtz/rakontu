@@ -58,24 +58,6 @@ class PrintSearchPage(webapp.RequestHandler):
 		community, member, access = GetCurrentCommunityAndMemberFromSession()
 		if access:
 			if member.isLiaison():
-				template_values = GetStandardTemplateDictionaryAndAddMore({
-								   'title': "Print items", 
-						   		   'title_extra': community.name, 
-								   'community': community, 
-								   'current_member': member,
-								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/liaise/printSearch.html')
-				self.response.out.write(template.render(path, template_values))
-			else:
-				self.redirect("/visit/look")
-		else:
-			self.redirect('/')
-			
-	@RequireLogin 
-	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
-		if access:
-			if member.isLiaison():
 				if member.viewSearchResultList:
 					export = community.createOrRefreshExport("liaisonPrint_simple", itemList=None, member=member)
 					self.redirect('/export?print_id=%s' % export.key())
@@ -85,50 +67,30 @@ class PrintSearchPage(webapp.RequestHandler):
 				self.redirect("/visit/look")
 		else:
 			self.redirect('/')
-				
 			
-class PrintSelectItemsPage(webapp.RequestHandler):
+class PrintEntryAnnotationsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member, access = GetCurrentCommunityAndMemberFromSession()
 		if access:
 			if member.isLiaison():
-				(entries, annotations, answers, links) = community.getAllItems()
-				template_values = GetStandardTemplateDictionaryAndAddMore({
-								   'title': "Print items", 
-						   		   'title_extra': community.name, 
-								   'community': community, 
-								   'current_member': member,
-								   'entries': entries,
-								   'annotations': annotations,
-								   'answers': answers,
-								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/liaise/printSelect.html')
-				self.response.out.write(template.render(path, template_values))
-			else:
-				self.redirect("/visit/look")
-		else:
-			self.redirect('/')
-			
-	@RequireLogin 
-	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
-		if access:
-			if member.isLiaison():
-				items = []
-				for item in community.getAllEntriesAnnotationsAndAnswersAsOneList():
-					if self.request.get("print|%s" % item.key()):
-						items.append(item)
-				if items:
-					export = community.createOrRefreshExport("liaisonPrint_simple", itemList=items, member=None)
+				try:
+					entry = db.get(self.request.query_string)
+				except:
+					entry = None
+				if entry:
+					entryAndItems = []
+					entryAndItems.extend(entry.getNonDraftAnswers())
+					entryAndItems.extend(entry.getNonDraftAnnotations())
+					entryAndItems.insert(0, entry)
+					export = community.createOrRefreshExport("liaisonPrint_simple", itemList=entryAndItems, member=None)
 					self.redirect('/export?print_id=%s' % export.key())
 				else:
-					self.redirect('/result?noItemsSelectedForPrinting')
+					self.redirect("/visit/look")
 			else:
 				self.redirect("/visit/look")
 		else:
 			self.redirect('/')
-				
 			
 class ReviewBatchEntriesPage(webapp.RequestHandler):
 	@RequireLogin 

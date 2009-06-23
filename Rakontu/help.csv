@@ -42,3 +42,4 @@
 "tip","filterComment","This is mainly for the benefit of people using shared filters in patterns. It's a good place to describe why the filter is useful."
 "tip","filterEntryTypes","You have to choose at least one of these types (otherwise there will be nothing to see). If you don't check any of these boxes, the filter will show only stories."
 "tip","filterWordLocations","You have to choose at least one of these locations (otherwise there will be nothing to see). If you don't check any of these boxes, the filter will show only entries with the words in the entry text itself (the first choice)."
+"tip","canPrintSearchResult","You can also print the results of a search filter. To do that, apply a search filter on the 'Look at stories' page, then choose the 'Print current results' option."

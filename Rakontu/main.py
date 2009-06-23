@@ -90,7 +90,7 @@ application = webapp.WSGIApplication(
 									  ('/liaise/review', ReviewBatchEntriesPage),
 									  ('/liaise/members', ReviewOfflineMembersPage),
 									  ('/liaise/printSearch', PrintSearchPage),
-									  ('/liaise/printSelect', PrintSelectItemsPage),
+									  ('/liaise/printEntryAndAnnotations', PrintEntryAnnotationsPage),
 									  
 									  # managing
 									  ('/createCommunity', CreateCommunityPage),

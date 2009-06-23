@@ -254,23 +254,15 @@
 	      {% endif %}
 			<h3>Add stories to the collage</h3>
 			<fieldset>
-	      	<table border="1" cellpadding="4" cellspacing="0">
-	      	<tr>
-	      		<th>Include?</th>
-	      		<th>Title</th>
-	      		<th>Text</th>
-	      		<th>Link comment</th>
-	      		</tr>
+			<table  style="border:none;padding:0;margin:0;"><tr>
 	      		{% for anEntry in entries_that_can_be_linked_to_by_collage %}
-	  				<tr>
-	  				<td width="80">
+	  				<td style="border:none;padding:0;margin:0;">
 	  					<input type="checkbox" name="addLink|{{ anEntry.key }}" value="yes" id="addLink|{{ anEntry.key }}"/>
-						<label for="addLink|{{ anEntry.key }}">Include</label>
+						<label for="addLink|{{ anEntry.key }}"><a href="read?{{anEntry.key}}">{{anEntry.title}}</a></label>
 	  					</td>
-	  				<td><a href="read?{{anEntry.key}}">{{anEntry.title}}</a></td>
-	  				<td>{{anEntry.shortFormattedText|orNone}}</td>
-	  				<td><input type="text" name="linkComment|{{anEntry.key}}" value="" size="40" maxlength="{{maxlength_subject_or_comment}}"/></td>
-	  				</tr>
+	  				<td style="border:none;padding:0;margin:0;">
+	  				<input type="text" name="linkComment|{{anEntry.key}}" value="" size="40" maxlength="{{maxlength_subject_or_comment}}"/>
+	  				</td></tr>
 	      		{% endfor %}
 	      	</table>
 	      	</fieldset>

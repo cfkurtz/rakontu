@@ -112,49 +112,49 @@ class Community(db.Model):
 # ============================================================================================
 
 	name = db.StringProperty() # appears on all pages at top
-	tagline = db.StringProperty(default="") # appears under name, optional
+	tagline = db.StringProperty(default="", indexed=False) # appears under name, optional
 	image = db.BlobProperty(default=None) # appears on all pages, should be small (100x60 is best)
 	contactEmail = db.StringProperty(default=DEFAULT_CONTACT_EMAIL) # sender address for emails sent from site
 	
 	description = db.TextProperty(default=None) # appears on "about community" page
 	description_formatted = db.TextProperty() # formatted texts kept separate for re-editing original
-	description_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	description_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
 	etiquetteStatement = db.TextProperty(default=None) # appears on "about community" page
 	etiquetteStatement_formatted = db.TextProperty()
-	etiquetteStatement_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	etiquetteStatement_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
 	welcomeMessage = db.TextProperty(default=DEFAULT_WELCOME_MESSAGE) # appears only on new member welcome page
 	welcomeMessage_formatted = db.TextProperty()
-	welcomeMessage_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	welcomeMessage_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
 	active = db.BooleanProperty(default=True)
 	
-	defaultTimeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE) # appears on member preferences page
-	defaultTimeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT) # appears on member preferences page
-	defaultDateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT) # appears on member preferences page
+	defaultTimeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE, indexed=False) # appears on member preferences page
+	defaultTimeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT, indexed=False) # appears on member preferences page
+	defaultDateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT, indexed=False) # appears on member preferences page
 	
 	created = TzDateTimeProperty(auto_now_add=True) 
 	lastPublish = TzDateTimeProperty(default=None)
 	firstPublish = TzDateTimeProperty(default=None)
 	firstPublishSet = db.BooleanProperty(default=False) # whether the first publish date was set yet
 	
-	maxNumAttachments = db.IntegerProperty(choices=NUM_ATTACHMENT_CHOICES, default=DEFAULT_MAX_NUM_ATTACHMENTS)
+	maxNumAttachments = db.IntegerProperty(choices=NUM_ATTACHMENT_CHOICES, default=DEFAULT_MAX_NUM_ATTACHMENTS, indexed=False)
 
-	maxNudgePointsPerEntry = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ENTRY)
-	memberNudgePointsPerEvent = db.ListProperty(int, default=DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS)
-	nudgeCategories = db.StringListProperty(default=DEFAULT_NUDGE_CATEGORIES)
-	nudgeCategoryQuestions = db.StringListProperty(default=DEFAULT_NUDGE_CATEGORY_QUESTIONS)
+	maxNudgePointsPerEntry = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ENTRY, indexed=False)
+	memberNudgePointsPerEvent = db.ListProperty(int, default=DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS, indexed=False)
+	nudgeCategories = db.StringListProperty(default=DEFAULT_NUDGE_CATEGORIES, indexed=False)
+	nudgeCategoryQuestions = db.StringListProperty(default=DEFAULT_NUDGE_CATEGORY_QUESTIONS, indexed=False)
 
-	entryActivityPointsPerEvent = db.ListProperty(int, default=DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS)
+	entryActivityPointsPerEvent = db.ListProperty(int, default=DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS, indexed=False)
 	
-	allowCharacter = db.ListProperty(bool, default=DEFAULT_ALLOW_CHARACTERS)
-	allowEditingAfterPublishing = db.ListProperty(bool, default=DEFAULT_ALLOW_EDITING_AFTER_PUBLISHING)
-	allowNonManagerCuratorsToEditTags = db.BooleanProperty(default=False)
+	allowCharacter = db.ListProperty(bool, default=DEFAULT_ALLOW_CHARACTERS, indexed=False)
+	allowEditingAfterPublishing = db.ListProperty(bool, default=DEFAULT_ALLOW_EDITING_AFTER_PUBLISHING, indexed=False)
+	allowNonManagerCuratorsToEditTags = db.BooleanProperty(default=False, indexed=False)
 	
 	roleReadmes = db.ListProperty(db.Text, default=[db.Text(DEFAULT_ROLE_READMES[0]), db.Text(DEFAULT_ROLE_READMES[1]), db.Text(DEFAULT_ROLE_READMES[2])])
 	roleReadmes_formatted = db.ListProperty(db.Text, default=[db.Text(""), db.Text(""), db.Text("")])
-	roleReadmes_formats = db.StringListProperty(default=DEFAULT_ROLE_READMES_FORMATS)
+	roleReadmes_formats = db.StringListProperty(default=DEFAULT_ROLE_READMES_FORMATS, indexed=False)
 	
 	# OPTIONS
 	
@@ -592,7 +592,8 @@ class Community(db.Model):
 			csvText += '(community columns),' + self.csvLine(header=True) + "\n"
 			csvText += "community," + self.csvLine() + "\n"
 		elif type == "liaisonPrint_simple":
-			csvText = "Entries from %s\n\n" % self.name
+			csvText = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
+			csvText += '<title>Printed from Rakontu</title></head><body>'
 			if itemList:
 				for item in itemList:
 					try:
@@ -607,6 +608,7 @@ class Community(db.Model):
 								csvText += entry.PrintText()
 							except:
 								pass
+			csvText += "</body></html>"
 		export.data = db.Text(csvText)
 		export.put()
 		return export
@@ -665,19 +667,19 @@ class Question(db.Model):
 	
 	active = db.BooleanProperty(default=True) # used to hide questions no longer being used, same as members
 	
-	minIfValue = db.IntegerProperty(default=DEFAULT_QUESTION_VALUE_MIN)
-	maxIfValue = db.IntegerProperty(default=DEFAULT_QUESTION_VALUE_MAX)
-	responseIfBoolean = db.StringProperty(default=DEFAULT_QUESTION_BOOLEAN_RESPONSE) # what the checkbox label should say
+	minIfValue = db.IntegerProperty(default=DEFAULT_QUESTION_VALUE_MIN, indexed=False)
+	maxIfValue = db.IntegerProperty(default=DEFAULT_QUESTION_VALUE_MAX, indexed=False)
+	responseIfBoolean = db.StringProperty(default=DEFAULT_QUESTION_BOOLEAN_RESPONSE, indexed=False) # what the checkbox label should say
 	multiple = db.BooleanProperty(default=False) # whether multiple answers are allowed (for ordinal/nominal only)
-	choices = db.StringListProperty(default=[""] * MAX_NUM_CHOICES_PER_QUESTION) 
+	choices = db.StringListProperty(default=[""] * MAX_NUM_CHOICES_PER_QUESTION, indexed=False) 
 	
 	help = db.TextProperty() # appears to person answering question
 	help_formatted = db.TextProperty()
-	help_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	help_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
 	useHelp = db.TextProperty() # appears to manager choosing question, about when to use it
 	useHelp_formatted = db.TextProperty()
-	useHelp_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	useHelp_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
 	created = TzDateTimeProperty(auto_now_add=True)
 	
@@ -774,22 +776,22 @@ class Member(db.Model):
 	
 	governanceType = db.StringProperty(choices=GOVERNANCE_ROLE_TYPES, default="member") # can only be set by managers
 	helpingRoles = db.ListProperty(bool, default=[False, False, False]) # members can choose
-	helpingRolesAvailable = db.ListProperty(bool, default=[True, True, True]) # managers can ban members from roles
+	helpingRolesAvailable = db.ListProperty(bool, default=[True, True, True], indexed=False) # managers can ban members from roles
 	
 	guideIntro = db.TextProperty(default=None) # appears on the welcome and get help pages if the member is a guide
 	guideIntro_formatted = db.TextProperty()
-	guideIntro_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	guideIntro_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
 	profileText = db.TextProperty(default=NO_PROFILE_TEXT)
 	profileText_formatted = db.TextProperty()
-	profileText_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	profileText_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	profileImage = db.BlobProperty(default=None) # optional, resized to 100x60
-	acceptsMessages = db.BooleanProperty(default=True) # other members can send emails to their google email (without seeing it)
-	preferredTextFormat = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	acceptsMessages = db.BooleanProperty(default=True, indexed=False) # other members can send emails to their google email (without seeing it)
+	preferredTextFormat = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
 	timeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE) # members choose these in their prefs page
-	timeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT) # how they want to see dates
-	dateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT) # how they want to see times
+	timeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT, indexed=False) # how they want to see dates
+	dateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT, indexed=False) # how they want to see times
 	
 	joined = TzDateTimeProperty(auto_now_add=True)
 	lastEnteredEntry = db.DateTimeProperty()
@@ -800,12 +802,12 @@ class Member(db.Model):
 	
 	nudgePoints = db.IntegerProperty(default=DEFAULT_START_NUDGE_POINTS) # accumulated through participation
 	
-	viewTimeEnd = TzDateTimeProperty(auto_now_add=True)
-	viewTimeFrameInSeconds = db.IntegerProperty(default=DAY_SECONDS)
-	viewNudgeCategories = db.ListProperty(bool, default=[True] * NUM_NUDGE_CATEGORIES)
-	viewSearch = db.ReferenceProperty(None, collection_name="member_to_search")
-	viewDetails = db.BooleanProperty(default=False)
-	viewSearchResultList = db.ListProperty(db.Key)
+	viewTimeEnd = TzDateTimeProperty(auto_now_add=True, indexed=False)
+	viewTimeFrameInSeconds = db.IntegerProperty(default=DAY_SECONDS, indexed=False)
+	viewNudgeCategories = db.ListProperty(bool, default=[True] * NUM_NUDGE_CATEGORIES, indexed=False)
+	viewSearch = db.ReferenceProperty(None, collection_name="member_to_search", indexed=False)
+	viewDetails = db.BooleanProperty(default=False, indexed=False)
+	viewSearchResultList = db.ListProperty(db.Key, indexed=False)
 	
 	# CREATION
 	
@@ -983,11 +985,11 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 	
 	description = db.TextProperty(default=None) # appears on community page
 	description_formatted = db.TextProperty()
-	description_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	description_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
 	etiquetteStatement = db.TextProperty(default=None) # appears under "how to be [name]"
 	etiquetteStatement_formatted = db.TextProperty()
-	etiquetteStatement_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	etiquetteStatement_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
 	image = db.BlobProperty(default=None) # optional
 	
@@ -1047,7 +1049,7 @@ class SavedSearch(db.Model):
 	name = db.StringProperty(default="Untitled search")
 	
 	flaggedForRemoval = db.BooleanProperty(default=False)
-	flagComment = db.StringProperty()
+	flagComment = db.StringProperty(indexed=False)
 
 	entryTypes = db.ListProperty(bool, default=[True] * len(ENTRY_TYPES))
 	
@@ -1064,7 +1066,7 @@ class SavedSearch(db.Model):
 	
 	comment = db.TextProperty(default="")
 	comment_formatted = db.TextProperty()
-	comment_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	comment_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 
 	def copyDataFromOtherSearchAndPut(self, search):
 		self.private = True
@@ -1157,7 +1159,7 @@ class Answer(db.Model):
 	draft = db.BooleanProperty(default=True)
 	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	flaggedForRemoval = db.BooleanProperty(default=False)
-	flagComment = db.StringProperty()
+	flagComment = db.StringProperty(indexed=False)
 	
 	answerIfBoolean = db.BooleanProperty(default=False)
 	answerIfText = db.StringProperty(default="")
@@ -1246,8 +1248,8 @@ class Answer(db.Model):
 		return "%s for %s" % (self.linkStringWithQuestionText(), self.referent.linkString())
 	
 	def PrintText(self):
-		return '<p>With reference to the %s "%s":</p><ul><li>The question "%s" was answered "%s" by "%s"</li></ul>' \
-			% (self.referent.type, self.referent.title, self.question.text, self.displayStringShort(), self.memberNickNameOrCharacterName())
+		return '<p>The question "%s" was answered "%s" by %s.</p><hr>' \
+			% (self.question.text, self.displayStringShort(), self.memberNickNameOrCharacterName())
 		
 	def csvLine(self, header=False):
 		parts = []
@@ -1305,7 +1307,7 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	title = db.StringProperty(required=True, default=DEFAULT_UNTITLED_ENTRY_TITLE)
 	text = db.TextProperty(default=NO_TEXT_IN_ENTRY)
 	text_formatted = db.TextProperty()
-	text_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	text_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
 	resourceForHelpPage = db.BooleanProperty(default=False)
 	resourceForNewMemberPage = db.BooleanProperty(default=False)
@@ -1321,7 +1323,7 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	draft = db.BooleanProperty(default=True)
 	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	flaggedForRemoval = db.BooleanProperty(default=False)
-	flagComment = db.StringProperty()
+	flagComment = db.StringProperty(indexed=False)
 	
 	collected = TzDateTimeProperty(default=None)
 	created = TzDateTimeProperty(auto_now_add=True)
@@ -1421,7 +1423,6 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		if entryRefs:
 			satisfiesEntryQuestions = self.satisfiesQuestionSearch(search.answers_anyOrAll, entryRefs, False)
 		if creatorRefs:
-			DebugPrint(creatorRefs, "creatorRefs")
 			satisfiesCreatorQuestions = self.satisfiesQuestionSearch(search.creatorAnswers_anyOrAll, creatorRefs, True)
 		if search.overall_anyOrAll == "any":
 			return satisfiesWords or satisfiesTags or satisfiesEntryQuestions or satisfiesCreatorQuestions
@@ -1810,7 +1811,7 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		return CleanUpCSV(parts)
 	
 	def PrintText(self):
-		return "<p>%s %s %s</p><p>%s</p><p>&nbsp;</p>" % (PRINT_DELIMITER, self.title, PRINT_DELIMITER, self.text_formatted)
+		return "<p><b>%s</b> (%s)</p><p>%s</p><hr>" % (self.title, self.type, self.text_formatted)
 		
 	# SEARCH
 	
@@ -1836,11 +1837,11 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 	
 	# links cannot be in draft mode and cannot be entered in batch mode
 	flaggedForRemoval = db.BooleanProperty(default=False)
-	flagComment = db.StringProperty()
+	flagComment = db.StringProperty(indexed=False)
 	
 	published = TzDateTimeProperty(auto_now_add=True)
 	
-	comment = db.StringProperty(default="")
+	comment = db.StringProperty(default="", indexed=False)
 	
 	entryNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
 	entryActivityPointsWhenPublished = db.IntegerProperty(default=0)
@@ -1958,13 +1959,13 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 	draft = db.BooleanProperty(default=True)
 	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	flaggedForRemoval = db.BooleanProperty(default=False)
-	flagComment = db.StringProperty()
+	flagComment = db.StringProperty(indexed=False)
 	
 	shortString = db.StringProperty() # comment/request subject, nudge comment
 	
 	longString = db.TextProperty() # comment/request body
 	longString_formatted = db.TextProperty()
-	longString_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT)
+	longString_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
 	tagsIfTagSet = db.StringListProperty(default=[""] * NUM_TAGS_IN_TAG_SET)
 	valuesIfNudge = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
@@ -2091,11 +2092,11 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 	
 	def PrintText(self):
 		if self.isCommentOrRequest():
-			return '<p>With reference to the %s "%s":</p><ul><li>%s entered the %s labeled "%s" of "%s"</li></ul>' % \
-				(self.entry.type, self.entry.title, self.memberNickNameOrCharacterName(), self.type, self.shortString, self.longString_formatted)
+			return '<p>%s entered the %s labeled "%s" of <div style="padding: 0px 16px 0px 16px;">%s</div></p><hr>\n\n' % \
+				(self.memberNickNameOrCharacterName(), self.type, self.shortString, self.longString_formatted)
 		else:
-			return '<p>With reference to the %s "%s":</p><ul><li>a %s of "%s" was entered by %s</li></ul>' % \
-				(self.entry.type, self.entry.title, self.type, self.displayString(), self.memberNickNameOrCharacterName())
+			return '<p>A %s of "%s" was entered by %s.</p><hr>\n\n' % \
+				(self.type, self.displayString(), self.memberNickNameOrCharacterName())
 		
 	def linkString(self):
 		if self.type == "comment" or self.type == "request":
@@ -2158,7 +2159,7 @@ class Help(db.Model):		 # context-sensitive help string - appears as title hover
 
 	type = db.StringProperty() # info, tip, caution
 	name = db.StringProperty() # links to name in template
-	text = db.StringProperty() # text to show user (plain text)
+	text = db.StringProperty(indexed=False) # text to show user (plain text)
 	
 # ============================================================================================
 # ============================================================================================
