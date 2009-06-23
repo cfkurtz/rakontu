@@ -2,19 +2,35 @@ Things to do before v0.1 is complete
 
 ===== RIGHT NOW:
 
-add import/export of question lists (CSV)
+backup/restore (to SQL)
 
-add cancel button on all pages that save things
+PRESENTATION !!
 
 ===== PUT OFF until a little later :)
 
+TESTING:
+
 test "send this member a note" thing
-address that ?xx= issue in urls ??
-backup/restore (to SQL)?
+
+FLESHING OUT:
+
+help resources 
+sample questions
+export csv details (community options, etc)
+
+SCALING UP:
+
 sharding counters
 transactions
 custom indexes?
 more than 1000 in a query
 internationalization
 more caching for speed
+
+PRETTIFYING:
+
+add cancel button on all pages that save things
+javascript sliders for values?
+javascript in search creation?
+address that ?xx= issue in urls ??
 

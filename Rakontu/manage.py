@@ -329,7 +329,26 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 			for sysQuestion in systemQuestionsOfType:
 				if self.request.get("copy|%s" % sysQuestion.key()) == "copy|%s" % sysQuestion.key():
 					community.AddCopyOfQuestion(sysQuestion)
+			if self.request.get("import"):
+				community.addQuestionsOfTypeFromCSV(type, str(self.request.get("import")))
 		self.redirect("/manage/questions_list")
+		
+class WriteQuestionsToCSVPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
+			if member.isManagerOrOwner():
+				type = self.request.query_string
+				if type in QUESTION_REFERS_TO:
+					export = community.createOrRefreshExport("exportQuestions", itemList=None, member=None, questionType=type)
+					self.redirect('/export?export_id=%s' % export.key())
+				else:
+					self.redirect('/result?noQuestionsToExport')
+			else:
+				self.redirect("/visit/look")
+		else:
+			self.redirect('/')
 		
 class ManageCommunityCharactersPage(webapp.RequestHandler):
 	@RequireLogin 

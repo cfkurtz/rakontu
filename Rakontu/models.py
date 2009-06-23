@@ -512,6 +512,36 @@ class Community(db.Model):
 							   community=self)
 		newQuestion.put()
 		
+	def addQuestionsOfTypeFromCSV(self, type, input):
+		rows = csv.reader(input.split("\n"))
+		for row in rows:
+			self.AddQuestionFromCSVLine(row)
+		
+	def AddQuestionFromCSVLine(self, row):
+		if len(row) >= 3 and row[0][0] != ";":
+			try:
+				minValue = int(row[6])
+			except:
+				minValue = DEFAULT_QUESTION_VALUE_MIN
+			try:
+				maxValue = int(row[7])
+			except:
+				maxValue = DEFAULT_QUESTION_VALUE_MAX
+			question = Question(
+							   refersTo=row[0],
+							   name=row[1],
+							   text=row[2],
+							   type=row[3],
+							   choices=row[4].split(", "),
+							   multiple=row[5] == "yes",
+							   minIfValue=minValue,
+							   maxIfValue=maxValue,
+							   help=row[8],
+							   useHelp=row[9],
+							   community=self,
+							   )
+			question.put()
+		
 	# SEARCHES
 	
 	def getNonPrivateSavedSearches(self):
@@ -534,7 +564,7 @@ class Community(db.Model):
 	def getExportOfType(self, type):
 		return Export.all().filter("community = ", self.key()).filter("type = ", type).get()
 
-	def createOrRefreshExport(self, type, itemList=None, member=None):
+	def createOrRefreshExport(self, type, itemList=None, member=None, questionType=None):
 		exportAlreadyThereForType = self.getExportOfType(type)
 		if exportAlreadyThereForType:
 			db.delete(exportAlreadyThereForType)
@@ -562,7 +592,7 @@ class Community(db.Model):
 					csvText += "attachment," + attachment.csvLine() + "\n"
 				links = entry.getOutgoingLinks()
 				if links:
-					csvText = "(link columns)," + links[0].csvLine(header=True) + "\n"
+					csvText += "(link columns)," + links[0].csvLine(header=True) + "\n"
 				for link in links:
 					csvText += "link," + link.csvLine() + "\n"
 		elif type == "entries_with_answers":
@@ -584,19 +614,24 @@ class Community(db.Model):
 						i += 1
 				typeCount += 1
 		elif type == "community":
-			csvText = '"Export of settings, questions and characters for community %s"\n' % self.name
-			questions = self.getAllQuestions()
-			if questions:
-				csvText += "(question columns)," + questions[0].csvLine(header=True) + "\n"
-			for question in questions:
-				csvText += "question," + question.csvLine() + "\n"
+			csvText = '"Export of settings, members and characters for community %s"\n' % self.name
+			csvText += '\n(community columns),' + self.csvLine(header=True) + "\n"
+			csvText += "community," + self.csvLine() + "\n"
+			members = self.getActiveMembers()
+			if members:
+				csvText += "\n(member columns)," + members[0].csvLine(header=True) + "\n"
+			for member in members:
+				csvText += "member," + member.csvLine() + "\n"
+			pendingMembers = self.getPendingMembers()
+			if pendingMembers:
+				csvText += "\n(pending member columns)," + pendingMembers[0].csvLine(header=True) + "\n"
+			for pendingMember in pendingMembers:
+				csvText += "pending member," + pendingMember.csvLine() + "\n"
 			characters = self.getActiveCharacters()
 			if characters:
-				csvText += "(character columns)," + characters[0].csvLine(header=True) + "\n"
+				csvText += "\n(character columns)," + characters[0].csvLine(header=True) + "\n"
 			for character in characters:
-				csvText += "characters," + character.csvLine() + "\n"
-			csvText += '(community columns),' + self.csvLine(header=True) + "\n"
-			csvText += "community," + self.csvLine() + "\n"
+				csvText += "character," + character.csvLine() + "\n"
 		elif type == "liaisonPrint_simple":
 			csvText = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
 			csvText += '<title>Printed from Rakontu</title></head><body>'
@@ -615,10 +650,37 @@ class Community(db.Model):
 							except:
 								pass
 			csvText += "</body></html>"
+		elif type == "exportQuestions":
+			csvText = "; refersTo, name, text, type, choices, multiple, minValue, maxValue, help, useHelp\n"
+			questions = self.getActiveQuestionsOfType(questionType)
+			for question in questions:
+				cells = []
+				cells.append(question.refersTo)
+				cells.append(question.name)
+				cells.append(question.text)
+				cells.append(question.type)
+				choicesToReport = []
+				for choice in question.choices:
+					if len(choice):
+						choicesToReport.append(choice)
+				cells.append(", ".join(choicesToReport))
+				if question.multiple:
+					cells.append("yes")
+				else:
+					cells.append("no")
+				if question.type == "value":
+					cells.append(str(question.minIfValue))
+					cells.append(str(question.maxIfValue))
+				else:
+					cells.append("")
+					cells.append("")
+				cells.append(question.help)
+				cells.append(question.useHelp)
+				csvText += CleanUpCSV(cells) + "\n"
 		export.data = db.Text(csvText)
 		export.put()
 		return export
-
+	
 	def csvLine(self, header=False):
 		parts = []
 		if header:
@@ -709,55 +771,6 @@ class Question(db.Model):
 			
 	def refersToMemberOrCharacter(self):
 		return self.refersTo == "member" or self.refersTo == "character"
-	
-	def csvLine(self, header=False):
-		parts = []
-		if header:
-			parts.append("name")
-		else:
-			parts.append(self.name)
-			
-		if header:
-			parts.append("question")
-		else:
-			parts.append(self.text)
-			
-		if header:
-			parts.append("refers to")
-		else:
-			parts.append(self.refersTo)
-
-		if header:
-			parts.append("type")
-		else:
-			parts.append(self.type)
-
-		if header:
-			parts.append("response if boolean")
-		else:
-			parts.append(self.responseIfBoolean)
-
-		if header:
-			parts.append("multiple?")
-		else:
-			parts.append(str(self.multiple))
-
-		if header:
-			parts.append("choices")
-		else:
-			parts.append(",".join(self.choices))
-			
-		if header:
-			parts.append("help")
-		else:
-			parts.append(str(self.help_formatted))
-
-		if header:
-			parts.append("min and max if value")
-		else:
-			parts.append("%s,%s" % (self.minIfValue, self.maxIfValue))
-
-		return CleanUpCSV(parts)
 	
 	def keyAsString(self):
 		return "%s" % self.key()
@@ -968,6 +981,24 @@ class Member(db.Model):
 	def getPrivateSavedSearches(self):
 		return SavedSearch.all().filter("creator = ", self.key()).filter("private = ", True).fetch(FETCH_NUMBER)
 	
+	def csvLine(self, header=False):
+		parts = []
+		if header:
+			parts.append("nickname")
+		else:
+			parts.append(self.nickname)
+			
+		if header:
+			parts.append("description")
+		else:
+			parts.append(str(self.profileText_formatted))
+			
+		if header:
+			parts.append("introduction if guide")
+		else:
+			parts.append(str(self.guideIntro_formatted))
+		return CleanUpCSV(parts)
+
 # ============================================================================================
 # ============================================================================================
 class PendingMember(db.Model): # person invited to join community but not yet logged in
@@ -978,6 +1009,15 @@ class PendingMember(db.Model): # person invited to join community but not yet lo
 	email = db.StringProperty(required=True) # must match google account
 	invited = TzDateTimeProperty(auto_now_add=True)
 	
+	def csvLine(self, header=False):
+		parts = []
+		if header:
+			parts.append("email")
+		else:
+			parts.append(self.email)
+			
+		return CleanUpCSV(parts)
+
 # ============================================================================================
 # ============================================================================================
 class Character(db.Model): # optional fictions to anonymize entries but provide some information about intent

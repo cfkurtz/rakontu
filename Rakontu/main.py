@@ -107,6 +107,7 @@ application = webapp.WSGIApplication(
 									  ('/manage/questions_member', ManageCommunityQuestionsPage),
 									  ('/manage/questions_character', ManageCommunityQuestionsPage),
 									  ('/manage/questions_questions', ManageCommunityQuestionsPage),
+									  ('/manage/questionsToCSV', WriteQuestionsToCSVPage),
 									  ('/manage/characters', ManageCommunityCharactersPage),
 									  ('/manage/character', ManageCommunityCharacterPage),
 									  ('/manage/technical', ManageCommunityTechnicalPage),

@@ -235,7 +235,7 @@ class ExportHandler(webapp.RequestHandler):
 			export = db.get(self.request.get("export_id"))
 			if export and export.data:
 				self.response.headers.add_header('Content-Disposition', 'export; filename="%s"' % "export.csv")
-				self.response.headers.add_header('Content-Type', "XML")
+				self.response.headers.add_header('Content-Type', "text/csv")
 				self.response.out.write(export.data)
 			else:
 				self.error(404)

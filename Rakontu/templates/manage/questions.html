@@ -57,7 +57,17 @@
 	      		{% endfor %}
 	      	</table>
 	      	</fieldset>
+	      	
 	    {% endif %}
+	    
+	    <h3>Import/Export</h3>
+	    <fieldset>
+	    <p>Choose a CSV file to import questions from:
+	    <input type="file" name="import" size="40" accept="csv"/></p>
+	    {% if questions %}
+	    	<p><a href="/manage/questionsToCSV?{{refer_type}}">Export questions to CSV</a></p>
+	    {% endif %}
+	    </fieldset>
 	      	
 		{% if inactive_questions %}
 			<h3>Inactive questions{{"inactive_questions"|caution}}</h3>

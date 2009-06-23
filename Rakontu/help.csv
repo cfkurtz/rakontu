@@ -43,3 +43,5 @@
 "tip","filterEntryTypes","You have to choose at least one of these types (otherwise there will be nothing to see). If you don't check any of these boxes, the filter will show only stories."
 "tip","filterWordLocations","You have to choose at least one of these locations (otherwise there will be nothing to see). If you don't check any of these boxes, the filter will show only entries with the words in the entry text itself (the first choice)."
 "tip","canPrintSearchResult","You can also print the results of a search filter. To do that, apply a search filter on the 'Look at stories' page, then choose the 'Print current results' option."
+"tip","addPatternLinkCommentsLater","You can (and should) add a comment for each link, but you have to do it after the search filter is added initially. (The reason for this is that it reduces the amount of space needed to show a large number of filters.)"
+"tip","addCollageLinkCommentsLater","You can (and should) add a comment for each link, but you have to do it after the story is added initially. (The reason for this is that it reduces the amount of space needed to show a large number of stories.)"
