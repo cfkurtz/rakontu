@@ -1,6 +1,7 @@
 <html>
 	<head>
 		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+		<title>Rakontu</title>
 	</head>
 	<body>
 	<center>
@@ -12,45 +13,46 @@
 		<div id="stylized" class="rakontu_form_centered">
 		<form action="/" method="post">
 		{% if communities_member_of %}
-			<p>You are a <b>member</b> of these Rakontu communities.<br>Which would you like to visit?</p>
-			<p><select name="community_key" class="select">
+			<p>You are a <b>member</b> of these Rakontu communities.</p>
+			<select name="community_key">
 			{% for community in communities_member_of %}
 				<option value="{{ community.key }}">{{ community.name }}</option>
 			{% endfor %}
-			</select></p>
-			<input type="submit" name="visitCommunity" value="Visit Community" class="button">
+			</select>
+			&nbsp; <input type="submit" name="visitCommunity" value="Visit" class="button">
 		{% endif %}
 	
 		{% if communities_invited_to %}
-			<p>You have been <b>invited</b> to join these Rakontu communities.<br>Which would you like to join?</p>
-			<p><select name="community_key" class="select">
+			<p>You have been <b>invited</b> to join these Rakontu communities.</p>
+			<select name="community_key">
 			{% for community in communities_invited_to %}
 				<option value="{{ community.key }}">{{ community.name }}</option>
 			{% endfor %}
-			</select></p>
-			<input type="submit" name="visitCommunity" value="Join Community" class="button">
+			</select>
+			&nbsp; <input type="submit" name="visitCommunity" value="Join" class="button">
 		{% endif %}
-		
-		<p></p>
-	
-		<input type="submit" name="createCommunity" value="Create a New Rakontu Community" class="button">
-		{% if user_is_admin %}
-			<h3>For the system administrator</h3>
-			<fieldset>
-			<input type="submit" name="reviewAllCommunities" value="Review All Communities" class="button"><br/>
-			<input type="submit" name="generateSystemQuestions" value="Generate System Questions" class="button"><br/>
-			<input type="submit" name="generateHelps" value="Generate Helps" class="button">
-			</fieldset>
-		{% endif %}
-		{% if DEVELOPMENT %}
-			<h3>For the developer</h3>
-			<fieldset>
-			<input type="submit" name="makeFakeData" value="Make Some Fake Data" class="button"><br/>
-			</fieldset>
-		{% endif %}
-
+		<p><input type="submit" name="createCommunity" value="Create a New Rakontu Community" class="button"></p>
 		</form>
 		</div>
+		
+		<p></p>
+
+		{% if user_is_admin or DEVELOPMENT %}
+			<div id="stylized" class="rakontu_form_centered">
+			<form action="/" method="post">
+			{% if user_is_admin %}
+				<p>For the system administrator</p>
+				<input type="submit" name="reviewAllCommunities" value="Review Communities" class="button"><br/>
+				<input type="submit" name="generateSystemQuestions" value="Generate System Questions" class="button"><br/>
+				<input type="submit" name="generateHelps" value="Generate Helps" class="button">
+			{% endif %}
+			{% if DEVELOPMENT %}
+				<p>For the developer</p>
+				<input type="submit" name="makeFakeData" value="Make Fake Data" class="button"><br/>
+			{% endif %}
+			</form>
+			</div>
+		{% endif %}
 	
 	{% else %}
 		<p>You must be logged in to a Google account to use Rakontu.</p><p><a href="{{login_url}}">Login at Google</a></p>

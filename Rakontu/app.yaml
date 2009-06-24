@@ -18,5 +18,8 @@ handlers:
 - url: /stylesheets
   static_dir: stylesheets
   
+- url: /javascript
+  static_dir: javascript
+  
 - url: /.*
   script: main.py

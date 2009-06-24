@@ -254,6 +254,7 @@ DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS = [
 					5,	# adding relating link
 					5,	# adding including link
 					10,	# adding responding link
+					10, # adding referenced link
 					2,	# answering question
 					10,	# adding tag set
 					15,	# adding comment
@@ -275,6 +276,7 @@ DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS = [
 					5,	# adding relating link
 					5,	# adding including link
 					10,	# adding responding link
+					10, # adding referenced link
 					2,	# answering question
 					10,	# adding tag set
 					15,	# adding comment

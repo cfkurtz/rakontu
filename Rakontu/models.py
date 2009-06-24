@@ -43,7 +43,7 @@ def CleanUpCSV(parts):
 def caseInsensitiveFind(text, searchFor):
 	return text.lower().find(searchFor.lower()) >= 0
 
-DEVELOPMENT = True
+DEVELOPMENT = False
 FETCH_NUMBER = 1000
 
 MEMBER_TYPES = ["member", "on-line member", "off-line member", "liaison", "curator", "guide", "manager", "owner"]
@@ -137,7 +137,8 @@ class Community(db.Model):
 	created = TzDateTimeProperty(auto_now_add=True) 
 	lastPublish = TzDateTimeProperty(default=None)
 	firstPublish = TzDateTimeProperty(default=None)
-	firstPublishSet = db.BooleanProperty(default=False) # whether the first publish date was set yet
+	
+	firstVisit = TzDateTimeProperty(default=None)
 	
 	maxNumAttachments = db.IntegerProperty(choices=NUM_ATTACHMENT_CHOICES, default=DEFAULT_MAX_NUM_ATTACHMENTS, indexed=False)
 
@@ -459,7 +460,7 @@ class Community(db.Model):
 		return tagsSorted
 	
 	def firstPublishOrCreatedWhicheverExists(self):
-		if self.firstPublishSet and self.firstPublish:
+		if self.firstPublish:
 			# the reason this "padding" is needed is in the case of data being generated at community creation,
 			# when the time of item creation may actually be slightly before the "firstPublish" flag is set
 			# it won't hurt to have an extra second in otherwise, anyway
@@ -1493,9 +1494,8 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		for answer in self.getAnswersForMember(self.creator):
 			answer.publish()
 		self.community.lastPublish = self.published
-		if not self.community.firstPublishSet:
+		if not self.community.firstPublish:
 			self.community.firstPublish = self.published
-			self.community.firstPublishSet = True
 		self.community.put()
 		
 	def recordAction(self, action, referent):
@@ -2008,9 +2008,8 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 		self.creator.lastEnteredLink = datetime.now(pytz.utc)
 		self.creator.put()
 		self.itemFrom.community.lastPublish = self.published
-		if not self.itemFrom.community.firstPublishSet:
+		if not self.itemFrom.community.firstPublish:
 			self.itemFrom.community.firstPublish = self.published
-			self.itemFrom.community.firstPublishSet = True
 		self.itemFrom.community.put()
 		
 	# MEMBERS

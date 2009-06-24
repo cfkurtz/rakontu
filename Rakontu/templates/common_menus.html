@@ -75,8 +75,9 @@
 				</li>
 			{% endif %}
 			{% if current_member.isManagerOrOwner %}
-				<li><a href="/manage/settings">Manage</a>
+				<li><a href="/manage/checklist">Manage</a>
 					<ul>
+					<li><a href="/manage/checklist">Checklist</a></li>
 					<li><a href="/manage/settings">Settings</a></li>
 		      		<li><a href="/manage/members">Members</a></li>
 		      		<li><a href="/manage/characters">Characters</a></li>
@@ -98,7 +99,7 @@
 			
 	      	</ul>
 	    </td><td align="right" class="noborder">
-    	<p>&nbsp; You are logged in as <b>{{ current_member.nickname }}</b>.<br/>
+    	<p>&nbsp; You are logged in as <b>{{ current_member.nickname }}</b><br/>
 	    <a href="/visit/help">Help</a> | <a href="/visit/profile">Preferences</a> | <a href="{{logout_url}}">Log out</a></p>
 		{% if current_member.profileImage %}
 		</td><td align="center" width="20" class="noborder">
@@ -111,7 +112,7 @@
 				<td class="noborder">
 				<h1>Rakontu site administration</h1>
 			{% else %}
-				<p>No user is found.</p>
+				<p>No user has been found.</p>
 			{% endif %}
 	    {% endif %}
 	</td></tr></table>

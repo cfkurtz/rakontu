@@ -55,7 +55,12 @@ class StartPage(webapp.RequestHandler):
 						matchingMember.viewSearchResultList = []
 						matchingMember.put()
 						if matchingMember.active:
-							self.redirect('/visit/look')
+							if not community.firstVisit:
+								#community.firstVisit = datetime.now(tz=pytz.utc)
+								#community.put()
+								self.redirect('/manage/first')
+							else:
+								self.redirect('/visit/look')
 						else:
 							matchingMember.active = True
 							matchingMember.put()
@@ -168,6 +173,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 							'rows_cols': textsForGrid, 
 							'col_headers': colHeaders, 
 							'row_colors': rowColors,
+							'has_entries': len(entries) > 0,
 							'community_searches': community.getNonPrivateSavedSearches(),
 							'member_searches': member.getPrivateSavedSearches(),
 							'current_search': currentSearch,

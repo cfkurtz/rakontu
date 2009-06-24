@@ -94,6 +94,8 @@ application = webapp.WSGIApplication(
 									  
 									  # managing
 									  ('/createCommunity', CreateCommunityPage),
+									  ('/manage/first', FirstOwnerVisitPage),
+									  ('/manage/checklist', ManagingChecklistPage),
 									  ('/manage', ManageCommunitySettingsPage),
 									  ('/manage/', ManageCommunitySettingsPage),
 									  ('/manage/members', ManageCommunityMembersPage),

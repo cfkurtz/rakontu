@@ -14,74 +14,76 @@
 	{% endif %}
 	method="post">
 	
-	<table style="border:none;width:100%;">
-	<tr>
-	<td align="left" style="border:none;">
-	Show
-	<select name="timeFrame">
-		{% for time_frame in time_frames %}
-			<option value="{{time_frame|listLookup:0}}"
-			{% if time_frame|listLookup:0|equalTest:member_time_frame_string %}
-				selected="selected"
-			{% endif %}
-			>{{time_frame|listLookup:0}}</option>
-		{% endfor %}
-		</select>
-	<input type="submit" name="changeTimeFrame" value="Change" class="button_small">
-	{% ifnotequal member_time_frame_string "everything" %}
-		<input type="submit" name="setToFirst" value=" |< " class="button_small">
-		<input type="submit" name="moveTimeBack" value=" < " class="button_small">
-		<input type="submit" name="moveTimeForward" value=" > " class="button_small">
-		<input type="submit" name="setToLast" value=" >| " class="button_small">
-	{% else %}
-		<input type="submit" name="refreshView" value="Refresh" class="button_small">
-	{% endifnotequal %}
-	{% if current_member.viewDetails %}
-		<input type="submit" name="toggleShowDetails" value="Hide details" class="button_small">
-	{% else %}
-		<input type="submit" name="toggleShowDetails" value="Show details" class="button_small">
-	{% endif %}
-	
-	</td><td align="right" style="border:none;">
-	{% if community_searches or member_searches %}
-			{% if current_search %}
-				Filtered by: {{current_search.displayString}}
-			{% else %}
-				Search filters
-				<select name="savedSearch"><option>(choose)</option>
-				{% if member_searches %}
-					<option value="">-- My filters --</option>
-					{% for search in member_searches %}
+	{% if has_entries %}
+		<table style="border:none;width:100%;">
+		<tr>
+		<td align="left" style="border:none;">
+		Show
+		<select name="timeFrame">
+			{% for time_frame in time_frames %}
+				<option value="{{time_frame|listLookup:0}}"
+				{% if time_frame|listLookup:0|equalTest:member_time_frame_string %}
+					selected="selected"
+				{% endif %}
+				>{{time_frame|listLookup:0}}</option>
+			{% endfor %}
+			</select>
+		<input type="submit" name="changeTimeFrame" value="Change" class="button_small">
+		{% ifnotequal member_time_frame_string "everything" %}
+			<input type="submit" name="setToFirst" value=" |< " class="button_small">
+			<input type="submit" name="moveTimeBack" value=" < " class="button_small">
+			<input type="submit" name="moveTimeForward" value=" > " class="button_small">
+			<input type="submit" name="setToLast" value=" >| " class="button_small">
+		{% else %}
+			<input type="submit" name="refreshView" value="Refresh" class="button_small">
+		{% endifnotequal %}
+		{% if current_member.viewDetails %}
+			<input type="submit" name="toggleShowDetails" value="Hide details" class="button_small">
+		{% else %}
+			<input type="submit" name="toggleShowDetails" value="Show details" class="button_small">
+		{% endif %}
+		
+		</td><td align="right" style="border:none;">
+		{% if community_searches or member_searches %}
+				{% if current_search %}
+					Filtered by: {{current_search.displayString}}
+				{% else %}
+					Search filters
+					<select name="savedSearch"><option>(choose)</option>
+					{% if member_searches %}
+						<option value="">-- My filters --</option>
+						{% for search in member_searches %}
+							<option value="{{search.key}}">{{search.displayString}}</option>
+						{% endfor %}
+					{% endif %}
+					{% if community_searches %}
+					<option value="">-- Shared filters --</option>
+					{% for search in community_searches %}
 						<option value="{{search.key}}">{{search.displayString}}</option>
 					{% endfor %}
+					{% endif %}
+					</select>
 				{% endif %}
-				{% if community_searches %}
-				<option value="">-- Shared filters --</option>
-				{% for search in community_searches %}
-					<option value="{{search.key}}">{{search.displayString}}</option>
-				{% endfor %}
-				{% endif %}
-				</select>
-			{% endif %}
-		{% if current_search %}
-			<input type="submit" name="clearSearch" value="Stop applying" class="button_small">
-			{% ifnotequal current_member.key current_search.creator.key %}
-				<input type="submit" name="copySearchAs" value="Copy" class="button_small">
+			{% if current_search %}
+				<input type="submit" name="clearSearch" value="Stop applying" class="button_small">
+				{% ifnotequal current_member.key current_search.creator.key %}
+					<input type="submit" name="copySearchAs" value="Copy" class="button_small">
+				{% else %}
+					<input type="submit" name="changeSearch" value="Change" class="button_small">
+				{% endifnotequal %}
 			{% else %}
-				<input type="submit" name="changeSearch" value="Change" class="button_small">
-			{% endifnotequal %}
+				<input type="submit" name="loadAndApplySavedSearch" value="Apply" class="button_small">
+			{% endif %}	
+			<input type="submit" name="makeNewSavedSearch" value="New" class="button_small">
+			{% if current_search and current_member.isLiaison %}
+				<input type="submit" name="printSearchResults" value="Print" class="button_small">
+			{% endif %}
 		{% else %}
-			<input type="submit" name="loadAndApplySavedSearch" value="Apply" class="button_small">
-		{% endif %}	
-		<input type="submit" name="makeNewSavedSearch" value="New" class="button_small">
-		{% if current_search and current_member.isLiaison %}
-			<input type="submit" name="printSearchResults" value="Print" class="button_small">
+			<input type="submit" name="makeNewSavedSearch" value="Create search filter" class="button_small">
 		{% endif %}
-	{% else %}
-		<input type="submit" name="makeNewSavedSearch" value="Create search filter" class="button_small">
+	
+		</td></tr></table>
 	{% endif %}
-
-	</td></tr></table>
 
 	{% if rows_cols %}
 		<table cellpadding="4" cellspacing="0" style="width: 100%; border-top: none; border-bottom: 1px solid #FF7F00; border-left: none; border-right: 1px solid #FF7F00">
@@ -119,6 +121,25 @@
 			<label for="{{community.nudgeCategories|listLookup:i}}">{{community.nudgeCategories|listLookup:i}}</label>
 		{% endfor %}
 		<input type="submit" name="changeNudgeCategoriesShowing" value="Change" class="button_small"></p>
+	{% else %}
+		<h4>Nothing here!</h4>
+		{% if current_search %}
+			<p>The applied search filter resulted in showing no entries. Click this button
+			<input type="submit" name="clearSearch" value="Stop applying" class="button_small">
+			to stop applying it, or change it.
+		{% else %}
+			<p>This community has no entries in it. (Just so you know, "entries" means stories, invitations to tell stories,
+			collages of stories, patterns of stories, and resources).
+			If you are just starting the community, you can click <a href="/visit/story">here</a> to add the first story
+			{% if current_member.isManagerOrOwner %}
+				or <a href="/manage/settings">here</a> to choose community settings.
+				You can also add <a href="/manage/systemResources">resources</a> that will help people
+				get started using Rakontu.
+				</p>
+			{% else %}
+				or <a href="/visit/community">here</a> to look at information about the community.</p>
+			{% endif %}
+		{% endif %}
 	{% endif %}
 		
 	</form>	
