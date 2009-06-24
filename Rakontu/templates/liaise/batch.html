@@ -9,6 +9,12 @@
 		
 		<h2>Batch Story Entry{{"batch_story_entry"|caution}}</h2>
 
+	    <p>Choose a CSV file to import entries from:
+	    <input type="file" name="import" size="40" accept="csv"/> 
+	    {{"entryCSVImportFormat"|info}}
+	    <input type="submit" name="importEntriesFromCSV" value="Add stories" class="button"></p>
+	    <p>or enter items in the boxes below and click any of the "Add stories" buttons.</p>
+
 		{% for i in num_entries|makeRange %}
 			<h3>Story {{i|add:1}}</h3>
 			<fieldset>

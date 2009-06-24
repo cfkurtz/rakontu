@@ -168,133 +168,137 @@ class BatchEntryPage(webapp.RequestHandler):
 		community, member, access = GetCurrentCommunityAndMemberFromSession()
 		if access:
 			if member.isLiaison():
-				for i in range(NUM_ENTRIES_PER_BATCH_PAGE):
-					if self.request.get("title|%s" % i):
-						offlineMembers = community.getActiveOfflineMembers()
-						memberToAttribute = None
-						for aMember in offlineMembers:
-							if self.request.get("source|%s" % i) == "%s" % aMember.key():
-								memberToAttribute = aMember
-								break
-						if member.isManagerOrOwner():
-							onlineMembers = community.getActiveOnlineMembers()
-							for aMember in onlineMembers:
+				if "importEntriesFromCSV" in self.request.arguments():
+					if self.request.get("import"):
+						community.addEntriesFromCSV(str(self.request.get("import")), member)
+				else:
+					for i in range(NUM_ENTRIES_PER_BATCH_PAGE):
+						if self.request.get("title|%s" % i):
+							offlineMembers = community.getActiveOfflineMembers()
+							memberToAttribute = None
+							for aMember in offlineMembers:
 								if self.request.get("source|%s" % i) == "%s" % aMember.key():
 									memberToAttribute = aMember
 									break
-						if memberToAttribute:
-							title = self.request.get("title|%s" % i)
-							text = self.request.get("text|%s" % i)
-							textFormat = self.request.get("textFormat|%s" % i)
-							yearString = self.request.get("year|%s" % i)
-							monthString = self.request.get("month|%s" % i)
-							dayString = self.request.get("day|%s" % i)
-							date = datetime.now(tz=pytz.utc)
-							if yearString and monthString and dayString:
-								try:
-									year = int(yearString)
-									month = int(monthString)
-									day = int(dayString)
-									date = datetime(year, month, day, tzinfo=pytz.utc)
-								except:
-									pass
-							entry = Entry(community=community, type="story", title=title, text=text, text_format=textFormat)
-							entry.creator = memberToAttribute
-							entry.collected = date
-							entry.draft = True
-							entry.inBatchEntryBuffer = True
-							entry.collectedOffline = not memberToAttribute.isOnlineMember
-							entry.liaison = member
-							if self.request.get("attribution|%s" % i) != "member":
-								entry.character = Character.get(self.request.get("attribution|%s" % i))
-							else:
-								entry.character = None
-							entry.put()
-							for j in range(community.maxNumAttachments):
-								for name, value in self.request.params.items():
-									if name == "attachment|%s|%s" % (i, j):
-										if value != None and value != "":
-											filename = value.filename
-											attachment = Attachment(entry=entry)
-											k = 0
-											mimeType = None
-											for type in ACCEPTED_ATTACHMENT_FILE_TYPES:
-												if filename.find(".%s" % type) >= 0:
-													mimeType = ACCEPTED_ATTACHMENT_MIME_TYPES[k]
-												k += 1
-											if mimeType:
-												attachment.mimeType = mimeType
-												attachment.fileName = filename
-												attachment.name = htmlEscape(self.request.get("attachmentName|%s|%s" % (i, j)))
-												attachment.data = db.Blob(str(self.request.get("attachment|%s|%s" % (i, j))))
-												attachment.put()
-							questions = Question.all().filter("community = ", community).filter("refersTo = ", "story").fetch(FETCH_NUMBER)
-							for question in questions:
-								answer = Answer(question=question, community=community, creator=memberToAttribute, referent=entry, referentType="entry")
-								keepAnswer = False
-								queryText = "%s|%s" % (i, question.key())
-								if question.type == "text":
-									keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
-									if keepAnswer:
-										answer.answerIfText = htmlEscape(self.request.get(queryText))
-								elif question.type == "value":
-									keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
-									if keepAnswer:
-										oldValue = answer.answerIfValue
-										try:
-											answer.answerIfValue = int(self.request.get(queryText))
-										except:
-											answer.answerIfValue = oldValue
-								elif question.type == "boolean":
-									keepAnswer = queryText in self.request.params.keys()
-									if keepAnswer:
-										answer.answerIfBoolean = self.request.get(queryText) == queryText
-								elif question.type == "nominal" or question.type == "ordinal":
-									if question.multiple:
-										answer.answerIfMultiple = []
-										for choice in question.choices:
-											if self.request.get("%s|%s|%s" % (i, question.key(), choice)) == "yes":
-												answer.answerIfMultiple.append(choice)
-												keepAnswer = True
-									else:
+							if member.isManagerOrOwner():
+								onlineMembers = community.getActiveOnlineMembers()
+								for aMember in onlineMembers:
+									if self.request.get("source|%s" % i) == "%s" % aMember.key():
+										memberToAttribute = aMember
+										break
+							if memberToAttribute:
+								title = self.request.get("title|%s" % i)
+								text = self.request.get("text|%s" % i)
+								textFormat = self.request.get("textFormat|%s" % i)
+								yearString = self.request.get("year|%s" % i)
+								monthString = self.request.get("month|%s" % i)
+								dayString = self.request.get("day|%s" % i)
+								date = datetime.now(tz=pytz.utc)
+								if yearString and monthString and dayString:
+									try:
+										year = int(yearString)
+										month = int(monthString)
+										day = int(dayString)
+										date = datetime(year, month, day, tzinfo=pytz.utc)
+									except:
+										pass
+								entry = Entry(community=community, type="story", title=title, text=text, text_format=textFormat)
+								entry.creator = memberToAttribute
+								entry.collected = date
+								entry.draft = True
+								entry.inBatchEntryBuffer = True
+								entry.collectedOffline = not memberToAttribute.isOnlineMember
+								entry.liaison = member
+								if self.request.get("attribution|%s" % i) != "member":
+									entry.character = Character.get(self.request.get("attribution|%s" % i))
+								else:
+									entry.character = None
+								entry.put()
+								for j in range(community.maxNumAttachments):
+									for name, value in self.request.params.items():
+										if name == "attachment|%s|%s" % (i, j):
+											if value != None and value != "":
+												filename = value.filename
+												attachment = Attachment(entry=entry)
+												k = 0
+												mimeType = None
+												for type in ACCEPTED_ATTACHMENT_FILE_TYPES:
+													if filename.find(".%s" % type) >= 0:
+														mimeType = ACCEPTED_ATTACHMENT_MIME_TYPES[k]
+													k += 1
+												if mimeType:
+													attachment.mimeType = mimeType
+													attachment.fileName = filename
+													attachment.name = htmlEscape(self.request.get("attachmentName|%s|%s" % (i, j)))
+													attachment.data = db.Blob(str(self.request.get("attachment|%s|%s" % (i, j))))
+													attachment.put()
+								questions = Question.all().filter("community = ", community).filter("refersTo = ", "story").fetch(FETCH_NUMBER)
+								for question in questions:
+									answer = Answer(question=question, community=community, creator=memberToAttribute, referent=entry, referentType="entry")
+									keepAnswer = False
+									queryText = "%s|%s" % (i, question.key())
+									if question.type == "text":
 										keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
 										if keepAnswer:
-											answer.answerIfText = self.request.get(queryText)
-								if keepAnswer:
-									answer.creator = memberToAttribute
-									answer.liaison = member
-									answer.draft = True
-									answer.collected = entry.collected
-									answer.inBatchEntryBuffer = True
-									answer.collectedOffline = not memberToAttribute.isOnlineMember
-									answer.put()
-							if self.request.get("comment|%s" % i):
-								subject = self.request.get("commentSubject|%s" % i, default_value="No subject")
-								text = self.request.get("comment|%s" % i)
-								format = self.request.get("commentFormat|%s" % i)
-								comment = Annotation(type="comment", community=community, creator=memberToAttribute, entry=entry)
-								comment.shortString = subject
-								comment.longString = text
-								comment.longString_format = format
-								comment.draft = True
-								comment.inBatchEntryBuffer = True
-								comment.liaison = member
-								comment.collected = entry.collected
-								comment.collectedOffline = not memberToAttribute.isOnlineMember
-								comment.put()
-							tags = []
-							for j in range(NUM_TAGS_IN_TAG_SET):
-								queryString = "tag|%s|%s" % (i, j)
-								if self.request.get(queryString):
-									tags.append(self.request.get(queryString))
-							if tags:
-								tagset = Annotation(type="tag set", community=community, creator=memberToAttribute, entry=entry)
-								tagset.tagsIfTagSet = []
-								tagset.tagsIfTagSet.extend(tags)
-								tagset.draft = True
-								tagset.inBatchEntryBuffer = True
-								tagset.liaison = member
-								tagset.collected = entry.collected
-								tagset.collectedOffline = not memberToAttribute.isOnlineMember
-								tagset.put()
+											answer.answerIfText = htmlEscape(self.request.get(queryText))
+									elif question.type == "value":
+										keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
+										if keepAnswer:
+											oldValue = answer.answerIfValue
+											try:
+												answer.answerIfValue = int(self.request.get(queryText))
+											except:
+												answer.answerIfValue = oldValue
+									elif question.type == "boolean":
+										keepAnswer = queryText in self.request.params.keys()
+										if keepAnswer:
+											answer.answerIfBoolean = self.request.get(queryText) == queryText
+									elif question.type == "nominal" or question.type == "ordinal":
+										if question.multiple:
+											answer.answerIfMultiple = []
+											for choice in question.choices:
+												if self.request.get("%s|%s|%s" % (i, question.key(), choice)) == "yes":
+													answer.answerIfMultiple.append(choice)
+													keepAnswer = True
+										else:
+											keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
+											if keepAnswer:
+												answer.answerIfText = self.request.get(queryText)
+									if keepAnswer:
+										answer.creator = memberToAttribute
+										answer.liaison = member
+										answer.draft = True
+										answer.collected = entry.collected
+										answer.inBatchEntryBuffer = True
+										answer.collectedOffline = not memberToAttribute.isOnlineMember
+										answer.put()
+								if self.request.get("comment|%s" % i):
+									subject = self.request.get("commentSubject|%s" % i, default_value="No subject")
+									text = self.request.get("comment|%s" % i)
+									format = self.request.get("commentFormat|%s" % i)
+									comment = Annotation(type="comment", community=community, creator=memberToAttribute, entry=entry)
+									comment.shortString = subject
+									comment.longString = text
+									comment.longString_format = format
+									comment.draft = True
+									comment.inBatchEntryBuffer = True
+									comment.liaison = member
+									comment.collected = entry.collected
+									comment.collectedOffline = not memberToAttribute.isOnlineMember
+									comment.put()
+								tags = []
+								for j in range(NUM_TAGS_IN_TAG_SET):
+									queryString = "tag|%s|%s" % (i, j)
+									if self.request.get(queryString):
+										tags.append(self.request.get(queryString))
+								if tags:
+									tagset = Annotation(type="tag set", community=community, creator=memberToAttribute, entry=entry)
+									tagset.tagsIfTagSet = []
+									tagset.tagsIfTagSet.extend(tags)
+									tagset.draft = True
+									tagset.inBatchEntryBuffer = True
+									tagset.liaison = member
+									tagset.collected = entry.collected
+									tagset.collectedOffline = not memberToAttribute.isOnlineMember
+									tagset.put()
 		self.redirect('/liaise/review')

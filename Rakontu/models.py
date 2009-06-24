@@ -433,6 +433,7 @@ class Community(db.Model):
 			item.draft = False
 			item.inBatchEntryBuffer = False
 			item.put()
+			item.publish()
 			
 	def getAttachmentsForAllNonDraftEntries(self):
 		result = []
@@ -558,6 +559,61 @@ class Community(db.Model):
 		db.delete(PendingMember.all().filter("community = ", self.key()).fetch(FETCH_NUMBER))
 		db.delete(Character.all().filter("community = ", self.key()).fetch(FETCH_NUMBER))
 		db.delete(Question.all().filter("community = ", self.key()).fetch(FETCH_NUMBER))
+		
+	# IMPORT
+	
+	def addEntriesFromCSV(self, data, liaison):
+		reader = csv.reader(data.split("\n"), delimiter=',', doublequote='"', quotechar='"')
+		for row in reader:
+			dateOkay = True
+			if len(row) > 0 and len(row[0]) > 0 and row[0][0] != ";" and row[0][0] != "#":
+				nickname = row[0].strip()
+				member = self.memberWithNickname(nickname)
+				if member:
+					if len(row) >= 1:
+						dateString = row[1].strip()
+					else:
+						dateString = None
+						dateOkay = False
+					if dateOkay:
+						try:
+							(year, month, day) = dateString.split("-")
+						except:
+							dateOkay = False
+						if dateOkay:
+							try:
+								collected = datetime(int(year), int(month), int(day))
+							except:
+								collected = None
+								dateOkay = False
+							if dateOkay:
+								if len(row) >= 3:
+									type = row[2].strip()
+								else:
+									type = None
+								typeOkay = type in ENTRY_TYPES
+								if type and typeOkay:
+									if len(row) >= 4:
+										title = row[3].strip()
+									else:
+										title = None
+									if title:
+										foundEntry = self.getEntryInImportBufferWithTitle(title)
+										if not foundEntry:
+											if len(row) >= 5:
+												text = row[4].strip()
+											else:
+												text = "No text imported."
+											entry = Entry(community=self, type=type, title=title) 
+											entry.text = text
+											entry.community = self
+											entry.creator = member
+											entry.collectedOffline = True
+											entry.collected = collected
+											entry.liaison = liaison
+											entry.inBatchEntryBuffer = True
+											entry.draft = True
+											entry.put()	
 		
 	# EXPORT
 	
@@ -895,7 +951,8 @@ class Member(db.Model):
 			if frame == aFrame:
 				if aFrame == TIME_FRAME_EVERYTHING_STRING:
 					self.viewTimeEnd = datetime.now(tz=pytz.utc)
-					self.viewTimeFrameInSeconds = (self.viewTimeEnd - self.community.firstPublishOrCreatedWhicheverExists()).seconds
+					self.viewTimeFrameInSeconds = (self.viewTimeEnd - self.community.firstPublishOrCreatedWhicheverExists()).seconds \
+						+ (self.viewTimeEnd - self.community.firstPublishOrCreatedWhicheverExists()).days * DAY_SECONDS
 				else:
 					self.viewTimeFrameInSeconds = seconds
 				# caller should do the put
@@ -1211,6 +1268,7 @@ class SavedSearchQuestionReference(db.Model):
 # ============================================================================================
 # ============================================================================================
 
+	created = TzDateTimeProperty(auto_now_add=True)
 	community = db.ReferenceProperty(Community, required=True, collection_name="searchrefs_to_community")
 	search = db.ReferenceProperty(SavedSearch, required=True, collection_name="question_refs_to_saved_search")
 	question = db.ReferenceProperty(Question, required=True, collection_name="question_refs_to_question")
@@ -1925,7 +1983,8 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	flagComment = db.StringProperty(indexed=False)
 	
-	published = TzDateTimeProperty(auto_now_add=True)
+	created = TzDateTimeProperty(auto_now_add=True)
+	published = TzDateTimeProperty()
 	inBatchEntryBuffer = db.BooleanProperty(default=False)
 	
 	comment = db.StringProperty(default="", indexed=False)
@@ -2007,6 +2066,7 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 class Attachment(db.Model):								   # binary attachments to entries
 # ============================================================================================
 # ============================================================================================
+	created = TzDateTimeProperty(auto_now_add=True)
 	name = db.StringProperty()
 	mimeType = db.StringProperty() # from ACCEPTED_ATTACHMENT_MIME_TYPES
 	fileName = db.StringProperty() # as uploaded
@@ -2069,8 +2129,8 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 
 	collected = TzDateTimeProperty(default=None)
 	created = TzDateTimeProperty(auto_now_add=True)
-	edited = TzDateTimeProperty(auto_now_add=True)
-	published = TzDateTimeProperty(auto_now_add=True)
+	edited = TzDateTimeProperty()
+	published = TzDateTimeProperty()
 	
 	entryNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
 	entryActivityPointsWhenPublished = db.IntegerProperty(default=0)
@@ -2249,6 +2309,7 @@ class Help(db.Model):		 # context-sensitive help string - appears as title hover
 # ============================================================================================
 # ============================================================================================
 
+	created = TzDateTimeProperty(auto_now_add=True)
 	type = db.StringProperty() # info, tip, caution
 	name = db.StringProperty() # links to name in template
 	text = db.StringProperty(indexed=False) # text to show user (plain text)

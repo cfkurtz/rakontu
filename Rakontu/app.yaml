@@ -5,6 +5,9 @@ api_version: 1
 
 handlers:
 
+- url: /rocket/.*
+  script: rocket/rocket.py
+
 - url: /admin/.*
   script: main.py
   login: admin

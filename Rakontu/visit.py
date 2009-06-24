@@ -260,7 +260,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 							timeToCheck = entry.lastAnnotatedOrAnsweredOrLinked
 						else:
 							timeToCheck = entry.published
-						shouldBeInCol = timeToCheck >= startTime and timeToCheck < endTime
+						shouldBeInCol = timeToCheck >= startTime and timeToCheck < endTime  
 						if shouldBeInRow and shouldBeInCol:
 							fontSizePercent = min(200, 90 + entry.activityPoints - minActivityPoints)
 							downdrift = community.getEntryActivityPointsForEvent("downdrift")
