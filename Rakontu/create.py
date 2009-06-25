@@ -385,8 +385,10 @@ class EnterEntryPage(webapp.RequestHandler):
 				else: # not collected offline 
 					self.redirect("/visit/drafts?%s" % member.key())
 			else: # new entry
-				#member.viewTimeEnd = entry.published + timedelta(seconds=1)
-				#member.put()
+				# this is the one time when I'll manipulate the member's time view
+				# they want to see the story they made
+				member.viewTimeEnd = entry.published + timedelta(seconds=1)
+				member.put()
 				self.redirect("/visit/read?%s" % entry.key())
 		else: # no community or member
 			self.redirect("/")

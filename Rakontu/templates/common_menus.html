@@ -8,13 +8,17 @@
 	{% if current_member %}
 	
 		<td align="left" valign="center" class="noborder" width="70">
-		<a href="/visit/look">
+		{% if community.firstPublish %}
+			<a href="/visit/look">
+		{% endif %}
 		{% if community.image %}
 			<img src="/img?community_id={{community.key}}" class="bordered">
 		{% else %}
 			<p><img src="/images/Rakontu.jpg" width="100" height="64" alt="Rakontu logo" class="bordered" ></p>
 		{% endif %}
-		</a>
+		{% if community.firstPublish %}
+			</a>
+		{% endif %}
 		
 		</td><td align="left" valign="center" class="noborder"
 		{% if current_member.isCurator and current_member.isGuide and current_member.isLiaison and current_member.isManagerOrOwner and user_is_admin %}
@@ -28,7 +32,9 @@
 		<ul id="topmenu">
 	  		<li><a href="/visit/look">Visit</a>
 				<ul>
-				<li><a href="/visit/look">Look at stories</a></li>
+				{% if community.firstPublish %}
+					<li><a href="/visit/look">Browse</a></li>
+				{% endif %}
 	 			<li><a href="/visit/community">About the community</a></li>
 				<li><a href="/visit/members">About the members</a></li>
 				<li><a href="/">Exit community</a></li>

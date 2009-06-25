@@ -99,6 +99,10 @@
 								>{{character.name}}</option>
 							{% endfor %}
 						{% endif %}
-					</select></p>
+					</select>
+					{% if community.getActiveCharacters %}
+						{{"aboutCharacters"|info}}
+					{% endif %}
+					</p>
 				{% endif %}
 			{% endif %}

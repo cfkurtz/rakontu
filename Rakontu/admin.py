@@ -27,7 +27,6 @@ class AdministerCommunitiesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def post(self):
 		# this one method does not require a community and member, since the admin has to look at multiple communities.
-		DebugPrint("AdministerCommunitiesPage POST")
 		if users.is_current_user_admin():
 			communities = Community.all().fetch(FETCH_NUMBER)
 			for aCommunity in communities:
@@ -40,7 +39,6 @@ class AdministerCommunitiesPage(webapp.RequestHandler):
 					db.delete(aCommunity)
 					self.redirect('/admin/communities')
 				elif "export|%s" % aCommunity.key() in self.request.arguments():
-					DebugPrint("export")
 					self.redirect("/manage/export?community_id=%s" % aCommunity.key())
 		else:
 			self.redirect("/")

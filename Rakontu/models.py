@@ -884,7 +884,7 @@ class Member(db.Model):
 	nudgePoints = db.IntegerProperty(default=DEFAULT_START_NUDGE_POINTS) # accumulated through participation
 	
 	viewTimeEnd = TzDateTimeProperty(auto_now_add=True, indexed=False)
-	viewTimeFrameInSeconds = db.IntegerProperty(default=DAY_SECONDS, indexed=False)
+	viewTimeFrameInSeconds = db.IntegerProperty(default=WEEK_SECONDS, indexed=False)
 	viewNudgeCategories = db.ListProperty(bool, default=[True] * NUM_NUDGE_CATEGORIES, indexed=False)
 	viewSearch = db.ReferenceProperty(None, collection_name="member_to_search", indexed=False)
 	viewDetails = db.BooleanProperty(default=False, indexed=False)
