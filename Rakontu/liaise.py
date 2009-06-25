@@ -210,7 +210,7 @@ class BatchEntryPage(webapp.RequestHandler):
 								entry.collectedOffline = not memberToAttribute.isOnlineMember
 								entry.liaison = member
 								if self.request.get("attribution|%s" % i) != "member":
-									entry.character = Character.get(self.request.get("attribution|%s" % i))
+									entry.character = CommunityCharacter.get(self.request.get("attribution|%s" % i))
 								else:
 									entry.character = None
 								entry.put()

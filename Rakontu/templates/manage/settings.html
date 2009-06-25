@@ -23,7 +23,7 @@
 
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
-				<textarea name="description" rows="10" cols="60">{{community.description}}</textarea>
+				<textarea name="description" rows="5" cols="60">{{community.description}}</textarea>
 				</td><td class="noborder" width="80">
 				<p>Interpret as{{"interpret_as"|tip}}</p>
 					<select name="text_format">
@@ -40,7 +40,7 @@
 			<p>Welcome message for new members{{"welcome_message"|tip}}</p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
-				<textarea name="welcomeMessage" rows="10" cols="60">{{community.welcomeMessage}}</textarea>
+				<textarea name="welcomeMessage" rows="5" cols="60">{{community.welcomeMessage}}</textarea>
 				</td><td class="noborder" width="80">
 				<p>Interpret as</p>
 					<select name="text_format">
@@ -57,7 +57,7 @@
 			<p>Community etiquette statement{{"community_etiquette_statement"|tip}}</p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
-				<textarea name="etiquetteStatement" rows="10" cols="60">{{community.etiquetteStatement}}</textarea>
+				<textarea name="etiquetteStatement" rows="5" cols="60">{{community.etiquetteStatement}}</textarea>
 				</td><td class="noborder" width="80">
 				<p>Interpret as</p>
 					<select name="text_format">
@@ -175,6 +175,16 @@
 				<label for="allowNonManagerCuratorsToEditTags">Yes, curators who are not managers can edit all tags</label>
 			</fieldset>
 			
+			<h3>Activity system</h3>
+			<fieldset>
+			<p>How many activity points are added to an item based on each activity?{{"activity_points"|info}}{{"downdrift_explanation"|tip}}</p>
+			<table  border="1" cellpadding="4" cellspacing="0">
+			{% for text in activity_point_includes %}
+				{{ text }}
+			{% endfor %}
+			</table>
+	      	</fieldset>
+	      	
 			<h3>Nudge system</h3>
 			<fieldset>
 			<p><i></i></p>
@@ -200,22 +210,12 @@
 			</table>
 	      	</fieldset>
 	      	
-			<h3>Activity system</h3>
-			<fieldset>
-			<p>How many activity points are added to an item based on each activity?{{"activity_points"|info}}{{"downdrift_explanation"|tip}}</p>
-			<table  border="1" cellpadding="4" cellspacing="0">
-			{% for text in activity_point_includes %}
-				{{ text }}
-			{% endfor %}
-			</table>
-	      	</fieldset>
-	      	
 			<h3>Helping Roles</h3>
 			<fieldset>
 			<p><b>Curator read-before text{{"role_readmes"|info}}</b></p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
-				<textarea name="readme0" rows="10" cols="60">{{community.roleReadmes.0}}</textarea>
+				<textarea name="readme0" rows="5" cols="60">{{community.roleReadmes.0}}</textarea>
 				</td><td class="noborder" width="80">
 				<p>Interpret as</p>
 					<select name="text_format">
@@ -232,7 +232,7 @@
 			<p><b>Guide read-before text</b></p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
-				<textarea name="readme1" rows="10" cols="60">{{community.roleReadmes.1}}</textarea>
+				<textarea name="readme1" rows="5" cols="60">{{community.roleReadmes.1}}</textarea>
 				</td><td class="noborder" width="80">
 				<p>Interpret as</p>
 					<select name="text_format">
@@ -249,7 +249,7 @@
 			<p><b>Liaison read-before text</b></p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
-				<textarea name="readme2" rows="10" cols="60">{{community.roleReadmes.2}}</textarea>
+				<textarea name="readme2" rows="5" cols="60">{{community.roleReadmes.2}}</textarea>
 				</td><td class="noborder" width="80">
 				<p>Interpret as</p>
 					<select name="text_format">

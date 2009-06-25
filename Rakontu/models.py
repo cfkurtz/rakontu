@@ -43,7 +43,7 @@ def CleanUpCSV(parts):
 def caseInsensitiveFind(text, searchFor):
 	return text.lower().find(searchFor.lower()) >= 0
 
-DEVELOPMENT = False
+DEVELOPMENT = True
 FETCH_NUMBER = 1000
 
 MEMBER_TYPES = ["member", "on-line member", "off-line member", "liaison", "curator", "guide", "manager", "owner"]
@@ -111,16 +111,16 @@ class Community(db.Model):
 # ============================================================================================
 # ============================================================================================
 
-	name = db.StringProperty() # appears on all pages at top
+	name = db.StringProperty(required=True) # appears on all pages at top
 	tagline = db.StringProperty(default="", indexed=False) # appears under name, optional
 	image = db.BlobProperty(default=None) # appears on all pages, should be small (100x60 is best)
 	contactEmail = db.StringProperty(default=DEFAULT_CONTACT_EMAIL) # sender address for emails sent from site
 	
-	description = db.TextProperty(default=None) # appears on "about community" page
+	description = db.TextProperty(default=DEFAULT_COMMUNITY_DESCRIPTION) # appears on "about community" page
 	description_formatted = db.TextProperty() # formatted texts kept separate for re-editing original
 	description_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
-	etiquetteStatement = db.TextProperty(default=None) # appears on "about community" page
+	etiquetteStatement = db.TextProperty(default=DEFAULT_ETIQUETTE_STATEMENT) # appears on "about community" page
 	etiquetteStatement_formatted = db.TextProperty()
 	etiquetteStatement_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
@@ -156,6 +156,11 @@ class Community(db.Model):
 	roleReadmes = db.ListProperty(db.Text, default=[db.Text(DEFAULT_ROLE_READMES[0]), db.Text(DEFAULT_ROLE_READMES[1]), db.Text(DEFAULT_ROLE_READMES[2])])
 	roleReadmes_formatted = db.ListProperty(db.Text, default=[db.Text(""), db.Text(""), db.Text("")])
 	roleReadmes_formats = db.StringListProperty(default=DEFAULT_ROLE_READMES_FORMATS, indexed=False)
+	
+	def initializeFormattedTexts(self):
+		self.description_formatted = db.Text("<p>%s</p>" % self.description)
+		self.etiquetteStatement_formatted = db.Text("<p>%s</p>" % self.etiquetteStatement)
+		self.welcomeMessage_formatted = db.Text("<p>%s</p>" % self.welcomeMessage)
 	
 	# OPTIONS
 	
@@ -288,16 +293,16 @@ class Community(db.Model):
 	# CHARACTERS
 	
 	def getActiveCharacters(self):
-		return Character.all().filter("community = ", self.key()).filter("active = ", True).fetch(FETCH_NUMBER)
+		return CommunityCharacter.all().filter("community = ", self.key()).filter("active = ", True).fetch(FETCH_NUMBER)
 	
 	def getInactiveCharacters(self):
-		return Character.all().filter("community = ", self.key()).filter("active = ", False).fetch(FETCH_NUMBER)
+		return CommunityCharacter.all().filter("community = ", self.key()).filter("active = ", False).fetch(FETCH_NUMBER)
 	
 	def hasAtLeastOneCharacterEntryAllowed(self, entryTypeIndex):
 		return self.allowCharacter[entryTypeIndex] or len(self.getActiveCharacters()) > 0
 
 	def hasActiveCharacters(self):
-		return Character.all().filter("community = ", self.key()).filter("active = ", True).count() > 0
+		return CommunityCharacter.all().filter("community = ", self.key()).filter("active = ", True).count() > 0
 	
 	# ENTRIES
 	
@@ -558,7 +563,7 @@ class Community(db.Model):
 		db.delete(entries)
 		db.delete(Member.all().filter("community = ", self.key()).fetch(FETCH_NUMBER))
 		db.delete(PendingMember.all().filter("community = ", self.key()).fetch(FETCH_NUMBER))
-		db.delete(Character.all().filter("community = ", self.key()).fetch(FETCH_NUMBER))
+		db.delete(CommunityCharacter.all().filter("community = ", self.key()).fetch(FETCH_NUMBER))
 		db.delete(Question.all().filter("community = ", self.key()).fetch(FETCH_NUMBER))
 		
 	# IMPORT
@@ -1078,7 +1083,7 @@ class PendingMember(db.Model): # person invited to join community but not yet lo
 
 # ============================================================================================
 # ============================================================================================
-class Character(db.Model): # optional fictions to anonymize entries but provide some information about intent
+class CommunityCharacter(db.Model): # optional fictions to anonymize entries but provide some information about intent
 # ============================================================================================
 # ============================================================================================
 
@@ -1293,7 +1298,7 @@ class Answer(db.Model):
 	
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="answers_to_liaisons")
-	character = db.ReferenceProperty(Character, default=None)
+	character = db.ReferenceProperty(CommunityCharacter, default=None, collection_name="answers_to_characters")
 	
 	draft = db.BooleanProperty(default=True)
 	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
@@ -1457,7 +1462,7 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	creator = db.ReferenceProperty(Member, collection_name="entries")
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="entries_to_liaisons")
-	character = db.ReferenceProperty(Character, default=None)
+	character = db.ReferenceProperty(CommunityCharacter, default=None, collection_name="entries_to_characters")
 	
 	draft = db.BooleanProperty(default=True)
 	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
@@ -2124,7 +2129,7 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="annotations_liaisoned")
-	character = db.ReferenceProperty(Character, default=None)
+	character = db.ReferenceProperty(CommunityCharacter, default=None, collection_name="annotations_to_characters")
 
 	collected = TzDateTimeProperty(default=None)
 	created = TzDateTimeProperty(auto_now_add=True)

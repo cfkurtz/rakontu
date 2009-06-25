@@ -34,6 +34,28 @@ DEFAULT_TEXT_FORMAT = u"plain text"
 # string will break things, mainly in the time/date formatting strings which must be ASCII.
 
 # ============================================================================================ 
+# COMMUNITY
+# ============================================================================================ 
+
+DEFAULT_COMMUNITY_DESCRIPTION = \
+u"""
+This is a group of people who will come together to tell, keep and use their combined stories.
+"""
+
+DEFAULT_WELCOME_MESSAGE = \
+u"""
+Hello and welcome to our community! 
+"""
+
+DEFAULT_ETIQUETTE_STATEMENT = \
+u"""
+Telling a story is different than other ways of communicating. Stories can be complex, rich
+ways of communicating about important and sometimes emotional topics. But stories can also
+be damaging. Be considerate when you tell stories, both about who is listening and about
+who is mentioned in the story.
+"""
+
+# ============================================================================================ 
 # MEMBERS
 # ============================================================================================ 
 
@@ -51,11 +73,6 @@ DEFAULT_START_NUDGE_POINTS = 50
 # This appears as the default in the community settings.
 # It MUST be a valid email address.
 DEFAULT_CONTACT_EMAIL = "support@rakontu.org"
-
-DEFAULT_WELCOME_MESSAGE = \
-u"""
-Hello and welcome to our community! 
-"""
 
 # ============================================================================================ 
 # BROWSING
@@ -307,25 +324,25 @@ NUM_REQUEST_TYPES = 7
 # to take on each of the helping roles. You can add site-specific information here.
 DEFAULT_ROLE_READMES = [
 u"""
-A curator pays attention to the community's accumulated data. Curators add information, check for problems, create links, 
-and in general maintain the vitality of the story bank.""",
+<p>A curator pays attention to the community's accumulated data. Curators add information, check for problems, create links, 
+and in general maintain the vitality of the story bank.</p>""",
 
 u"""
-A guide pays attention to the on-line human community. Guides answer questions, write tutorials, 
+<p>A guide pays attention to the on-line human community. Guides answer questions, write tutorials, 
 encourage people to tell and use stories, create patterns, write and respond to invitations,
 and in general maintain the vitality of the on-line member community. Guides must agree to
-receive email messages from the system so that they can answer questions.
+receive email messages from the system so that they can answer questions.</p>
 """,
 
 u"""
-A liaison guides stories and other information over the barrier between on-line and off-line worlds. 
+<p>A liaison guides stories and other information over the barrier between on-line and off-line worlds. 
 Liaisons conduct external interviews and add the stories people tell in them, read stories to people and gather 
-comments and other annotations, and in general make the system work for both on-line and off-line community members.
+comments and other annotations, and in general make the system work for both on-line and off-line community members.</p>
 """]
 
 # These are the formats in which the default role readmes (above) are to be interpreted.
 # Each setting MUST be (exactly) one of "plain text", "simple HTML", and "Wiki markup".
-DEFAULT_ROLE_READMES_FORMATS = [u"plain text", u"plain text", u"plain text"]
+DEFAULT_ROLE_READMES_FORMATS = [u"simple HTML", u"simple HTML", u"simple HTML"]
 
 # Whether people have to click "I agree" to become a curator, guide or liaison.
 # One setting for each of these helping roles: curator, guide, liaison.

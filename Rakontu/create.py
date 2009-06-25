@@ -24,7 +24,10 @@ class CreateCommunityPage(webapp.RequestHandler):
 	def post(self):
 		user = users.get_current_user()
 		community = Community(name=htmlEscape(self.request.get('name')))
+		community.initializeFormattedTexts()
 		community.put()
+		GenerateDefaultQuestionsForCommunity(community)
+		GenerateDefaultCharactersForCommunity(community)
 		member = Member(
 			googleAccountID=user.user_id(),
 			googleAccountEmail=user.email(),
@@ -234,7 +237,7 @@ class EnterEntryPage(webapp.RequestHandler):
 			else:
 				attributionQueryString = "attribution"
 			if self.request.get(attributionQueryString) != "member":
-				entry.character = Character.get(self.request.get(attributionQueryString))
+				entry.character = CommunityCharacter.get(self.request.get(attributionQueryString))
 			else:
 				entry.character = None
 			if type == "resource":
@@ -467,7 +470,7 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 				character = None
 				if self.request.get(attributionQueryString) != "member":
 					characterKey = self.request.get(attributionQueryString)
-					character = Character.get(characterKey)
+					character = CommunityCharacter.get(characterKey)
 				questions = Question.all().filter("community = ", community).filter("refersTo = ", entry.type).fetch(FETCH_NUMBER)
 				for question in questions:
 					foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", entry.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
@@ -685,7 +688,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					attributionQueryString = "attribution"
 				if self.request.get(attributionQueryString) != "member":
 					characterKey = self.request.get(attributionQueryString)
-					character = Character.get(characterKey)
+					character = CommunityCharacter.get(characterKey)
 					annotation.character = character
 				else:
 					annotation.character = None

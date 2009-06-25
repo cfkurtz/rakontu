@@ -34,7 +34,7 @@
 				<li><a href="/">Exit community</a></li>
 				</ul>
 			</li>
-			<li><a href="/visit/story">Talk</a>
+			<li><a href="/visit/story">Create</a>
 				<ul>
 				<li><a href="/visit/story">Tell a story</a></li>
 	  			<li><a href="/visit/invitation">Invite people to tell stories</a></li>
@@ -75,15 +75,14 @@
 				</li>
 			{% endif %}
 			{% if current_member.isManagerOrOwner %}
-				<li><a href="/manage/checklist">Manage</a>
+				<li><a href="/manage/settings">Manage</a>
 					<ul>
-					<li><a href="/manage/checklist">Checklist</a></li>
 					<li><a href="/manage/settings">Settings</a></li>
-		      		<li><a href="/manage/members">Members</a></li>
-		      		<li><a href="/manage/characters">Characters</a></li>
 		      		<li><a href="/manage/questions_list">Questions</a></li>
+		      		<li><a href="/manage/systemResources">Help resources</a></li>
+		      		<li><a href="/manage/characters">Characters</a></li>
+		      		<li><a href="/manage/members">Members</a></li>
 			      	<li><a href="/manage/export">Export</a></li>
-		      		<li><a href="/manage/systemResources">Add system resources</a></li>
 		      		</ul>
 		      	</li>
 		    {% endif %}
@@ -91,8 +90,8 @@
 	 			<li><a href="/admin/communities">Administer</a>
 					<ul>
 					<li><a href="/admin/communities">Review all communities</a></li>
-					<li><a href="/admin/generateSystemQuestions">Generate site-level sample questions</a></li>
-					<li><a href="/admin/generateHelps">Generate site-level help messages</a></li>
+					<li><a href="/admin/generateSystemQuestions">Generate sample questions</a></li>
+					<li><a href="/admin/generateHelps">Generate help messages</a></li>
 					</ul>
 				</li>
 			{% endif %}

@@ -128,16 +128,13 @@
 			<input type="submit" name="clearSearch" value="Stop applying" class="button_small">
 			to stop applying it, or change it.
 		{% else %}
-			<p>This community has no entries in it. (Just so you know, "entries" means stories, invitations to tell stories,
-			collages of stories, patterns of stories, and resources).
-			If you are just starting the community, you can click <a href="/visit/story">here</a> to add the first story
+			<p>This community has no entries in it.
+			Why not add the first <a href="/visit/story">story</a> or <a href="/visit/invitation">invitation</a>?
 			{% if current_member.isManagerOrOwner %}
-				or <a href="/manage/settings">here</a> to choose community settings.
-				You can also add <a href="/manage/systemResources">resources</a> that will help people
-				get started using Rakontu.
+				You can also choose community <a href="/manage/settings">settings</a>.
 				</p>
 			{% else %}
-				or <a href="/visit/community">here</a> to look at information about the community.</p>
+				You can also read <a href="/visit/community">here</a> about the community.</p>
 			{% endif %}
 		{% endif %}
 	{% endif %}

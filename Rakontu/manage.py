@@ -127,34 +127,49 @@ class ManageCommunitySettingsPage(webapp.RequestHandler):
 		if access:
 			if member.isManagerOrOwner():
 				nudgePointIncludes = []
-				nudgePointIncludes.append('<tr>')
-				i = 0
-				for eventType in EVENT_TYPES:
-					if eventType != EVENT_TYPES[0]: # leave time out for nudge accumulations
-						nudgePointIncludes.append('<td>%s</td>' % eventType)
-					i += 1
-				i = 0
-				nudgePointIncludes.append('</tr><tr>')
-				for eventType in EVENT_TYPES:
-					if eventType != EVENT_TYPES[0]: # leave time out for nudge accumulations
-						nudgePointIncludes.append('<td><input type="text" name="member|%s" size="3" value="%s" maxlength="{{maxlength_number}}"/></td>' \
-							% (eventType, community.memberNudgePointsPerEvent[i]))
-					i += 1
-				nudgePointIncludes.append('</tr>')
+				for level in [0, len(EVENT_TYPES) // 2]:
+					if level == 0:
+						nextLevel = len(EVENT_TYPES) // 2
+					else:
+						nextLevel = len(EVENT_TYPES)
+					nudgePointIncludes.append('<tr>')
+					i = 0
+					for eventType in EVENT_TYPES:
+						if i >= level and i < nextLevel:
+							nudgePointIncludes.append('<td>%s</td>' % eventType)
+						i += 1
+					nudgePointIncludes.append('</tr><tr>')
+					i = 0
+					for eventType in EVENT_TYPES:
+						if i >= level and i < nextLevel: 
+							if i == 0: 
+								nudgePointIncludes.append("<td>(doesn't apply)/td>")
+							else:
+								nudgePointIncludes.append('<td><input type="text" name="member|%s" size="2" value="%s" maxlength="{{maxlength_number}}"/></td>' \
+									% (eventType, community.memberNudgePointsPerEvent[i]))
+						i += 1
+					nudgePointIncludes.append('</tr>')
 				
 				activityPointIncludes = []
-				activityPointIncludes.append('<tr>')
-				i = 0
-				for eventType in EVENT_TYPES:
-					activityPointIncludes.append('<td>%s</td>' % eventType)
-					i += 1
-				i = 0
-				activityPointIncludes.append('</tr><tr>')
-				for eventType in EVENT_TYPES:
-					activityPointIncludes.append('<td><input type="text" name="entry|%s" size="3" value="%s" maxlength="{{maxlength_number}}"/></td>' \
-						% (eventType, community.entryActivityPointsPerEvent[i]))
-					i += 1
-				activityPointIncludes.append('</tr>')
+				for level in [0, len(EVENT_TYPES) // 2]:
+					if level == 0:
+						nextLevel = len(EVENT_TYPES) // 2
+					else:
+						nextLevel = len(EVENT_TYPES)				
+					activityPointIncludes.append('<tr>')
+					i = 0
+					for eventType in EVENT_TYPES:
+						if i >= level and i < nextLevel:
+							activityPointIncludes.append('<td>%s</td>' % eventType)
+						i += 1
+					i = 0
+					activityPointIncludes.append('</tr><tr>')
+					for eventType in EVENT_TYPES:
+						if i >= level and i < nextLevel:
+							activityPointIncludes.append('<td><input type="text" name="entry|%s" size="3" value="%s" maxlength="{{maxlength_number}}"/></td>' \
+														% (eventType, community.entryActivityPointsPerEvent[i]))
+						i += 1
+					activityPointIncludes.append('</tr>')
 				
 				characterIncludes = []
 				i = 0
@@ -454,7 +469,7 @@ class ManageCommunityCharactersPage(webapp.RequestHandler):
 								oldCharacter.put()
 								break
 						if not foundCharacter:
-							newCharacter = Character(name=name, community=community)
+							newCharacter = CommunityCharacter(name=name, community=community)
 							newCharacter.put()
 				community.put()
 				self.redirect('/manage/characters')

@@ -12,38 +12,40 @@
 			<div><textarea name="newCharacterNames" rows="6" cols="40"></textarea></div>
 			</fieldset>
 			
-			<h3>Change Characters</h3>
-			<fieldset>
-	      	<table border="1" cellpadding="4" cellspacing="0">
-	      	<tr>
-	      		<th>Name</th>
-	      		<th>Picture</th>
-	      		<th>Description</th>
-	      		<th>Inactivate?</th>
-	      		</tr>
-	      		{% for character in characters %}
-	  				<tr>
-	  				<td>
-	  					{{ character.name }}<br/>
-	  					<a href="/visit/character?{{character.key}}">(View character page)</a>
-	  					<br/><a href="/manage/character?{{character.key}}">(Change character)</a>
-	  				</td>
-	  				<td width="80" valign="top">
-			 		{% if character.image %}
-						<img src="/visit/img?character_id={{character.key}}">
-					{% else %}
-						none
-					{% endif %}
-					</td>
-					<td>{{character.description_formatted}}</td>
-	  				<td>
-	  					<input type="checkbox" name="remove|{{ character.key }}" value="yes" id="remove|{{ character.key }}"/>
-						<label for="remove|{{ character.key }}">Inactivate</label>
-	  					</td>
-	  				</tr>
-	      		{% endfor %}
-	      	</table>
-			</fieldset>
+			{% if characters %}
+				<h3>Change Characters</h3>
+				<fieldset>
+		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<tr>
+		      		<th>Name</th>
+		      		<th>Picture</th>
+		      		<th>Description</th>
+		      		<th>Inactivate?</th>
+		      		</tr>
+		      		{% for character in characters %}
+		  				<tr>
+		  				<td>
+		  					{{ character.name }}<br/>
+		  					<a href="/visit/character?{{character.key}}">(View character page)</a>
+		  					<br/><a href="/manage/character?{{character.key}}">(Change character)</a>
+		  				</td>
+		  				<td width="80" valign="top">
+				 		{% if character.image %}
+							<img src="/visit/img?character_id={{character.key}}">
+						{% else %}
+							none
+						{% endif %}
+						</td>
+						<td>{{character.description_formatted}}</td>
+		  				<td>
+		  					<input type="checkbox" name="remove|{{ character.key }}" value="yes" id="remove|{{ character.key }}"/>
+							<label for="remove|{{ character.key }}">Inactivate</label>
+		  					</td>
+		  				</tr>
+		      		{% endfor %}
+		      	</table>
+				</fieldset>
+			{% endif %}
 			
 			{% if inactive_characters %}
 				<h3>Inactive characters{{"inactive_characters"|caution}}</h3>

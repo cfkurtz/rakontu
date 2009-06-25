@@ -95,7 +95,6 @@ application = webapp.WSGIApplication(
 									  # managing
 									  ('/createCommunity', CreateCommunityPage),
 									  ('/manage/first', FirstOwnerVisitPage),
-									  ('/manage/checklist', ManagingChecklistPage),
 									  ('/manage', ManageCommunitySettingsPage),
 									  ('/manage/', ManageCommunitySettingsPage),
 									  ('/manage/members', ManageCommunityMembersPage),
@@ -121,7 +120,7 @@ application = webapp.WSGIApplication(
 									  ('/admin/', AdministerCommunitiesPage),
 									  ('/admin', AdministerCommunitiesPage),
 									  ('/admin/communities', AdministerCommunitiesPage),
-									  ('/admin/generateSystemQuestions', GenerateSystemQuestionsPage),
+									  ('/admin/generateSystemQuestions', GenerateSampleQuestionsPage),
 									  ('/admin/generateHelps', GenerateHelpsPage),
 									  
 									  # general message-to-user page

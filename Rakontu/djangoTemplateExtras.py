@@ -57,6 +57,26 @@ def makeRange(numberString):
 def makeRangeFromListLength(list):
 	return range(len(list))
 
+def makeRangeOfFirstHalf(numberString):
+	result = []
+	try:
+		number = int(numberString)
+	except:
+		return result
+	for i in range(number // 2):
+		result.append(i)
+	return result
+
+def makeRangeOfSecondHalf(numberString):
+	result = []
+	try:
+		number = int(numberString)
+	except:
+		return result
+	for i in range(number // 2, number):
+		result.append(i)
+	return result
+
 def add(numberString, addString):
 	try:
 		number = int(numberString)
@@ -163,6 +183,8 @@ register.filter(listLookup)
 register.filter(dictLookup)
 register.filter(makeRange)
 register.filter(makeRangeFromListLength)
+register.filter(makeRangeOfFirstHalf)
+register.filter(makeRangeOfSecondHalf)
 register.filter(timeZone)
 register.filter(notNone)
 register.filter(orNbsp)

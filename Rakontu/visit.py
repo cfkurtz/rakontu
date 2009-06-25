@@ -56,8 +56,8 @@ class StartPage(webapp.RequestHandler):
 						matchingMember.put()
 						if matchingMember.active:
 							if not community.firstVisit:
-								#community.firstVisit = datetime.now(tz=pytz.utc)
-								#community.put()
+								community.firstVisit = datetime.now(tz=pytz.utc)
+								community.put()
 								self.redirect('/manage/first')
 							else:
 								self.redirect('/visit/look')
@@ -97,7 +97,7 @@ class StartPage(webapp.RequestHandler):
 			MakeSomeFakeData()
 			self.redirect("/")
 		elif "generateSystemQuestions" in self.request.arguments():
-			GenerateSystemQuestions()
+			GenerateSampleQuestions()
 			self.redirect("/")
 		elif "generateHelps" in self.request.arguments():
 			GenerateHelps()

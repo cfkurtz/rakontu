@@ -45,14 +45,14 @@ class AdministerCommunitiesPage(webapp.RequestHandler):
 		else:
 			self.redirect("/")
 
-class GenerateSystemQuestionsPage(webapp.RequestHandler):
+class GenerateSampleQuestionsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		community, member, access = GetCurrentCommunityAndMemberFromSession()
 		if access:
 			if users.is_current_user_admin():
-				GenerateSystemQuestions()
-				self.redirect('/result?systemQuestionsGenerated')
+				GenerateSampleQuestions()
+				self.redirect('/result?sampleQuestionsGenerated')
 			else:
 				self.redirect('/')
 		else:

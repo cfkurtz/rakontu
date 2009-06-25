@@ -102,9 +102,10 @@ def parseDate(yearString, monthString, dayString):
 			return datetime.now(tz=pytz.utc)
 	return datetime.now(tz=pytz.utc)
 
-def GenerateSystemQuestions():
-	db.delete(Question.all().filter("community = ", None).fetch(FETCH_NUMBER))
-	file = open('questions.csv')
+def GenerateQuestions(fileName, community=None):
+	if not community:
+		db.delete(Question.all().filter("community = ", None).fetch(FETCH_NUMBER))
+	file = open(fileName)
 	questionStrings = csv.reader(file)
 	for row in questionStrings:
 		if len(row) >= 3 and row[0][0] != ";":
@@ -116,6 +117,7 @@ def GenerateSystemQuestions():
 				maxValue = int(row[7])
 			except:
 				maxValue = DEFAULT_QUESTION_VALUE_MAX
+			logging.info(row[1])
 			question = Question(
 							   refersTo=row[0],
 							   name=row[1],
@@ -127,9 +129,42 @@ def GenerateSystemQuestions():
 							   maxIfValue=maxValue,
 							   help=row[8],
 							   useHelp=row[9],
-							   community=None,
+							   community=community,
 							   )
 			question.put()
+	file.close()
+
+def GenerateSampleQuestions():
+	GenerateQuestions('sample_questions.csv')
+	
+def GenerateDefaultQuestionsForCommunity(community):
+	GenerateQuestions('default_questions.csv', community)
+	
+def GenerateDefaultCharactersForCommunity(community):
+	file = open('default_characters.csv')
+	questionStrings = csv.reader(file)
+	characters = []
+	for row in questionStrings:
+		if len(row) >= 4 and row[0][0] != ";":
+			name = row[0]
+			description = row[1]
+			etiquetteStatement = row[2]
+			imageFileName = row[3]
+			image = db.Blob(open(imageFileName).read())
+			character = CommunityCharacter(
+							   name=row[0],
+							   community=community,
+							   )
+			format = "plain text"
+			character.description = db.Text(description)
+			character.description_formatted = db.Text(InterpretEnteredText(description, format))
+			character.description_format = format
+			character.etiquetteStatement = db.Text(etiquetteStatement)
+			character.etiquetteStatement_formatted = db.Text(InterpretEnteredText(etiquetteStatement, format))
+			character.etiquetteStatement_format = format
+			character.image = image
+			characters.append(character)
+	db.put(characters)
 	file.close()
 	
 def HTMLColorToRGB(colorstring):
@@ -417,6 +452,7 @@ def RelativeTimeDisplayString(whenUTC, member):
 def MakeSomeFakeData():
 	user = users.get_current_user()
 	community = Community(name="Test community", description="Test description")
+	community.initializeFormattedTexts()
 	community.put()
 	member = Member(googleAccountID=user.user_id(), googleAccountEmail=user.email(), nickname="Tester", community=community, governanceType="owner")
 	member.initialize()
@@ -426,9 +462,9 @@ def MakeSomeFakeData():
 	else:
 		PendingMember(community=community, email="cfkurtz@cfkurtz.com").put()
 	PendingMember(community=community, email="admin@example.com").put()
-	Character(name="Little Bird", community=community).put()
-	Character(name="Old Coot", community=community).put()
-	Character(name="Blooming Idiot", community=community).put()
+	CommunityCharacter(name="Little Bird", community=community).put()
+	CommunityCharacter(name="Old Coot", community=community).put()
+	CommunityCharacter(name="Blooming Idiot", community=community).put()
 	entry = Entry(community=community, type="story", creator=member, title="The dog", text="The dog sat on a log.", draft=False)
 	entry.put()
 	entry.publish()

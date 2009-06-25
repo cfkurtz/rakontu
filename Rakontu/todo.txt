@@ -25,6 +25,7 @@ transactions
 custom indexes?
 more than 1000 in a query
 internationalization
+get keys only when possible?
 more caching for speed
 
 PRETTIFYING:
