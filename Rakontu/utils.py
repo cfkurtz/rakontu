@@ -102,43 +102,59 @@ def parseDate(yearString, monthString, dayString):
 			return datetime.now(tz=pytz.utc)
 	return datetime.now(tz=pytz.utc)
 
-def GenerateQuestions(fileName, community=None):
+def GenerateQuestions(fileName, community=None, communityType="ALL"):
 	if not community:
 		db.delete(Question.all().filter("community = ", None).fetch(FETCH_NUMBER))
 	file = open(fileName)
 	questionStrings = csv.reader(file)
+	questionsToPut = []
 	for row in questionStrings:
-		if len(row) >= 3 and row[0][0] != ";":
-			try:
-				minValue = int(row[6])
-			except:
-				minValue = DEFAULT_QUESTION_VALUE_MIN
-			try:
-				maxValue = int(row[7])
-			except:
-				maxValue = DEFAULT_QUESTION_VALUE_MAX
-			logging.info(row[1])
-			question = Question(
-							   refersTo=row[0],
-							   name=row[1],
-							   text=row[2],
-							   type=row[3],
-							   choices=row[4].split(", "),
-							   multiple=row[5] == "yes",
-							   minIfValue=minValue,
-							   maxIfValue=maxValue,
-							   help=row[8],
-							   useHelp=row[9],
-							   community=community,
-							   )
-			question.put()
+		if row[0] and row[1] and row[0][0] != ";":
+			if communityType != "ALL":
+				if row[8]: 
+					typesOfCommunity = [x.strip() for x in row[8].split(",")]
+				else:
+					typesOfCommunity = COMMUNITY_TYPES[:-1] # if no entry interpret as all except custom
+				logging.info(typesOfCommunity)
+			if communityType == "ALL" or communityType in typesOfCommunity:
+				refersTo = [x.strip() for x in row[0].split(",")]
+				for reference in refersTo:
+					name = row[1]
+					text = row[2]
+					type = row[3]
+					choices = []
+					minValue = DEFAULT_QUESTION_VALUE_MIN
+					maxValue = DEFAULT_QUESTION_VALUE_MAX
+					responseIfBoolean = DEFAULT_QUESTION_BOOLEAN_RESPONSE
+					if type == "ordinal" or type == "nominal":
+						choices = [x.strip() for x in row[4].split(",")]
+					elif type == "value":
+						minAndMax = row[4].split("-")
+						try:
+							minValue = int(minAndMax[0])
+						except:
+							pass
+						try:
+							maxValue = int(minAndMax[1])
+						except:
+							pass
+					elif type == "boolean":
+						responseIfBoolean = row[4]
+					multiple = row[5] == "yes"
+					help = row[6]
+					useHelp=row[7]
+					typesOfCommunity = [x.strip() for x in row[8].split(",")]
+					question = Question(refersTo=reference, name=name, text=text, type=type, choices=choices, multiple=multiple,
+									minIfValue=minValue, maxIfValue=maxValue, help=help, useHelp=useHelp, community=community)
+					questionsToPut.append(question)
+	db.put(questionsToPut)
 	file.close()
 
 def GenerateSampleQuestions():
 	GenerateQuestions('sample_questions.csv')
 	
-def GenerateDefaultQuestionsForCommunity(community):
-	GenerateQuestions('default_questions.csv', community)
+def GenerateDefaultQuestionsForCommunity(community, type):
+	GenerateQuestions('default_questions.csv', community, type)
 	
 def GenerateDefaultCharactersForCommunity(community):
 	file = open('default_characters.csv')

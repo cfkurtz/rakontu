@@ -57,26 +57,6 @@ def makeRange(numberString):
 def makeRangeFromListLength(list):
 	return range(len(list))
 
-def makeRangeOfFirstHalf(numberString):
-	result = []
-	try:
-		number = int(numberString)
-	except:
-		return result
-	for i in range(number // 2):
-		result.append(i)
-	return result
-
-def makeRangeOfSecondHalf(numberString):
-	result = []
-	try:
-		number = int(numberString)
-	except:
-		return result
-	for i in range(number // 2, number):
-		result.append(i)
-	return result
-
 def add(numberString, addString):
 	try:
 		number = int(numberString)
@@ -84,6 +64,9 @@ def add(numberString, addString):
 		return str(number + addNumber)
 	except:
 		return numberString
+	
+def dividesBy(value, divideBy):
+	return value != 0 and value % divideBy == 0
 	
 def timeZone(time, zoneName):
 	if time:
@@ -183,8 +166,6 @@ register.filter(listLookup)
 register.filter(dictLookup)
 register.filter(makeRange)
 register.filter(makeRangeFromListLength)
-register.filter(makeRangeOfFirstHalf)
-register.filter(makeRangeOfSecondHalf)
 register.filter(timeZone)
 register.filter(notNone)
 register.filter(orNbsp)
@@ -197,6 +178,7 @@ register.filter(caution)
 register.filter(upTo)
 register.filter(yourOrThis)
 register.filter(youOrThis)
+register.filter(dividesBy)
 register.filter(add)
 register.filter(length)
 register.filter(toString)

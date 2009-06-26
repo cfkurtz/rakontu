@@ -46,5 +46,5 @@
 "tip","addPatternLinkCommentsLater","You can (and should) add a comment for each link, but you have to do it after the search filter is added initially. (The reason for this is that it reduces the amount of space needed to show a large number of filters.)"
 "tip","addCollageLinkCommentsLater","You can (and should) add a comment for each link, but you have to do it after the story is added initially. (The reason for this is that it reduces the amount of space needed to show a large number of stories.)"
 "info","entryCSVImportFormat","The format to import entries via CSV is nickname, date (YYYY-MM-DD), type (story,invitation,collage,pattern,resource), title, text - one per line. You can't enter character attributions, comments, tags or answers using CSV; it's just for 'plain' entries."
-"info","aboutCharacters","Community characters are fictional names you can 'take on' when you tell a story, make a comment, and so on, if you don't want to say it as yourself."
-,,"    "
+"info","aboutCharacters","Community characters like 'Little Bird' are fictional names you can 'take on' when you tell a story, make a comment, and so on, if you don't want to say it as yourself."
+"tip","toGiveNoAnswerLeaveQuestionBlank","If you don't want to answer a question, just leave it blank."

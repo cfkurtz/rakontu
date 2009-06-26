@@ -16,6 +16,7 @@ class CreateCommunityPage(webapp.RequestHandler):
 		template_values = GetStandardTemplateDictionaryAndAddMore({
 						   'title': "Create community",
 						   'title_extra': None,
+						   'community_types': COMMUNITY_TYPES,
 						   })
 		path = os.path.join(os.path.dirname(__file__), 'templates/createCommunity.html')
 		self.response.out.write(template.render(path, template_values))
@@ -25,8 +26,11 @@ class CreateCommunityPage(webapp.RequestHandler):
 		user = users.get_current_user()
 		community = Community(name=htmlEscape(self.request.get('name')))
 		community.initializeFormattedTexts()
+		communityType = self.request.get("type")
+		community.type = communityType
 		community.put()
-		GenerateDefaultQuestionsForCommunity(community)
+		if communityType != COMMUNITY_TYPES[-1]:
+			GenerateDefaultQuestionsForCommunity(community, communityType)
 		GenerateDefaultCharactersForCommunity(community)
 		member = Member(
 			googleAccountID=user.user_id(),
@@ -718,7 +722,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					if self.request.get("typeIfRequest") in REQUEST_TYPES:
 						annotation.typeIfRequest = self.request.get("typeIfRequest")
 					else:
-						annotation.typeIfRequest = REQUEST_TYPES[len(REQUEST_TYPES) - 1]
+						annotation.typeIfRequest = REQUEST_TYPES[-1]
 				elif type == "nudge":
 					oldTotalNudgePointsInThisNudge = annotation.totalNudgePointsAbsolute()
 					nudgeValuesTheyWantToSet = []

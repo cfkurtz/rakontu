@@ -37,6 +37,14 @@ DEFAULT_TEXT_FORMAT = u"plain text"
 # COMMUNITY
 # ============================================================================================ 
 
+# Community types. These affect only which default questions (in default_questions.csv) are
+# loaded when the community is created. The community creator chooses one of these when they
+# create the community. This does get saved in the community object in case of need later.
+# The LAST of these choices must always be a custom choice where NO default questions are added.
+# If you want to remove this choice during community creation, reduce this list to only the last item
+# and the drop-down box won't appear.
+COMMUNITY_TYPES = ["neighborhood", "interest group", "work group", "family", "custom (I will choose the questions myself)"]
+
 DEFAULT_COMMUNITY_DESCRIPTION = \
 u"""
 This is a group of people who will come together to tell, keep and use their combined stories.

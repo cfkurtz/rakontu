@@ -1,23 +1,56 @@
-"; refersTo","name","text","type","choices","multiple","minValue","maxValue","help","useHelp"
-"member","Age","How old are you?","ordinal","20 or younger, 21-40, 41-60, 61 or over, I'd rather not say",,,,"Please choose an age range.","Connecting which stories are told by people of what ages can be a useful way to look at stories."
-"member","Gender","What is your gender?","nominal","male, female, I'd rather not say",,,,"Enter any sort of location you like, specific or vague.","This question is most useful when your community is geographic."
-"member","How feel about community","How do you feel about this community?","nominal","it's great!, it's okay, I don't understand it, I don't have time for it, pretty silly if you ask me, I don't like it, I'd rather not say","yes",,,"Describe how you feel about this place.","Connecting which stories are told by people of what ages can be a useful way to look at stories."
-"member","Why joined","Why did you join this community?","nominal","somebody asked me to, I wanted to, I started it, I heard about it, I'd rather not say","yes",,,,
-"story","How feel about","How do you feel about this story?","ordinal","great, good, okay, not so great, bad, awful, I'd rather not say","yes",,,"What was your reaction when you read the story?","This is a very useful question and should almost always be included."
-"story","When happened","When did this story happen?","ordinal","today, within the past month, within a few months, within the last year, within the last two years, within the last five years, I'm not sure, I'd rather not say",,,,,
-"story","Intensity","How emotionally intense would you say this story is?","ordinal","extremely, very, moderately, not much, not at all, I'd rather not say",,,,,
-"story","Reason","Why do you think this story was told?","nominal","to inform, to persuade, to attack, to defend, to entertain, to educate, to reminisce, to help, I'd rather not say","yes",,,,
-"pattern","Observations","What pattern do you see?","text",,,,,"Please describe what is noteworthy, confining yourself to facts that anyone could agree on.",
-"pattern","Interpretations","What do you think this pattern means?","text",,,,,"Venture an opinion on why the pattern appears the way it does.",
-"pattern","Implications","What do you think should be done about this pattern?","text",,,,,"If this pattern represents a problem, what can be done about it? If it represents and opportunity, what can be done to benefit from it?",
-"collage","Why built","Why was this collage built?t","text",,,,,"Give viewers some idea of the collage's purpose.",
-"collage","Useful to whom","To whom do you think this collage will be useful?","text",,,,,"Which of these types of collage best describes this one?",
-"invitation","Why asked","Why was this invitation created?","text",,,,,"Please describe why you think this invitation's creator (yourself or someone else) asked people talk about this.",
-"invitation","Reference","Is this invitation in reference to an event, person, thing, what?","text",,,,,"Is there anything this invitation asks about in particular?",
-"resource","Why added","Why was this resource added to the community? What is its value?","text",,,,,"Give your opinion about the reasons behind this resource being added.",
-"resource","Source","Where did this resource come from?","text",,,,,"List the resource's source.",
-"; NOTE: it's a good idea ","to use the same questions ","for members and characters (even if you add more for characters) ","because"," then people can search on both.",,,,,
-"character","Age","How old are you?","ordinal","20 or younger, 21-40, 41-60, 61 or over, I'd rather not say",,,,"Please choose an age range.","Connecting which stories are told by people of what ages can be a useful way to look at stories."
-"character","Gender","What is your gender?","nominal","male, female, I'd rather not say",,,,"Enter any sort of location you like, specific or vague.","This question is most useful when your community is geographic."
-"character","How feel about community","How do you feel about this community?","nominal","it's great!, it's okay, I don't understand it, I don't have time for it, pretty silly if you ask me, I don't like it, I'd rather not say","yes",,,"Describe how you feel about this place.","Connecting which stories are told by people of what ages can be a useful way to look at stories."
-"character","Why joined","Why did you join this community?","nominal","somebody asked me to, I wanted to, I started it, I heard about it, I'd rather not say","yes",,,,
+"; refersTo","name","text","type","choices or min-max or boolean ""yes"" text","multiple","help","useHelp","use for communities of type(s)"
+"; ALL COMMUNITIES EXCEPT WORKGROUP",,,,,,,,
+"member, character","Age","How old are you?","ordinal","20 or younger, 21-40, 41-60, 61-80, 80 or over","no",,,"neighborhood, interest group, family"
+"member","Gender","What is your gender?","nominal","male, female","no",,,"neighborhood, interest group, family"
+,,,,,,,,
+"; NEIGHBORHOOD",,,,,,,,
+"member, character","How long lived here","How long have you lived in this community?","ordinal","6 months or less, 6 months to a year, 1 to 2 years, 2 to 5 years, 5 to 10 years, 10 to 20 years, 20 to 30 years, more than 30 years","no",,,"neighborhood"
+"member","Where live","Where do you live?","text",,,"Enter any sort of location you like, specific or vague.",,"neighborhood"
+"member","Community groups","What community groups do you belong to?","text",,,,,"neighborhood"
+"member, character","Feel about community","How do you feel about this community?","ordinal","great, good, okay, not so great, bad, awful","no",,,"neighborhood"
+,,,,,,,,
+"; INTEREST GROUP",,,,,,,,
+"member, character","How interested","How interested would you say you are in this topic?","ordinal","extremely, very, moderately, not much, not at all","no",,,"interest group"
+"member, character","Why interested","What made you want to join this community?","text",,,,,"interest group"
+"member, character","Want to get","What do you want to get out of this community?","text",,,,,"interest group"
+,,,,,,,,
+"; WORKGROUP",,,,,,,,
+"member, character","How long working","How long have you been working in this group?","ordinal","6 months or less, 6 months to a year, 1 to 2 years, 2 to 5 years, 5 to 10 years, 10 to 20 years, 20 to 30 years, more than 30 years","no",,,"work group"
+"member, character","Position","What is your position in this work group?","text",,,,,"work group"
+"member, character","Type of work","What sorts of work do you do in the group?","text",,,,,"work group"
+,,,,,,,,
+"; FAMILY",,,,,,,,
+"member","Parents","Who are your parents?","text",,,,,"family"
+"member","Grandparents","Who are your grandparents?","text",,,,,"family"
+"member, character","Talk to","Who would you say you talk to most often?","text",,,,,"family"
+"member, character","Children","How many children do you have, if any?","ordinal","none, one, two, three, four, five, six, seven, eight, nine, ten, more than ten","no",,,"family"
+"member","Live closest to","Who do you live the closest to?","text",,,,,"family"
+"member, character","Where live","Where do you live?","text",,,"Enter any sort of location you like, specific or vague.",,"family"
+,,,,,,,,
+"; ALL ENTRIES",,,,,,,,
+"story, pattern, collage, invitation, resource","How feel about","How does this make you feel?","ordinal","great, good, okay, not so great, bad, awful","no",,,
+"story, pattern, collage, invitation, resource","Reason","Why do you think this entry was contributed?","nominal","to inform, to persuade, to praise, to criticize, to entertain, to reminisce, for a reason not listed here","yes",,,
+"story, pattern, collage, invitation, resource","Intensity","What would you say is the emotional intensity of this entry?","ordinal","very high, high, moderate, low, non-existent","no",,,
+,,,,,,,,
+"; STORIES",,,,,,,,
+"story","When happened","When did this story happen?","ordinal","today, within the past month, within a few months, within the last year, within the last two years, within the last five years, I'm not sure","no",,,
+"story","Where came from","Where do you think this story came from?","nominal","first-hand, second-hand, third-hand, rumor, I'm not sure","yes",,,
+"story","Will remember","How long do you think you will remember the events that happened in this story?","ordinal","for as long as I live, for a good long time, for a while but it will fade, not long, what story?","no",,,
+"story","Common","How common would you say the events in this story are?","ordinal","extremely, very, moderately, not much, not at all","no",,,
+,,,,,,,,
+"; PATTERNS",,,,,,,,
+"pattern","Observations","What pattern do you see?","text",,,"Please describe what is noteworthy, confining yourself to facts that anyone could agree on.",,
+"pattern","Interpretations","What do you think this pattern means?","text",,,"Venture an opinion on why the pattern appears the way it does.",,
+"pattern","Implications","What do you think should be done about this pattern?","text",,,"If this pattern represents a problem, what can be done about it? If it represents and opportunity, what can be done to benefit from it?",,
+,,,,,,,,
+"; COLLAGES",,,,,,,,
+"collage","Useful to","To whom do you think this collage will be useful?","text",,,,,
+"collage","Refers to","Is this collage in reference to an event, person, place, or thing?","text",,,"Is there anything this collage is about in particular?",,
+,,,,,,,,
+"; INVITATIONS",,,,,,,,
+"invitation","Refers to","Is this invitation in reference to an event, person, place, or thing?","text",,,"Is there anything this invitation asks about in particular?",,
+"invitation","Who should respond","Who in particular should respond to this invitation?","text",,,"Is there any group of people who would best be able to respond to this invitation?",,
+,,,,,,,,
+"; RESOURCES",,,,,,,,
+"resource","Source","Where did this resource come from?","text",,,,,
+"resource","Further info","Where should people look if they need more information related to this resource?","text",,,,,

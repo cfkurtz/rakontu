@@ -2,7 +2,7 @@ Things to do before v0.1 is complete
 
 ===== RIGHT NOW:
 
-backup/restore (to SQL)
+backup/restore (to SQL) - backup working, restore not so much
 
 PRESENTATION !!
 
@@ -27,6 +27,7 @@ more than 1000 in a query
 internationalization
 get keys only when possible?
 more caching for speed
+look at all puts to see if they can be better lumped together
 
 PRETTIFYING:
 

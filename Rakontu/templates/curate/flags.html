@@ -19,7 +19,7 @@
 			{% if entries %}
 				<fieldset>
 		      	<table border="1" cellpadding="4" cellspacing="0">
-		      	<tr><th>Unflag? {{"unflag_item"|tip}}</th><th>Entry</th><th>Type</th><th>Text (first part)</th><th>By</th><th>Comment</th>
+		      	<tr><th>Unflag? {{"unflag_item"|tip}}</th><th>Entry</th><th>Type</th><th>Linked to</th><th>Text (first part)</th><th>By</th><th>Comment</th>
 	      		{% if current_member.isManagerOrOwner %} 
 	      			<th>Remove?{{"remove_flagged_item"|caution}}</th> 
 	      		{% else %}  
@@ -34,6 +34,11 @@
 	  				</td>	  				
 	  				<td><a href="/visit/read?{{entry.key}}">{{entry.title}}</a></td>
 	  				<td>{{entry.type}}</td>
+	  				<td>
+	  				{% for link in entry.getIncomingLinks %}
+	  					<p>{{link.linkStringWithFromItem}}</p>
+	  				{% endfor %}&nbsp;
+	  				</td>
 	  				<td>{{entry.text_formatted|upTo:100|orNbsp}}</td>
 	  				<td>
 						{% if entry.attributedToMember %}

@@ -1,6 +1,7 @@
 <html>
 	<head>
 		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+		<title>Create a new Rakontu community</title>
 	</head>
 	<body>
 	
@@ -13,6 +14,14 @@
 			<input type="text" name="name" value="" size="40" maxlength="{{maxlength_name}}"/>
 			<p><i>You, {{ current_user.nickname }}, will be the community's first <b>member</b>. You will also be an <b>owner</b>
 			of the community, which means you can add more members and change settings.</i></p>
+			<p>Which of these types best represents the group of people who will use the community?
+			<i>This will determine which questions are asked about stories, though you can change them later.
+			If you don't want to start with any questions, choose the custom option.</i></p>
+			<select name="type">
+				{% for type in community_types %}
+					<option value="{{type}}">{{type}}</option>
+				{% endfor %}
+			</select>
 			<p>Please choose a <b>nickname</b> to represent yourself in the community, either your real name or a "screen name."
 			<i>You can change your nickname later.</i></p>
 			<div><input type="text" name="nickname" value="" size="30" maxlength="{{maxlength_name}}"/></div>

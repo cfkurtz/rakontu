@@ -1,6 +1,6 @@
 		<h3>
 			{% ifequal refer_type "member" %}
-				Please answer these questions about yourself.
+				Please answer these questions about yourself. {{"toGiveNoAnswerLeaveQuestionBlank"|tip}}
 			{% else %}
 				{% if entry %}
 					Answers to questions about this {{ refer_type }}
@@ -32,19 +32,23 @@
 			
 			{% if question.isOrdinalOrNominal %}
 				{% if question.multiple %}
-					{% for choice in question.choices %}
-						{% if choice|slugify %}
-							&nbsp; &nbsp; <input type="checkbox" name="{{question.key}}|{{choice}}" value="yes" id="{{question.key}}|{{choice}}" 
+					{% for i in question.choices|makeRangeFromListLength %}
+						{% if question.choices|listLookup:i|slugify %}
+							{% if i|dividesBy:5 %}
+								<br/>
+							{% endif %}
+							&nbsp; &nbsp; <input type="checkbox" name="{{question.key}}|{{question.choices|listLookup:i}}" 
+							value="yes" id="{{question.key}}|{{question.choices|listLookup:i}}" 
 							{% for answer in answers %}
 								{% ifequal answer.questionKey question.key %}
 									{% for answerText in answer.answerIfMultiple %}
-										{% ifequal answerText choice %}
+										{% ifequal answerText question.choices|listLookup:i %}
 											checked="checked"
 										{% endifequal %}
 									{% endfor %}
 								{% endifequal %}
 							{% endfor %}
-							/><label for="{{question.key}}|{{choice}}">{{choice}}</label>
+							/><label for="{{question.key}}|{{question.choices|listLookup:i}}">{{question.choices|listLookup:i}}</label>
 						{% endif %}
 					{% endfor %}
 				{% else %}

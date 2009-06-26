@@ -112,6 +112,7 @@ class Community(db.Model):
 # ============================================================================================
 
 	name = db.StringProperty(required=True) # appears on all pages at top
+	type = db.StringProperty(choices=COMMUNITY_TYPES, default=COMMUNITY_TYPES[-1]) # only used to determine questions at front, but may be useful later so saving
 	tagline = db.StringProperty(default="", indexed=False) # appears under name, optional
 	image = db.BlobProperty(default=None) # appears on all pages, should be small (100x60 is best)
 	contactEmail = db.StringProperty(default=DEFAULT_CONTACT_EMAIL) # sender address for emails sent from site
@@ -836,7 +837,7 @@ class Question(db.Model):
 	
 	def keyAsString(self):
 		return "%s" % self.key()
-
+	
 # ============================================================================================
 # ============================================================================================
 class Member(db.Model):

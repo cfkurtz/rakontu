@@ -1,22 +1,86 @@
-"; refersTo","name","text","type","choices","multiple","minValue","maxValue","help","useHelp"
-"member","Age","How old are you?","ordinal","20 or younger, 21-40, 41-60, 61 or over, I'd rather not say",,,,"Please choose an age range.","Connecting which stories are told by people of what ages can be a useful way to look at stories."
-"member","How feel about community","How do you feel about our community?","nominal","I love it!, It could be better., It's as good a place as any, I hate it here.","yes",,,"Describe how you feel about this place.","Connecting which stories are told by people of what ages can be a useful way to look at stories."
-"member","Location","Where do you live?","text",,,,,"Enter any sort of location you like, specific or vague.","This question is most useful when your community is geographic."
-"member","Full time","Do you live here all the time?","boolean",,,,,"Some people just live here in the summers.","This question is useful when your community fluctuates."
-"member","How long lived here","How many years have you been here?","value",,,0,100,"If less than one, just put one.","This question is most useful when your community is geographic."
-"story","Where took place","Where did the events of this story take place?","text",,,,,"Describe as much as you like about the location.","This question is most useful when your community is geographic."
-"story","How feel about","How do you feel about this story?","nominal","great, okay, bad","yes",,,"What was your reaction when you read the story?","This is a very useful question and should almost always be included."
-"pattern","Observations","What pattern do you see?","text",,,,,"Please describe what is noteworthy, confining yourself to facts that anyone could agree on.",
-"pattern","Interpretations","What do you think this pattern means?","text",,,,,"Venture an opinion on why the pattern appears the way it does.",
-"pattern","Implications","What do you think should be done about this pattern?","text",,,,,"If this pattern represents a problem, what can be done about it? If it represents and opportunity, what can be done to benefit from it?",
-"collage","Why built","Why was this collage built?t","text",,,,,"Give viewers some idea of the collage's purpose.",
-"collage","Type","What sort of collage is this?","nominal","top ten list, twice-told stories, history, emergent construct",,,,"Which of these types of collage best describes this one?",
-"invitation","Why asked","Why was this invitation created?","text",,,,,"Please describe why you think this invitation's creator (yourself or someone else) asked people talk about this.",
-"invitation","Reference","Is this invitation in reference to an event, person, thing, what?","text",,,,,"Is there anything this invitation asks about in particular?",
-"resource","Why added","Why was this resource added to the community? What is its value?","text",,,,,"Give your opinion about the reasons behind this resource being added.",
-"resource","Source","Where did this resource come from?","text",,,,,"List the resource's source.",
-"character","Age","How old are you?","ordinal","20 or younger, 21-40, 41-60, 61 or over, I'd rather not say",,,,"Please choose an age range.","Connecting which stories are told by people of what ages can be a useful way to look at stories."
-"character","How feel about community","How do you feel about our community?","nominal","I love it!, It could be better., It's as good a place as any, I hate it here.","yes",,,"Describe how you feel about this place.","Connecting which stories are told by people of what ages can be a useful way to look at stories."
-"character","Location","Where do you live?","text",,,,,"Enter any sort of location you like, specific or vague.","This question is most useful when your community is geographic."
-"character","Full time","Do you live here all the time?","boolean",,,,,"Some people just live here in the summers.","This question is useful when your community fluctuates."
-"character","How long lived here","How many years have you been here?","value",,,0,100,"If less than one, just put one.","This question is most useful when your community is geographic."
+"; refersTo","name","text","type","choices or min-max or boolean ""yes"" text","multiple","help","useHelp","use for communities of type(s)"
+"; ALL COMMUNITIES",,,,,,,,
+"member, character","Generation","Which generation do you fall into?","ordinal","Gen-Y, Gen-X, Baby boomers, Greatest Generation, Even older than that!","no",,,
+,,,,,,,,
+,,,,,,,,
+"; NEIGHBORHOOD",,,,,,,,
+"member, character","Know about history","How much do you know about the history of this area?","ordinal","everything, an awful lot, pretty much, some, not much, nothing at all","no",,,"neighborhood"
+"member, character","Living here ranks","How would you say that living in our community ranks among places you have lived?","ordinal","the highest, very high, high, medium, low, very low, the absolute bottom","no",,,"neighborhood"
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+"; INTEREST GROUP",,,,,,,,
+"member, character","Type of interest","Is this topic of personal, professional or general interest?","nominal","personal, professional, general","yes",,,"interest group"
+"member, character","Feel about future","How do you feel about the future with regards to the topic of this group?","ordinal","great, good, okay, not so great, bad, awful","yes",,,"interest group"
+"member, character","Powers that be","Do you think the powers that be in relation to this topic are doing a good job?","ordinal","great, good, okay, not so great, bad, awful","yes",,,"interest group"
+"member, character","Occupation","What is your occupation?","text",,,,,"interest group"
+,,,,,,,,
+"; WORKGROUP",,,,,,,,
+"member, character","Effectiveness","How would you characterize the effectiveness of this work group?","ordinal","great, good, okay, not so great, bad, awful","no",,,"work group"
+"member, character","Support","Do you feel like you have enough support to do the work you are asked to do?","ordinal","extremely, very, moderately, not much, not at all","no",,,"work group"
+"member, character","Motivated","Do you feel motivated in your work?","ordinal","extremely, very, moderately, not much, not at all","no",,,"work group"
+"member, character","Challenged","Does your work challenge you?","ordinal","extremely, very, moderately, not much, not at all","no",,,"work group"
+"member, character","Proud","How proud would you say you are of the work that gets done in this group?","ordinal","extremely, very, moderately, not much, not at all","no",,,"work group"
+"member, character","Full or part time","Do you work full or part time?","ordinal","full, part","no",,,"work group"
+,,,,,,,,
+"; FAMILY",,,,,,,,
+"member, character","Closeness","Compared to all of the families you have known, how would you characterize the closeness in this family?","ordinal","great, good, okay, not so great, bad, awful","no",,,"family"
+"member, character","Openness","Compared to all of the families you have known, how would you characterize the openness and honesty in this family?","ordinal","great, good, okay, not so great, bad, awful","no",,,"family"
+"member, character","Craziness","What is your favorite crazy thing about this family? What do we do that nobody else does?","text",,,,,
+"member, character","Frustration","What drives you crazy about this family? What do we do that bothers you?","text",,,,,
+"member, character","Favorite characteristic","What is your favorite thing about how the members of this family relate to each other?","text",,,,,
+,,,,,,,,
+,,,,,,,,
+"; ALL ENTRIES EXCEPT RESOURCES",,,,,,,,
+"story, pattern, collage, invitation","Needs to see","Is there anyone who you think needs to see this?","text",,,,,
+"story, pattern, collage, invitation","Should not see","Is there anyone who you think should not see this?","text",,,,,
+"story, pattern, collage, invitation","Right about community","What does this entry say about what is right about this community?","text",,,,,
+"story, pattern, collage, invitation","Wrong with community","What does this entry say about what is wrong with this community?","text",,,,,
+"story, pattern, collage, invitation","Together or apart","What does this entry say about how people in this community come together or fall apart?","text",,,,,
+"story, pattern, collage, invitation","Power and status","What does this entry say about the distribution of power and status in this community?","text",,,,,
+"story, pattern, collage, invitation","Rules","Does this entry revea; any unwritten community rules?","text",,,,,
+,,,,,,,,
+"; STORIES",,,,,,,,
+"story","Fictional","Is this story a deliberate fiction?","boolean","Yes, it didn't happen",,,,
+"story","Main character","Who would you say is the main character in this story?","text",,,,,
+"story","Multiple main character","Is the main character in this story one person or more than one?","ordinal","one person, more than one person",,,,
+"story","What changed","What changed in this story?","text",,,,,
+"story","Conflicts","What conflicts do you see in this story?","text",,,,,
+"story","Competition","Are there any instances in this story of people competing?","text",,,,,
+"story","Collaboration","Are there any instances in this story of people collaborating?","text",,,,,
+"story","Coming to aid","Are there any instances in this story of people coming to someone else's aid?","text",,,,,
+"story","Turned out","Did the story turn out well or poorly?","text",,,,,
+"story","Risks or challenges","Are there any important risks or challenges faced by characters in this story?","text",,,,,
+"story","People want","What would you say the people in this story want?","nominal","control, power, help, to be heard, affection, respect, belonging, to be left alone, nothing at all","yes",,,
+"story","Surprising","What in this story surprised you?","text",,,,,
+"story","Proverbs","Does this story remind you of any proverbs or sayings?","text",,,,,
+"story","Identify with","Is there anyone in this story you identify with?","text",,,,,
+"story","Can't identify with","Is there anyone in this story you can't identify with? ","text",,,,,
+"story","Contradict","Does this story contradict any other stories you've heard?","text",,,,,
+"story","Heard before","Have you heard stories like this one before?","ordinal","all the time, once in a while, rarely, never","no",,,
+"story","Learned","What did you learn from this story?","text",,,,,
+"story","Would fix story","What would fix the problems that appear in this story?","text",,,,,
+"story","Story would fix","What problems would this story fix?","text",,,,,
+"story","Everyday","Would you characterize the story as about everyday things or about something more important than that?","nominal","it's about everyday things, it's about more important things","yes",,,
+"story","Can tell","Who can tell this story? ","text",,,,,
+"story","Can't tell","Who can't tell this story?","text",,,,,
+"story","How widely can be told","How widely can this story be told? ","ordinal","to anyone, only to trusted people, to hardly anyone","no",,,
+"story","If told in public","If this story was told in public, say in a newspaper, would the result be good or bad for the community?","ordinal","great, good, okay, not so great, bad, awful",,,,
+"story","Changed over time","If you have heard this story before (or one like it), how has it changed over time? How has it changed when different people have told it (or ones like it)?","text",,,,,
+,,,,,,,,
+"; PATTERNS",,,,,,,,
+"pattern",,,,,,,,
+"pattern",,,,,,,,
+"pattern",,,,,,,,
+,,,,,,,,
+"; COLLAGES",,,,,,,,
+"collage",,,,,,,,
+"collage",,,,,,,,
+,,,,,,,,
+"; INVITATIONS",,,,,,,,
+"invitation",,,,,,,,
+"invitation",,,,,,,,
+,,,,,,,,
+"; RESOURCES",,,,,,,,
+"resource",,,,,,,,
+"resource",,,,,,,,
