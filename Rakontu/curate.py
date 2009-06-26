@@ -38,6 +38,7 @@ class CurateFlagsPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Review flags", 
 						   	   	   'title_extra': None, 
+						   	   	   'community': community, 
 						   	   	   'current_member': member,
 								   'entries': entries,
 								   'annotations': annotations,

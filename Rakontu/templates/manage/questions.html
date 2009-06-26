@@ -21,14 +21,13 @@
 	      		<th>Minimum and maximum<br><i>if value</i></th>
 	      		<th>Response<br><i>if boolean</i>{{"response_if_boolean"|info}}</th>
 	      		<th>Choices<br><i>if ordinal or nominal</i></i></th>
-	      		<th>Multiple answers allowed?<br><i>if ordinal or nominal</i></th>
 	      		<th>Inactivate?</th>
 	      		</tr>
 	      		{% for question in questions %}
 	      			<tr>
-	      			<td valign="top">Name<div><input type="text" name="name|{{question.key}}" size="20" value="{{question.name}}" maxlength="{{maxlength_name}}"></div>
-	      				<br>Question<div><input type="text" name="text|{{question.key}}" size="20" value="{{question.text}}" maxlength="{{maxlength_subject_or_comment}}"></div>
-	      				<br>Explanation<div><input type="text" name="help|{{question.key}}" size="20" value="{{question.help}}" maxlength="{{maxlength_subject_or_comment}}"></div></td>
+	      			<td valign="top">Name<div><input type="text" name="name|{{question.key}}" size="40" value="{{question.name}}" maxlength="{{maxlength_name}}"></div>
+	      				<br>Question<div><input type="text" name="text|{{question.key}}" size="40" value="{{question.text}}" maxlength="{{maxlength_subject_or_comment}}"></div>
+	      				<br>Explanation<div><input type="text" name="help|{{question.key}}" size="40" value="{{question.help}}" maxlength="{{maxlength_subject_or_comment}}"></div></td>
 	      			<td valign="top"><div><select name="type|{{question.key}}">
 	      				{% for type in question_types %}
 	      			 		<option value="{{type}}"
@@ -44,14 +43,14 @@
 	      			 <td valign="top" align="center"><div><input type="text" name="responseIfBoolean|{{question.key}}" size="10" value="{{question.responseIfBoolean}}" maxlength="{{maxlength_name}}"></div></td>
 	      			 <td valign="top" align="center">
 	      			 	{% for i in max_num_choices|makeRange %}
-	      			 		<input type="text" name="choice{{i}}|{{question.key}}" size="8" value="{{question.choices|listLookup:i|orNothing}}" maxlength="{{maxlength_tag_or_choice}}"><br/>
+	      			 		<input type="text" name="choice{{i}}|{{question.key}}" size="16" value="{{question.choices|listLookup:i|orNothing}}" maxlength="{{maxlength_tag_or_choice}}"><br/>
 	      			 	{% endfor %}
-	      			 	</td>
-	     			 <td valign="top" align="center"><label><input type="checkbox" name="multiple|{{question.key}}" value="multiple|{{question.key}}"
+	     			 <label><input type="checkbox" name="multiple|{{question.key}}" value="multiple|{{question.key}}"
 	     			 	{% if question.multiple %}
 	     			 		checked="checked"
 	     			 	{% endif %}
-	     			 	>Multiple</label></div></td>
+	     			 	> Multiple answers allowed</label></div>
+	     			 </td>
 	      			 <td valign="top" align="center"><input type="checkbox" name="inactivate|{{question.key}}" />Inactivate</td>
 	      				</tr>
 	      		{% endfor %}
@@ -90,8 +89,8 @@
 	      			<td valign="top" width="80"><input type="checkbox" name="copy|{{sys_question.key}}" value="copy|{{sys_question.key}}" id="copy|{{sys_question.key}}">
 	      			<label for="copy|{{sys_question.key}}">Copy</label></td>
 					<td valign="top">
-					The question "{{sys_question.name}}" asks "<b>{{sys_question.text}}</b>"
-					It is a{% ifequal sys_question.type "ordinal" %}n{% endifequal %} <b>{{sys_question.type}}</b> question.
+					<b>{{sys_question.text}}</b> ({{sys_question.name}})
+					is a{% ifequal sys_question.type "ordinal" %}n{% endifequal %} <b>{{sys_question.type}}</b> question.
 					{% ifequal sys_question.type "value" %} 
 						Allowed values are between {{sys_question.minIfValue}} and {{sys_question.maxIfValue}}. 
 					{% endifequal %}
