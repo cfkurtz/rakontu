@@ -579,7 +579,7 @@ class PreviewAnswersPage(webapp.RequestHandler):
 						for answer in answers:
 							answer.draft = False
 							answer.published = datetime.now(tz=pytz.utc)
-							answer.put()
+						db.put(answers)
 						self.redirect("/visit/look")
 
 class EnterAnnotationPage(webapp.RequestHandler):

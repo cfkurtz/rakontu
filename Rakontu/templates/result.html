@@ -65,6 +65,10 @@
 		<p>There are no questions of that type to export.</p>
 	{% endifequal %}
 	
+	{% ifequal message "helpNotFound" %}
+		<p>No help message was found for that item. You may want to let your site administrator know there is a problem.</p>
+	{% endifequal %}
+	
 	</h3>
 	
 	<hr>

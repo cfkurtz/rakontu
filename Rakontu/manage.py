@@ -91,7 +91,6 @@ class ManageCommunityMembersPage(webapp.RequestHandler):
 									okayToSet = True
 							if okayToSet:
 								aMember.governanceType = newType
-								aMember.put()
 					if aMember.isRegularMember():
 						for i in range(3):
 							aMember.helpingRolesAvailable[i] = self.request.get("%sAvailable|%s" % (HELPING_ROLE_TYPES[i], aMember.key())) == "yes"
@@ -382,7 +381,7 @@ class ManageCommunityQuestionsPage(webapp.RequestHandler):
 						question.maxIfValue = oldValue
 					question.responseIfBoolean = self.request.get("responseIfBoolean|%s" % question.key())
 					question.multiple = self.request.get("multiple|%s" % question.key()) == "multiple|%s" % question.key()
-					question.put()
+				db.put(communityQuestionsOfType)
 				for question in communityQuestionsOfType:
 					if self.request.get("inactivate|%s" % question.key()):
 						question.active = False
@@ -471,7 +470,6 @@ class ManageCommunityCharactersPage(webapp.RequestHandler):
 						if not foundCharacter:
 							newCharacter = CommunityCharacter(name=name, community=community)
 							newCharacter.put()
-				community.put()
 				self.redirect('/manage/characters')
 			else:
 				self.redirect("/visit/look")

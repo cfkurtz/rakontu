@@ -1221,4 +1221,25 @@ class ResultFeedbackPage(webapp.RequestHandler):
 		else:
 			self.redirect("/")
 				
-				
+class ContextualHelpPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		if access:
+			lookup = self.request.query_string.strip()
+			help = Help.all().filter('name = ', lookup).get()
+			if help:
+				template_values = GetStandardTemplateDictionaryAndAddMore({
+							   	   'title': "Help on item", 
+						   	   	   'title_extra': None, 
+								   'community': community, 
+								   'help': help,
+								   "linkback": self.request.headers["Referer"],
+								   'current_member': member,
+								   })
+				path = os.path.join(os.path.dirname(__file__), 'templates/help.html')
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect("/result?helpNotFound")
+		else:
+			self.redirect("/")

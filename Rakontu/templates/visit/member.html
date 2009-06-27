@@ -47,7 +47,7 @@
 		
 		{% ifnotequal member.key current_member.key %}
 			{% if member.isGuide or member.acceptsMessages %}
-				<h4>Send this member a message {% if not member.isOnlineMember %} {{"offline_member_gets_messages_through_liaison"|info}} {% endif %}</h4>
+				<h4>Send this member a message {% if not member.isOnlineMember %} {{"messages_to_offline_members"|info}} {% endif %}</h4>
 				<fieldset>
 				<div id="stylized" class="rakontu_form">
 				<form action="/visit/member?{{member.key}}" method="post">

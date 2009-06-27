@@ -16,7 +16,7 @@
 		<fieldset>
 		<p>Name 
 		<input name="searchName" type="text" size="60" maxlength="{{maxlength_name}}" value="{{current_search.name}}">
-		{{"giveFiltersGoodNames"|tip}}
+		{{"filter_names"|tip}}
 		<p>Should this filter be shared?
 		<select name="privateOrSharedSearch">
 			<option value="private"
@@ -30,8 +30,8 @@
 			{% endif %}
 			>Yes, share it</option>
 		</select>
-		{{"privateAndSharedFilters"|info}}
-		<p>Comment {{"filterComment"|tip}}</p>
+		{{"private_versus_shared_filters"|info}}
+		<p>Comment {{"filter_comments"|tip}}</p>
 		<table style="width:100%; border:none">
 		<tr><td class="noborder">
 		<textarea name="comment" rows="4" cols="60">{% if current_search %}{{current_search.comment}}{% endif %}</textarea>
@@ -73,7 +73,7 @@
 				>
 				<label for="{{entry_types|listLookup:i}}">{{entry_types_plural|listLookup:i}}</label>&nbsp; 
 			{% endfor %}
-			{{"filterEntryTypes"|tip}}</p>
+			{{"filter_entry_types"|tip}}</p>
 		<p>&nbsp; &nbsp; with
 		<select name="overall_anyOrAll"
 		{% for choice in any_or_all_choices %}
@@ -125,7 +125,7 @@
 			>
 			<label for="location|{{i}}">{{search_locations|listLookup:i}}</label>&nbsp; &nbsp; 
 		{% endfor %}
-		{{"filterWordLocations"|tip}}</p>
+		{{"filter_word_locations"|tip}}</p>
 		
 		<hr>
 		<p>

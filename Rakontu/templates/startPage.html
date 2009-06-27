@@ -6,6 +6,7 @@
 	<body>
 	<center>
 	<h1>Welcome to Rakontu!</h1>
+	<p>Helping people take good care of their stories.</p>
 	<p><img src="/images/Rakontu.jpg" alt="Rakontu logo" class="bordered"></p>
 	{% if user %}
 		<p>You are logged in to your Google account <b>{{ user.nickname }}</b>. <a href="{{logout_url}}">Log out</a></p>
@@ -32,6 +33,7 @@
 			&nbsp; <input type="submit" name="visitCommunity" value="Join" class="button">
 		{% endif %}
 		<p><input type="submit" name="createCommunity" value="Create a New Rakontu Community" class="button"></p>
+		<p></p>
 		</form>
 		</div>
 		
@@ -53,6 +55,14 @@
 			</form>
 			</div>
 		{% endif %}
+		
+	<p></p>
+	<div class="blurb" style="width:400px;">		
+		<b>What's Rakontu?</b>
+		A Rakontu site is a living-history museum of 
+		collective reminiscence people build together and draw from
+		to remember, understand and resolve.<br/>(If you're wondering: Rakontu is Esperanto for "tell a story.")
+	</div>
 	
 	{% else %}
 		<p>You must be logged in to a Google account to use Rakontu.</p><p><a href="{{login_url}}">Login at Google</a></p>

@@ -13,6 +13,8 @@ from pytz import timezone
 import re
 import csv
 
+VERSION_NUMBER = "0.9"
+
 from site_configuration import *
 
 from google.appengine.ext import db
@@ -1492,8 +1494,7 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	def publish(self):
 		self.draft = False
 		self.published = datetime.now(pytz.utc)
-		self.recordAction("added", self)
-		self.put()
+		self.recordAction("added", self) # does a put
 		self.creator.nudgePoints += self.community.getMemberNudgePointsForEvent("adding %s" % self.type)
 		self.creator.lastEnteredEntry = datetime.now(pytz.utc)
 		self.creator.put()

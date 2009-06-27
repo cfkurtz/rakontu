@@ -14,6 +14,15 @@
 "member, character","Why interested","What made you want to join this community?","text",,,,,"interest group"
 "member, character","Want to get","What do you want to get out of this community?","text",,,,,"interest group"
 ,,,,,,,,
+"; SUPPORT GROUP",,,,,,,,
+"member, character","How long involved","How long have you been involved with this issue?",,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
 "; WORKGROUP",,,,,,,,
 "member, character","How long working","How long have you been working in this group?","ordinal","6 months or less, 6 months to a year, 1 to 2 years, 2 to 5 years, 5 to 10 years, 10 to 20 years, 20 to 30 years, more than 30 years","no",,,"work group"
 "member, character","Position","What is your position in this work group?","text",,,,,"work group"

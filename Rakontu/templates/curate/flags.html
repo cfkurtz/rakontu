@@ -21,7 +21,7 @@
 		      	<table border="1" cellpadding="4" cellspacing="0">
 		      	<tr><th>Unflag? {{"unflag_item"|tip}}</th><th>Entry</th><th>Type</th><th>Linked to</th><th>Text (first part)</th><th>By</th><th>Comment</th>
 	      		{% if current_member.isManagerOrOwner %} 
-	      			<th>Remove?{{"remove_flagged_item"|caution}}</th> 
+	      			<th>Remove?{{"removing_flagged_items"|caution}}</th> 
 	      		{% else %}  
 	      			<th>Notify?</th> 
 	      		{% endif %}
@@ -233,7 +233,7 @@
 			{% if searches %}
 				<fieldset>
 		      	<table border="1" cellpadding="4" cellspacing="0">
-		      	<tr><th>Unflag? {{"unflag_item"|tip}}</th>
+		      	<tr><th>Unflag? {{"unflagging_items"|tip}}</th>
 		      		<th>Name</th>
 		      		<th>Linked to</th>
 		      		<th>Look in</th>
@@ -244,7 +244,7 @@
 		      		<th>Created</th>
 		      	<th>Comment</th>
 	      		{% if current_member.isManagerOrOwner %} 
-	      			<th>Remove?{{"remove_flagged_item"|caution}}</th> 
+	      			<th>Remove?{{"removing_flagged_items"|caution}}</th> 
 	      		{% else %}  
 	      			<th>Notify?</th> 
 	      		{% endif %}

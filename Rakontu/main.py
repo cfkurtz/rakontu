@@ -123,13 +123,15 @@ application = webapp.WSGIApplication(
 									  ('/admin/generateSystemQuestions', GenerateSampleQuestionsPage),
 									  ('/admin/generateHelps', GenerateHelpsPage),
 									  
-									  # general message-to-user page
+									  # message-to-user pages
 									   ('/result', ResultFeedbackPage),
+									   ('/help', ContextualHelpPage),
 									  
 									  # file handlers
 									  ('/img', ImageHandler),
 									  ('/visit/img', ImageHandler),
 									  ('/manage/img', ImageHandler),
+									  ('/attachment', AttachmentHandler),
 									  ('/visit/attachment', AttachmentHandler),
 									  ('/export', ExportHandler),
 									  

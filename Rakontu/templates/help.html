@@ -1,0 +1,28 @@
+<html>
+	{% include "common_head.html" %}
+	<body>
+	{% include "common_menus.html" %}
+	<div id="content">
+		
+	<h3>Help for {{help.name|spacify}}</h3>
+	{% ifequal help.type "info" %}
+		<img src="../images/info.png" alt="help" border="0" valign="center"/>
+	{% else %}
+		{% ifequal help.type "tip" %}
+			<img src="../images/tip.png" alt="help" border="0" valign="center"/>
+		{% else %}
+			<img src="../images/caution.png" alt="help" border="0" valign="center"/>
+		{% endifequal %}
+	{% endifequal %}
+	
+	{{help.text}}</p>
+		
+	
+	<hr>
+	<p>&nbsp; Would you like to <b><a href="{{linkback}}">Go back</a></b> to the page you were on?</p>
+	<p>&nbsp; &nbsp; &nbsp; &nbsp; ... or would you like more <b><a href="/visit/help">Help</a></b>?</p>
+		
+	</div>
+	{% include "common_footer.html" %}
+	</body>
+</html>

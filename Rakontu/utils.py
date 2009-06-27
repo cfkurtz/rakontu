@@ -45,6 +45,7 @@ def htmlEscape(text):
 def GetStandardTemplateDictionaryAndAddMore(newItems):
 	items = {
 		# constants
+	   'version_number': VERSION_NUMBER,
 	   'text_formats': TEXT_FORMATS,
 	   'num_nudge_categories': NUM_NUDGE_CATEGORIES,
 	   'num_tags_in_tag_set': NUM_TAGS_IN_TAG_SET,
@@ -75,7 +76,7 @@ def GenerateHelps():
 	file = open('help.csv')
 	helpStrings = csv.reader(file)
 	for row in helpStrings:
-		if len(row) >= 3 and len(row[0]) > 0 and row[0][0] != ";":
+		if len(row[0]) > 0 and row[0][0] != ";":
 			help = Help(type=row[0].strip(), name=row[1].strip(), text=row[2].strip())
 			help.put()
 	file.close()

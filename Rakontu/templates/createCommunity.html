@@ -5,32 +5,28 @@
 	</head>
 	<body>
 	
-		<center>
-		<table border="0" width="400"><tr><td>
 		<div id="stylized" class="rakontu_form_centered">
 		<form action="/createCommunity" method="post">
+		<table border="0" width="400" class="noborder"><tr><td class="noborder">
 			<h3>You are about to create a new Rakontu community!</h3>
-			<p>Please <b>name</b> the new Rakontu community. <i>You can change the name and add a description later.</i></p>
+			<p>Please name your new community. (You can change the name later.)</p>
 			<input type="text" name="name" value="" size="40" maxlength="{{maxlength_name}}"/>
-			<p><i>You, {{ current_user.nickname }}, will be the community's first <b>member</b>. You will also be an <b>owner</b>
-			of the community, which means you can add more members and change settings.</i></p>
-			<p>Which of these types best represents the group of people who will use the community?
-			<i>This will determine which sorts of questions are asked about stories (you can change them later).
-			If you don't want to start with any questions, choose the custom option.</i></p>
+			
+			<p>Which of these types best represents your group? (This will determine what sorts of questions
+				are asked about people and the stories they tell. You can change the questions later.)</p>
 			<select name="type">
 				{% for type in community_types %}
 					<option value="{{type}}">{{type}}</option>
 				{% endfor %}
 			</select>
-			<p>Please choose a <b>nickname</b> to represent yourself in the community, either your real name or a "screen name."
-			<i>You can change your nickname later.</i></p>
+			
+			<p>Please choose a nickname to represent yourself in the community. (You can change it later.)</p>
 			<div><input type="text" name="nickname" value="" size="30" maxlength="{{maxlength_name}}"/></div>
-			<p></p>
+			<p>&nbsp;</p>
 			<center><input type="submit" value="Create a New Rakontu Community" class="button"></center>
+		</td></tr></table>
 		</form>
 		</div>
-		</td></tr></table>
-		<p><a href="/">Cancel and return to the Rakontu start page</a></p>
-		</center>
+		<center><p><a href="/">Cancel and return to the Rakontu start page</a></p></center>
 	</body>
 </html>

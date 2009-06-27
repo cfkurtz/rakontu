@@ -6,7 +6,7 @@
 	{% if current_member.isManagerOrOwner %}
 		<div id="stylized" class="rakontu_form">
 		<form action="/manage/questions_{{refer_type}}" method="post" enctype="multipart/form-data">
-		<h3>Add New {{refer_type|capfirst}} Questions{{"add_new_questions"|tip}}</h3>
+		<h3>Add New {{refer_type|capfirst}} Questions{{"adding_new_questions"|tip}}</h3>
 		<fieldset>
 		<textarea name="newQuestionNames" rows="6" cols="40"></textarea>
 		</fieldset>
@@ -78,7 +78,7 @@
 		{% endif %}
 
 	    {% if system_questions %}
-			<h3>Copy {{refer_type|capfirst}} Questions from Samples{{"copy_sample_questions"|tip}}</h3>
+			<h3>Copy {{refer_type|capfirst}} Questions from Samples{{"copying_sample_questions"|tip}}</h3>
 			<fieldset>
 	      	<table border="1" cellpadding="4" cellspacing="0">
 	      	<tr>

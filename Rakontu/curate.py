@@ -228,6 +228,6 @@ class CurateTagsPage(webapp.RequestHandler):
 							tagset.tagsIfTagSet.append(self.request.get("tag%s|%s" % (i, tagset.key())))
 						else:
 							tagset.tagsIfTagSet.append("")
-					tagset.put()
+				db.put(tagsets)
 				self.redirect('/curate/tags')
 

@@ -25,7 +25,7 @@
 				<tr><td class="noborder">
 				<textarea name="description" rows="5" cols="60">{{community.description}}</textarea>
 				</td><td class="noborder" width="80">
-				<p>Interpret as{{"interpret_as"|tip}}</p>
+				<p>Interpret as{{"interpreting_texts"|tip}}</p>
 					<select name="text_format">
 					{% for format in text_formats %}
 						<option value="{{format}}" 
@@ -162,11 +162,11 @@
 			
 			<h3>Editing</h3>
 			<fieldset>
-			<p>For which of these types of entry should editing be allowed after publishing?{{"editing_after_publish"|info}}{{"editing_after_publish"|caution}}</p>
+			<p>For which of these types of entry should editing be allowed after publishing?{{"editing_after_publishing"|info}}{{"editing_after_publishing"|caution}}</p>
 			{% for text in editing_includes %}
 				{{ text }}
 			{% endfor %}
-			<p>Should curators who are not managers be able to edit existing tags?{{"can_non_manager_curators_change_tags"|caution}}</p>
+			<p>Should curators who are not managers be able to edit existing tags?{{"allowing_non_manager_curators_to_change_tags"|caution}}</p>
 				<input type="checkbox" name="allowNonManagerCuratorsToEditTags" value="yes" id="allowNonManagerCuratorsToEditTags"
 				{% if community.allowNonManagerCuratorsToEditTags %}
 					checked="checked"
@@ -177,7 +177,7 @@
 			
 			<h3>Activity system</h3>
 			<fieldset>
-			<p>How many activity points are added to an item based on each activity?{{"activity_points"|info}}{{"downdrift_explanation"|tip}}</p>
+			<p>How many activity points are added to an item based on each activity?{{"activity_points"|info}}{{"what_downdrift_is_about"|tip}}</p>
 			<table  border="1" cellpadding="4" cellspacing="0">
 			{% for text in activity_point_includes %}
 				{{ text }}
@@ -190,10 +190,10 @@
 			<p><i></i></p>
 			<p>How many nudge points can be asssigned (maximum) per entry? 
 			<input type="text" name="maxNudgePointsPerEntry" size="4" value="{{community.maxNudgePointsPerEntry}}" maxlength="4"/>
-			{{"community_nudgePoints"|info}} {{"community_nudgePointsPerEntry"|caution}}
+			{{"nudge_points"|info}} {{"nudge_points_per_entry"|caution}}
 			<p>Enter your nudge category names and questions here.{{"nudge_category_names"|caution}}</p>
 			<table  border="1" cellpadding="4" cellspacing="0">
-			<tr><th>Name</th><th>Question {{"nudge_category_question"|tip}}</th></tr>
+			<tr><th>Name</th><th>Question {{"nudge_category_questions"|tip}}</th></tr>
 			{% for i in num_nudge_categories|makeRange %}
 				<tr>
 				<td><input type="text" name="nudgeCategory{{i}}" size="30" value="{{community.nudgeCategories|listLookup:i}}" maxlength="{{maxlength_name}}"/>
@@ -212,7 +212,7 @@
 	      	
 			<h3>Helping Roles</h3>
 			<fieldset>
-			<p><b>Curator read-before text{{"role_readmes"|info}}</b></p>
+			<p><b>Curator read-before text{{"role_read_before_texts"|info}}</b></p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
 				<textarea name="readme0" rows="5" cols="60">{{community.roleReadmes.0}}</textarea>

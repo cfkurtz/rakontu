@@ -114,7 +114,7 @@ def sorted(value):
 def infoTipCaution(value, type):
 	helpText = utils.helpTextLookup(value, type)
 	if helpText:
-		return '<img src="../images/%s.png" alt="help" border="0" valign="center" title="%s"/>' % (type, helpText)
+		return '<a href="/help?%s"><img src="../images/%s.png" alt="help" border="0" valign="center" title="%s"/></a>' % (value, type, helpText)
 	else:
 		return ""
 
@@ -161,6 +161,9 @@ def equalTest(value, otherValue):
 	if value == otherValue:
 		return True
 	return False
+
+def spacify(value):
+	return value.replace("_", " ").capitalize()
 	
 register.filter(listLookup)
 register.filter(dictLookup)
@@ -185,5 +188,6 @@ register.filter(toString)
 register.filter(toUnicode)
 register.filter(equalTest)
 register.filter(get)
+register.filter(spacify)
 
 

@@ -93,7 +93,7 @@
 			{% if member.isGuide %}
 				<i>(Actually, since you are a guide you have to accept messages so you can answer questions.)</i>
 			{% endif %}
-			{{"email_not_shown"|tip}} </p>
+			{{"getting_messages"|tip}} </p>
 		{% else %}
 			<p>Do you want other community members to be able to send this member messages via email?
 			<i>(You, as the member's liaison, will get the messages.)</i></p>
@@ -156,7 +156,7 @@
 		      	<table border="1" cellpadding="4" cellspacing="0">
 		      	<tr>
 		      		<th>Image</th>
-		      		<th>{% if member.profileImage %} Replace {% else %} Attach {% endif %} {{"profile_image"|tip}}</th>
+		      		<th>{% if member.profileImage %} Replace {% else %} Attach {% endif %} {{"profile_images"|tip}}</th>
 		      		<th>Remove?</th>
 		      		
 		      	</tr>

@@ -13,7 +13,7 @@
 			<p>These system resources are available. Check the boxes to copy them to your community's resources.
 			If you have the option turned on to edit existing resources, you can edit them.</p>
 			<table>
-			<tr><th width="80">Copy?{{"systemResourceOverwrites"|tip}}</th><th>Name</th><th>Text (first part of)</th></tr>
+			<tr><th width="80">Copy?{{"loading_system_resources"|tip}}</th><th>Name</th><th>Text (first part of)</th></tr>
 			{% for i in num_resources|makeRange %}
 				<tr>
 				<td><input type="checkbox" name="add|{{i}}" value="yes" id="add|{{i}}"><label for="add|{{i}}">Copy</label></td>
