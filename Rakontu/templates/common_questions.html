@@ -52,7 +52,7 @@
 						{% endif %}
 					{% endfor %}
 				{% else %}
-					&nbsp; &nbsp; <select name="{{question.key}}"><option value="none">(choose)</option>
+					&nbsp; &nbsp; <select name="{{question.key}}"><option value="None">(choose)</option>
 					{% for choice in question.choices %}
 						{% if choice|slugify %}
 						<option value="{{choice}}"

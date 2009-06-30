@@ -48,3 +48,6 @@
 "info","entry_CSV_import","The format to import entries via CSV is nickname, date (YYYY-MM-DD), type (story,invitation,collage,pattern,resource), title, text - one per line. You can't enter character attributions, comments, tags or answers using CSV; it's just for 'plain' entries."
 "info","what_characters_are_for","Community characters like 'Little Bird' are fictional names you can 'take on' when you tell a story, make a comment, and so on, if you don't want to say it as yourself."
 "tip","answering_questions","If you don't want to answer a question, just leave it blank."
+"info","information_hovers","These provide useful information about parts of the Rakontu system."
+"tip","tip_hovers","These provide helpful tips for making things easier."
+"caution","caution_hovers","These warn you about things that might cause you trouble (if you don't know about them)."

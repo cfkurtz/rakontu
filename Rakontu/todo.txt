@@ -4,6 +4,8 @@ Things to do before v0.9 is complete
 
 backup/restore (to SQL) - backup working, restore not so much
 
+a few resources have to be created by default, just like questions
+
 PRESENTATION !!
 
 ===== PUT OFF until a little later :)

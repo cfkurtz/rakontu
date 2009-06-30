@@ -9,11 +9,12 @@
 ,,,,,,,,
 ,,,,,,,,
 ,,,,,,,,
-"; INTEREST GROUP",,,,,,,,
-"member, character","Type of interest","Is this topic of personal, professional or general interest?","nominal","personal, professional, general","yes",,,"interest group"
-"member, character","Feel about future","How do you feel about the future with regards to the topic of this group?","ordinal","great, good, okay, not so great, bad, awful","yes",,,"interest group"
-"member, character","Powers that be","Do you think the powers that be in relation to this topic are doing a good job?","ordinal","great, good, okay, not so great, bad, awful","yes",,,"interest group"
-"member, character","Occupation","What is your occupation?","text",,,,,"interest group"
+"; INTEREST OR SUPPORT GROUP",,,,,,,,
+"member, character","Type of interest","Is your interest in this topic personal, professional or general?","nominal","personal, professional, general","yes",,,"interest or support group"
+"member, character","Feel about future","How do you feel about the future with regards to the topic of this group?","ordinal","great, good, okay, not so great, bad, awful","yes",,,"interest or support group"
+"member, character","Powers that be","Do you think that people who have charge of things in relation to this topic are doing a good job?","ordinal","great, good, okay, not so great, bad, awful","yes",,,"interest or support group"
+"member, character","How useful","How useful do you think this group can be to its members in relation to this topic?","ordinal","extremely, very, moderately, not much, not at all","yes",,,"interest or support group"
+"member, character","Occupation","What is your occupation?","text",,,,,"interest or support group"
 ,,,,,,,,
 "; WORKGROUP",,,,,,,,
 "member, character","Effectiveness","How would you characterize the effectiveness of this work group?","ordinal","great, good, okay, not so great, bad, awful","no",,,"work group"
@@ -32,13 +33,13 @@
 ,,,,,,,,
 ,,,,,,,,
 "; ALL ENTRIES EXCEPT RESOURCES",,,,,,,,
-"story, pattern, collage, invitation","Needs to see","Is there anyone who you think needs to see this?","text",,,,,
+"story, pattern, collage, invitation","Needs to see","Is there anyone who you think particularly needs to see this?","text",,,,,
 "story, pattern, collage, invitation","Should not see","Is there anyone who you think should not see this?","text",,,,,
 "story, pattern, collage, invitation","Right about community","What does this entry say about what is right about this community?","text",,,,,
 "story, pattern, collage, invitation","Wrong with community","What does this entry say about what is wrong with this community?","text",,,,,
 "story, pattern, collage, invitation","Together or apart","What does this entry say about how people in this community come together or fall apart?","text",,,,,
 "story, pattern, collage, invitation","Power and status","What does this entry say about the distribution of power and status in this community?","text",,,,,
-"story, pattern, collage, invitation","Rules","Does this entry revea; any unwritten community rules?","text",,,,,
+"story, pattern, collage, invitation","Rules","Does this entry reveal any unwritten community rules?","text",,,,,
 ,,,,,,,,
 "; STORIES",,,,,,,,
 "story","Fictional","Is this story a deliberate fiction?","boolean","Yes, it didn't happen",,,,
@@ -69,18 +70,19 @@
 "story","Changed over time","If you have heard this story before (or one like it), how has it changed over time? How has it changed when different people have told it (or ones like it)?","text",,,,,
 ,,,,,,,,
 "; PATTERNS",,,,,,,,
-"pattern",,,,,,,,
-"pattern",,,,,,,,
-"pattern",,,,,,,,
+"pattern","Change over time","Do you think this pattern is something new, or have things always been this way?","nominal","things have always been this way, it has been this way for a while but not forever, this has just happened recently","no",,,
+"pattern","Larger pattern","Do you think this pattern is part of something larger? If so, what?","text",,,,,
+"pattern","Positive or negative","If you had to give this pattern a value of positive or negative, which would it be?","ordinal","very positive, positive, neutral, negative, very negative","no",,,
 ,,,,,,,,
 "; COLLAGES",,,,,,,,
+"collage","How created","How was this collage created?","text",,,,,
+"collage","Created by person or group","Did any other people participate in building this collage (other than the person who entered it)?","text",,,,,
 "collage",,,,,,,,
-"collage",,,,,,,,
-,,,,,,,,
 "; INVITATIONS",,,,,,,,
 "invitation",,,,,,,,
 "invitation",,,,,,,,
-,,,,,,,,
+"invitation",,,,,,,,
 "; RESOURCES",,,,,,,,
+"resource",,,,,,,,
 "resource",,,,,,,,
 "resource",,,,,,,,

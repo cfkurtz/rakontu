@@ -45,7 +45,7 @@ DEFAULT_TEXT_FORMAT = u"plain text"
 # The LAST of these choices must always be a custom choice where NO default questions are added.
 # If you want to remove this choice during community creation, reduce this list to only the last item
 # and the drop-down box won't appear.
-COMMUNITY_TYPES = ["neighborhood", "interest group", "work group", "family", "I'd rather choose the questions myself"]
+COMMUNITY_TYPES = ["neighborhood", "interest or support group", "work group", "family", "I'd rather choose the questions myself"]
 
 DEFAULT_COMMUNITY_DESCRIPTION = \
 u"""

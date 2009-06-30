@@ -1,7 +1,7 @@
 "; refersTo","name","text","type","choices or min-max or boolean ""yes"" text","multiple","help","useHelp","use for communities of type(s)"
 "; ALL COMMUNITIES EXCEPT WORKGROUP",,,,,,,,
-"member, character","Age","How old are you?","ordinal","20 or younger, 21-40, 41-60, 61-80, 80 or over","no",,,"neighborhood, interest group, family"
-"member","Gender","What is your gender?","nominal","male, female","no",,,"neighborhood, interest group, family"
+"member, character","Age","How old are you?","ordinal","20 or younger, 21-40, 41-60, 61-80, 80 or over","no",,,"neighborhood, interest or support group, family"
+"member","Gender","What is your gender?","nominal","male, female","no",,,"neighborhood, interest or support group, family"
 ,,,,,,,,
 "; NEIGHBORHOOD",,,,,,,,
 "member, character","How long lived here","How long have you lived in this community?","ordinal","6 months or less, 6 months to a year, 1 to 2 years, 2 to 5 years, 5 to 10 years, 10 to 20 years, 20 to 30 years, more than 30 years","no",,,"neighborhood"
@@ -9,10 +9,10 @@
 "member","Community groups","What community groups do you belong to?","text",,,,,"neighborhood"
 "member, character","Feel about community","How do you feel about this community?","ordinal","great, good, okay, not so great, bad, awful","no",,,"neighborhood"
 ,,,,,,,,
-"; INTEREST GROUP",,,,,,,,
-"member, character","How interested","How interested would you say you are in this topic?","ordinal","extremely, very, moderately, not much, not at all","no",,,"interest group"
-"member, character","Why interested","What made you want to join this community?","text",,,,,"interest group"
-"member, character","Want to get","What do you want to get out of this community?","text",,,,,"interest group"
+"; INTEREST OR SUPPORT GROUP",,,,,,,,
+"member, character","How interested","How interested would you say you are in this topic?","ordinal","extremely, very, moderately, not much, not at all","no",,,"interest or support group"
+"member, character","Why interested","What made you want to join this community?","text",,,,,"interest or support group"
+"member, character","Want to get","What do you want to get out of this community?","text",,,,,"interest or support group"
 ,,,,,,,,
 "; SUPPORT GROUP",,,,,,,,
 "member, character","How long involved","How long have you been involved with this issue?",,,,,,
@@ -37,9 +37,9 @@
 "member, character","Where live","Where do you live?","text",,,"Enter any sort of location you like, specific or vague.",,"family"
 ,,,,,,,,
 "; ALL ENTRIES",,,,,,,,
-"story, pattern, collage, invitation, resource","How feel about","How does this make you feel?","ordinal","great, good, okay, not so great, bad, awful","no",,,
-"story, pattern, collage, invitation, resource","Reason","Why do you think this entry was contributed?","nominal","to inform, to persuade, to praise, to criticize, to entertain, to reminisce, for a reason not listed here","yes",,,
-"story, pattern, collage, invitation, resource","Intensity","What would you say is the emotional intensity of this entry?","ordinal","very high, high, moderate, low, non-existent","no",,,
+"story, pattern, collage, invitation, resource","How feel about","How does this make you feel?","ordinal","happy, enthused, hopeful, relieved, indifferent, confused, sad, angry, frustrated, hopeless","yes",,,
+"story, pattern, collage, invitation, resource","Reason","Why was this contributed?","nominal","to inform, to persuade, to praise, to criticize, to entertain, to reminisce, for a reason not listed here","yes",,,
+"story, pattern, collage, invitation, resource","Intensity","What is the emotional intensity of this entry?","ordinal","very high, high, moderate, low, no emotion at all","no",,,
 ,,,,,,,,
 "; STORIES",,,,,,,,
 "story","When happened","When did this story happen?","ordinal","today, within the past month, within a few months, within the last year, within the last two years, within the last five years, I'm not sure","no",,,
@@ -48,6 +48,7 @@
 "story","Common","How common would you say the events in this story are?","ordinal","extremely, very, moderately, not much, not at all","no",,,
 ,,,,,,,,
 "; PATTERNS",,,,,,,,
+"pattern","Strength","How strong would you say this pattern is?","ordinal","barely there, very weak, weak, moderate, pretty strong, very strong, overwhelming","no","How much does the pattern stand out?",,
 "pattern","Observations","What pattern do you see?","text",,,"Please describe what is noteworthy, confining yourself to facts that anyone could agree on.",,
 "pattern","Interpretations","What do you think this pattern means?","text",,,"Venture an opinion on why the pattern appears the way it does.",,
 "pattern","Implications","What do you think should be done about this pattern?","text",,,"If this pattern represents a problem, what can be done about it? If it represents and opportunity, what can be done to benefit from it?",,

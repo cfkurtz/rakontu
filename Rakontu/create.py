@@ -110,10 +110,10 @@ class EnterEntryPage(webapp.RequestHandler):
 							break
 					if not found:
 						entriesThatCanBeIncluded.append(anEntry)
+				firstColumn = []
+				secondColumn = []
+				thirdColumn = []
 				if entriesThatCanBeIncluded:
-					firstColumn = []
-					secondColumn = []
-					thirdColumn = []
 					numEntries = len(entriesThatCanBeIncluded)
 					for i in range(numEntries):
 						if i < numEntries // 3:

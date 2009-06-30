@@ -321,10 +321,11 @@
 		    <center>
 		    {% if current_member.isManagerOrOwner %}
 		    	<p><i><b>Please remove items carefully. Deleted items cannot be recovered.</b></i></p>
-		    	<input type="submit" name="submitChanges" value="Make selected changes" class="button"></center>
+		    	<input type="submit" name="submitChanges" value="Make selected changes" class="button">&nbsp; 
 		    {% else %}
-		    	<input type="submit" name="submitChanges" value="Send selected notifications" class="button"></center>
+		    	<input type="submit" name="submitChanges" value="Send selected notifications" class="button">&nbsp; 
 		    {% endif %}
+		    <input type="submit" name="cancel" value="Cancel" class="button">
 		{% endif %}
 		</form>	
 		</div>

@@ -44,7 +44,7 @@ and off-line members (people who tell and hear stories but don't use the web sit
 To get started, click on a story title and start reading!
 """]
 
-SYSTEM_WIKI_MARKUP_RESOURCE = [u"Wiki markup in Rakontu", u"simple HTML", False,
+SYSTEM_WIKI_MARKUP_RESOURCE = [u"Wiki markup in Rakontu", u"simple HTML", False, # boolean is whether it is for managers/owners only
 u"""
 <h1>Wiki markup in Rakontu</h1>
 
@@ -95,7 +95,7 @@ kind of file (pdf, etc) a link will appear there that people can click on to dow
 <p>Tables and nested lists are not supported.
 """]
 
-SYSTEM_SIMPLE_HTML_RESOURCE = [u"Simple HTML in Rakontu", u"Wiki markup", False,
+SYSTEM_SIMPLE_HTML_RESOURCE = [u"Simple HTML in Rakontu", u"Wiki markup", False, # boolean is whether it is for managers/owners only
 u"""
 You can enter these simple HTML elements into any Rakontu text box:
 
@@ -133,7 +133,7 @@ Tables and nested lists are not supported.
 
 """]
 
-SYSTEM_TERMS_RESOURCE = [u"Terms in Rakontu", u"Wiki markup", False,
+SYSTEM_TERMS_RESOURCE = [u"Terms in Rakontu", u"Wiki markup", False, # boolean is whether it is for managers/owners only
 u"""
 = Terms in Rakontu
 
@@ -189,7 +189,7 @@ interesting queries, like "Show me stories told by members under 20 in which peo
 
 """]
 
-SYSTEM_PEOPLE_RESOURCE = [u"People in Rakontu", u"Wiki markup", False,
+SYSTEM_PEOPLE_RESOURCE = [u"People in Rakontu", u"Wiki markup", False, # boolean is whether it is for managers/owners only
 u"""
 = People in Rakontu
 
@@ -240,9 +240,25 @@ character attribution.
 
 """]
 
-SYSTEM_MANAGING_RESOURCE = [u"How to manage a Rakontu community", u"Wiki markup", True,
+SYSTEM_CURATOR_RESOURCE = [u"How to be a curator", u"Wiki markup", False, # boolean is whether it is for managers/owners only
 u"""
-Here is how you do it.
+Curating a Rakontu community means helping to tend the museum of stories and other entries. People who like messing
+organizing "stuff" are good curators. CFK FINISH
+"""]
+
+SYSTEM_GUIDE_RESOURCE = [u"How to be a guide", u"Wiki markup", False, # boolean is whether it is for managers/owners only
+u"""
+Being a guide CFK FINISH
+"""]
+
+SYSTEM_LIAISON_RESOURCE = [u"How to be a guide", u"Wiki markup", False, # boolean is whether it is for managers/owners only
+u"""
+Being a liaison CFK FINISH
+"""]
+
+SYSTEM_MANAGING_RESOURCE = [u"How to manage a Rakontu community", u"Wiki markup", True, # boolean is whether it is for managers/owners only
+u"""
+Here is how you do it. CFK FINISH
 """]
 
 SYSTEM_RESOURCES = [
@@ -251,6 +267,9 @@ SYSTEM_RESOURCES = [
 				SYSTEM_PEOPLE_RESOURCE,
 				SYSTEM_WIKI_MARKUP_RESOURCE, 
 				SYSTEM_SIMPLE_HTML_RESOURCE,
+				SYSTEM_CURATOR_RESOURCE, 
+				SYSTEM_GUIDE_RESOURCE, 
+				SYSTEM_LIAISON_RESOURCE,
 				SYSTEM_MANAGING_RESOURCE,
 				]
 

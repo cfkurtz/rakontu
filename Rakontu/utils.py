@@ -103,7 +103,7 @@ def parseDate(yearString, monthString, dayString):
 			return datetime.now(tz=pytz.utc)
 	return datetime.now(tz=pytz.utc)
 
-def GenerateQuestions(fileName, community=None, communityType="ALL"):
+def ReadSampleQuestionsFromFile(fileName, community=None, communityType="ALL"):
 	if not community:
 		db.delete(Question.all().filter("community = ", None).fetch(FETCH_NUMBER))
 	file = open(fileName)
@@ -146,16 +146,16 @@ def GenerateQuestions(fileName, community=None, communityType="ALL"):
 					useHelp=row[7]
 					typesOfCommunity = [x.strip() for x in row[8].split(",")]
 					question = Question(refersTo=reference, name=name, text=text, type=type, choices=choices, multiple=multiple,
-									minIfValue=minValue, maxIfValue=maxValue, help=help, useHelp=useHelp, community=community)
+									responseIfBoolean=responseIfBoolean, minIfValue=minValue, maxIfValue=maxValue, help=help, useHelp=useHelp, community=community)
 					questionsToPut.append(question)
 	db.put(questionsToPut)
 	file.close()
 
 def GenerateSampleQuestions():
-	GenerateQuestions('sample_questions.csv')
+	ReadSampleQuestionsFromFile('sample_questions.csv')
 	
 def GenerateDefaultQuestionsForCommunity(community, type):
-	GenerateQuestions('default_questions.csv', community, type)
+	ReadSampleQuestionsFromFile('default_questions.csv', community, type)
 	
 def GenerateDefaultCharactersForCommunity(community):
 	file = open('default_characters.csv')

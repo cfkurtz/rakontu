@@ -44,8 +44,10 @@
 				<ul>
 				<li><a href="/visit/story">Tell a story</a></li>
 	  			<li><a href="/visit/invitation">Invite people to tell stories</a></li>
-	  			<li><a href="/visit/collage">Build a story collage</a></li>
-	  			<li><a href="/visit/pattern">Describe a pattern</a> </li>
+	  			{% if community.firstPublish %}
+	  				<li><a href="/visit/collage">Build a story collage</a></li>
+	  				<li><a href="/visit/pattern">Describe a pattern</a> </li>
+	  			{% endif %}
 	  			</ul>
 			</li>
 			{% if current_member.isCurator %}

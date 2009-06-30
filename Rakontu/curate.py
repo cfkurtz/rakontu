@@ -58,6 +58,9 @@ class CurateFlagsPage(webapp.RequestHandler):
 	def post(self):
 		community, member, access = GetCurrentCommunityAndMemberFromSession()
 		if access:
+			if "cancel" in self.request.arguments():
+				self.redirect("/visit/look")
+				return
 			items = community.getAllFlaggedItemsAsOneList()
 			for item in items:
 				if self.request.get("flagComment|%s" % item.key()):

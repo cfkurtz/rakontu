@@ -524,33 +524,41 @@ class Community(db.Model):
 		
 	def addQuestionsOfTypeFromCSV(self, type, input):
 		rows = csv.reader(input.split("\n"))
+		questionsToPut = []
 		for row in rows:
-			self.AddQuestionFromCSVLine(row)
-		
-	def AddQuestionFromCSVLine(self, row):
-		if len(row) >= 3 and row[0][0] != ";":
-			try:
-				minValue = int(row[6])
-			except:
+			if len(row) >= 4 and row[0] and row[1] and row[0][0] != ";":
+				refersTo = row[0].strip()
+				if not refersTo in QUESTION_REFERS_TO:
+					continue
+				name = row[1]
+				text = row[2]
+				type = row[3]
+				choices = []
 				minValue = DEFAULT_QUESTION_VALUE_MIN
-			try:
-				maxValue = int(row[7])
-			except:
 				maxValue = DEFAULT_QUESTION_VALUE_MAX
-			question = Question(
-							   refersTo=row[0],
-							   name=row[1],
-							   text=row[2],
-							   type=row[3],
-							   choices=row[4].split(", "),
-							   multiple=row[5] == "yes",
-							   minIfValue=minValue,
-							   maxIfValue=maxValue,
-							   help=row[8],
-							   useHelp=row[9],
-							   community=self,
-							   )
-			question.put()
+				responseIfBoolean = DEFAULT_QUESTION_BOOLEAN_RESPONSE
+				if type == "ordinal" or type == "nominal":
+					choices = [x.strip() for x in row[4].split(",")]
+				elif type == "value":
+					minAndMax = row[4].split("-")
+					try:
+						minValue = int(minAndMax[0])
+					except:
+						pass
+					try:
+						maxValue = int(minAndMax[1])
+					except:
+						pass
+				elif type == "boolean":
+					responseIfBoolean = row[4]
+				multiple = row[5] == "yes"
+				help = row[6]
+				useHelp=row[7]
+				question = Question(refersTo=refersTo, name=name, text=text, type=type, choices=choices, multiple=multiple,
+								responseIfBoolean=responseIfBoolean, minIfValue=minValue, maxIfValue=maxValue, help=help, useHelp=useHelp, community=self)
+				questionsToPut.append(question)
+		if questionsToPut:
+			db.put(questionsToPut)
 		
 	# SEARCHES
 	
@@ -716,7 +724,7 @@ class Community(db.Model):
 								pass
 			csvText += "</body></html>"
 		elif type == "exportQuestions":
-			csvText = "; refersTo, name, text, type, choices, multiple, minValue, maxValue, help, useHelp\n"
+			csvText = '; refersTo,name,text,type,choices or min-max or boolean "yes" text,multiple,help,help for using\n'
 			questions = self.getActiveQuestionsOfType(questionType)
 			for question in questions:
 				cells = []
@@ -724,21 +732,22 @@ class Community(db.Model):
 				cells.append(question.name)
 				cells.append(question.text)
 				cells.append(question.type)
-				choicesToReport = []
-				for choice in question.choices:
-					if len(choice):
-						choicesToReport.append(choice)
-				cells.append(", ".join(choicesToReport))
+				if question.type == "nominal" or question.type == "ordinal":
+					choicesToReport = []
+					for choice in question.choices:
+						if len(choice):
+							choicesToReport.append(choice)
+					cells.append(", ".join(choicesToReport))
+				elif question.type == "value":
+					cells.append("%s-%s" % (question.minIfValue, question.maxIfValue))
+				elif question.type == "boolean":
+					cells.append(question.responseIfBoolean)
+				else:
+					cells.append("")
 				if question.multiple:
 					cells.append("yes")
 				else:
 					cells.append("no")
-				if question.type == "value":
-					cells.append(str(question.minIfValue))
-					cells.append(str(question.maxIfValue))
-				else:
-					cells.append("")
-					cells.append("")
 				cells.append(question.help)
 				cells.append(question.useHelp)
 				csvText += CleanUpCSV(cells) + "\n"
