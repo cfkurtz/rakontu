@@ -17,7 +17,7 @@
 		      		<th>Attribution</th>
 		      	{% endif %}
 		      	<th>Date</th>
-		      	{% if community.allowsAttachments %}
+		      	{% if rakontu.allowsAttachments %}
 		      		<th>Attachments</th>
 		      	{% endif %}
 		      	<th>Comment</th><th>Tag set</th><th>Remove?</th></tr>
@@ -42,7 +42,7 @@
 	      			 Month <input type="text" name="month|{{entry.key}}" size="2" value="{{entry.collected|date:"m"}}" maxlength="2"/>
 	      			 Day <input type="text" name="day|{{entry.key}}" size="2" value="{{entry.collected|date:"d"}}" maxlength="2"/>
 	      			 </td>
-	      			 {% if community.allowsAttachments %}
+	      			 {% if rakontu.allowsAttachments %}
 	      			 <td>
 	      			 {% for attachment in entry.getAttachments %}
 	      			 	{{attachment.linkString}}<br/>
@@ -80,7 +80,7 @@
 		</form>	
 		</div>
 	{% else %}
-		<p>You are not a liaison of this community and cannot import data collected offline.
+		<p>You are not a liaison of this Rakontu and cannot import data collected offline.
 		Either become a liaison, or ask a liaison to import any items you would like to see added.</p>
 	{% endif %}
 	</div>

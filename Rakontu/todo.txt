@@ -6,6 +6,7 @@ backup/restore (to SQL) - backup working, restore not so much
 
 a few resources have to be created by default, just like questions
 
+
 PRESENTATION !!
 
 ===== PUT OFF until a little later :)
@@ -17,7 +18,6 @@ test "send this member a note" thing
 FLESHING OUT:
 
 help resources 
-sample questions
 export csv details (community options, etc)
 
 SCALING UP:
@@ -37,4 +37,5 @@ add cancel button on all pages that save things
 javascript sliders for values?
 javascript in search creation?
 address that ?xx= issue in urls ??
+problem with CSS and font sizes...
 

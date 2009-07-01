@@ -12,7 +12,7 @@
 	      	<tr>
 	      		<th>Entries without <b>tags</b></th>
 	      		<th>Entries without <b>links</b></th>
-	      		{% if community.getNonMemberQuestions %} <th>Entries without <b>answers</b> to questions</th> {% endif %}
+	      		{% if rakontu.getNonMemberQuestions %} <th>Entries without <b>answers</b> to questions</th> {% endif %}
 	      		<th>Entries without <b>comments</b></th>
 	      		<th>Invitations without <b>responses</b></th>
 	      		<th>Collages without <b>links to stories</b></th>
@@ -32,7 +32,7 @@
 			{% else %}
 				none
 			{% endif %}</td>
-			{% if community.getNonMemberQuestions %} 
+			{% if rakontu.getNonMemberQuestions %} 
 		      	<td valign="top">{% if entries_without_answers %}
 					{% for entry in entries_without_answers %}
 						<p>{{entry.linkString}} ({{entry.type}})</p>
@@ -65,7 +65,7 @@
 		</tr></table>
 			
 	{% else %}
-		<p>You are not a guide or manager of this community and cannot change its resources.
+		<p>You are not a guide or manager of this Rakontu and cannot change its resources.
 		Please ask a guide or manager to make any changes you would like to see made.</p>
 	{% endif %}
 

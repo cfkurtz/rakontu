@@ -9,7 +9,7 @@
 # ============================================================================================ 
 # ON CHANGING THESE VALUES
 # ============================================================================================ 
-# These site constants determine some aspects of the behavior of all community sites
+# These site constants determine some aspects of the behavior of all Rakontus
 # created in this Rakontu installation. You can of course change the source code of Rakontu itself, 
 # but these constants are those the most amenable to change without architectural changes to the source code. 
 # They have been placed here mainly as a convenience to the site administrator.
@@ -34,27 +34,27 @@ DEFAULT_TEXT_FORMAT = u"plain text"
 # string will break things, mainly in the time/date formatting strings which must be ASCII.
 
 # ============================================================================================ 
-# COMMUNITY
+# RAKONTU LEVEL
 # ============================================================================================ 
 
-# Community types. These affect which default questions (in default_questions.csv) 
-# are loaded when the community is created, as well as which sample questions (in sample_questions.csv)
-# are available later. The community creator chooses one of these when they
-# create the community. This gets saved in the community object in case of need later (but I am not otherwise using it).
+# Rakontu types. These affect which default questions (in default_questions.csv) 
+# are loaded when the Rakontu is created, as well as which sample questions (in sample_questions.csv)
+# are available later. The Rakontu creator chooses one of these when they
+# create the Rakontu. This gets saved in the Rakontu object in case of need later (but I am not otherwise using it).
 # These must EXACTLY match the labels on questions in the default_questions.csv and sample_questions.csv files.
 # The LAST of these choices must always be a custom choice where NO default questions are added.
-# If you want to remove this choice during community creation, reduce this list to only the last item
+# If you want to remove this choice during Rakontu creation, reduce this list to only the last item
 # and the drop-down box won't appear.
-COMMUNITY_TYPES = ["neighborhood", "interest or support group", "work group", "family", "I'd rather choose the questions myself"]
+RAKONTU_TYPES = ["neighborhood", "interest or support group", "work group", "family", "I'd rather choose the questions myself"]
 
-DEFAULT_COMMUNITY_DESCRIPTION = \
+DEFAULT_RAKONTU_DESCRIPTION = \
 u"""
 This is a group of people who will come together to tell, keep and use their combined stories.
 """
 
 DEFAULT_WELCOME_MESSAGE = \
 u"""
-Hello and welcome to our community! 
+Hello and welcome to our Rakontu! 
 """
 
 DEFAULT_ETIQUETTE_STATEMENT = \
@@ -79,8 +79,8 @@ NO_PROFILE_TEXT = u"No profile information."
 # Giving people something to start with is encouraging.
 DEFAULT_START_NUDGE_POINTS = 50
 
-# The community contact email is the email address used as the SENDER in all email sent FROM the Rakontu.
-# This appears as the default in the community settings.
+# The Rakontu contact email is the email address used as the SENDER in all email sent FROM the Rakontu.
+# This appears as the default in the Rakontu settings.
 # It MUST be a valid email address.
 DEFAULT_CONTACT_EMAIL = "support@rakontu.org"
 
@@ -119,7 +119,7 @@ DEFAULT_DETAILS_TEXT_LENGTH = 150
 # These are the available date and time formats. They affect all places where the date or time is displayed.
 # The key in each dictionary (before the colon) is the django template format string.
 # The value in each dictionary (after the colon) is the Python datetime format string.
-# Note that the default (which shows up in all community settings pages) must )exactly) match one of the django strings.
+# Note that the default (which shows up in all Rakontu settings pages) must )exactly) match one of the django strings.
 DATE_FORMATS = {
 			"j F Y": "%e %B %Y", # 3 January 2000
 			"F j, Y": "%B %e, %Y", # January 3, 2000
@@ -136,10 +136,10 @@ TIME_FORMATS = {
 			}
 DEFAULT_TIME_FORMAT = "h:i a"
 
-# This time zone will show up in all community settings pages.
+# This time zone will show up in all Rakontu settings pages.
 DEFAULT_TIME_ZONE = "US/Eastern"
 
-# This is the top (hex) color for the browsing tables for the main "look at" and for each entry. 
+# This is the top (hex) color for the browsing tables for the home page and for each entry. 
 GRID_DISPLAY_ROW_COLORS_TOP = "FAEBD7"
 
 # Lower rows in the main and entry browse tables get darker and darker by this increment.
@@ -163,7 +163,7 @@ DEFAULT_UNTITLED_ENTRY_TITLE = u"Untitled"
 
 NO_TEXT_IN_ENTRY = u"No text."
 
-# This is the list of numbers of attachments communities can choose from, and the choice
+# This is the list of numbers of attachments Rakontus can choose from, and the choice
 # that appears chosen by default.
 # To disallow attachments completely for the site, set NUM_ATTACHMENT_CHOICES to [0] and DEFAULT_MAX_NUM_ATTACHMENTS to 0.
 NUM_ATTACHMENT_CHOICES = [0, 1, 2, 3, 4, 5]
@@ -243,12 +243,12 @@ MAX_NUM_CHOICES_PER_QUESTION = 10
 
 # The number of nudge categories. This MUST be set to at least one.
 # It also MUST match the number of entries in the next list.
-# If you change this AFTER there are communities using the site, their nudge categories
+# If you change this AFTER there are Rakontus using the site, their nudge categories
 # will either get cut off (and not displayed), or new ones called "None" will be displayed.
 # It's best to set it up at the start and not change it after any items have been entered.
 NUM_NUDGE_CATEGORIES = 5
 
-# The default nudge category names that come up in community settings. 
+# The default nudge category names that come up in Rakontu settings. 
 # The number of strings in this list MUST match the number of categories above.
 DEFAULT_NUDGE_CATEGORIES = [u"appropriate", 
 						u"important", 
@@ -258,11 +258,11 @@ DEFAULT_NUDGE_CATEGORIES = [u"appropriate",
 
 # These questions appear next to the category names and give information about how to made nudge decisions.
 # They must match up with the nudge category names in order.
-DEFAULT_NUDGE_CATEGORY_QUESTIONS = [u"Is it helpful or harmful to the community?", 
+DEFAULT_NUDGE_CATEGORY_QUESTIONS = [u"Is it helpful or harmful to the Rakontu?", 
 						u"It is earth-shaking or trivial in impact?", 
 						u"Would new members be especially interested in it?", 
 						u"Would people in conflict be helped by it?", 
-						u"Would it help people to make sense of things in our community?"]
+						u"Would it help people to make sense of things in our Rakontu?"]
 
 # How many nudge points can be assigned per entry, by default.
 DEFAULT_MAX_NUDGE_POINTS_PER_ENTRY = 25
@@ -334,11 +334,11 @@ NUM_REQUEST_TYPES = 7
 # to take on each of the helping roles. You can add site-specific information here.
 DEFAULT_ROLE_READMES = [
 u"""
-<p>A curator pays attention to the community's accumulated data. Curators add information, check for problems, create links, 
+<p>A curator pays attention to the Rakontu's accumulated data. Curators add information, check for problems, create links, 
 and in general maintain the vitality of the story bank.</p>""",
 
 u"""
-<p>A guide pays attention to the on-line human community. Guides answer questions, write tutorials, 
+<p>A guide pays attention to people in the Rakontu. Guides answer questions, write tutorials, 
 encourage people to tell and use stories, create patterns, write and respond to invitations,
 and in general maintain the vitality of the on-line member community. Guides must agree to
 receive email messages from the system so that they can answer questions.</p>
@@ -347,7 +347,7 @@ receive email messages from the system so that they can answer questions.</p>
 u"""
 <p>A liaison guides stories and other information over the barrier between on-line and off-line worlds. 
 Liaisons conduct external interviews and add the stories people tell in them, read stories to people and gather 
-comments and other annotations, and in general make the system work for both on-line and off-line community members.</p>
+comments and other annotations, and in general make the system work for both on-line and off-line Rakontu members.</p>
 """]
 
 # These are the formats in which the default role readmes (above) are to be interpreted.

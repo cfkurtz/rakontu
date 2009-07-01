@@ -109,21 +109,21 @@ class TzDateTimeProperty(db.DateTimeProperty):
 
 # ============================================================================================
 # ============================================================================================
-class Community(db.Model):
+class Rakontu(db.Model):
 # ============================================================================================
 # ============================================================================================
 
 	name = db.StringProperty(required=True) # appears on all pages at top
-	type = db.StringProperty(choices=COMMUNITY_TYPES, default=COMMUNITY_TYPES[-1]) # only used to determine questions at front, but may be useful later so saving
+	type = db.StringProperty(choices=RAKONTU_TYPES, default=RAKONTU_TYPES[-1]) # only used to determine questions at front, but may be useful later so saving
 	tagline = db.StringProperty(default="", indexed=False) # appears under name, optional
 	image = db.BlobProperty(default=None) # appears on all pages, should be small (100x60 is best)
 	contactEmail = db.StringProperty(default=DEFAULT_CONTACT_EMAIL) # sender address for emails sent from site
 	
-	description = db.TextProperty(default=DEFAULT_COMMUNITY_DESCRIPTION) # appears on "about community" page
+	description = db.TextProperty(default=DEFAULT_RAKONTU_DESCRIPTION) # appears on "about rakontu" page
 	description_formatted = db.TextProperty() # formatted texts kept separate for re-editing original
 	description_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
-	etiquetteStatement = db.TextProperty(default=DEFAULT_ETIQUETTE_STATEMENT) # appears on "about community" page
+	etiquetteStatement = db.TextProperty(default=DEFAULT_ETIQUETTE_STATEMENT) # appears on "about rakontu" page
 	etiquetteStatement_formatted = db.TextProperty()
 	etiquetteStatement_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
@@ -205,10 +205,10 @@ class Community(db.Model):
 	# MEMBERS
 	
 	def getPendingMembers(self):
-		return PendingMember.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+		return PendingMember.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
 
 	def getOfflineMembers(self):
-		return Member.all().filter("community = ", self.key()).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
+		return Member.all().filter("rakontu = ", self.key()).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
 	
 	def getMemberNudgePointsForEvent(self, event):
 		i = 0
@@ -219,32 +219,32 @@ class Community(db.Model):
 		return 0
 	
 	def getMemberForGoogleAccountId(self, id):
-		return Member.all().filter("community = ", self.key()).filter("googleAccountID = ", id).fetch(1)
+		return Member.all().filter("rakontu = ", self.key()).filter("googleAccountID = ", id).fetch(1)
 		
 	def getActiveAndInactiveMembers(self):
-		return Member.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+		return Member.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
 	
 	def getActiveMembers(self):
-		return Member.all().filter("community = ", self.key()).filter("active = ", True).fetch(FETCH_NUMBER)
+		return Member.all().filter("rakontu = ", self.key()).filter("active = ", True).fetch(FETCH_NUMBER)
 	
 	def getInactiveMembers(self):
-		return Member.all().filter("community = ", self.key()).filter("active = ", False).fetch(FETCH_NUMBER)
+		return Member.all().filter("rakontu = ", self.key()).filter("active = ", False).fetch(FETCH_NUMBER)
 	
 	def getActiveOnlineMembers(self):
-		return Member.all().filter("community = ", self.key()).filter("active = ", True).filter("isOnlineMember = ", True).fetch(FETCH_NUMBER)
+		return Member.all().filter("rakontu = ", self.key()).filter("active = ", True).filter("isOnlineMember = ", True).fetch(FETCH_NUMBER)
 	
 	def getActiveOfflineMembers(self):
-		return Member.all().filter("community = ", self.key()).filter("active = ", True).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
+		return Member.all().filter("rakontu = ", self.key()).filter("active = ", True).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
 	
 	def getInactiveOfflineMembers(self):
-		return Member.all().filter("community = ", self.key()).filter("active = ", False).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
+		return Member.all().filter("rakontu = ", self.key()).filter("active = ", False).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
 	
 	def getActiveAndInactiveOfflineMembers(self):
-		return Member.all().filter("community = ", self.key()).filter("active = ", False).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
+		return Member.all().filter("rakontu = ", self.key()).filter("active = ", False).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
 	
 	def getGuides(self):
 		result = []
-		onlineMembers = Member.all().filter("community = ", self.key()).filter("active = ", True).filter("isOnlineMember = ", True).fetch(FETCH_NUMBER)
+		onlineMembers = Member.all().filter("rakontu = ", self.key()).filter("active = ", True).filter("isOnlineMember = ", True).fetch(FETCH_NUMBER)
 		for member in onlineMembers:
 			if member.isGuide():
 				result.append(member)
@@ -279,13 +279,13 @@ class Community(db.Model):
 		return None
 	
 	def getManagers(self):
-		return Member.all().filter("community = ", self.key()).filter("governanceType = ", "manager").fetch(FETCH_NUMBER)
+		return Member.all().filter("rakontu = ", self.key()).filter("governanceType = ", "manager").fetch(FETCH_NUMBER)
 	
 	def getOwners(self):
-		return Member.all().filter("community = ", self.key()).filter("governanceType = ", "owner").fetch(FETCH_NUMBER)
+		return Member.all().filter("rakontu = ", self.key()).filter("governanceType = ", "owner").fetch(FETCH_NUMBER)
 	
 	def getManagersAndOwners(self):
-		return Member.all().filter("community = ", self.key()).filter("governanceType IN ", ["owner", "manager"]).fetch(FETCH_NUMBER)
+		return Member.all().filter("rakontu = ", self.key()).filter("governanceType IN ", ["owner", "manager"]).fetch(FETCH_NUMBER)
 	
 	def memberIsOnlyOwner(self, member):
 		owners = self.getOwners()
@@ -296,36 +296,36 @@ class Community(db.Model):
 	# CHARACTERS
 	
 	def getActiveCharacters(self):
-		return CommunityCharacter.all().filter("community = ", self.key()).filter("active = ", True).fetch(FETCH_NUMBER)
+		return RakontuCharacter.all().filter("rakontu = ", self.key()).filter("active = ", True).fetch(FETCH_NUMBER)
 	
 	def getInactiveCharacters(self):
-		return CommunityCharacter.all().filter("community = ", self.key()).filter("active = ", False).fetch(FETCH_NUMBER)
+		return RakontuCharacter.all().filter("rakontu = ", self.key()).filter("active = ", False).fetch(FETCH_NUMBER)
 	
 	def hasAtLeastOneCharacterEntryAllowed(self, entryTypeIndex):
 		return self.allowCharacter[entryTypeIndex] or len(self.getActiveCharacters()) > 0
 
 	def hasActiveCharacters(self):
-		return CommunityCharacter.all().filter("community = ", self.key()).filter("active = ", True).count() > 0
+		return RakontuCharacter.all().filter("rakontu = ", self.key()).filter("active = ", True).count() > 0
 	
 	# ENTRIES
 	
 	def getNonDraftEntries(self):
-		return Entry.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
 	def getNonDraftEntriesInReverseTimeOrder(self):
-		return Entry.all().filter("community = ", self.key()).filter("draft = ", False).order("-published").fetch(FETCH_NUMBER)
+		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-published").fetch(FETCH_NUMBER)
 	
 	def getNonDraftEntriesInAlphabeticalOrder(self):
-		return Entry.all().filter("community = ", self.key()).filter("draft = ", False).order("-title").fetch(FETCH_NUMBER)
+		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-title").fetch(FETCH_NUMBER)
 	
 	def getNonDraftStoriesInAlphabeticalOrder(self):
-		return Entry.all().filter("community = ", self.key()).filter("type = ", "story").filter("draft = ", False).order("-title").fetch(FETCH_NUMBER)
+		return Entry.all().filter("rakontu = ", self.key()).filter("type = ", "story").filter("draft = ", False).order("-title").fetch(FETCH_NUMBER)
 	
 	def getNonDraftEntriesAnnotationsAndAnswersInReverseTimeOrder(self):
 		result = []
-		entries = Entry.all().filter("community = ", self.key()).filter("draft = ", False).order("-published").fetch(FETCH_NUMBER)
-		annotations = Annotation.all().filter("community = ", self.key()).filter("draft = ", False).order("-published").fetch(FETCH_NUMBER)
-		answers = Answer.all().filter("community = ", self.key()).filter("draft = ", False).order("-published").fetch(FETCH_NUMBER)
+		entries = Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-published").fetch(FETCH_NUMBER)
+		annotations = Annotation.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-published").fetch(FETCH_NUMBER)
+		answers = Answer.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-published").fetch(FETCH_NUMBER)
 		result.extend(entries)
 		result.extend(annotations)
 		result.extend(answers)
@@ -333,7 +333,7 @@ class Community(db.Model):
 		return result
 	
 	def getNonDraftEntriesOfType(self, type):
-		return Entry.all().filter("community = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(FETCH_NUMBER)
+		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(FETCH_NUMBER)
 	
 	def getNonDraftEntriesWithMissingMetadata(self):
 		entriesWithoutTags = []
@@ -368,7 +368,7 @@ class Community(db.Model):
 		return 0
 	
 	def getNonDraftNewMemberResources(self):
-		return Entry.all().filter("community = ", self.key()). \
+		return Entry.all().filter("rakontu = ", self.key()). \
 			filter("draft = ", False). \
 			filter("type = ", "resource"). \
 			filter("resourceForNewMemberPage =", True). \
@@ -376,7 +376,7 @@ class Community(db.Model):
 			fetch(FETCH_NUMBER)
 	
 	def getNonDraftHelpResources(self):
-		return Entry.all().filter("community = ", self.key()). \
+		return Entry.all().filter("rakontu = ", self.key()). \
 			filter("draft = ", False). \
 			filter("type = ", "resource"). \
 			filter("resourceForHelpPage = ", True). \
@@ -384,7 +384,7 @@ class Community(db.Model):
 			fetch(FETCH_NUMBER)
 			
 	def getNonDraftManagerOnlyHelpResources(self):
-		return Entry.all().filter("community = ", self.key()). \
+		return Entry.all().filter("rakontu = ", self.key()). \
 			filter("draft = ", False). \
 			filter("type = ", "resource"). \
 			filter("resourceForManagersAndOwnersOnly = ", True). \
@@ -393,11 +393,11 @@ class Community(db.Model):
 	# ENTRIES, ANNOTATIONS, ANSWERS, LINKS - EVERYTHING
 	
 	def getAllFlaggedItems(self):
-		entries = Entry.all().filter("community = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
-		annotations = Annotation.all().filter("community = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
-		answers = Answer.all().filter("community = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
-		links = Link.all().filter("community = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
-		searches = SavedSearch.all().filter("community = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
+		entries = Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
+		annotations = Annotation.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
+		answers = Answer.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
+		links = Link.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
+		searches = SavedSearch.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
 		return (entries, annotations, answers, links, searches)
 	
 	def getAllFlaggedItemsAsOneList(self):
@@ -411,10 +411,10 @@ class Community(db.Model):
 		return result
 
 	def getAllItems(self):
-		entries = Entry.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
-		annotations = Annotation.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
-		answers = Answer.all().filter("community = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
-		links = Link.all().filter("community = ", self.key()).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
+		entries = Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+		annotations = Annotation.all().filter("rakontu = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+		answers = Answer.all().filter("rakontu = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+		links = Link.all().filter("rakontu = ", self.key()).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
 		return (entries, annotations, answers, links)
 	
 	def getAllEntriesAnnotationsAndAnswersAsOneList(self):
@@ -426,16 +426,16 @@ class Community(db.Model):
 		return result
 
 	def getEntryInImportBufferWithTitle(self, title):	
-		return Entry.all().filter("community = ", self.key()).filter("inBatchEntryBuffer = ", True).filter("title = ", title).get()
+		return Entry.all().filter("rakontu = ", self.key()).filter("inBatchEntryBuffer = ", True).filter("title = ", title).get()
 										
 	def getEntriesInImportBufferForLiaison(self, liaison):
-		return Entry.all().filter("community = ", self.key()).filter("inBatchEntryBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
+		return Entry.all().filter("rakontu = ", self.key()).filter("inBatchEntryBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
 	
 	def getCommentsInImportBufferForLiaison(self, liaison):
-		return Annotation.all().filter("community = ", self.key()).filter("type = ", "comment").filter("inBatchEntryBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
+		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "comment").filter("inBatchEntryBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
 		
 	def getTagsetsInImportBufferForLiaison(self, liaison):
-		return Annotation.all().filter("community = ", self.key()).filter("type = ", "tag set").filter("inBatchEntryBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
+		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "tag set").filter("inBatchEntryBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
 		
 	def moveImportedEntriesOutOfBuffer(self, items):
 		for item in items:
@@ -453,7 +453,7 @@ class Community(db.Model):
 		return result
 	
 	def getNonDraftTagSets(self):
-		return Annotation.all().filter("community = ", self.key()).filter("type = ", "tag set").filter("draft = ", False).fetch(FETCH_NUMBER)
+		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "tag set").filter("draft = ", False).fetch(FETCH_NUMBER)
 	
 	def getNonDraftTags(self):
 		# cfk check - this may be too slow and may need to be updated instead when a tag set is added or removed
@@ -469,7 +469,7 @@ class Community(db.Model):
 	
 	def firstPublishOrCreatedWhicheverExists(self):
 		if self.firstPublish:
-			# the reason this "padding" is needed is in the case of data being generated at community creation,
+			# the reason this "padding" is needed is in the case of data being generated at rakontu creation,
 			# when the time of item creation may actually be slightly before the "firstPublish" flag is set
 			# it won't hurt to have an extra second in otherwise, anyway
 			return self.firstPublish - timedelta(seconds=1)
@@ -479,28 +479,28 @@ class Community(db.Model):
 	# QUESTIONS
 	
 	def getAllQuestions(self):
-		return Question.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+		return Question.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
 	
 	def getActiveQuestions(self):
-		return Question.all().filter("community = ", self.key()).filter("active = ", True).fetch(FETCH_NUMBER)
+		return Question.all().filter("rakontu = ", self.key()).filter("active = ", True).fetch(FETCH_NUMBER)
 	
 	def getActiveQuestionsOfType(self, type):
-		return Question.all().filter("community = ", self.key()).filter("refersTo = ", type).filter("active = ", True).fetch(FETCH_NUMBER)
+		return Question.all().filter("rakontu = ", self.key()).filter("refersTo = ", type).filter("active = ", True).fetch(FETCH_NUMBER)
 	
 	def getInactiveQuestionsOfType(self, type):
-		return Question.all().filter("community = ", self.key()).filter("refersTo = ", type).filter("active = ", False).fetch(FETCH_NUMBER)
+		return Question.all().filter("rakontu = ", self.key()).filter("refersTo = ", type).filter("active = ", False).fetch(FETCH_NUMBER)
 	
 	def getActiveMemberQuestions(self):
 		return self.getActiveQuestionsOfType("member")
 	
 	def getActiveNonMemberQuestions(self):
-		return Question.all().filter("community = ", self.key()).filter("refersTo !=", "member").filter("active = ", True).fetch(FETCH_NUMBER)
+		return Question.all().filter("rakontu = ", self.key()).filter("refersTo !=", "member").filter("active = ", True).fetch(FETCH_NUMBER)
 		
 	def getActiveMemberAndCharacterQuestions(self):
-		return Question.all().filter("community = ", self.key()).filter("refersTo IN ", ["character", "member"]).filter("active = ", True).fetch(FETCH_NUMBER)
+		return Question.all().filter("rakontu = ", self.key()).filter("refersTo IN ", ["character", "member"]).filter("active = ", True).fetch(FETCH_NUMBER)
 	
 	def hasActiveQuestionsOfType(self, type):
-		return Question.all().filter("community = ", self.key()).filter("refersTo = ", type).filter("active = ", True).count() > 0
+		return Question.all().filter("rakontu = ", self.key()).filter("refersTo = ", type).filter("active = ", True).count() > 0
 	
 	def hasQuestionWithSameTypeAndName(self, question):
 		allQuestions = self.getAllQuestions()
@@ -519,7 +519,7 @@ class Community(db.Model):
 							   help=question.help,
 							   useHelp=question.useHelp,
 							   multiple=question.multiple,
-							   community=self)
+							   rakontu=self)
 		newQuestion.put()
 		
 	def addQuestionsOfTypeFromCSV(self, type, input):
@@ -555,7 +555,7 @@ class Community(db.Model):
 				help = row[6]
 				useHelp=row[7]
 				question = Question(refersTo=refersTo, name=name, text=text, type=type, choices=choices, multiple=multiple,
-								responseIfBoolean=responseIfBoolean, minIfValue=minValue, maxIfValue=maxValue, help=help, useHelp=useHelp, community=self)
+								responseIfBoolean=responseIfBoolean, minIfValue=minValue, maxIfValue=maxValue, help=help, useHelp=useHelp, rakontu=self)
 				questionsToPut.append(question)
 		if questionsToPut:
 			db.put(questionsToPut)
@@ -563,19 +563,19 @@ class Community(db.Model):
 	# SEARCHES
 	
 	def getNonPrivateSavedSearches(self):
-		return SavedSearch.all().filter("community = ", self.key()).filter("private = ", False).fetch(FETCH_NUMBER)
+		return SavedSearch.all().filter("rakontu = ", self.key()).filter("private = ", False).fetch(FETCH_NUMBER)
 		
 	# REMOVAL
 	
 	def removeAllDependents(self):
-		entries = Entry.all().filter("community = ", self.key()).fetch(FETCH_NUMBER)
+		entries = Entry.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
 		for entry in entries:
 			entry.removeAllDependents()
 		db.delete(entries)
-		db.delete(Member.all().filter("community = ", self.key()).fetch(FETCH_NUMBER))
-		db.delete(PendingMember.all().filter("community = ", self.key()).fetch(FETCH_NUMBER))
-		db.delete(CommunityCharacter.all().filter("community = ", self.key()).fetch(FETCH_NUMBER))
-		db.delete(Question.all().filter("community = ", self.key()).fetch(FETCH_NUMBER))
+		db.delete(Member.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
+		db.delete(PendingMember.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
+		db.delete(RakontuCharacter.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
+		db.delete(Question.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
 		
 	# IMPORT
 	
@@ -621,9 +621,9 @@ class Community(db.Model):
 												text = row[4].strip()
 											else:
 												text = "No text imported."
-											entry = Entry(community=self, type=type, title=title) 
+											entry = Entry(rakontu=self, type=type, title=title) 
 											entry.text = text
-											entry.community = self
+											entry.rakontu = self
 											entry.creator = member
 											entry.collectedOffline = True
 											entry.collected = collected
@@ -635,15 +635,15 @@ class Community(db.Model):
 	# EXPORT
 	
 	def getExportOfType(self, type):
-		return Export.all().filter("community = ", self.key()).filter("type = ", type).get()
+		return Export.all().filter("rakontu = ", self.key()).filter("type = ", type).get()
 
 	def createOrRefreshExport(self, type, itemList=None, member=None, questionType=None):
 		exportAlreadyThereForType = self.getExportOfType(type)
 		if exportAlreadyThereForType:
 			db.delete(exportAlreadyThereForType)
-		export = Export(community=self.key(), type=type)
+		export = Export(rakontu=self.key(), type=type)
 		if type == "entries":
-			csvText = '"Export of entries, answers, annotations, attachments and links for community %s"\n' % self.name
+			csvText = '"Export of entries, answers, annotations, attachments and links for rakontu %s"\n' % self.name
 			entries = self.getNonDraftEntries()
 			csvText += "(entry columns)," + entries[0].csvLine(header=True) + "\n"
 			for entry in entries:
@@ -669,7 +669,7 @@ class Community(db.Model):
 				for link in links:
 					csvText += "link," + link.csvLine() + "\n"
 		elif type == "entries_with_answers":
-			csvText = '"Export of entries with answers for community %s"\n' % self.name
+			csvText = '"Export of entries with answers for rakontu %s"\n' % self.name
 			members = self.getActiveMembers()
 			characters = self.getActiveCharacters()
 			typeCount = 0
@@ -686,10 +686,10 @@ class Community(db.Model):
 						csvText += entry.csvLineWithAnswers(i+1, members, characters, questions) 
 						i += 1
 				typeCount += 1
-		elif type == "community":
-			csvText = '"Export of settings, members and characters for community %s"\n' % self.name
-			csvText += '\n(community columns),' + self.csvLine(header=True) + "\n"
-			csvText += "community," + self.csvLine() + "\n"
+		elif type == "rakontu":
+			csvText = '"Export of settings, members and characters for rakontu %s"\n' % self.name
+			csvText += '\n(rakontu columns),' + self.csvLine(header=True) + "\n"
+			csvText += "rakontu," + self.csvLine() + "\n"
 			members = self.getActiveMembers()
 			if members:
 				csvText += "\n(member columns)," + members[0].csvLine(header=True) + "\n"
@@ -800,7 +800,7 @@ class Question(db.Model):
 # ============================================================================================
 # ============================================================================================
 
-	community = db.ReferenceProperty(Community, collection_name="questions_to_community")
+	rakontu = db.ReferenceProperty(Rakontu, collection_name="questions_to_rakontu")
 	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO, required=True) 
 	
 	name = db.StringProperty(required=True, default=DEFAULT_QUESTION_NAME)
@@ -855,7 +855,7 @@ class Member(db.Model):
 # ============================================================================================
 # ============================================================================================
 
-	community = db.ReferenceProperty(Community, required=True, collection_name="members_to_community")
+	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="members_to_rakontu")
 	nickname = db.StringProperty(default=NO_NICKNAME_SET)
 	isOnlineMember = db.BooleanProperty(default=True)
 	liaisonIfOfflineMember = db.SelfReferenceProperty(default=None, collection_name="offline_members_to_liaisons")
@@ -905,9 +905,9 @@ class Member(db.Model):
 	# CREATION
 	
 	def initialize(self):
-		self.timeZoneName = self.community.defaultTimeZoneName
-		self.timeFormat = self.community.defaultTimeFormat
-		self.dateFormat = self.community.defaultDateFormat
+		self.timeZoneName = self.rakontu.defaultTimeZoneName
+		self.timeFormat = self.rakontu.defaultTimeFormat
+		self.dateFormat = self.rakontu.defaultDateFormat
 		
 	# INFO
 		
@@ -957,7 +957,7 @@ class Member(db.Model):
 		return self.helpingRolesAvailable[0] or self.helpingRolesAvailable[1] or self.helpingRolesAvailable[2]
 	
 	def canEditTags(self):
-		return (NUM_TAGS_IN_TAG_SET) and (self.isCurator() and self.isManagerOrOwner()) or (self.isCurator() and self.community.allowNonManagerCuratorsToEditTags)
+		return (NUM_TAGS_IN_TAG_SET) and (self.isCurator() and self.isManagerOrOwner()) or (self.isCurator() and self.rakontu.allowNonManagerCuratorsToEditTags)
 	
 	# BROWSING
 	
@@ -969,8 +969,8 @@ class Member(db.Model):
 			if frame == aFrame:
 				if aFrame == TIME_FRAME_EVERYTHING_STRING:
 					self.viewTimeEnd = datetime.now(tz=pytz.utc)
-					self.viewTimeFrameInSeconds = (self.viewTimeEnd - self.community.firstPublishOrCreatedWhicheverExists()).seconds \
-						+ (self.viewTimeEnd - self.community.firstPublishOrCreatedWhicheverExists()).days * DAY_SECONDS
+					self.viewTimeFrameInSeconds = (self.viewTimeEnd - self.rakontu.firstPublishOrCreatedWhicheverExists()).seconds \
+						+ (self.viewTimeEnd - self.rakontu.firstPublishOrCreatedWhicheverExists()).days * DAY_SECONDS
 				else:
 					self.viewTimeFrameInSeconds = seconds
 				# caller should do the put
@@ -983,7 +983,7 @@ class Member(db.Model):
 		return TIME_FRAME_EVERYTHING_STRING
 			
 	def setTimeFrameToStartAtFirstPublish(self):
-		self.viewTimeEnd = self.community.firstPublish + timedelta(seconds=self.viewTimeFrameInSeconds)
+		self.viewTimeEnd = self.rakontu.firstPublish + timedelta(seconds=self.viewTimeFrameInSeconds)
 		# caller should do the put
 		
 	# CONTRIBUTIONS
@@ -1076,11 +1076,11 @@ class Member(db.Model):
 
 # ============================================================================================
 # ============================================================================================
-class PendingMember(db.Model): # person invited to join community but not yet logged in
+class PendingMember(db.Model): # person invited to join rakontu but not yet logged in
 # ============================================================================================
 # ============================================================================================
 
-	community = db.ReferenceProperty(Community, required=True, collection_name="pending_members_to_community")
+	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="pending_members_to_rakontu")
 	email = db.StringProperty(required=True) # must match google account
 	invited = TzDateTimeProperty(auto_now_add=True)
 	
@@ -1095,16 +1095,16 @@ class PendingMember(db.Model): # person invited to join community but not yet lo
 
 # ============================================================================================
 # ============================================================================================
-class CommunityCharacter(db.Model): # optional fictions to anonymize entries but provide some information about intent
+class RakontuCharacter(db.Model): # optional fictions to anonymize entries but provide some information about intent
 # ============================================================================================
 # ============================================================================================
 
-	community = db.ReferenceProperty(Community, required=True, collection_name="characters_to_community")
+	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="characters_to_rakontu")
 	name = db.StringProperty(required=True)
 	created = TzDateTimeProperty(auto_now_add=True)
 	active = db.BooleanProperty(default=True)
 	
-	description = db.TextProperty(default=None) # appears on community page
+	description = db.TextProperty(default=None) # appears on rakontu page
 	description_formatted = db.TextProperty()
 	description_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
@@ -1163,7 +1163,7 @@ class SavedSearch(db.Model):
 # ============================================================================================
 # ============================================================================================
 
-	community = db.ReferenceProperty(Community, required=True, collection_name="searches_to_community")
+	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="searches_to_rakontu")
 	creator = db.ReferenceProperty(Member, required=True, collection_name="searches_to_member")
 	private = db.BooleanProperty(default=True)
 	created = TzDateTimeProperty(auto_now_add=True)
@@ -1211,7 +1211,7 @@ class SavedSearch(db.Model):
 		self.comment_format = search.comment_format
 		for ref in search.getQuestionReferences():
 			myRef = SavedSearchQuestionReference(
-												community=self.community, 
+												rakontu=self.rakontu, 
 												creator=self.creator,
 												search=self,
 												question=ref.question,
@@ -1254,7 +1254,7 @@ class SavedSearch(db.Model):
 	# LINKING TO PATTERNS
 		
 	def linkString(self):
-		return '<a href="/visit/look?%s">%s</a>' % (self.key(), self.name)
+		return '<a href="/visit/home?%s">%s</a>' % (self.key(), self.name)
 	
 	def shortFormattedText(self):
 		result = ""
@@ -1287,7 +1287,7 @@ class SavedSearchQuestionReference(db.Model):
 # ============================================================================================
 
 	created = TzDateTimeProperty(auto_now_add=True)
-	community = db.ReferenceProperty(Community, required=True, collection_name="searchrefs_to_community")
+	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="searchrefs_to_rakontu")
 	search = db.ReferenceProperty(SavedSearch, required=True, collection_name="question_refs_to_saved_search")
 	question = db.ReferenceProperty(Question, required=True, collection_name="question_refs_to_question")
 	
@@ -1302,7 +1302,7 @@ class Answer(db.Model):
 # ============================================================================================
 # ============================================================================================
 
-	community = db.ReferenceProperty(Community, collection_name="answers_to_community")
+	rakontu = db.ReferenceProperty(Rakontu, collection_name="answers_to_rakontu")
 	question = db.ReferenceProperty(Question, collection_name="answers_to_questions")
 	referent = db.ReferenceProperty(None, collection_name="answers_to_objects") # entry or member
 	referentType = db.StringProperty(default="entry") # entry or member
@@ -1310,7 +1310,7 @@ class Answer(db.Model):
 	
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="answers_to_liaisons")
-	character = db.ReferenceProperty(CommunityCharacter, default=None, collection_name="answers_to_characters")
+	character = db.ReferenceProperty(RakontuCharacter, default=None, collection_name="answers_to_characters")
 	
 	draft = db.BooleanProperty(default=True)
 	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
@@ -1348,11 +1348,11 @@ class Answer(db.Model):
 					self.entryNudgePointsWhenPublished[i] = self.referent.nudgePoints[i]
 				self.entryActivityPointsWhenPublished = self.referent.activityPoints
 				self.put()
-			self.creator.nudgePoints += self.community.getMemberNudgePointsForEvent("answering question")
+			self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("answering question")
 			self.creator.lastAnsweredQuestion = datetime.now(pytz.utc)
 			self.creator.put()
-			self.community.lastPublish = self.published
-			self.community.put()
+			self.rakontu.lastPublish = self.published
+			self.rakontu.put()
 				
 	# DISPLAY
 		
@@ -1470,11 +1470,11 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	resourceForManagersAndOwnersOnly = db.BooleanProperty(default=False)
 	resourceAtSystemLevel = db.BooleanProperty(default=False)
 
-	community = db.ReferenceProperty(Community, required=True, collection_name="entries_to_community")
+	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="entries_to_rakontu")
 	creator = db.ReferenceProperty(Member, collection_name="entries")
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="entries_to_liaisons")
-	character = db.ReferenceProperty(CommunityCharacter, default=None, collection_name="entries_to_characters")
+	character = db.ReferenceProperty(RakontuCharacter, default=None, collection_name="entries_to_characters")
 	
 	draft = db.BooleanProperty(default=True)
 	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
@@ -1504,15 +1504,15 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		self.draft = False
 		self.published = datetime.now(pytz.utc)
 		self.recordAction("added", self) # does a put
-		self.creator.nudgePoints += self.community.getMemberNudgePointsForEvent("adding %s" % self.type)
+		self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("adding %s" % self.type)
 		self.creator.lastEnteredEntry = datetime.now(pytz.utc)
 		self.creator.put()
 		for answer in self.getAnswersForMember(self.creator):
 			answer.publish()
-		self.community.lastPublish = self.published
-		if not self.community.firstPublish:
-			self.community.firstPublish = self.published
-		self.community.put()
+		self.rakontu.lastPublish = self.published
+		if not self.rakontu.firstPublish:
+			self.rakontu.firstPublish = self.published
+		self.rakontu.put()
 		
 	def recordAction(self, action, referent):
 		if referent.__class__.__name__ == "Entry":
@@ -1532,7 +1532,7 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		elif referent.__class__.__name__ == "Link":
 			eventType = "adding %s link" % referent.type 
 			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
-		self.activityPoints += self.community.getEntryActivityPointsForEvent(eventType)
+		self.activityPoints += self.rakontu.getEntryActivityPointsForEvent(eventType)
 		self.put()
 		
 	def lastTouched(self):
@@ -1992,7 +1992,7 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 	#   referenced: pattern to saved search - note, this is the only non-entry link item, and it is ALWAYS itemTo
 	itemFrom = db.ReferenceProperty(None, collection_name="fromLinks", required=True)
 	itemTo = db.ReferenceProperty(None, collection_name="toLinks", required=True)
-	community = db.ReferenceProperty(Community, required=True, collection_name="links_to_community")
+	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="links_to_rakontu")
 	creator = db.ReferenceProperty(Member, collection_name="links")
 	
 	# links cannot be in draft mode and cannot be entered in batch mode
@@ -2020,13 +2020,13 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 			self.entryNudgePointsWhenPublished[i] = self.itemFrom.nudgePoints[i]
 		self.entryActivityPointsWhenPublished = self.itemFrom.activityPoints
 		self.put()
-		self.creator.nudgePoints = self.itemFrom.community.getMemberNudgePointsForEvent("adding %s link" % self.type)
+		self.creator.nudgePoints = self.itemFrom.rakontu.getMemberNudgePointsForEvent("adding %s link" % self.type)
 		self.creator.lastEnteredLink = datetime.now(pytz.utc)
 		self.creator.put()
-		self.itemFrom.community.lastPublish = self.published
-		if not self.itemFrom.community.firstPublish:
-			self.itemFrom.community.firstPublish = self.published
-		self.itemFrom.community.put()
+		self.itemFrom.rakontu.lastPublish = self.published
+		if not self.itemFrom.rakontu.firstPublish:
+			self.itemFrom.rakontu.firstPublish = self.published
+		self.itemFrom.rakontu.put()
 		
 	# MEMBERS
 		
@@ -2119,7 +2119,7 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 # ============================================================================================
 
 	type = db.StringProperty(choices=ANNOTATION_TYPES, required=True)
-	community = db.ReferenceProperty(Community, required=True, collection_name="annotations_to_community")
+	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="annotations_to_rakontu")
 	entry = db.ReferenceProperty(Entry, required=True, collection_name="annotations")
 	creator = db.ReferenceProperty(Member, collection_name="annotations")
 	
@@ -2140,7 +2140,7 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="annotations_liaisoned")
-	character = db.ReferenceProperty(CommunityCharacter, default=None, collection_name="annotations_to_characters")
+	character = db.ReferenceProperty(RakontuCharacter, default=None, collection_name="annotations_to_characters")
 
 	collected = TzDateTimeProperty(default=None)
 	created = TzDateTimeProperty(auto_now_add=True)
@@ -2170,10 +2170,10 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 			self.entryNudgePointsWhenPublished[i] = self.entry.nudgePoints[i]
 		self.entryActivityPointsWhenPublished = self.entry.activityPoints
 		self.put()
-		self.creator.nudgePoints += self.community.getMemberNudgePointsForEvent("adding %s" % self.type)
+		self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("adding %s" % self.type)
 		self.creator.put()
-		self.community.lastPublish = self.published
-		self.community.put()
+		self.rakontu.lastPublish = self.published
+		self.rakontu.put()
 
 	# TYPE
 	
@@ -2249,7 +2249,7 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 			result = []
 			for i in range(NUM_NUDGE_CATEGORIES):
 				if self.valuesIfNudge[i] != 0:
-					result.append("%s %s" % (self.valuesIfNudge[i], self.community.nudgeCategories[i]))
+					result.append("%s %s" % (self.valuesIfNudge[i], self.rakontu.nudgeCategories[i]))
 			if self.shortString:
 				result.append("(%s)" % self.shortString)
 			return ", ".join(result)
@@ -2335,7 +2335,7 @@ class Export(db.Model):		 # data prepared for export, in XML format
 # ============================================================================================
 # ============================================================================================
 	
-	community = db.ReferenceProperty(Community, required=True, collection_name="export_to_community")
+	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="export_to_rakontu")
 	type = db.StringProperty()
 	created = TzDateTimeProperty(auto_now_add=True)
 	data = db.TextProperty()

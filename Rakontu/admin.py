@@ -8,45 +8,45 @@
 
 from utils import *
 
-class AdministerCommunitiesPage(webapp.RequestHandler):
+class AdministerRakontusPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		# this one method does not require a community and member, since the admin has to look at multiple communities.
+		# this one method does not require a rakontu and member, since the admin has to look at multiple rakontus.
 		if users.is_current_user_admin():
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-						   	   'title': "All communities", 
+						   	   'title': "All rakontus", 
 					   	   	   'title_extra': None, 
-							   'communities': Community.all().fetch(FETCH_NUMBER), 
-							   # here we do NOT give the current_member or community
+							   'rakontus': Rakontu.all().fetch(FETCH_NUMBER), 
+							   # here we do NOT give the current_member or rakontu
 							   })
-			path = os.path.join(os.path.dirname(__file__), 'templates/admin/showAllCommunities.html')
+			path = os.path.join(os.path.dirname(__file__), 'templates/admin/review.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect('/')
 			
 	@RequireLogin 
 	def post(self):
-		# this one method does not require a community and member, since the admin has to look at multiple communities.
+		# this one method does not require a rakontu and member, since the admin has to look at multiple rakontus.
 		if users.is_current_user_admin():
-			communities = Community.all().fetch(FETCH_NUMBER)
-			for aCommunity in communities:
-				if "toggleActiveState|%s" % aCommunity.key() in self.request.arguments():
-					aCommunity.active = not aCommunity.active
-					aCommunity.put()
-					self.redirect('/admin/communities')
-				elif "remove|%s" % aCommunity.key() in self.request.arguments():
-					aCommunity.removeAllDependents()
-					db.delete(aCommunity)
-					self.redirect('/admin/communities')
-				elif "export|%s" % aCommunity.key() in self.request.arguments():
-					self.redirect("/manage/export?community_id=%s" % aCommunity.key())
+			rakontus = Rakontu.all().fetch(FETCH_NUMBER)
+			for aRakontu in rakontus:
+				if "toggleActiveState|%s" % aRakontu.key() in self.request.arguments():
+					aRakontu.active = not aRakontu.active
+					aRakontu.put()
+					self.redirect('/admin/rakontus')
+				elif "remove|%s" % aRakontu.key() in self.request.arguments():
+					aRakontu.removeAllDependents()
+					db.delete(aRakontu)
+					self.redirect('/admin/rakontus')
+				elif "export|%s" % aRakontu.key() in self.request.arguments():
+					self.redirect("/manage/export?rakontu_id=%s" % aRakontu.key())
 		else:
 			self.redirect("/")
 
 class GenerateSampleQuestionsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if users.is_current_user_admin():
 				GenerateSampleQuestions()
@@ -59,7 +59,7 @@ class GenerateSampleQuestionsPage(webapp.RequestHandler):
 class GenerateHelpsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if users.is_current_user_admin():
 				GenerateHelps()

@@ -20,7 +20,7 @@
 	      		<th>Helping roles and availability</th>
 	      		<th>Inactivate?</th>
 	      		</tr>
-	      		{% for aMember in community_members %}
+	      		{% for aMember in rakontu_members %}
 	  				<tr>
 	  				<td>{{ aMember.nickname }} {% ifequal aMember.key current_member.key %}<br><i>(This is you)</i> {% endifequal %} </td>
 	  				<td>{{ aMember.isOnlineMember|yesno:"yes, no, maybe" }}</td>
@@ -106,18 +106,16 @@
 		      	</fieldset>
 		    {% endif %}
 			
-	 		<h3>Add members</h3>
+	 		<h3>Add new members {{"adding_members"|tip}}</h3>
 			<fieldset>
 			<div><textarea name="newMemberEmails" rows="6" cols="40"></textarea></div>
-			<p>Instructions: Add email adddresses (linked to valid Google Accounts) for each member you want to add.
-			Place each email address on a separate line.</p>
 			</fieldset>
 			
 			{% if inactive_members %}
 				<h3>Inactive members</h3>
 				<fieldset>
 				These members have been removed from the active members list. To reinstate an inactive member, 
-				copy their email to the "Add members" box and re-invite them to the community. Reinstated
+				copy their email to the "Add members" box and re-invite them to the Rakontu. Reinstated
 				members will reconnect to their old histories and profiles, if the email address on the
 				Google account is the same.
 				<ul>
@@ -133,7 +131,7 @@
 		</form>	
 		</div>
 	{% else %}
-		<p>You are not a manager of this community and cannot change its memberships.
+		<p>You are not a manager of this Rakontu and cannot change its memberships.
 		Please ask a manager to make any changes you would like to see made.</p>
 	{% endif %}
 

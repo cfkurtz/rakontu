@@ -11,7 +11,7 @@ from utils import *
 class FlagOrUnflagItemPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			item = None
 			if self.request.query_string:
@@ -24,21 +24,21 @@ class FlagOrUnflagItemPage(webapp.RequestHandler):
 				item.put()
 				self.redirect(self.request.headers["Referer"])
 			else:
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 		else:
 			self.redirect("/")
 	
 class CurateFlagsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if member.isCurator():
-				(entries, annotations, answers, links, searches) = community.getAllFlaggedItems()
+				(entries, annotations, answers, links, searches) = rakontu.getAllFlaggedItems()
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Review flags", 
 						   	   	   'title_extra': None, 
-						   	   	   'community': community, 
+						   	   	   'rakontu': rakontu, 
 						   	   	   'current_member': member,
 								   'entries': entries,
 								   'annotations': annotations,
@@ -50,18 +50,18 @@ class CurateFlagsPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'templates/curate/flags.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect('/visit/look')
+				self.redirect('/visit/home')
 		else:
 			self.redirect("/")
 				
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if "cancel" in self.request.arguments():
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 				return
-			items = community.getAllFlaggedItemsAsOneList()
+			items = rakontu.getAllFlaggedItemsAsOneList()
 			for item in items:
 				if self.request.get("flagComment|%s" % item.key()):
 					item.flagComment = self.request.get("flagComment|%s" % item.key())
@@ -121,19 +121,19 @@ class CurateFlagsPage(webapp.RequestHandler):
 							linkKey = item.key()
 							displayString = item.name
 						if item.__class__.__name__ == "SavedSearch":
-							messageLines.append('* %s\n\n	http://%s/visit/look?%s (%s)\n' % (displayString, URL, linkKey, item.flagComment))
+							messageLines.append('* %s\n\n	http://%s/visit/home?%s (%s)\n' % (displayString, URL, linkKey, item.flagComment))
 						else:
 							messageLines.append('* %s\n\n	http://%s/visit/curate?%s (%s)\n' % (displayString, URL, linkKey, item.flagComment))
 					messageLines.append("Thank you for your attention.\n")
 					messageLines.append("Sincerely,")
 					messageLines.append("	Your Rakontu site")
 					message = "\n".join(messageLines)
-					ownersAndManagers = community.getManagersAndOwners()
+					ownersAndManagers = rakontu.getManagersAndOwners()
 					for ownerOrManager in ownersAndManagers:
 						messageLines.insert(0, "Dear manager %s:\n" % ownerOrManager.nickname)
 						messageBody = "\n".join(messageLines)
 						message = mail.EmailMessage()
-						message.sender = community.contactEmail
+						message.sender = rakontu.contactEmail
 						message.subject = subject
 						message.to = ownerOrManager.googleAccountEmail
 						message.body = messageBody
@@ -143,14 +143,14 @@ class CurateFlagsPage(webapp.RequestHandler):
 						#message.send()
 					self.redirect('/result?messagesent')
 			else:
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 		else:
 			self.redirect("/")
 			
 class CurateGapsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if member.isCurator():
 				(entriesWithoutTags, \
@@ -158,11 +158,11 @@ class CurateGapsPage(webapp.RequestHandler):
 				entriesWithoutAnswers, \
 				entriesWithoutComments, \
 				invitationsWithoutResponses,
-				collagesWithoutInclusions) = community.getNonDraftEntriesWithMissingMetadata()
+				collagesWithoutInclusions) = rakontu.getNonDraftEntriesWithMissingMetadata()
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Review flags", 
 						   	   	   'title_extra': None, 
-								   'community': community, 
+								   'rakontu': rakontu, 
 								   'entries_without_tags': entriesWithoutTags,
 								   'entries_without_links': entriesWithoutLinks,
 								   'entries_without_answers': entriesWithoutAnswers,
@@ -174,56 +174,56 @@ class CurateGapsPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'templates/curate/gaps.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect('/visit/look')
+				self.redirect('/visit/home')
 		else:
 			self.redirect("/")
 			
 class CurateAttachmentsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if member.isCurator():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Review attachments", 
 						   	   	   'title_extra': None, 
-								   'community': community, 
-								   'attachments': community.getAttachmentsForAllNonDraftEntries(),
+								   'rakontu': rakontu, 
+								   'attachments': rakontu.getAttachmentsForAllNonDraftEntries(),
 								   'current_member': member,
 								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/curate/attachments.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect('/visit/look')
+				self.redirect('/visit/home')
 		else:
 			self.redirect("/")
 			
 class CurateTagsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if member.isCurator():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Review attachments", 
 						   	   	   'title_extra': None, 
-								   'community': community, 
-								   'tag_sets': community.getNonDraftTagSets(),
+								   'rakontu': rakontu, 
+								   'tag_sets': rakontu.getNonDraftTagSets(),
 								   'current_member': member,
 								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/curate/tags.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect('/visit/look')
+				self.redirect('/visit/home')
 		else:
 			self.redirect("/")
 			
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if member.isCurator():
-				tagsets = community.getNonDraftTagSets()
+				tagsets = rakontu.getNonDraftTagSets()
 				for tagset in tagsets:
 					tagset.tagsIfTagSet = []
 					for i in range(NUM_TAGS_IN_TAG_SET):

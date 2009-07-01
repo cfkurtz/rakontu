@@ -8,11 +8,11 @@
 		<form action="/curate/flags" method="post">
 			{% if current_member.isManagerOrOwner %}
 				<p>You are a{% if current_member.isOwner %}n{% endif %} 
-				<b>{{current_member.governanceType}}</b> of this community, so you can remove any item
+				<b>{{current_member.governanceType}}</b> of this Rakontu, so you can remove any item
 				added to the system.</p>
 			{% else %}
-				<p>You are a <b>curator</b> in this community, so you can flag items for removal
-				and notify the community's managers if you think an item should be removed quickly.<p>
+				<p>You are a <b>curator</b> in this Rakontu, so you can flag items for removal
+				and notify the Rakontu's managers if you think an item should be removed quickly.<p>
 			{% endif %}
 			
 			<h3>Flagged entries</h3>
@@ -255,7 +255,7 @@
 	  					<input type="checkbox" name="unflag|{{search.key}}" value="yes" id="unflag|{{search.key}}"/>
 						<label for="unflag|{{search.key}}">Unflag</label>
 	  				</td>	  				
-	  				<td><a href="/visit/look?{{search.key}}">{{search.name}}</a></td>
+	  				<td><a href="/visit/home?{{search.key}}">{{search.name}}</a></td>
 	  				<td>
 	  				{% for link in search.getIncomingLinks %}
 	  					<p>{{link.linkStringWithFromItem}}</p>
@@ -330,7 +330,7 @@
 		</form>	
 		</div>
 	{% else %}
-		<p>You are not a curator of this community and cannot review removal flags.
+		<p>You are not a curator of this Rakontu and cannot review removal flags.
 		Either become a curator or ask a curator to make any changes you would like to see made.</p>
 	{% endif %}
 	</div>

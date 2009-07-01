@@ -11,29 +11,29 @@ from utils import *
 class ReviewResourcesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if member.isGuide():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Resources", 
 						   	   	   'title_extra': None, 
-								   'community': community, 
-								   'resources': community.getNonDraftEntriesOfType("resource"),
+								   'rakontu': rakontu, 
+								   'resources': rakontu.getNonDraftEntriesOfType("resource"),
 								   'current_member': member,
 								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/guide/resources.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 		else:
 			self.redirect("/")
 			
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if member.isGuide():
-				resources = community.getNonDraftEntriesOfType("resource")
+				resources = rakontu.getNonDraftEntriesOfType("resource")
 				for resource in resources:
 					 if self.request.get("flag|%s" % resource.key()) == "yes":
 					 	resource.flaggedForRemoval = not resource.flaggedForRemoval
@@ -43,17 +43,17 @@ class ReviewResourcesPage(webapp.RequestHandler):
 class ReviewRequestsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if member.isGuide():
 				requestsByType = []
 				for type in REQUEST_TYPES:
-					requests = Annotation.all().filter("community = ", community.key()).filter("draft = ", False).filter("typeIfRequest = ", type).fetch(FETCH_NUMBER)
+					requests = Annotation.all().filter("rakontu = ", rakontu.key()).filter("draft = ", False).filter("typeIfRequest = ", type).fetch(FETCH_NUMBER)
 					requestsByType.append(requests)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Resources", 
 						   	   	   'title_extra': None, 
-								   'community': community, 
+								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'requests': requestsByType,
 								   'num_types': NUM_REQUEST_TYPES,
@@ -62,7 +62,7 @@ class ReviewRequestsPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'templates/guide/requests.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 		else:
 			self.redirect("/")
 			

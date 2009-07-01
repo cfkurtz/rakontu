@@ -11,7 +11,7 @@
 		
 		<p><b>Export entries - with annotations, answers, attachment names and links</b></p>
 		{% if entry_export %}
-			<p>&nbsp; &nbsp; <a href="/export?export_id={{entry_export.key}}">Entries for {{community.name}}</a>
+			<p>&nbsp; &nbsp; <a href="/export?export_id={{entry_export.key}}">Entries for {{rakontu.name}}</a>
 			was last generated 
 			on {{entry_export.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 			at {{entry_export.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
@@ -23,7 +23,7 @@
 		
 		<p><b>Export entries - with answers only, one line per answer set</b></p>
 		{% if entry_with_answers_export %}
-			<p>&nbsp; &nbsp; <a href="/export?export_id={{entry_with_answers_export.key}}">Entries with answers for {{community.name}}</a>
+			<p>&nbsp; &nbsp; <a href="/export?export_id={{entry_with_answers_export.key}}">Entries with answers for {{rakontu.name}}</a>
 			was last generated 
 			on {{entry_with_answers_export.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 			at {{entry_with_answers_export.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
@@ -33,24 +33,24 @@
 			<p>&nbsp; &nbsp; <input type="submit" name="entriesWithAnswersExport" value="Generate Entries-Answers Export" class="button"></p>
 		{% endif %}
 		
-		<p><b>Export community data - descriptions, members and characters</b></p>
-		{% if community_export %}
-			<p>&nbsp; &nbsp; <a href="/export?export_id={{community_export.key}}">Community data for {{community.name}}</a>
+		<p><b>Export Rakontu data - descriptions, members and characters</b></p>
+		{% if rakontu_export %}
+			<p>&nbsp; &nbsp; <a href="/export?export_id={{rakontu_export.key}}">Rakontu data for {{rakontu.name}}</a>
 			was last generated 
-			on {{community_export.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-			at {{community_export.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
-			<p>&nbsp; &nbsp; <input type="submit" name="communityExport" value="Regenerate Community Data Export" class="button"></p>
+			on {{rakontu_export.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+			at {{rakontu_export.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
+			<p>&nbsp; &nbsp; <input type="submit" name="rakontuExport" value="Regenerate Rakontu Data Export" class="button"></p>
 		{% else %}
 			<p>&nbsp; &nbsp; (none)</p>
-			<p>&nbsp; &nbsp; <input type="submit" name="communityExport" value="Generate Community Data Export" class="button"></p>
+			<p>&nbsp; &nbsp; <input type="submit" name="rakontuExport" value="Generate Rakontu Data Export" class="button"></p>
 		{% endif %}
 		
       	<p>
 	</form>
 	</div>
 	{% else %}
-		<p>You are not a manager of this community (or a site administrator) and cannot export its data.
-		Please ask a manager to export the community's data.</p>
+		<p>You are not a manager of this Rakontu (or a site administrator) and cannot export its data.
+		Please ask a manager to export the Rakontu's data.</p>
 	{% endif %}
 	
 	</div>

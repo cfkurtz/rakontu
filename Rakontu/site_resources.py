@@ -6,7 +6,7 @@
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
 
-# These are site-wide system resources, mainly help resources, that all communities in the installation can copy and use.
+# These are site-wide system resources, mainly help resources, that all Rakontus in the installation can copy and use.
 # NOTE: All system resources MUST have unique names.
 
 SYSTEM_INTRO_RESOURCE = [u"About Rakontu", u"Wiki markup", False, # boolean is whether it is for managers/owners only
@@ -18,27 +18,27 @@ Rakontu is a web application that helps groups, communities, and families share 
 === What it's for
 
 Rakontu is for small groups of people (usually fewer than 50) who have something they would like to share 
-experiences about: something they do together, a place they live in, a history they share. A Rakontu site is 
+experiences about: something they do together, a place they live in, a history they share. A Rakontu is 
 both a living history museum and a gathering place to share what's going on. 
 
 === What you can do
 
-These are the things you can do on a Rakontu web site:
+These are the things you can do in a Rakontu:
 
   * You can tell stories, and people can comment on them, answer questions about them, describe them with 
-tags, ask questions about them, and rate them on issues important to the community. 
+tags, ask questions about them, and rate them on issues important to the Rakontu. 
   * You can ask other people to tell stories about things you want to hear about.
   * You can look for stories in many different ways. If you see an interesting pattern, you can save it and ask 
 other people to comment on it.
-  * You can build story collages, assemblages of stories you want to remember or present for a reason.
+  * You can build story collages, which are assemblages of stories you want to remember or present for a reason.
 
 === Doing more
 
-If you like, you can take on a *helping role* in your community.
+If you like, you can take on a *helping role* in your Rakontu.
 
   * *Curators* watch over the living museum of stories, making sure they are clean and well connected.
-  * *Guides* help other people use the system and encourage people to participate in the community.
-  * *Liaisons* provide bridges between on-line members of the community (people who use the web site) 
+  * *Guides* help other people use the system and encourage people to participate in the Rakontu.
+  * *Liaisons* provide bridges between on-line members of the Rakontu (people who use the web site) 
 and off-line members (people who tell and hear stories but don't use the web site).
 
 To get started, click on a story title and start reading!
@@ -155,7 +155,7 @@ Most entries will be stories; but there are also four other kinds of entry.
   30 were more likely to tell stories about cats." While a collage is essentially an annotated list of stories, a pattern is 
   an annotated list of queries.
 
-  * *Resources* are things put into the system to help people participate in the community, either to help them tell 
+  * *Resources* are things put into the system to help people participate in the Rakontu, either to help them tell 
   stories or to provide useful information. Resources might include getting started guides as well as information about 
   a geographical community or pictures related to a subject.
 
@@ -169,10 +169,10 @@ Annotations are things that surround entries for the purpose of discussion and c
   * *Requests* are a special kind of comment that asks other people to do something related to an entry -- translate a story 
   to another language, read a story out loud, transcribe an audio story, or just add some comments.
 
-  * *Nudges* are ratings. When a community member nudges a story or other entry up or down, everyone sees the entry as 
-  higher or lower in their main community page. The nudge system is similar to SlashDot's karma system, in that people gain 
-  nudge points by participating in the community and can use them to nudge entries up or down. The main difference between 
-  Rakontu's rating system and others, however, is that the community can define up to five _categories_ of nudges. This helps 
+  * *Nudges* are ratings. When a Rakontu member nudges a story or other entry up or down, everyone sees the entry as 
+  higher or lower in their Rakontu's home page. The nudge system is similar to SlashDot's karma system, in that people gain 
+  nudge points by participating in the Rakontu and can use them to nudge entries up or down. The main difference between 
+  Rakontu's rating system and others, however, is that the Rakontu can define up to five _categories_ of nudges. This helps 
   people distinguish between entries that are useful for different reasons.
 
   * *Tags* on entries can be used to build an open-ended and changing set of descriptors for finding helpful things.
@@ -180,8 +180,8 @@ Annotations are things that surround entries for the purpose of discussion and c
 == Answers
 
 Each type of entry (story, invitation, collage, pattern, resource) has a set of questions you can answer about them. 
-The creator of the entry _and_ everyone else in the community can answer the same questions. Looking at differences of 
-opinion about stories can be a useful way to think about issues in the community. It's also a great way to find stories 
+The creator of the entry _and_ everyone else in the Rakontu can answer the same questions. Looking at differences of 
+opinion about stories can be a useful way to think about issues in the Rakontu. It's also a great way to find stories 
 you are interested in reading.
 
 Members can also have questions they answer. These answers can be combined with questions about stories to produce 
@@ -195,23 +195,23 @@ u"""
 
 == Members
 
-Everyone who has access to a Rakontu site is a *member* of the community. All members can tell stories, ask other people 
+Everyone who has access to a Rakontu site is a *member* of the Rakontu. All members can tell stories, ask other people 
 to tell stories, build collages and note patterns. All members can tag, comment on, add a request to, 
 
 === Managers
 
-Some of the people in the community are managers. These are the people who can change all of the governance-type 
-settings in the community, such as what questions are asked about entries and members. Managers must be made managers 
+Some of the people in the Rakontu are managers. These are the people who can change all of the governance-type 
+settings in the Rakontu, such as what questions are asked about entries and members. Managers must be made managers 
 by other managers.
 
 === Owners
 
-At least one manager is called an owner. The only additional thing an owner can do is delete the community 
-(so this person has to be trustworthy!). Usually the owner will be the person who started the community.
+At least one manager is called an owner. The only additional thing an owner can do is delete the Rakontu 
+(so this person has to be trustworthy!). Usually the owner will be the person who started the Rakontu.
 
 === Helpers
 
-There are three "helping roles" in any Rakontu community. These are always volunteer roles, and any member can take them 
+There are three "helping roles" in any Rakontu. These are always volunteer roles, and any member can take them 
 on simply by checking a box that says they want to do this. (However, managers can ban a member from doing this if 
 they need to, for example if someone abuses the privileges of the role.)
 
@@ -222,27 +222,27 @@ they need to, for example if someone abuses the privileges of the role.)
   * *Guides* are the people-helpers of the system. They alone can create resources, and they can review requests attached
   to entries, such as those needing transcription. When people need help, they can ask a guide.
 
-  * *Liaisons* are bridges between on-line and off-line members of a community. Off-line members can tell stories,
+  * *Liaisons* are bridges between on-line and off-line members of a Rakontu. Off-line members can tell stories,
   read and hear stories, and make comments and other annotations. Liaisons enter all of this information for them
   and output things for them to read and hear. 
 
 === Characters
 
-Sometimes it's hard to tell a story that needs to be told. Communities can optionally set up characters, which are 
+Sometimes it's hard to tell a story that needs to be told. Rakontus can optionally set up characters, which are 
 sort of like masks people can put on to tell a story they would rather not have labeled as theirs. Information about who 
-told the story is still in the system, but nobody in the community (including its managers) can see it. Only a site 
+told the story is still in the system, but nobody in the Rakontu (including its managers) can see it. Only a site 
 administrator can see identifying information, and only with some effort. Characters have answers to questions as well, 
 so you can search on things like "Show me stories told by characters that describe themselves as 'strong' where the 
 storyteller said the story made them feel 'weak'."
 
-Communities may vary on whether they have characters and which types of entries and annotations are allowed to use 
+Rakontus may vary on whether they have characters and which types of entries and annotations are allowed to use 
 character attribution.
 
 """]
 
 SYSTEM_CURATOR_RESOURCE = [u"How to be a curator", u"Wiki markup", False, # boolean is whether it is for managers/owners only
 u"""
-Curating a Rakontu community means helping to tend the museum of stories and other entries. People who like messing
+Curating a Rakontu means helping to tend the museum of stories and other entries. People who like messing
 organizing "stuff" are good curators. CFK FINISH
 """]
 
@@ -256,7 +256,7 @@ u"""
 Being a liaison CFK FINISH
 """]
 
-SYSTEM_MANAGING_RESOURCE = [u"How to manage a Rakontu community", u"Wiki markup", True, # boolean is whether it is for managers/owners only
+SYSTEM_MANAGING_RESOURCE = [u"How to manage a Rakontu", u"Wiki markup", True, # boolean is whether it is for managers/owners only
 u"""
 Here is how you do it. CFK FINISH
 """]

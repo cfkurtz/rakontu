@@ -87,7 +87,7 @@
 		      		<th>Remove?</th>
 		      	{% for search in searches %}
 			      	<tr>
-			      	<td><a href="/visit/look?{{search.key}}">{{search.name}}</a></td>
+			      	<td><a href="/visit/home?{{search.key}}">{{search.name}}</a></td>
 			      	<td>
 			      		{% for i in entry_types|makeRangeFromListLength %}
 			      			{% if search.entryTypes|listLookup:i %}

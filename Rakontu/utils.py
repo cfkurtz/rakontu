@@ -103,21 +103,21 @@ def parseDate(yearString, monthString, dayString):
 			return datetime.now(tz=pytz.utc)
 	return datetime.now(tz=pytz.utc)
 
-def ReadSampleQuestionsFromFile(fileName, community=None, communityType="ALL"):
-	if not community:
-		db.delete(Question.all().filter("community = ", None).fetch(FETCH_NUMBER))
+def ReadSampleQuestionsFromFile(fileName, rakontu=None, rakontuType="ALL"):
+	if not rakontu:
+		db.delete(Question.all().filter("rakontu = ", None).fetch(FETCH_NUMBER))
 	file = open(fileName)
 	questionStrings = csv.reader(file)
 	questionsToPut = []
 	for row in questionStrings:
 		if row[0] and row[1] and row[0][0] != ";":
-			if communityType != "ALL":
+			if rakontuType != "ALL":
 				if row[8]: 
-					typesOfCommunity = [x.strip() for x in row[8].split(",")]
+					typesOfRakontu = [x.strip() for x in row[8].split(",")]
 				else:
-					typesOfCommunity = COMMUNITY_TYPES[:-1] # if no entry interpret as all except custom
-				logging.info(typesOfCommunity)
-			if communityType == "ALL" or communityType in typesOfCommunity:
+					typesOfRakontu = RAKONTU_TYPES[:-1] # if no entry interpret as all except custom
+				logging.info(typesOfRakontu)
+			if rakontuType == "ALL" or rakontuType in typesOfRakontu:
 				refersTo = [x.strip() for x in row[0].split(",")]
 				for reference in refersTo:
 					name = row[1]
@@ -144,9 +144,9 @@ def ReadSampleQuestionsFromFile(fileName, community=None, communityType="ALL"):
 					multiple = row[5] == "yes"
 					help = row[6]
 					useHelp=row[7]
-					typesOfCommunity = [x.strip() for x in row[8].split(",")]
+					typesOfRakontu = [x.strip() for x in row[8].split(",")]
 					question = Question(refersTo=reference, name=name, text=text, type=type, choices=choices, multiple=multiple,
-									responseIfBoolean=responseIfBoolean, minIfValue=minValue, maxIfValue=maxValue, help=help, useHelp=useHelp, community=community)
+									responseIfBoolean=responseIfBoolean, minIfValue=minValue, maxIfValue=maxValue, help=help, useHelp=useHelp, rakontu=rakontu)
 					questionsToPut.append(question)
 	db.put(questionsToPut)
 	file.close()
@@ -154,10 +154,10 @@ def ReadSampleQuestionsFromFile(fileName, community=None, communityType="ALL"):
 def GenerateSampleQuestions():
 	ReadSampleQuestionsFromFile('sample_questions.csv')
 	
-def GenerateDefaultQuestionsForCommunity(community, type):
-	ReadSampleQuestionsFromFile('default_questions.csv', community, type)
+def GenerateDefaultQuestionsForRakontu(rakontu, type):
+	ReadSampleQuestionsFromFile('default_questions.csv', rakontu, type)
 	
-def GenerateDefaultCharactersForCommunity(community):
+def GenerateDefaultCharactersForRakontu(rakontu):
 	file = open('default_characters.csv')
 	questionStrings = csv.reader(file)
 	characters = []
@@ -168,9 +168,9 @@ def GenerateDefaultCharactersForCommunity(community):
 			etiquetteStatement = row[2]
 			imageFileName = row[3]
 			image = db.Blob(open(imageFileName).read())
-			character = CommunityCharacter(
+			character = RakontuCharacter(
 							   name=row[0],
-							   community=community,
+							   rakontu=rakontu,
 							   )
 			format = "plain text"
 			character.description = db.Text(description)
@@ -203,11 +203,11 @@ def HexColorStringForRowIndex(index):
 		b -= index * COLOR_DECREMENT
 		return RGBToHTMLColor((r,g,b))
 	
-def MakeSystemResource(community, member, title, text, format, managersOnly):
-	thereResource = Entry.all().filter("community = ", community).filter("creator = ", member.key()).filter("title = ", title).get()
+def MakeSystemResource(rakontu, member, title, text, format, managersOnly):
+	thereResource = Entry.all().filter("rakontu = ", rakontu).filter("creator = ", member.key()).filter("title = ", title).get()
 	if thereResource:
 		db.delete(thereResource)
-	newResource = Entry(community=community, 
+	newResource = Entry(rakontu=rakontu, 
 					type="resource",
 					title=title,
 					text=text,
@@ -224,16 +224,16 @@ def MakeSystemResource(community, member, title, text, format, managersOnly):
 					)
 	newResource.put()
 	
-def GenerateSystemResource(community, member, index):
+def GenerateSystemResource(rakontu, member, index):
 	resourceArray = SYSTEM_RESOURCES[index]
 	title = resourceArray[0]
 	format = resourceArray[1]
 	managersOnly = resourceArray[2]
 	text = resourceArray[3]
-	systemResource = Entry.all().filter("community = ", community.key()).filter("resourceAtSystemLevel = ", True).filter("title = ", title).get()
+	systemResource = Entry.all().filter("rakontu = ", rakontu.key()).filter("resourceAtSystemLevel = ", True).filter("title = ", title).get()
 	if systemResource:
 		db.delete(systemResource)
-	MakeSystemResource(community, member, title, text, format, managersOnly)
+	MakeSystemResource(rakontu, member, title, text, format, managersOnly)
 	
 class ImageHandler(webapp.RequestHandler):
 	def get(self):
@@ -244,11 +244,11 @@ class ImageHandler(webapp.RequestHandler):
 				self.response.out.write(member.profileImage)
 			else:
 				self.error(404)
-		elif self.request.get("community_id"):
-			community = db.get(self.request.get("community_id"))
-			if community and community.image:
+		elif self.request.get("rakontu_id"):
+			rakontu = db.get(self.request.get("rakontu_id"))
+			if rakontu and rakontu.image:
 				self.response.headers['Content-Type'] = "image/jpg"
-				self.response.out.write(community.image)
+				self.response.out.write(rakontu.image)
 			else:
 				self.error(404)
 		elif self.request.get("entry_id"):
@@ -309,28 +309,28 @@ def RequireLogin(func):
 		func(request)
 	return check_login 
 
-def GetCurrentCommunityAndMemberFromSession():
+def GetCurrentRakontuAndMemberFromSession():
 	session = Session()
-	if session and session.has_key('community_key'):
-		community_key = session['community_key']
+	if session and session.has_key('rakontu_key'):
+		rakontu_key = session['rakontu_key']
 	else:
-		community_key = None
+		rakontu_key = None
 	if session and session.has_key('member_key'):
 		member_key = session['member_key']
 	else:
 		member_key = None
-	if community_key: 
-		community = db.get(community_key) 
+	if rakontu_key: 
+		rakontu = db.get(rakontu_key) 
 	else:
-		community = None
+		rakontu = None
 	if member_key:
 		member = db.get(member_key)
-		if not member.community.key() == community.key():
+		if not member.rakontu.key() == rakontu.key():
 			member = None
 	else:
 		member = None
-	okayToAccess = community and community.active and member and member.active
-	return community, member, okayToAccess
+	okayToAccess = rakontu and rakontu.active and member and member.active
+	return rakontu, member, okayToAccess
 
 """
 When an entity whose key is the value of a reference property is deleted, the reference property does not change. 
@@ -468,30 +468,30 @@ def RelativeTimeDisplayString(whenUTC, member):
 
 def MakeSomeFakeData():
 	user = users.get_current_user()
-	community = Community(name="Test community", description="Test description")
-	community.initializeFormattedTexts()
-	community.put()
-	member = Member(googleAccountID=user.user_id(), googleAccountEmail=user.email(), nickname="Tester", community=community, governanceType="owner")
+	rakontu = Rakontu(name="Test rakontu", description="Test description")
+	rakontu.initializeFormattedTexts()
+	rakontu.put()
+	member = Member(googleAccountID=user.user_id(), googleAccountEmail=user.email(), nickname="Tester", rakontu=rakontu, governanceType="owner")
 	member.initialize()
 	member.put()
 	if user.email() != "test@example.com":
-		PendingMember(community=community, email="test@example.com").put()
+		PendingMember(rakontu=rakontu, email="test@example.com").put()
 	else:
-		PendingMember(community=community, email="cfkurtz@cfkurtz.com").put()
-	PendingMember(community=community, email="admin@example.com").put()
-	CommunityCharacter(name="Little Bird", community=community).put()
-	CommunityCharacter(name="Old Coot", community=community).put()
-	CommunityCharacter(name="Blooming Idiot", community=community).put()
-	entry = Entry(community=community, type="story", creator=member, title="The dog", text="The dog sat on a log.", draft=False)
+		PendingMember(rakontu=rakontu, email="cfkurtz@cfkurtz.com").put()
+	PendingMember(rakontu=rakontu, email="admin@example.com").put()
+	RakontuCharacter(name="Little Bird", rakontu=rakontu).put()
+	RakontuCharacter(name="Old Coot", rakontu=rakontu).put()
+	RakontuCharacter(name="Blooming Idiot", rakontu=rakontu).put()
+	entry = Entry(rakontu=rakontu, type="story", creator=member, title="The dog", text="The dog sat on a log.", draft=False)
 	entry.put()
 	entry.publish()
-	annotation = Annotation(community=community, type="comment", creator=member, entry=entry, shortString="Great!", longString="Wonderful!", draft=False)
+	annotation = Annotation(rakontu=rakontu, type="comment", creator=member, entry=entry, shortString="Great!", longString="Wonderful!", draft=False)
 	annotation.put()
 	annotation.publish()
-	annotation = Annotation(community=community, type="comment", creator=member, entry=entry, shortString="Dumb", longString="Silly", draft=False)
+	annotation = Annotation(rakontu=rakontu, type="comment", creator=member, entry=entry, shortString="Dumb", longString="Silly", draft=False)
 	annotation.put()
 	annotation.publish()
-	entry = Entry(community=community, type="story", creator=member, title="The circus", text="I went the the circus. It was great.", draft=False)
+	entry = Entry(rakontu=rakontu, type="story", creator=member, title="The circus", text="I went the the circus. It was great.", draft=False)
 	entry.put()
 	entry.publish()
 

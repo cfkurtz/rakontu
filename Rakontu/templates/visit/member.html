@@ -14,7 +14,7 @@
   		{% ifequal member.key current_member.key %}<i>(this is you)</i> {% endifequal %} 
   		is {% ifequal member.governanceType "member" %}
   			{% else %}
-  				an <b>{{ member.governanceType }}</b> of this community,
+  				an <b>{{ member.governanceType }}</b> of this Rakontu,
   			{% endifequal %}
   		is an <b>{{ member.isOnlineMember|yesno:"on-line, off-line" }}</b> member{% if member.hasAnyHelpingRole %},{% else %} {% endif %}
   		
@@ -25,7 +25,7 @@
 	  		{% if member.helpingRoles.2 %} <b>liaison</b>,{% endif %}
 	  	{% endif %}
 	  	
-	  	who joined the community on 
+	  	who joined the Rakontu on 
 	  	on {{member.joined|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.
 	  	</p>
   		{% if member.profileText_formatted|orNothing %}

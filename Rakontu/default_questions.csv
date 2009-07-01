@@ -11,8 +11,8 @@
 ,,,,,,,,
 "; INTEREST OR SUPPORT GROUP",,,,,,,,
 "member, character","How interested","How interested would you say you are in this topic?","ordinal","extremely, very, moderately, not much, not at all","no",,,"interest or support group"
-"member, character","Why interested","What made you want to join this community?","text",,,,,"interest or support group"
-"member, character","Want to get","What do you want to get out of this community?","text",,,,,"interest or support group"
+"member, character","Why interested","What made you want to join this group?","text",,,,,"interest or support group"
+"member, character","Want to get","What do you want to get out of this group?","text",,,,,"interest or support group"
 ,,,,,,,,
 "; SUPPORT GROUP",,,,,,,,
 "member, character","How long involved","How long have you been involved with this issue?",,,,,,
@@ -55,10 +55,10 @@
 ,,,,,,,,
 "; COLLAGES",,,,,,,,
 "collage","Useful to","To whom do you think this collage will be useful?","text",,,,,
-"collage","Refers to","Is this collage in reference to an event, person, place, or thing?","text",,,"Is there anything this collage is about in particular?",,
+"collage","Refers to","Is this collage in reference to an event, person, place, time, or thing?","text",,,"Is there anything this collage is about in particular?",,
 ,,,,,,,,
 "; INVITATIONS",,,,,,,,
-"invitation","Refers to","Is this invitation in reference to an event, person, place, or thing?","text",,,"Is there anything this invitation asks about in particular?",,
+"invitation","Refers to","Is this invitation in reference to an event, person, place, time, or thing?","text",,,"Is there anything this invitation asks about in particular?",,
 "invitation","Who should respond","Who in particular should respond to this invitation?","text",,,"Is there any group of people who would best be able to respond to this invitation?",,
 ,,,,,,,,
 "; RESOURCES",,,,,,,,

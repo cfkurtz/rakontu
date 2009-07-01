@@ -38,11 +38,11 @@
 		</form>	
 		</div>
 	{% else %}
-		{% if community.allowNonManagerCuratorsToEditTags %}
-			<p>You are not a curator of this community and cannot review tags.
+		{% if rakontu.allowNonManagerCuratorsToEditTags %}
+			<p>You are not a curator of this Rakontu and cannot review tags.
 			Either become a curator or ask a curator to make any changes you would like to see made.</p>
 		{% else %}
-			<p>You are not a manager of this community and cannot review tags.
+			<p>You are not a manager of this Rakontu and cannot review tags.
 			Please ask a manager to make any changes you would like to see made.</p>
 		{% endif %}
 	{% endif %}

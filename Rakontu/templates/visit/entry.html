@@ -120,7 +120,7 @@
 				<label for="resourceForNewMemberPage">Yes, mark this as a new-member resource</label>
 				
 				{% if current_member.isManagerOrOwner %}
-				<p>Should it be available only to community managers and owners?</p>
+				<p>Should it be available only to Rakontu managers and owners?</p>
 				<input type="checkbox" name="resourceForManagersAndOwnersOnly" value="yes" 
 				{% if entry %}
 					{% if entry.resourceForManagersAndOwnersOnly %}
@@ -142,14 +142,14 @@
 				{% include "../common_questions.html" %}
 			{% endif %}
 			
-			{% ifnotequal community.maxNumAttachments 0 %}
+			{% ifnotequal rakontu.maxNumAttachments 0 %}
 				<h3>Attachments</h3>
 				<fieldset>
 				{% if entry %}
 					<p>This {{entry_type}} has these attachments. Click the Browse button to replace any attachment,
 					or check the Remove box to delete it.
 				{% else %}
-					<p>You can attach up to {{community.maxNumAttachmentsAsText}} files to this {{entry_type}} here.
+					<p>You can attach up to {{rakontu.maxNumAttachmentsAsText}} files to this {{entry_type}} here.
 				{% endif %}
 				<i>PDF, TXT, DOC, JPG, PNG only; maximum 10 megabyte limit per attachment.</i></p>
 				
@@ -171,7 +171,7 @@
 						{% endif %}</td>
 					<td><input type="file" name="attachment0" size="20"/></p></td></tr>
 
-					{% if community.allowsAtLeastTwoAttachments %}
+					{% if rakontu.allowsAtLeastTwoAttachments %}
 			      		</tr><td><input type="text" name="attachmentName1" value="{{attachments.1.name}}" size="20" maxlength="{{maxlength_name}}"/></td>
 						<td>{% if attachments.1.fileName %}
 							<a href="attachment?attachment_id={{attachments.1.key}}">
@@ -183,7 +183,7 @@
 							{% endif %}</td>
 						<td><input type="file" name="attachment1" size="20"/></p></td></tr>
 				
-						{% if community.allowsAtLeastThreeAttachments %}
+						{% if rakontu.allowsAtLeastThreeAttachments %}
 				      		</tr><td><input type="text" name="attachmentName2" value="{{attachments.2.name}}" size="20" maxlength="{{maxlength_name}}"/></td>
 							<td>{% if attachments.2.fileName %}
 								<a href="attachment?attachment_id={{attachments.2.key}}">
@@ -195,7 +195,7 @@
 								{% endif %}</td>
 							<td><input type="file" name="attachment2" size="20"/></p></td></tr>
 							
-							{% if community.allowsAtLeastFourAttachments %}
+							{% if rakontu.allowsAtLeastFourAttachments %}
 					      		</tr><td><input type="text" name="attachmentName3" value="{{attachments.3.name}}" size="20" maxlength="{{maxlength_name}}"/></td>
 								<td>{% if attachments.3.fileName %}
 									<a href="attachment?attachment_id={{attachments.3.key}}">
@@ -207,7 +207,7 @@
 									{% endif %}</td>
 								<td><input type="file" name="attachment3" size="20"/></p></td></tr>
 								
-								{% if community.allowsFiveAttachments %}
+								{% if rakontu.allowsFiveAttachments %}
 					      		</tr><td><input type="text" name="attachmentName4" value="{{attachments.4.name}}" size="20" maxlength="{{maxlength_name}}"/></td>
 								<td>{% if attachments.4.fileName %}
 									<a href="attachment?attachment_id={{attachments.4.key}}">

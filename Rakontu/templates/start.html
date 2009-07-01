@@ -12,44 +12,47 @@
 	{% if user %}
 		<div id="stylized" class="rakontu_form_centered" style="border:none;">
 		<form action="/" method="post">
-		{% if communities_member_of %}
-			<p>You are a <b>member</b> of these Rakontu communities.</p>
-			<select name="community_key">
-			{% for community in communities_member_of %}
-				<option value="{{ community.key }}">{{ community.name }}</option>
+		{% if rakontus_member_of %}
+			<p>You are a <b>member</b> of these Rakontus.</p>
+			<select name="rakontu_key">
+			{% for rakontu in rakontus_member_of %}
+				<option value="{{ rakontu.key }}">{{ rakontu.name }}</option>
 			{% endfor %}
 			</select>
-			&nbsp; <input type="submit" name="visitCommunity" value="Visit" class="button"></p>
+			&nbsp; <input type="submit" name="visitRakontu" value="Visit" class="button"></p>
 		{% endif %}
-		{% if communities_invited_to %}
-			<p>You have been <b>invited</b> to join these Rakontu communities.</p>
-			<select name="community_key">
-			{% for community in communities_invited_to %}
-				<option value="{{ community.key }}">{{ community.name }}</option>
+		{% if rakontus_invited_to %}
+			<p>You have been <b>invited</b> to join these Rakontus.</p>
+			<select name="rakontu_key">
+			{% for rakontu in rakontus_invited_to %}
+				<option value="{{ rakontu.key }}">{{ rakontu.name }}</option>
 			{% endfor %}
 			</select>
-			&nbsp; <input type="submit" name="visitCommunity" value="Join" class="button"></p>
+			&nbsp; <input type="submit" name="visitRakontu" value="Join" class="button"></p>
 		{% endif %}
-		{% if communities_member_of or communities_invited_to %}
+		{% if rakontus_member_of or rakontus_invited_to %}
 			<p>or</p>
 		{% endif %}
-		<p><input type="submit" name="createCommunity" value="Create a New Rakontu Community" class="button"></p>
+		<p><input type="submit" name="createRakontu" value="Create a New Rakontu" class="button"></p>
 		<p>Your Google account is: <b>{{ user.nickname }}</b><br/><a href="{{logout_url}}">Log out</a></p>
 		
-		{% if user_is_admin %}
-			<p>For the system administrator</p>
-			<input type="submit" name="reviewAllCommunities" value="Review Communities" class="button"><br/>
-			<input type="submit" name="generateSystemQuestions" value="Generate Sample Questions" class="button"><br/>
-			<input type="submit" name="generateHelps" value="Generate Help Texts" class="button">
-		{% else %}
-			<div class="blurb">
-			<p>Please enter the alpha testing password.</p>
-			<p><input type="password" name="entryPassword"></p>
-			</div>
-		{% endif %}
-		{% if DEVELOPMENT %}
-			<p>For the developer</p>
-			<input type="submit" name="makeFakeData" value="Make Fake Data" class="button"><br/>
+		{% if 1 %}
+			{% if user_is_admin %}
+				<hr>
+				<p>For the system administrator</p>
+				<input type="submit" name="reviewAllRakontus" value="Review Rakontus" class="button"><br/>
+				<input type="submit" name="generateSystemQuestions" value="Generate Sample Questions" class="button"><br/>
+				<input type="submit" name="generateHelps" value="Generate Help Texts" class="button">
+			{% else %}
+				<div class="blurb">
+				<p>Please enter the alpha testing password.</p>
+				<p><input type="password" name="entryPassword"></p>
+				</div>
+			{% endif %}
+			{% if DEVELOPMENT %}
+				<p>For the developer</p>
+				<p><input type="submit" name="makeFakeData" value="Make Fake Data" class="button"></p>
+			{% endif %}
 		{% endif %}
 		
 		</form>
@@ -72,8 +75,8 @@
 		{% endif %}
 		<hr>
 		<p><b>What's Rakontu?</b></p>
-		<p>Rakontu is open source software that helps communities and other groups share and work 
-		with their stories. The Rakontu project is being carried out (at this point) mainly
+		<p>Rakontu is an open source software package that helps groups of people share and work 
+		with stories. The Rakontu project is being carried out (at this point) mainly
 		by <a href="http://www.cfkurtz.com">Cynthia Kurtz</a>. 
 		<p>This alpha stage prototype is currently being tested.
 		If you want to help with testing, join the 

@@ -35,8 +35,8 @@
 								{% endif %}
 							{% endif %}
 							>The selected member</option>
-						{% if community.getActiveCharacters %}
-							{% for character in community.getActiveCharacters %}
+						{% if rakontu.getActiveCharacters %}
+							{% for character in rakontu.getActiveCharacters %}
 								<option value="{{character.key}}"
 								{% if attribution_referent %}
 									{% ifequal attribution_referent.character.key character.key %}
@@ -63,8 +63,8 @@
 								{% endif %}
 							{% endif %}
 							>Me ({{current_member.nickname}})</option>
-						{% if community.getActiveCharacters %}
-							{% for character in community.getActiveCharacters %}
+						{% if rakontu.getActiveCharacters %}
+							{% for character in rakontu.getActiveCharacters %}
 								<option value="{{character.key}}"
 								{% if attribution_referent %}
 									{% ifequal attribution_referent.character.key character.key %}
@@ -88,8 +88,8 @@
 								{% endif %}
 							{% endif %}
 							>Me ({{current_member.nickname}})</option>
-						{% if community.getActiveCharacters %}
-							{% for character in community.getActiveCharacters %}
+						{% if rakontu.getActiveCharacters %}
+							{% for character in rakontu.getActiveCharacters %}
 								<option value="{{character.key}}"
 								{% if attribution_referent %}
 									{% ifequal attribution_referent.character.key character.key %}
@@ -100,7 +100,7 @@
 							{% endfor %}
 						{% endif %}
 					</select>
-					{% if community.getActiveCharacters %}
+					{% if rakontu.getActiveCharacters %}
 						{{"what_characters_are_for"|info}}
 					{% endif %}
 					</p>

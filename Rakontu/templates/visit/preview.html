@@ -36,7 +36,7 @@
 			{% endfor %}
 		{% endif %}
 		{% if answers_with_entry %}
-			{% if community_has_questions_for_this_entry_type %}
+			{% if rakontu_has_questions_for_this_entry_type %}
 				<h4>Answers</h4>
 				<ul>
 				{% for question in questions %}
@@ -93,7 +93,7 @@
 			<ul>
 			{% for i in num_nudge_categories|makeRange %}
 				{% if annotation.valuesIfNudge|listLookup:i %}
-					<li class="nobullet">{{community.nudgeCategories|listLookup:i}}: <b>{{annotation.valuesIfNudge|listLookup:i}}</b> </li>
+					<li class="nobullet">{{rakontu.nudgeCategories|listLookup:i}}: <b>{{annotation.valuesIfNudge|listLookup:i}}</b> </li>
 				{% endif %}
 			{% endfor %}
 			</ul>			

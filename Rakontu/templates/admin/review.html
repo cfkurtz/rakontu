@@ -1,0 +1,76 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+	<div id="content">
+	{% if user_is_admin %}
+		<div id="stylized" class="rakontu_form">
+		<form action="/admin/rakontus" method="post" enctype="multipart/form-data">
+		{% if rakontus %}
+			<h3>Rakontus in this installation</h3>
+			<fieldset>
+			<table>
+			<tr>
+				<th>Name</th>
+				<th>Created</th>
+				<th>Last activity</th>
+				<th>Active members</th>
+				<th>Inactive members</th>
+				<th>Pending members (invitations)</th>
+				<th>Active?{{"activating_rakontus"|caution}}</th>
+				<th>Export</th>
+				<th>Remove{{"removing_rakontus"|caution}}</th>
+				</tr>
+			
+	    	{% for rakontu in rakontus %}
+		    	<tr>
+		    	<td>{{rakontu.name}}</td>
+		    	<td>{{rakontu.created|timeZone:"UTC"|date:"F j, Y"}} (UTC)</td>
+		    	<td>
+		    		{% if rakontu.lastPublish %}
+		    			{{rakontu.lastPublish|timeZone:"UTC"|date:"F j, Y"}} (UTC)
+		    		{% else %}
+		    			none
+		    		{% endif %}
+		    		</td>
+		    	<td align="center">{{rakontu.getActiveMembers|length}}</td>
+		    	<td align="center">{{rakontu.getInactiveMembers|length}}</td>
+		    	<td align="center">{{rakontu.getPendingMembers|length}}</td>
+				<td align="center">
+					{{rakontu.active|yesno:"active, inactive"}}<br/>
+	  					{% if rakontu.active %}
+	  						<input type="submit" name="toggleActiveState|{{rakontu.key}}" value="Inactivate" class="button"
+							onClick="javascript:return confirm('Are you sure you want to INACTIVATE the Rakontu {{rakontu.name}}?')">
+	  					{% else %}
+	  						<input type="submit" name="toggleActiveState|{{rakontu.key}}" value="Activate" class="button"
+							onClick="javascript:return confirm('Are you sure you want to ACTIVATE the Rakontu {{rakontu.name}}?')">
+	  					{% endif %}
+	  					</td>
+				<td>
+				<input type="submit" name="export|{{rakontu.key}}" value="Export all data" class="button">
+	  				</td>
+				</td>
+				<td>
+				<input type="submit" name="remove|{{rakontu.key}}" value="PERMANENTLY REMOVE" class="button" 
+				onClick="javascript:return confirm('Are you REALLY SURE you want to PERMANENTLY REMOVE the Rakontu {{rakontu.name}}?')">
+	  					</td>
+				</td>
+	    	{% endfor %}
+	    	</table>
+	    	</fieldset>
+			<p></p>
+			<center><p><i><b>Please remove Rakontus VERY carefully.</p><p>Deleted Rakontus cannot be recovered.</p><p>It is best to backup first.</b></i></p>
+			</form>
+			</div>
+	    {% else %}
+	    	<p><center>There are no Rakontus in this Rakontu installation.</p><p><a href="/createRakontu">Make one</a></center></p>
+	    {% endif %}	
+	{% else %}
+		<p>You are not a manager of this Rakontu and cannot change its settings.
+		Please ask a manager to make any changes you would like to see made.</p>
+	{% endif %}
+	</div>
+	<center><p><a href="{{logout_url}}">Log out</a></p></center>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

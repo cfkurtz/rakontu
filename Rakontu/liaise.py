@@ -11,30 +11,30 @@ from utils import *
 class ReviewOfflineMembersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if member.isLiaison():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': "Off-line members", 
-						   		   'title_extra': community.name, 
-								   'community': community, 
+						   		   'title_extra': rakontu.name, 
+								   'rakontu': rakontu, 
 								   'current_member': member,
-								   'active_members': community.getActiveOfflineMembers(),
-								   'inactive_members': community.getInactiveOfflineMembers(),
+								   'active_members': rakontu.getActiveOfflineMembers(),
+								   'inactive_members': rakontu.getInactiveOfflineMembers(),
 								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/liaise/members.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 		else:
 			self.redirect('/')
 			
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if member.isLiaison():
-				offlineMembers = community.getActiveOfflineMembers()
+				offlineMembers = rakontu.getActiveOfflineMembers()
 				for aMember in offlineMembers:
 					if self.request.get("remove|%s" % aMember.key()) == "yes":
 						aMember.active = False
@@ -42,8 +42,8 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 				memberNicknamesToAdd = htmlEscape(self.request.get("newMemberNicknames")).split('\n')
 				for nickname in memberNicknamesToAdd:
 					if nickname.strip():
-						if not community.hasMemberWithNickname(nickname.strip()):
-							newMember = Member(community=community, 
+						if not rakontu.hasMemberWithNickname(nickname.strip()):
+							newMember = Member(rakontu=rakontu, 
 											nickname=nickname.strip(),
 											isOnlineMember = False,
 											liaisonIfOfflineMember = member,
@@ -55,23 +55,23 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 class PrintSearchPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if member.isLiaison():
 				if member.viewSearchResultList:
-					export = community.createOrRefreshExport("liaisonPrint_simple", itemList=None, member=member)
+					export = rakontu.createOrRefreshExport("liaisonPrint_simple", itemList=None, member=member)
 					self.redirect('/export?print_id=%s' % export.key())
 				else:
 					self.redirect('/result?noSearchResultForPrinting')
 			else:
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 		else:
 			self.redirect('/')
 			
 class PrintEntryAnnotationsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if member.isLiaison():
 				try:
@@ -83,49 +83,49 @@ class PrintEntryAnnotationsPage(webapp.RequestHandler):
 					entryAndItems.extend(entry.getNonDraftAnswers())
 					entryAndItems.extend(entry.getNonDraftAnnotations())
 					entryAndItems.insert(0, entry)
-					export = community.createOrRefreshExport("liaisonPrint_simple", itemList=entryAndItems, member=None)
+					export = rakontu.createOrRefreshExport("liaisonPrint_simple", itemList=entryAndItems, member=None)
 					self.redirect('/export?print_id=%s' % export.key())
 				else:
-					self.redirect("/visit/look")
+					self.redirect("/visit/home")
 			else:
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 		else:
 			self.redirect('/')
 			
 class ReviewBatchEntriesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if member.isLiaison():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Review", 
 						   	   	   'title_extra': None, 
-								   'community': community, 
-								   'character_allowed': community.allowCharacter[STORY_ENTRY_TYPE_INDEX],
-								   'batch_entries': community.getEntriesInImportBufferForLiaison(member),
-								   'batch_comments': community.getCommentsInImportBufferForLiaison(member),
-								   'batch_tagsets': community.getTagsetsInImportBufferForLiaison(member),
-								   'offline_members': community.getActiveOfflineMembers(),
+								   'rakontu': rakontu, 
+								   'character_allowed': rakontu.allowCharacter[STORY_ENTRY_TYPE_INDEX],
+								   'batch_entries': rakontu.getEntriesInImportBufferForLiaison(member),
+								   'batch_comments': rakontu.getCommentsInImportBufferForLiaison(member),
+								   'batch_tagsets': rakontu.getTagsetsInImportBufferForLiaison(member),
+								   'offline_members': rakontu.getActiveOfflineMembers(),
 								   'current_member': member,
 								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/liaise/review.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 		else:
 			self.redirect("/")
 
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if member.isLiaison():
 				if "addMore" in self.request.arguments():
 					self.redirect("/liaise/batch")
 				else:
 					entriesToFinalize = []
-					entries = community.getEntriesInImportBufferForLiaison(member)
+					entries = rakontu.getEntriesInImportBufferForLiaison(member)
 					for entry in entries:
 						date = parseDate(self.request.get("year|%s" % entry.key()), self.request.get("month|%s" % entry.key()), self.request.get("day|%s" % entry.key()))
 						entry.collected = date
@@ -136,52 +136,52 @@ class ReviewBatchEntriesPage(webapp.RequestHandler):
 						elif self.request.get("import|%s" % entry.key()) == "yes":
 							entriesToFinalize.append(entry)
 					if entriesToFinalize:
-						community.moveImportedEntriesOutOfBuffer(entriesToFinalize)
+						rakontu.moveImportedEntriesOutOfBuffer(entriesToFinalize)
 					self.redirect('/liaise/review')
 
 class BatchEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if member.isLiaison():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Import", 
 						   	   	   'title_extra': None, 
-								   'community': community, 
+								   'rakontu': rakontu, 
 								   'num_entries': NUM_ENTRIES_PER_BATCH_PAGE,
-								   'character_allowed': community.allowCharacter[STORY_ENTRY_TYPE_INDEX],
-								   'questions': community.getActiveQuestionsOfType("story"),
-								   'offline_members': community.getActiveOfflineMembers(),
-								   'online_members': community.getActiveOnlineMembers(),
+								   'character_allowed': rakontu.allowCharacter[STORY_ENTRY_TYPE_INDEX],
+								   'questions': rakontu.getActiveQuestionsOfType("story"),
+								   'offline_members': rakontu.getActiveOfflineMembers(),
+								   'online_members': rakontu.getActiveOnlineMembers(),
 								   'current_member': member,
 								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/liaise/batch.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 		else:
 			self.redirect("/")
 			
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if member.isLiaison():
 				if "importEntriesFromCSV" in self.request.arguments():
 					if self.request.get("import"):
-						community.addEntriesFromCSV(str(self.request.get("import")), member)
+						rakontu.addEntriesFromCSV(str(self.request.get("import")), member)
 				else:
 					for i in range(NUM_ENTRIES_PER_BATCH_PAGE):
 						if self.request.get("title|%s" % i):
-							offlineMembers = community.getActiveOfflineMembers()
+							offlineMembers = rakontu.getActiveOfflineMembers()
 							memberToAttribute = None
 							for aMember in offlineMembers:
 								if self.request.get("source|%s" % i) == "%s" % aMember.key():
 									memberToAttribute = aMember
 									break
 							if member.isManagerOrOwner():
-								onlineMembers = community.getActiveOnlineMembers()
+								onlineMembers = rakontu.getActiveOnlineMembers()
 								for aMember in onlineMembers:
 									if self.request.get("source|%s" % i) == "%s" % aMember.key():
 										memberToAttribute = aMember
@@ -202,7 +202,7 @@ class BatchEntryPage(webapp.RequestHandler):
 										date = datetime(year, month, day, tzinfo=pytz.utc)
 									except:
 										pass
-								entry = Entry(community=community, type="story", title=title, text=text, text_format=textFormat)
+								entry = Entry(rakontu=rakontu, type="story", title=title, text=text, text_format=textFormat)
 								entry.creator = memberToAttribute
 								entry.collected = date
 								entry.draft = True
@@ -210,11 +210,11 @@ class BatchEntryPage(webapp.RequestHandler):
 								entry.collectedOffline = not memberToAttribute.isOnlineMember
 								entry.liaison = member
 								if self.request.get("attribution|%s" % i) != "member":
-									entry.character = CommunityCharacter.get(self.request.get("attribution|%s" % i))
+									entry.character = RakontuCharacter.get(self.request.get("attribution|%s" % i))
 								else:
 									entry.character = None
 								entry.put()
-								for j in range(community.maxNumAttachments):
+								for j in range(rakontu.maxNumAttachments):
 									for name, value in self.request.params.items():
 										if name == "attachment|%s|%s" % (i, j):
 											if value != None and value != "":
@@ -232,9 +232,9 @@ class BatchEntryPage(webapp.RequestHandler):
 													attachment.name = htmlEscape(self.request.get("attachmentName|%s|%s" % (i, j)))
 													attachment.data = db.Blob(str(self.request.get("attachment|%s|%s" % (i, j))))
 													attachment.put()
-								questions = Question.all().filter("community = ", community).filter("refersTo = ", "story").fetch(FETCH_NUMBER)
+								questions = Question.all().filter("rakontu = ", rakontu).filter("refersTo = ", "story").fetch(FETCH_NUMBER)
 								for question in questions:
-									answer = Answer(question=question, community=community, creator=memberToAttribute, referent=entry, referentType="entry")
+									answer = Answer(question=question, rakontu=rakontu, creator=memberToAttribute, referent=entry, referentType="entry")
 									keepAnswer = False
 									queryText = "%s|%s" % (i, question.key())
 									if question.type == "text":
@@ -276,7 +276,7 @@ class BatchEntryPage(webapp.RequestHandler):
 									subject = self.request.get("commentSubject|%s" % i, default_value="No subject")
 									text = self.request.get("comment|%s" % i)
 									format = self.request.get("commentFormat|%s" % i)
-									comment = Annotation(type="comment", community=community, creator=memberToAttribute, entry=entry)
+									comment = Annotation(type="comment", rakontu=rakontu, creator=memberToAttribute, entry=entry)
 									comment.shortString = subject
 									comment.longString = text
 									comment.longString_format = format
@@ -292,7 +292,7 @@ class BatchEntryPage(webapp.RequestHandler):
 									if self.request.get(queryString):
 										tags.append(self.request.get(queryString))
 								if tags:
-									tagset = Annotation(type="tag set", community=community, creator=memberToAttribute, entry=entry)
+									tagset = Annotation(type="tag set", rakontu=rakontu, creator=memberToAttribute, entry=entry)
 									tagset.tagsIfTagSet = []
 									tagset.tagsIfTagSet.extend(tags)
 									tagset.draft = True

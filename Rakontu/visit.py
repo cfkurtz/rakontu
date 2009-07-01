@@ -11,33 +11,33 @@ from utils import *
 class StartPage(webapp.RequestHandler):
 	def get(self):
 		user = users.get_current_user()
-		communitiesTheyAreAMemberOf = []
-		communitiesTheyAreInvitedTo = []
+		rakontusTheyAreAMemberOf = []
+		rakontusTheyAreInvitedTo = []
 		if user:
 			members = Member.all().filter("googleAccountID = ", user.user_id()).fetch(FETCH_NUMBER)
 			for member in members:
 				try:
 					if member.active:
-						communitiesTheyAreAMemberOf.append(member.community)
+						rakontusTheyAreAMemberOf.append(member.rakontu)
 				except:
-					pass # if can't link to community don't use it
+					pass # if can't link to rakontu don't use it
 			pendingMembers = PendingMember.all().filter("email = ", user.email()).fetch(FETCH_NUMBER)
 			for pendingMember in pendingMembers:
 				try:
-					communitiesTheyAreInvitedTo.append(pendingMember.community)
+					rakontusTheyAreInvitedTo.append(pendingMember.rakontu)
 				except:
-					pass # if can't link to community don't use it
+					pass # if can't link to rakontu don't use it
 		template_values = GetStandardTemplateDictionaryAndAddMore({
 						   'title': None,
 						   'title_extra': None,
 						   'user': user, 
-						   'communities_member_of': communitiesTheyAreAMemberOf,
-						   'communities_invited_to': communitiesTheyAreInvitedTo,
+						   'rakontus_member_of': rakontusTheyAreAMemberOf,
+						   'rakontus_invited_to': rakontusTheyAreInvitedTo,
 						   'DEVELOPMENT': DEVELOPMENT,
 						   'login_url': users.create_login_url("/"),
 						   'logout_url': users.create_logout_url("/"),
 						   })
-		path = os.path.join(os.path.dirname(__file__), 'templates/startPage.html')
+		path = os.path.join(os.path.dirname(__file__), 'templates/start.html')
 		self.response.out.write(template.render(path, template_values))
 
 	def post(self):
@@ -47,40 +47,40 @@ class StartPage(webapp.RequestHandler):
 			if not password == "testingRakontu":
 				self.redirect("/")
 				return
-		if "visitCommunity" in self.request.arguments():
-			community_key = self.request.get('community_key')
-			if community_key:
-				community = db.get(community_key) 
-				if community:
+		if "visitRakontu" in self.request.arguments():
+			rakontu_key = self.request.get('rakontu_key')
+			if rakontu_key:
+				rakontu = db.get(rakontu_key) 
+				if rakontu:
 					session = Session()
-					session['community_key'] = community_key
-					matchingMember = Member.all().filter("community = ", community).filter("googleAccountID = ", user.user_id()).get()
+					session['rakontu_key'] = rakontu_key
+					matchingMember = Member.all().filter("rakontu = ", rakontu).filter("googleAccountID = ", user.user_id()).get()
 					if matchingMember:
 						session['member_key'] = matchingMember.key()
 						matchingMember.viewSearchResultList = []
 						matchingMember.put()
 						if matchingMember.active:
-							if not community.firstVisit:
-								community.firstVisit = datetime.now(tz=pytz.utc)
-								community.put()
+							if not rakontu.firstVisit:
+								rakontu.firstVisit = datetime.now(tz=pytz.utc)
+								rakontu.put()
 								self.redirect('/manage/first')
 							else:
-								self.redirect('/visit/look')
+								self.redirect('/visit/home')
 						else:
 							matchingMember.active = True
 							matchingMember.put()
-							pendingMember = PendingMember.all().filter("community = ", community.key()).filter("email = ", user.email()).get()
+							pendingMember = PendingMember.all().filter("rakontu = ", rakontu.key()).filter("email = ", user.email()).get()
 							if pendingMember:
 								db.delete(pendingMember)
 							self.redirect("/visit/new")
 					else:
-						pendingMember = PendingMember.all().filter("community = ", community.key()).filter("email = ", user.email()).get()
+						pendingMember = PendingMember.all().filter("rakontu = ", rakontu.key()).filter("email = ", user.email()).get()
 						if pendingMember:
 							newMember = Member(
 								nickname=user.email(),
 								googleAccountID=user.user_id(),
 								googleAccountEmail=user.email(),
-								community=community,
+								rakontu=rakontu,
 								active=True,
 								governanceType="member")
 							newMember.initialize()
@@ -94,10 +94,10 @@ class StartPage(webapp.RequestHandler):
 					self.redirect('/')
 			else:
 				self.redirect('/')
-		elif "createCommunity" in self.request.arguments():
-			self.redirect("/createCommunity")
-		elif "reviewAllCommunities" in self.request.arguments():
-			self.redirect("/admin/communities")
+		elif "createRakontu" in self.request.arguments():
+			self.redirect("/create")
+		elif "reviewAllRakontus" in self.request.arguments():
+			self.redirect("/admin/rakontus")
 		elif "makeFakeData" in self.request.arguments():
 			MakeSomeFakeData()
 			self.redirect("/")
@@ -111,14 +111,14 @@ class StartPage(webapp.RequestHandler):
 class NewMemberPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': "Welcome",
 							'title_extra': member.nickname,
-							'community': community, 
+							'rakontu': rakontu, 
 							'current_member': member,
-							'resources': community.getNonDraftNewMemberResources(),
+							'resources': rakontu.getNonDraftNewMemberResources(),
 							})
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/new.html')
 			self.response.out.write(template.render(path, template_values))
@@ -128,19 +128,19 @@ class NewMemberPage(webapp.RequestHandler):
 class GetHelpPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if member.isManagerOrOwner():
-				managerResources = community.getNonDraftManagerOnlyHelpResources()
+				managerResources = rakontu.getNonDraftManagerOnlyHelpResources()
 			else:
 				managerResources = None
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': "Help",
-							'community': community, 
+							'rakontu': rakontu, 
 							'current_member': member,
-							'resources': community.getNonDraftHelpResources(),
+							'resources': rakontu.getNonDraftHelpResources(),
 							'manager_resources': managerResources,
-							'guides': community.getGuides(),
+							'guides': rakontu.getGuides(),
 							})
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/help.html')
 			self.response.out.write(template.render(path, template_values))
@@ -150,7 +150,7 @@ class GetHelpPage(webapp.RequestHandler):
 class BrowseEntriesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			currentSearch = GetCurrentSearchForMember(member)
 			querySearch = None
@@ -167,29 +167,29 @@ class BrowseEntriesPage(webapp.RequestHandler):
 			textsForGrid = []
 			colHeaders = []
 			rowColors = []
-			entries = community.getNonDraftEntriesInReverseTimeOrder()
+			entries = rakontu.getNonDraftEntriesInReverseTimeOrder()
 			if entries:
-				(textsForGrid, colHeaders, rowColors) = self.buildGrid(community, member, entries, currentSearch)
+				(textsForGrid, colHeaders, rowColors) = self.buildGrid(rakontu, member, entries, currentSearch)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': "Main page",
 						   	'title_extra': None,
-							'community': community, 
+							'rakontu': rakontu, 
 							'current_member': member, 
 							'rows_cols': textsForGrid, 
 							'col_headers': colHeaders, 
 							'row_colors': rowColors,
 							'has_entries': len(entries) > 0,
-							'community_searches': community.getNonPrivateSavedSearches(),
+							'rakontu_searches': rakontu.getNonPrivateSavedSearches(),
 							'member_searches': member.getPrivateSavedSearches(),
 							'current_search': currentSearch,
 							'member_time_frame_string': member.getFrameStringForViewTimeFrame(),
 							})
-			path = os.path.join(os.path.dirname(__file__), 'templates/visit/look.html')
+			path = os.path.join(os.path.dirname(__file__), 'templates/visit/home.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect('/')
 			
-	def buildGrid(self, community, member, entries, currentSearch):
+	def buildGrid(self, rakontu, member, entries, currentSearch):
 		if currentSearch:
 			entryRefs = currentSearch.getEntryQuestionRefs()
 			creatorRefs = currentSearch.getCreatorQuestionRefs()
@@ -274,7 +274,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 						shouldBeInCol = timeToCheck >= startTime and timeToCheck < endTime  
 						if shouldBeInRow and shouldBeInCol:
 							fontSizePercent = min(200, 90 + entry.activityPoints - minActivityPoints)
-							downdrift = community.getEntryActivityPointsForEvent("downdrift")
+							downdrift = rakontu.getEntryActivityPointsForEvent("downdrift")
 							if downdrift:
 								daysSinceTouched = 1.0 * (datetime.now(tz=pytz.utc) - entry.lastTouched()).seconds / DAY_SECONDS
 								timeLoss = daysSinceTouched * downdrift
@@ -313,7 +313,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 			
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			search = GetCurrentSearchForMember(member)
 			if "changeNudgeCategoriesShowing" in self.request.arguments():
@@ -321,18 +321,18 @@ class BrowseEntriesPage(webapp.RequestHandler):
 				for i in range(NUM_NUDGE_CATEGORIES):
 					member.viewNudgeCategories.append(self.request.get("showCategory|%s" % i) == "yes")
 				member.put()
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 			elif "changeTimeFrame" in self.request.arguments():
 				member.setViewTimeFrameFromTimeFrameString(self.request.get("timeFrame"))
 				member.put()
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 			elif "refreshView" in self.request.arguments():
-				if community.lastPublish:
-					member.viewTimeEnd = community.lastPublish + timedelta(seconds=10)
+				if rakontu.lastPublish:
+					member.viewTimeEnd = rakontu.lastPublish + timedelta(seconds=10)
 				else:
 					member.viewTimeEnd = datetime.now(tz=pytz.utc)
 				member.put()
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 			elif "loadAndApplySavedSearch" in self.request.arguments():
 				searchKey = self.request.get("savedSearch")
 				if searchKey:
@@ -341,21 +341,21 @@ class BrowseEntriesPage(webapp.RequestHandler):
 						member.viewSearch = search
 						member.viewSearchResultList = []
 						member.put()
-						self.redirect("/visit/look")
+						self.redirect("/visit/home")
 						return
 				else:
-					self.redirect("/visit/look")
+					self.redirect("/visit/home")
 			elif "clearSearch" in self.request.arguments():
 				member.viewSearch = None
 				member.viewSearchResultList = []
 				member.put()
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 			elif "toggleShowDetails" in self.request.arguments():
 				member.viewDetails = not member.viewDetails
 				member.put()
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 			elif "copySearchAs" in self.request.arguments():
-				newSearch = SavedSearch(community=community, creator=member)
+				newSearch = SavedSearch(rakontu=rakontu, creator=member)
 				newSearch.copyDataFromOtherSearchAndPut(search)
 				member.viewSearch = newSearch
 				member.viewSearchResultList = []
@@ -376,12 +376,12 @@ class BrowseEntriesPage(webapp.RequestHandler):
 						self.redirect('/visit/filter')
 			else:
 				if "setToLast" in self.request.arguments():
-					if community.lastPublish:
-						member.viewTimeEnd = community.lastPublish + timedelta(seconds=10)
+					if rakontu.lastPublish:
+						member.viewTimeEnd = rakontu.lastPublish + timedelta(seconds=10)
 					else:
 						member.viewTimeEnd = datetime.now(tz=pytz.utc)
 				elif "setToFirst" in self.request.arguments():
-					if community.firstPublish:
+					if rakontu.firstPublish:
 						member.setTimeFrameToStartAtFirstPublish()
 					else:
 						member.viewTimeEnd = datetime.now(tz=pytz.utc)
@@ -390,19 +390,19 @@ class BrowseEntriesPage(webapp.RequestHandler):
 						member.viewTimeEnd = member.viewTimeEnd - timedelta(seconds=member.viewTimeFrameInSeconds)
 					else:
 						member.viewTimeEnd = member.viewTimeEnd + timedelta(seconds=member.viewTimeFrameInSeconds)
-				if community.firstPublish and member.getViewStartTime() < community.firstPublish:
+				if rakontu.firstPublish and member.getViewStartTime() < rakontu.firstPublish:
 				 	member.setTimeFrameToStartAtFirstPublish()
 				if member.viewTimeEnd > datetime.now(tz=pytz.utc):
 					member.viewTimeEnd = datetime.now(tz=pytz.utc)
 				member.put()
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 		else:
 			self.redirect("/")
 			
 class ReadEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			try:
 				entry = db.get(self.request.query_string)
@@ -492,8 +492,8 @@ class ReadEntryPage(webapp.RequestHandler):
 				if not entry.memberCanNudge(member):
 					nudgePointsMemberCanAssign = 0
 				else:
-					nudgePointsMemberCanAssign = max(0, community.maxNudgePointsPerEntry - entry.getTotalNudgePointsForMember(member))
-				communityHasQuestionsForThisEntryType = len(community.getActiveQuestionsOfType(entry.type)) > 0
+					nudgePointsMemberCanAssign = max(0, rakontu.maxNudgePointsPerEntry - entry.getTotalNudgePointsForMember(member))
+				rakontuHasQuestionsForThisEntryType = len(rakontu.getActiveQuestionsOfType(entry.type)) > 0
 				memberCanAnswerQuestionsAboutThisEntry = len(entry.getAnswersForMember(member)) == 0
 				memberCanAddNudgeToThisEntry = nudgePointsMemberCanAssign > 0
 				thingsUserCanDo = {}
@@ -501,9 +501,9 @@ class ReadEntryPage(webapp.RequestHandler):
 					thingsUserCanDo["Tell another version of what happened"] = "/visit/retell?%s" % entry.key()
 				if entry.isStory() or entry.isResource():
 					thingsUserCanDo["Tell a story this %s reminds you of" % entry.type] = "/visit/remind?%s" % entry.key()
-				if communityHasQuestionsForThisEntryType and memberCanAnswerQuestionsAboutThisEntry:
+				if rakontuHasQuestionsForThisEntryType and memberCanAnswerQuestionsAboutThisEntry:
 					thingsUserCanDo["Answer questions about this %s" % entry.type] = "/visit/answers?%s" % entry.key()
-				if communityHasQuestionsForThisEntryType and member.isLiaison():
+				if rakontuHasQuestionsForThisEntryType and member.isLiaison():
 					thingsUserCanDo["Enter answers about this %s for an off-line member" % entry.type] = "/visit/answers?%s" % entry.key()
 				if entry.isInvitation():
 					thingsUserCanDo["Respond to this invitation with a story"] = "/visit/respond?%s" % entry.key()
@@ -515,7 +515,7 @@ class ReadEntryPage(webapp.RequestHandler):
 				thingsUserCanDo["Relate this %s to others" % entry.type] = "/visit/relate?%s" % entry.key()
 				if member.isCurator():
 					thingsUserCanDo["Curate this %s" % entry.type] = "/visit/curate?%s" % entry.key()
-				if entry.creator.key() == member.key() and community.allowsPostPublishEditOfEntryType(entry.type):
+				if entry.creator.key() == member.key() and rakontu.allowsPostPublishEditOfEntryType(entry.type):
 					thingsUserCanDo["Change this %s" % entry.type] = "/visit/%s?%s" % (entry.type, entry.key())
 				if member.isLiaison():
 					thingsUserCanDo["Print this %s with its answers and annotations" % entry.type] = '/liaise/printEntryAndAnnotations?%s' % entry.key()
@@ -530,7 +530,7 @@ class ReadEntryPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': entry.title, 
 						   		   'title_extra': None,
-								   'community': community, 
+								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'current_member_key': member.key(),
 								   'curating': curating,
@@ -549,7 +549,7 @@ class ReadEntryPage(webapp.RequestHandler):
 								   'things_member_can_do': thingsUserCanDo,
 								   })
 				member.lastReadAnything = datetime.now(tz=pytz.utc)
-				member.nudgePoints += community.getMemberNudgePointsForEvent("reading")
+				member.nudgePoints += rakontu.getMemberNudgePointsForEvent("reading")
 				member.put()
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/read.html')
 				self.response.out.write(template.render(path, template_values))
@@ -560,7 +560,7 @@ class ReadEntryPage(webapp.RequestHandler):
 			
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if "changeNudgeCategoriesShowing" in self.request.arguments():
 				member.viewNudgeCategories = []
@@ -575,61 +575,61 @@ class ReadEntryPage(webapp.RequestHandler):
 			else:
 				self.redirect(self.request.get("nextAction"))
 		else:
-			self.redirect("/visit/look")
+			self.redirect("/visit/home")
 			
 class ReadAnnotationPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			annotation = db.get(self.request.query_string)
 			if annotation:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': annotation.displayString(includeType=False), 
 						   		   'title_extra': None,
-								   'community': community, 
+								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'current_member_key': member.key(),
 								   'annotation': annotation,
 								   'included_links_outgoing': annotation.entry.getOutgoingLinksOfType("included"),
 								   })
 				member.lastReadAnything = datetime.now(tz=pytz.utc)
-				member.nudgePoints += community.getMemberNudgePointsForEvent("reading")
+				member.nudgePoints += rakontu.getMemberNudgePointsForEvent("reading")
 				member.put()
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/readAnnotation.html')
 				self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect('/')
 
-class SeeCommunityPage(webapp.RequestHandler):
+class SeeRakontuPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': "About", 
-						   		   'title_extra': community.name, 
-								   'community': community, 
+						   		   'title_extra': rakontu.name, 
+								   'rakontu': rakontu, 
 								   'current_member': member,
-								   'community_members': community.getActiveMembers(),
-								   'characters': community.getActiveCharacters(),
+								   'rakontu_members': rakontu.getActiveMembers(),
+								   'characters': rakontu.getActiveCharacters(),
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/visit/community.html')
+				path = os.path.join(os.path.dirname(__file__), 'templates/visit/rakontu.html')
 				self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect('/')
 			
-class SeeCommunityMembersPage(webapp.RequestHandler):
+class SeeRakontuMembersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': "Members of", 
-						   		   'title_extra': community.name, 
-								   'community': community, 
+						   		   'title_extra': rakontu.name, 
+								   'rakontu': rakontu, 
 								   'current_member': member,
-								   'community_members': community.getActiveMembers(),
+								   'rakontu_members': rakontu.getActiveMembers(),
 								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/members.html')
 				self.response.out.write(template.render(path, template_values))
@@ -639,7 +639,7 @@ class SeeCommunityMembersPage(webapp.RequestHandler):
 class SeeMemberPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			keyAndCurate = self.request.query_string.split("&")
 			memberKey = keyAndCurate[0]
@@ -681,7 +681,7 @@ class SeeMemberPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': "Member", 
 					   		   'title_extra': member.nickname, 
-					   		   'community': community, 
+					   		   'rakontu': rakontu, 
 					   		   'current_member': member,
 					   		   'member': memberToSee,
 					   		   'answers': memberToSee.getAnswers(),
@@ -694,13 +694,13 @@ class SeeMemberPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/member.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect('/visit/look')
+				self.redirect('/visit/home')
 		else:
 			self.redirect('/')
 
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			messageMember = None
 			goAhead = True
@@ -711,7 +711,7 @@ class SeeMemberPage(webapp.RequestHandler):
 			else:
 				for argument in self.request.arguments():
 					if argument.find("|") >= 0:
-						for aMember in community.getActiveMembers():
+						for aMember in rakontu.getActiveMembers():
 							if argument == "message|%s" % aMember.key():
 								try:
 									messageMember = aMember
@@ -721,7 +721,7 @@ class SeeMemberPage(webapp.RequestHandler):
 								break
 				if goAhead and messageMember:
 					message = mail.EmailMessage()
-					message.sender = community.contactEmail
+					message.sender = rakontu.contactEmail
 					message.subject = htmlEscape(self.request.get("subject"))
 					message.to = messageMember.googleAccountEmail
 					message.body = htmlEscape(self.request.get("message"))
@@ -735,7 +735,7 @@ class SeeMemberPage(webapp.RequestHandler):
 class SeeCharacterPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 				keyAndCurate = self.request.query_string.split("&")
 				characterKey = keyAndCurate[0]
@@ -774,7 +774,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 					template_values = GetStandardTemplateDictionaryAndAddMore({
 								   	   'title': "Character", 
 						   		   	   'title_extra': character.name, 
-									   'community': community, 
+									   'rakontu': rakontu, 
 									   'current_member': member,
 									   'character': character,
 									   'answers': character.getAnswers(),
@@ -786,13 +786,13 @@ class SeeCharacterPage(webapp.RequestHandler):
 					path = os.path.join(os.path.dirname(__file__), 'templates/visit/character.html')
 					self.response.out.write(template.render(path, template_values))
 				else:
-					self.redirect('/visit/look')
+					self.redirect('/visit/home')
 		else:
 			self.redirect('/')
 
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if "toggleShowDetails" in self.request.arguments():
 				member.viewDetails = not member.viewDetails
@@ -804,7 +804,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 class ChangeMemberProfilePage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			try:
 				offlineMember = db.get(self.request.query_string)
@@ -817,13 +817,13 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': "Profile of", 
 						   	   'title_extra': memberToEdit.nickname, 
-							   'community': community, 
+							   'rakontu': rakontu, 
 							   'member': memberToEdit,
 							   'current_member': member,
-							   'questions': community.getActiveMemberQuestions(),
+							   'questions': rakontu.getActiveMemberQuestions(),
 							   'answers': memberToEdit.getAnswers(),
 							   'refer_type': "member",
-							   'show_leave_link': not community.memberIsOnlyOwner(member),
+							   'show_leave_link': not rakontu.memberIsOnlyOwner(member),
 							   'search_locations': SEARCH_LOCATIONS,
 							   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/profile.html')
@@ -833,13 +833,13 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 							 
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			goAhead = True
 			offlineMember = None
 			for argument in self.request.arguments():
 				if argument.find("|") >= 0:
-					for aMember in community.getActiveOfflineMembers():
+					for aMember in rakontu.getActiveOfflineMembers():
 						if argument == "changeSettings|%s" % aMember.key():
 							try:
 								offlineMember = aMember
@@ -853,7 +853,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 				else:
 					memberToEdit = member
 				nicknameTheyWantToUse = htmlEscape(self.request.get("nickname")).strip()
-				memberUsingNickname = community.memberWithNickname(nicknameTheyWantToUse)
+				memberUsingNickname = rakontu.memberWithNickname(nicknameTheyWantToUse)
 				if memberUsingNickname and memberUsingNickname.key() != member.key():
 					self.redirect('/result?nicknameAlreadyInUse') 
 					return
@@ -881,13 +881,13 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 					memberToEdit.guideIntro_format = format
 					memberToEdit.preferredTextFormat = self.request.get("preferredTextFormat")
 				memberToEdit.put()
-				questions = Question.all().filter("community = ", community).filter("refersTo = ", "member").fetch(FETCH_NUMBER)
+				questions = Question.all().filter("rakontu = ", rakontu).filter("refersTo = ", "member").fetch(FETCH_NUMBER)
 				for question in questions:
 					foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", memberToEdit.key()).fetch(FETCH_NUMBER)
 					if foundAnswers:
 						answerToEdit = foundAnswers[0]
 					else:
-						answerToEdit = Answer(question=question, community=community, referent=memberToEdit, referentType="member")
+						answerToEdit = Answer(question=question, rakontu=rakontu, referent=memberToEdit, referentType="member")
 					keepAnswer = False
 					queryText = "%s" % question.key()
 					if question.type == "text":
@@ -925,14 +925,14 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 				else:
 					self.redirect('/visit/member?%s' % memberToEdit.key())
 			else:
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 		else:
 			self.redirect("/")
 			
 class ChangeMemberDraftsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			try:
 				offlineMember = db.get(self.request.query_string)
@@ -950,7 +950,7 @@ class ChangeMemberDraftsPage(webapp.RequestHandler):
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': "Drafts by", 
 						   	   'title_extra': memberToEdit.nickname, 
-							   'community': community, 
+							   'rakontu': rakontu, 
 							   'member': memberToEdit,
 							   'current_member': member,
 							   'searches': member.getSavedSearches(),
@@ -967,13 +967,13 @@ class ChangeMemberDraftsPage(webapp.RequestHandler):
 							 
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			goAhead = True
 			offlineMember = None
 			for argument in self.request.arguments():
 				if argument.find("|") >= 0:
-					for aMember in community.getActiveOfflineMembers():
+					for aMember in rakontu.getActiveOfflineMembers():
 						if argument == "changeSettings|%s" % aMember.key():
 							try:
 								offlineMember = aMember
@@ -1006,19 +1006,19 @@ class ChangeMemberDraftsPage(webapp.RequestHandler):
 				else:
 					self.redirect('/visit/drafts?%s' % memberToEdit.key())
 			else:
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 		else:
 			self.redirect("/")
 			
-class LeaveCommunityPage(webapp.RequestHandler):
+class LeaveRakontuPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-						   	   'title': "Leave community", 
+						   	   'title': "Leave rakontu", 
 					   	   	   'title_extra': None, 
-							   'community': community, 
+							   'rakontu': rakontu, 
 							   'message': self.request.query_string,
 							   "linkback": self.request.headers["Referer"],
 							   'current_member': member,
@@ -1030,10 +1030,10 @@ class LeaveCommunityPage(webapp.RequestHandler):
 			
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if "leave|%s" % member.key() in self.request.arguments():
-				if community.memberIsOnlyOwner(member):
+				if rakontu.memberIsOnlyOwner(member):
 					self.redirect("/result?ownerCannotLeave")
 					return
 				else:
@@ -1048,11 +1048,11 @@ class LeaveCommunityPage(webapp.RequestHandler):
 class SavedSearchEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			currentSearch = GetCurrentSearchForMember(member)
 			questionsAndRefsDictList = []
-			entryQuestions = community.getActiveNonMemberQuestions()
+			entryQuestions = rakontu.getActiveNonMemberQuestions()
 			if entryQuestions:
 				entryQuestionsAndRefsDictionary = {
 					"result_preface": "entry", "afterAnyText":"of these answers to questions:",
@@ -1064,9 +1064,9 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 					entryQuestionsAndRefsDictionary["references"] = []
 					entryQuestionsAndRefsDictionary["anyOrAll"] = None
 				questionsAndRefsDictList.append(entryQuestionsAndRefsDictionary)
-			creatorQuestions = community.getActiveMemberAndCharacterQuestions()
+			creatorQuestions = rakontu.getActiveMemberAndCharacterQuestions()
 			if creatorQuestions:
-				if community.hasActiveCharacters() and community.hasActiveQuestionsOfType("character"):
+				if rakontu.hasActiveCharacters() and rakontu.hasActiveQuestionsOfType("character"):
 					afterAnyText = "of these answers to questions about their creators (members or characters):"
 				else:
 					afterAnyText = "of these answers to questions about their creators:"
@@ -1083,7 +1083,7 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': "Filter",
 						   	'title_extra': None,
-							'community': community, 
+							'rakontu': rakontu, 
 							'current_member': member, 
 							'num_search_fields': NUM_SEARCH_FIELDS,
 							'search_locations': SEARCH_LOCATIONS,
@@ -1099,7 +1099,7 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 			
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			search = GetCurrentSearchForMember(member)
 			if "deleteSearchByCreator" in self.request.arguments():
@@ -1108,26 +1108,26 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 					member.viewSearch = None
 					member.viewSearchResultList = []
 					member.put()
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 			elif "flagSearchByCurator" in self.request.arguments():
 				if search:
 					search.flaggedForRemoval = not search.flaggedForRemoval
 					search.put()
 					self.redirect("/visit/filter")
 				else:
-					self.redirect("/visit/look")
+					self.redirect("/visit/home")
 			elif "removeSearchByManager" in self.request.arguments():
 				if search:
 					db.delete(search)
 					member.viewSearch = None
 					member.viewSearchResultList = []
 					member.put()
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 			elif "cancel" in self.request.arguments():
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 			elif "saveAs" in self.request.arguments() or "save" in self.request.arguments():
 				if not search or "saveAs" in self.request.arguments():
-					search = SavedSearch(community=community, creator=member)
+					search = SavedSearch(rakontu=rakontu, creator=member)
 				search.private = self.request.get("privateOrSharedSearch") == "private"
 				search.name = htmlEscape(self.request.get("searchName", default_value="Untitled"))
 				text = self.request.get("comment")
@@ -1162,10 +1162,10 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 				for preface in ["entry", "creator"]:
 					if preface == "entry":
 						search.answers_anyOrAll = self.request.get("entry|anyOrAll")
-						questions = community.getActiveNonMemberQuestions()
+						questions = rakontu.getActiveNonMemberQuestions()
 					else:
 						search.creatornswers_anyOrAll = self.request.get("creator|anyOrAll")
-						questions = community.getActiveMemberAndCharacterQuestions()
+						questions = rakontu.getActiveMemberAndCharacterQuestions()
 					for i in range(NUM_SEARCH_FIELDS):
 						response = self.request.get("%s|question|%s" % (preface, i))
 						for question in questions:
@@ -1193,7 +1193,7 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 								ref = SavedSearchQuestionReference.all().filter("search = ", search).\
 									filter("question = ", question).filter("order = ", i).get()
 								if not ref:
-									ref = SavedSearchQuestionReference(community=community, search=search, question=question)
+									ref = SavedSearchQuestionReference(rakontu=rakontu, search=search, question=question)
 								ref.answer = answer
 								ref.comparison = comparison
 								ref.order = i
@@ -1202,21 +1202,21 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 				member.viewSearch = search
 				member.viewSearchResultList = []
 				member.put()
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 			else:
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 		else:
 			self.redirect("/")
 			
 class ResultFeedbackPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 						   	   'title': "Message", 
 					   	   	   'title_extra': None, 
-							   'community': community, 
+							   'rakontu': rakontu, 
 							   'message': self.request.query_string,
 							   "linkback": self.request.headers["Referer"],
 							   'current_member': member,
@@ -1229,7 +1229,7 @@ class ResultFeedbackPage(webapp.RequestHandler):
 class ContextualHelpPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			lookup = self.request.query_string.strip()
 			help = Help.all().filter('name = ', lookup).get()
@@ -1237,7 +1237,7 @@ class ContextualHelpPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Help on item", 
 						   	   	   'title_extra': None, 
-								   'community': community, 
+								   'rakontu': rakontu, 
 								   'help': help,
 								   "linkback": self.request.headers["Referer"],
 								   'current_member': member,

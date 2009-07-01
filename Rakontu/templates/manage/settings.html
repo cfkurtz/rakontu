@@ -7,29 +7,29 @@
 		{% if current_member.isManagerOrOwner %}
 			<div id="stylized" class="rakontu_form">
 			<form action="/manage/settings" method="post" enctype="multipart/form-data">
-			<p>This community was created 
-			on {{community.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.</p>
+			<p>This Rakontu was created 
+			on {{rakontu.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.</p>
 
 			<h3>Name and description</h3>
 			<fieldset>
-			<p>Community name{{"community_name"|tip}}</p>
-			<input type="text" name="name" value="{{ community.name }}" size="30" maxlength="{{maxlength_name}}"/>
+			<p>Rakontu name{{"rakontu_name"|tip}}</p>
+			<input type="text" name="name" value="{{ rakontu.name }}" size="30" maxlength="{{maxlength_name}}"/>
 			<p>Tag line{{"tag_line"|tip}}</p>
-			<input type="text" name="tagline" value="{{ community.tagline }}" size="80" maxlength="{{maxlength_subject_or_comment}}"/>
-			<p><i>The tag line (if you choose one) shows after your community name at the top of the web page.</i></p>
-			<p>Community contact email{{"community_contact_email"|caution}}</p>
-			<input type="text" name="contactEmail" value="{{ community.contactEmail }}" size="80" maxlength="{{maxlength_name}}"/>
-			<p>Community description{{"community_description"|tip}}</p>
+			<input type="text" name="tagline" value="{{ rakontu.tagline }}" size="80" maxlength="{{maxlength_subject_or_comment}}"/>
+			<p><i>The tag line (if you choose one) shows after your rakontu name at the top of the web page.</i></p>
+			<p>Rakontu contact email{{"rakontu_contact_email"|caution}}</p>
+			<input type="text" name="contactEmail" value="{{ rakontu.contactEmail }}" size="80" maxlength="{{maxlength_name}}"/>
+			<p>Description{{"rakontu_description"|tip}}</p>
 
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
-				<textarea name="description" rows="5" cols="60">{{community.description}}</textarea>
+				<textarea name="description" rows="5" cols="60">{{rakontu.description}}</textarea>
 				</td><td class="noborder" width="80">
 				<p>Interpret as{{"interpreting_texts"|tip}}</p>
 					<select name="text_format">
 					{% for format in text_formats %}
 						<option value="{{format}}" 
-						{% ifequal community.description_format format %}
+						{% ifequal rakontu.description_format format %}
 							selected="selected"
 						{% endifequal %}
 						>{{format}}</option>
@@ -40,13 +40,13 @@
 			<p>Welcome message for new members{{"welcome_message"|tip}}</p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
-				<textarea name="welcomeMessage" rows="5" cols="60">{{community.welcomeMessage}}</textarea>
+				<textarea name="welcomeMessage" rows="5" cols="60">{{rakontu.welcomeMessage}}</textarea>
 				</td><td class="noborder" width="80">
 				<p>Interpret as</p>
 					<select name="text_format">
 					{% for format in text_formats %}
 						<option value="{{format}}" 
-						{% ifequal community.welcomeMessage_format format %}
+						{% ifequal rakontu.welcomeMessage_format format %}
 							selected="selected"
 						{% endifequal %}
 						>{{format}}</option>
@@ -54,16 +54,16 @@
 					</select>
 				</td></tr></table>
 
-			<p>Community etiquette statement{{"community_etiquette_statement"|tip}}</p>
+			<p>Etiquette statement{{"rakontu_etiquette_statement"|tip}}</p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
-				<textarea name="etiquetteStatement" rows="5" cols="60">{{community.etiquetteStatement}}</textarea>
+				<textarea name="etiquetteStatement" rows="5" cols="60">{{rakontu.etiquetteStatement}}</textarea>
 				</td><td class="noborder" width="80">
 				<p>Interpret as</p>
 					<select name="text_format">
 					{% for format in text_formats %}
 						<option value="{{format}}" 
-						{% ifequal community.etiquetteStatement_format format %}
+						{% ifequal rakontu.etiquetteStatement_format format %}
 							selected="selected"
 						{% endifequal %}
 						>{{format}}</option>
@@ -71,15 +71,15 @@
 					</select>
 				</td></tr></table>
 
-			<p>Community image{{"community_image"|tip}}</p>
-			{% if community.image %}
-				<img src="img?community_id={{community.key}}" class="bordered"></img>
+			<p>Image{{"rakontu_image"|tip}}</p>
+			{% if rakontu.image %}
+				<img src="img?rakontu_id={{rakontu.key}}" class="bordered"></img>
 				<input type="checkbox" name="removeImage" value="removeImage" id="removeImage"><label for="removeImage">Remove</label>
 			{% endif %}
 			<p><input type="file" name="img" accept="jpg/png"/></p>
 			
 			{% if current_member.isOwner %}
-				<div class="rightalign">You are an owner of this community; you can <a href="/manage/inactivate">inactivate</a> it.</div>
+				<div class="rightalign">You are an owner of this Rakontu; you can <a href="/manage/inactivate">inactivate</a> it.</div>
 			{% endif %}
 			</fieldset>
 			
@@ -89,7 +89,7 @@
 				<select name="defaultTimeZoneName"">
 				{% for name in time_zone_names %}
 					<option value="{{name}}"
-					{% ifequal community.defaultTimeZoneName name %}
+					{% ifequal rakontu.defaultTimeZoneName name %}
 						selected="selected"
 					{% endifequal %}
 					>{{name}}</option>
@@ -99,7 +99,7 @@
 				<select name="defaultDateFormat">
 				{% for format in date_formats.keys|sorted %}
 					<option value="{{format}}"
-					{% ifequal community.defaultDateFormat format %}
+					{% ifequal rakontu.defaultDateFormat format %}
 						selected="selected"
 					{% endifequal %}
 					>{{date_formats|dictLookup:format}}</option>
@@ -109,7 +109,7 @@
 				<select name="defaultTimeFormat">
 				{% for format in time_formats.keys %}
 					<option value="{{format}}"
-					{% ifequal community.defaultTimeFormat format %}
+					{% ifequal rakontu.defaultTimeFormat format %}
 						selected="selected"
 					{% endifequal %}
 					>{{time_formats|dictLookup:format}}</option>
@@ -123,27 +123,27 @@
 				<p>How many attachments are allowed per entry?
 					<select name="maxNumAttachments" style="width: 60px;">
 					<option value="1"
-						{% ifequal community.maxNumAttachments 1 %}
+						{% ifequal rakontu.maxNumAttachments 1 %}
 							selected="selected"
 						{% endifequal %}
 						>1</option>
 					<option value="2"
-						{% ifequal community.maxNumAttachments 2 %}
+						{% ifequal rakontu.maxNumAttachments 2 %}
 							selected="selected"
 						{% endifequal %}
 						>2</option>
 					<option value="3"
-						{% ifequal community.maxNumAttachments 3 %}
+						{% ifequal rakontu.maxNumAttachments 3 %}
 							selected="selected"
 						{% endifequal %}
 						>3</option>
 					<option value="4"
-						{% ifequal community.maxNumAttachments 4 %}
+						{% ifequal rakontu.maxNumAttachments 4 %}
 							selected="selected"
 						{% endifequal %}
 						>4</option>
 					<option value="5"
-						{% ifequal community.maxNumAttachments 5 %}
+						{% ifequal rakontu.maxNumAttachments 5 %}
 							selected="selected"
 						{% endifequal %}
 						>5</option>
@@ -168,7 +168,7 @@
 			{% endfor %}
 			<p>Should curators who are not managers be able to edit existing tags?{{"allowing_non_manager_curators_to_change_tags"|caution}}</p>
 				<input type="checkbox" name="allowNonManagerCuratorsToEditTags" value="yes" id="allowNonManagerCuratorsToEditTags"
-				{% if community.allowNonManagerCuratorsToEditTags %}
+				{% if rakontu.allowNonManagerCuratorsToEditTags %}
 					checked="checked"
 				{% endif %}
 				>
@@ -189,20 +189,20 @@
 			<fieldset>
 			<p><i></i></p>
 			<p>How many nudge points can be asssigned (maximum) per entry? 
-			<input type="text" name="maxNudgePointsPerEntry" size="4" value="{{community.maxNudgePointsPerEntry}}" maxlength="4"/>
+			<input type="text" name="maxNudgePointsPerEntry" size="4" value="{{rakontu.maxNudgePointsPerEntry}}" maxlength="4"/>
 			{{"nudge_points"|info}} {{"nudge_points_per_entry"|caution}}
 			<p>Enter your nudge category names and questions here.{{"nudge_category_names"|caution}}</p>
 			<table  border="1" cellpadding="4" cellspacing="0">
 			<tr><th>Name</th><th>Question {{"nudge_category_questions"|tip}}</th></tr>
 			{% for i in num_nudge_categories|makeRange %}
 				<tr>
-				<td><input type="text" name="nudgeCategory{{i}}" size="30" value="{{community.nudgeCategories|listLookup:i}}" maxlength="{{maxlength_name}}"/>
-				</td><td><input type="text" name="nudgeCategoryQuestion{{i}}" size="60" value="{{community.nudgeCategoryQuestions|listLookup:i}}" maxlength="{{maxlength_subject_or_comment}}"/>
+				<td><input type="text" name="nudgeCategory{{i}}" size="30" value="{{rakontu.nudgeCategories|listLookup:i}}" maxlength="{{maxlength_name}}"/>
+				</td><td><input type="text" name="nudgeCategoryQuestion{{i}}" size="60" value="{{rakontu.nudgeCategoryQuestions|listLookup:i}}" maxlength="{{maxlength_subject_or_comment}}"/>
 				</tr>
 			{% endfor %}
 			</table>
 			</p>
-			<p>How many nudge points do members accumulate by participating in the community?</p>
+			<p>How many nudge points do members accumulate by participating in the Rakontu?</p>
 			<table  border="1" cellpadding="4" cellspacing="0">
 			{% for text in nudge_point_includes %}
 				{{ text }}
@@ -215,13 +215,13 @@
 			<p><b>Curator read-before text{{"role_read_before_texts"|info}}</b></p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
-				<textarea name="readme0" rows="5" cols="60">{{community.roleReadmes.0}}</textarea>
+				<textarea name="readme0" rows="5" cols="60">{{rakontu.roleReadmes.0}}</textarea>
 				</td><td class="noborder" width="80">
 				<p>Interpret as</p>
 					<select name="text_format">
 					{% for format in text_formats %}
 						<option value="{{format}}" 
-						{% ifequal community.roleReadmes_formats.0 format %}
+						{% ifequal rakontu.roleReadmes_formats.0 format %}
 							selected="selected"
 						{% endifequal %}
 						>{{format}}</option>
@@ -232,13 +232,13 @@
 			<p><b>Guide read-before text</b></p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
-				<textarea name="readme1" rows="5" cols="60">{{community.roleReadmes.1}}</textarea>
+				<textarea name="readme1" rows="5" cols="60">{{rakontu.roleReadmes.1}}</textarea>
 				</td><td class="noborder" width="80">
 				<p>Interpret as</p>
 					<select name="text_format">
 					{% for format in text_formats %}
 						<option value="{{format}}" 
-						{% ifequal community.roleReadmes_formats.1 format %}
+						{% ifequal rakontu.roleReadmes_formats.1 format %}
 							selected="selected"
 						{% endifequal %}
 						>{{format}}</option>
@@ -249,13 +249,13 @@
 			<p><b>Liaison read-before text</b></p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
-				<textarea name="readme2" rows="5" cols="60">{{community.roleReadmes.2}}</textarea>
+				<textarea name="readme2" rows="5" cols="60">{{rakontu.roleReadmes.2}}</textarea>
 				</td><td class="noborder" width="80">
 				<p>Interpret as</p>
 					<select name="text_format">
 					{% for format in text_formats %}
 						<option value="{{format}}" 
-						{% ifequal community.roleReadmes_formats.2 format %}
+						{% ifequal rakontu.roleReadmes_formats.2 format %}
 							selected="selected"
 						{% endifequal %}
 						>{{format}}</option>
@@ -268,7 +268,7 @@
 		</form>
 		</div>
 	{% else %}
-		<p>You are not a manager of this community and cannot change its settings.
+		<p>You are not a manager of this Rakontu and cannot change its settings.
 		Please ask a manager to make any changes you would like to see made.</p>
 	{% endif %}
 	

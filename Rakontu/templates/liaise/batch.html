@@ -36,8 +36,8 @@
 					<select name="attribution|{{i}}">
 						<option value="member"
 							>The selected member</option>
-						{% if community.getActiveCharacters %}
-							{% for character in community.getActiveCharacters %}
+						{% if rakontu.getActiveCharacters %}
+							{% for character in rakontu.getActiveCharacters %}
 								<option value="{{character.key}}"
 								>{{character.name}}</option>
 							{% endfor %}
@@ -66,9 +66,9 @@
 					</select>
 				</td></tr></table>
 			</td></tr>
-			{% if community.allowsAttachments %}
+			{% if rakontu.allowsAttachments %}
 				<tr><th>Attachment(s)</th><td>
-					{% for a in community.maxNumAttachments|makeRange %}
+					{% for a in rakontu.maxNumAttachments|makeRange %}
 						<input type="text" name="attachmentName|{{i}}|{{a}}" size="40" maxlength="{{maxlength_name}}"/>
 						<input type="file" name="attachment|{{i}}|{{a}}" size="30"/><br/>
 					{% endfor %}
@@ -152,7 +152,7 @@
 		</form>	
 		</div>
 	{% else %}
-		<p>You are not a liaison of this community and cannot import data collected offline.
+		<p>You are not a liaison of this Rakontu and cannot import data collected offline.
 		Either become a liaison, or ask a liaison to import any items you would like to see added.</p>
 	{% endif %}
 	</div>

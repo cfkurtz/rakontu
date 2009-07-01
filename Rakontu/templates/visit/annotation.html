@@ -152,11 +152,11 @@
 						<tr>
 						<td class="noborder"><input type="text" name="nudge{{i}}" size="4" value="{{annotation.valuesIfNudge|listLookup:i|orNothing}}" maxlength="{{maxlength_number}}"/></td>
 						<td class="noborder">
-						{% if community.nudgeCategoryQuestions|listLookup:i %}
-							{{community.nudgeCategoryQuestions|listLookup:i}}
-							(<i>{{community.nudgeCategories|listLookup:i}}</i>)
+						{% if rakontu.nudgeCategoryQuestions|listLookup:i %}
+							{{rakontu.nudgeCategoryQuestions|listLookup:i}}
+							(<i>{{rakontu.nudgeCategories|listLookup:i}}</i>)
 						{% else %}
-							{{community.nudgeCategories|listLookup:i}}
+							{{rakontu.nudgeCategories|listLookup:i}}
 						{% endif %}
 						</td>
 						</tr>

@@ -9,34 +9,34 @@
 from utils import *
 
 							 
-class CreateCommunityPage(webapp.RequestHandler):
+class CreateRakontuPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		user = users.get_current_user()
 		template_values = GetStandardTemplateDictionaryAndAddMore({
-						   'title': "Create community",
+						   'title': "Create rakontu",
 						   'title_extra': None,
-						   'community_types': COMMUNITY_TYPES,
+						   'rakontu_types': RAKONTU_TYPES,
 						   })
-		path = os.path.join(os.path.dirname(__file__), 'templates/createCommunity.html')
+		path = os.path.join(os.path.dirname(__file__), 'templates/create.html')
 		self.response.out.write(template.render(path, template_values))
 			
 	@RequireLogin 
 	def post(self):
 		user = users.get_current_user()
-		community = Community(name=htmlEscape(self.request.get('name')))
-		community.initializeFormattedTexts()
-		communityType = self.request.get("type")
-		community.type = communityType
-		community.put()
-		if communityType != COMMUNITY_TYPES[-1]:
-			GenerateDefaultQuestionsForCommunity(community, communityType)
-		GenerateDefaultCharactersForCommunity(community)
+		rakontu = Rakontu(name=htmlEscape(self.request.get('name')))
+		rakontu.initializeFormattedTexts()
+		rakontuType = self.request.get("type")
+		rakontu.type = rakontuType
+		rakontu.put()
+		if rakontuType != RAKONTU_TYPES[-1]:
+			GenerateDefaultQuestionsForRakontu(rakontu, rakontuType)
+		GenerateDefaultCharactersForRakontu(rakontu)
 		member = Member(
 			googleAccountID=user.user_id(),
 			googleAccountEmail=user.email(),
 			active=True,
-			community=community,
+			rakontu=rakontu,
 			governanceType="owner",
 			nickname = htmlEscape(self.request.get('nickname')))
 		member.initialize()
@@ -46,7 +46,7 @@ class CreateCommunityPage(webapp.RequestHandler):
 class EnterEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if self.request.uri.find("retell") >= 0:
 				type = "story"
@@ -100,7 +100,7 @@ class EnterEntryPage(webapp.RequestHandler):
 					includedLinksOutgoing = entry.getOutgoingLinksOfType("included")
 				else:
 					includedLinksOutgoing = []
-				entries = community.getNonDraftStoriesInAlphabeticalOrder()
+				entries = rakontu.getNonDraftStoriesInAlphabeticalOrder()
 				entriesThatCanBeIncluded = []
 				for anEntry in entries:
 					found = False
@@ -133,7 +133,7 @@ class EnterEntryPage(webapp.RequestHandler):
 					referencedLinksOutgoing = entry.getOutgoingLinksOfType("referenced")
 				else:
 					referencedLinksOutgoing = []
-				searches = community.getNonPrivateSavedSearches()
+				searches = rakontu.getNonPrivateSavedSearches()
 				searchesThatCanBeIncluded = []
 				for aSearch in searches:
 					found = False
@@ -154,18 +154,18 @@ class EnterEntryPage(webapp.RequestHandler):
 							   'title': type.capitalize(), 
 						   	   'title_extra': pageTitleExtra, 
 							   'current_member': member,
-							   'community': community, 
+							   'rakontu': rakontu, 
 							   'entry_type': type,
 							   'entry': entry,
 							   'attachments': attachments,
 							   # used by common_attribution
 							   'attribution_referent_type': type,
 							   'attribution_referent': entry,
-							   'offline_members': community.getActiveOfflineMembers(),
-							   'character_allowed': community.allowCharacter[entryTypeIndexForCharacters],
+							   'offline_members': rakontu.getActiveOfflineMembers(),
+							   'character_allowed': rakontu.allowCharacter[entryTypeIndexForCharacters],
 							   # used by common_questions
 							   'refer_type': type,
-							   'questions': community.getActiveQuestionsOfType(type),
+							   'questions': rakontu.getActiveQuestionsOfType(type),
 							   'answers': answers,
 							   # for a retold or remined story
 							   'link_type': linkType,
@@ -187,7 +187,7 @@ class EnterEntryPage(webapp.RequestHandler):
 			
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			for aType in ENTRY_TYPES:
 				for argument in self.request.arguments():
@@ -201,7 +201,7 @@ class EnterEntryPage(webapp.RequestHandler):
 				entry = db.get(entryKey)
 			newEntry = False
 			if not entry:
-				entry=Entry(community=community, type=type, title=DEFAULT_UNTITLED_ENTRY_TITLE)
+				entry=Entry(rakontu=rakontu, type=type, title=DEFAULT_UNTITLED_ENTRY_TITLE)
 				newEntry = True
 			preview = False
 			if "save|%s" % type in self.request.arguments():
@@ -224,7 +224,7 @@ class EnterEntryPage(webapp.RequestHandler):
 			entry.collectedOffline = self.request.get("collectedOffline") == "yes"
 			if entry.collectedOffline and member.isLiaison():
 				foundMember = False
-				for aMember in community.getActiveOfflineMembers():
+				for aMember in rakontu.getActiveOfflineMembers():
 					if self.request.get("offlineSource") == str(aMember.key()):
 						entry.creator = aMember
 						foundMember = True
@@ -241,7 +241,7 @@ class EnterEntryPage(webapp.RequestHandler):
 			else:
 				attributionQueryString = "attribution"
 			if self.request.get(attributionQueryString) != "member":
-				entry.character = CommunityCharacter.get(self.request.get(attributionQueryString))
+				entry.character = RakontuCharacter.get(self.request.get(attributionQueryString))
 			else:
 				entry.character = None
 			if type == "resource":
@@ -268,7 +268,7 @@ class EnterEntryPage(webapp.RequestHandler):
 					elif self.request.get("link_type") == "reference":
 						linkType = "referenced"
 					link = Link(itemFrom=itemFrom, itemTo=entry, type=linkType, \
-								creator=member, community=community, \
+								creator=member, rakontu=rakontu, \
 								comment=htmlEscape(self.request.get("link_comment")))
 					link.put()
 					link.publish()
@@ -281,9 +281,9 @@ class EnterEntryPage(webapp.RequestHandler):
 						linksToRemove.append(link)
 				for link in linksToRemove:
 					db.delete(link)
-				for anEntry in community.getNonDraftEntriesOfType("story"):
+				for anEntry in rakontu.getNonDraftEntriesOfType("story"):
 					if self.request.get("addLink|%s" % anEntry.key()) == "yes":
-						link = Link(itemFrom=entry, itemTo=anEntry, type="included", creator=member, community=community)
+						link = Link(itemFrom=entry, itemTo=anEntry, type="included", creator=member, rakontu=rakontu)
 						link.put()
 						if not entry.draft:
 							link.publish()
@@ -296,19 +296,19 @@ class EnterEntryPage(webapp.RequestHandler):
 						linksToRemove.append(link)
 				for link in linksToRemove:
 					db.delete(link)
-				for aSearch in community.getNonPrivateSavedSearches():
+				for aSearch in rakontu.getNonPrivateSavedSearches():
 					if self.request.get("addLink|%s" % aSearch.key()) == "yes":
-						link = Link(itemFrom=entry, itemTo=aSearch, type="referenced", creator=member, community=community)
+						link = Link(itemFrom=entry, itemTo=aSearch, type="referenced", creator=member, rakontu=rakontu)
 						link.put()
 						if not entry.draft:
 							link.publish()
-			questions = Question.all().filter("community = ", community).filter("refersTo = ", type).fetch(FETCH_NUMBER)
+			questions = Question.all().filter("rakontu = ", rakontu).filter("refersTo = ", type).fetch(FETCH_NUMBER)
 			for question in questions:
 				foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", entry.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
 				if foundAnswers:
 					answerToEdit = foundAnswers[0]
 				else:
-					answerToEdit = Answer(question=question, community=community, creator=member, referent=entry, referentType="entry")
+					answerToEdit = Answer(question=question, rakontu=rakontu, creator=member, referent=entry, referentType="entry")
 					keepAnswer = False
 					queryText = "%s" % question.key()
 					if question.type == "text":
@@ -394,13 +394,13 @@ class EnterEntryPage(webapp.RequestHandler):
 				member.viewTimeEnd = entry.published + timedelta(seconds=1)
 				member.put()
 				self.redirect("/visit/read?%s" % entry.key())
-		else: # no community or member
+		else: # no rakontu or member
 			self.redirect("/")
 			
 class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			entry = None
 			if self.request.query_string:
@@ -415,27 +415,27 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 							   	   'title': "Answers for", 
 						   	   	   'title_extra': entry.title, 
 								   'current_member': member,
-								   'community': community, 
+								   'rakontu': rakontu, 
 								   'entry': entry,
 							   	   'attribution_referent_type': "answer set",
 							       'attribution_referent': answerRefForQuestions,
 								   'refer_type': entry.type,
-								   'questions': community.getActiveQuestionsOfType(entry.type),
+								   'questions': rakontu.getActiveQuestionsOfType(entry.type),
 								   'answers': answers,
-								   'community_members': community.getActiveMembers(),
-								   'offline_members': community.getOfflineMembers(),
-								   'character_allowed': community.allowCharacter[ANSWERS_ENTRY_TYPE_INDEX],
+								   'rakontu_members': rakontu.getActiveMembers(),
+								   'offline_members': rakontu.getOfflineMembers(),
+								   'character_allowed': rakontu.allowCharacter[ANSWERS_ENTRY_TYPE_INDEX],
 								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/answers.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 		else:
 			self.redirect("/")
 				
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			entryKey = self.request.query_string
 			entry = db.get(entryKey)
@@ -453,7 +453,7 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 				collectedOffline = self.request.get("collectedOffline") == "yes"
 				if collectedOffline and member.isLiaison():
 					foundMember = False
-					for aMember in community.getActiveOfflineMembers():
+					for aMember in rakontu.getActiveOfflineMembers():
 						if self.request.get("offlineSource") == str(aMember.key()):
 							answersAlreadyInPlace = aMember.getDraftAnswersForEntry(entry)
 							if answersAlreadyInPlace:
@@ -476,14 +476,14 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 				character = None
 				if self.request.get(attributionQueryString) != "member":
 					characterKey = self.request.get(attributionQueryString)
-					character = CommunityCharacter.get(characterKey)
-				questions = Question.all().filter("community = ", community).filter("refersTo = ", entry.type).fetch(FETCH_NUMBER)
+					character = RakontuCharacter.get(characterKey)
+				questions = Question.all().filter("rakontu = ", rakontu).filter("refersTo = ", entry.type).fetch(FETCH_NUMBER)
 				for question in questions:
 					foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", entry.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
 					if foundAnswers:
 						answerToEdit = foundAnswers[0]
 					else:
-						answerToEdit = Answer(question=question, community=community, referent=entry, referentType="entry")
+						answerToEdit = Answer(question=question, rakontu=rakontu, referent=entry, referentType="entry")
 						newAnswers = True
 					answerToEdit.creator = creator
 					if collectedOffline:
@@ -540,7 +540,7 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 class PreviewAnswersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			entry = None
 			if self.request.query_string:
@@ -551,10 +551,10 @@ class PreviewAnswersPage(webapp.RequestHandler):
 							   	   'title': "Preview of", 
 						   	   	   'title_extra': "Answers for %s " % entry.title, 
 								   'current_member': member,
-								   'community': community, 
+								   'rakontu': rakontu, 
 								   'entry': entry,
-								   'community_has_questions_for_this_entry_type': len(community.getActiveQuestionsOfType(entry.type)) > 0,
-								   'questions': community.getActiveQuestionsOfType(entry.type),
+								   'rakontu_has_questions_for_this_entry_type': len(rakontu.getActiveQuestionsOfType(entry.type)) > 0,
+								   'questions': rakontu.getActiveQuestionsOfType(entry.type),
 								   'answers': answers,
 								   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/previewAnswers.html')
@@ -564,7 +564,7 @@ class PreviewAnswersPage(webapp.RequestHandler):
 		
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			entry = None
 			if self.request.query_string:
@@ -580,12 +580,12 @@ class PreviewAnswersPage(webapp.RequestHandler):
 							answer.draft = False
 							answer.published = datetime.now(tz=pytz.utc)
 						db.put(answers)
-						self.redirect("/visit/look")
+						self.redirect("/visit/home")
 
 class EnterAnnotationPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			i = 0
 			for aType in ANNOTATION_TYPES_URLS:
@@ -611,38 +611,38 @@ class EnterAnnotationPage(webapp.RequestHandler):
 				if not entry.memberCanNudge(member):
 					nudgePointsMemberCanAssign = 0
 				else:
-					nudgePointsMemberCanAssign = max(0, community.maxNudgePointsPerEntry - entry.getTotalNudgePointsForMember(member))
+					nudgePointsMemberCanAssign = max(0, rakontu.maxNudgePointsPerEntry - entry.getTotalNudgePointsForMember(member))
 			else:
-				nudgePointsMemberCanAssign = community.maxNudgePointsPerEntry
+				nudgePointsMemberCanAssign = rakontu.maxNudgePointsPerEntry
 			if entry:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "%s for" % type.capitalize(), 
 						   	   	   'title_extra': entry.title, 
 								   'current_member': member,
-								   'community': community, 
+								   'rakontu': rakontu, 
 								   'annotation_type': type,
 								   'annotation': annotation,
 							   	   'attribution_referent_type': type,
 							       'attribution_referent': annotation,
-								   'community_members': community.getActiveMembers(),
-								   'offline_members': community.getOfflineMembers(),
+								   'rakontu_members': rakontu.getActiveMembers(),
+								   'offline_members': rakontu.getOfflineMembers(),
 								   'entry': entry,
-								   'nudge_categories': community.nudgeCategories,
+								   'nudge_categories': rakontu.nudgeCategories,
 								   'nudge_points_member_can_assign': nudgePointsMemberCanAssign,
-								   'character_allowed': community.allowCharacter[entryTypeIndex],
+								   'character_allowed': rakontu.allowCharacter[entryTypeIndex],
 								   'included_links_outgoing': entry.getOutgoingLinksOfType("included"),
-								   'already_there_tags': community.getNonDraftTags(),
+								   'already_there_tags': rakontu.getNonDraftTags(),
 								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/annotation.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect("/visit/look")
+				self.redirect("/visit/home")
 		else:
 			self.redirect("/")
 			
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			for aType in ANNOTATION_TYPES:
 				for argument in self.request.arguments():
@@ -660,7 +660,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					entry = annotation.entry
 			if entry:
 				if not annotation:
-					annotation = Annotation(community=community, type=type, entry=entry)
+					annotation = Annotation(rakontu=rakontu, type=type, entry=entry)
 					newAnnotation = True
 				preview = False
 				if "save|%s" % type in self.request.arguments():
@@ -676,7 +676,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 				annotation.collectedOffline = self.request.get("collectedOffline") == "yes"
 				if annotation.collectedOffline and member.isLiaison():
 					foundMember = False
-					for aMember in community.getActiveOfflineMembers():
+					for aMember in rakontu.getActiveOfflineMembers():
 						if self.request.get("offlineSource") == str(aMember.key()):
 							annotation.creator = aMember
 							foundMember = True
@@ -694,7 +694,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					attributionQueryString = "attribution"
 				if self.request.get(attributionQueryString) != "member":
 					characterKey = self.request.get(attributionQueryString)
-					character = CommunityCharacter.get(characterKey)
+					character = RakontuCharacter.get(characterKey)
 					annotation.character = character
 				else:
 					annotation.character = None
@@ -728,7 +728,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					nudgeValuesTheyWantToSet = []
 					totalNudgeValuesTheyWantToSet = 0
 					for i in range(NUM_NUDGE_CATEGORIES):
-						category = community.nudgeCategories[i]
+						category = rakontu.nudgeCategories[i]
 						if category:
 							oldValue = annotation.valuesIfNudge[i]
 							try:
@@ -737,11 +737,11 @@ class EnterAnnotationPage(webapp.RequestHandler):
 								nudgeValuesTheyWantToSet.append(oldValue)
 							totalNudgeValuesTheyWantToSet += abs(nudgeValuesTheyWantToSet[i])
 					adjustedValues = []
-					maximumAllowedInThisInstance = min(member.nudgePoints, community.maxNudgePointsPerEntry)
+					maximumAllowedInThisInstance = min(member.nudgePoints, rakontu.maxNudgePointsPerEntry)
 					if totalNudgeValuesTheyWantToSet > maximumAllowedInThisInstance:
 						totalNudgePointsAllocated = 0
 						for i in range(NUM_NUDGE_CATEGORIES):
-							category = community.nudgeCategories[i]
+							category = rakontu.nudgeCategories[i]
 							if category:
 								overLimit = totalNudgePointsAllocated + nudgeValuesTheyWantToSet[i] > maximumAllowedInThisInstance
 								if not overLimit:
@@ -777,14 +777,14 @@ class EnterAnnotationPage(webapp.RequestHandler):
 				else: # not draft
 					self.redirect("/visit/read?%s" % entry.key())
 			else: # new entry
-				self.redirect("/visit/look")
-		else: # no community or member
+				self.redirect("/visit/home")
+		else: # no rakontu or member
 			self.redirect("/")
 			
 class PreviewPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			entry = None
 			annotation = None
@@ -799,14 +799,14 @@ class PreviewPage(webapp.RequestHandler):
 							   	   'title': "Preview", 
 						   	   	   'title_extra': entry.title, 
 								   'current_member': member,
-								   'community': community, 
+								   'rakontu': rakontu, 
 								   'annotation': annotation,
 								   'entry': entry,
 								   'included_links_outgoing': entry.getOutgoingLinksOfType("included"),
-								   'community_has_questions_for_this_entry_type': len(community.getActiveQuestionsOfType(entry.type)) > 0,
-								   'questions': community.getActiveQuestionsOfType(entry.type),
+								   'rakontu_has_questions_for_this_entry_type': len(rakontu.getActiveQuestionsOfType(entry.type)) > 0,
+								   'questions': rakontu.getActiveQuestionsOfType(entry.type),
 								   'answers_with_entry': entry.getAnswersForMember(member),
-								   'nudge_categories': community.nudgeCategories,
+								   'nudge_categories': rakontu.nudgeCategories,
 								   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/preview.html')
 			self.response.out.write(template.render(path, template_values))
@@ -815,7 +815,7 @@ class PreviewPage(webapp.RequestHandler):
 		
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			entry = None
 			annotation = None
@@ -829,7 +829,7 @@ class PreviewPage(webapp.RequestHandler):
 				if member.isLiaison():
 					self.redirect('/liaise/review')
 				else:
-					self.redirect("/visit/look")
+					self.redirect("/visit/home")
 			elif "profile" in self.request.arguments():
 				self.redirect("/visit/profile?%s" % member.key())
 			elif annotation:
@@ -837,20 +837,20 @@ class PreviewPage(webapp.RequestHandler):
 					self.redirect("/visit/%s?%s" % (annotation.typeAsURL(), annotation.key()))
 				elif "publish" in self.request.arguments():
 					annotation.publish()
-					self.redirect("/visit/look?%s" % annotation.entry.key())
+					self.redirect("/visit/home?%s" % annotation.entry.key())
 			else:
 				if "edit" in self.request.arguments():
 					self.redirect("/visit/%s?%s" % (entry.type, entry.key()))
 				elif "publish" in self.request.arguments():
 					entry.publish()
-					self.redirect("/visit/look")
+					self.redirect("/visit/home")
 		else:
 			self.redirect("/")
 					
 class RelateEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			entry = None
 			if self.request.query_string:
@@ -860,7 +860,7 @@ class RelateEntryPage(webapp.RequestHandler):
 					entry = None
 			if entry:
 				links = entry.getLinksOfType("related")
-				entries = community.getNonDraftEntriesInAlphabeticalOrder()
+				entries = rakontu.getNonDraftEntriesInAlphabeticalOrder()
 				entriesThatCanBeRelated = []
 				for anEntry in entries:
 					found = False
@@ -884,7 +884,7 @@ class RelateEntryPage(webapp.RequestHandler):
 					template_values = GetStandardTemplateDictionaryAndAddMore({
 									'title': "Relate entries to",
 								   	'title_extra': entry.title,
-									'community': community, 
+									'rakontu': rakontu, 
 									'current_member': member, 
 									'entry': entry,
 									'entries_first_column': firstColumn, 
@@ -902,7 +902,7 @@ class RelateEntryPage(webapp.RequestHandler):
 					
 	@RequireLogin 
 	def post(self):
-		community, member, access = GetCurrentCommunityAndMemberFromSession()
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 				entry = None
 				if self.request.query_string:
@@ -920,16 +920,16 @@ class RelateEntryPage(webapp.RequestHandler):
 							linksToRemove.append(link)
 					for link in linksToRemove:
 						db.delete(link)
-					for anEntry in community.getNonDraftEntries():
+					for anEntry in rakontu.getNonDraftEntries():
 						if self.request.get("addLink|%s" % anEntry.key()) == "yes":
 							link = Link(itemFrom=entry, itemTo=anEntry, type="related", \
-										creator=member, community=community,
+										creator=member, rakontu=rakontu,
 										comment=htmlEscape(self.request.get("linkComment|%s" % anEntry.key())))
 							link.put()
 							link.publish()
 					self.redirect("read?%s" % entry.key())
 				else:
-					self.redirect("/visit/look")
+					self.redirect("/visit/home")
 		else:
 			self.redirect("/")
 			

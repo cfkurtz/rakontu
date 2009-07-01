@@ -8,9 +8,9 @@
 	<div id="stylized" class="rakontu_form">
 	<form action=
 	{% if current_search %}
-		"/visit/look?{{current_search.key}}"
+		"/visit/home?{{current_search.key}}"
 	{% else %}
-		"/visit/look"
+		"/visit/home"
 	{% endif %}
 	method="post">
 	
@@ -44,7 +44,7 @@
 		{% endif %}
 		
 		</td><td align="right" style="border:none;">
-		{% if community_searches or member_searches %}
+		{% if rakontu_searches or member_searches %}
 				{% if current_search %}
 					Filtered by: {{current_search.displayString}}
 				{% else %}
@@ -56,9 +56,9 @@
 							<option value="{{search.key}}">{{search.displayString}}</option>
 						{% endfor %}
 					{% endif %}
-					{% if community_searches %}
+					{% if rakontu_searches %}
 					<option value="">-- Shared filters --</option>
-					{% for search in community_searches %}
+					{% for search in rakontu_searches %}
 						<option value="{{search.key}}">{{search.displayString}}</option>
 					{% endfor %}
 					{% endif %}
@@ -112,13 +112,13 @@
 		</table>
 		
 		<p>Height means
-		{% for i in community.nudgeCategories|makeRangeFromListLength %}
-			<input type="checkbox" name="showCategory|{{i}}" value="yes" id="{{community.nudgeCategories|listLookup:i}}"
+		{% for i in rakontu.nudgeCategories|makeRangeFromListLength %}
+			<input type="checkbox" name="showCategory|{{i}}" value="yes" id="{{rakontu.nudgeCategories|listLookup:i}}"
 			{% if current_member.viewNudgeCategories|listLookup:i %}
 				checked
 			{% endif %}
 			>
-			<label for="{{community.nudgeCategories|listLookup:i}}">{{community.nudgeCategories|listLookup:i}}</label>
+			<label for="{{rakontu.nudgeCategories|listLookup:i}}">{{rakontu.nudgeCategories|listLookup:i}}</label>
 		{% endfor %}
 		<input type="submit" name="changeNudgeCategoriesShowing" value="Change" class="button_small"></p>
 	{% else %}
@@ -128,13 +128,13 @@
 			<input type="submit" name="clearSearch" value="Stop applying" class="button_small">
 			to stop applying it, or change it.
 		{% else %}
-			<p>This community has no entries in it.
+			<p>This Rakontu has no entries in it.
 			Why not add the first <a href="/visit/story">story</a> or <a href="/visit/invitation">invitation</a>?
 			{% if current_member.isManagerOrOwner %}
-				You can also choose community <a href="/manage/settings">settings</a>.
+				You can also choose Rakontu <a href="/manage/settings">settings</a>.
 				</p>
 			{% else %}
-				You can also read <a href="/visit/community">here</a> about the community.</p>
+				You can also read <a href="/visit/rakontu">here</a> about the Rakontu.</p>
 			{% endif %}
 		{% endif %}
 	{% endif %}

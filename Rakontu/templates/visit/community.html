@@ -4,17 +4,17 @@
 	{% include "../common_menus.html" %}
 		<div id="content">
 	
-		<h3>About the {{community.name}} community</h3>
+		<h3>About the {{rakontu.name}} Rakontu</h3>
 		
-		<p>This community was created on {{community.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.</p>
+		<p>This Rakontu was created on {{rakontu.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.</p>
 		<p>Description:</p>
-		<div class="blurb">{{community.description_formatted}}</div>
-		{% if community.etiquetteStatement_formatted %}
+		<div class="blurb">{{rakontu.description_formatted}}</div>
+		{% if rakontu.etiquetteStatement_formatted %}
 			<p>Etiquette rules:</p>
-			<div class="blurb">{{community.etiquetteStatement_formatted}}</div>
+			<div class="blurb">{{rakontu.etiquetteStatement_formatted}}</div>
 		{% endif %}
 		
-		{% if community.getActiveCharacters %}
+		{% if rakontu.getActiveCharacters %}
 			<h3>Characters {{"what_characters_are_for"|info}}</h3>
 	      	<table>
 	      		<tr><th>Name</th>
@@ -40,8 +40,8 @@
 		
       	{% if current_member.isManagerOrOwner %}
       		<div class="rightalign">
-      		Make changes to community-level <a href="/manage/settings">settings</a>
-      		{% if community.getActiveCharacters %}
+      		Make changes to Rakontu-level <a href="/manage/settings">settings</a>
+      		{% if rakontu.getActiveCharacters %}
       			or <a href="/manage/characters">characters</a>
       		{% endif %}
       		</div>
