@@ -35,36 +35,26 @@
 		{% endif %}
 		<p><input type="submit" name="createCommunity" value="Create a New Rakontu Community" class="button"></p>
 		<p>Your Google account is: <b>{{ user.nickname }}</b><br/><a href="{{logout_url}}">Log out</a></p>
-		</form>
-		</div>
 		
-			
-		<p></p>
-
-		{% if 1 %}
-		
-		{% if user_is_admin or DEVELOPMENT %}
-			<div id="stylized" class="rakontu_form_centered">
-			<form action="/" method="post">
-			{% if user_is_admin %}
-				<p>For the system administrator</p>
-				<input type="submit" name="reviewAllCommunities" value="Review Communities" class="button"><br/>
-				<input type="submit" name="generateSystemQuestions" value="Generate Sample Questions" class="button"><br/>
-				<input type="submit" name="generateHelps" value="Generate Help Texts" class="button">
-			{% endif %}
-			{% if DEVELOPMENT %}
-				<p>For the developer</p>
-				<input type="submit" name="makeFakeData" value="Make Fake Data" class="button"><br/>
-			{% endif %}
-			</form>
+		{% if user_is_admin %}
+			<p>For the system administrator</p>
+			<input type="submit" name="reviewAllCommunities" value="Review Communities" class="button"><br/>
+			<input type="submit" name="generateSystemQuestions" value="Generate Sample Questions" class="button"><br/>
+			<input type="submit" name="generateHelps" value="Generate Help Texts" class="button">
+		{% else %}
+			<div class="blurb">
+			<p>Please enter the alpha testing password.</p>
+			<p><input type="password" name="entryPassword"></p>
 			</div>
 		{% endif %}
-		
+		{% if DEVELOPMENT %}
+			<p>For the developer</p>
+			<input type="submit" name="makeFakeData" value="Make Fake Data" class="button"><br/>
 		{% endif %}
 		
-	<p></p>
-	
-		
+		</form>
+		</div>
+
 	{% else %}
 		<p>You must be logged in to a Google account to use Rakontu.</p><p><a href="{{login_url}}">Login at Google</a></p>
 	{% endif %}
@@ -72,23 +62,23 @@
 	<table class="noborder"><tr><td class="noborder" width="500">
 		{% if user %}
 			<hr>
-			<p><b>What's a Rakontu site?</b></p>
-			<p>It's a place for your community or group to tell, share and use stories together.</p>
-			<p>You could see it as a sort of story bank or living-history museum of stories.
-			People build it together and draw from it to remember the past, understand the present
+			<p><b>What's a Rakontu?</b></p>
+			<p>It's a place where people share and use stories together.</p>
+			<p>You could see it as a living-history museum of stories, as well as
+			a gathering place where people build their story museum together 
+			and draw from it to remember the past, understand the present
 			and find solutions for the future.</p>
-			<p>(If you're wondering: Rakontu is Esperanto for "tell a story.")</p>
+			<p>(If you're wondering: Rakontu is <a href="http://en.wikipedia.org/wiki/Esperanto">Esperanto</a> for "tell a story.")</p>
 		{% endif %}
 		<hr>
-		<p>What's Rakontu?</b></p>
+		<p><b>What's Rakontu?</b></p>
 		<p>Rakontu is open source software that helps communities and other groups share and work 
 		with their stories. The Rakontu project is being carried out (at this point) mainly
 		by <a href="http://www.cfkurtz.com">Cynthia Kurtz</a>. 
-		<p>This beta stage prototype is ready to play with, though it still has bugs
-		and is not fully documented.
-		If you want to try the prototype, join the 
+		<p>This alpha stage prototype is currently being tested.
+		If you want to help with testing, join the 
 		<a href="http://groups.google.com/group/rakontu-discuss">Rakontu discussion group</a>
-		and ask for the password to try out the demo.</p.
+		and ask for the password to try out the site.</p.
 		<p>You can find out more at <a href="http://www.rakontu.org">rakontu.org</a>.</p>
 		<hr>
 	</td></tr></table>

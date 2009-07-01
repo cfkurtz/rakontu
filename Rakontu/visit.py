@@ -42,6 +42,11 @@ class StartPage(webapp.RequestHandler):
 
 	def post(self):
 		user = users.get_current_user()
+		if not users.is_current_user_admin():
+			password = self.request.get("entryPassword")
+			if not password == "testingRakontu":
+				self.redirect("/")
+				return
 		if "visitCommunity" in self.request.arguments():
 			community_key = self.request.get('community_key')
 			if community_key:
