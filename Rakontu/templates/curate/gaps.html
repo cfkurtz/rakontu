@@ -4,21 +4,32 @@
 	{% include "../common_menus.html" %}
 		<div id="content">
 		
-		{% if current_member.isCuratorOrManagerOrOwner %}
-		<h3>Gaps</h3>
-		<p>These entries don't have much information attached to them; you may want to add some.</p>
-		<p></p>
+		{% if current_member.isCurator %}
+		<h3>Gaps {{"entries_with_gaps"|tip}}</h3>
+		
+		<div id="stylized" class="rakontu_form">
+		<form action="/curate/gaps" method="post" enctype="multipart/form-data">
+		<p>Sort by 
+		<select name="sortBy">
+			<option value="activity" {% ifequal sort_by "activity" %} selected="selected" {% endifequal %}>Activity level</option>
+			<option value="nudges" {% ifequal sort_by "nudges" %} selected="selected" {% endifequal %}>Nudge points</option>
+			<option value="date" {% ifequal sort_by "date" %} selected="selected" {% endifequal %}>Date</option>
+			<option value="annotations" {% ifequal sort_by "annotations" %} selected="selected" {% endifequal %}>Number of annotations</option>
+			</select>
+		<input type="submit" name="sortBy" value="Change" class="button_small">
+		</form>
+		</div>
+
 		<table border="1" cellpadding="4" cellspacing="0">
 	      	<tr>
-	      		<th>Entries without <b>tags</b></th>
-	      		<th>Entries without <b>links</b></th>
-	      		{% if rakontu.getNonMemberQuestions %} <th>Entries without <b>answers</b> to questions</th> {% endif %}
-	      		<th>Entries without <b>comments</b></th>
-	      		<th>Invitations without <b>responses</b></th>
-	      		<th>Collages without <b>links to stories</b></th>
+	      		<th>Entries with no <b>tags</b></th>
+	      		<th>Entries with no <b>links</b></th>
+	      		{% if rakontu.hasActiveNonMemberQuestions %} <th>Entries with no <b>answers</b> to questions</th> {% endif %}
+	      		<th>Collages with no <b>story links</b></th>
 	      	</tr>
 	      	<tr>
-	      	<td valign="top">{% if entries_without_tags %}
+	      	<td valign="top">
+	      	{% if entries_without_tags %}
 				{% for entry in entries_without_tags %}
 					<p>{{entry.linkString}} ({{entry.type}})</p>
 				{% endfor %}
@@ -32,7 +43,7 @@
 			{% else %}
 				none
 			{% endif %}</td>
-			{% if rakontu.getNonMemberQuestions %} 
+			{% if rakontu.hasActiveNonMemberQuestions %} 
 		      	<td valign="top">{% if entries_without_answers %}
 					{% for entry in entries_without_answers %}
 						<p>{{entry.linkString}} ({{entry.type}})</p>
@@ -41,20 +52,6 @@
 					none
 				{% endif %}</td>
 			{% endif %}
-	      	<td valign="top">{% if entries_without_comments %}
-				{% for entry in entries_without_comments %}
-					<p>{{entry.linkString}} ({{entry.type}})</p>
-				{% endfor %}
-			{% else %}
-				none
-			{% endif %}</td>
-	      	<td valign="top">{% if invitations_without_responses %}
-				{% for entry in invitations_without_responses %}
-					<p>{{entry.linkString}} ({{entry.type}})</p>
-				{% endfor %}
-			{% else %}
-				none
-			{% endif %}</td>
 	      	<td valign="top">{% if collages_without_inclusions %}
 				{% for entry in collages_without_inclusions %}
 					<p>{{entry.linkString}} ({{entry.type}})</p>
@@ -65,8 +62,8 @@
 		</tr></table>
 			
 	{% else %}
-		<p>You are not a guide or manager of this Rakontu and cannot change its resources.
-		Please ask a guide or manager to make any changes you would like to see made.</p>
+		<p>You are not a curator of this Rakontu and cannot review its gaps.
+		Please ask a curator to make any changes you would like to see made.</p>
 	{% endif %}
 
 	</div>

@@ -5,21 +5,46 @@
 		<div id="content">
 	
 	{% if current_member.isGuide %}
-
+		<div id="stylized" class="rakontu_form">
+		<form action="/guide/requests" method="post" enctype="multipart/form-data">
+		
+		{% if showing_all_requests %}
+			<h3>Requests</h3>
+			&nbsp; &nbsp; <input type="submit" name="showOnlyUncompletedRequests" value="Show only uncompleted requests" class="button_small">
+		{% else %}
+			<h3>Uncompleted requests</h3>
+			&nbsp; &nbsp; <input type="submit" name="showAllRequests" value="Show all requests" class="button_small">
+		{% endif %}
+		
 		{% for i in num_types|makeRange %}
-			<h3>{{request_types|listLookup:i|capfirst}} requests</h3>
-      		<ul>
+			<p><b>{{request_types|listLookup:i}}
       		{% if requests|listLookup:i %}
+      			</b></p>
+      			<table style="margin-left:20px;"><tr><th>Completed</th><th>Entry</th><th>Name</th><th>Text</th></tr>
 	      		{% for request in requests|listLookup:i %}
-	      			<li class="nobullet">{{request.entry.linkString}} - 
-	      			<a href="/visit/readAnnotation?{{request.key}}">{{request.shortString}}</a></li>
+	      			<tr>
+	      			<td>
+	  					<input type="checkbox" name="toggleComplete|{{request.key}}" 
+	  					{% if request.completedIfRequest %}
+	  						checked
+	  					{% endif %}
+	  					value="yes" id="toggleComplete|{{request.key}}"/>
+						<label for="toggleComplete|{{request.key}}">Completed</label>
+      				</td>
+	      			<td>{{request.entry.linkString}}</td>
+	      			<td><a href="/visit/readAnnotation?{{request.key}}">{{request.shortString}}</a></td>
+	      			<td>{{request.longString_formatted|upTo:400}}</a></td>
+	      			</tr>
 	      		{% endfor %}
+	      		</table>
 	      	{% else %}
-	      		<li class="nobullet">none</li>
+	      		</b> - none</p>
 	      	{% endif %}
-      		</ul>
       	{% endfor %}
-       	
+      	
+    <center><input type="submit" name="submitChanges" value="Make selected changes" class="button"></center>
+	</form>
+	</div>
 	{% else %}
 		<p>You are not a guide of this Rakontu and cannot review requests.
 		Please ask a guide to make any changes you would like to see made.</p>

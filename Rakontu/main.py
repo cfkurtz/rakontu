@@ -79,6 +79,7 @@ application = webapp.WSGIApplication(
 									  # guiding
 									  ('/guide/', ReviewResourcesPage),
 									  ('/guide', ReviewResourcesPage),
+									  ('/guide/orphans', GuideOrphansPage),
 									  ('/guide/resource', EnterEntryPage),
 									  ('/guide/resources', ReviewResourcesPage),
 									  ('/guide/requests', ReviewRequestsPage),

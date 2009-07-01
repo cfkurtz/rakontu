@@ -242,8 +242,60 @@ character attribution.
 
 SYSTEM_CURATOR_RESOURCE = [u"How to be a curator", u"Wiki markup", False, # boolean is whether it is for managers/owners only
 u"""
-Curating a Rakontu means helping to tend the museum of stories and other entries. People who like messing
-organizing "stuff" are good curators. CFK FINISH
+Curating a Rakontu means helping to tend the museum of stories (and things that surround them).
+People who like organizing "stuff" are good curators. 
+
+There are three main activities you might do as a curator: filling gaps, flagging things that should be removed, and 
+maintaining consistency.
+
+= Filling gaps
+
+As a curator you should look around the Rakontu frequently just checking on activity. The Gaps page (Curate->Gaps) can help you 
+find places that might need attention. These are the things listed on the Gaps page.
+
+  # *Untagged entries*. Entries with no tags are less likely to be found when people are searching on tags. Filling these in, especially
+  for items with high nudge values (therefore important or useful) or high activity, 
+  will help the whole set of entries become more useful.
+  # *Unlinked entries*. Links between entries help people go from one story to another finding things that are useful in different
+  ways. One of the most helpful things curators can do is notice similarities between stories and link them together
+  so that people can move from one to another. 
+  # *Entries with no answers to questions*. As with tags, entries that have no answers to questions are harder to find. If the teller of the story didn't answer any questions about it, you can still answer some as a curator. 
+  # *Collages with no links to stories*. Collages with no story links might have linked to stories that have been removed from the system. These should either be removed or updated.
+
+= Flagging items
+
+You can flag every type of entry (story, invitation, collage, pattern, resource), annotation (comment, request, tag set,
+nudge) and answer, as well as search filters.
+
+To flag an entry or any of its annotations or answers, click on the entry on the Rakontu's home
+page, then choose "Curate this story" (or invitation, etc) from the "What would you like to do next?" drop-down list.
+After you click "Go," the page will redisplay with little green flags next to each item. Click any flag to mark the
+item as inappropriate or unhelpful. 
+
+To flag a search filter, select it on the home page, then click Change. In the page that shows the details
+of the filter, click Flag.
+
+To view all of the flags you have marked, choose Flags from the Curate menu at the top of the page. 
+  * If you are a manager of the Rakontu, you can either unflag items or remove them from the Rakontu. 
+  * If you are not a manager, you can unflag items or notify the Rakontu manager(s) that the items should be removed. 
+  Notification is mainly to let managers know if something is particularly in need of removal (obscene or hate speech, for example). 
+  It's best not to over use notification if you want the managers to pay attention when you _do_ need to get their attention.
+  
+=== Flagging items through attachments
+
+Because entries can have attachments (like email) it can sometimes be hard to see if someone has added something
+offensive or just huge and not helpful. (Many large attachments can slow down access to the Rakontu.) It's a good
+idea to keep an eye on attachments in a separate list. To review attachments, choose Curate->Attachments. You can then
+flag the entry that goes with any attachment as needing review.
+
+= Maintaining tags
+
+Rakontu managers can decide whether they want curators (meaning, everybody) to be able to be change the tags on
+existing entries. This is very useful if you want to maintain consistency in your tags, for example fixing misspellings
+and changing plurals (like "cats" to "cat") so that tags match up during searches. However, if your Rakontu is
+particularly large or widespread your managers may have decided not to allow this. Check your Curate menu
+to see if there is a Tags option there. If there isn't and you want one, ask a manager about it. 
+
 """]
 
 SYSTEM_GUIDE_RESOURCE = [u"How to be a guide", u"Wiki markup", False, # boolean is whether it is for managers/owners only
@@ -251,7 +303,7 @@ u"""
 Being a guide CFK FINISH
 """]
 
-SYSTEM_LIAISON_RESOURCE = [u"How to be a guide", u"Wiki markup", False, # boolean is whether it is for managers/owners only
+SYSTEM_LIAISON_RESOURCE = [u"How to be a liaison", u"Wiki markup", False, # boolean is whether it is for managers/owners only
 u"""
 Being a liaison CFK FINISH
 """]

@@ -153,16 +153,20 @@ class CurateGapsPage(webapp.RequestHandler):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if member.isCurator():
+				sortBy = self.request.query_string
+				if not sortBy:
+					sortBy = "activity"
 				(entriesWithoutTags, \
 				entriesWithoutLinks, \
 				entriesWithoutAnswers, \
 				entriesWithoutComments, \
 				invitationsWithoutResponses,
-				collagesWithoutInclusions) = rakontu.getNonDraftEntriesWithMissingMetadata()
+				collagesWithoutInclusions) = rakontu.getNonDraftEntriesWithMissingMetadata(sortBy)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Review flags", 
 						   	   	   'title_extra': None, 
 								   'rakontu': rakontu, 
+								   'sort_by': sortBy,
 								   'entries_without_tags': entriesWithoutTags,
 								   'entries_without_links': entriesWithoutLinks,
 								   'entries_without_answers': entriesWithoutAnswers,
@@ -173,6 +177,18 @@ class CurateGapsPage(webapp.RequestHandler):
 								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/curate/gaps.html')
 				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect('/visit/home')
+		else:
+			self.redirect("/")
+			
+	@RequireLogin 
+	def post(self):
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		if access:
+			if member.isCurator():
+				if "sortBy" in self.request.arguments():
+					self.redirect("/curate/gaps?%s" % self.request.get("sortBy"))
 			else:
 				self.redirect('/visit/home')
 		else:

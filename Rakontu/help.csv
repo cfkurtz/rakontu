@@ -52,3 +52,6 @@
 "tip","tip_hovers","These provide helpful tips for making things easier."
 "caution","caution_hovers","These warn you about things that might cause you trouble (if you don't know about them)."
 "tip","adding_members","Add email adddresses (linked to valid Google Accounts) for each member you want to add. Place each email address on a separate line."
+"tip","entries_with_gaps","The entries shown don't have information of each type attached to them; you may want to add some. "
+"tip","orphaned_entries","In the entries shown people have not responded in some way. You might want to bring them to the notice of the group. "
+"tip","attaching_files","If the file you choose does not have the extension of one of the file types shown, nothing will be attached to the entry."

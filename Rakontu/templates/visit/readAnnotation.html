@@ -34,6 +34,21 @@
 		{% endif %}
 	{% endif %}
 	
+	{% if annotation.isRequest %}
+		<div id="stylized" class="rakontu_form">
+		<form action="/visit/readAnnotation?{{annotation.key}}" method="post" enctype="multipart/form-data">
+		<div class="blurb">
+		<p>This is a request of the type <i><b>{{annotation.typeIfRequest}}</b></i>. 
+		It has {% if not annotation.completedIfRequest %} <i><b>not</b></i> {% endif %} been marked as completed.
+		{% if not annotation.completedIfRequest %}
+			<input type="submit" name="toggleRequestCompleted" value="Mark it as completed now" class="button_small">
+		{% else %}
+			<input type="submit" name="toggleRequestCompleted" value="Un-Mark it as completed" class="button_small">
+		{% endif %}
+	</form>
+	</div>
+	{% endif %}
+	
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

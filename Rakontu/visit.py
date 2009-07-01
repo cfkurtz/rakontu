@@ -600,6 +600,20 @@ class ReadAnnotationPage(webapp.RequestHandler):
 				self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect('/')
+			
+			
+	@RequireLogin 
+	def post(self):
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		if access:
+			if "toggleRequestCompleted" in self.request.arguments():
+				annotation = db.get(self.request.query_string)
+			if annotation:
+				annotation.completedIfRequest = not annotation.completedIfRequest
+				annotation.put()
+				self.redirect(self.request.headers["Referer"])
+		else:
+			self.redirect("/visit/home")
 
 class SeeRakontuPage(webapp.RequestHandler):
 	@RequireLogin 

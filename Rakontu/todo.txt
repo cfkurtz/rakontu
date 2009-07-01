@@ -6,8 +6,10 @@ backup/restore (to SQL) - backup working, restore not so much
 
 a few resources have to be created by default, just like questions
 
+request has no way to be marked completed
 
-PRESENTATION !!
+
+
 
 ===== PUT OFF until a little later :)
 

@@ -335,7 +335,7 @@ class Rakontu(db.Model):
 	def getNonDraftEntriesOfType(self, type):
 		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(FETCH_NUMBER)
 	
-	def getNonDraftEntriesWithMissingMetadata(self):
+	def getNonDraftEntriesWithMissingMetadata(self, sortBy):
 		entriesWithoutTags = []
 		entriesWithoutLinks = []
 		entriesWithoutAnswers = []
@@ -357,6 +357,34 @@ class Rakontu(db.Model):
 		for collage in self.getNonDraftEntriesOfType("collage"):
 			if not Link.all().filter("itemFrom = ", collage.key()).filter("type = ", "included").get():
 				collagesWithoutInclusions.append(collage)
+		if sortBy == "activity":
+			entriesWithoutTags.sort(lambda a,b: cmp(b.activityPoints, a.activityPoints))
+			entriesWithoutLinks.sort(lambda a,b: cmp(b.activityPoints, a.activityPoints))
+			entriesWithoutAnswers.sort(lambda a,b: cmp(b.activityPoints, a.activityPoints))
+			entriesWithoutComments.sort(lambda a,b: cmp(b.activityPoints, a.activityPoints))
+			invitationsWithoutResponses.sort(lambda a,b: cmp(b.activityPoints, a.activityPoints))
+			collagesWithoutInclusions.sort(lambda a,b: cmp(b.activityPoints, a.activityPoints))
+		elif sortBy == "nudges":
+			entriesWithoutTags.sort(lambda a,b: cmp(b.nudgePointsCombined(), a.nudgePointsCombined()))
+			entriesWithoutLinks.sort(lambda a,b: cmp(b.nudgePointsCombined(), a.nudgePointsCombined()))
+			entriesWithoutAnswers.sort(lambda a,b: cmp(b.nudgePointsCombined(), a.nudgePointsCombined()))
+			entriesWithoutComments.sort(lambda a,b: cmp(b.nudgePointsCombined(), a.nudgePointsCombined()))
+			invitationsWithoutResponses.sort(lambda a,b: cmp(b.nudgePointsCombined(), a.nudgePointsCombined()))
+			collagesWithoutInclusions.sort(lambda a,b: cmp(b.nudgePointsCombined(), a.nudgePointsCombined()))
+		elif sortBy == "date":
+			entriesWithoutTags.sort(lambda a,b: cmp(b.published, a.published))
+			entriesWithoutLinks.sort(lambda a,b: cmp(b.published, a.published))
+			entriesWithoutAnswers.sort(lambda a,b: cmp(b.published, a.published))
+			entriesWithoutComments.sort(lambda a,b: cmp(b.published, a.published))
+			invitationsWithoutResponses.sort(lambda a,b: cmp(b.published, a.published))
+			collagesWithoutInclusions.sort(lambda a,b: cmp(b.published, a.published))
+		elif sortBy == "annotations":
+			entriesWithoutTags.sort(lambda a,b: cmp(b.getNonDraftAnnotationCount(), a.getNonDraftAnnotationCount()))
+			entriesWithoutLinks.sort(lambda a,b: cmp(b.getNonDraftAnnotationCount(), a.getNonDraftAnnotationCount()))
+			entriesWithoutAnswers.sort(lambda a,b: cmp(b.getNonDraftAnnotationCount(), a.getNonDraftAnnotationCount()))
+			entriesWithoutComments.sort(lambda a,b: cmp(b.getNonDraftAnnotationCount(), a.getNonDraftAnnotationCount()))
+			invitationsWithoutResponses.sort(lambda a,b: cmp(b.getNonDraftAnnotationCount(), a.getNonDraftAnnotationCount()))
+			collagesWithoutInclusions.sort(lambda a,b: cmp(b.getNonDraftAnnotationCount(), a.getNonDraftAnnotationCount()))
 		return (entriesWithoutTags, entriesWithoutLinks, entriesWithoutAnswers, entriesWithoutComments, invitationsWithoutResponses, collagesWithoutInclusions)
 	
 	def getEntryActivityPointsForEvent(self, event):
@@ -502,6 +530,9 @@ class Rakontu(db.Model):
 	def hasActiveQuestionsOfType(self, type):
 		return Question.all().filter("rakontu = ", self.key()).filter("refersTo = ", type).filter("active = ", True).count() > 0
 	
+	def hasActiveNonMemberQuestions(self):
+		return Question.all().filter("rakontu = ", self.key()).filter("refersTo !=", "member").filter("active = ", True).count() > 0
+		
 	def hasQuestionWithSameTypeAndName(self, question):
 		allQuestions = self.getAllQuestions()
 		for aQuestion in allQuestions:
@@ -1796,6 +1827,9 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	def getNonDraftAnnotations(self):
 		return Annotation.all().filter("entry =", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
+	def getNonDraftAnnotationCount(self):
+		return Annotation.all().filter("entry =", self.key()).filter("draft = ", False).count()
+	
 	def getNonDraftAnnotationsOfType(self, type):
 		return Annotation.all().filter("entry =", self.key()).filter("type = ", type).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
@@ -2137,6 +2171,7 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 	tagsIfTagSet = db.StringListProperty(default=[""] * NUM_TAGS_IN_TAG_SET)
 	valuesIfNudge = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
 	typeIfRequest = db.StringProperty(choices=REQUEST_TYPES)
+	completedIfRequest = db.BooleanProperty(default=False)
 
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="annotations_liaisoned")
@@ -2267,12 +2302,7 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 		
 	def linkString(self):
 		if self.type == "comment" or self.type == "request":
-			if self.longString_formatted and len(self.longString_formatted) > 30:
-				return '<a href="/visit/readAnnotation?%s">%s</a>' % (self.key(), self.displayString())
-			elif self.longString_formatted:
-				return "%s - %s" % (self.shortString, stripTags(self.longString_formatted)[:50])
-			else:
-				return self.shortString
+			return '<a href="/visit/readAnnotation?%s">%s</a>' % (self.key(), self.shortString)
 		else:
 			return self.displayString()
 		

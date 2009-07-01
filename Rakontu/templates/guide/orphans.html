@@ -1,0 +1,57 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+		<div id="content">
+		
+		{% if current_member.isGuide %}
+		<h3>Orphaned entries {{"orphaned_entries"|tip}}</h3>
+		
+		<div id="stylized" class="rakontu_form">
+		<form action="/guide/orphans" method="post" enctype="multipart/form-data">
+		<p>Sort by 
+		<select name="sortBy">
+			<option value="activity" {% ifequal sort_by "activity" %} selected="selected" {% endifequal %}>Activity level</option>
+			<option value="nudges" {% ifequal sort_by "nudges" %} selected="selected" {% endifequal %}>Nudge points</option>
+			<option value="date" {% ifequal sort_by "date" %} selected="selected" {% endifequal %}>Date</option>
+			<option value="annotations" {% ifequal sort_by "annotations" %} selected="selected" {% endifequal %}>Number of annotations</option>
+			</select>
+		<input type="submit" name="sortBy" value="Change" class="button_small">
+		</form>
+		</div>
+
+		<table border="1" cellpadding="4" cellspacing="0">
+	      	<tr>
+	      		<th>Entries without <b>comments</b></th>
+	      		<th>Invitations without <b>responses</b></th>
+	      	</tr>
+	      	<tr>
+	      	<td valign="top">
+	      	{% if entries_without_comments %}
+				{% for entry in entries_without_comments %}
+					<p>{{entry.linkString}} ({{entry.type}})</p>
+				{% endfor %}
+			{% else %}
+				none
+			{% endif %}</td>
+	      	<td valign="top">
+	      	{% if invitations_without_responses %}
+				{% for entry in invitations_without_responses %}
+					<p>{{entry.linkString}} ({{entry.type}})</p>
+				{% endfor %}
+			{% else %}
+				none
+			{% endif %}</td>
+		</tr></table>
+			
+	{% else %}
+		<p>You are not a guide of this Rakontu and cannot review its orphaned entries.
+		Please ask a guide to make any changes you would like to see made.</p>
+	{% endif %}
+
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>
+
+

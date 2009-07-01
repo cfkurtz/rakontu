@@ -53,8 +53,8 @@
 			{% if current_member.isCurator %}
 				<li><a href="/curate/flags">Curate</a>
 				<ul>
-					<li><a href="/curate/flags">Flags</a></li>
 					<li><a href="/curate/gaps">Gaps</a></li>
+					<li><a href="/curate/flags">Flags</a></li>
 					{% if rakontu.allowsAttachments %}
 						<li><a href="/curate/attachments">Attachments</a></li>
 					{% endif %}
@@ -65,11 +65,12 @@
 				</li>
 			{% endif %}
 			{% if current_member.isGuide %}
-				<li><a href="/guide/resources">Guide</a>
+				<li><a href="/guide/orphans">Guide</a>
 				<ul>
+					<li><a href="/guide/orphans">Orphans</a></li>
+					<li><a href="/guide/requests">Requests</a></li>
+					<li><a href="/guide/resources">Resources</a>
 					<li><a href="/guide/resource">Add a resource</a></li>
-					<li><a href="/guide/resources">Review resources</a>
-					<li><a href="/guide/requests">Review requests</a></li>
 				</ul>
 				</li>
 			{% endif %}
