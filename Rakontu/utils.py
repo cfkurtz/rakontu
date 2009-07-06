@@ -28,286 +28,12 @@ webapp.template.register_template_library('djangoTemplateExtras')
 import csv
 import pytz
 
-HTML_ESCAPES = {
- 	"&": "&amp;",
- 	'"': "&quot;",
- 	"'": "&apos;",
- 	">": "&gt;",
- 	"<": "&lt;",
- 	 }
+# ============================================================================================
+# ============================================================================================
+# PREPARING INFO FOR TEMPLATES
+# ============================================================================================
+# ============================================================================================
 
-def htmlEscape(text):
-	result = []
-	for character in text:
-		result.append(HTML_ESCAPES.get(character, character))
-	return "".join(result)
-
-def GetStandardTemplateDictionaryAndAddMore(newItems):
-	items = {
-		# constants
-	   'version_number': VERSION_NUMBER,
-	   'text_formats': TEXT_FORMATS,
-	   'num_nudge_categories': NUM_NUDGE_CATEGORIES,
-	   'num_tags_in_tag_set': NUM_TAGS_IN_TAG_SET,
-	   'time_zone_names': pytz.all_timezones,
-	   'date_formats': DateFormatStrings(),
-	   'time_formats': TimeFormatStrings(),
-	   'time_frames': TIME_FRAMES, 
-	   'entry_types': ENTRY_TYPES,
-	   'entry_types_plural': ENTRY_TYPES_PLURAL,
-	   'annotation_types': ANNOTATION_TYPES,
-	   'request_types': REQUEST_TYPES,
-	   'helping_role_names': HELPING_ROLE_TYPES,
-	   'maxlength_subject_or_comment': MAXLENGTH_SUBJECT_OR_COMMENT,
-	   'maxlength_name': MAXLENGTH_NAME,
-	   'maxlength_tag_or_choice': MAXLENGTH_TAG_OR_CHOICE,
-	   'maxlength_number': MAXLENGTH_NUMBER,
-	   # stuff about user
-	   'current_user': users.get_current_user(), 
-	   'user_is_admin': users.is_current_user_admin(),
-	   'logout_url': users.create_logout_url("/"),
-	   }
-	for key in newItems.keys():
-		items[key] = newItems[key]
-	return items
-
-def GenerateHelps():
-	db.delete(Help.all().fetch(FETCH_NUMBER))
-	file = open('help.csv')
-	helpStrings = csv.reader(file)
-	for row in helpStrings:
-		if len(row[0]) > 0 and row[0][0] != ";":
-			help = Help(type=row[0].strip(), name=row[1].strip(), text=row[2].strip())
-			help.put()
-	file.close()
-		
-def helpLookup(name, type):
-	return Help.all().filter("name = ", name).filter("type = ", type).get()
-
-def helpTextLookup(name, type):
-	match = Help.all().filter("name = ", name).filter("type = ", type).get()
-	if match:
-		return match.text
-	else:
-		return None
-	
-def parseDate(yearString, monthString, dayString):
-	if yearString and monthString and dayString:
-		try:
-			year = int(yearString)
-			month = int(monthString)
-			day = int(dayString)
-			date = datetime(year, month, day, tzinfo=pytz.utc)
-			return date
-		except:
-			return datetime.now(tz=pytz.utc)
-	return datetime.now(tz=pytz.utc)
-
-def ReadSampleQuestionsFromFile(fileName, rakontu=None, rakontuType="ALL"):
-	if not rakontu:
-		db.delete(Question.all().filter("rakontu = ", None).fetch(FETCH_NUMBER))
-	file = open(fileName)
-	questionStrings = csv.reader(file)
-	questionsToPut = []
-	for row in questionStrings:
-		if row[0] and row[1] and row[0][0] != ";":
-			if rakontuType != "ALL":
-				if row[8]: 
-					typesOfRakontu = [x.strip() for x in row[8].split(",")]
-				else:
-					typesOfRakontu = RAKONTU_TYPES[:-1] # if no entry interpret as all except custom
-				logging.info(typesOfRakontu)
-			if rakontuType == "ALL" or rakontuType in typesOfRakontu:
-				refersTo = [x.strip() for x in row[0].split(",")]
-				for reference in refersTo:
-					name = row[1]
-					text = row[2]
-					type = row[3]
-					choices = []
-					minValue = DEFAULT_QUESTION_VALUE_MIN
-					maxValue = DEFAULT_QUESTION_VALUE_MAX
-					responseIfBoolean = DEFAULT_QUESTION_BOOLEAN_RESPONSE
-					if type == "ordinal" or type == "nominal":
-						choices = [x.strip() for x in row[4].split(",")]
-					elif type == "value":
-						minAndMax = row[4].split("-")
-						try:
-							minValue = int(minAndMax[0])
-						except:
-							pass
-						try:
-							maxValue = int(minAndMax[1])
-						except:
-							pass
-					elif type == "boolean":
-						responseIfBoolean = row[4]
-					multiple = row[5] == "yes"
-					help = row[6]
-					useHelp=row[7]
-					typesOfRakontu = [x.strip() for x in row[8].split(",")]
-					question = Question(refersTo=reference, name=name, text=text, type=type, choices=choices, multiple=multiple,
-									responseIfBoolean=responseIfBoolean, minIfValue=minValue, maxIfValue=maxValue, help=help, useHelp=useHelp, rakontu=rakontu)
-					questionsToPut.append(question)
-	db.put(questionsToPut)
-	file.close()
-
-def GenerateSampleQuestions():
-	ReadSampleQuestionsFromFile('sample_questions.csv')
-	
-def GenerateDefaultQuestionsForRakontu(rakontu, type):
-	ReadSampleQuestionsFromFile('default_questions.csv', rakontu, type)
-	
-def GenerateDefaultCharactersForRakontu(rakontu):
-	file = open('default_characters.csv')
-	questionStrings = csv.reader(file)
-	characters = []
-	for row in questionStrings:
-		if len(row) >= 4 and row[0][0] != ";":
-			name = row[0]
-			description = row[1]
-			etiquetteStatement = row[2]
-			imageFileName = row[3]
-			image = db.Blob(open(imageFileName).read())
-			character = RakontuCharacter(
-							   name=row[0],
-							   rakontu=rakontu,
-							   )
-			format = "plain text"
-			character.description = db.Text(description)
-			character.description_formatted = db.Text(InterpretEnteredText(description, format))
-			character.description_format = format
-			character.etiquetteStatement = db.Text(etiquetteStatement)
-			character.etiquetteStatement_formatted = db.Text(InterpretEnteredText(etiquetteStatement, format))
-			character.etiquetteStatement_format = format
-			character.image = image
-			characters.append(character)
-	db.put(characters)
-	file.close()
-	
-def HTMLColorToRGB(colorstring):
-    colorstring = colorstring.strip()
-    r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:]
-    r, g, b = [int(n, 16) for n in (r, g, b)]
-    return (r, g, b)
-
-def RGBToHTMLColor(rgb_tuple):
-    return '%02x%02x%02x' % rgb_tuple
-	
-def HexColorStringForRowIndex(index):
-	if index == 0:
-		return GRID_DISPLAY_ROW_COLORS_TOP
-	else:
-		r,g,b = HTMLColorToRGB(GRID_DISPLAY_ROW_COLORS_TOP)
-		r -= index * COLOR_DECREMENT
-		g -= index * COLOR_DECREMENT
-		b -= index * COLOR_DECREMENT
-		return RGBToHTMLColor((r,g,b))
-	
-def MakeSystemResource(rakontu, member, title, text, format, managersOnly):
-	thereResource = Entry.all().filter("rakontu = ", rakontu).filter("creator = ", member.key()).filter("title = ", title).get()
-	if thereResource:
-		db.delete(thereResource)
-	newResource = Entry(rakontu=rakontu, 
-					type="resource",
-					title=title,
-					text=text,
-					text_format=format,
-					text_formatted=db.Text(InterpretEnteredText(text, format)),
-					creator=member,
-					draft=False,
-					inBatchEntryBuffer=False,
-					published=datetime.now(tz=pytz.utc),
-					resourceForHelpPage=True,
-					resourceForNewMemberPage=True,
-					resourceForManagersAndOwnersOnly=managersOnly,
-					resourceAtSystemLevel=True,
-					)
-	newResource.put()
-	
-def GenerateSystemResource(rakontu, member, index):
-	resourceArray = SYSTEM_RESOURCES[index]
-	title = resourceArray[0]
-	format = resourceArray[1]
-	managersOnly = resourceArray[2]
-	text = resourceArray[3]
-	systemResource = Entry.all().filter("rakontu = ", rakontu.key()).filter("resourceAtSystemLevel = ", True).filter("title = ", title).get()
-	if systemResource:
-		db.delete(systemResource)
-	MakeSystemResource(rakontu, member, title, text, format, managersOnly)
-	
-class ImageHandler(webapp.RequestHandler):
-	def get(self):
-		if self.request.get("member_id"):
-			member = db.get(self.request.get("member_id"))
-			if member and member.profileImage:
-				self.response.headers['Content-Type'] = "image/jpg"
-				self.response.out.write(member.profileImage)
-			else:
-				self.error(404)
-		elif self.request.get("rakontu_id"):
-			rakontu = db.get(self.request.get("rakontu_id"))
-			if rakontu and rakontu.image:
-				self.response.headers['Content-Type'] = "image/jpg"
-				self.response.out.write(rakontu.image)
-			else:
-				self.error(404)
-		elif self.request.get("entry_id"):
-			entry = db.get(self.request.get("entry_id"))
-			if entry and entry.type == "pattern" and entry.screenshotIfPattern:
-				self.response.headers['Content-Type'] = "image/jpg"
-				self.response.out.write(entry.screenshotIfPattern)
-		elif self.request.get("character_id"):
-			character = db.get(self.request.get("character_id"))
-			if character:
-				self.response.headers['Content-Type'] = "image/jpg"
-				self.response.out.write(character.image)
-		elif self.request.get("attachment_id"):
-			attachment = db.get(self.request.get("attachment_id"))
-			if attachment:
-				self.response.headers['Content-Type'] = attachment.mimeType
-				self.response.out.write(attachment.data)
-			   
-class AttachmentHandler(webapp.RequestHandler):
-	def get(self):
-		if self.request.get("attachment_id"):
-			attachment = db.get(self.request.get("attachment_id"))
-			if attachment and attachment.data:
-				if attachment.mimeType in ["image/jpeg", "image/png", "text/html", "text/plain"]:
-					self.response.headers.add_header('Content-Disposition', 'filename="%s"' % attachment.fileName)
-				else:
-					self.response.headers.add_header('Content-Disposition', 'attachment; filename="%s"' % attachment.fileName)
-				self.response.headers.add_header('Content-Type', attachment.mimeType)
-				self.response.out.write(attachment.data)
-			else:
-				self.error(404)
-				
-class ExportHandler(webapp.RequestHandler):
-	def get(self):
-		if self.request.get("csv_id"):
-			export = db.get(self.request.get("csv_id"))
-			if export and export.data:
-				self.response.headers.add_header('Content-Disposition', 'export; filename="%s"' % "export.csv")
-				self.response.headers.add_header('Content-Type', "text/csv")
-				self.response.out.write(export.data)
-			else:
-				self.error(404)
-		elif self.request.get("print_id"):
-			export = db.get(self.request.get("print_id"))
-			if export and export.data:
-				self.response.headers.add_header('Content-Disposition', 'export; filename="%s"' % "print.html")
-				self.response.headers.add_header('Content-Type', "text/html")
-				self.response.out.write(export.data)
-			else:
-				self.error(404)
-		elif self.request.get("xml_id"):
-			export = db.get(self.request.get("xml_id"))
-			if export and export.data:
-				self.response.headers.add_header('Content-Disposition', 'export; filename="%s"' % "export.xml")
-				self.response.headers.add_header('Content-Type', "text/xml")
-				self.response.out.write(export.data)
-			else:
-				self.error(404)
-				
 def RequireLogin(func):
 	def check_login(request):
 		if not users.get_current_user():
@@ -340,16 +66,35 @@ def GetCurrentRakontuAndMemberFromSession():
 	okayToAccess = rakontu and rakontu.active and member and member.active
 	return rakontu, member, okayToAccess
 
-"""
-When an entity whose key is the value of a reference property is deleted, the reference property does not change. 
-A reference property value can be a key that is no longer valid. If an application expects that a reference could be 
-invalid, it can test for the existence of the object using an if statement:
+def GetStandardTemplateDictionaryAndAddMore(newItems):
+	items = {
+		# constants
+	   'version_number': VERSION_NUMBER,
+	   'text_formats': TEXT_FORMATS,
+	   'num_nudge_categories': NUM_NUDGE_CATEGORIES,
+	   'num_tags_in_tag_set': NUM_TAGS_IN_TAG_SET,
+	   'time_zone_names': pytz.all_timezones,
+	   'date_formats': DateFormatStrings(),
+	   'time_formats': TimeFormatStrings(),
+	   'time_frames': TIME_FRAMES, 
+	   'entry_types': ENTRY_TYPES,
+	   'entry_types_plural': ENTRY_TYPES_PLURAL,
+	   'annotation_types': ANNOTATION_TYPES,
+	   'request_types': REQUEST_TYPES,
+	   'helping_role_names': HELPING_ROLE_TYPES,
+	   'maxlength_subject_or_comment': MAXLENGTH_SUBJECT_OR_COMMENT,
+	   'maxlength_name': MAXLENGTH_NAME,
+	   'maxlength_tag_or_choice': MAXLENGTH_TAG_OR_CHOICE,
+	   'maxlength_number': MAXLENGTH_NUMBER,
+	   # stuff about user
+	   'current_user': users.get_current_user(), 
+	   'user_is_admin': users.is_current_user_admin(),
+	   'logout_url': users.create_logout_url("/"),
+	   }
+	for key in newItems.keys():
+		items[key] = newItems[key]
+	return items
 
-obj1 = obj2.reference
-
-if not obj1:
-  # Referenced entity was deleted.
-"""
 def GetCurrentSearchForMember(member):
 	if member.viewSearch:
 		return member.viewSearch
@@ -429,6 +174,287 @@ def ItemDisplayStringForGrid(item, curating=False, showingMember=False, showDeta
 		textString = ""
 	return '<p>%s %s %s%s%s</p>' % (item.getImageLinkForType(), curateString, linkString, nameString, textString)
 
+def checkedBlank(value):
+	if value:
+		return "checked"
+	return ""
+
+# ============================================================================================
+# ============================================================================================
+# HANDLERS
+# ============================================================================================
+# ============================================================================================
+
+class ImageHandler(webapp.RequestHandler):
+	def get(self):
+		if self.request.get("member_id"):
+			member = db.get(self.request.get("member_id"))
+			if member and member.profileImage:
+				self.response.headers['Content-Type'] = "image/jpg"
+				self.response.out.write(member.profileImage)
+			else:
+				self.error(404)
+		elif self.request.get("rakontu_id"):
+			rakontu = db.get(self.request.get("rakontu_id"))
+			if rakontu and rakontu.image:
+				self.response.headers['Content-Type'] = "image/jpg"
+				self.response.out.write(rakontu.image)
+			else:
+				self.error(404)
+		elif self.request.get("entry_id"):
+			entry = db.get(self.request.get("entry_id"))
+			if entry and entry.type == "pattern" and entry.screenshotIfPattern:
+				self.response.headers['Content-Type'] = "image/jpg"
+				self.response.out.write(entry.screenshotIfPattern)
+		elif self.request.get("character_id"):
+			character = db.get(self.request.get("character_id"))
+			if character:
+				self.response.headers['Content-Type'] = "image/jpg"
+				self.response.out.write(character.image)
+		elif self.request.get("attachment_id"):
+			attachment = db.get(self.request.get("attachment_id"))
+			if attachment:
+				self.response.headers['Content-Type'] = attachment.mimeType
+				self.response.out.write(attachment.data)
+			   
+class AttachmentHandler(webapp.RequestHandler):
+	def get(self):
+		if self.request.get("attachment_id"):
+			attachment = db.get(self.request.get("attachment_id"))
+			if attachment and attachment.data:
+				if attachment.mimeType in ["image/jpeg", "image/png", "text/html", "text/plain"]:
+					self.response.headers.add_header('Content-Disposition', 'filename="%s"' % attachment.fileName)
+				else:
+					self.response.headers.add_header('Content-Disposition', 'attachment; filename="%s"' % attachment.fileName)
+				self.response.headers.add_header('Content-Type', attachment.mimeType)
+				self.response.out.write(attachment.data)
+			else:
+				self.error(404)
+				
+class ExportHandler(webapp.RequestHandler):
+	def get(self):
+		if self.request.get("csv_id"):
+			export = db.get(self.request.get("csv_id"))
+			if export and export.data:
+				self.response.headers.add_header('Content-Disposition', 'export; filename="%s"' % "export.csv")
+				self.response.headers.add_header('Content-Type', "text/csv")
+				self.response.out.write(export.data)
+			else:
+				self.error(404)
+		elif self.request.get("print_id"):
+			export = db.get(self.request.get("print_id"))
+			if export and export.data:
+				self.response.headers.add_header('Content-Disposition', 'export; filename="%s"' % "print.html")
+				self.response.headers.add_header('Content-Type', "text/html")
+				self.response.out.write(export.data)
+			else:
+				self.error(404)
+		elif self.request.get("xml_id"):
+			export = db.get(self.request.get("xml_id"))
+			if export and export.data:
+				self.response.headers.add_header('Content-Disposition', 'export; filename="%s"' % "export.xml")
+				self.response.headers.add_header('Content-Type', "text/xml")
+				self.response.out.write(export.data)
+			else:
+				self.error(404)
+				
+# ============================================================================================
+# ============================================================================================
+# SITE-LEVEL DEFAULTS AND SAMPLES
+# ============================================================================================
+# ============================================================================================
+
+def GenerateHelps():
+	db.delete(Help.all().fetch(FETCH_NUMBER))
+	file = open('help.csv')
+	helpStrings = csv.reader(file)
+	for row in helpStrings:
+		if len(row[0]) > 0 and row[0][0] != ";":
+			help = Help(type=row[0].strip(), name=row[1].strip(), text=row[2].strip())
+			help.put()
+	file.close()
+		
+def helpLookup(name, type):
+	return Help.all().filter("name = ", name).filter("type = ", type).get()
+
+def helpTextLookup(name, type):
+	match = Help.all().filter("name = ", name).filter("type = ", type).get()
+	if match:
+		return match.text
+	else:
+		return None
+	
+def ReadQuestionsFromFile(fileName, rakontu=None, rakontuType="ALL"):
+	if not rakontu:
+		db.delete(Question.all().filter("rakontu = ", None).fetch(FETCH_NUMBER))
+	file = open(fileName)
+	questionStrings = csv.reader(file)
+	questionsToPut = []
+	for row in questionStrings:
+		if row[0] and row[1] and row[0][0] != ";":
+			if rakontuType != "ALL":
+				if row[8]: 
+					typesOfRakontu = [x.strip() for x in row[8].split(",")]
+				else:
+					typesOfRakontu = RAKONTU_TYPES[:-1] # if no entry interpret as all except custom
+				logging.info(typesOfRakontu)
+			if rakontuType == "ALL" or rakontuType in typesOfRakontu:
+				refersTo = [x.strip() for x in row[0].split(",")]
+				for reference in refersTo:
+					name = row[1]
+					text = row[2]
+					type = row[3]
+					choices = []
+					minValue = DEFAULT_QUESTION_VALUE_MIN
+					maxValue = DEFAULT_QUESTION_VALUE_MAX
+					responseIfBoolean = DEFAULT_QUESTION_BOOLEAN_RESPONSE
+					if type == "ordinal" or type == "nominal":
+						choices = [x.strip() for x in row[4].split(",")]
+					elif type == "value":
+						minAndMax = row[4].split("-")
+						try:
+							minValue = int(minAndMax[0])
+						except:
+							pass
+						try:
+							maxValue = int(minAndMax[1])
+						except:
+							pass
+					elif type == "boolean":
+						responseIfBoolean = row[4]
+					multiple = row[5] == "yes"
+					help = row[6]
+					useHelp=row[7]
+					typesOfRakontu = [x.strip() for x in row[8].split(",")]
+					question = Question(refersTo=reference, name=name, text=text, type=type, choices=choices, multiple=multiple,
+									responseIfBoolean=responseIfBoolean, minIfValue=minValue, maxIfValue=maxValue, help=help, useHelp=useHelp, rakontu=rakontu)
+					questionsToPut.append(question)
+	db.put(questionsToPut)
+	file.close()
+
+def GenerateSampleQuestions():
+	ReadQuestionsFromFile('sample_questions.csv')
+	
+def GenerateDefaultQuestionsForRakontu(rakontu, type):
+	ReadQuestionsFromFile('default_questions.csv', rakontu, type)
+	
+def GenerateDefaultCharactersForRakontu(rakontu):
+	file = open('default_characters.csv')
+	questionStrings = csv.reader(file)
+	characters = []
+	for row in questionStrings:
+		if len(row) >= 4 and row[0][0] != ";":
+			name = row[0]
+			description = row[1]
+			etiquetteStatement = row[2]
+			imageFileName = row[3]
+			image = db.Blob(open(imageFileName).read())
+			character = RakontuCharacter(
+							   name=row[0],
+							   rakontu=rakontu,
+							   )
+			format = "plain text"
+			character.description = db.Text(description)
+			character.description_formatted = db.Text(InterpretEnteredText(description, format))
+			character.description_format = format
+			character.etiquetteStatement = db.Text(etiquetteStatement)
+			character.etiquetteStatement_formatted = db.Text(InterpretEnteredText(etiquetteStatement, format))
+			character.etiquetteStatement_format = format
+			character.image = image
+			characters.append(character)
+	db.put(characters)
+	file.close()
+	
+def GenerateSystemResources():
+	db.delete(Entry.all().filter("rakontu = ", None).filter("type = ", "resource").fetch(FETCH_NUMBER))
+	for i in range(len(SYSTEM_RESOURCES)):
+		resourceArray = SYSTEM_RESOURCES[i]
+		title = resourceArray[0]
+		format = resourceArray[1]
+		managersOnly = resourceArray[2]
+		text = resourceArray[3]
+		newResource = Entry(rakontu=None, 
+						type="resource",
+						title=title,
+						text=text,
+						text_format=format,
+						text_formatted=db.Text(InterpretEnteredText(text, format)),
+						creator=None,
+						draft=False,
+						inBatchEntryBuffer=False,
+						published=datetime.now(tz=pytz.utc),
+						resourceForHelpPage=True,
+						resourceForNewMemberPage=True,
+						resourceForManagersAndOwnersOnly=managersOnly,
+						)
+	 	newResource.put()
+	
+def CopyDefaultResourcesForNewRakontu(rakontu, member):
+	systemResources = Entry.all().filter("rakontu = ", None).filter("type = ", "resource").fetch(FETCH_NUMBER)
+	for resource in systemResources:
+		newResource = Entry(rakontu=rakontu, 
+						type="resource",
+						title=systemResource.title,
+						text=systemResource.text,
+						text_format=systemResource.text_format,
+						text_formatted=systemResource.text_formatted,
+						creator=member,
+						draft=False,
+						inBatchEntryBuffer=False,
+						published=datetime.now(tz=pytz.utc),
+						resourceForHelpPage=systemResource.resourceForHelpPage,
+						resourceForNewMemberPage=systemResource.resourceForNewMemberPage,
+						resourceForManagersAndOwnersOnly=systemResource.resourceForManagersAndOwnersOnly,
+						resourceForAllNewRakontus=False,
+						)
+	 	newResource.put()
+
+def GetSystemResources():
+	return Entry.all().filter("rakontu = ", None).filter("type = ", "resource").fetch(FETCH_NUMBER)
+	
+# ============================================================================================
+# ============================================================================================
+# COLORS
+# ============================================================================================
+# ============================================================================================
+
+def HTMLColorToRGB(colorstring):
+    colorstring = colorstring.strip()
+    r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:]
+    r, g, b = [int(n, 16) for n in (r, g, b)]
+    return (r, g, b)
+
+def RGBToHTMLColor(rgb_tuple):
+    return '%02x%02x%02x' % rgb_tuple
+	
+def HexColorStringForRowIndex(index):
+	if index == 0:
+		return GRID_DISPLAY_ROW_COLORS_TOP
+	else:
+		r,g,b = HTMLColorToRGB(GRID_DISPLAY_ROW_COLORS_TOP)
+		r -= index * COLOR_DECREMENT
+		g -= index * COLOR_DECREMENT
+		b -= index * COLOR_DECREMENT
+		return RGBToHTMLColor((r,g,b))
+	
+# ============================================================================================
+# ============================================================================================
+# DATE AND TIME
+# ============================================================================================
+# ============================================================================================
+
+def parseDate(yearString, monthString, dayString):
+	if yearString and monthString and dayString:
+		try:
+			year = int(yearString)
+			month = int(monthString)
+			day = int(dayString)
+			date = datetime(year, month, day, tzinfo=pytz.utc)
+			return date
+		except:
+			return datetime.now(tz=pytz.utc)
+	return datetime.now(tz=pytz.utc)
+
 def DjangoToPythonDateFormat(format):
 	if DATE_FORMATS.has_key(format):
 		return DATE_FORMATS[format]
@@ -474,39 +500,25 @@ def RelativeTimeDisplayString(whenUTC, member):
 	else:
 		return None
 
-def MakeSomeFakeData():
-	user = users.get_current_user()
-	rakontu = Rakontu(name="Test rakontu", description="Test description")
-	rakontu.initializeFormattedTexts()
-	rakontu.put()
-	member = Member(googleAccountID=user.user_id(), googleAccountEmail=user.email(), nickname="Tester", rakontu=rakontu, governanceType="owner")
-	member.initialize()
-	member.put()
-	if user.email() != "test@example.com":
-		PendingMember(rakontu=rakontu, email="test@example.com").put()
-	else:
-		PendingMember(rakontu=rakontu, email="cfkurtz@cfkurtz.com").put()
-	PendingMember(rakontu=rakontu, email="admin@example.com").put()
-	RakontuCharacter(name="Little Bird", rakontu=rakontu).put()
-	RakontuCharacter(name="Old Coot", rakontu=rakontu).put()
-	RakontuCharacter(name="Blooming Idiot", rakontu=rakontu).put()
-	entry = Entry(rakontu=rakontu, type="story", creator=member, title="The dog", text="The dog sat on a log.", draft=False)
-	entry.put()
-	entry.publish()
-	annotation = Annotation(rakontu=rakontu, type="comment", creator=member, entry=entry, shortString="Great!", longString="Wonderful!", draft=False)
-	annotation.put()
-	annotation.publish()
-	annotation = Annotation(rakontu=rakontu, type="comment", creator=member, entry=entry, shortString="Dumb", longString="Silly", draft=False)
-	annotation.put()
-	annotation.publish()
-	entry = Entry(rakontu=rakontu, type="story", creator=member, title="The circus", text="I went the the circus. It was great.", draft=False)
-	entry.put()
-	entry.publish()
+# ============================================================================================
+# ============================================================================================
+# TEXT PROCESING
+# ============================================================================================
+# ============================================================================================
 
-def checkedBlank(value):
-	if value:
-		return "checked"
-	return ""
+HTML_ESCAPES = {
+ 	"&": "&amp;",
+ 	'"': "&quot;",
+ 	"'": "&apos;",
+ 	">": "&gt;",
+ 	"<": "&lt;",
+ 	 }
+
+def htmlEscape(text):
+	result = []
+	for character in text:
+		result.append(HTML_ESCAPES.get(character, character))
+	return "".join(result)
 
 SIMPLE_HTML_REPLACEMENTS = [
 							("<p>", "{{startPar}}"), ("</p>", "{{stopPar}}"),
@@ -666,6 +678,42 @@ def upToWithLink(value, number, link):
 	else:
 		result = value
 	return result
+
+# ============================================================================================
+# ============================================================================================
+# FOR TESTING
+# ============================================================================================
+# ============================================================================================
+
+def MakeSomeFakeData():
+	user = users.get_current_user()
+	rakontu = Rakontu(name="Test rakontu", description="Test description")
+	rakontu.initializeFormattedTexts()
+	rakontu.put()
+	member = Member(googleAccountID=user.user_id(), googleAccountEmail=user.email(), nickname="Tester", rakontu=rakontu, governanceType="owner")
+	member.initialize()
+	member.put()
+	if user.email() != "test@example.com":
+		PendingMember(rakontu=rakontu, email="test@example.com").put()
+	else:
+		PendingMember(rakontu=rakontu, email="cfkurtz@cfkurtz.com").put()
+	PendingMember(rakontu=rakontu, email="admin@example.com").put()
+	RakontuCharacter(name="Little Bird", rakontu=rakontu).put()
+	RakontuCharacter(name="Old Coot", rakontu=rakontu).put()
+	RakontuCharacter(name="Blooming Idiot", rakontu=rakontu).put()
+	entry = Entry(rakontu=rakontu, type="story", creator=member, title="The dog", text="The dog sat on a log.", draft=False)
+	entry.put()
+	entry.publish()
+	annotation = Annotation(rakontu=rakontu, type="comment", creator=member, entry=entry, shortString="Great!", longString="Wonderful!", draft=False)
+	annotation.put()
+	annotation.publish()
+	annotation = Annotation(rakontu=rakontu, type="comment", creator=member, entry=entry, shortString="Dumb", longString="Silly", draft=False)
+	annotation.put()
+	annotation.publish()
+	entry = Entry(rakontu=rakontu, type="story", creator=member, title="The circus", text="I went the the circus. It was great.", draft=False)
+	entry.put()
+	entry.publish()
+
 
 
 

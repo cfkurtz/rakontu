@@ -33,7 +33,7 @@ class CurateFlagsPage(webapp.RequestHandler):
 	def get(self):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
-			if member.isCurator():
+			if member.isCuratorOrManagerOrOwner():
 				(entries, annotations, answers, links, searches) = rakontu.getAllFlaggedItems()
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Review flags", 

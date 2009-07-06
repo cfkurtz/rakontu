@@ -6,8 +6,8 @@
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
 
-# These are site-wide system resources, mainly help resources, that all Rakontus in the installation can copy and use.
-# NOTE: All system resources MUST have unique names.
+# These are site-wide system resources, mainly help resources, that all Rakontus in the installation get 
+# when they are created. (If some Rakontus don't want the resources, they can flag and delete them after creation.)
 
 SYSTEM_INTRO_RESOURCE = [u"About Rakontu", u"Wiki markup", False, # boolean is whether it is for managers/owners only
 u"""

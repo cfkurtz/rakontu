@@ -41,7 +41,8 @@ class CreateRakontuPage(webapp.RequestHandler):
 			nickname = htmlEscape(self.request.get('nickname')))
 		member.initialize()
 		member.put()
-		self.redirect('/')
+		CopyDefaultResourcesForNewRakontu(rakontu, member)
+		self.redirect('/manage/first')
 		
 class EnterEntryPage(webapp.RequestHandler):
 	@RequireLogin 

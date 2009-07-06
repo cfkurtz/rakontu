@@ -1410,9 +1410,8 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	resourceForHelpPage = db.BooleanProperty(default=False)
 	resourceForNewMemberPage = db.BooleanProperty(default=False)
 	resourceForManagersAndOwnersOnly = db.BooleanProperty(default=False)
-	resourceAtSystemLevel = db.BooleanProperty(default=False)
 
-	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="entries_to_rakontu")
+	rakontu = db.ReferenceProperty(Rakontu, collection_name="entries_to_rakontu")
 	creator = db.ReferenceProperty(Member, collection_name="entries")
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="entries_to_liaisons")

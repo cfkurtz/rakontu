@@ -57,17 +57,14 @@ class StartPage(webapp.RequestHandler):
 					matchingMember = Member.all().filter("rakontu = ", rakontu).filter("googleAccountID = ", user.user_id()).get()
 					if matchingMember:
 						session['member_key'] = matchingMember.key()
-						DebugPrint(matchingMember)
 						matchingMember.viewSearchResultList = []
 						matchingMember.put()
 						if matchingMember.active:
-							DebugPrint("active")
 							if not rakontu.firstVisit:
 								rakontu.firstVisit = datetime.now(tz=pytz.utc)
 								rakontu.put()
 								self.redirect('/manage/first')
 							else:
-								DebugPrint("home")
 								self.redirect('/visit/home')
 						else:
 							matchingMember.active = True
@@ -106,6 +103,9 @@ class StartPage(webapp.RequestHandler):
 			self.redirect("/")
 		elif "generateSystemQuestions" in self.request.arguments():
 			GenerateSampleQuestions()
+			self.redirect("/")
+		elif "generateSystemResources" in self.request.arguments():
+			GenerateSystemResources()
 			self.redirect("/")
 		elif "generateHelps" in self.request.arguments():
 			GenerateHelps()
@@ -154,9 +154,6 @@ class BrowseEntriesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
-		DebugPrint(rakontu)
-		DebugPrint(member)
-		DebugPrint(access)
 		if access:
 			currentSearch = GetCurrentSearchForMember(member)
 			querySearch = None

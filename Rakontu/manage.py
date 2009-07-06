@@ -647,38 +647,3 @@ class InactivateRakontuPage(webapp.RequestHandler):
 				self.redirect("/visit/home")
 		else:
 			self.redirect("/")
-
-class SystemResourcesPage(webapp.RequestHandler):
-	@RequireLogin 
-	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
-		if access:
-			if member.isManagerOrOwner():
-				template_values = GetStandardTemplateDictionaryAndAddMore({
-								   'title': "Add system resources", 
-							   	   'title_extra': rakontu.name, 
-								   'rakontu': rakontu, 
-								   'current_member': member,
-								   'resources': SYSTEM_RESOURCES,
-								   'num_resources': len(SYSTEM_RESOURCES),
-								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/manage/systemResources.html')
-				self.response.out.write(template.render(path, template_values))
-			else:
-				self.redirect('/')
-		else:
-			self.redirect('/')
-			
-	@RequireLogin 
-	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
-		if access:
-			if member.isManagerOrOwner():
-				for i in range(len(SYSTEM_RESOURCES)):
-					if self.request.get("add|%s" % i) == "yes":
-						GenerateSystemResource(rakontu, member, i)
-				self.redirect("/result?systemResourcesGenerated")
-			else:
-				self.redirect("/visit/home")
-		else:
-			self.redirect("/")

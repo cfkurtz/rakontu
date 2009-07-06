@@ -115,7 +115,6 @@ application = webapp.WSGIApplication(
 									  ('/manage/technical', ManageRakontuTechnicalPage),
 									  ('/manage/inactivate', InactivateRakontuPage),
 									  ('/manage/export', ExportRakontuDataPage),
-									  ('/manage/systemResources', SystemResourcesPage),
 									  ('/manage/exportSearch', ExportSearchPage),
 									  
 									  # site admin
@@ -123,6 +122,7 @@ application = webapp.WSGIApplication(
 									  ('/admin', AdministerRakontusPage),
 									  ('/admin/rakontus', AdministerRakontusPage),
 									  ('/admin/generateSystemQuestions', GenerateSampleQuestionsPage),
+									  ('/admin/generateSystemResources', GenerateSystemResourcesPage),
 									  ('/admin/generateHelps', GenerateHelpsPage),
 									  
 									  # message-to-user pages
@@ -140,8 +140,42 @@ application = webapp.WSGIApplication(
 									  ],
 									 debug=True)
 
-def main():
+def real_main():
 	run_wsgi_app(application)
+
+def profile_log_main():
+	 # This is the main function for profiling 
+	 # We've renamed our original main() above to real_main()
+	 import cProfile, pstats, StringIO
+	 prof = cProfile.Profile()
+	 prof = prof.runctx("real_main()", globals(), locals())
+	 stream = StringIO.StringIO()
+	 stats = pstats.Stats(prof, stream=stream)
+	 stats.sort_stats("time")  # Or cumulative
+	 stats.print_stats(80)  # 80 = how many to print
+	 # The rest is optional.
+	 # stats.print_callees()
+	 # stats.print_callers()
+	 logging.info("Profile data:\n%s", stream.getvalue())
+	 
+def profile_html_main():
+	 # This is the main function for profiling 
+	 # We've renamed our original main() above to real_main()
+	 import cProfile, pstats
+	 prof = cProfile.Profile()
+	 prof = prof.runctx("real_main()", globals(), locals())
+	 print "<pre>"
+	 stats = pstats.Stats(prof)
+	 stats.sort_stats("time")  # Or cumulative
+	 stats.print_stats(80)  # 80 = how many to print
+	 # The rest is optional.
+	 # stats.print_callees()
+	 # stats.print_callers()
+	 print "</pre>"
+	 
+#main = profile_html_main
+main = real_main
 
 if __name__ == "__main__":
 	main()
+	

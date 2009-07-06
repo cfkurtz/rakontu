@@ -55,6 +55,19 @@ class GenerateSampleQuestionsPage(webapp.RequestHandler):
 				self.redirect('/')
 		else:
 			self.redirect('/')
+			
+class GenerateSystemResourcesPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		if access:
+			if users.is_current_user_admin():
+				GenerateSystemResources()
+				self.redirect('/result?systemResourcesGenerated')
+			else:
+				self.redirect('/')
+		else:
+			self.redirect('/')
 				
 class GenerateHelpsPage(webapp.RequestHandler):
 	@RequireLogin 

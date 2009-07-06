@@ -3,7 +3,7 @@
 	<body>
 	{% include "../common_menus.html" %}
 	<div id="content">
-	{% if current_member.isCurator %}
+	{% if current_member.isCuratorOrManagerOrOwner %}
 		<div id="stylized" class="rakontu_form">
 		<form action="/curate/flags" method="post">
 			{% if current_member.isManagerOrOwner %}
@@ -330,8 +330,8 @@
 		</form>	
 		</div>
 	{% else %}
-		<p>You are not a curator of this Rakontu and cannot review removal flags.
-		Either become a curator or ask a curator to make any changes you would like to see made.</p>
+		<p>You are not a curator or manager of this Rakontu and cannot review removal flags.
+		Either become a curator or ask a curator or manager to make any changes you would like to see made.</p>
 	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}
