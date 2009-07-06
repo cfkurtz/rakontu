@@ -355,6 +355,11 @@ class BrowseEntriesPage(webapp.RequestHandler):
 						return
 				else:
 					self.redirect("/visit/home")
+			elif "makeNewSavedSearch" in self.request.arguments():
+				member.viewSearch = None
+				member.viewSearchResultList = []
+				member.put()
+				self.redirect('/visit/filter')
 			elif "doSomethingWithSearch" in self.request.arguments():
 				response = self.request.get("doWithSearch")
 				if response =="clearSearch":
@@ -373,20 +378,14 @@ class BrowseEntriesPage(webapp.RequestHandler):
 					self.redirect('/liaise/printSearch')
 				elif response == "exportSearchResults":
 					self.redirect("/manage/exportSearch")
-				elif response == "makeNewSavedSearch" or response == "changeSearch":
-					if response == "makeNewSavedSearch":
+				elif response == "changeSearch":
+					if search:
+						self.redirect("/visit/filter")
+					else:
 						member.viewSearch = None
 						member.viewSearchResultList = []
 						member.put()
 						self.redirect('/visit/filter')
-					else:
-						if search:
-							self.redirect("/visit/filter")
-						else:
-							member.viewSearch = None
-							member.viewSearchResultList = []
-							member.put()
-							self.redirect('/visit/filter')
 			else:
 				if "setToLast" in self.request.arguments():
 					if rakontu.lastPublish:

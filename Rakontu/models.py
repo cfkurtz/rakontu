@@ -678,8 +678,8 @@ class Rakontu(db.Model):
 		export = Export(rakontu=self.key(), type=type)
 		exportText = ""
 		if type == "csv_export_search":
-			if member and member.viewSearchResultList:
-				exportText += '"Export of search result %s for Rakontu %s"\n' % (member.viewSearchResultList.name, self.name)
+			if member and member.viewSearch and member.viewSearchResultList:
+				exportText += '"Export of search result ""%s"" for Rakontu %s"\n' % (member.viewSearch.name, self.name)
 				members = self.getActiveMembers()
 				characters = self.getActiveCharacters()
 				memberQuestions = self.getActiveQuestionsOfType("member")
@@ -687,9 +687,13 @@ class Rakontu(db.Model):
 				typeCount = 0
 				for type in ENTRY_TYPES:
 					entries = self.getNonDraftEntriesOfType(type)
-					if entries:
+					entriesToInclude = []
+					for entry in entries:
+						if entry.key() in member.viewSearchResultList:
+							entriesToInclude.append(entry)
+					if entriesToInclude:
 						questions = self.getActiveQuestionsOfType(type)
-						exportText += '%s\nNumber,Title,Contributor,' % ENTRY_TYPES_PLURAL[typeCount].upper()
+						exportText += '\n%s\nNumber,Title,Contributor,' % ENTRY_TYPES_PLURAL[typeCount].upper()
 						for question in questions:
 							exportText += question.name + ","
 						for question in memberQuestions:
@@ -698,12 +702,11 @@ class Rakontu(db.Model):
 							exportText += question.name + ","
 						exportText += '\n'
 						i = 0
-						for entry in entries:
-							if entry.key() in member.viewSearchResultList:
-								try:
-									exportText += entry.csvLineWithAnswers(i+1, members, characters, questions, memberQuestions, characterQuestions) 
-								except:
-									pass
+						for entry in entriesToInclude:
+							try:
+								exportText += entry.csvLineWithAnswers(i+1, members, characters, questions, memberQuestions, characterQuestions) 
+							except:
+								pass # if it doesn't exist, move on
 							i += 1
 					typeCount += 1
 		elif type == "csv_export_all":

@@ -602,7 +602,7 @@ class ExportSearchPage(webapp.RequestHandler):
 	def get(self):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
-			if member.isLiaison():
+			if member.isManagerOrOwner():
 				if member.viewSearchResultList:
 					export = rakontu.createOrRefreshExport("csv_export_search", itemList=None, member=member)
 					self.redirect('/export?csv_id=%s' % export.key())
