@@ -57,14 +57,17 @@ class StartPage(webapp.RequestHandler):
 					matchingMember = Member.all().filter("rakontu = ", rakontu).filter("googleAccountID = ", user.user_id()).get()
 					if matchingMember:
 						session['member_key'] = matchingMember.key()
+						DebugPrint(matchingMember)
 						matchingMember.viewSearchResultList = []
 						matchingMember.put()
 						if matchingMember.active:
+							DebugPrint("active")
 							if not rakontu.firstVisit:
 								rakontu.firstVisit = datetime.now(tz=pytz.utc)
 								rakontu.put()
 								self.redirect('/manage/first')
 							else:
+								DebugPrint("home")
 								self.redirect('/visit/home')
 						else:
 							matchingMember.active = True
@@ -151,6 +154,9 @@ class BrowseEntriesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		DebugPrint(rakontu)
+		DebugPrint(member)
+		DebugPrint(access)
 		if access:
 			currentSearch = GetCurrentSearchForMember(member)
 			querySearch = None
@@ -179,7 +185,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 							'col_headers': colHeaders, 
 							'row_colors': rowColors,
 							'has_entries': len(entries) > 0,
-							'rakontu_searches': rakontu.getNonPrivateSavedSearches(),
+							'shared_searches': rakontu.getNonPrivateSavedSearches(),
 							'member_searches': member.getPrivateSavedSearches(),
 							'current_search': currentSearch,
 							'member_time_frame_string': member.getFrameStringForViewTimeFrame(),
@@ -333,6 +339,10 @@ class BrowseEntriesPage(webapp.RequestHandler):
 					member.viewTimeEnd = datetime.now(tz=pytz.utc)
 				member.put()
 				self.redirect("/visit/home")
+			elif "toggleShowDetails" in self.request.arguments():
+				member.viewDetails = not member.viewDetails
+				member.put()
+				self.redirect("/visit/home")
 			elif "loadAndApplySavedSearch" in self.request.arguments():
 				searchKey = self.request.get("savedSearch")
 				if searchKey:
@@ -345,35 +355,38 @@ class BrowseEntriesPage(webapp.RequestHandler):
 						return
 				else:
 					self.redirect("/visit/home")
-			elif "clearSearch" in self.request.arguments():
-				member.viewSearch = None
-				member.viewSearchResultList = []
-				member.put()
-				self.redirect("/visit/home")
-			elif "toggleShowDetails" in self.request.arguments():
-				member.viewDetails = not member.viewDetails
-				member.put()
-				self.redirect("/visit/home")
-			elif "copySearchAs" in self.request.arguments():
-				newSearch = SavedSearch(rakontu=rakontu, creator=member)
-				newSearch.copyDataFromOtherSearchAndPut(search)
-				member.viewSearch = newSearch
-				member.viewSearchResultList = []
-				member.put()
-				self.redirect('/visit/filter')
-			elif "printSearchResults" in self.request.arguments():
-				self.redirect('/liaise/printSearch')
-			elif "makeNewSavedSearch" in self.request.arguments() or "changeSearch" in self.request.arguments():
-				if "makeNewSavedSearch" in self.request.arguments():
+			elif "doSomethingWithSearch" in self.request.arguments():
+				response = self.request.get("doWithSearch")
+				if response =="clearSearch":
+					member.viewSearch = None
+					member.viewSearchResultList = []
+					member.put()
+					self.redirect("/visit/home")
+				elif response =="copySearchAs":
+					newSearch = SavedSearch(rakontu=rakontu, creator=member)
+					newSearch.copyDataFromOtherSearchAndPut(search)
+					member.viewSearch = newSearch
+					member.viewSearchResultList = []
+					member.put()
 					self.redirect('/visit/filter')
-				else:
-					if search:
-						self.redirect("/visit/filter")
-					else:
+				elif response == "printSearchResults":
+					self.redirect('/liaise/printSearch')
+				elif response == "exportSearchResults":
+					self.redirect("/manage/exportSearch")
+				elif response == "makeNewSavedSearch" or response == "changeSearch":
+					if response == "makeNewSavedSearch":
 						member.viewSearch = None
 						member.viewSearchResultList = []
 						member.put()
 						self.redirect('/visit/filter')
+					else:
+						if search:
+							self.redirect("/visit/filter")
+						else:
+							member.viewSearch = None
+							member.viewSearchResultList = []
+							member.put()
+							self.redirect('/visit/filter')
 			else:
 				if "setToLast" in self.request.arguments():
 					if rakontu.lastPublish:

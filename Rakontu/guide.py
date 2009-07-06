@@ -24,7 +24,7 @@ class GuideOrphansPage(webapp.RequestHandler):
 				invitationsWithoutResponses,
 				collagesWithoutInclusions) = rakontu.getNonDraftEntriesWithMissingMetadata(sortBy)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': "Review flags", 
+							   	   'title': "Review orphans", 
 						   	   	   'title_extra': None, 
 								   'rakontu': rakontu, 
 								   'sort_by': sortBy,
@@ -62,7 +62,7 @@ class ReviewResourcesPage(webapp.RequestHandler):
 		if access:
 			if member.isGuide():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': "Resources", 
+							   	   'title': "Review resources", 
 						   	   	   'title_extra': None, 
 								   'rakontu': rakontu, 
 								   'resources': rakontu.getNonDraftEntriesOfType("resource"),
@@ -108,7 +108,7 @@ class ReviewRequestsPage(webapp.RequestHandler):
 							filter("typeIfRequest = ", type).fetch(FETCH_NUMBER)
 					requestsByType.append(requests)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': "Resources", 
+							   	   'title': "Review requests", 
 						   	   	   'title_extra': None, 
 								   'rakontu': rakontu, 
 								   'current_member': member,

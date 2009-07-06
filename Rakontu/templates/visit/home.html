@@ -44,7 +44,7 @@
 		{% endif %}
 		
 		</td><td align="right" style="border:none;">
-		{% if rakontu_searches or member_searches %}
+		{% if shared_searches or member_searches %}
 				{% if current_search %}
 					Filtered by: {{current_search.displayString}}
 				{% else %}
@@ -56,28 +56,35 @@
 							<option value="{{search.key}}">{{search.displayString}}</option>
 						{% endfor %}
 					{% endif %}
-					{% if rakontu_searches %}
-					<option value="">-- Shared filters --</option>
-					{% for search in rakontu_searches %}
-						<option value="{{search.key}}">{{search.displayString}}</option>
-					{% endfor %}
+					{% if shared_searches %}
+						<option value="">-- Shared filters --</option>
+						{% for search in shared_searches %}
+							<option value="{{search.key}}">{{search.displayString}}</option>
+						{% endfor %}
 					{% endif %}
 					</select>
 				{% endif %}
 			{% if current_search %}
-				<input type="submit" name="clearSearch" value="Stop applying" class="button_small">
+				<select name="doWithSearch">
+				<option value="clearSearch">Stop applying</option>
 				{% ifnotequal current_member.key current_search.creator.key %}
-					<input type="submit" name="copySearchAs" value="Copy" class="button_small">
+					<option value="copySearchAs">Make copy</option>
 				{% else %}
-					<input type="submit" name="changeSearch" value="Change" class="button_small">
+					<option value="changeSearch">Change</option>
 				{% endifnotequal %}
+				<option value="makeNewSavedSearch">Create another</option>
+				{% if current_member.isLiaison %}
+					<option value="printSearchResults">Print results</option>
+				{% endif %}
+				{% if current_member.isManagerOrOwner %}
+					<option value="exportSearchResults">Write results to CSV</option>
+				{% endif %}
+				</select>
+				<input type="submit" name="doSomethingWithSearch" value="Go" class="button_small">
 			{% else %}
 				<input type="submit" name="loadAndApplySavedSearch" value="Apply" class="button_small">
+				<input type="submit" name="makeNewSavedSearch" value="New" class="button_small">
 			{% endif %}	
-			<input type="submit" name="makeNewSavedSearch" value="New" class="button_small">
-			{% if current_search and current_member.isLiaison %}
-				<input type="submit" name="printSearchResults" value="Print" class="button_small">
-			{% endif %}
 		{% else %}
 			<input type="submit" name="makeNewSavedSearch" value="Create search filter" class="button_small">
 		{% endif %}

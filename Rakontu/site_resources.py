@@ -242,8 +242,9 @@ character attribution.
 
 SYSTEM_CURATOR_RESOURCE = [u"How to be a curator", u"Wiki markup", False, # boolean is whether it is for managers/owners only
 u"""
-Curating a Rakontu means helping to tend the museum of stories (and things that surround them).
-People who like organizing "stuff" are good curators. 
+Curating a Rakontu means helping to tend the museum of stories (and things that surround them). Are the stories
+and other information in good order? Is it all as useful as it could be? Can people find what they need when they need it?
+Are there loose ends, broken links, dead wood?  People who like organizing "stuff" are good curators. 
 
 There are three main activities you might do as a curator: filling gaps, flagging things that should be removed, and 
 maintaining consistency.
@@ -300,7 +301,10 @@ to see if there is a Tags option there. If there isn't and you want one, ask a m
 
 SYSTEM_GUIDE_RESOURCE = [u"How to be a guide", u"Wiki markup", False, # boolean is whether it is for managers/owners only
 u"""
-Being a guide CFK FINISH
+Being a Rakontu guide means paying attention to the people side of things. Are people getting what they want out of it?
+Are they confused? Are they interested? Motivated? Contributing? People who are "people people" are good guides.
+
+CFK FINISH
 """]
 
 SYSTEM_LIAISON_RESOURCE = [u"How to be a liaison", u"Wiki markup", False, # boolean is whether it is for managers/owners only

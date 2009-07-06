@@ -55,3 +55,5 @@
 "tip","entries_with_gaps","The entries shown don't have information of each type attached to them; you may want to add some. "
 "tip","orphaned_entries","In the entries shown people have not responded in some way. You might want to bring them to the notice of the group. "
 "tip","attaching_files","If the file you choose does not have the extension of one of the file types shown, nothing will be attached to the entry."
+"info","exporting_data_to_xml","This is an export of all the active data in the Rakontu to XML format, mainly for use by other programs. Relationships are preserved through unique keys."
+"info","exporting_entries_with_answers_to_CSV","This is a simple export of all entries with answers to questions about them, one line per answer set. It is mainly for looking at patterns in the answers to questions."

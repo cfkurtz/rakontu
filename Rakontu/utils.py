@@ -283,19 +283,27 @@ class AttachmentHandler(webapp.RequestHandler):
 				
 class ExportHandler(webapp.RequestHandler):
 	def get(self):
-		if self.request.get("export_id"):
-			export = db.get(self.request.get("export_id"))
+		if self.request.get("csv_id"):
+			export = db.get(self.request.get("csv_id"))
 			if export and export.data:
 				self.response.headers.add_header('Content-Disposition', 'export; filename="%s"' % "export.csv")
 				self.response.headers.add_header('Content-Type', "text/csv")
 				self.response.out.write(export.data)
 			else:
 				self.error(404)
-		if self.request.get("print_id"):
+		elif self.request.get("print_id"):
 			export = db.get(self.request.get("print_id"))
 			if export and export.data:
 				self.response.headers.add_header('Content-Disposition', 'export; filename="%s"' % "print.html")
 				self.response.headers.add_header('Content-Type', "text/html")
+				self.response.out.write(export.data)
+			else:
+				self.error(404)
+		elif self.request.get("xml_id"):
+			export = db.get(self.request.get("xml_id"))
+			if export and export.data:
+				self.response.headers.add_header('Content-Disposition', 'export; filename="%s"' % "export.xml")
+				self.response.headers.add_header('Content-Type', "text/xml")
 				self.response.out.write(export.data)
 			else:
 				self.error(404)

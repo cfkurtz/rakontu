@@ -116,6 +116,7 @@ application = webapp.WSGIApplication(
 									  ('/manage/inactivate', InactivateRakontuPage),
 									  ('/manage/export', ExportRakontuDataPage),
 									  ('/manage/systemResources', SystemResourcesPage),
+									  ('/manage/exportSearch', ExportSearchPage),
 									  
 									  # site admin
 									  ('/admin/', AdministerRakontusPage),

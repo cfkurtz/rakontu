@@ -12,6 +12,7 @@ import pytz
 from pytz import timezone
 import re
 import csv
+import base64
 
 VERSION_NUMBER = "0.9"
 
@@ -47,6 +48,8 @@ def caseInsensitiveFind(text, searchFor):
 
 DEVELOPMENT = True
 FETCH_NUMBER = 1000
+
+DATE_TIME_CSV_FORMAT = "%Y%m%dT%H%M%S"
 
 MEMBER_TYPES = ["member", "on-line member", "off-line member", "liaison", "curator", "guide", "manager", "owner"]
 HELPING_ROLE_TYPES = ["curator", "guide", "liaison"]
@@ -673,76 +676,90 @@ class Rakontu(db.Model):
 		if exportAlreadyThereForType:
 			db.delete(exportAlreadyThereForType)
 		export = Export(rakontu=self.key(), type=type)
-		if type == "entries":
-			csvText = '"Export of entries, answers, annotations, attachments and links for rakontu %s"\n' % self.name
-			entries = self.getNonDraftEntries()
-			csvText += "(entry columns)," + entries[0].csvLine(header=True) + "\n"
-			for entry in entries:
-				csvText += "\nentry," + entry.csvLine() + "\n"
-				annotations = entry.getNonDraftAnnotations()
-				if annotations:
-					csvText += "(annotation columns)," + annotations[0].csvLine(header=True) + "\n"
-				for annotation in annotations:
-					csvText += "annotation," + annotation.csvLine() + "\n"
-				answers = entry.getNonDraftAnswers()
-				if answers:
-					csvText += "(answer columns)," + answers[0].csvLine(header=True) + "\n"
-				for answer in answers:
-					csvText += "answer," + answer.csvLine() + "\n"
-				attachments = entry.getAttachments()
-				if attachments:
-					csvText += "(attachment columns)," + attachments[0].csvLine(header=True) + "\n"
-				for attachment in attachments:
-					csvText += "attachment," + attachment.csvLine() + "\n"
-				links = entry.getOutgoingLinks()
-				if links:
-					csvText += "(link columns)," + links[0].csvLine(header=True) + "\n"
-				for link in links:
-					csvText += "link," + link.csvLine() + "\n"
-		elif type == "entries_with_answers":
-			csvText = '"Export of entries with answers for rakontu %s"\n' % self.name
+		exportText = ""
+		if type == "csv_export_search":
+			if member and member.viewSearchResultList:
+				exportText += '"Export of search result %s for Rakontu %s"\n' % (member.viewSearchResultList.name, self.name)
+				members = self.getActiveMembers()
+				characters = self.getActiveCharacters()
+				memberQuestions = self.getActiveQuestionsOfType("member")
+				characterQuestions = self.getActiveQuestionsOfType("character")
+				typeCount = 0
+				for type in ENTRY_TYPES:
+					entries = self.getNonDraftEntriesOfType(type)
+					if entries:
+						questions = self.getActiveQuestionsOfType(type)
+						exportText += '%s\nNumber,Title,Contributor,' % ENTRY_TYPES_PLURAL[typeCount].upper()
+						for question in questions:
+							exportText += question.name + ","
+						for question in memberQuestions:
+							exportText += question.name + ","
+						for question in characterQuestions:
+							exportText += question.name + ","
+						exportText += '\n'
+						i = 0
+						for entry in entries:
+							if entry.key() in member.viewSearchResultList:
+								try:
+									exportText += entry.csvLineWithAnswers(i+1, members, characters, questions, memberQuestions, characterQuestions) 
+								except:
+									pass
+							i += 1
+					typeCount += 1
+		elif type == "csv_export_all":
+			exportText += '"Export of all entries for Rakontu %s"\n' % (self.name)
 			members = self.getActiveMembers()
 			characters = self.getActiveCharacters()
+			memberQuestions = self.getActiveQuestionsOfType("member")
+			characterQuestions = self.getActiveQuestionsOfType("character")
 			typeCount = 0
 			for type in ENTRY_TYPES:
 				entries = self.getNonDraftEntriesOfType(type)
 				if entries:
 					questions = self.getActiveQuestionsOfType(type)
-					csvText += '%s\nNumber,Title,' % ENTRY_TYPES_PLURAL[typeCount].upper()
+					exportText += '%s\nNumber,Title,Contributor,' % ENTRY_TYPES_PLURAL[typeCount].upper()
 					for question in questions:
-						csvText += question.name + ","
-					csvText += '\n'
-					i = 0
-					for entry in entries:
-						csvText += entry.csvLineWithAnswers(i+1, members, characters, questions) 
-						i += 1
+						exportText += question.name + ","
+					for question in memberQuestions:
+						exportText += question.name + ","
+					for question in characterQuestions:
+						exportText += question.name + ","
+					exportText += '\n'
+					for i in range(len(entries)):
+						exportText += entries[i].csvLineWithAnswers(i+1, members, characters, questions, memberQuestions, characterQuestions) 
 				typeCount += 1
-		elif type == "rakontu":
-			csvText = '"Export of settings, members and characters for rakontu %s"\n' % self.name
-			csvText += '\n(rakontu columns),' + self.csvLine(header=True) + "\n"
-			csvText += "rakontu," + self.csvLine() + "\n"
-			members = self.getActiveMembers()
-			if members:
-				csvText += "\n(member columns)," + members[0].csvLine(header=True) + "\n"
-			for member in members:
-				csvText += "member," + member.csvLine() + "\n"
-			pendingMembers = self.getPendingMembers()
-			if pendingMembers:
-				csvText += "\n(pending member columns)," + pendingMembers[0].csvLine(header=True) + "\n"
-			for pendingMember in pendingMembers:
-				csvText += "pending member," + pendingMember.csvLine() + "\n"
-			characters = self.getActiveCharacters()
-			if characters:
-				csvText += "\n(character columns)," + characters[0].csvLine(header=True) + "\n"
-			for character in characters:
-				csvText += "character," + character.csvLine() + "\n"
+		elif type == "xml_export":
+			exportText += self.to_xml()
+			for member in self.getActiveMembers():
+				exportText += member.to_xml() + "\n\n"
+			for pendingMember in self.getPendingMembers():
+				exportText += pendingMember.to_xml() + "\n\n"
+			for character in self.getActiveCharacters():
+				exportText += character.to_xml() + "\n\n"
+			for type in QUESTION_REFERS_TO:
+				for question in self.getActiveQuestionsOfType(type):
+					exportText += question.to_xml() + "\n\n"
+			for search in self.getNonPrivateSavedSearches():
+				exportText += search.to_xml() + "\n\n"
+				for searchRef in search.getQuestionReferences():
+					exportText += searchRef.to_xml() + "\n\n"
+			for entry in self.getNonDraftEntries():
+				exportText += entry.to_xml() + "\n\n"
+				for attachment in entry.getAttachments():
+					exportText += attachment.to_xml() + "\n\n"
+				for annotation in entry.getNonDraftAnnotations():
+					exportText += annotation.to_xml() + "\n\n"
+				for answer in entry.getAnswers():
+					exportText += answer.to_xml() + "\n\n"
+				for link in entry.getAllLinks():
+					exportText += link.to_xml() + "\n\n"
 		elif type == "liaisonPrint_simple":
-			csvText = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
-			csvText += '<title>Printed from Rakontu</title></head><body>'
+			exportText += '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
+			exportText += '<title>Printed from Rakontu</title></head><body>'
 			if itemList:
 				for item in itemList:
 					try:
-						csvText += item.PrintText()
+						exportText += item.PrintText()
 					except: 
 						pass
 			elif member:
@@ -750,12 +767,12 @@ class Rakontu(db.Model):
 					for entry in self.getNonDraftEntries():
 						if entry.key() in member.viewSearchResultList:
 							try:
-								csvText += entry.PrintText()
+								exportText += entry.PrintText()
 							except:
 								pass
-			csvText += "</body></html>"
+			exportText += "</body></html>"
 		elif type == "exportQuestions":
-			csvText = '; refersTo,name,text,type,choices or min-max or boolean "yes" text,multiple,help,help for using\n'
+			exportText += '; refersTo,name,text,type,choices or min-max or boolean "yes" text,multiple,help,help for using\n'
 			questions = self.getActiveQuestionsOfType(questionType)
 			for question in questions:
 				cells = []
@@ -781,50 +798,11 @@ class Rakontu(db.Model):
 					cells.append("no")
 				cells.append(question.help)
 				cells.append(question.useHelp)
-				csvText += CleanUpCSV(cells) + "\n"
-		export.data = db.Text(csvText)
+				exportText += CleanUpCSV(cells) + "\n"
+		export.data = db.Text(exportText)
 		export.put()
 		return export
-	
-	def csvLine(self, header=False):
-		parts = []
-		if header:
-			parts.append("name")
-		else:
-			parts.append(self.name)
-			
-		if header:
-			parts.append("description")
-		else:
-			parts.append(self.description_formatted)
-
-		if header:
-			parts.append("etiquette statement")
-		else:
-			parts.append(self.etiquetteStatement_formatted)
-
-		if header:
-			parts.append("welcome message")
-		else:
-			parts.append(self.welcomeMessage_formatted)
-			
-		if header:
-			parts.append("curator readme")
-		else:
-			parts.append(self.roleReadmes_formatted[0])
-
-		if header:
-			parts.append("guide readme")
-		else:
-			parts.append(self.roleReadmes_formatted[1])
-
-		if header:
-			parts.append("liaison readme")
-		else:
-			parts.append(self.roleReadmes_formatted[2])
-
-		return CleanUpCSV(parts)
-	
+		
 # ============================================================================================
 # ============================================================================================
 class Question(db.Model):
@@ -941,6 +919,9 @@ class Member(db.Model):
 		self.dateFormat = self.rakontu.defaultDateFormat
 		
 	# INFO
+	
+	def isMember(self):
+		return True
 		
 	def googleUserEmailOrNotOnline(self):
 		if self.isOnlineMember:
@@ -1087,24 +1068,6 @@ class Member(db.Model):
 	def getPrivateSavedSearches(self):
 		return SavedSearch.all().filter("creator = ", self.key()).filter("private = ", True).fetch(FETCH_NUMBER)
 	
-	def csvLine(self, header=False):
-		parts = []
-		if header:
-			parts.append("nickname")
-		else:
-			parts.append(self.nickname)
-			
-		if header:
-			parts.append("description")
-		else:
-			parts.append(str(self.profileText_formatted))
-			
-		if header:
-			parts.append("introduction if guide")
-		else:
-			parts.append(str(self.guideIntro_formatted))
-		return CleanUpCSV(parts)
-
 # ============================================================================================
 # ============================================================================================
 class PendingMember(db.Model): # person invited to join rakontu but not yet logged in
@@ -1115,15 +1078,6 @@ class PendingMember(db.Model): # person invited to join rakontu but not yet logg
 	email = db.StringProperty(required=True) # must match google account
 	invited = TzDateTimeProperty(auto_now_add=True)
 	
-	def csvLine(self, header=False):
-		parts = []
-		if header:
-			parts.append("email")
-		else:
-			parts.append(self.email)
-			
-		return CleanUpCSV(parts)
-
 # ============================================================================================
 # ============================================================================================
 class RakontuCharacter(db.Model): # optional fictions to anonymize entries but provide some information about intent
@@ -1144,6 +1098,9 @@ class RakontuCharacter(db.Model): # optional fictions to anonymize entries but p
 	etiquetteStatement_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
 	image = db.BlobProperty(default=None) # optional
+	
+	def isMember(self):
+		return False
 	
 	def getAllItemsAttributedToCharacter(self):
 		allItems = []
@@ -1170,24 +1127,6 @@ class RakontuCharacter(db.Model): # optional fictions to anonymize entries but p
 	def getAnswerForQuestion(self, question):
 		return Answer.all().filter("referent = ", self.key()).filter("question = ", question.key()).get()
 		
-	def csvLine(self, header=False):
-		parts = []
-		if header:
-			parts.append("name")
-		else:
-			parts.append(self.name)
-			
-		if header:
-			parts.append("description")
-		else:
-			parts.append(str(self.description_formatted))
-			
-		if header:
-			parts.append("etiquette statement")
-		else:
-			parts.append(str(self.etiquetteStatement_formatted))
-		return CleanUpCSV(parts)
-
 # ============================================================================================
 # ============================================================================================
 class SavedSearch(db.Model):
@@ -1438,37 +1377,6 @@ class Answer(db.Model):
 		return '<p>The question "%s" was answered "%s" by %s.</p><hr>' \
 			% (self.question.text, self.displayStringShort(), self.memberNickNameOrCharacterName())
 		
-	def csvLine(self, header=False):
-		parts = []
-		if header:
-			parts.append("question and type")
-		else:	
-			parts.append("%s (%s)" % (self.question.text, self.question.type))
-			
-		if header:
-			parts.append("by")
-		else:	
-			if self.character:
-				parts.append(self.character.name)
-			else:
-				parts.append(self.creator.nickname)
-			
-		if header:
-			parts.append("answer")
-		else:	
-			if self.type == "boolean":
-				parts.append(self.answerIfBoolean)
-			elif self.type == "text":
-				parts.append(self.answerIfText)
-			elif self.type == "ordinal" or self.type == "nominal":
-				if self.multiple:
-					parts.append(", ".join(self.answerIfMultiple))
-				else:
-					parts.append(self.answerIfText)
-			elif self.type == "value":
-				parts.append("%s" % self.answerIfValue)
-		return CleanUpCSV(parts)
-		
 	# ATTRIBUTION
 	
 	def attributedToMember(self):
@@ -1591,6 +1499,8 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 				if not search.entryTypes[i]:
 					return False
 			i += 1
+		if not search.words and not search.tags and not entryRefs and not creatorRefs: # empty search
+			return True
 		if search.overall_anyOrAll == "any":
 			satisfiesWords = False
 			satisfiesTags = False
@@ -1848,8 +1758,36 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	def getAnswersForMember(self, member):
 		return Answer.all().filter("referent = ", self.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
 	
+	def getMembersAndCharactersWhoHaveAnsweredQuestionsAboutMe(self):
+		members = []
+		characters = []
+		answers = Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
+		for answer in answers:
+			if answer.creator and answer.creator.active:
+				if answer.creator.isMember():
+					# have to do this silly thing because it won't do an equality test on objects, only on keys
+				 	foundIt = False
+				 	for member in members:
+				 		if answer.creator.key() == member.key():
+				 			foundIt = True
+				 			break
+				 	if not foundIt:
+				 		members.append(answer.creator)
+				else:
+				 	foundIt = False
+				 	for character in characters:
+				 		if answer.creator.key() == character.key():
+				 			foundIt = True
+				 			break
+				 	if not foundIt:
+				 		characters.append(answer.creator)
+		return (members, characters)
+	
 	def getAnswersForCharacter(self, character):
 		return Answer.all().filter("referent = ", self.key()).filter("creator = ", character.key()).fetch(FETCH_NUMBER)
+	
+	def hasAnswersForCharacter(self, character):
+		return Answer.all().filter("referent = ", self.key()).filter("creator = ", character.key()).count()
 	
 	def getAnswerForMemberAndQuestion(self, member, question):
 		return Answer.all().filter("referent = ", self.key()).filter("creator = ", member.key()).filter("question = ", question.key()).get()
@@ -1949,58 +1887,53 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 					result = result.replace(findString, '<a href="/visit/attachment?attachment_id=%s">%s</a>' % (attachments[i].key(), attachments[i].fileName))
 		return result
 	
-	def csvLine(self, header=False):
+	def csvLineWithAnswers(self, index, members, characters, questions, memberQuestions, characterQuestions):
 		parts = []
-		if header: 
-			parts.append("type") 
-		else: 
-			parts.append(self.type)
-			
-		if header:
-			parts.append("by")
-		else:	
-			if self.character:
-				parts.append(self.character.name)
-			else:
-				parts.append(self.creator.nickname)
-			
-		if header:
-			parts.append("title")
-		else:
-			parts.append(self.title)
-			
-		if header:
-			parts.append("content")
-		else:
-			if self.text_formatted:
-				parts.append(self.text_formatted)
-			else:
-				parts.append(self.text)
-		return CleanUpCSV(parts)
-	
-	def csvLineWithAnswers(self, index, members, characters, questions):
-		parts = []
+		(members, characters) = self.getMembersAndCharactersWhoHaveAnsweredQuestionsAboutMe()
 		for member in members:
-			if len(self.getAnswersForMember(member)):
-				parts.append(str(index))
-				parts.append(self.title)
-				for question in questions:
-					answer = self.getAnswerForMemberAndQuestion(member, question)
-					if answer: 
-						parts.append(answer.displayStringShort())
-					else:
-						parts.append("")
-				parts.append('\n')
+			parts.append("\n%s" % index)
+			parts.append(self.title)
+			parts.append(member.nickname)
+			# questions about entry
+			for question in questions:
+				answer = self.getAnswerForMemberAndQuestion(member, question)
+				if answer: 
+					parts.append(answer.displayStringShort())
+				else:
+					parts.append("")
+			# about teller
+			for question in memberQuestions:
+				answer = member.getAnswerForQuestion(question)
+				if answer:
+					parts.append(answer.displayStringShort())
+				else:
+					parts.append("")
+			# pad spaces for character questions
+			for question in characterQuestions:
+				parts.append("")
 		for character in characters:
-			if len(self.getAnswersForCharacter(character)):
-				parts.append(str(index))
-				parts.append(self.title)
-				for question in questions:
-					answer = self.getAnswerForCharacterAndQuestion(character, question)
-					if answer: 
-						parts.append(answer.displayStringShort())
-					else:
-						parts.append("")
+			parts.append("\n%s" % index)
+			parts.append(self.title)
+			parts.append(character.name)
+			# questions about entry
+			for question in questions:
+				answer = self.getAnswerForCharacterAndQuestion(character, question)
+				if answer: 
+					parts.append(answer.displayStringShort())
+				else:
+					parts.append("")
+			# pad spaces for member questions
+			for question in memberQuestions:
+				parts.append("")
+			# about character attributed to
+			for question in characterQuestions:
+				answer = character.getAnswerForQuestion(question)
+				if answer:
+					parts.append(answer.displayStringShort())
+				else:
+					parts.append("")
+		if not parts:
+			parts = [str(index), self.title, '\n']
 		return CleanUpCSV(parts)
 	
 	def PrintText(self):
@@ -2087,29 +2020,6 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 			result += ", (%s)" % self.comment
 		return result
 	
-	def csvLine(self, header=False):
-		parts = []
-		if header: 
-			parts.append("from") 
-		else: 
-			parts.append(self.itemFrom.displayString())
-			
-		if header:
-			parts.append("to")
-		else:
-			parts.append(self.itemTo.displayString())
-			
-		if header:
-			parts.append("by")
-		else:	
-			parts.append(self.creator.nickname)
-			
-		if header:
-			parts.append("comment")
-		else:
-			parts.append(self.comment)
-		return CleanUpCSV(parts)
-
 # ============================================================================================
 # ============================================================================================
 class Attachment(db.Model):								   # binary attachments to entries
@@ -2128,24 +2038,6 @@ class Attachment(db.Model):								   # binary attachments to entries
 	def isImage(self):
 		return self.mimeType == "image/jpeg" or self.mimeType == "image/png"
 	
-	def csvLine(self, header=False):
-		parts = []
-		if header:
-			parts.append("name")
-		else:
-			parts.append(self.name)
-		
-		if header:
-			parts.append("type")
-		else:	
-			parts.append(self.mimeType)
-
-		if header:
-			parts.append("file name")
-		else:	
-			parts.append(self.fileName)
-		return CleanUpCSV(parts)
-
 # ============================================================================================
 # ============================================================================================
 class Annotation(db.Model):								# tag set, comment, request, nudge
@@ -2320,34 +2212,6 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 			imageText = '<img src="/images/nudges.png" alt="nudge" border="0">'
 		return imageText
 	
-	# EXPORT
-	
-	def csvLine(self, header=False):
-		parts = []
-		if header: 
-			parts.append("type") 
-		else: 
-			parts.append(self.type)
-			
-		if header:
-			parts.append("by")
-		else:	
-			if self.character:
-				parts.append(self.character.name)
-			else:
-				parts.append(self.creator.nickname)
-			
-		if header:
-			parts.append("content")
-		else:
-			if self.type == "comment":
-				parts.append("%s: %s" % (self.shortString, self.longString_formatted))
-			elif self.type == "request":
-				parts.append("%s (%s): %s" % (self.shortString, self.typeIfRequest, self.longString_formatted))
-			else:
-				parts.append(self.displayString())
-		return CleanUpCSV(parts)
-	
 # ============================================================================================
 # ============================================================================================
 class Help(db.Model):		 # context-sensitive help string - appears as title hover on icon 
@@ -2361,7 +2225,7 @@ class Help(db.Model):		 # context-sensitive help string - appears as title hover
 	
 # ============================================================================================
 # ============================================================================================
-class Export(db.Model):		 # data prepared for export, in XML format
+class Export(db.Model):		 # data prepared for export, in XML or CSV or TXT format
 # ============================================================================================
 # ============================================================================================
 	

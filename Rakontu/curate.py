@@ -163,7 +163,7 @@ class CurateGapsPage(webapp.RequestHandler):
 				invitationsWithoutResponses,
 				collagesWithoutInclusions) = rakontu.getNonDraftEntriesWithMissingMetadata(sortBy)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': "Review flags", 
+							   	   'title': "Review gaps", 
 						   	   	   'title_extra': None, 
 								   'rakontu': rakontu, 
 								   'sort_by': sortBy,
@@ -221,7 +221,7 @@ class CurateTagsPage(webapp.RequestHandler):
 		if access:
 			if member.isCurator():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': "Review attachments", 
+							   	   'title': "Review tags", 
 						   	   	   'title_extra': None, 
 								   'rakontu': rakontu, 
 								   'tag_sets': rakontu.getNonDraftTagSets(),

@@ -27,25 +27,6 @@ class FirstOwnerVisitPage(webapp.RequestHandler):
 		else:
 			self.redirect('/')
 		
-class ManagingChecklistPage(webapp.RequestHandler):
-	@RequireLogin 
-	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
-		if access:
-			if member.isManagerOrOwner():
-				template_values = GetStandardTemplateDictionaryAndAddMore({
-								'title': "Managing checklist",
-								'title_extra': None,
-								'rakontu': rakontu, 
-								'current_member': member,
-								})
-				path = os.path.join(os.path.dirname(__file__), 'templates/manage/checklist.html')
-				self.response.out.write(template.render(path, template_values))
-			else:
-				self.redirect('/visit/home')
-		else:
-			self.redirect('/')
-			
 class ManageRakontuMembersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
@@ -142,7 +123,7 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 					for eventType in EVENT_TYPES:
 						if i >= level and i < nextLevel: 
 							if i == 0: 
-								nudgePointIncludes.append("<td>(doesn't apply)/td>")
+								nudgePointIncludes.append("<td>(doesn't apply)</td>")
 							else:
 								nudgePointIncludes.append('<td><input type="text" name="member|%s" size="2" value="%s" maxlength="{{maxlength_number}}"/></td>' \
 									% (eventType, rakontu.memberNudgePointsPerEvent[i]))
@@ -231,6 +212,8 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 				rakontu.allowNonManagerCuratorsToEditTags = self.request.get("allowNonManagerCuratorsToEditTags") == "yes"
 				if self.request.get("img"):
 					rakontu.image = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
+				if self.request.get("removeImage"):
+					rakontu.image = None
 				i = 0
 				for entryType in ENTRY_AND_ANNOTATION_TYPES:
 					rakontu.allowCharacter[i] = self.request.get("character|%s" % entryType) == "yes"
@@ -419,14 +402,14 @@ class WriteQuestionsToCSVPage(webapp.RequestHandler):
 				type = self.request.query_string
 				if type in QUESTION_REFERS_TO:
 					export = rakontu.createOrRefreshExport("exportQuestions", itemList=None, member=None, questionType=type)
-					self.redirect('/export?export_id=%s' % export.key())
+					self.redirect('/export?csv_id=%s' % export.key())
 				else:
 					self.redirect('/result?noQuestionsToExport')
 			else:
 				self.redirect("/visit/home")
 		else:
 			self.redirect('/')
-		
+			
 class ManageRakontuCharactersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
@@ -591,9 +574,8 @@ class ExportRakontuDataPage(webapp.RequestHandler):
 						   	   	   'title_extra': None, 
 								   'rakontu': rakontu,
 								   'current_member': member,
-								   'entry_export': rakontu.getExportOfType("entries"),
-								   'rakontu_export': rakontu.getExportOfType("rakontu"),
-								   'entry_with_answers_export': rakontu.getExportOfType("entries_with_answers"),
+								   'xml_export': rakontu.getExportOfType("xml_export"),
+								   'csv_export': rakontu.getExportOfType("csv_export_all"),
 								   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/manage/export.html')
 			self.response.out.write(template.render(path, template_values))
@@ -605,18 +587,32 @@ class ExportRakontuDataPage(webapp.RequestHandler):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			if member.isManagerOrOwner():
-				if "entriesExport" in self.request.arguments():
-					rakontu.createOrRefreshExport(type="entries")
-				elif "entriesWithAnswersExport" in self.request.arguments():
-					rakontu.createOrRefreshExport(type="entries_with_answers")
-				elif "rakontuExport" in self.request.arguments():
-					rakontu.createOrRefreshExport(type="rakontu")
+				if "csv_export" in self.request.arguments():
+					rakontu.createOrRefreshExport(type="csv_export_all")
+				elif "xml_export" in self.request.arguments():
+					rakontu.createOrRefreshExport(type="xml_export")
 				self.redirect('/manage/export')
 			else:
 				self.redirect("/visit/home")
 		else:
 			self.redirect("/")
 
+class ExportSearchPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		if access:
+			if member.isLiaison():
+				if member.viewSearchResultList:
+					export = rakontu.createOrRefreshExport("csv_export_search", itemList=None, member=member)
+					self.redirect('/export?csv_id=%s' % export.key())
+				else:
+					self.redirect('/result?noSearchResultForExport')
+			else:
+				self.redirect("/visit/home")
+		else:
+			self.redirect('/')
+		
 class InactivateRakontuPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
