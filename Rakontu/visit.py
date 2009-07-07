@@ -77,6 +77,7 @@ class StartPage(webapp.RequestHandler):
 						pendingMember = PendingMember.all().filter("rakontu = ", rakontu.key()).filter("email = ", user.email()).get()
 						if pendingMember:
 							newMember = Member(
+								key_name=KeyName("member"), 
 								nickname=user.email(),
 								googleAccountID=user.user_id(),
 								googleAccountEmail=user.email(),
@@ -365,7 +366,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 					member.put()
 					self.redirect("/visit/home")
 				elif response =="copySearchAs":
-					newSearch = SavedSearch(rakontu=rakontu, creator=member)
+					newSearch = SavedSearch(key_name=KeyName("filter"), rakontu=rakontu, creator=member)
 					newSearch.copyDataFromOtherSearchAndPut(search)
 					member.viewSearch = newSearch
 					member.viewSearchResultList = []
@@ -910,7 +911,12 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 					if foundAnswers:
 						answerToEdit = foundAnswers[0]
 					else:
-						answerToEdit = Answer(question=question, rakontu=rakontu, referent=memberToEdit, referentType="member")
+						answerToEdit = Answer(
+											key_name=KeyName("answer"), 
+											rakontu=rakontu, 
+											question=question, 
+											referent=memberToEdit, 
+											referentType="member")
 					keepAnswer = False
 					queryText = "%s" % question.key()
 					if question.type == "text":
@@ -1150,7 +1156,7 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 				self.redirect("/visit/home")
 			elif "saveAs" in self.request.arguments() or "save" in self.request.arguments():
 				if not search or "saveAs" in self.request.arguments():
-					search = SavedSearch(rakontu=rakontu, creator=member)
+					search = SavedSearch(key_name=KeyName("filter"), rakontu=rakontu, creator=member)
 				search.private = self.request.get("privateOrSharedSearch") == "private"
 				search.name = htmlEscape(self.request.get("searchName", default_value="Untitled"))
 				text = self.request.get("comment")
@@ -1216,7 +1222,7 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 								ref = SavedSearchQuestionReference.all().filter("search = ", search).\
 									filter("question = ", question).filter("order = ", i).get()
 								if not ref:
-									ref = SavedSearchQuestionReference(rakontu=rakontu, search=search, question=question)
+									ref = SavedSearchQuestionReference(key_name=KeyName("searchref"), rakontu=rakontu, search=search, question=question)
 								ref.answer = answer
 								ref.comparison = comparison
 								ref.order = i

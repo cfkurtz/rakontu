@@ -232,9 +232,7 @@
 						{% endif %}
 						I am a <b> {{helping_role_names.0}} </b> in this Rakontu.</label></p>
 					{% if rakontu.roleReadmes_formatted.0 %}
-						<table border="1" cellpadding="4" cellspacing="0">
-						<tr><td bgcolor="#FFFFFF"> {{ rakontu.roleReadmes_formatted.0 }} </td></tr>
-						</table>
+						<div class="indented">{{rakontu.roleReadmes_formatted.0}}</div>
 					{% endif %}
 				{% endif %}
 				
@@ -247,15 +245,13 @@
 						{% endif %}
 						I am a <b>{{helping_role_names.1}}</b> in this Rakontu.</label></p>
 					{% if rakontu.roleReadmes_formatted.1 %}
-						<table border="1" cellpadding="4" cellspacing="0"><tr>
-						<tr><td bgcolor="#FFFFFF"> {{ rakontu.roleReadmes_formatted.1 }} </td></tr>
-						</table>
+						<div class="indented">{{rakontu.roleReadmes_formatted.1}}</div>
 					{% endif %}
 					<p>If you are a guide, what would you like to tell members about what sorts of questions you can answer?</p>
 
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
-				<textarea name="guideIntro" rows="5" cols="60">{{member.guideIntro}}</textarea>
+				<textarea name="guideIntro" rows="5" cols="60">{{member.guideIntro|orNothing}}</textarea>
 				</td><td class="noborder" width="80">
 				<p>Interpret as</p>
 					<select name="guideIntro_format">
@@ -280,9 +276,7 @@
 						{% endif %}
 						I am a <b>{{helping_role_names.2}}</b> in this Rakontu.</label></p>
 					{% if rakontu.roleReadmes_formatted.2 %}
-						<table border="1" cellpadding="4" cellspacing="0">
-						<tr><td bgcolor="#FFFFFF"> {{ rakontu.roleReadmes_formatted.2 }} </td></tr>
-						</table>
+						<div class="indented">{{rakontu.roleReadmes_formatted.2}}</div>
 					{% endif %}
 				{% endif %}
 				</fieldset>

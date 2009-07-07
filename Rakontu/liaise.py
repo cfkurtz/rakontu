@@ -43,7 +43,9 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 				for nickname in memberNicknamesToAdd:
 					if nickname.strip():
 						if not rakontu.hasMemberWithNickname(nickname.strip()):
-							newMember = Member(rakontu=rakontu, 
+							newMember = Member(
+											key_name=KeyName("member"), 
+											rakontu=rakontu, 
 											nickname=nickname.strip(),
 											isOnlineMember = False,
 											liaisonIfOfflineMember = member,
@@ -202,7 +204,7 @@ class BatchEntryPage(webapp.RequestHandler):
 										date = datetime(year, month, day, tzinfo=pytz.utc)
 									except:
 										pass
-								entry = Entry(rakontu=rakontu, type="story", title=title, text=text, text_format=textFormat)
+								entry = Entry(key_name=KeyName("entry"), rakontu=rakontu, type="story", title=title, text=text, text_format=textFormat)
 								entry.creator = memberToAttribute
 								entry.collected = date
 								entry.draft = True
@@ -210,7 +212,7 @@ class BatchEntryPage(webapp.RequestHandler):
 								entry.collectedOffline = not memberToAttribute.isOnlineMember
 								entry.liaison = member
 								if self.request.get("attribution|%s" % i) != "member":
-									entry.character = RakontuCharacter.get(self.request.get("attribution|%s" % i))
+									entry.character = Character.get(self.request.get("attribution|%s" % i))
 								else:
 									entry.character = None
 								entry.put()
@@ -219,7 +221,7 @@ class BatchEntryPage(webapp.RequestHandler):
 										if name == "attachment|%s|%s" % (i, j):
 											if value != None and value != "":
 												filename = value.filename
-												attachment = Attachment(entry=entry)
+												attachment = Attachment(key_name=KeyName("attachment"), entry=entry)
 												k = 0
 												mimeType = None
 												for type in ACCEPTED_ATTACHMENT_FILE_TYPES:
@@ -234,7 +236,13 @@ class BatchEntryPage(webapp.RequestHandler):
 													attachment.put()
 								questions = Question.all().filter("rakontu = ", rakontu).filter("refersTo = ", "story").fetch(FETCH_NUMBER)
 								for question in questions:
-									answer = Answer(question=question, rakontu=rakontu, creator=memberToAttribute, referent=entry, referentType="entry")
+									answer = Answer(
+												key_name=KeyName("answer"), 
+												rakontu=rakontu, 
+												question=question, 
+												creator=memberToAttribute, 
+												referent=entry, 
+												referentType="entry")
 									keepAnswer = False
 									queryText = "%s|%s" % (i, question.key())
 									if question.type == "text":
@@ -276,7 +284,11 @@ class BatchEntryPage(webapp.RequestHandler):
 									subject = self.request.get("commentSubject|%s" % i, default_value="No subject")
 									text = self.request.get("comment|%s" % i)
 									format = self.request.get("commentFormat|%s" % i)
-									comment = Annotation(type="comment", rakontu=rakontu, creator=memberToAttribute, entry=entry)
+									comment = Annotation(key_name=KeyName("annotation"), 
+														rakontu=rakontu, 
+														type="comment", 
+														creator=memberToAttribute, 
+														entry=entry)
 									comment.shortString = subject
 									comment.longString = text
 									comment.longString_format = format
@@ -292,7 +304,11 @@ class BatchEntryPage(webapp.RequestHandler):
 									if self.request.get(queryString):
 										tags.append(self.request.get(queryString))
 								if tags:
-									tagset = Annotation(type="tag set", rakontu=rakontu, creator=memberToAttribute, entry=entry)
+									tagset = Annotation(key_name=KeyName("annotation"), 
+													rakontu=rakontu, 
+													type="tag set", 
+													creator=memberToAttribute, 
+													entry=entry)
 									tagset.tagsIfTagSet = []
 									tagset.tagsIfTagSet.extend(tags)
 									tagset.draft = True

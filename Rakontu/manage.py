@@ -92,7 +92,7 @@ class ManageRakontuMembersPage(webapp.RequestHandler):
 				for email in memberEmailsToAdd:
 					if email.strip():
 						if not rakontu.hasMemberWithGoogleEmail(email.strip()):
-							newPendingMember = PendingMember(rakontu=rakontu, email=email.strip())
+							newPendingMember = PendingMember(key_name=KeyName("pendingmember"), rakontu=rakontu, email=email.strip())
 							newPendingMember.put()
 				self.redirect('/manage/members')
 			else:
@@ -380,7 +380,12 @@ class ManageRakontuQuestionsPage(webapp.RequestHandler):
 								oldQuestion.put()
 								break
 						if not foundQuestion:
-							question = Question(name=name, refersTo=type, rakontu=rakontu, text="No question text.")
+							question = Question(
+											key_name=KeyName("question"), 
+											rakontu=rakontu, 
+											name=name, 
+											refersTo=type, 
+											text="No question text.")
 							question.put()
 				for sysQuestion in systemQuestionsOfType:
 					if self.request.get("copy|%s" % sysQuestion.key()) == "copy|%s" % sysQuestion.key():
@@ -410,7 +415,7 @@ class WriteQuestionsToCSVPage(webapp.RequestHandler):
 		else:
 			self.redirect('/')
 			
-class ManageRakontuCharactersPage(webapp.RequestHandler):
+class ManageCharactersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
@@ -451,7 +456,7 @@ class ManageRakontuCharactersPage(webapp.RequestHandler):
 								oldCharacter.put()
 								break
 						if not foundCharacter:
-							newCharacter = RakontuCharacter(name=name, rakontu=rakontu)
+							newCharacter = Character(key_name=KeyName("character"), name=name, rakontu=rakontu)
 							newCharacter.put()
 				self.redirect('/manage/characters')
 			else:
@@ -459,7 +464,7 @@ class ManageRakontuCharactersPage(webapp.RequestHandler):
 		else:
 			self.redirect("/")
 		
-class ManageRakontuCharacterPage(webapp.RequestHandler):
+class ManageCharacterPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
@@ -525,7 +530,12 @@ class ManageRakontuCharacterPage(webapp.RequestHandler):
 						if foundAnswers:
 							answerToEdit = foundAnswers[0]
 						else:
-							answerToEdit = Answer(question=question, rakontu=rakontu, referent=character, referentType="character")
+							answerToEdit = Answer(
+												key_name=KeyName("answer"), 
+												rakontu=rakontu, 
+												question=question, 
+												referent=character, 
+												referentType="character")
 						if question.type == "text":
 							answerToEdit.answerIfText = htmlEscape(self.request.get("%s" % question.key()))
 						elif question.type == "value":

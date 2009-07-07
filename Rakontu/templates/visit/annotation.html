@@ -53,9 +53,9 @@
 							{% endif %}
 						{% endfor %}
 						</select>
+					{% endif %}
 					<input type="text" name="tag{{i}}" size="15" value="{% if annotation %}{{annotation.tagsIfTagSet|listLookup:i|orNothing}}{% endif %}" maxlength="{{maxlength_tag_or_choice}}"/>
 					<br/> 
-					{% endif %}
 				{% endfor %}
 				</p>
 			{% endifequal %}

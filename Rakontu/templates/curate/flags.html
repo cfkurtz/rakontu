@@ -28,7 +28,7 @@
 	      		</tr>
 	      		{% for entry in entries %}
 	  				<tr>
-	  				<td>
+	  				<td width="80">
 	  					<input type="checkbox" name="unflag|{{entry.key}}" value="yes" id="unflag|{{entry.key}}"/>
 						<label for="unflag|{{entry.key}}">Unflag</label>
 	  				</td>	  				
@@ -59,7 +59,7 @@
 						{% endif %}
 	  				</td>
 	  				<td><input type="text" name="flagComment|{{entry.key}}" value="{{entry.flagComment|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></td>
-	  				<td>
+	  				<td width="80">
 	  				{% if current_member.isManagerOrOwner %}
 	  						<input type="checkbox" name="remove|{{entry.key}}" value="yes" id="remove|{{entry.key}}"/>
 							<label for="remove|{{entry.key}}">Remove</label>

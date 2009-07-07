@@ -80,20 +80,20 @@
 					in response to the invitation "{{link_item_from.title}},"
 				{% endifequal %}
 				<fieldset>
-				Would you like to comment on 
+				<p>Would you like to comment on 
 				{% ifequal link_type "retell" %}
-					why you retold the original story?
+					why you retold the original story?</p>
 				{% endifequal %}
 				{% ifequal link_type "remind" %}
-					what reminded you of this story?
+					what reminded you of this story?</p>
 				{% endifequal %}
 				{% ifequal link_type "respond" %}
-					why you responded to the invitation?
+					why you responded to the invitation?</p>
 				{% endifequal %}
-				</fieldset>
-				<input type="text" name="link_comment" value="" size="60" maxlength="{{maxlength_subject_or_comment}}">
+				<p><input type="text" name="link_comment" value="" size="60" maxlength="{{maxlength_subject_or_comment}}"></p>
 				<input type="hidden" name="link_type" value="{{link_type}}">
 				<input type="hidden" name="link_item_from" value="{{link_item_from.key}}">
+				</fieldset>
 			{% endif %}
 			
 			{% ifequal entry_type "resource" %}

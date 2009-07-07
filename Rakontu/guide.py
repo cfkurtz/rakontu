@@ -8,53 +8,6 @@
 
 from utils import *
 
-class GuideOrphansPage(webapp.RequestHandler):
-	@RequireLogin 
-	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
-		if access:
-			if member.isGuide():
-				sortBy = self.request.query_string
-				if not sortBy:
-					sortBy = "activity"
-				(entriesWithoutTags, \
-				entriesWithoutLinks, \
-				entriesWithoutAnswers, \
-				entriesWithoutComments, \
-				invitationsWithoutResponses,
-				collagesWithoutInclusions) = rakontu.getNonDraftEntriesWithMissingMetadata(sortBy)
-				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': "Review orphans", 
-						   	   	   'title_extra': None, 
-								   'rakontu': rakontu, 
-								   'sort_by': sortBy,
-								   'entries_without_tags': entriesWithoutTags,
-								   'entries_without_links': entriesWithoutLinks,
-								   'entries_without_answers': entriesWithoutAnswers,
-								   'entries_without_comments': entriesWithoutComments,
-								   'invitations_without_responses': invitationsWithoutResponses,
-								   'collages_without_inclusions': collagesWithoutInclusions,
-								   'current_member': member,
-								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/guide/orphans.html')
-				self.response.out.write(template.render(path, template_values))
-			else:
-				self.redirect('/visit/home')
-		else:
-			self.redirect("/")
-			
-	@RequireLogin 
-	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
-		if access:
-			if member.isCurator():
-				if "sortBy" in self.request.arguments():
-					self.redirect("/guide/orphans?%s" % self.request.get("sortBy"))
-			else:
-				self.redirect('/visit/home')
-		else:
-			self.redirect("/")
-			
 class ReviewResourcesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
@@ -90,6 +43,19 @@ class ReviewResourcesPage(webapp.RequestHandler):
 				self.redirect("/visit/home")
 		else:
 			self.redirect("/")
+			
+class CopySystemResourcesPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		if access:
+			if member.isGuide():
+				CopyDefaultResourcesForNewRakontu(rakontu, member)
+				self.redirect('/guide/resources')
+			else:
+				self.redirect('/')
+		else:
+			self.redirect('/')
 						
 class ReviewRequestsPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -99,6 +65,7 @@ class ReviewRequestsPage(webapp.RequestHandler):
 			if member.isGuide():
 				uncompletedOnly = self.request.query_string == "uncompleted"
 				requestsByType = []
+				numRequests = 0
 				for type in REQUEST_TYPES:
 					if uncompletedOnly:
 						requests = Annotation.all().filter("rakontu = ", rakontu.key()).filter("draft = ", False).\
@@ -107,6 +74,7 @@ class ReviewRequestsPage(webapp.RequestHandler):
 						requests = Annotation.all().filter("rakontu = ", rakontu.key()).filter("draft = ", False).\
 							filter("typeIfRequest = ", type).fetch(FETCH_NUMBER)
 					requestsByType.append(requests)
+					numRequests += len(requests)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': "Review requests", 
 						   	   	   'title_extra': None, 
@@ -115,6 +83,8 @@ class ReviewRequestsPage(webapp.RequestHandler):
 								   'requests': requestsByType,
 								   'num_types': NUM_REQUEST_TYPES,
 								   'request_types': REQUEST_TYPES,
+								   'showing_all_requests': not uncompletedOnly,
+								   'have_requests': numRequests > 0,
 								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/guide/requests.html')
 				self.response.out.write(template.render(path, template_values))
@@ -139,6 +109,51 @@ class ReviewRequestsPage(webapp.RequestHandler):
 					self.redirect("/guide/requests?uncompleted")
 				elif "showAllRequests" in self.request.arguments():
 					self.redirect("/guide/requests")
+			else:
+				self.redirect("/visit/home")
+		else:
+			self.redirect("/")
+			
+class ReviewInvitationsPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		if access:
+			if member.isGuide():
+				noResponsesOnly = self.request.query_string == "noresponses"
+				invitations = []
+				allInvitations = Entry.all().filter("rakontu = ", rakontu.key()).filter("draft = ", False).\
+					filter("type = ", "invitation").fetch(FETCH_NUMBER)
+				if noResponsesOnly:
+					for invitation in allInvitations:
+						if not invitation.hasOutgoingLinksOfType("responded"):
+							invitations.append(invitation)
+				else:
+					invitations.extend(allInvitations)
+				template_values = GetStandardTemplateDictionaryAndAddMore({
+							   	   'title': "Review requests", 
+						   	   	   'title_extra': None, 
+								   'rakontu': rakontu, 
+								   'current_member': member,
+								   'invitations': invitations,
+								   'showing_all_invitations': not noResponsesOnly,
+								   })
+				path = os.path.join(os.path.dirname(__file__), 'templates/guide/invitations.html')
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect("/visit/home")
+		else:
+			self.redirect("/")
+			
+	@RequireLogin 
+	def post(self):
+		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		if access:
+			if member.isGuide():
+				if "showOnlyUnrespondedInvitations" in self.request.arguments():
+					self.redirect("/guide/invitations?noresponses")
+				elif "showAllInvitations" in self.request.arguments():
+					self.redirect("/guide/invitations")
 			else:
 				self.redirect("/visit/home")
 		else:

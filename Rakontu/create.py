@@ -24,7 +24,7 @@ class CreateRakontuPage(webapp.RequestHandler):
 	@RequireLogin 
 	def post(self):
 		user = users.get_current_user()
-		rakontu = Rakontu(name=htmlEscape(self.request.get('name')))
+		rakontu = Rakontu(key_name=KeyName("rakontu"), name=htmlEscape(self.request.get('name')))
 		rakontu.initializeFormattedTexts()
 		rakontuType = self.request.get("type")
 		rakontu.type = rakontuType
@@ -33,6 +33,7 @@ class CreateRakontuPage(webapp.RequestHandler):
 			GenerateDefaultQuestionsForRakontu(rakontu, rakontuType)
 		GenerateDefaultCharactersForRakontu(rakontu)
 		member = Member(
+			key_name=KeyName("member"), 
 			googleAccountID=user.user_id(),
 			googleAccountEmail=user.email(),
 			active=True,
@@ -202,7 +203,7 @@ class EnterEntryPage(webapp.RequestHandler):
 				entry = db.get(entryKey)
 			newEntry = False
 			if not entry:
-				entry=Entry(rakontu=rakontu, type=type, title=DEFAULT_UNTITLED_ENTRY_TITLE)
+				entry=Entry(key_name=KeyName("entry"), rakontu=rakontu, type=type, title=DEFAULT_UNTITLED_ENTRY_TITLE)
 				newEntry = True
 			preview = False
 			if "save|%s" % type in self.request.arguments():
@@ -242,7 +243,7 @@ class EnterEntryPage(webapp.RequestHandler):
 			else:
 				attributionQueryString = "attribution"
 			if self.request.get(attributionQueryString) != "member":
-				entry.character = RakontuCharacter.get(self.request.get(attributionQueryString))
+				entry.character = Character.get(self.request.get(attributionQueryString))
 			else:
 				entry.character = None
 			if type == "resource":
@@ -268,9 +269,14 @@ class EnterEntryPage(webapp.RequestHandler):
 						linkType = "included"
 					elif self.request.get("link_type") == "reference":
 						linkType = "referenced"
-					link = Link(itemFrom=itemFrom, itemTo=entry, type=linkType, \
-								creator=member, rakontu=rakontu, \
-								comment=htmlEscape(self.request.get("link_comment")))
+					comment = htmlEscape(self.request.get("link_comment"))
+					link = Link(key_name=KeyName("link"), 
+							rakontu=rakontu,
+							itemFrom=itemFrom, 
+							itemTo=entry, 
+							type=linkType, 
+							creator=member,
+							comment=comment)
 					link.put()
 					link.publish()
 			if entry.isCollage():
@@ -284,7 +290,12 @@ class EnterEntryPage(webapp.RequestHandler):
 					db.delete(link)
 				for anEntry in rakontu.getNonDraftEntriesOfType("story"):
 					if self.request.get("addLink|%s" % anEntry.key()) == "yes":
-						link = Link(itemFrom=entry, itemTo=anEntry, type="included", creator=member, rakontu=rakontu)
+						link = Link(key_name=KeyName("link"), 
+							rakontu=rakontu,
+							itemFrom=entry, 
+							itemTo=anEntry, 
+							type="included", 
+							creator=member)
 						link.put()
 						if not entry.draft:
 							link.publish()
@@ -299,7 +310,12 @@ class EnterEntryPage(webapp.RequestHandler):
 					db.delete(link)
 				for aSearch in rakontu.getNonPrivateSavedSearches():
 					if self.request.get("addLink|%s" % aSearch.key()) == "yes":
-						link = Link(itemFrom=entry, itemTo=aSearch, type="referenced", creator=member, rakontu=rakontu)
+						link = Link(key_name=KeyName("link"), 
+							rakontu=rakontu,
+							itemFrom=entry, 
+							itemTo=aSearch, 
+							type="referenced", 
+							creator=member)
 						link.put()
 						if not entry.draft:
 							link.publish()
@@ -309,7 +325,13 @@ class EnterEntryPage(webapp.RequestHandler):
 				if foundAnswers:
 					answerToEdit = foundAnswers[0]
 				else:
-					answerToEdit = Answer(question=question, rakontu=rakontu, creator=member, referent=entry, referentType="entry")
+					answerToEdit = Answer(
+										key_name=KeyName("answer"),
+										rakontu=rakontu, 
+										question=question, 
+										creator=member,
+										referent=entry, 
+										referentType="entry")
 					keepAnswer = False
 					queryText = "%s" % question.key()
 					if question.type == "text":
@@ -366,7 +388,7 @@ class EnterEntryPage(webapp.RequestHandler):
 							if len(foundAttachments) > i:
 								attachmentToEdit = foundAttachments[i]
 							else:
-								attachmentToEdit = Attachment(entry=entry)
+								attachmentToEdit = Attachment(key_name=KeyName("attachment"), entry=entry)
 							j = 0
 							mimeType = None
 							for type in ACCEPTED_ATTACHMENT_FILE_TYPES:
@@ -378,7 +400,11 @@ class EnterEntryPage(webapp.RequestHandler):
 								attachmentToEdit.fileName = filename
 								attachmentToEdit.name = htmlEscape(self.request.get("attachmentName%s" % i))
 								attachmentToEdit.data = db.Blob(str(self.request.get("attachment%s" % i)))
-								attachmentToEdit.put()
+								try:
+									attachmentToEdit.put()
+								except:
+									self.redirect("/result?attachmentsTooLarge")
+									return
 			if preview:
 				self.redirect("/visit/preview?%s" % entry.key())
 			elif entry.draft:
@@ -477,14 +503,19 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 				character = None
 				if self.request.get(attributionQueryString) != "member":
 					characterKey = self.request.get(attributionQueryString)
-					character = RakontuCharacter.get(characterKey)
+					character = Character.get(characterKey)
 				questions = Question.all().filter("rakontu = ", rakontu).filter("refersTo = ", entry.type).fetch(FETCH_NUMBER)
 				for question in questions:
 					foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", entry.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
 					if foundAnswers:
 						answerToEdit = foundAnswers[0]
 					else:
-						answerToEdit = Answer(question=question, rakontu=rakontu, referent=entry, referentType="entry")
+						answerToEdit = Answer(
+											key_name=KeyName("answer"), 
+											rakontu=rakontu, 
+											question=question, 
+											referent=entry, 
+											referentType="entry")
 						newAnswers = True
 					answerToEdit.creator = creator
 					if collectedOffline:
@@ -661,7 +692,10 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					entry = annotation.entry
 			if entry:
 				if not annotation:
-					annotation = Annotation(rakontu=rakontu, type=type, entry=entry)
+					annotation = Annotation(key_name=KeyName("annotation"), 
+										rakontu=rakontu, 
+										type=type, 
+										entry=entry)
 					newAnnotation = True
 				preview = False
 				if "save|%s" % type in self.request.arguments():
@@ -695,7 +729,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					attributionQueryString = "attribution"
 				if self.request.get(attributionQueryString) != "member":
 					characterKey = self.request.get(attributionQueryString)
-					character = RakontuCharacter.get(characterKey)
+					character = Character.get(characterKey)
 					annotation.character = character
 				else:
 					annotation.character = None
@@ -923,9 +957,14 @@ class RelateEntryPage(webapp.RequestHandler):
 						db.delete(link)
 					for anEntry in rakontu.getNonDraftEntries():
 						if self.request.get("addLink|%s" % anEntry.key()) == "yes":
-							link = Link(itemFrom=entry, itemTo=anEntry, type="related", \
-										creator=member, rakontu=rakontu,
-										comment=htmlEscape(self.request.get("linkComment|%s" % anEntry.key())))
+							comment = htmlEscape(self.request.get("linkComment|%s" % anEntry.key()))
+							link = Link(key_name=KeyName("link"), 
+									rakontu=rakontu,
+									itemFrom=entry, 
+									itemTo=anEntry, 
+									type="related", 
+									creator=member, 
+									comment=comment)
 							link.put()
 							link.publish()
 					self.redirect("read?%s" % entry.key())

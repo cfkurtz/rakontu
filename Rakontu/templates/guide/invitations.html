@@ -1,0 +1,55 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+		<div id="content">
+	
+	{% if current_member.isGuide %}
+		<div id="stylized" class="rakontu_form">
+		<form action="/guide/invitations" method="post" enctype="multipart/form-data">
+		
+		{% if showing_all_invitations %}
+			<h3>Invitations</h3>
+			&nbsp; &nbsp; <input type="submit" name="showOnlyUnrespondedInvitations" value="Show only invitations with no responses" class="button_small">
+		{% else %}
+			<h3>Invitations with no responses</h3>
+			&nbsp; &nbsp; <input type="submit" name="showAllInvitations" value="Show all invitations" class="button_small">
+		{% endif %}
+		
+		<p></p>
+		{% if invitations %}
+			<table style="margin-left:20px;"><tr><th>Name</th><th>Published</th><th>Responses</th></tr>
+			{% for invitation in invitations %}
+	      		<tr>
+	      		<td>{{invitation.linkString}}</td>
+	      		<td>
+					{{invitation.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+					at {{invitation.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+				</td>
+	      		<td>
+	      			{% for entry in invitation.getResponses %}
+	      				<p>{{entry.linkString}}</p>
+	      			{% endfor %}
+	      			&nbsp;
+	      		</td>
+	      		</tr>
+	        {% endfor %}
+	        </table>
+	    {% else %}
+			{% if showing_all_invitations %}
+				<p>There are no invitations in the Rakontu. <a href="/visit/invitation">Make one</a></p>
+			{% else %}
+				<p>There are no invitations without responses.</p>
+			{% endif %}
+        {% endif %}
+      	
+	</form>
+	</div>
+	{% else %}
+		<p>You are not a guide of this Rakontu and cannot review invitations.
+		Please ask a guide to make any changes you would like to see made.</p>
+	{% endif %}
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

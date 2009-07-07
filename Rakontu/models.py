@@ -13,6 +13,7 @@ from pytz import timezone
 import re
 import csv
 import base64
+import uuid
 
 VERSION_NUMBER = "0.9"
 
@@ -22,6 +23,9 @@ from google.appengine.ext import db
 
 def DebugPrint(text, msg="print"):
 	logging.info(">>>>>>>> %s >>>>>>>> %s" %(msg, text))
+	
+def KeyName(type):
+	return "%s:%s" % (type, uuid.uuid4())
 
 def stripTags(text):
 	if text:
@@ -116,6 +120,7 @@ class Rakontu(db.Model):
 # ============================================================================================
 # ============================================================================================
 
+	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	name = db.StringProperty(required=True) # appears on all pages at top
 	type = db.StringProperty(choices=RAKONTU_TYPES, default=RAKONTU_TYPES[-1]) # only used to determine questions at front, but may be useful later so saving
 	tagline = db.StringProperty(default="", indexed=False) # appears under name, optional
@@ -299,16 +304,16 @@ class Rakontu(db.Model):
 	# CHARACTERS
 	
 	def getActiveCharacters(self):
-		return RakontuCharacter.all().filter("rakontu = ", self.key()).filter("active = ", True).fetch(FETCH_NUMBER)
+		return Character.all().filter("rakontu = ", self.key()).filter("active = ", True).fetch(FETCH_NUMBER)
 	
 	def getInactiveCharacters(self):
-		return RakontuCharacter.all().filter("rakontu = ", self.key()).filter("active = ", False).fetch(FETCH_NUMBER)
+		return Character.all().filter("rakontu = ", self.key()).filter("active = ", False).fetch(FETCH_NUMBER)
 	
 	def hasAtLeastOneCharacterEntryAllowed(self, entryTypeIndex):
 		return self.allowCharacter[entryTypeIndex] or len(self.getActiveCharacters()) > 0
 
 	def hasActiveCharacters(self):
-		return RakontuCharacter.all().filter("rakontu = ", self.key()).filter("active = ", True).count() > 0
+		return Character.all().filter("rakontu = ", self.key()).filter("active = ", True).count() > 0
 	
 	# ENTRIES
 	
@@ -545,15 +550,16 @@ class Rakontu(db.Model):
 	
 	def AddCopyOfQuestion(self, question):
 		newQuestion = Question(
+							   key_name=KeyName("question"),
+							   rakontu=self,
 							   refersTo=question.refersTo,
 							   name=question.name,
 							   text=question.text,
 							   type=question.type,
 							   choices=question.choices,
-							   help=question.help,
-							   useHelp=question.useHelp,
 							   multiple=question.multiple,
-							   rakontu=self)
+							   help=question.help,
+							   useHelp=question.useHelp)
 		newQuestion.put()
 		
 	def addQuestionsOfTypeFromCSV(self, type, input):
@@ -588,8 +594,20 @@ class Rakontu(db.Model):
 				multiple = row[5] == "yes"
 				help = row[6]
 				useHelp=row[7]
-				question = Question(refersTo=refersTo, name=name, text=text, type=type, choices=choices, multiple=multiple,
-								responseIfBoolean=responseIfBoolean, minIfValue=minValue, maxIfValue=maxValue, help=help, useHelp=useHelp, rakontu=self)
+				question = Question(
+								key_name=KeyName("question"),
+								refersTo=refersTo, 
+								name=name, 
+								text=text, 
+								type=type, 
+								choices=choices, 
+								multiple=multiple,
+								responseIfBoolean=responseIfBoolean, 
+								minIfValue=minValue, 
+								maxIfValue=maxValue, 
+								help=help, 
+								useHelp=useHelp, 
+								rakontu=self)
 				questionsToPut.append(question)
 		if questionsToPut:
 			db.put(questionsToPut)
@@ -608,7 +626,7 @@ class Rakontu(db.Model):
 		db.delete(entries)
 		db.delete(Member.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
 		db.delete(PendingMember.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
-		db.delete(RakontuCharacter.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
+		db.delete(Character.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
 		db.delete(Question.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
 		
 	# IMPORT
@@ -655,7 +673,7 @@ class Rakontu(db.Model):
 												text = row[4].strip()
 											else:
 												text = "No text imported."
-											entry = Entry(rakontu=self, type=type, title=title) 
+											entry = Entry(key_name=KeyName("entry"), rakontu=self, type=type, title=title) 
 											entry.text = text
 											entry.rakontu = self
 											entry.creator = member
@@ -675,7 +693,7 @@ class Rakontu(db.Model):
 		exportAlreadyThereForType = self.getExportOfType(type)
 		if exportAlreadyThereForType:
 			db.delete(exportAlreadyThereForType)
-		export = Export(rakontu=self.key(), type=type)
+		export = Export(key_name=KeyName("export"), rakontu=self, type=type)
 		exportText = ""
 		if type == "csv_export_search":
 			if member and member.viewSearch and member.viewSearchResultList:
@@ -812,6 +830,7 @@ class Question(db.Model):
 # ============================================================================================
 # ============================================================================================
 
+	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, collection_name="questions_to_rakontu")
 	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO, required=True) 
 	
@@ -867,6 +886,7 @@ class Member(db.Model):
 # ============================================================================================
 # ============================================================================================
 
+	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="members_to_rakontu")
 	nickname = db.StringProperty(default=NO_NICKNAME_SET)
 	isOnlineMember = db.BooleanProperty(default=True)
@@ -1036,7 +1056,7 @@ class Member(db.Model):
 	
 	def getAnswerForQuestion(self, question):
 		return Answer.all().filter("referent = ", self.key()).filter("question = ", question.key()).get()
-		
+	
 	# DRAFTS
 	
 	def getDraftEntries(self):
@@ -1077,16 +1097,18 @@ class PendingMember(db.Model): # person invited to join rakontu but not yet logg
 # ============================================================================================
 # ============================================================================================
 
+	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="pending_members_to_rakontu")
 	email = db.StringProperty(required=True) # must match google account
 	invited = TzDateTimeProperty(auto_now_add=True)
 	
 # ============================================================================================
 # ============================================================================================
-class RakontuCharacter(db.Model): # optional fictions to anonymize entries but provide some information about intent
+class Character(db.Model): # optional fictions to anonymize entries but provide some information about intent
 # ============================================================================================
 # ============================================================================================
 
+	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="characters_to_rakontu")
 	name = db.StringProperty(required=True)
 	created = TzDateTimeProperty(auto_now_add=True)
@@ -1136,6 +1158,7 @@ class SavedSearch(db.Model):
 # ============================================================================================
 # ============================================================================================
 
+	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="searches_to_rakontu")
 	creator = db.ReferenceProperty(Member, required=True, collection_name="searches_to_member")
 	private = db.BooleanProperty(default=True)
@@ -1184,6 +1207,7 @@ class SavedSearch(db.Model):
 		self.comment_format = search.comment_format
 		for ref in search.getQuestionReferences():
 			myRef = SavedSearchQuestionReference(
+												key_name=KeyName("searchref"),
 												rakontu=self.rakontu, 
 												creator=self.creator,
 												search=self,
@@ -1259,6 +1283,7 @@ class SavedSearchQuestionReference(db.Model):
 # ============================================================================================
 # ============================================================================================
 
+	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	created = TzDateTimeProperty(auto_now_add=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="searchrefs_to_rakontu")
 	search = db.ReferenceProperty(SavedSearch, required=True, collection_name="question_refs_to_saved_search")
@@ -1275,6 +1300,7 @@ class Answer(db.Model):
 # ============================================================================================
 # ============================================================================================
 
+	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, collection_name="answers_to_rakontu")
 	question = db.ReferenceProperty(Question, collection_name="answers_to_questions")
 	referent = db.ReferenceProperty(None, collection_name="answers_to_objects") # entry or member
@@ -1283,7 +1309,7 @@ class Answer(db.Model):
 	
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="answers_to_liaisons")
-	character = db.ReferenceProperty(RakontuCharacter, default=None, collection_name="answers_to_characters")
+	character = db.ReferenceProperty(Character, default=None, collection_name="answers_to_characters")
 	
 	draft = db.BooleanProperty(default=True)
 	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
@@ -1401,6 +1427,7 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 # ============================================================================================
 # ============================================================================================
 
+	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	type = db.StringProperty(choices=ENTRY_TYPES, required=True) 
 	title = db.StringProperty(required=True, default=DEFAULT_UNTITLED_ENTRY_TITLE)
 	text = db.TextProperty(default=NO_TEXT_IN_ENTRY)
@@ -1415,7 +1442,7 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	creator = db.ReferenceProperty(Member, collection_name="entries")
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="entries_to_liaisons")
-	character = db.ReferenceProperty(RakontuCharacter, default=None, collection_name="entries_to_characters")
+	character = db.ReferenceProperty(Character, default=None, collection_name="entries_to_characters")
 	
 	draft = db.BooleanProperty(default=True)
 	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
@@ -1745,6 +1772,12 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	def getNonDraftAnnotationsOfType(self, type):
 		return Annotation.all().filter("entry =", self.key()).filter("type = ", type).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
+	def hasComments(self):
+		return Annotation.all().filter("entry =", self.key()).filter("type = ", "comment").filter("draft = ", False).count() > 0
+		
+	def getComments(self):
+		return Annotation.all().filter("entry =", self.key()).filter("type = ", "comment").filter("draft = ", False).fetch(FETCH_NUMBER)
+		
 	def getAttachments(self):
 		return Attachment.all().filter("entry =", self.key()).fetch(FETCH_NUMBER)
 	
@@ -1815,6 +1848,16 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	
 	def getOutgoingLinksOfType(self, type):
 		return Link.all().filter("itemFrom = ", self.key()).filter("type = ", type).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
+	
+	def hasOutgoingLinksOfType(self, type):
+		return Link.all().filter("itemFrom = ", self.key()).filter("type = ", type).filter("inBatchEntryBuffer = ", False).count() > 0
+	
+	def getResponses(self):
+		result = []
+		links = Link.all().filter("itemFrom = ", self.key()).filter("type = ", "responded").filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
+		for link in links:
+			result.append(link.itemTo)
+		return result
 	
 	def getIncomingLinksOfType(self, type):
 		return Link.all().filter("itemTo = ", self.key()).filter("type = ", type).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
@@ -1951,6 +1994,7 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 class Link(db.Model):						 # related, retold, reminded, responded, included
 # ============================================================================================
 # ============================================================================================
+	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	type = db.StringProperty(choices=LINK_TYPES, required=True) 
 	# how links go: 
 	#	related: any entry to any entry
@@ -2027,6 +2071,8 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 class Attachment(db.Model):								   # binary attachments to entries
 # ============================================================================================
 # ============================================================================================
+
+	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	created = TzDateTimeProperty(auto_now_add=True)
 	name = db.StringProperty()
 	mimeType = db.StringProperty() # from ACCEPTED_ATTACHMENT_MIME_TYPES
@@ -2046,6 +2092,7 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 # ============================================================================================
 # ============================================================================================
 
+	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	type = db.StringProperty(choices=ANNOTATION_TYPES, required=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="annotations_to_rakontu")
 	entry = db.ReferenceProperty(Entry, required=True, collection_name="annotations")
@@ -2069,7 +2116,7 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 
 	collectedOffline = db.BooleanProperty(default=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="annotations_liaisoned")
-	character = db.ReferenceProperty(RakontuCharacter, default=None, collection_name="annotations_to_characters")
+	character = db.ReferenceProperty(Character, default=None, collection_name="annotations_to_characters")
 
 	collected = TzDateTimeProperty(default=None)
 	created = TzDateTimeProperty(auto_now_add=True)
@@ -2220,6 +2267,7 @@ class Help(db.Model):		 # context-sensitive help string - appears as title hover
 # ============================================================================================
 # ============================================================================================
 
+	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	created = TzDateTimeProperty(auto_now_add=True)
 	type = db.StringProperty() # info, tip, caution
 	name = db.StringProperty() # links to name in template
@@ -2231,6 +2279,7 @@ class Export(db.Model):		 # data prepared for export, in XML or CSV or TXT forma
 # ============================================================================================
 # ============================================================================================
 	
+	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="export_to_rakontu")
 	type = db.StringProperty()
 	created = TzDateTimeProperty(auto_now_add=True)

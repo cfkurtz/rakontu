@@ -270,7 +270,7 @@ def GenerateHelps():
 	helpStrings = csv.reader(file)
 	for row in helpStrings:
 		if len(row[0]) > 0 and row[0][0] != ";":
-			help = Help(type=row[0].strip(), name=row[1].strip(), text=row[2].strip())
+			help = Help(key_name=KeyName("help"), type=row[0].strip(), name=row[1].strip(), text=row[2].strip())
 			help.put()
 	file.close()
 		
@@ -326,8 +326,20 @@ def ReadQuestionsFromFile(fileName, rakontu=None, rakontuType="ALL"):
 					help = row[6]
 					useHelp=row[7]
 					typesOfRakontu = [x.strip() for x in row[8].split(",")]
-					question = Question(refersTo=reference, name=name, text=text, type=type, choices=choices, multiple=multiple,
-									responseIfBoolean=responseIfBoolean, minIfValue=minValue, maxIfValue=maxValue, help=help, useHelp=useHelp, rakontu=rakontu)
+					question = Question(
+									key_name=KeyName("question"),
+									rakontu=rakontu,
+									refersTo=reference, 
+									name=name, 
+									text=text, 
+									type=type, 
+									choices=choices, 
+									multiple=multiple,
+									responseIfBoolean=responseIfBoolean, 
+									minIfValue=minValue, 
+									maxIfValue=maxValue, 
+									help=help, 
+									useHelp=useHelp)
 					questionsToPut.append(question)
 	db.put(questionsToPut)
 	file.close()
@@ -349,7 +361,8 @@ def GenerateDefaultCharactersForRakontu(rakontu):
 			etiquetteStatement = row[2]
 			imageFileName = row[3]
 			image = db.Blob(open(imageFileName).read())
-			character = RakontuCharacter(
+			character = Character(
+							   key_name=KeyName("character"), 
 							   name=row[0],
 							   rakontu=rakontu,
 							   )
@@ -373,7 +386,8 @@ def GenerateSystemResources():
 		format = resourceArray[1]
 		managersOnly = resourceArray[2]
 		text = resourceArray[3]
-		newResource = Entry(rakontu=None, 
+		newResource = Entry(key_name=KeyName("entry"),
+						rakontu=None, 
 						type="resource",
 						title=title,
 						text=text,
@@ -392,19 +406,20 @@ def GenerateSystemResources():
 def CopyDefaultResourcesForNewRakontu(rakontu, member):
 	systemResources = Entry.all().filter("rakontu = ", None).filter("type = ", "resource").fetch(FETCH_NUMBER)
 	for resource in systemResources:
-		newResource = Entry(rakontu=rakontu, 
+		newResource = Entry(key_name=KeyName("entry"), 
+						rakontu=rakontu, 
 						type="resource",
-						title=systemResource.title,
-						text=systemResource.text,
-						text_format=systemResource.text_format,
-						text_formatted=systemResource.text_formatted,
+						title=resource.title,
+						text=resource.text,
+						text_format=resource.text_format,
+						text_formatted=resource.text_formatted,
 						creator=member,
 						draft=False,
 						inBatchEntryBuffer=False,
 						published=datetime.now(tz=pytz.utc),
-						resourceForHelpPage=systemResource.resourceForHelpPage,
-						resourceForNewMemberPage=systemResource.resourceForNewMemberPage,
-						resourceForManagersAndOwnersOnly=systemResource.resourceForManagersAndOwnersOnly,
+						resourceForHelpPage=resource.resourceForHelpPage,
+						resourceForNewMemberPage=resource.resourceForNewMemberPage,
+						resourceForManagersAndOwnersOnly=resource.resourceForManagersAndOwnersOnly,
 						resourceForAllNewRakontus=False,
 						)
 	 	newResource.put()
@@ -687,10 +702,10 @@ def upToWithLink(value, number, link):
 
 def MakeSomeFakeData():
 	user = users.get_current_user()
-	rakontu = Rakontu(name="Test rakontu", description="Test description")
+	rakontu = Rakontu(key_name=KeyName("rakontu"), name="Test rakontu", description="Test description")
 	rakontu.initializeFormattedTexts()
 	rakontu.put()
-	member = Member(googleAccountID=user.user_id(), googleAccountEmail=user.email(), nickname="Tester", rakontu=rakontu, governanceType="owner")
+	member = Member(key_name=KeyName("member"), googleAccountID=user.user_id(), googleAccountEmail=user.email(), nickname="Tester", rakontu=rakontu, governanceType="owner")
 	member.initialize()
 	member.put()
 	if user.email() != "test@example.com":
@@ -698,19 +713,19 @@ def MakeSomeFakeData():
 	else:
 		PendingMember(rakontu=rakontu, email="cfkurtz@cfkurtz.com").put()
 	PendingMember(rakontu=rakontu, email="admin@example.com").put()
-	RakontuCharacter(name="Little Bird", rakontu=rakontu).put()
-	RakontuCharacter(name="Old Coot", rakontu=rakontu).put()
-	RakontuCharacter(name="Blooming Idiot", rakontu=rakontu).put()
-	entry = Entry(rakontu=rakontu, type="story", creator=member, title="The dog", text="The dog sat on a log.", draft=False)
+	Character(name="Little Bird", rakontu=rakontu).put()
+	Character(name="Old Coot", rakontu=rakontu).put()
+	Character(name="Blooming Idiot", rakontu=rakontu).put()
+	entry = Entry(key_name=KeyName("entry"), rakontu=rakontu, type="story", creator=member, title="The dog", text="The dog sat on a log.", draft=False)
 	entry.put()
 	entry.publish()
-	annotation = Annotation(rakontu=rakontu, type="comment", creator=member, entry=entry, shortString="Great!", longString="Wonderful!", draft=False)
+	annotation = Annotation(key_name=KeyName("annotation"), rakontu=rakontu, type="comment", creator=member, entry=entry, shortString="Great!", longString="Wonderful!", draft=False)
 	annotation.put()
 	annotation.publish()
-	annotation = Annotation(rakontu=rakontu, type="comment", creator=member, entry=entry, shortString="Dumb", longString="Silly", draft=False)
+	annotation = Annotation(key_name=KeyName("annotation"), rakontu=rakontu, type="comment", creator=member, entry=entry, shortString="Dumb", longString="Silly", draft=False)
 	annotation.put()
 	annotation.publish()
-	entry = Entry(rakontu=rakontu, type="story", creator=member, title="The circus", text="I went the the circus. It was great.", draft=False)
+	entry = Entry(key_name=KeyName("entry"), rakontu=rakontu, type="story", creator=member, title="The circus", text="I went the the circus. It was great.", draft=False)
 	entry.put()
 	entry.publish()
 

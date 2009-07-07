@@ -4,8 +4,9 @@
 	{% include "../common_menus.html" %}
 		<div id="content">
 		
-		{% if current_member.isGuideOrManagerOrOwner %}
+		{% if current_member.isGuide %}
 	
+			{% if resources %}
 			<h3>Resources</h3>
 	      	<table border="1" cellpadding="4" cellspacing="0">
 	      	<tr>
@@ -15,7 +16,7 @@
 	      		<th>Help?</th>
 	      		<th>For new members?</th>
 	      		{% if current_member.isManagerOrOwner %}
-	      			<th>For managers/owners only?</th>
+	      			<th>For managers only?</th>
 	      		{% endif %}
 	      		<th>Created</th>
 	      		<th>Last changed</th>
@@ -41,10 +42,10 @@
 	  					<p>none</p>
 	  				{% endif %}
 					</td>
-					<td>{{resource.resourceForHelpPage|yesno:"yes, no"}}</td>
-					<td>{{resource.resourceForNewMemberPage|yesno:"yes, no"}}</td>
+					<td>{{resource.resourceForHelpPage|yesno:"YES, no"}}</td>
+					<td>{{resource.resourceForNewMemberPage|yesno:"YES, no"}}</td>
 					{% if current_member.isManagerOrOwner %}
-						<td>{{resource.resourceForManagersAndOwnersOnly|yesno:"yes, no"}}</td>
+						<td>{{resource.resourceForManagersAndOwnersOnly|yesno:"YES, no"}}</td>
 					{% endif %}
 					<td>{{resource.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 						<br/> {{resource.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
@@ -58,6 +59,13 @@
 	  				</tr>
 	      		{% endfor %}
 	      	</table>
+	      	{% else %}
+	      		<p>This Rakontu has no resources.<p>
+	      		<ul>
+	      		<li class="nobullet"><a href="/guide/resource">Make one</a></li>
+	      		<li class="nobullet"><a href="/guide/copySystemResourcesToRakontu">Create all default resources</a></li>
+	      		</ul>
+	      	{% endif %}
 			
 	{% else %}
 		<p>You are not a guide or manager of this Rakontu and cannot change its resources.

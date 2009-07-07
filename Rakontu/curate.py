@@ -155,7 +155,7 @@ class CurateGapsPage(webapp.RequestHandler):
 			if member.isCurator():
 				sortBy = self.request.query_string
 				if not sortBy:
-					sortBy = "activity"
+					sortBy = "date"
 				(entriesWithoutTags, \
 				entriesWithoutLinks, \
 				entriesWithoutAnswers, \

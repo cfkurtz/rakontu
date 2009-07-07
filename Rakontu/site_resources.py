@@ -296,7 +296,6 @@ existing entries. This is very useful if you want to maintain consistency in you
 and changing plurals (like "cats" to "cat") so that tags match up during searches. However, if your Rakontu is
 particularly large or widespread your managers may have decided not to allow this. Check your Curate menu
 to see if there is a Tags option there. If there isn't and you want one, ask a manager about it. 
-
 """]
 
 SYSTEM_GUIDE_RESOURCE = [u"How to be a guide", u"Wiki markup", False, # boolean is whether it is for managers/owners only
@@ -304,7 +303,40 @@ u"""
 Being a Rakontu guide means paying attention to the people side of things. Are people getting what they want out of it?
 Are they confused? Are they interested? Motivated? Contributing? People who are "people people" are good guides.
 
-CFK FINISH
+There are three main things guides do: answer questions, help people find their way around, and monitor responses.
+
+= Answering questions
+
+First: all guides must be willing to accept emails from the Rakontu and be listed on the Help page to answer
+questions people have about the Rakontu.
+
+When you become a guide, you should enter a paragraph or so into your preferences page that tells people
+what sorts of questions you can answer well. Perhaps you know a lot about the history of your community,
+or you are a "techie" and can help them with system problems, or you can help them write good stories.
+Writing a good *guide introduction* can help people find the answers they need, and it can help you
+avoid getting questions you can't answer or find boring. 
+
+= Helping people find their way around
+
+Rakontu guides are in charge of on-line help for Rakontu members. As a guide, you can 
+create and maintain *resources* that help people find their way around and contribute to your Rakontu
+in a positive way. For example,
+maintaining a frequently-asked-questions list about how your group works is a good way to help
+people who have questions like "What sorts of nicknames are people supposed to use?" and
+"How many shared search filters should I make?" and so on. A "news" resource that highlights the latest activity
+is also helpful. To review your resources, choose Resources from the Guide menu.
+
+= Monitoring responses
+
+There are two main types of response in Rakontu: telling a story in response to an invitation, and doing something
+in response to a request about a particular story (or other type of entry). For example, people might ask
+others to transcribe an audio story, read a written story out loud, translate a story into another language,
+and so on. As a guide, you will want to
+check on whether there are invitations or requests that have been "orphaned" and need some attention. 
+
+To review invitations or requests, choose one of these items in your Guide menu. You can either look only
+at invitations or requests with no reponses or all of them. For requests, you can mark them as completed
+if you see that they have been satisfied.
 """]
 
 SYSTEM_LIAISON_RESOURCE = [u"How to be a liaison", u"Wiki markup", False, # boolean is whether it is for managers/owners only

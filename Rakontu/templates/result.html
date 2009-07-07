@@ -33,6 +33,10 @@
 		<p>That entry was not found.</p>
 	{% endifequal %}
 	
+	{% ifequal message "attachmentsTooLarge" %}
+		<p>At least one of the attachment(s) you chose are too large. The entry was saved but (at least some of) the attachments were not.</p>
+	{% endifequal %}
+	
 	{% ifequal message "ownerCannotLeave" %}
 		<p>You are the only owner of this Rakontu. You can't leave it until
 		you designate at least one other member as an owner.</p.

@@ -79,10 +79,11 @@ application = webapp.WSGIApplication(
 									  # guiding
 									  ('/guide/', ReviewResourcesPage),
 									  ('/guide', ReviewResourcesPage),
-									  ('/guide/orphans', GuideOrphansPage),
-									  ('/guide/resource', EnterEntryPage),
-									  ('/guide/resources', ReviewResourcesPage),
+									  ('/guide/invitations', ReviewInvitationsPage),
 									  ('/guide/requests', ReviewRequestsPage),
+									  ('/guide/resources', ReviewResourcesPage),
+									  ('/guide/resource', EnterEntryPage),
+									  ('/guide/copySystemResourcesToRakontu', CopySystemResourcesPage),
 									  
 									  # liaising
 									  ('/liaise/', ReviewOfflineMembersPage),
@@ -110,8 +111,8 @@ application = webapp.WSGIApplication(
 									  ('/manage/questions_character', ManageRakontuQuestionsPage),
 									  ('/manage/questions_questions', ManageRakontuQuestionsPage),
 									  ('/manage/questionsToCSV', WriteQuestionsToCSVPage),
-									  ('/manage/characters', ManageRakontuCharactersPage),
-									  ('/manage/character', ManageRakontuCharacterPage),
+									  ('/manage/characters', ManageCharactersPage),
+									  ('/manage/character', ManageCharacterPage),
 									  ('/manage/technical', ManageRakontuTechnicalPage),
 									  ('/manage/inactivate', InactivateRakontuPage),
 									  ('/manage/export', ExportRakontuDataPage),

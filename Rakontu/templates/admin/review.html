@@ -14,6 +14,7 @@
 				<th>Name</th>
 				<th>Created</th>
 				<th>Last activity</th>
+				<th>AppRocket timestamp</th>
 				<th>Active members</th>
 				<th>Inactive members</th>
 				<th>Pending members (invitations)</th>
@@ -25,10 +26,17 @@
 	    	{% for rakontu in rakontus %}
 		    	<tr>
 		    	<td>{{rakontu.name}}</td>
-		    	<td>{{rakontu.created|timeZone:"UTC"|date:"F j, Y"}} (UTC)</td>
+		    	<td>{{rakontu.created|timeZone:"UTC"|date:"F j, Y"}} {{rakontu.created|timeZone:"UTC"|time:"h:i a"}} (UTC)</td>
 		    	<td>
 		    		{% if rakontu.lastPublish %}
-		    			{{rakontu.lastPublish|timeZone:"UTC"|date:"F j, Y"}} (UTC)
+		    			{{rakontu.lastPublish|timeZone:"UTC"|date:"F j, Y"}} {{rakontu.lastPublish|timeZone:"UTC"|time:"h:i a"}}  (UTC)
+		    		{% else %}
+		    			none
+		    		{% endif %}
+		    		</td>
+		    	<td>
+		    		{% if rakontu.appRocketTimeStamp %}
+		    			{{rakontu.appRocketTimeStamp|date:"F j, Y"}} {{rakontu.appRocketTimeStamp|time:"h:i a"}}  (UTC)
 		    		{% else %}
 		    			none
 		    		{% endif %}

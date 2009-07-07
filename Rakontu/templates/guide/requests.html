@@ -42,7 +42,9 @@
 	      	{% endif %}
       	{% endfor %}
       	
-    <center><input type="submit" name="submitChanges" value="Make selected changes" class="button"></center>
+    {% if have_requests %}
+    	<center><input type="submit" name="submitChanges" value="Make selected changes" class="button"></center>
+    {% endif %}
 	</form>
 	</div>
 	{% else %}
