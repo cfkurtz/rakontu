@@ -98,7 +98,7 @@ class StartPage(webapp.RequestHandler):
 		elif "createRakontu" in self.request.arguments():
 			self.redirect("/create")
 		elif "reviewAllRakontus" in self.request.arguments():
-			self.redirect("/admin/rakontus")
+			self.redirect("/admin/review")
 		elif "makeFakeData" in self.request.arguments():
 			MakeSomeFakeData()
 			self.redirect("/")

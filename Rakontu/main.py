@@ -121,7 +121,7 @@ application = webapp.WSGIApplication(
 									  # site admin
 									  ('/admin/', AdministerRakontusPage),
 									  ('/admin', AdministerRakontusPage),
-									  ('/admin/rakontus', AdministerRakontusPage),
+									  ('/admin/review', AdministerRakontusPage),
 									  ('/admin/generateSystemQuestions', GenerateSampleQuestionsPage),
 									  ('/admin/generateSystemResources', GenerateSystemResourcesPage),
 									  ('/admin/generateHelps', GenerateHelpsPage),

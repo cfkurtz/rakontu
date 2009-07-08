@@ -33,11 +33,11 @@ class AdministerRakontusPage(webapp.RequestHandler):
 				if "toggleActiveState|%s" % aRakontu.key() in self.request.arguments():
 					aRakontu.active = not aRakontu.active
 					aRakontu.put()
-					self.redirect('/admin/rakontus')
+					self.redirect('/admin/review')
 				elif "remove|%s" % aRakontu.key() in self.request.arguments():
 					aRakontu.removeAllDependents()
 					db.delete(aRakontu)
-					self.redirect('/admin/rakontus')
+					self.redirect('/admin/review')
 				elif "export|%s" % aRakontu.key() in self.request.arguments():
 					self.redirect("/manage/export?rakontu_id=%s" % aRakontu.key())
 		else:
