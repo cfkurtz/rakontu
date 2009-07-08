@@ -14,9 +14,11 @@ import re
 import csv
 import base64
 import uuid
+import sys
 
 VERSION_NUMBER = "0.9"
 
+sys.path.insert(0,'config')
 from site_configuration import *
 
 from google.appengine.ext import db

@@ -38,10 +38,10 @@ DEFAULT_TEXT_FORMAT = u"plain text"
 # ============================================================================================ 
 
 # Rakontu types. These affect which default questions (in default_questions.csv) 
-# are loaded when the Rakontu is created, as well as which sample questions (in sample_questions.csv)
+# are loaded when the Rakontu is created, as well as which sample questions (in config/sample_questions.csv)
 # are available later. The Rakontu creator chooses one of these when they
 # create the Rakontu. This gets saved in the Rakontu object in case of need later (but I am not otherwise using it).
-# These must EXACTLY match the labels on questions in the default_questions.csv and sample_questions.csv files.
+# These must EXACTLY match the labels on questions in the config/default_questions.csv and config/sample_questions.csv files.
 # The LAST of these choices must always be a custom choice where NO default questions are added.
 # If you want to remove this choice during Rakontu creation, reduce this list to only the last item
 # and the drop-down box won't appear.

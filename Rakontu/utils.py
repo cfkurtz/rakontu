@@ -14,7 +14,7 @@ import htmllib
 from models import *
 
 import sys
-sys.path.append("/Users/cfkurtz/Documents/personal/eclipse_workspace_kfsoft/Rakontu/lib/") 
+sys.path.insert(0,'lib')
 from appengine_utilities.sessions import Session
 
 from google.appengine.api import users
@@ -266,7 +266,7 @@ class ExportHandler(webapp.RequestHandler):
 
 def GenerateHelps():
 	db.delete(Help.all().fetch(FETCH_NUMBER))
-	file = open('help.csv')
+	file = open('config/help.csv')
 	helpStrings = csv.reader(file)
 	for row in helpStrings:
 		if len(row[0]) > 0 and row[0][0] != ";":
@@ -297,7 +297,6 @@ def ReadQuestionsFromFile(fileName, rakontu=None, rakontuType="ALL"):
 					typesOfRakontu = [x.strip() for x in row[8].split(",")]
 				else:
 					typesOfRakontu = RAKONTU_TYPES[:-1] # if no entry interpret as all except custom
-				logging.info(typesOfRakontu)
 			if rakontuType == "ALL" or rakontuType in typesOfRakontu:
 				refersTo = [x.strip() for x in row[0].split(",")]
 				for reference in refersTo:
@@ -345,13 +344,13 @@ def ReadQuestionsFromFile(fileName, rakontu=None, rakontuType="ALL"):
 	file.close()
 
 def GenerateSampleQuestions():
-	ReadQuestionsFromFile('sample_questions.csv')
+	ReadQuestionsFromFile('config/sample_questions.csv')
 	
 def GenerateDefaultQuestionsForRakontu(rakontu, type):
-	ReadQuestionsFromFile('default_questions.csv', rakontu, type)
+	ReadQuestionsFromFile('config/default_questions.csv', rakontu, type)
 	
 def GenerateDefaultCharactersForRakontu(rakontu):
-	file = open('default_characters.csv')
+	file = open('config/default_characters.csv')
 	questionStrings = csv.reader(file)
 	characters = []
 	for row in questionStrings:
@@ -360,7 +359,9 @@ def GenerateDefaultCharactersForRakontu(rakontu):
 			description = row[1]
 			etiquetteStatement = row[2]
 			imageFileName = row[3]
-			image = db.Blob(open(imageFileName).read())
+			fullImageFileName = "config/images/%s" % imageFileName
+			imageData = open(fullImageFileName).read()
+			image = db.Blob(imageData)
 			character = Character(
 							   key_name=KeyName("character"), 
 							   name=row[0],
