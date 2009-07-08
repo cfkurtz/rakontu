@@ -9,14 +9,65 @@
 <body>
 
 <h3>Installing Rakontu</h3>
+
 xxx
 
 <h3>Customizing your installation</h3>
-xxxx
+
+xxx
 
 
 <h3>Backup and restore using AppRocket</h3>
-xxx
+
+<p>AppRocket is an open source library that backs up and restores a Google App Engine datastore to/from a MySQL
+database. Using AppRocket you can keep a copy of your
+Rakontu database on your local machine in case of any problems, or you can do stuff with
+the data in SQL. </p>
+
+<p>To backup using AppRocket, do these things:</p>
+
+<ol>
+<li>Install a MySQL server on your local computer. Set up a user with a password for AppRocket to use.</li>
+<li>Edit the file <code>config.py</code> on your Rakontu GAE site so that it has the correct entries in the
+<code>MYSQL DATABASE CONFIGURATION</code> section of the file.
+<pre>
+# MYSQL DATABASE CONFIGURATION
+DATABASE_HOST = "localhost"
+DATABASE_NAME = "rakontu_or_whatever_you_want_to_call_it"
+DATABASE_USER = "approcket_or_whatever_you_want_to_call_it"
+DATABASE_PASSWORD = "whatever_you_set_the_approcket_password_to"
+</pre>
+</li>
+<li>Set the <code>CURRENT_MODE</code> constant in <code>config.py</code>
+to one of the modes listed in the file. (If you just want to backup, keep it as RECEIVE.)</li>
+<li>Make sure you have Python 2.5 or greater installed on your system. (To find out, type "python -V" at a command prompt.)</li>
+<li>Copy <code>rocket/station.py</code> from your GAE installation to a local machine.</li>
+<li>Start your MySQL server. Create an empty database called <code>rakontu</code> (or whatever you named it
+in your <code>config.py</code>). </li>
+<li>Run <code>station.py</code> with the PythonLauncher or within IDLE (these come with the
+Python distribution).</li>
+</ol>
+
+<p>To restore using AppRocket: Presumably you already did all the stuff in the backup section. Just edit <code>rocket/config.py</code> on 
+your GAE installation and change the mode to one that sends, then run <code>station.py</code>.</p>
+
+<p>Notes on using AppRocket:</p>
+<ul>
+<li>Two classes of object in the GAE datastore are <i>not</i> backed up to MySQL:
+Helps and Exports. Helps come from the system and can't be changed per community, and are 
+identical to what is in the "help.csv" file, so there is not much reason to back them up.
+Exports are only kept as temporary generations for download and can easily be created again.
+Also, some will be large enough to make MySQL choke. So these two classes are not downloaded.</li>
+
+<li>The AppRocket backup includes <i>inactivated</i> Rakontus, members, questions, and characters. 
+(Because so many things point to these objects, they are never removed, only made invisible.
+Entries, annotations, answers and links <i>are</i> removed, because otherwise the site could get bloated with "dead wood".)
+If for some reason you don't want anyone to see inactivated items, 
+be aware that they will be in the MySQL database. You can remove them by doing a query there
+on the "active" field and removing those with FALSE values.</li>
+
+</ul>
+
 
 </body>
 </html>

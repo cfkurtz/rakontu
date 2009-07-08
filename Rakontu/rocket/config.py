@@ -3,9 +3,9 @@ from consts import *
 # Replication URL - change this to URL corresponding your application
 ROCKET_URL = "http://localhost:8080/rocket"
 
-SECRET_KEY = "maizie"
+SECRET_KEY = "rakontu"
 
-CURRENT_MODE = SEND
+CURRENT_MODE = RECEIVE
 
 ROCKET_ENTITIES = {
 # Define entities that you want to be replicated here.
@@ -137,7 +137,7 @@ BATCH_SIZE = 150
 DATABASE_HOST = "localhost"
 DATABASE_NAME = "rakontu"
 DATABASE_USER = "approcket"
-DATABASE_PASSWORD = "maizie"
+DATABASE_PASSWORD = "approcket"
 DATABASE_PORT = 3306
 DATABASE_ENGINE = "InnoDB"
 
