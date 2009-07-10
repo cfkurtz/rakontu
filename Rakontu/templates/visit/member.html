@@ -7,7 +7,7 @@
 		<h3>Information about {{member.nickname}}</h3>
 		
 		{% if member.profileImage %}
-			<img src="img?member_id={{member.key}}"/>
+			{{member.imageEmbed}}
 		{% endif %}
 		<p>
 		{{member.nickname}}
@@ -50,7 +50,7 @@
 				<h4>Send this member a message {% if not member.isOnlineMember %} {{"messages_to_offline_members"|info}} {% endif %}</h4>
 				<fieldset>
 				<div id="stylized" class="rakontu_form">
-				<form action="/visit/member?{{member.key}}" method="post">
+				<form action="/{{dir_visit}}/{{url_member}}?{{member.key}}" method="post">
 				<p>Please give your message a subject line.</p>
 				<p><input type="text" name="subject" size="80" value="" maxlength="{{maxlength_subject_or_comment}}"/></p>
 				<p>Please enter your message here.</p>
@@ -65,10 +65,10 @@
   		{% include "../common_grid.html" %}
   		
       	{% ifequal member.key current_member.key %}
-      		<div class="rightalign"><p><a href="/visit/profile?{{member.key}}">Change your profile</a></p></div>
+      		<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_preferences}}?{{member.key}}">Change your profile</a></p></div>
       	{% endifequal %}
       	{% if current_member.isCurator %}
-      		<div class="rightalign"><p><a href="/visit/member?{{member.key}}&curate">Curate this member's entries</a></p></div>
+      		<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_member}}?{{member.key}}&{{url_curate}}">Curate this member's entries</a></p></div>
       	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}

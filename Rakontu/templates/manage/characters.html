@@ -6,7 +6,7 @@
 	
 		{% if current_member.isManagerOrOwner %}
 			<div id="stylized" class="rakontu_form">
-			<form action="/manage/characters" method="post" enctype="multipart/form-data">
+			<form action="/{{dir_manage}}/{{url_characters}}" method="post" enctype="multipart/form-data">
 			<h3>Add new characters{{"adding_new_characters"|tip}}</h3>
 			<fieldset>
 			<div><textarea name="newCharacterNames" rows="6" cols="40"></textarea></div>
@@ -26,12 +26,12 @@
 		  				<tr>
 		  				<td>
 		  					{{ character.name }}<br/>
-		  					<a href="/visit/character?{{character.key}}">(View character page)</a>
-		  					<br/><a href="/manage/character?{{character.key}}">(Change character)</a>
+		  					<a href="/{{dir_visit}}/{{url_character}}?{{character.key}}">(View character page)</a>
+		  					<br/><a href="/{{dir_manage}}/{{url_character}}?{{character.key}}">(Change character)</a>
 		  				</td>
 		  				<td width="80" valign="top">
 				 		{% if character.image %}
-							<img src="/visit/img?character_id={{character.key}}">
+				 			{{character.imageEmbed}}
 						{% else %}
 							none
 						{% endif %}

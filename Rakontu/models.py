@@ -14,12 +14,10 @@ import re
 import csv
 import base64
 import uuid
-import sys
 
 VERSION_NUMBER = "0.9"
 
-sys.path.insert(0,'config')
-from site_configuration import *
+from translationLookup import *
 
 from google.appengine.ext import db
 
@@ -51,48 +49,6 @@ def CleanUpCSV(parts):
 
 def caseInsensitiveFind(text, searchFor):
 	return text.lower().find(searchFor.lower()) >= 0
-
-DEVELOPMENT = True
-FETCH_NUMBER = 1000
-
-DATE_TIME_CSV_FORMAT = "%Y%m%dT%H%M%S"
-
-MEMBER_TYPES = ["member", "on-line member", "off-line member", "liaison", "curator", "guide", "manager", "owner"]
-HELPING_ROLE_TYPES = ["curator", "guide", "liaison"]
-GOVERNANCE_ROLE_TYPES = ["member", "manager", "owner"]
-
-EVENT_TYPES = ["downdrift", \
-			"reading", "adding story", "adding pattern", "adding collage", "adding invitation", "adding resource", \
-			"adding retold link", "adding reminded link", "adding related link", "adding included link", "adding responded link", "adding referenced link", \
-			"answering question", "adding tag set", "adding comment", "adding request", "adding nudge"]
-
-
-ENTRY_TYPES = ["story", "invitation", "collage", "pattern", "resource"]
-ENTRY_TYPES_PLURAL = ["stories", "invitations", "collages", "patterns", "resources"]
-LINK_TYPES = ["retold", "reminded", "responded", "related", "included", "referenced"]
-
-ANNOTATION_TYPES = ["tag set", "comment", "request", "nudge"]
-ANNOTATION_TYPES_URLS = ["tagset", "comment", "request", "nudge"]
-ENTRY_AND_ANNOTATION_TYPES = ["story", "pattern", "collage", "invitation", "resource", "answer", "tag set", "comment", "request", "nudge"]
-ENTRY_AND_ANNOTATION_TYPES_URLS = ["story", "pattern", "collage", "invitation", "resource", "answer", "tagset", "comment", "request", "nudge"]
-STORY_ENTRY_TYPE_INDEX = 0
-ANSWERS_ENTRY_TYPE_INDEX = 5
-
-TIME_UNIT_STRINGS = {"minute": MINUTE_SECONDS, 
-					"hour": HOUR_SECONDS,
-					"day": DAY_SECONDS,
-					"week": WEEK_SECONDS,
-					"month": MONTH_SECONDS,
-					"year": YEAR_SECONDS,}
-
-NUM_QUESTION_REFERS_TO = 7
-QUESTION_REFERS_TO = ["story", "pattern", "collage", "invitation", "resource", "member", "character"]
-QUESTION_REFERS_TO_PLURAL = ["stories", "patterns", "collages", "invitations", "resources", "members", "characters"]
-QUESTION_TYPES = ["boolean", "text", "ordinal", "nominal", "value"]
-
-ANY_ALL = ["any", "all"]
-SEARCH_LOCATIONS = ["in the title", "in the text", "in a comment", "in a request", "in a nudge comment", "in a link comment"]
-ANSWER_COMPARISON_TYPES = ["contains", "is", "is greater than", "is less than"]
 
 # from http://www.letsyouandhimfight.com/2008/04/12/time-zones-in-google-app-engine/
 # with a few changes
@@ -199,18 +155,11 @@ class Rakontu(db.Model):
 	
 	def allowsFiveAttachments(self):
 		return self.maxNumAttachments == 5
+		
+	# DISPLAY
 	
-	def maxNumAttachmentsAsText(self):
-		if self.maxNumAttachments == 1:
-			return "one"
-		elif self.maxNumAttachments == 2:
-			return "two"
-		elif self.maxNumAttachments == 3:
-			return "three"
-		elif self.maxNumAttachments == 4:
-			return "four"
-		elif self.maxNumAttachments == 5:
-			return "five"
+	def imageEmbed(self):
+		return '<img src="/%s/%s?rakontu_id=%s" class="bordered">' % (DIRS["dir_visit"], URLS["url_image"], self.key())
 	
 	# MEMBERS
 	
@@ -662,7 +611,7 @@ class Rakontu(db.Model):
 									type = row[2].strip()
 								else:
 									type = None
-								typeOkay = type in ENTRY_TYPES
+								typeOkay = type in ENTRY_TYPES # NOTE: does not allow translated name
 								if type and typeOkay:
 									if len(row) >= 4:
 										title = row[3].strip()
@@ -713,7 +662,7 @@ class Rakontu(db.Model):
 							entriesToInclude.append(entry)
 					if entriesToInclude:
 						questions = self.getActiveQuestionsOfType(type)
-						exportText += '\n%s\nNumber,Title,Contributor,' % ENTRY_TYPES_PLURAL[typeCount].upper()
+						exportText += '\n%s\nNumber,Title,Contributor,' % ENTRY_TYPES_PLURAL_DISPLAY[typeCount].upper()
 						for question in questions:
 							exportText += question.name + ","
 						for question in memberQuestions:
@@ -740,7 +689,7 @@ class Rakontu(db.Model):
 				entries = self.getNonDraftEntriesOfType(type)
 				if entries:
 					questions = self.getActiveQuestionsOfType(type)
-					exportText += '%s\nNumber,Title,Contributor,' % ENTRY_TYPES_PLURAL[typeCount].upper()
+					exportText += '%s\nNumber,Title,Contributor,' % ENTRY_TYPES_PLURAL_DISPLAY[typeCount].upper()
 					for question in questions:
 						exportText += question.name + ","
 					for question in memberQuestions:
@@ -1004,7 +953,7 @@ class Member(db.Model):
 	def setViewTimeFrameFromTimeFrameString(self, frame):
 		for aFrame, seconds in TIME_FRAMES:
 			if frame == aFrame:
-				if aFrame == TIME_FRAME_EVERYTHING_STRING:
+				if aFrame == TIMEFRAME_EVERYTHING:
 					self.viewTimeEnd = datetime.now(tz=pytz.utc)
 					self.viewTimeFrameInSeconds = (self.viewTimeEnd - self.rakontu.firstPublishOrCreatedWhicheverExists()).seconds \
 						+ (self.viewTimeEnd - self.rakontu.firstPublishOrCreatedWhicheverExists()).days * DAY_SECONDS
@@ -1017,7 +966,7 @@ class Member(db.Model):
 		for aFrame, seconds in TIME_FRAMES:
 			if self.viewTimeFrameInSeconds == seconds:
 				return aFrame
-		return TIME_FRAME_EVERYTHING_STRING
+		return TIMEFRAME_EVERYTHING
 			
 	def setTimeFrameToStartAtFirstPublish(self):
 		self.viewTimeEnd = self.rakontu.firstPublish + timedelta(seconds=self.viewTimeFrameInSeconds)
@@ -1085,7 +1034,10 @@ class Member(db.Model):
 			offlineImageString = ""
 		else:
 			offlineImageString = '<img src="/images/offline.png" alt="offline member">'
-		return '%s <a href="member?%s">%s</a>' % (offlineImageString, self.key(), self.nickname)
+		return '%s <a href="/%s/%s?%s">%s</a>' % (offlineImageString, DIRS["dir_visit"], URLS["url_member"], self.key(), self.nickname)
+	
+	def imageEmbed(self):
+		return '<img src="/%s/%s?member_id=%s">' % (DIRS["dir_visit"], URLS["url_image"], self.key())
 	
 	def getSavedSearches(self):
 		return SavedSearch.all().filter("creator = ", self.key()).fetch(FETCH_NUMBER)
@@ -1146,7 +1098,10 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 		return Answer.all().filter("character = ", self.key()).filter("draft = ", False).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
 
 	def linkString(self):
-		return '<a href="/visit/character?%s">%s</a>' % (self.key(), self.name)
+		return '<a href="/%s/%s?%s">%s</a>' % (DIRS["dir_visit"], URLS["url_character"], self.key(), self.name)
+	
+	def imageEmbed(self):
+		return '<img src="/%s/%s?character_id=%s">' % (DIRS["dir_visit"], URLS["url_image"], self.key())
 		
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
@@ -1165,7 +1120,7 @@ class SavedSearch(db.Model):
 	creator = db.ReferenceProperty(Member, required=True, collection_name="searches_to_member")
 	private = db.BooleanProperty(default=True)
 	created = TzDateTimeProperty(auto_now_add=True)
-	name = db.StringProperty(default="Untitled search")
+	name = db.StringProperty(default=DEFAULT_SEARCH_NAME)
 	# the type is mainly to make it display in a list of entries, but it may be useful later anyway
 	type = db.StringProperty(default="search filter") 
 	
@@ -1191,7 +1146,7 @@ class SavedSearch(db.Model):
 
 	def copyDataFromOtherSearchAndPut(self, search):
 		self.private = True
-		self.name = "Copy of " + search.name
+		self.name = "%s %s" % (TERMFOR_COPYOF, search.name)
 		self.entryTypes = []
 		self.entryTypes.extend(search.entrytTypes)
 		self.words_anyOrAll = search.words_anyOrAll
@@ -1253,23 +1208,23 @@ class SavedSearch(db.Model):
 	# LINKING TO PATTERNS
 		
 	def linkString(self):
-		return '<a href="/visit/home?%s">%s</a>' % (self.key(), self.name)
+		return '<a href="?%s">%s</a>' % (HOME, self.key(), self.name)
 	
 	def shortFormattedText(self):
 		result = ""
 		if self.words:
-			result += '<p>%s of the words "%s"</p>' % (self.words_anyOrAll, ",".join(self.words))
+			result += '<p>%s %s "%s"</p>' % (self.words_anyOrAll, TERMFOR_OFTHEWORDS, ",".join(self.words))
 		if self.tags:
-			result += '<p>%s of the tags"%s"</p>' % (self.tags_anyOrAll, ",".join(self.tags))
+			result += '<p>%s %s "%s"</p>' % (self.tags_anyOrAll, TERMFOR_OFTHETAGS, ",".join(self.tags))
 		entryRefs = self.getEntryQuestionRefs()
 		if entryRefs:
-			result += "<p>%s of the entry questions " % self.answers_anyOrAll
+			result += "<p>%s %s " % (self.answers_anyOrAll, TERMFOR_OFTHEENTRYQUESTIONS)
 			for ref in entryRefs:
 				result += '%s %s ' % (ref.question.text, ref.answer)
 			result += "</p>"
 		creatorRefs = self.getCreatorQuestionRefs()
 		if creatorRefs:
-			result += "<p>%s of the creator questions " % self.creatorAnswers_anyOrAll
+			result += "<p>%s %s " % (self.creatorAnswers_anyOrAll, TERMFOR_OFTHECREATORQUESTIONS)
 			for ref in creatorRefs:
 				result += ' %s %s ' % (ref.question.text, ref.answer)
 			result += "</p>"
@@ -1405,8 +1360,8 @@ class Answer(db.Model):
 		return "%s for %s" % (self.linkStringWithQuestionText(), self.referent.linkString())
 	
 	def PrintText(self):
-		return '<p>The question "%s" was answered "%s" by %s.</p><hr>' \
-			% (self.question.text, self.displayStringShort(), self.memberNickNameOrCharacterName())
+		return '<p>%s %s "%s" "%s".</p><hr>' \
+			% (self.memberNickNameOrCharacterName(), TERMFOR_ANSWEREDTHEQUESTION, self.question.text, self.displayStringShort())
 		
 	# ATTRIBUTION
 	
@@ -1894,7 +1849,13 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		return self.title
 	
 	def linkString(self):
-		return '<a href="/visit/read?%s">%s</a>' % (self.key(), self.title)
+		return '<a href="/%s/%s?%s">%s</a>' % (DIRS["dir_visit"], URLS["url_read"], self.key(), self.title)
+	
+	def typeAsURL(self):
+		return URLForEntryType(self.type)
+	
+	def typeForDisplay(self):
+		return DisplayTypeForEntryType(self.type)
 	
 	def getTooltipText(self):
 		if self.text_formatted:
@@ -2054,7 +2015,7 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 		return'<img src="/images/link.png" alt="link" border="0">'
 	
 	def displayString(self):
-		result = '%s, %s' % (self.itemTo.linkString(), self.type)
+		result = '%s, %s' % (self.itemTo.linkString(), DisplayTypeForLinkType(self.type))
 		if self.comment:
 			result += ", (%s)" % self.comment
 		return result
@@ -2083,10 +2044,16 @@ class Attachment(db.Model):								   # binary attachments to entries
 	entry = db.ReferenceProperty(Entry, collection_name="attachments")
 	
 	def linkString(self):
-		return '<a href="/visit/attachment?attachment_id=%s">%s</a>' % (self.key(), self.fileName)
+		return '<a href="/%s/%s?attachment_id=%s">%s</a>' % (DIRS["dir_visit"], URLS["url_attachment"], self.key(), self.fileName)
 	
 	def isImage(self):
 		return self.mimeType == "image/jpeg" or self.mimeType == "image/png"
+	
+	def ImageEmbed(self):
+		return '<img src="/%s/%s?attachment_id=%s">' % (DIRS["dir_visit"], URLS["url_image"], self.key())
+	
+	def AttachmentEmbed(self):
+		return '<a href="/%s?attachment_id=%s">%s</a>' %(URLS["url_attachment"], self.key(), self.fileName)
 	
 # ============================================================================================
 # ============================================================================================
@@ -2192,9 +2159,10 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 	# DISPLAY
 		
 	def typeAsURL(self):
-		if self.type != "tag set":
-			return self.type
-		return "tagset"
+		return URLForAnnotationType(self.type)
+	
+	def typeForDisplay(self):
+		return DisplayTypeForAnnotationType(self.type)
 	
 	def displayString(self, includeType=True):
 		if self.type == "comment":
@@ -2237,15 +2205,15 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 	
 	def PrintText(self):
 		if self.isCommentOrRequest():
-			return '<p>%s entered the %s labeled "%s" of <div style="padding: 0px 16px 0px 16px;">%s</div></p><hr>\n\n' % \
-				(self.memberNickNameOrCharacterName(), self.type, self.shortString, self.longString_formatted)
+			return '<p>%s "%s" (%s)<div style="padding: 0px 16px 0px 16px;">%s</div></p><hr>\n\n' % \
+				(DisplayTypeForAnnotationType(self.type), self.shortString, self.memberNickNameOrCharacterName(), self.longString_formatted)
 		else:
-			return '<p>A %s of "%s" was entered by %s.</p><hr>\n\n' % \
+			return '<p>%s "%s" (%s)</p><hr>\n\n' % \
 				(self.type, self.displayString(), self.memberNickNameOrCharacterName())
 		
 	def linkString(self):
 		if self.type == "comment" or self.type == "request":
-			return '<a href="/visit/readAnnotation?%s">%s</a>' % (self.key(), self.shortString)
+			return '<a href="/%s/%s?%s">%s</a>' % (DIRS["dir_visit"], URLS["url_read_annotation"], self.key(), self.shortString)
 		else:
 			return self.displayString()
 		

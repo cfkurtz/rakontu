@@ -5,7 +5,7 @@
 	<div id="content">
 	{% if current_member.isCuratorOrManagerOrOwner %}
 		<div id="stylized" class="rakontu_form">
-		<form action="/curate/flags" method="post">
+		<form action="/{{dir_curate}}/{{url_flags}}" method="post">
 			{% if current_member.isManagerOrOwner %}
 				<p>You are a{% if current_member.isOwner %}n{% endif %} 
 				<b>{{current_member.governanceType}}</b> of this Rakontu, so you can remove any item
@@ -32,8 +32,8 @@
 	  					<input type="checkbox" name="unflag|{{entry.key}}" value="yes" id="unflag|{{entry.key}}"/>
 						<label for="unflag|{{entry.key}}">Unflag</label>
 	  				</td>	  				
-	  				<td><a href="/visit/read?{{entry.key}}">{{entry.title}}</a></td>
-	  				<td>{{entry.type}}</td>
+	  				<td>{{entry.linkString}}</td>
+	  				<td>{{entry.typeForDisplay}}</td>
 	  				<td>
 	  				{% for link in entry.getIncomingLinks %}
 	  					<p>{{link.linkStringWithFromItem}}</p>
@@ -43,7 +43,7 @@
 	  				<td>
 						{% if entry.attributedToMember %}
 								{% if entry.creator.active %}
-									<a href="member?{{entry.creator.key}}">{{entry.creator.nickname}}</a>
+									{{entry.creator.linkString}}
 									{% ifequal entry.creator.key current_member.key %}
 										 (you)
 									{% endifequal %}
@@ -52,7 +52,7 @@
 								{% endif %}
 						{% else %}
 							{% if entry.character.active %}
-								<a href="character?{{entry.character.key}}">{{entry.character.name}}</a>
+								{{entry.character.linkString}}
 							{% else %}
 								the former character "{{entry.character.name}}"
 							{% endif %}
@@ -93,8 +93,8 @@
 	  					<input type="checkbox" name="unflag|{{annotation.key}}" value="yes" id="unflag|{{annotation.key}}"/>
 						<label for="unflag|{{annotation.key}}">Unflag</label>
 	  				</td>	  				
-	  				<td><a href="/visit/read?{{annotation.entry.key}}">{{annotation.entry.title}}</td>
-	  				<td>{{annotation.type}}</td>
+	  				<td>{{annotation.entry.linkString}}</td>
+	  				<td>{{annotation.typeForDisplay}}</td>
 	  				<td>
 	  				{% if annotation.isComment or annotation.isRequest %}
 	  					{{annotation.linkString|orNbsp}}
@@ -111,7 +111,7 @@
 	  				<td>
 						{% if annotation.attributedToMember %}
 								{% if annotation.creator.active %}
-									<a href="member?{{annotation.creator.key}}">{{annotation.creator.nickname}}</a>
+									{{annotation.creator.linkString}}
 									{% ifequal annotation.creator.key current_member.key %}
 										 (you)
 									{% endifequal %}
@@ -119,7 +119,7 @@
 									the former member "{{annotation.creator.nickname}}"
 								{% endif %}
 						{% else %}
-							<a href="character?{{annotation.character.key}}">{{annotation.character.name}}</a>
+							{{annotation.character.linkString}}
 						{% endif %}
 	  				</td>
 	  				<td>
@@ -155,13 +155,13 @@
 	  					<input type="checkbox" name="unflag|{{answer.key}}" value="yes" id="unflag|{{answer.key}}"/>
 						<label for="unflag|{{answer.key}}">Unflag</label>
 	  				</td>	  				
-	  				<td><a href="/visit/read?{{answer.referent.key}}">{{answer.referent.title}}</td>
+	  				<td>{{answer.referent.linkString}}</td>
 	  				<td>{{answer.question.text}}</td>
 	  				<td>{{answer.displayStringShort}}</td>
 	  				<td>
 						{% if answer.attributedToMember %}
 								{% if answer.creator.active %}
-									<a href="member?{{answer.creator.key}}">{{answer.creator.nickname}}</a>
+									{{answer.creator.linkString}}
 									{% ifequal answer.creator.key current_member.key %}
 										 (you)
 									{% endifequal %}
@@ -169,7 +169,7 @@
 									the former member "{{answer.creator.nickname}}"
 								{% endif %}
 						{% else %}
-							<a href="character?{{answer.character.key}}">{{answer.character.name}}</a>
+							{{answer.character.linkString}}
 						{% endif %}
 	  				</td>
 	  				<td>
@@ -255,7 +255,7 @@
 	  					<input type="checkbox" name="unflag|{{search.key}}" value="yes" id="unflag|{{search.key}}"/>
 						<label for="unflag|{{search.key}}">Unflag</label>
 	  				</td>	  				
-	  				<td><a href="/visit/home?{{search.key}}">{{search.name}}</a></td>
+	  				<td>{{search.linkString}}</td>
 	  				<td>
 	  				{% for link in search.getIncomingLinks %}
 	  					<p>{{link.linkStringWithFromItem}}</p>
@@ -264,7 +264,7 @@
 			      	<td>
 			      		{% for i in entry_types|makeRangeFromListLength %}
 			      			{% if search.entryTypes|listLookup:i %}
-			      				{{entry_types|listLookup:i}}<br/>
+			      				{{entry_types_display|listLookup:i}}<br/>
 			      			{% endif %}
 			      		{% endfor %}&nbsp;
 			      		</td>
@@ -273,7 +273,7 @@
 			      			{{search.words_anyOrAll}} of {{search.words|join:", "}} <br/>
 				      		{% for i in search_locations|makeRangeFromListLength %}
 				      			{% if search.words_locations|listLookup:i %}
-				      				{{search_locations|listLookup:i}}<br/>
+				      				{{search_locations_display|listLookup:i}}<br/>
 				      			{% endif %}
 				      		{% endfor %}
 			      		{% else %}

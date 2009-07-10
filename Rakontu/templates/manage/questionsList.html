@@ -7,15 +7,15 @@
 	{% if current_member.isManagerOrOwner %}
 
 		{% for i in num_types|makeRange %}
-			<h3>Questions about {{refer_types_plural|listLookup:i}}</h3>
+			<h3>Questions about {{refer_types_plural_display|listLookup:i}}</h3>
       		<ul>
       		{% if counts|listLookup:i %}
 	      		{% for questionAndCount in counts|listLookup:i %}
 	      			<li class="nobullet">{{questionAndCount|listLookup:0}} ({{questionAndCount|listLookup:1}} responses)</li>
 	      		{% endfor %}
-	      		<li class="nobullet"><a href="/manage/questions_{{refer_types|listLookup:i}}">Change these questions</a></li>
+	      		<li class="nobullet"><a href="/{{dir_manage}}/{{url_questions}}_{{refer_types_urls|listLookup:i}}">Change these questions</a></li>
 	      	{% else %}
-	      		<li class="nobullet">none - <a href="/manage/questions_{{refer_types|listLookup:i}}">Add some</a></li>
+	      		<li class="nobullet">none - <a href="/{{dir_manage}}/{{url_questions}}_{{refer_types_urls|listLookup:i}}">Add some</a></li>
 	      	{% endif %}
       		</ul>
       	{% endfor %}

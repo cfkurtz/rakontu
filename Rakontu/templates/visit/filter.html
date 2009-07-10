@@ -36,20 +36,20 @@
 		<tr><td class="noborder">
 		<textarea name="comment" rows="4" cols="60">{% if current_search %}{{current_search.comment}}{% endif %}</textarea>
 		</td><td class="noborder" width="80">
-		<p>Interpret as</p>
-			<select name="text_format">
-			{% for format in text_formats %}
-				<option value="{{format}}" 
+		<p>Interpret as{{"interpreting_texts"|tip}}</p>
+			<select name="comment_format">
+			{% for i in text_formats|makeRangeFromListLength %}
+				<option value="{{text_formats|listLookup:i}}" 
 				{% if current_search %}
-					{% ifequal current_search.comment_format format %}
+					{% if text_formats|listLookup:i|equalTest:current_search.comment_format %}
 						selected="selected"
-					{% endifequal %}
+					{% endif %}
 				{% else %}
-					{% ifequal current_member.preferredTextFormat format %}
+					{% if text_formats|listLookup:i|equalTest:current_member.preferredTextFormat %}
 						selected="selected"
-					{% endifequal %}
+					{% endif %}
 				{% endif %}
-				>{{format}}</option>
+				>{{text_formats_display|listLookup:i}}</option>
 			{% endfor %}
 			</select>
 		</td></tr></table>
@@ -71,19 +71,19 @@
 					{% endifequal %}
 				{% endif %}
 				>
-				<label for="{{entry_types|listLookup:i}}">{{entry_types_plural|listLookup:i}}</label>&nbsp; 
+				<label for="{{entry_types|listLookup:i}}">{{entry_types_plural_display|listLookup:i}}</label>&nbsp; 
 			{% endfor %}
 			{{"filter_entry_types"|tip}}</p>
 		<p>&nbsp; &nbsp; with
 		<select name="overall_anyOrAll"
-		{% for choice in any_or_all_choices %}
-			<option value="{{choice}}"
+		{% for i in any_or_all_choices|makeRangeFromListLength %}
+			<option value="{{any_or_all_choices|listLookup:i}}"
 			{% if current_search %}
-				{% ifequal current_search.overall_anyOrAll choice %}
+				{% if any_or_all_choices|listLookup:i|equalTest:current_search.overall_anyOrAll %}
 					selected="selected"
-				{% endifequal %}
+				{% endif %}
 			{% endif %}
-			>{{choice}}</option>
+			>{{any_or_all_choices_display|listLookup:i}}</option>
 		{% endfor %}
 		</select>
 		of the following selection criteria:</p>
@@ -91,14 +91,14 @@
 		
 		<p> 
 		<select name="words_anyOrAll">
-		{% for choice in any_or_all_choices %}
-			<option value="{{choice}}"
+		{% for i in any_or_all_choices|makeRangeFromListLength %}
+			<option value="{{any_or_all_choices|listLookup:i}}"
 			{% if current_search %}
-				{% ifequal current_search.words_anyOrAll choice %}
+				{% if any_or_all_choices|listLookup:i|equalTest:current_search.words_anyOrAll %}
 					selected="selected"
-				{% endifequal %}
+				{% endif %}
 			{% endif %}
-			>{{choice}}</option>
+			>{{any_or_all_choices_display|listLookup:i}}</option>
 		{% endfor %}
 		</select>
 		of these words or phrases:
@@ -123,21 +123,21 @@
 				{% endifequal %}
 			{% endif %}
 			>
-			<label for="location|{{i}}">{{search_locations|listLookup:i}}</label>&nbsp; &nbsp; 
+			<label for="location|{{i}}">{{search_locations_display|listLookup:i}}</label>&nbsp; &nbsp; 
 		{% endfor %}
 		{{"filter_word_locations"|tip}}</p>
 		
 		<hr>
 		<p>
 		<select name="tags_anyOrAll">
-		{% for choice in any_or_all_choices %}
-			<option value="{{choice}}"
+		{% for i in any_or_all_choices|makeRangeFromListLength %}
+			<option value="{{any_or_all_choices|listLookup:i}}"
 			{% if current_search %}
-				{% ifequal current_search.tags_anyOrAll choice %}
+				{% if any_or_all_choices|listLookup:i|equalTest:current_search.tags_anyOrAll %}
 					selected="selected"
-				{% endifequal %}
+				{% endif %}
 			{% endif %}
-			>{{choice}}</option>
+			>{{any_or_all_choices_display|listLookup:i}}</option>
 		{% endfor %}
 		</select>
 		of these tags:
@@ -154,12 +154,14 @@
 			<hr>
 			<p>
 			<select name="{{search_dict|dictLookup:"result_preface"}}|anyOrAll">
-			{% for choice in any_or_all_choices %}
-				<option value="{{choice}}"
-				{% ifequal search_dict|dictLookup:"anyOrAll" choice %}
-					selected="selected"
-				{% endifequal %}
-				>{{choice}}</option>
+			{% for i in any_or_all_choices|makeRangeFromListLength %}
+				<option value="{{any_or_all_choices|listLookup:i}}"
+				{% if current_search %}
+					{% if any_or_all_choices|listLookup:i|equalTest:search_dict|dictLookup:"anyOrAll" %}
+						selected="selected"
+					{% endif %}
+				{% endif %}
+				>{{any_or_all_choices_display|listLookup:i}}</option>
 			{% endfor %}
 			</select> {{search_dict|dictLookup:"afterAnyText"}}<br/>
 			{% for i in num_search_fields|makeRange %} 
@@ -218,16 +220,16 @@
 				{% endfor %} {# question list #}
 				</select>
 				<select name="{{search_dict|dictLookup:"result_preface"}}|comparison|{{i}}"><option></option>
-				{% for choice in answer_comparison_types %}
+				{% for t in answer_comparison_types|makeRangeFromListLength %}
 					<option value="{{choice}}"
 					{% for ref in search_dict|dictLookup:"references" %}
 						{% ifequal ref.order i %}
-							{% ifequal ref.comparison choice %}
+							{% if answer_comparison_types|listLookup:t|equalTest:ref.comparison %}
 								selected="selected"
-							{% endifequal %}
+							{% endif %}
 						{% endifequal %}
 					{% endfor %}
-					>{{choice}}</option>
+					>{{answer_comparison_types_display|listLookup:t}}</option>
 				{% endfor %} {# num_search_fields #}
 				</select>
 				<input type="text" name="{{search_dict|dictLookup:"result_preface"}}|answer|{{i}}" 

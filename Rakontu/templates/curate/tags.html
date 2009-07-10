@@ -5,14 +5,14 @@
 	<div id="content">
 	{% if current_member.canEditTags %}
 		<div id="stylized" class="rakontu_form">
-		<form action="/curate/tags" method="post">
+		<form action="/{{dir_curate}}/{{url_tags}}" method="post">
 			
 			<h3>Change tags on entries{{"changing_tags_on_entries"|caution}}</h3>
 			{% if tag_sets %}
 				<fieldset>
 				{% for tag_set in tag_sets %}
 					<p>
-						<a href="/visit/flag?{{tag_set.key}}" class="image"><img src="../images/
+						<a href="/{{dir_visit}}/{{url_flag}}?{{tag_set.key}}" class="image"><img src="../images/
 						{% if tag_set.flaggedForRemoval %}
 							flag_red.png
 						{% else %}
@@ -23,7 +23,7 @@
 						<input type="text" name="tag{{i}}|{{tag_set.key}}" size="15" 
 						value="{{tag_set.tagsIfTagSet|listLookup:i|orNothing}}" maxlength="{{maxlength_tag_or_choice}}"/>&nbsp; 
 					{% endfor %}
-					<a href="/visit/read?{{tag_set.entry.key}}">{{tag_set.entry.title}}</a>
+					{{tag_set.entry.linkString}}
 					</p>
 				{% endfor %}
 				</fieldset>

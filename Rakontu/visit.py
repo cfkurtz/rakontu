@@ -27,9 +27,9 @@ class StartPage(webapp.RequestHandler):
 					rakontusTheyAreInvitedTo.append(pendingMember.rakontu)
 				except:
 					pass # if can't link to rakontu don't use it
+				
 		template_values = GetStandardTemplateDictionaryAndAddMore({
 						   'title': None,
-						   'title_extra': None,
 						   'user': user, 
 						   'rakontus_member_of': rakontusTheyAreAMemberOf,
 						   'rakontus_invited_to': rakontusTheyAreInvitedTo,
@@ -45,7 +45,7 @@ class StartPage(webapp.RequestHandler):
 		if not users.is_current_user_admin():
 			password = self.request.get("entryPassword")
 			if not password == "testingRakontu":
-				self.redirect("/")
+				self.redirect(START)
 				return
 		if "visitRakontu" in self.request.arguments():
 			rakontu_key = self.request.get('rakontu_key')
@@ -63,16 +63,16 @@ class StartPage(webapp.RequestHandler):
 							if not rakontu.firstVisit:
 								rakontu.firstVisit = datetime.now(tz=pytz.utc)
 								rakontu.put()
-								self.redirect('/manage/first')
+								self.redirect(BuildURL("dir_manage", "url_first"))
 							else:
-								self.redirect('/visit/home')
+								self.redirect(HOME)
 						else:
 							matchingMember.active = True
 							matchingMember.put()
 							pendingMember = PendingMember.all().filter("rakontu = ", rakontu.key()).filter("email = ", user.email()).get()
 							if pendingMember:
 								db.delete(pendingMember)
-							self.redirect("/visit/new")
+							self.redirect(BuildURL("dir_visit", "url_new"))
 					else:
 						pendingMember = PendingMember.all().filter("rakontu = ", rakontu.key()).filter("email = ", user.email()).get()
 						if pendingMember:
@@ -88,29 +88,29 @@ class StartPage(webapp.RequestHandler):
 							newMember.put()
 							db.delete(pendingMember)
 							session['member_key'] = newMember.key()
-							self.redirect("/visit/new")
+							self.redirect(BuildURL("dir_visit", "url_new"))
 						else:
-							self.redirect('/')
+							self.redirect(START)
 				else:
-					self.redirect('/')
+					self.redirect(START)
 			else:
-				self.redirect('/')
+				self.redirect(START)
 		elif "createRakontu" in self.request.arguments():
-			self.redirect("/create")
+			self.redirect(BuildURL(None, "url_create"))
 		elif "reviewAllRakontus" in self.request.arguments():
-			self.redirect("/admin/review")
+			self.redirect(BuildURL("dir_admin", "url_review"))
 		elif "makeFakeData" in self.request.arguments():
 			MakeSomeFakeData()
-			self.redirect("/")
+			self.redirect(START)
 		elif "generateSystemQuestions" in self.request.arguments():
 			GenerateSampleQuestions()
-			self.redirect("/")
+			self.redirect(START)
 		elif "generateSystemResources" in self.request.arguments():
 			GenerateSystemResources()
-			self.redirect("/")
+			self.redirect(START)
 		elif "generateHelps" in self.request.arguments():
 			GenerateHelps()
-			self.redirect("/")
+			self.redirect(START)
 			
 class NewMemberPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -118,7 +118,7 @@ class NewMemberPage(webapp.RequestHandler):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-							'title': "Welcome",
+							'title': TITLE_WELCOME,
 							'title_extra': member.nickname,
 							'rakontu': rakontu, 
 							'current_member': member,
@@ -127,7 +127,7 @@ class NewMemberPage(webapp.RequestHandler):
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/new.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect('/')
+			self.redirect(START)
 			
 class GetHelpPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -139,7 +139,7 @@ class GetHelpPage(webapp.RequestHandler):
 			else:
 				managerResources = None
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-							'title': "Help",
+							'title': TITLE_HELP,
 							'rakontu': rakontu, 
 							'current_member': member,
 							'resources': rakontu.getNonDraftHelpResources(),
@@ -149,7 +149,7 @@ class GetHelpPage(webapp.RequestHandler):
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/help.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect('/')
+			self.redirect(START)
 			
 class BrowseEntriesPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -175,8 +175,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 			if entries:
 				(textsForGrid, colHeaders, rowColors) = self.buildGrid(rakontu, member, entries, currentSearch)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-							'title': "Main page",
-						   	'title_extra': None,
+							'title': TITLE_HOME,
 							'rakontu': rakontu, 
 							'current_member': member, 
 							'rows_cols': textsForGrid, 
@@ -191,7 +190,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/home.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect('/')
+			self.redirect(START)
 			
 	def buildGrid(self, rakontu, member, entries, currentSearch):
 		if currentSearch:
@@ -325,22 +324,22 @@ class BrowseEntriesPage(webapp.RequestHandler):
 				for i in range(NUM_NUDGE_CATEGORIES):
 					member.viewNudgeCategories.append(self.request.get("showCategory|%s" % i) == "yes")
 				member.put()
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 			elif "changeTimeFrame" in self.request.arguments():
 				member.setViewTimeFrameFromTimeFrameString(self.request.get("timeFrame"))
 				member.put()
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 			elif "refreshView" in self.request.arguments():
 				if rakontu.lastPublish:
 					member.viewTimeEnd = rakontu.lastPublish + timedelta(seconds=10)
 				else:
 					member.viewTimeEnd = datetime.now(tz=pytz.utc)
 				member.put()
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 			elif "toggleShowDetails" in self.request.arguments():
 				member.viewDetails = not member.viewDetails
 				member.put()
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 			elif "loadAndApplySavedSearch" in self.request.arguments():
 				searchKey = self.request.get("savedSearch")
 				if searchKey:
@@ -349,41 +348,41 @@ class BrowseEntriesPage(webapp.RequestHandler):
 						member.viewSearch = search
 						member.viewSearchResultList = []
 						member.put()
-						self.redirect("/visit/home")
+						self.redirect(HOME)
 						return
 				else:
-					self.redirect("/visit/home")
+					self.redirect(HOME)
 			elif "makeNewSavedSearch" in self.request.arguments():
 				member.viewSearch = None
 				member.viewSearchResultList = []
 				member.put()
-				self.redirect('/visit/filter')
+				self.redirect(BuildURL("dir_visit", "url_search_filter"))
 			elif "doSomethingWithSearch" in self.request.arguments():
 				response = self.request.get("doWithSearch")
 				if response =="clearSearch":
 					member.viewSearch = None
 					member.viewSearchResultList = []
 					member.put()
-					self.redirect("/visit/home")
+					self.redirect(HOME)
 				elif response =="copySearchAs":
 					newSearch = SavedSearch(key_name=KeyName("filter"), rakontu=rakontu, creator=member)
 					newSearch.copyDataFromOtherSearchAndPut(search)
 					member.viewSearch = newSearch
 					member.viewSearchResultList = []
 					member.put()
-					self.redirect('/visit/filter')
+					self.redirect(BuildURL("dir_visit", "url_search_filter"))
 				elif response == "printSearchResults":
-					self.redirect('/liaise/printSearch')
+					self.redirect(BuildURL("dir_liaise", "url_print_search"))
 				elif response == "exportSearchResults":
-					self.redirect("/manage/exportSearch")
+					self.redirect(BuildURL("dir_manage", "url_export_search"))
 				elif response == "changeSearch":
 					if search:
-						self.redirect("/visit/filter")
+						self.redirect(BuildURL("dir_visit", "url_search_filter"))
 					else:
 						member.viewSearch = None
 						member.viewSearchResultList = []
 						member.put()
-						self.redirect('/visit/filter')
+						self.redirect(BuildURL("dir_visit", "url_search_filter"))
 			else:
 				if "setToLast" in self.request.arguments():
 					if rakontu.lastPublish:
@@ -405,9 +404,9 @@ class BrowseEntriesPage(webapp.RequestHandler):
 				if member.viewTimeEnd > datetime.now(tz=pytz.utc):
 					member.viewTimeEnd = datetime.now(tz=pytz.utc)
 				member.put()
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 		else:
-			self.redirect("/")
+			self.redirect(START)
 			
 class ReadEntryPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -419,7 +418,7 @@ class ReadEntryPage(webapp.RequestHandler):
 			except:
 				entry = None
 			if entry:
-				curating = self.request.uri.find("curate") >= 0
+				curating = self.request.uri.find(URLS["url_curate"]) >= 0
 				allItems = []
 				allItems.extend(entry.getNonDraftAnnotations())
 				allItems.extend(entry.getNonDraftAnswers())
@@ -507,28 +506,29 @@ class ReadEntryPage(webapp.RequestHandler):
 				memberCanAnswerQuestionsAboutThisEntry = len(entry.getAnswersForMember(member)) == 0
 				memberCanAddNudgeToThisEntry = nudgePointsMemberCanAssign > 0
 				thingsUserCanDo = {}
+				displayType = DisplayTypeForEntryType(entry.type)
 				if entry.isStory():
-					thingsUserCanDo["Tell another version of what happened"] = "/visit/retell?%s" % entry.key()
+					thingsUserCanDo["Tell another version of what happened"] = "/%s/%s?%s" % (DIRS["dir_visit"], URLS["url_retell"], entry.key())
 				if entry.isStory() or entry.isResource():
-					thingsUserCanDo["Tell a story this %s reminds you of" % entry.type] = "/visit/remind?%s" % entry.key()
+					thingsUserCanDo["Tell a story this %s reminds you of" % displayType] = "/%s/%s?%s" % (DIRS["dir_visit"], URLS["url_remind"], entry.key())
 				if rakontuHasQuestionsForThisEntryType and memberCanAnswerQuestionsAboutThisEntry:
-					thingsUserCanDo["Answer questions about this %s" % entry.type] = "/visit/answers?%s" % entry.key()
+					thingsUserCanDo["Answer questions about this %s" % displayType] = "/%s/%s?%s" % (DIRS["dir_visit"], URLS["url_answers"], entry.key())
 				if rakontuHasQuestionsForThisEntryType and member.isLiaison():
-					thingsUserCanDo["Enter answers about this %s for an off-line member" % entry.type] = "/visit/answers?%s" % entry.key()
+					thingsUserCanDo["Enter answers about this %s for an off-line member" % displayType] = "/%s/%s?%s" % (DIRS["dir_visit"], URLS["url_answers"], entry.key())
 				if entry.isInvitation():
-					thingsUserCanDo["Respond to this invitation with a story"] = "/visit/respond?%s" % entry.key()
-				thingsUserCanDo["Comment on this %s" % entry.type] = "/visit/comment?%s" % entry.key()
-				thingsUserCanDo["Tag this %s" % entry.type] = "/visit/tagset?%s" % entry.key()
+					thingsUserCanDo["Respond to this invitation with a story"] = "/%s/%s?%s" % (DIRS["dir_visit"], URLS["url_respond"], entry.key())
+				thingsUserCanDo["Comment on this %s" % displayType] = "/%s/%s?%s" % (DIRS["dir_visit"], URLForAnnotationType("comment"), entry.key())
+				thingsUserCanDo["Tag this %s" % displayType] = "/%s/%s?%s" % (DIRS["dir_visit"], URLForAnnotationType("tag set"), entry.key())
 				if memberCanAddNudgeToThisEntry:
-					thingsUserCanDo["Nudge this %s up or down" % entry.type] = "/visit/nudge?%s" % entry.key()
-				thingsUserCanDo["Request something about this %s" % entry.type] = "/visit/request?%s" % entry.key()
-				thingsUserCanDo["Relate this %s to others" % entry.type] = "/visit/relate?%s" % entry.key()
+					thingsUserCanDo["Nudge this %s" % displayType] = "/%s/%s?%s" % (DIRS["dir_visit"], URLForAnnotationType("nudge"), entry.key())
+				thingsUserCanDo["Request something about this %s" % displayType] = "/%s/%s?%s" % (DIRS["dir_visit"], URLForAnnotationType("request"), entry.key())
+				thingsUserCanDo["Relate this %s to others" % displayType] = "/%s/%s?%s" % (DIRS["dir_visit"], URLS["url_relate"], entry.key())
 				if member.isCurator():
-					thingsUserCanDo["Curate this %s" % entry.type] = "/visit/curate?%s" % entry.key()
+					thingsUserCanDo["Curate this %s" % displayType] = "/%s/%s?%s" % (DIRS["dir_visit"], URLS["url_curate"], entry.key())
 				if entry.creator.key() == member.key() and rakontu.allowsPostPublishEditOfEntryType(entry.type):
-					thingsUserCanDo["Change this %s" % entry.type] = "/visit/%s?%s" % (entry.type, entry.key())
+					thingsUserCanDo["Change this %s" % displayType] = "/%s/%s?%s" % (DIRS["dir_visit"], URLForEntryType(entry.type), entry.key())
 				if member.isLiaison():
-					thingsUserCanDo["Print this %s with its answers and annotations" % entry.type] = '/liaise/printEntryAndAnnotations?%s' % entry.key()
+					thingsUserCanDo["Print this %s with its answers and annotations" % entry.type] = '/%s/%s?%s' % (DIRS["dir_liaise"], URLS["url_print_entry"], entry.key())
 				if entry.isCollage():
 					includedLinksOutgoing = entry.getOutgoingLinksOfType("included")
 				else:
@@ -539,7 +539,6 @@ class ReadEntryPage(webapp.RequestHandler):
 					referencedLinksOutgoing = None
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': entry.title, 
-						   		   'title_extra': None,
 								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'current_member_key': member.key(),
@@ -564,9 +563,9 @@ class ReadEntryPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/read.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect('/result?entryNotFound')
+				self.redirect(BuildResultURL(RESULT_entryNotFound))
 		else:
-			self.redirect('/')
+			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
@@ -585,7 +584,7 @@ class ReadEntryPage(webapp.RequestHandler):
 			else:
 				self.redirect(self.request.get("nextAction"))
 		else:
-			self.redirect("/visit/home")
+			self.redirect(HOME)
 			
 class ReadAnnotationPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -596,7 +595,6 @@ class ReadAnnotationPage(webapp.RequestHandler):
 			if annotation:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': annotation.displayString(includeType=False), 
-						   		   'title_extra': None,
 								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'current_member_key': member.key(),
@@ -609,8 +607,7 @@ class ReadAnnotationPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/readAnnotation.html')
 				self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect('/')
-			
+			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
@@ -623,7 +620,7 @@ class ReadAnnotationPage(webapp.RequestHandler):
 				annotation.put()
 				self.redirect(self.request.headers["Referer"])
 		else:
-			self.redirect("/visit/home")
+			self.redirect(HOME)
 
 class SeeRakontuPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -631,8 +628,7 @@ class SeeRakontuPage(webapp.RequestHandler):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-								   'title': "About", 
-						   		   'title_extra': rakontu.name, 
+								   'title': TITLE_ABOUT, 
 								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'rakontu_members': rakontu.getActiveMembers(),
@@ -641,7 +637,7 @@ class SeeRakontuPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/rakontu.html')
 				self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect('/')
+			self.redirect(START)
 			
 class SeeRakontuMembersPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -649,8 +645,7 @@ class SeeRakontuMembersPage(webapp.RequestHandler):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-								   'title': "Members of", 
-						   		   'title_extra': rakontu.name, 
+								   'title': TITLE_MEMBERS, 
 								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'rakontu_members': rakontu.getActiveMembers(),
@@ -658,7 +653,7 @@ class SeeRakontuMembersPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/members.html')
 				self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect('/')
+			self.redirect(START)
    
 class SeeMemberPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -669,7 +664,7 @@ class SeeMemberPage(webapp.RequestHandler):
 			memberKey = keyAndCurate[0]
 			memberToSee = db.get(memberKey)
 			if memberToSee:
-				curating = member.isCurator() and len(keyAndCurate) > 1 and keyAndCurate[1] == "curate"
+				curating = member.isCurator() and len(keyAndCurate) > 1 and keyAndCurate[1] == URLS["url_curate"]
 				allItems = memberToSee.getAllItemsAttributedToMember()
 				allItems.extend(memberToSee.getNonDraftLiaisonedEntries())
 				allItems.extend(memberToSee.getNonDraftLiaisonedAnnotations())
@@ -703,7 +698,7 @@ class SeeMemberPage(webapp.RequestHandler):
 					textsForGrid = None
 					colHeaders = None
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   'title': "Member", 
+							   'title': TITLE_MEMBER, 
 					   		   'title_extra': member.nickname, 
 					   		   'rakontu': rakontu, 
 					   		   'current_member': member,
@@ -718,9 +713,9 @@ class SeeMemberPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/member.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect('/visit/home')
+				self.redirect(HOME)
 		else:
-			self.redirect('/')
+			self.redirect(START)
 
 	@RequireLogin 
 	def post(self):
@@ -750,11 +745,11 @@ class SeeMemberPage(webapp.RequestHandler):
 					message.to = messageMember.googleAccountEmail
 					message.body = htmlEscape(self.request.get("message"))
 					message.send()
-					self.redirect('/result?messagesent')
+					self.redirect(BuildResultURL(RESULT_messagesent))
 				else:
-					self.redirect('/result?memberNotFound')
+					self.redirect(BuildResultURL(RESULT_memberNotFound))
 		else:
-			self.redirect('/')
+			self.redirect(START)
    
 class SeeCharacterPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -765,7 +760,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 				characterKey = keyAndCurate[0]
 				character = db.get(characterKey)
 				if character:
-					curating = member.isCurator() and len(keyAndCurate) > 1 and keyAndCurate[1] == "curate"
+					curating = member.isCurator() and len(keyAndCurate) > 1 and keyAndCurate[1] == URLS["url_curate"]
 					allItems = character.getAllItemsAttributedToCharacter()
 					if allItems:
 						maxTime = datetime.now(tz=pytz.utc)
@@ -796,7 +791,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 						textsForGrid = None
 						colHeaders = None
 					template_values = GetStandardTemplateDictionaryAndAddMore({
-								   	   'title': "Character", 
+								   	   'title': TITLE_CHARACTER, 
 						   		   	   'title_extra': character.name, 
 									   'rakontu': rakontu, 
 									   'current_member': member,
@@ -810,9 +805,9 @@ class SeeCharacterPage(webapp.RequestHandler):
 					path = os.path.join(os.path.dirname(__file__), 'templates/visit/character.html')
 					self.response.out.write(template.render(path, template_values))
 				else:
-					self.redirect('/visit/home')
+					self.redirect(HOME)
 		else:
-			self.redirect('/')
+			self.redirect(START)
 
 	@RequireLogin 
 	def post(self):
@@ -823,7 +818,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 				member.put()
 			self.redirect(self.request.headers["Referer"])
 		else:
-			self.redirect('/')
+			self.redirect(START)
    
 class ChangeMemberProfilePage(webapp.RequestHandler):
 	@RequireLogin 
@@ -839,7 +834,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 			else:
 				memberToEdit = member
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-							   'title': "Profile of", 
+							   'title': TITLE_PREFERENCES_FOR, 
 						   	   'title_extra': memberToEdit.nickname, 
 							   'rakontu': rakontu, 
 							   'member': memberToEdit,
@@ -847,15 +842,17 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 							   'questions': rakontu.getActiveMemberQuestions(),
 							   'answers': memberToEdit.getAnswers(),
 							   'refer_type': "member",
+							   'refer_type_display': DisplayTypeForQuestionReferType("member"),
 							   'show_leave_link': not rakontu.memberIsOnlyOwner(member),
 							   'search_locations': SEARCH_LOCATIONS,
+							   'search_locations_display': SEARCH_LOCATIONS_DISPLAY,
 							   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/profile.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect('/')
+			self.redirect(START)
 							 
-	@RequireLogin 
+	@RequireLogin  
 	def post(self):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
@@ -879,7 +876,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 				nicknameTheyWantToUse = htmlEscape(self.request.get("nickname")).strip()
 				memberUsingNickname = rakontu.memberWithNickname(nicknameTheyWantToUse)
 				if memberUsingNickname and memberUsingNickname.key() != member.key():
-					self.redirect('/result?nicknameAlreadyInUse') 
+					self.redirect(BuildResultURL(RESULT_nicknameAlreadyInUse))
 					return
 				memberToEdit.nickname = nicknameTheyWantToUse
 				memberToEdit.acceptsMessages = self.request.get("acceptsMessages") == "yes"
@@ -950,13 +947,13 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 					if keepAnswer:
 						answerToEdit.put()
 				if offlineMember:
-					self.redirect('/liaise/members')
+					self.redirect(BuildURL("dir_liaise", "url_members"))
 				else:
-					self.redirect('/visit/member?%s' % memberToEdit.key())
+					self.redirect(BuildURL("dir_visit", "url_member", memberToEdit.key()))
 			else:
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 		else:
-			self.redirect("/")
+			self.redirect(START)
 			
 class ChangeMemberDraftsPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -977,7 +974,7 @@ class ChangeMemberDraftsPage(webapp.RequestHandler):
 				answers = memberToEdit.getDraftAnswersForEntry(entry)
 				firstDraftAnswerForEachEntry.append(answers[0])
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-							   'title': "Drafts by", 
+							   'title': TITLE_DRAFTS_FOR, 
 						   	   'title_extra': memberToEdit.nickname, 
 							   'rakontu': rakontu, 
 							   'member': memberToEdit,
@@ -987,12 +984,14 @@ class ChangeMemberDraftsPage(webapp.RequestHandler):
 							   'draft_annotations': memberToEdit.getDraftAnnotations(),
 							   'first_draft_answer_per_entry': firstDraftAnswerForEachEntry,
 							   'refer_type': "member",
+							   'refer_type_display': DisplayTypeForQuestionReferType("member"),
 							   'search_locations': SEARCH_LOCATIONS,
+							   'search_locations_display': SEARCH_LOCATIONS_DISPLAY,
 							   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/drafts.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect('/')
+			self.redirect(START)
 							 
 	@RequireLogin 
 	def post(self):
@@ -1031,13 +1030,13 @@ class ChangeMemberDraftsPage(webapp.RequestHandler):
 						search.deleteAllDependents()
 						db.delete(search)
 				if offlineMember:
-					self.redirect('/liaise/members')
+					self.redirect(BuildURL("dir_liaise", "url_members"))
 				else:
-					self.redirect('/visit/drafts?%s' % memberToEdit.key())
+					self.redirect(BuildURL("dir_visit", "url_drafts", memberToEdit.key()))
 			else:
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 		else:
-			self.redirect("/")
+			self.redirect(START)
 			
 class LeaveRakontuPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -1045,8 +1044,7 @@ class LeaveRakontuPage(webapp.RequestHandler):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-						   	   'title': "Leave rakontu", 
-					   	   	   'title_extra': None, 
+						   	   'title': TITLE_LEAVE_RAKONTU, 
 							   'rakontu': rakontu, 
 							   'message': self.request.query_string,
 							   "linkback": self.request.headers["Referer"],
@@ -1055,7 +1053,7 @@ class LeaveRakontuPage(webapp.RequestHandler):
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/leave.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect("/")
+			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
@@ -1063,16 +1061,16 @@ class LeaveRakontuPage(webapp.RequestHandler):
 		if access:
 			if "leave|%s" % member.key() in self.request.arguments():
 				if rakontu.memberIsOnlyOwner(member):
-					self.redirect("/result?ownerCannotLeave")
+					self.redirect(BuildResultURL(RESULT_ownerCannotLeave))
 					return
 				else:
 					member.active = False
 					member.put()
-					self.redirect("/")
+					self.redirect(START)
 			else:
-				self.redirect('/visit/profile?%s' % member.key())
+				self.redirect(BuildURL("dir_visit", "url_preferences", member.key()))
 		else:
-			self.redirect("/")
+			self.redirect(START)
 		
 class SavedSearchEntryPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -1110,21 +1108,23 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 					creatorQuestionsAndRefsDictionary["anyOrAll"] = None
 				questionsAndRefsDictList.append(creatorQuestionsAndRefsDictionary)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-							'title': "Filter",
-						   	'title_extra': None,
+							'title': TITLE_SEARCH_FILTER,
 							'rakontu': rakontu, 
 							'current_member': member, 
 							'num_search_fields': NUM_SEARCH_FIELDS,
 							'search_locations': SEARCH_LOCATIONS,
+							'search_locations_display': SEARCH_LOCATIONS_DISPLAY,
 							'any_or_all_choices': ANY_ALL,
+							'any_or_all_choices_display': ANY_ALL_DISPLAY,
 							'answer_comparison_types': ANSWER_COMPARISON_TYPES,
+							'answer_comparison_types_display': ANSWER_COMPARISON_TYPES_DISPLAY,
 							'current_search': currentSearch,
 							'questions_and_refs_dict_list': questionsAndRefsDictList,
 							})
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/filter.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect('/')
+			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
@@ -1137,23 +1137,23 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 					member.viewSearch = None
 					member.viewSearchResultList = []
 					member.put()
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 			elif "flagSearchByCurator" in self.request.arguments():
 				if search:
 					search.flaggedForRemoval = not search.flaggedForRemoval
 					search.put()
-					self.redirect("/visit/filter")
+					self.redirect(BuildURL("dir_visit", "url_search_filter"))
 				else:
-					self.redirect("/visit/home")
+					self.redirect(HOME)
 			elif "removeSearchByManager" in self.request.arguments():
 				if search:
 					db.delete(search)
 					member.viewSearch = None
 					member.viewSearchResultList = []
 					member.put()
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 			elif "cancel" in self.request.arguments():
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 			elif "saveAs" in self.request.arguments() or "save" in self.request.arguments():
 				if not search or "saveAs" in self.request.arguments():
 					search = SavedSearch(key_name=KeyName("filter"), rakontu=rakontu, creator=member)
@@ -1231,11 +1231,11 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 				member.viewSearch = search
 				member.viewSearchResultList = []
 				member.put()
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 			else:
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 		else:
-			self.redirect("/")
+			self.redirect(START)
 			
 class ResultFeedbackPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -1243,8 +1243,7 @@ class ResultFeedbackPage(webapp.RequestHandler):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-						   	   'title': "Message", 
-					   	   	   'title_extra': None, 
+						   	   'title': TITLE_MESSAGE_TO_USER, 
 							   'rakontu': rakontu, 
 							   'message': self.request.query_string,
 							   "linkback": self.request.headers["Referer"],
@@ -1253,7 +1252,7 @@ class ResultFeedbackPage(webapp.RequestHandler):
 			path = os.path.join(os.path.dirname(__file__), 'templates/result.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect("/")
+			self.redirect(START)
 				
 class ContextualHelpPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -1263,9 +1262,10 @@ class ContextualHelpPage(webapp.RequestHandler):
 			lookup = self.request.query_string.strip()
 			help = Help.all().filter('name = ', lookup).get()
 			if help:
+				helpShortName = help.name.replace("_", " ").capitalize()
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': "Help on item", 
-						   	   	   'title_extra': None, 
+							   	   'title': TITLE_HELP_ON, 
+						   	   	   'title_extra': helpShortName, 
 								   'rakontu': rakontu, 
 								   'help': help,
 								   "linkback": self.request.headers["Referer"],
@@ -1274,6 +1274,6 @@ class ContextualHelpPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'templates/help.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect("/result?helpNotFound")
+				self.redirect(BuildResultURL(RESULT_helpNotFound))
 		else:
-			self.redirect("/")
+			self.redirect(START)

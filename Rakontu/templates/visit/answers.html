@@ -5,10 +5,10 @@
 		<div id="content">
 		
 		<div id="stylized" class="rakontu_form">
-		<form action="/visit/answers?{{entry.key}}
+		<form action="/{{dir_visit}}/{{url_answers}}?{{entry.key}}
 		" method="post" enctype="multipart/form-data">
 		
-			<h2>{{entry.title}} ({{entry.type}})</h2>
+			<h2>{{entry.title}} ({{entry.typeForDisplay}})</h2>
 	
 			<div class="blurb">{{entry.text}}</div
 			

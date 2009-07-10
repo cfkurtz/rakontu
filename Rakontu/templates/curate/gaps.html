@@ -8,7 +8,7 @@
 		<h3>Gaps {{"entries_with_gaps"|tip}}</h3>
 		
 		<div id="stylized" class="rakontu_form">
-		<form action="/curate/gaps" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_curate}}/{{url_gaps}}" method="post" enctype="multipart/form-data">
 		<p>Show the 
 		<select name="sortBy">
 			<option value="date" {% ifequal sort_by "date" %} selected="selected" {% endifequal %}>most recent</option>
@@ -32,14 +32,14 @@
 	      	<td valign="top">
 	      	{% if entries_without_tags %}
 				{% for entry in entries_without_tags %}
-					<p>{{entry.linkString}} ({{entry.type}})</p>
+					<p>{{entry.linkString}} ({{entry.typeForDisplay}})</p>
 				{% endfor %}
 			{% else %}
 				none
 			{% endif %}</td>
 	      	<td valign="top">{% if entries_without_links %}
 				{% for entry in entries_without_links %}
-					<p>{{entry.linkString}} ({{entry.type}})</p>
+					<p>{{entry.linkString}} ({{entry.typeForDisplay}})</p>
 				{% endfor %}
 			{% else %}
 				none
@@ -47,7 +47,7 @@
 			{% if rakontu.hasActiveNonMemberQuestions %} 
 		      	<td valign="top">{% if entries_without_answers %}
 					{% for entry in entries_without_answers %}
-						<p>{{entry.linkString}} ({{entry.type}})</p>
+						<p>{{entry.linkString}} ({{entry.typeForDisplay}})</p>
 					{% endfor %}
 				{% else %}
 					none
@@ -55,7 +55,7 @@
 			{% endif %}
 	      	<td valign="top">{% if collages_without_inclusions %}
 				{% for entry in collages_without_inclusions %}
-					<p>{{entry.linkString}} ({{entry.type}})</p>
+					<p>{{entry.linkString}} ({{entry.typeForDisplay}})</p>
 				{% endfor %}
 			{% else %}
 				none

@@ -15,8 +15,7 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 		if access:
 			if member.isLiaison():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-								   'title': "Off-line members", 
-						   		   'title_extra': rakontu.name, 
+								   'title': TITLE_REVIEW_OFFLINE_MEMBERS, 
 								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'active_members': rakontu.getActiveOfflineMembers(),
@@ -25,9 +24,9 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'templates/liaise/members.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 		else:
-			self.redirect('/')
+			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
@@ -52,7 +51,7 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 											googleAccountID = None,
 											googleAccountEmail = None)
 							newMember.put()
-			self.redirect('/liaise/members')
+			self.redirect(BuildURL("dir_liaise", "url_members"))
 			
 class PrintSearchPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -62,13 +61,13 @@ class PrintSearchPage(webapp.RequestHandler):
 			if member.isLiaison():
 				if member.viewSearchResultList:
 					export = rakontu.createOrRefreshExport("liaisonPrint_simple", itemList=None, member=member)
-					self.redirect('/export?print_id=%s' % export.key())
+					self.redirect(BuildURL(None, "url_export", 'print_id=%s' % export.key()))
 				else:
-					self.redirect('/result?noSearchResultForPrinting')
+					self.redirect(BuildResultURL(RESULT_noSearchResultForPrinting))
 			else:
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 		else:
-			self.redirect('/')
+			self.redirect(START)
 			
 class PrintEntryAnnotationsPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -86,13 +85,13 @@ class PrintEntryAnnotationsPage(webapp.RequestHandler):
 					entryAndItems.extend(entry.getNonDraftAnnotations())
 					entryAndItems.insert(0, entry)
 					export = rakontu.createOrRefreshExport("liaisonPrint_simple", itemList=entryAndItems, member=None)
-					self.redirect('/export?print_id=%s' % export.key())
+					self.redirect(BuildURL(None, "url_export", 'print_id=%s' % export.key()))
 				else:
-					self.redirect("/visit/home")
+					self.redirect(HOME)
 			else:
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 		else:
-			self.redirect('/')
+			self.redirect(START)
 			
 class ReviewBatchEntriesPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -101,8 +100,7 @@ class ReviewBatchEntriesPage(webapp.RequestHandler):
 		if access:
 			if member.isLiaison():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': "Review", 
-						   	   	   'title_extra': None, 
+							   	   'title': TITLE_REVIEW_BATCH_ENTRIES, 
 								   'rakontu': rakontu, 
 								   'character_allowed': rakontu.allowCharacter[STORY_ENTRY_TYPE_INDEX],
 								   'batch_entries': rakontu.getEntriesInImportBufferForLiaison(member),
@@ -114,9 +112,9 @@ class ReviewBatchEntriesPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'templates/liaise/review.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 		else:
-			self.redirect("/")
+			self.redirect(START)
 
 	@RequireLogin 
 	def post(self):
@@ -124,7 +122,7 @@ class ReviewBatchEntriesPage(webapp.RequestHandler):
 		if access:
 			if member.isLiaison():
 				if "addMore" in self.request.arguments():
-					self.redirect("/liaise/batch")
+					self.redirect(BuildURL("dir_liaise", "url_batch"))
 				else:
 					entriesToFinalize = []
 					entries = rakontu.getEntriesInImportBufferForLiaison(member)
@@ -139,7 +137,7 @@ class ReviewBatchEntriesPage(webapp.RequestHandler):
 							entriesToFinalize.append(entry)
 					if entriesToFinalize:
 						rakontu.moveImportedEntriesOutOfBuffer(entriesToFinalize)
-					self.redirect('/liaise/review')
+					self.redirect(BuildURL("dir_liaise", "url_review"))
 
 class BatchEntryPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -148,8 +146,7 @@ class BatchEntryPage(webapp.RequestHandler):
 		if access:
 			if member.isLiaison():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': "Import", 
-						   	   	   'title_extra': None, 
+							   	   'title': TITLE_BATCH_ENTRY, 
 								   'rakontu': rakontu, 
 								   'num_entries': NUM_ENTRIES_PER_BATCH_PAGE,
 								   'character_allowed': rakontu.allowCharacter[STORY_ENTRY_TYPE_INDEX],
@@ -161,9 +158,9 @@ class BatchEntryPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'templates/liaise/batch.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 		else:
-			self.redirect("/")
+			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
@@ -317,4 +314,4 @@ class BatchEntryPage(webapp.RequestHandler):
 									tagset.collected = entry.collected
 									tagset.collectedOffline = not memberToAttribute.isOnlineMember
 									tagset.put()
-		self.redirect('/liaise/review')
+		self.redirect(BuildURL("dir_liaise", "url_review"))

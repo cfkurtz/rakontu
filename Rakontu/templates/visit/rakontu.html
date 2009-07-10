@@ -23,10 +23,10 @@
 	      			<th>How to be this character</th></tr>
 	      		{% for character in characters %}
 	      			<tr>
-					<td><a href="character?{{character.key}}">{{character.name}}</a></td>
+					<td><a href="/{{dir_visit}}/{{url_character}}?{{character.key}}">{{character.name}}</a></td>
 	  				<td>
 			 		{% if character.image %}
-						<img src="img?character_id={{character.key}}" align="left">
+						{{character.imageEmbed}}
 					{% else %}
 						&nbsp;
 					{% endif %}
@@ -40,9 +40,9 @@
 		
       	{% if current_member.isManagerOrOwner %}
       		<div class="rightalign">
-      		Make changes to Rakontu-level <a href="/manage/settings">settings</a>
+      		Make changes to Rakontu-level <a href="/{{dir_manage}}/{{url_settings}}">settings</a>
       		{% if rakontu.getActiveCharacters %}
-      			or <a href="/manage/characters">characters</a>
+      			or <a href="/{{dir_manage}}/{{url_characters}}">characters</a>
       		{% endif %}
       		</div>
       	{% endif %}

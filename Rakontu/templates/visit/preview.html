@@ -6,9 +6,9 @@
 	
 	{% if entry %}
 		{% if annotation %}
-			<h2>For the {{entry.type}} "{{entry.title}}"</h2>
+			<h2>For the {{entry.typeForDisplay}} "{{entry.title}}"</h2>
 		{% else %}
-			<h2>{{entry.type|capfirst}} {{entry.title}}</h2>
+			<h2>{{entry.typeForDisplay|capfirst}} {{entry.title}}</h2>
 		{% endif %}
 		{% if entry.isCollage %}
 			<div class="blurb">
@@ -32,7 +32,7 @@
 				{% if attachment.name %}
 					{{attachment.name}} -
 				{% endif %}
-				<a href="attachment?attachment_id={{attachment.key}}">{{attachment.fileName}}</a><p>
+				<a href="/{{url_attachment}}?attachment_id={{attachment.key}}">{{attachment.fileName}}</a><p>
 			{% endfor %}
 		{% endif %}
 		{% if answers_with_entry %}
@@ -77,7 +77,7 @@
 	{% endif %}
 	
 	{% if annotation %}
-		<p><b>Your {{annotation.type|capfirst}}:</b></p>
+		<p><b>Your {{annotation.typeForDisplay|capfirst}}:</b></p>
 		{% ifequal annotation.type "comment" %}
 			<p><b>{{annotation.shortString}}</b></p>
 			<p>{{annotation.longString_formatted}}</p>
@@ -104,7 +104,7 @@
 	{% endif %}
 	
 	<div id="stylized" class="rakontu_form">
-		<form action="/visit/preview
+		<form action="/{{dir_visit}}/{{url_preview}}
 		{% if annotation %}
 			?{{annotation.key}}
 		{% else %}

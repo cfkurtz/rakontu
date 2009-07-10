@@ -5,7 +5,7 @@
 	<div id="content">
 	{% if current_member.isCuratorOrManagerOrOwner %}
 		<div id="stylized" class="rakontu_form">
-		<form action="/liaise/batch" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_liaise}}/{{url_batch}}" method="post" enctype="multipart/form-data">
 		
 		<h2>Batch Story Entry{{"batch_story_entry"|caution}}</h2>
 
@@ -58,10 +58,11 @@
 				<tr><td class="noborder">
 				<textarea name="text|{{i}}" rows="5" cols="60"></textarea>
 				</td><td class="noborder" width="80">
-				<p>Interpret as</p>
+				<p>Interpret as{{"interpreting_texts"|tip}}</p>
 					<select name="textFormat|{{i}}">
-					{% for format in text_formats %}
-						<option value="{{format}}">{{format}}</option>
+					{% for i in text_formats|makeRangeFromListLength %}
+						<option value="{{text_formats|listLookup:i}}">
+						{{text_formats_display|listLookup:i}}</option>
 					{% endfor %}
 					</select>
 				</td></tr></table>
@@ -131,8 +132,9 @@
 				</td><td class="noborder" width="80">
 				<p>Interpret as</p>
 					<select name="commentFormat|{{i}}">
-					{% for format in text_formats %}
-						<option value="{{format}}">{{format}}</option>
+					{% for i in text_formats|makeRangeFromListLength %}
+						<option value="{{text_formats|listLookup:i}}">
+						{{text_formats_display|listLookup:i}}</option>
 					{% endfor %}
 					</select>
 				</td></tr></table>

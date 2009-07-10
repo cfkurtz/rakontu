@@ -6,7 +6,7 @@
 	
 	{% if current_member.isGuide %}
 		<div id="stylized" class="rakontu_form">
-		<form action="/guide/requests" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_guide}}/{{url_requests}}" method="post" enctype="multipart/form-data">
 		
 		{% if showing_all_requests %}
 			<h3>Requests</h3>
@@ -32,7 +32,7 @@
 						<label for="toggleComplete|{{request.key}}">Completed</label>
       				</td>
 	      			<td>{{request.entry.linkString}}</td>
-	      			<td><a href="/visit/readAnnotation?{{request.key}}">{{request.shortString}}</a></td>
+	      			<td>{{request.linkString}}</td>
 	      			<td>{{request.longString_formatted|upTo:400}}</a></td>
 	      			</tr>
 	      		{% endfor %}

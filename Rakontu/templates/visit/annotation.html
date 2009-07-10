@@ -5,7 +5,7 @@
 		<div id="content">
 		
 		<div id="stylized" class="rakontu_form">
-		<form action="/visit/annotation?
+		<form action="/{{dir_visit}}/{{url_annotation}}?
 		{% if annotation %}
 		{{annotation.key}}
 		{% else %}
@@ -13,7 +13,12 @@
 		{% endif %}
 		" method="post" enctype="multipart/form-data">
 		
-	<h2>For the {{entry.type}} "{{entry.title}}"</h2>
+	<h2>
+	
+	For the 
+	
+	
+	{{entry.typeForDisplay}} "{{entry.title}}"</h2>
 	
 		{% if entry.isCollage %}
 			<div class="blurb">
@@ -36,8 +41,12 @@
 			<fieldset>
 			
 			{% ifequal annotation_type "tag set" %}
-				<p>Please choose up to {{num_tags_in_tag_set}} tags already entered or 
-				enter up to {{num_tags_in_tag_set}} new words or short phrases that describe this {{entry.type}}.</p>
+				<p>
+				
+				Please choose up to {{num_tags_in_tag_set}} tags already entered or 
+				enter up to {{num_tags_in_tag_set}} new words or short phrases that describe this {{entry.typeForDisplay}}.
+				
+				</p>
 				<p>
 				{% for i in num_tags_in_tag_set|makeRange %}
 					{% if already_there_tags %}
@@ -76,20 +85,20 @@
 				<tr><td class="noborder">
 				<textarea name="longString" rows="10" cols="60">{% if annotation %}{{annotation.longString}}{% endif %}</textarea>
 				</td><td class="noborder" width="80">
-				<p>Interpret as</p>
+				<p>Interpret as{{"interpreting_texts"|tip}}</p>
 					<select name="longString_format">
-					{% for format in text_formats %}
-						<option value="{{format}}" 
+					{% for i in text_formats|makeRangeFromListLength %}
+						<option value="{{text_formats|listLookup:i}}" 
 						{% if annotation %}
-							{% ifequal annotation.longString_format format %}
+							{% if text_formats|listLookup:i|equalTest:annotation.longString_format %}
 								selected="selected"
-							{% endifequal %}
+							{% endif %}
 						{% else %}
-							{% ifequal current_member.preferredTextFormat format %}
+							{% if text_formats|listLookup:i|equalTest:current_member.preferredTextFormatt %}
 								selected="selected"
-							{% endifequal %}
+							{% endif %}
 						{% endif %}
-						>{{format}}</option>
+						>{{text_formats_display|listLookup:i}}</option>
 					{% endfor %}
 					</select>
 				</td></tr></table>
@@ -97,7 +106,7 @@
 			{% endifequal %}
 			
 			{% ifequal annotation_type "request" %}
-				<p>What would you like other members to do with regard to this {{entry.type}}?</p>
+				<p>What would you like other members to do with regard to this {{entry.typeForDisplay}}?</p>
 				<select name="typeIfRequest">
 					<option name="none">(choose)</option>
 					{% for type in request_types %}
@@ -128,19 +137,18 @@
 				</td><td class="noborder" width="80">
 				<p>Interpret as</p>
 					<select name="longString_format">
-					{% for format in text_formats %}
-						<option value="{{format}}" 
+					{% for i in text_formats|makeRangeFromListLength %}
+						<option value="{{text_formats|listLookup:i}}" 
 						{% if annotation %}
-							{% ifequal annotation.longString_format format %}
+							{% if text_formats|listLookup:i|equalTest:annotation.longString_format %}
 								selected="selected"
-							{% endifequal %}
+							{% endif %}
 						{% else %}
-							{% ifequal current_member.preferredTextFormat format %}
+							{% if text_formats|listLookup:i|equalTest:current_member.preferredTextFormatt %}
 								selected="selected"
-							{% endifequal %}
+							{% endif %}
 						{% endif %}
-						>{{format}}</option>
-						>{{format}}</option>
+						>{{text_formats_display|listLookup:i}}</option>
 					{% endfor %}
 					</select>
 				</td></tr></table>
@@ -162,7 +170,7 @@
 						</tr>
 					{% endfor %}
 					</table>
-					You can assign <b>{{nudge_points_member_can_assign}}</b> points to this {{entry.type}} and 
+					You can assign <b>{{nudge_points_member_can_assign}}</b> points to this {{entry.typeForDisplay}} and 
 					have <b>{{current_member.nudgePoints}}</b> points remaining in general.
 					{{"what_nudge_points_are_for"|info}}
 					{{"nudge_point_allocation"|caution}}</p>

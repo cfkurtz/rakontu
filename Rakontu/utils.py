@@ -71,6 +71,7 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 		# constants
 	   'version_number': VERSION_NUMBER,
 	   'text_formats': TEXT_FORMATS,
+	   'text_formats_display': TEXT_FORMATS_DISPLAY,
 	   'num_nudge_categories': NUM_NUDGE_CATEGORIES,
 	   'num_tags_in_tag_set': NUM_TAGS_IN_TAG_SET,
 	   'time_zone_names': pytz.all_timezones,
@@ -78,19 +79,30 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'time_formats': TimeFormatStrings(),
 	   'time_frames': TIME_FRAMES, 
 	   'entry_types': ENTRY_TYPES,
+	   'entry_types_display': ENTRY_TYPES_DISPLAY,
 	   'entry_types_plural': ENTRY_TYPES_PLURAL,
-	   'annotation_types': ANNOTATION_TYPES,
+	   'entry_types_plural_display': ENTRY_TYPES_PLURAL_DISPLAY,
 	   'request_types': REQUEST_TYPES,
-	   'helping_role_names': HELPING_ROLE_TYPES,
+	   'helping_role_names': HELPING_ROLE_TYPES_DISPLAY,
 	   'maxlength_subject_or_comment': MAXLENGTH_SUBJECT_OR_COMMENT,
 	   'maxlength_name': MAXLENGTH_NAME,
 	   'maxlength_tag_or_choice': MAXLENGTH_TAG_OR_CHOICE,
 	   'maxlength_number': MAXLENGTH_NUMBER,
+	   'home': HOME,
 	   # stuff about user
 	   'current_user': users.get_current_user(), 
 	   'user_is_admin': users.is_current_user_admin(),
 	   'logout_url': users.create_logout_url("/"),
 	   }
+	for key in DIRS.keys():
+		items[key] = DIRS[key]
+	for key in URLS.keys():
+		items[key] = URLS[key]
+	items["url_story"] = URLForEntryType("story")
+	items["url_invitation"] = URLForEntryType("invitation")
+	items["url_collage"] = URLForEntryType("collage")
+	items["url_pattern"] = URLForEntryType("pattern")
+	items["url_resource"] = URLForEntryType("resource")
 	for key in newItems.keys():
 		items[key] = newItems[key]
 	return items
@@ -133,7 +145,7 @@ def ItemDisplayStringForGrid(item, curating=False, showingMember=False, showDeta
 		if item.attributedToMember():
 			if item.creator.isOnlineMember:
 				if item.creator.active:
-					nameString = ' (<a href="member?%s">%s</a>)' % (item.creator.key(), item.creator.nickname)
+					nameString = ' (%s)' % (item.creator.linkString())
 				else:
 					nameString = ' (%s)' % item.creator.nickname
 			else:
@@ -143,7 +155,7 @@ def ItemDisplayStringForGrid(item, curating=False, showingMember=False, showDeta
 					nameString = ' (<img src="/images/offline.png" alt="offline member"> %s)' % item.creator.nickname
 		else:
 			if item.character.active:
-				nameString = ' (<a href="character?%s">%s</a>)' % (item.character.key(), item.character.name)
+				nameString = ' (%s)' % (item.character.linkString())
 			else:
 				nameString = ' (%s)' % item.character.name
 	else:
@@ -161,13 +173,13 @@ def ItemDisplayStringForGrid(item, curating=False, showingMember=False, showDeta
 		if item.__class__.__name__ == "Annotation":
 			if item.type == "comment" or item.type == "request":
 				if item.longString_formatted:
-					textString = ": %s" % upToWithLink(stripTags(item.longString_formatted), DEFAULT_DETAILS_TEXT_LENGTH, '/visit/readAnnotation?%s' % item.key())
+					textString = ": %s" % upToWithLink(stripTags(item.longString_formatted), DEFAULT_DETAILS_TEXT_LENGTH, item.linkString())
 				else:
 					textString = ""
 			else:
 				textString = ""
 		elif item.__class__.__name__ == "Entry":
-			textString = ": %s" % upToWithLink(stripTags(item.text_formatted), DEFAULT_DETAILS_TEXT_LENGTH, '/visit/read?%s' % item.key())
+			textString = ": %s" % upToWithLink(stripTags(item.text_formatted), DEFAULT_DETAILS_TEXT_LENGTH, item.linkString())
 		else:
 			textString = ""
 	else:
@@ -266,7 +278,7 @@ class ExportHandler(webapp.RequestHandler):
 
 def GenerateHelps():
 	db.delete(Help.all().fetch(FETCH_NUMBER))
-	file = open('config/help.csv')
+	file = open(HELP_FILE_NAME)
 	helpStrings = csv.reader(file)
 	for row in helpStrings:
 		if len(row[0]) > 0 and row[0][0] != ";":
@@ -344,13 +356,13 @@ def ReadQuestionsFromFile(fileName, rakontu=None, rakontuType="ALL"):
 	file.close()
 
 def GenerateSampleQuestions():
-	ReadQuestionsFromFile('config/sample_questions.csv')
+	ReadQuestionsFromFile(SAMPLE_QUESTIONS_FILE_NAME)
 	
 def GenerateDefaultQuestionsForRakontu(rakontu, type):
-	ReadQuestionsFromFile('config/default_questions.csv', rakontu, type)
+	ReadQuestionsFromFile(DEFAULT_QUESTIONS_FILE_NAME, rakontu, type)
 	
 def GenerateDefaultCharactersForRakontu(rakontu):
-	file = open('config/default_characters.csv')
+	file = open(DEFAULT_CHARACTERS_FILE_NAME)
 	questionStrings = csv.reader(file)
 	characters = []
 	for row in questionStrings:
@@ -498,20 +510,20 @@ def RelativeTimeDisplayString(whenUTC, member):
 		when = whenUTC.astimezone(timezone(member.timeZoneName))
 		delta = datetime.now(tz=timezone(member.timeZoneName)) - when
 		if delta.days < 1 and delta.seconds < 1: 
-			return "Now"
+			return TERMFOR_NOW
 		elif delta.days < 1 and delta.seconds < 60: # one minute
-			return "Moments ago"
+			return TERMFOR_MOMENTSAGO
 		elif delta.days < 1 and delta.seconds < 60*60: # one hour
-			return "%s minutes ago" % (delta.seconds // 60)
+			return "%s %s" % (delta.seconds // 60, TERMFOR_MINUTESAGO)
 		elif delta.days < 1:
 			return when.strftime(DjangoToPythonTimeFormat(member.timeFormat))
 		elif delta.days < 2:
-			return "Yesterday at %s" % when.strftime(DjangoToPythonTimeFormat(member.timeFormat))
+			return "%s %s" % (TERMFOR_YESTERDAYAT, when.strftime(DjangoToPythonTimeFormat(member.timeFormat)))
 		elif delta.days < 7:
-			return when.strftime("%s at %s" % (DjangoToPythonDateFormat(member.dateFormat), 
+			return when.strftime("%s %s %s" % (DjangoToPythonDateFormat(member.dateFormat), TERMFOR_AT,
 											DjangoToPythonTimeFormat(member.timeFormat)))
 		else:
-			return when.strftime("%s at %s" % (DjangoToPythonDateFormat(member.dateFormat), 
+			return when.strftime("%s %s %s" % (DjangoToPythonDateFormat(member.dateFormat), TERMFOR_AT,
 											DjangoToPythonTimeFormat(member.timeFormat)))
 	else:
 		return None
@@ -552,8 +564,6 @@ SIMPLE_HTML_REPLACEMENTS = [
 							("<hr>", "{{HR}}"),
 							("&nbsp;", "{{NBSP}}")
 							]
-
-TEXT_FORMATS = ["plain text", "simple HTML", "Wiki markup"]
 
 def InterpretEnteredText(text, mode="text"):
 	result = text

@@ -4,7 +4,7 @@
 	{% include "../common_menus.html" %}
 	<div id="content">
 	
-	<h2>{{entry.title}} ({{entry.type}})</h2>
+	<h2>{{entry.title}} ({{entry.typeForDisplay}})</h2>
 	<div class="entry_text">{{entry.text}}</div>
 	
 	{% if answers %}
@@ -48,7 +48,7 @@
 	{% endif %}
 	
 	<div id="stylized" class="rakontu_form">
-		<form action="/visit/previewAnswers?{{entry.key}}" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_visit}}/{{url_previewAnswers}}?{{entry.key}}" method="post" enctype="multipart/form-data">
 		<p>
 		<center>
 			<input type="submit" name="edit" value="Edit draft" class="button">

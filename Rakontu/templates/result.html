@@ -33,6 +33,10 @@
 		<p>That entry was not found.</p>
 	{% endifequal %}
 	
+	{% ifequal message "noEntriesToRelate" %}
+		<p>There are no entries to which this entry can be related.</p>
+	{% endifequal %}
+	
 	{% ifequal message "attachmentsTooLarge" %}
 		<p>At least one of the attachment(s) you chose are too large. The entry was saved but (at least some of) the attachments were not.</p>
 	{% endifequal %}

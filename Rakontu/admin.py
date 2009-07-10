@@ -14,15 +14,14 @@ class AdministerRakontusPage(webapp.RequestHandler):
 		# this one method does not require a rakontu and member, since the admin has to look at multiple rakontus.
 		if users.is_current_user_admin():
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-						   	   'title': "All rakontus", 
-					   	   	   'title_extra': None, 
+						   	   'title': TITLE_REVIEW_RAKONTUS, 
 							   'rakontus': Rakontu.all().fetch(FETCH_NUMBER), 
 							   # here we do NOT give the current_member or rakontu
 							   })
 			path = os.path.join(os.path.dirname(__file__), 'templates/admin/review.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect('/')
+			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
@@ -33,16 +32,16 @@ class AdministerRakontusPage(webapp.RequestHandler):
 				if "toggleActiveState|%s" % aRakontu.key() in self.request.arguments():
 					aRakontu.active = not aRakontu.active
 					aRakontu.put()
-					self.redirect('/admin/review')
+					self.redirect(BuildURL("dir_admin", "url_review"))
 				elif "remove|%s" % aRakontu.key() in self.request.arguments():
 					aRakontu.removeAllDependents()
 					db.delete(aRakontu)
-					self.redirect('/admin/review')
+					self.redirect(BuildURL("dir_admin", "url_review"))
 				elif "export|%s" % aRakontu.key() in self.request.arguments():
-					self.redirect("/manage/export?rakontu_id=%s" % aRakontu.key())
+					self.redirect(BuildURL("dir_manage", "url_export", "rakontu_id=%s" % aRakontu.key()))
 		else:
-			self.redirect("/")
-
+			self.redirect(START)
+			
 class GenerateSampleQuestionsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
@@ -50,11 +49,11 @@ class GenerateSampleQuestionsPage(webapp.RequestHandler):
 		if access:
 			if users.is_current_user_admin():
 				GenerateSampleQuestions()
-				self.redirect('/result?sampleQuestionsGenerated')
+				self.redirect(BuildResultURL(RESULT_sampleQuestionsGenerated))
 			else:
-				self.redirect('/')
+				self.redirect(START)
 		else:
-			self.redirect('/')
+			self.redirect(START)
 			
 class GenerateSystemResourcesPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -63,11 +62,11 @@ class GenerateSystemResourcesPage(webapp.RequestHandler):
 		if access:
 			if users.is_current_user_admin():
 				GenerateSystemResources()
-				self.redirect('/result?systemResourcesGenerated')
+				self.redirect(BuildResultURL(RESULT_systemResourcesGenerated))
 			else:
-				self.redirect('/')
+				self.redirect(START)
 		else:
-			self.redirect('/')
+			self.redirect(START)
 				
 class GenerateHelpsPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -76,9 +75,9 @@ class GenerateHelpsPage(webapp.RequestHandler):
 		if access:
 			if users.is_current_user_admin():
 				GenerateHelps()
-				self.redirect('/result?helpsGenerated')
+				self.redirect(BuildResultURL(RESULT_helpsGenerated))
 			else:
-				self.redirect('/')
+				self.redirect(START)
 		else:
-			self.redirect('/')
+			self.redirect(START)
 				

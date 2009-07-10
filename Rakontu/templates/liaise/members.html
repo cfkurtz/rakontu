@@ -7,12 +7,12 @@
 	<div id="content">
 	
 		<div id="stylized" class="rakontu_form">
-		<form action="/liaise/members" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_liaise}}/{{url_members}}" method="post" enctype="multipart/form-data">
 		
 		{% if current_member.isLiaisonOrManagerOrOwner %}
 	
 			<div id="stylized" class="rakontu_form">
-			<form action="/liaise/members" method="post">
+			<form action="/{{dir_liaise}}/{{url_members}}" method="post">
 			
 			<h3>Active off-line members</h3>
 			{% if  active_members %}
@@ -28,20 +28,20 @@
 		  				<tr>
 		  				<td>
 		  					{{ aMember.nickname }}<br/>
-		  					<a href="/visit/member?{{aMember.key}}">(View member page)</a>
+		  					<a href="/{{dir_visit}}/{{url_member}}?{{aMember.key}}">(View member page)</a>
 		  					{% ifequal aMember.liaisonIfOfflineMember.key current_member.key %}
-		  						<br/><a href="/visit/profile?{{aMember.key}}">(Change preferences)</a>
-		  						<br/><a href="/visit/drafts?{{aMember.key}}">(Edit drafts)</a>
+		  						<br/><a href="/{{dir_visit}}/{{url_preferences}}?{{aMember.key}}">(Change preferences)</a>
+		  						<br/><a href="/{{dir_visit}}/{{url_drafts}}?{{aMember.key}}">(Edit drafts)</a>
 		  					{% endifequal %}
 		  				</td>
 		  				<td width="80" valign="top">
 				 		{% if aMember.profileImage %}
-							<img src="/visit/img?member_id={{aMember.key}}">
+							{{aMember.imageEmbed}}
 						{% else %}
 							none
 						{% endif %}
 						</td>
-		  				<td><a href="/visit/member?{{aMember.liaisonIfOfflineMember.key}}">{{aMember.liaisonIfOfflineMember.nickname}}</a></td>
+		  				<td>{{aMember.liaisonIfOfflineMember.linkString}}</td>
 		  				<td>
 		  					<input type="checkbox" name="remove|{{ aMember.key }}" value="yes" id="remove|{{ aMember.key }}"/>
 							<label for="remove|{{ aMember.key }}">Inactivate</label>

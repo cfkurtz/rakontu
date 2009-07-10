@@ -35,7 +35,7 @@
   				<tr>
   				<td style="border:none; border-right:1px solid #FF7F00;" width="100" valign="center" align="center">
 			 		{% if guide.profileImage %}
-						<a href="/visit/member?{{guide.key}}"><img src="/visit/img?member_id={{guide.key}}"></a>
+						<a href="/{{dir_visit}}/{{url_member}}?{{guide.key}}">{{member.imageEmbed}}</a>
 					{% else %}
 						&nbsp;
 					{% endif %}

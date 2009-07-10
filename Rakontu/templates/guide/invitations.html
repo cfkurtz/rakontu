@@ -6,7 +6,7 @@
 	
 	{% if current_member.isGuide %}
 		<div id="stylized" class="rakontu_form">
-		<form action="/guide/invitations" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_guide}}/{{url_invitations}}" method="post" enctype="multipart/form-data">
 		
 		{% if showing_all_invitations %}
 			<h3>Invitations</h3>
@@ -37,7 +37,7 @@
 	        </table>
 	    {% else %}
 			{% if showing_all_invitations %}
-				<p>There are no invitations in the Rakontu. <a href="/visit/invitation">Make one</a></p>
+				<p>There are no invitations in the Rakontu. <a href="/{{dir_visit}}/{{url_invitation}}">Make one</a></p>
 			{% else %}
 				<p>There are no invitations without responses.</p>
 			{% endif %}

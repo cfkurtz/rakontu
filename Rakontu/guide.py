@@ -15,18 +15,18 @@ class ReviewResourcesPage(webapp.RequestHandler):
 		if access:
 			if member.isGuide():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': "Review resources", 
-						   	   	   'title_extra': None, 
+							   	   'title': TITLE_REVIEW_RESOURCES, 
 								   'rakontu': rakontu, 
 								   'resources': rakontu.getNonDraftEntriesOfType("resource"),
 								   'current_member': member,
+								   'url_resource': URLForEntryType("resource"),
 								   })
 				path = os.path.join(os.path.dirname(__file__), 'templates/guide/resources.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 		else:
-			self.redirect("/")
+			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
@@ -38,11 +38,11 @@ class ReviewResourcesPage(webapp.RequestHandler):
 					 if self.request.get("flag|%s" % resource.key()) == "yes":
 					 	resource.flaggedForRemoval = not resource.flaggedForRemoval
 					 	resource.put()
-				self.redirect('/result?changessaved')
+				self.redirect(BuildResultURL(RESULT_changessaved))
 			else:
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 		else:
-			self.redirect("/")
+			self.redirect(START)
 			
 class CopySystemResourcesPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -51,11 +51,11 @@ class CopySystemResourcesPage(webapp.RequestHandler):
 		if access:
 			if member.isGuide():
 				CopyDefaultResourcesForNewRakontu(rakontu, member)
-				self.redirect('/guide/resources')
+				self.redirect(BuildURL("dir_guide", "url_resources"))
 			else:
-				self.redirect('/')
+				self.redirect(START)
 		else:
-			self.redirect('/')
+			self.redirect(START)
 						
 class ReviewRequestsPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -76,12 +76,11 @@ class ReviewRequestsPage(webapp.RequestHandler):
 					requestsByType.append(requests)
 					numRequests += len(requests)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': "Review requests", 
-						   	   	   'title_extra': None, 
+							   	   'title': TITLE_REVIEW_REQUESTS, 
 								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'requests': requestsByType,
-								   'num_types': NUM_REQUEST_TYPES,
+								   'num_types': len(REQUEST_TYPES),
 								   'request_types': REQUEST_TYPES,
 								   'showing_all_requests': not uncompletedOnly,
 								   'have_requests': numRequests > 0,
@@ -89,9 +88,9 @@ class ReviewRequestsPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'templates/guide/requests.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 		else:
-			self.redirect("/")
+			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
@@ -104,15 +103,15 @@ class ReviewRequestsPage(webapp.RequestHandler):
 						if self.request.get("toggleComplete|%s" % request.key()):
 							request.completedIfRequest = not request.completedIfRequest
 							request.put()
-					self.redirect('/result?changessaved')
+					self.redirect(BuildResultURL(RESULT_changessaved))
 				elif "showOnlyUncompletedRequests" in self.request.arguments():
-					self.redirect("/guide/requests?uncompleted")
+					self.redirect(BuildURL("dir_guide", "url_requests", "uncompleted"))
 				elif "showAllRequests" in self.request.arguments():
-					self.redirect("/guide/requests")
+					self.redirect(BuildURL("dir_guide", "url_requests"))
 			else:
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 		else:
-			self.redirect("/")
+			self.redirect(START)
 			
 class ReviewInvitationsPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -131,8 +130,7 @@ class ReviewInvitationsPage(webapp.RequestHandler):
 				else:
 					invitations.extend(allInvitations)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': "Review requests", 
-						   	   	   'title_extra': None, 
+							   	   'title': TITLE_REVIEW_INVITATIONS, 
 								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'invitations': invitations,
@@ -141,9 +139,9 @@ class ReviewInvitationsPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'templates/guide/invitations.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 		else:
-			self.redirect("/")
+			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
@@ -151,11 +149,11 @@ class ReviewInvitationsPage(webapp.RequestHandler):
 		if access:
 			if member.isGuide():
 				if "showOnlyUnrespondedInvitations" in self.request.arguments():
-					self.redirect("/guide/invitations?noresponses")
+					self.redirect(BuildURL("dir_guide", "url_invitations", "noresponses"))
 				elif "showAllInvitations" in self.request.arguments():
-					self.redirect("/guide/invitations")
+					self.redirect(BuildURL("dir_guide", "url_invitations"))
 			else:
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 		else:
-			self.redirect("/")
+			self.redirect(START)
 			

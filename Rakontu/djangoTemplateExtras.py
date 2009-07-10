@@ -1,4 +1,10 @@
-# from http://stackoverflow.com/questions/35948/django-templates-and-variable-attributes
+# --------------------------------------------------------------------------------------------
+# RAKONTU
+# Description: Rakontu is open source story sharing software.
+# Version: pre-0.1
+# License: GPL 3.0
+# Google Code Project: http://code.google.com/p/rakontu/
+# --------------------------------------------------------------------------------------------
 
 from google.appengine.ext import webapp
 import logging
@@ -6,9 +12,11 @@ from pytz import timezone
 import pytz
 
 import utils
+from translationLookup import *
 
 register = webapp.template.create_template_register()
 
+# from http://stackoverflow.com/questions/35948/django-templates-and-variable-attributes
 def dictLookup(dict, key):
 	if dict:
 		if key in dict:
@@ -94,7 +102,7 @@ def orNone(value):
 	if value:
 		return value
 	else:
-		return "none"
+		return TERMFOR_NONE
 	
 def orNothing(value):
 	if value:
@@ -138,15 +146,15 @@ def upTo(value, number):
 
 def yourOrThis(value):
 	if value:
-		return "your"
+		return TERMFOR_YOUR
 	else:
-		return "this member's"
+		return TERMFOR_THISMEMBERS
 
 def youOrThis(value):
 	if value:
-		return "you"
+		return TERMFOR_YOU
 	else:
-		return "this member"
+		return TERMFOR_THISMEMBER
 	
 def toString(value):
 	return "%s" % value

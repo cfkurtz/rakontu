@@ -4,6 +4,13 @@ Things to do before v0.9 is complete
 
 backup/restore (to SQL) - backup working, restore not so much
 
+grid display color on bottom - not just greyer
+
+LEFT TO DO IN INTERNATIONALIZATION:
+
+deal with _id things not being translated (and in general ALL queries to urls)
+move templates to templates/english and deal with calling them up based on language
+
 ===== PUT OFF until a little later :)
 
 TESTING:

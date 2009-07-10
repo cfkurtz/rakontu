@@ -7,7 +7,7 @@
 	<div id="content">
 	
 		<div id="stylized" class="rakontu_form">
-		<form action="/visit/profile" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_visit}}/{{url_preferences}}" method="post" enctype="multipart/form-data">
 		{% if member.isOnlineMember %}
 			<h3>Your member information</h3>
 		{% else %}
@@ -75,7 +75,7 @@
 		</table>
 		
 		<p></p>
-		<div class="rightalign"><a href="/visit/drafts?{{member.key}}">View or change saved drafts</a></div>
+		<div class="rightalign"><a href="/{{dir_visit}}/{{url_drafts}}?{{member.key}}">View or change saved drafts</a></div>
 		
 		<h3>{{member.isOnlineMember|yourOrThis|capfirst}} nickname and description</h3>
 		<fieldset>
@@ -134,19 +134,19 @@
 				<tr><td class="noborder">
 				<textarea name="profileText" rows="10" cols="60">{{member.profileText}}</textarea>
 				</td><td class="noborder" width="80">
-				<p>Interpret as</p>
-					<select name="text_format">
-					{% for format in text_formats %}
-						<option value="{{format}}" 
-						{% ifequal member.profileText_format format %}
-							selected="selected"
-						{% endifequal %}
-						>{{format}}</option>
+				<p>Interpret as{{"interpreting_texts"|tip}}</p>
+					<select name="profileText_format">
+					{% for i in text_formats|makeRangeFromListLength %}
+						<option value="{{text_formats|listLookup:i}}" 
+							{% if text_formats|listLookup:i|equalTest:member.profileText_format %}
+								selected="selected"
+							{% endif %}
+						>{{text_formats_display|listLookup:i}}</option>
 					{% endfor %}
 					</select>
 				</td></tr></table>
 		{% if show_leave_link %}
-			<div class="rightalign">To leave the Rakontu, click <a href="/visit/leave?{{member.key}}">here</a>.</div>
+			<div class="rightalign">To leave the Rakontu, click <a href="/{{dir_visit}}/{{url_leave}}?{{member.key}}">here</a>.</div>
 		{% endif %}
 
 			</fieldset>
@@ -162,7 +162,7 @@
 		      	</tr>
 		      	<tr>
 					<td>{% if member.profileImage %}
-							<img src="img?member_id={{member.key}}">
+							{{member.imageEmbed}}
 						{% else %}
 							none
 						{% endif %}
@@ -255,12 +255,12 @@
 				</td><td class="noborder" width="80">
 				<p>Interpret as</p>
 					<select name="guideIntro_format">
-					{% for format in text_formats %}
-						<option value="{{format}}" 
-						{% ifequal member.guideIntro_format format %}
-							selected="selected"
-						{% endifequal %}
-						>{{format}}</option>
+					{% for i in text_formats|makeRangeFromListLength %}
+						<option value="{{text_formats|listLookup:i}}" 
+							{% if text_formats|listLookup:i|equalTest:member.guideIntro_format %}
+								selected="selected"
+							{% endif %}
+						>{{text_formats_display|listLookup:i}}</option>
 					{% endfor %}
 					</select>
 				</td></tr></table>

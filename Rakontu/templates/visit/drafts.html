@@ -7,7 +7,7 @@
 	<div id="content">
 	
 		<div id="stylized" class="rakontu_form">
-		<form action="/visit/drafts" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_visit}}/{{url_drafts}}" method="post" enctype="multipart/form-data">
 		
 		{% if member.isOnlineMember %}
 			<h3>Your saved drafts</h3>
@@ -20,8 +20,8 @@
 	      	<tr><th>Entry type</th><th>Name</th><th>Created</th><th>Last changed</th><th>Remove?</th>
 	      	{% for entry in draft_entries %}
 		      	<tr>
-		      	<td>{{entry.type}}</td>
-				<td><a href="{{entry.type}}?{{entry.key}}">{{entry.title}}</a></td>
+		      	<td>{{entry.typeForDisplay}}</td>
+				<td><a href="{{entry.typeAsURL}}?{{entry.key}}">{{entry.title}}</a></td>
 				<td>{{entry.created|timeZone:member.timeZoneName|date:member.dateFormat}} at {{entry.created|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
 				<td>{{entry.edited|timeZone:member.timeZoneName|date:member.dateFormat}} at {{entry.edited|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
 				<td><input type="checkbox" name="remove|{{ entry.key }}" value="yes" id="remove|{{ entry.key }}"/>
@@ -38,9 +38,9 @@
 	      	<tr><th>Annotation type</th><th>Name</th><th>In reference to the entry</th><th>Created</th><th>Last changed</th><th>Remove?</th>
 	      	{% for annotation in draft_annotations %}
 		      	<tr>
-		      	<td>{{annotation.type}}</td>
+		      	<td>{{annotation.typeForDisplay}}</td>
 				<td><a href="{{annotation.typeAsURL}}?{{annotation.key}}">{{annotation.displayString}}</a></td>
-				<td><a href="read?{{annotation.entry.key}}">{{annotation.entry.title}}</a> ({{annotation.entry.type}})</td>
+				<td>{{annotation.entry.linkString}} ({{annotation.entry.typeForDisplay}})</td>
 				<td>{{annotation.created|timeZone:member.timeZoneName|date:member.dateFormat}} at {{annotation.created|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
 				<td>{{annotation.edited|timeZone:member.timeZoneName|date:member.dateFormat}} at {{annotation.edited|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
 				<td><input type="checkbox" name="remove|{{ annotation.key }}" value="yes" id="remove|{{ annotation.key }}"/>
@@ -58,7 +58,7 @@
 		      	<tr><th>Answers about entry</th><th>Created</th><th>Last changed</th><th>Remove?</th>
 		      	{% for answer in first_draft_answer_per_entry %}
 			      	<tr>
-					<td><a href="answers?{{answer.referent.key}}">{{answer.referent.title}}</a> ({{answer.referent.type}})</td>
+					<td><a href="/{{dir_visit}}/{{url_answers}}?{{answer.referent.key}}">{{answer.referent.title}}</a> ({{answer.referent.type}})</td>
 					<td>{{answer.created|timeZone:member.timeZoneName|date:member.dateFormat}} at {{answer.created|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
 					<td>{{answer.edited|timeZone:member.timeZoneName|date:member.dateFormat}} at {{answer.edited|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
 					<td><input type="checkbox" name="removeAnswers|{{answer.referent.key}}" value="yes" id="removeAnswers|{{answer.referent.key}}"/>
@@ -87,11 +87,11 @@
 		      		<th>Remove?</th>
 		      	{% for search in searches %}
 			      	<tr>
-			      	<td><a href="/visit/home?{{search.key}}">{{search.name}}</a></td>
+			      	<td><a href="{{home}}?{{search.key}}">{{search.name}}</a></td>
 			      	<td>
 			      		{% for i in entry_types|makeRangeFromListLength %}
 			      			{% if search.entryTypes|listLookup:i %}
-			      				{{entry_types|listLookup:i}}<br/>
+			      				{{entry_types_display|listLookup:i}}<br/>
 			      			{% endif %}
 			      		{% endfor %}&nbsp;
 			      		</td>
@@ -100,7 +100,7 @@
 			      			{{search.words_anyOrAll}} of {{search.words|join:", "}} <br/>
 				      		{% for i in search_locations|makeRangeFromListLength %}
 				      			{% if search.words_locations|listLookup:i %}
-				      				{{search_locations|listLookup:i}}<br/>
+				      				{{search_locations_display|listLookup:i}}<br/>
 				      			{% endif %}
 				      		{% endfor %}
 			      		{% else %}

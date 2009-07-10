@@ -14,8 +14,7 @@ class CreateRakontuPage(webapp.RequestHandler):
 	def get(self):
 		user = users.get_current_user()
 		template_values = GetStandardTemplateDictionaryAndAddMore({
-						   'title': "Create rakontu",
-						   'title_extra': None,
+						   'title': TITLE_CREATE_RAKONTU,
 						   'rakontu_types': RAKONTU_TYPES,
 						   })
 		path = os.path.join(os.path.dirname(__file__), 'templates/create.html')
@@ -43,14 +42,14 @@ class CreateRakontuPage(webapp.RequestHandler):
 		member.initialize()
 		member.put()
 		CopyDefaultResourcesForNewRakontu(rakontu, member)
-		self.redirect('/manage/first')
+		self.redirect(BuildURL("dir_manage", "url_first"))
 		
 class EnterEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
-			if self.request.uri.find("retell") >= 0:
+			if self.request.uri.find(URLS["url_retell"]) >= 0:
 				type = "story"
 				linkType = "retell"
 				itemFromKey = self.request.query_string
@@ -58,7 +57,7 @@ class EnterEntryPage(webapp.RequestHandler):
 				entry = None
 				entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
 				entryName = None
-			elif self.request.uri.find("remind") >= 0:
+			elif self.request.uri.find(URLS["url_remind"]) >= 0:
 				type = "story"
 				linkType = "remind"
 				itemFromKey = self.request.query_string
@@ -66,7 +65,7 @@ class EnterEntryPage(webapp.RequestHandler):
 				entry = None
 				entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
 				entryName = None
-			elif self.request.uri.find("respond") >= 0:
+			elif self.request.uri.find(URLS["url_respond"]) >= 0:
 				type = "story"
 				linkType = "respond"
 				itemFromKey = self.request.query_string
@@ -78,9 +77,9 @@ class EnterEntryPage(webapp.RequestHandler):
 				linkType = ""
 				itemFrom = None
 				i = 0
-				for aType in ENTRY_AND_ANNOTATION_TYPES:
+				for aType in ENTRY_AND_ANNOTATION_TYPES_URLS:
 					if self.request.uri.find(aType) >= 0:
-						type = aType
+						type = ENTRY_AND_ANNOTATION_TYPES[i]
 						entryTypeIndexForCharacters = i
 						break
 					i += 1
@@ -152,8 +151,9 @@ class EnterEntryPage(webapp.RequestHandler):
 				pageTitleExtra = "- %s" % entryName
 			else:
 				pageTitleExtra = ""
+			typeDisplay = DisplayTypeForQuestionReferType(type)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-							   'title': type.capitalize(), 
+							   'title': typeDisplay.capitalize(), 
 						   	   'title_extra': pageTitleExtra, 
 							   'current_member': member,
 							   'rakontu': rakontu, 
@@ -167,6 +167,7 @@ class EnterEntryPage(webapp.RequestHandler):
 							   'character_allowed': rakontu.allowCharacter[entryTypeIndexForCharacters],
 							   # used by common_questions
 							   'refer_type': type,
+							   'refer_type_display': typeDisplay,
 							   'questions': rakontu.getActiveQuestionsOfType(type),
 							   'answers': answers,
 							   # for a retold or remined story
@@ -185,7 +186,7 @@ class EnterEntryPage(webapp.RequestHandler):
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/entry.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect("/")
+			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
@@ -232,7 +233,7 @@ class EnterEntryPage(webapp.RequestHandler):
 						foundMember = True
 						break
 				if not foundMember:
-					self.redirect('/result?offlineMemberNotFound') 
+					self.redirect(BuildResultURL(RESULT_offlineMemberNotFound)) 
 					return
 				entry.liaison = member
 				entry.collected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
@@ -403,26 +404,26 @@ class EnterEntryPage(webapp.RequestHandler):
 								try:
 									attachmentToEdit.put()
 								except:
-									self.redirect("/result?attachmentsTooLarge")
+									self.redirect(BuildResultURL(RESULT_attachmentsTooLarge))
 									return
 			if preview:
-				self.redirect("/visit/preview?%s" % entry.key())
+				self.redirect(BuildURL("dir_visit", "url_preview", entry.key()))
 			elif entry.draft:
 				if entry.collectedOffline:
 					if entry.inBatchEntryBuffer:
-						self.redirect("/liaise/review")
+						self.redirect(BuildURL("dir_liaise", "url_review"))
 					else: # not in batch entry buffer
-						self.redirect("/visit/drafts?%s" % entry.creator.key())
+						self.redirect(BuildURL("dir_visit", "url_drafts", entry.creator.key()))
 				else: # not collected offline 
-					self.redirect("/visit/drafts?%s" % member.key())
+					self.redirect(BuildURL("dir_visit", "url_drafts", member.key()))
 			else: # new entry
 				# this is the one time when I'll manipulate the member's time view
 				# they want to see the story they made
 				member.viewTimeEnd = entry.published + timedelta(seconds=1)
 				member.put()
-				self.redirect("/visit/read?%s" % entry.key())
+				self.redirect(BuildURL("dir_visit", "url_read", entry.key()))
 		else: # no rakontu or member
-			self.redirect("/")
+			self.redirect(START)
 			
 class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -439,14 +440,15 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 				else:
 					answerRefForQuestions = None
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': "Answers for", 
+							   	   'title': TITLE_ANSWERS_FOR, 
 						   	   	   'title_extra': entry.title, 
 								   'current_member': member,
 								   'rakontu': rakontu, 
 								   'entry': entry,
-							   	   'attribution_referent_type': "answer set",
+							   	   'attribution_referent_type': TERMFOR_ANSWER_SET,
 							       'attribution_referent': answerRefForQuestions,
 								   'refer_type': entry.type,
+								   'refer_type_display': DisplayTypeForQuestionReferType(entry.type),
 								   'questions': rakontu.getActiveQuestionsOfType(entry.type),
 								   'answers': answers,
 								   'rakontu_members': rakontu.getActiveMembers(),
@@ -456,9 +458,9 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/answers.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 		else:
-			self.redirect("/")
+			self.redirect(START)
 				
 	@RequireLogin 
 	def post(self):
@@ -484,13 +486,13 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 						if self.request.get("offlineSource") == str(aMember.key()):
 							answersAlreadyInPlace = aMember.getDraftAnswersForEntry(entry)
 							if answersAlreadyInPlace:
-								self.redirect('/result?offlineMemberAlreadyAnsweredQuestions') 
+								self.redirect(BuildResultURL(RESULT_offlineMemberAlreadyAnsweredQuestions))
 								return
 							creator = aMember
 							foundMember = True
 							break
 					if not foundMember:
-						self.redirect('/result?offlineMemberNotFound') 
+						self.redirect(BuildResultURL(RESULT_offlineMemberNotFound))
 						return
 					liaison = member
 					collected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
@@ -559,15 +561,15 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 						else:
 							answerToEdit.publish()
 				if preview:
-					self.redirect("/visit/previewAnswers?%s" % entry.key())
+					self.redirect(BuildURL("dir_visit", "url_preview_answers", entry.key()))
 				elif setAsDraft:
-					self.redirect("/visit/drafts?%s" % creator.key()) 
+					self.redirect(BuildURL("dir_visit", "url_drafts", creator.key()))
 				else:
-					self.redirect("/visit/read?%s" % entry.key()) 
+					self.redirect(BuildURL("dir_visit", "url_read", entry.key()))
 			else:
-				self.redirect("/visit/read?%s" % entry.key())
+				self.redirect(BuildURL("dir_visit", "url_read", entry.key()))
 		else:
-			self.redirect("/")
+			self.redirect(START)
 			
 class PreviewAnswersPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -580,8 +582,8 @@ class PreviewAnswersPage(webapp.RequestHandler):
 				answers = entry.getAnswersForMember(member)
 			if entry and answers:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': "Preview of", 
-						   	   	   'title_extra': "Answers for %s " % entry.title, 
+							   	   'title': TITLE_PREVIEW_OF, 
+						   	   	   'title_extra': "%s %s " % (TITLE_ANSWERS_FOR, entry.title), 
 								   'current_member': member,
 								   'rakontu': rakontu, 
 								   'entry': entry,
@@ -592,7 +594,7 @@ class PreviewAnswersPage(webapp.RequestHandler):
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/previewAnswers.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect("/")
+			self.redirect(START)
 		
 	@RequireLogin 
 	def post(self):
@@ -603,16 +605,16 @@ class PreviewAnswersPage(webapp.RequestHandler):
 				entry = Entry.get(self.request.query_string)
 				if entry:
 					if "edit" in self.request.arguments():
-						self.redirect("/visit/answers?%s" % entry.key())
+						self.redirect(BuildURL("dir_visit", "url_answers", entry.key()))
 					elif "profile" in self.request.arguments():
-						self.redirect("/visit/profile?%s" % member.key())
+						self.redirect(BuildURL("dir_visit", "url_preferences", member.key()))
 					elif "publish" in self.request.arguments():
 						answers = entry.getAnswersForMember(member)
 						for answer in answers:
 							answer.draft = False
 							answer.published = datetime.now(tz=pytz.utc)
 						db.put(answers)
-						self.redirect("/visit/home")
+						self.redirect(HOME)
 
 class EnterAnnotationPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -647,8 +649,9 @@ class EnterAnnotationPage(webapp.RequestHandler):
 			else:
 				nudgePointsMemberCanAssign = rakontu.maxNudgePointsPerEntry
 			if entry:
+				typeDisplay = DisplayTypeForAnnotationType(type)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': "%s for" % type.capitalize(), 
+							   	   'title': "%s for" % typeDisplay.capitalize(), 
 						   	   	   'title_extra': entry.title, 
 								   'current_member': member,
 								   'rakontu': rakontu, 
@@ -668,9 +671,9 @@ class EnterAnnotationPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), 'templates/visit/annotation.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 		else:
-			self.redirect("/")
+			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
@@ -717,7 +720,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 							foundMember = True
 							break
 					if not foundMember:
-						self.redirect('/result?offlineMemberNotFound') 
+						self.redirect(BuildResultURL(RESULT_offlineMemberNotFound))
 						return
 					annotation.liaison = member
 					annotation.collected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
@@ -800,21 +803,21 @@ class EnterAnnotationPage(webapp.RequestHandler):
 				if not annotation.draft:
 					annotation.publish()
 				if preview:
-					self.redirect("/visit/preview?%s" % annotation.key())
+					self.redirect(BuildURL("dir_visit", "url_preview", annotation.key()))
 				elif annotation.draft:
 					if annotation.collectedOffline:
 						if entry.inBatchEntryBuffer:
-							self.redirect("/liaise/review")
+							self.redirect(BuildURL("dir_liaise", "url_review"))
 						else: # not in batch entry 
-							self.redirect("/visit/drafts?%s" % annotation.creator.key()) 
+							self.redirect(BuildURL("dir_visit", "url_drafts", annotation.creator.key()))
 					else: # not collected offline
-						self.redirect("/visit/drafts?%s" % member.key())
+						self.redirect(BuildURL("dir_visit", "url_drafts", member.key()))
 				else: # not draft
-					self.redirect("/visit/read?%s" % entry.key())
+					self.redirect(BuildURL("dir_visit", "url_read", entry.key()))
 			else: # new entry
-				self.redirect("/visit/home")
+				self.redirect(HOME)
 		else: # no rakontu or member
-			self.redirect("/")
+			self.redirect(START)
 			
 class PreviewPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -831,7 +834,7 @@ class PreviewPage(webapp.RequestHandler):
 					entry = annotation.entry
 			if entry:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': "Preview", 
+							   	   'title': TITLE_PREVIEW_OF, 
 						   	   	   'title_extra': entry.title, 
 								   'current_member': member,
 								   'rakontu': rakontu, 
@@ -846,7 +849,7 @@ class PreviewPage(webapp.RequestHandler):
 			path = os.path.join(os.path.dirname(__file__), 'templates/visit/preview.html')
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect("/")
+			self.redirect(START)
 		
 	@RequireLogin 
 	def post(self):
@@ -862,25 +865,25 @@ class PreviewPage(webapp.RequestHandler):
 					entry = annotation.entry
 			if "batch" in self.request.arguments():
 				if member.isLiaison():
-					self.redirect('/liaise/review')
+					self.redirect(BuildURL("dir_liaise", "url_review"))
 				else:
-					self.redirect("/visit/home")
+					self.redirect(HOME)
 			elif "profile" in self.request.arguments():
-				self.redirect("/visit/profile?%s" % member.key())
+				self.redirect(BuildURL("dir_visit", "url_preferences", member.key()))
 			elif annotation:
 				if "edit" in self.request.arguments():
-					self.redirect("/visit/%s?%s" % (annotation.typeAsURL(), annotation.key()))
+					self.redirect(BuildURL("dir_visit", URLForAnnotationType(annotation.type), annotation.key()))
 				elif "publish" in self.request.arguments():
 					annotation.publish()
-					self.redirect("/visit/home?%s" % annotation.entry.key())
+					self.redirect(BuildURL("dir_visit", "url_read", annotation.entry.key()))
 			else:
 				if "edit" in self.request.arguments():
-					self.redirect("/visit/%s?%s" % (entry.type, entry.key()))
+					self.redirect(BuildURL("dir_visit", URLForEntryType(entry.type), entry.key()))
 				elif "publish" in self.request.arguments():
 					entry.publish()
-					self.redirect("/visit/home")
+					self.redirect(HOME)
 		else:
-			self.redirect("/")
+			self.redirect(START)
 					
 class RelateEntryPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -917,7 +920,7 @@ class RelateEntryPage(webapp.RequestHandler):
 						else:
 							thirdColumn.append(entriesThatCanBeRelated[i])
 					template_values = GetStandardTemplateDictionaryAndAddMore({
-									'title': "Relate entries to",
+									'title': TITLE_RELATE_TO,
 								   	'title_extra': entry.title,
 									'rakontu': rakontu, 
 									'current_member': member, 
@@ -931,9 +934,9 @@ class RelateEntryPage(webapp.RequestHandler):
 					path = os.path.join(os.path.dirname(__file__), 'templates/visit/relate.html')
 					self.response.out.write(template.render(path, template_values))
 				else:
-					self.redirect("read?%s" % entry.key()) # should not have link in this case CFK FIX
+					self.redirect(BuildResultURL(RESULT_noEntriesToRelate))
 			else:
-				self.redirect('/')
+				self.redirect(START)
 					
 	@RequireLogin 
 	def post(self):
@@ -967,9 +970,9 @@ class RelateEntryPage(webapp.RequestHandler):
 									comment=comment)
 							link.put()
 							link.publish()
-					self.redirect("read?%s" % entry.key())
+					self.redirect(BuildURL("dir_visit", "url_read", entry.key()))
 				else:
-					self.redirect("/visit/home")
+					self.redirect(HOME)
 		else:
-			self.redirect("/")
+			self.redirect(START)
 			

@@ -5,7 +5,7 @@
 	<div id="content">
 	{% if user_is_admin %}
 		<div id="stylized" class="rakontu_form">
-		<form action="/admin/review" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_admin}}/{{url_review}}" method="post" enctype="multipart/form-data">
 		{% if rakontus %}
 			<h3>Rakontus in this installation</h3>
 			<fieldset>
@@ -71,7 +71,7 @@
 			</form>
 			</div>
 	    {% else %}
-	    	<p><center>There are no Rakontus in this Rakontu installation.</p><p><a href="/createRakontu">Make one</a></center></p>
+	    	<p><center>There are no Rakontus in this Rakontu installation.</p><p><a href="/{{url_create}}">Make one</a></center></p>
 	    {% endif %}	
 	{% else %}
 		<p>You are not a manager of this Rakontu and cannot change its settings.

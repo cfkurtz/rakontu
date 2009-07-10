@@ -17,21 +17,35 @@
 # There are several dependencies between different settings (e.g., if you change the number of options 
 # you must change the options). These are noted in the comments below.
 #
+# All settings that could vary by language are in the language_config file. To 
 # Warning: This file uses Python syntax. You should be comfortable editing Python code before you edit this file.
 #
 # BACKUP THIS FILE before you make changes!
 # ============================================================================================ 
 
+# Ignore this
+from constants_base import *
+
+# Which language files to load. This must match the suffix on the language_config file and the templates directory.
+SITE_LANGUAGE = "english"
+
+# If you add a language you MUST add an else statement here to load the appropriate files.
+if SITE_LANGUAGE == "english":
+	from english_language_config import *
+	from english_site_resources import *
+elif SITE_LANGUAGE == "yourlanguage": # replace "yourlanguage" here and in the two lines below
+	from yourlanguage_language_config import *
+	from yourlanguage_site_resources import *
+
+DEFAULT_QUESTIONS_FILE_NAME = "config/%s_default_questions.csv" % SITE_LANGUAGE
+SAMPLE_QUESTIONS_FILE_NAME = "config/%s_sample_questions.csv" % SITE_LANGUAGE
+DEFAULT_CHARACTERS_FILE_NAME = "config/%s_default_characters.csv" % SITE_LANGUAGE
+HELP_FILE_NAME = "config/%s_help.csv" % SITE_LANGUAGE
+
 # This determines how texts will be interpreted by default all over the site.
 # Change this only if the people on your site will be MUCH more likely to prefer a simple HTML or Wiki format.
-# MUST be (exactly) one of "plain text", "simple HTML", and "Wiki markup".
-DEFAULT_TEXT_FORMAT = u"plain text"
-
-# Note: The reason many of these texts have a "u" in front of them is to mark them as a unicode string.
-# I have done this mainly to prepare (a little) for translation of things like these default strings
-# and templates for use in other languages. If you need "special characters" like accents in these
-# strings, make sure there is a "u" in front of them. There are a few exceptions where a unicode
-# string will break things, mainly in the time/date formatting strings which must be ASCII.
+# MUST be (exactly) one of FORMAT_PLAIN_TEXT, FORMAT_SIMPLE_HTM, FORMAT_WIKI_MARKUP
+DEFAULT_TEXT_FORMAT = FORMAT_PLAIN_TEXT
 
 # ============================================================================================ 
 # RAKONTU LEVEL
@@ -41,39 +55,23 @@ DEFAULT_TEXT_FORMAT = u"plain text"
 # are loaded when the Rakontu is created, as well as which sample questions (in config/sample_questions.csv)
 # are available later. The Rakontu creator chooses one of these when they
 # create the Rakontu. This gets saved in the Rakontu object in case of need later (but I am not otherwise using it).
+
 # These must EXACTLY match the labels on questions in the config/default_questions.csv and config/sample_questions.csv files.
+# You can add more of these, but they must all have strings attached to them in the language_config file.
 # The LAST of these choices must always be a custom choice where NO default questions are added.
 # If you want to remove this choice during Rakontu creation, reduce this list to only the last item
 # and the drop-down box won't appear.
-RAKONTU_TYPES = ["neighborhood", "interest or support group", "work group", "family", "I'd rather choose the questions myself"]
 
-DEFAULT_RAKONTU_DESCRIPTION = \
-u"""
-This is a group of people who will come together to tell, keep and use their combined stories.
-"""
-
-DEFAULT_WELCOME_MESSAGE = \
-u"""
-Hello and welcome to our Rakontu! 
-"""
-
-DEFAULT_ETIQUETTE_STATEMENT = \
-u"""
-Telling a story is different than other ways of communicating. Stories can be complex, rich
-ways of communicating about important and sometimes emotional topics. But stories can also
-be damaging. Be considerate when you tell stories, both about who is listening and about
-who is mentioned in the story.
-"""
+RAKONTU_TYPES = [
+				RAKONTU_NEIGHBORHOOD,
+				RAKONTU_INTEREST_SUPPORT_GROUP,
+				RAKONTU_WORK_GROUP,
+				RAKONTU_FAMILY,
+				RAKONTU_CUSTOM]
 
 # ============================================================================================ 
 # MEMBERS
 # ============================================================================================ 
-
-# This is what members are called before they have set themselves a nickname.
-NO_NICKNAME_SET = u"No nickname set"
-
-# This is what shows if people don't enter anything in the "Please describe yourself to other members." area.
-NO_PROFILE_TEXT = u"No profile information."
 
 # How many nudge points members should get when they join.
 # Giving people something to start with is encouraging.
@@ -88,29 +86,22 @@ DEFAULT_CONTACT_EMAIL = "support@rakontu.org"
 # BROWSING
 # ============================================================================================ 
 
-# Don't change these. They are just here because they are needed by what follows.
-MINUTE_SECONDS = 60
-HOUR_SECONDS = 60 * MINUTE_SECONDS
-DAY_SECONDS = 24 * HOUR_SECONDS
-WEEK_SECONDS = 7 * DAY_SECONDS
-MONTH_SECONDS = 30 * DAY_SECONDS
-YEAR_SECONDS = 365 * DAY_SECONDS
-
-# These are the time frames shown in the main "Look at stories" browser window.
+# These are the time frames shown in the Rakontu home page.
 # The names can be anything you like, but the number of seconds must match the time frame stated.
-TIME_FRAMES = [(u"an hour", HOUR_SECONDS),
-			 (u"12 hours", HOUR_SECONDS * 12),
-			 (u"a day", DAY_SECONDS),
-			 (u"3 days", DAY_SECONDS * 3),
-			 (u"a week", WEEK_SECONDS),
-			 (u"2 weeks", WEEK_SECONDS * 2),
-			 (u"a month", MONTH_SECONDS),
-			 (u"3 months", MONTH_SECONDS * 3),
-			 (u"6 months", MONTH_SECONDS * 6),
-			 (u"a year", YEAR_SECONDS),
-			 (u"everything", 0), 
+# These must match constants in the language_config file.
+# The TIMEFRAME_EVERYTHING constant *MUST* stay as it is - it is referenced in the code.
+TIME_FRAMES = [(TIMEFRAME_HOUR, HOUR_SECONDS),
+			 (TIMEFRAME_12HOURS, HOUR_SECONDS * 12),
+			 (TIMEFRAME_DAY, DAY_SECONDS),
+			 (TIMEFRAME_3DAYS, DAY_SECONDS * 3),
+			 (TIMEFRAME_WEEK, WEEK_SECONDS),
+			 (TIMEFRAME_2WEEKS, WEEK_SECONDS * 2),
+			 (TIMEFRAME_MONTH, MONTH_SECONDS),
+			 (TIMEFRAME_3MONTHS, MONTH_SECONDS * 3),
+			 (TIMEFRAME_6MONTHS, MONTH_SECONDS * 6),
+			 (TIMEFRAME_YEAR, YEAR_SECONDS),
+			 (TIMEFRAME_EVERYTHING, 0), 
 			 ]
-TIME_FRAME_EVERYTHING_STRING = "everything"
 
 # This is how much of a text is shown when the "Show details" setting is in place,
 # on both the main screen and the per-entry screen.
@@ -128,12 +119,14 @@ DATE_FORMATS = {
 			"j/n/Y": "%d/%m/%Y", # 03/01/2000
 			"n/j/Y": "%m/%d/%Y", # 01/03/2000
 			}
+
 DEFAULT_DATE_FORMAT = "F j, Y"
 
 TIME_FORMATS = {
 			"h:i a": "%I:%M %p", #"5:00 pm", 
 			"H:i": "%H:%M", #"17:00",
 			}
+
 DEFAULT_TIME_FORMAT = "h:i a"
 
 # This time zone will show up in all Rakontu settings pages.
@@ -157,11 +150,6 @@ NUM_SEARCH_FIELDS = 3
 # ============================================================================================ 
 # ENTRIES
 # ============================================================================================ 
-
-# This is the title given to entries which are not titled by their creators.
-DEFAULT_UNTITLED_ENTRY_TITLE = u"Untitled"
-
-NO_TEXT_IN_ENTRY = u"No text."
 
 # This is the list of numbers of attachments Rakontus can choose from, and the choice
 # that appears chosen by default.
@@ -223,15 +211,9 @@ PRINT_DELIMITER = "=======\n"
 # QUESTIONS
 # ============================================================================================ 
 
-# This is the name given to questions not named by their creators.
-DEFAULT_QUESTION_NAME = u"Unnamed question"
-
 # Defaults for question value ranges.
 DEFAULT_QUESTION_VALUE_MIN = 0
 DEFAULT_QUESTION_VALUE_MAX = 1000
-
-# Default response (label on checkbox) for boolean questions
-DEFAULT_QUESTION_BOOLEAN_RESPONSE = "Yes"
 
 # How many choices can be offered for an ordinal or nominal question, maximum.
 # A reasonable range is between 5 and 10.
@@ -242,27 +224,11 @@ MAX_NUM_CHOICES_PER_QUESTION = 10
 # ============================================================================================ 
 
 # The number of nudge categories. This MUST be set to at least one.
-# It also MUST match the number of entries in the next list.
+# It also MUST match the number of entries in the list of strings given in language_config.
 # If you change this AFTER there are Rakontus using the site, their nudge categories
 # will either get cut off (and not displayed), or new ones called "None" will be displayed.
 # It's best to set it up at the start and not change it after any items have been entered.
 NUM_NUDGE_CATEGORIES = 5
-
-# The default nudge category names that come up in Rakontu settings. 
-# The number of strings in this list MUST match the number of categories above.
-DEFAULT_NUDGE_CATEGORIES = [u"appropriate", 
-						u"important", 
-						u"useful to new members", 
-						u"useful for resolving conflicts", 
-						u"useful for understanding"]
-
-# These questions appear next to the category names and give information about how to made nudge decisions.
-# They must match up with the nudge category names in order.
-DEFAULT_NUDGE_CATEGORY_QUESTIONS = [u"Is it helpful or harmful to the Rakontu?", 
-						u"It is earth-shaking or trivial in impact?", 
-						u"Would new members be especially interested in it?", 
-						u"Would people in conflict be helped by it?", 
-						u"Would it help people to make sense of things in our Rakontu?"]
 
 # How many nudge points can be assigned per entry, by default.
 DEFAULT_MAX_NUDGE_POINTS_PER_ENTRY = 25
@@ -318,45 +284,3 @@ DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS = [
 # The number of tags in each tag set. Reasonable values are between 3 and 7.
 # CAUTION: You cannot set this number to zero; the system expects it to be at least one.
 NUM_TAGS_IN_TAG_SET = 5
-
-# These are types of request people can set. They can be anything you like. 
-# Everyone can see them, and guides have a "review requests" page where they see all requests by type.
-# They should be worded in reference to an entry, like "transcribe it"
-# CAUTION: The last type in this list should always be "other" or some other no-category name.
-REQUEST_TYPES = ["transcribe", "read aloud", "translate", "comment on", "tag", "answer questions about", "other"]
-NUM_REQUEST_TYPES = 7
-
-# ============================================================================================ 
-# HELPING ROLES
-# ============================================================================================ 
-
-# These appear in each member's profile page, in the section where they are deciding whether 
-# to take on each of the helping roles. You can add site-specific information here.
-DEFAULT_ROLE_READMES = [
-u"""
-<p>A curator pays attention to the Rakontu's accumulated data. Curators add information, check for problems, create links, 
-and in general maintain the vitality of the story bank.</p>""",
-
-u"""
-<p>A guide pays attention to people in the Rakontu. Guides answer questions, write tutorials, 
-encourage people to tell and use stories, create patterns, write and respond to invitations,
-and in general maintain the vitality of the on-line member community. Guides must agree to
-receive email messages from the system so that they can answer questions.</p>
-""",
-
-u"""
-<p>A liaison guides stories and other information over the barrier between on-line and off-line worlds. 
-Liaisons conduct external interviews and add the stories people tell in them, read stories to people and gather 
-comments and other annotations, and in general make the system work for both on-line and off-line Rakontu members.</p>
-"""]
-
-# These are the formats in which the default role readmes (above) are to be interpreted.
-# Each setting MUST be (exactly) one of "plain text", "simple HTML", and "Wiki markup".
-DEFAULT_ROLE_READMES_FORMATS = [u"simple HTML", u"simple HTML", u"simple HTML"]
-
-# Whether people have to click "I agree" to become a curator, guide or liaison.
-# One setting for each of these helping roles: curator, guide, liaison.
-DEFAULT_ROLE_AGREEMENTS = [False, False, False]
-
-# Information that builds system resources (mainly help pages) is in a separate file.
-from site_resources import *
