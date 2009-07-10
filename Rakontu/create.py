@@ -17,7 +17,7 @@ class CreateRakontuPage(webapp.RequestHandler):
 						   'title': TITLE_CREATE_RAKONTU,
 						   'rakontu_types': RAKONTU_TYPES,
 						   })
-		path = os.path.join(os.path.dirname(__file__), 'templates/create.html')
+		path = os.path.join(os.path.dirname(__file__), FindTemplate('create.html'))
 		self.response.out.write(template.render(path, template_values))
 			
 	@RequireLogin 
@@ -183,7 +183,7 @@ class EnterEntryPage(webapp.RequestHandler):
 								'referenced_links_outgoing': referencedLinksOutgoing,
 							    'searches_that_can_be_added_to_pattern': searchesThatCanBeIncluded,
 							   })
-			path = os.path.join(os.path.dirname(__file__), 'templates/visit/entry.html')
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/entry.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect(START)
@@ -455,7 +455,7 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 								   'offline_members': rakontu.getOfflineMembers(),
 								   'character_allowed': rakontu.allowCharacter[ANSWERS_ENTRY_TYPE_INDEX],
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/visit/answers.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/answers.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)
@@ -591,7 +591,7 @@ class PreviewAnswersPage(webapp.RequestHandler):
 								   'questions': rakontu.getActiveQuestionsOfType(entry.type),
 								   'answers': answers,
 								   })
-			path = os.path.join(os.path.dirname(__file__), 'templates/visit/previewAnswers.html')
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/previewAnswers.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect(START)
@@ -668,7 +668,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 								   'included_links_outgoing': entry.getOutgoingLinksOfType("included"),
 								   'already_there_tags': rakontu.getNonDraftTags(),
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/visit/annotation.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/annotation.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)
@@ -846,7 +846,7 @@ class PreviewPage(webapp.RequestHandler):
 								   'answers_with_entry': entry.getAnswersForMember(member),
 								   'nudge_categories': rakontu.nudgeCategories,
 								   })
-			path = os.path.join(os.path.dirname(__file__), 'templates/visit/preview.html')
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/preview.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect(START)
@@ -931,7 +931,7 @@ class RelateEntryPage(webapp.RequestHandler):
 									'num_rows': max(len(firstColumn), max(len(secondColumn), len(thirdColumn))),
 									'related_links': links,
 									})
-					path = os.path.join(os.path.dirname(__file__), 'templates/visit/relate.html')
+					path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/relate.html'))
 					self.response.out.write(template.render(path, template_values))
 				else:
 					self.redirect(BuildResultURL(RESULT_noEntriesToRelate))

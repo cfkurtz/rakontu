@@ -21,7 +21,7 @@ class ReviewResourcesPage(webapp.RequestHandler):
 								   'current_member': member,
 								   'url_resource': URLForEntryType("resource"),
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/guide/resources.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/resources.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)
@@ -85,7 +85,7 @@ class ReviewRequestsPage(webapp.RequestHandler):
 								   'showing_all_requests': not uncompletedOnly,
 								   'have_requests': numRequests > 0,
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/guide/requests.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/requests.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)
@@ -136,7 +136,7 @@ class ReviewInvitationsPage(webapp.RequestHandler):
 								   'invitations': invitations,
 								   'showing_all_invitations': not noResponsesOnly,
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/guide/invitations.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/invitations.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)

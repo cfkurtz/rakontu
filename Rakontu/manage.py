@@ -19,7 +19,7 @@ class FirstOwnerVisitPage(webapp.RequestHandler):
 								'rakontu': rakontu, 
 								'current_member': member,
 								})
-				path = os.path.join(os.path.dirname(__file__), 'templates/manage/first.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/first.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)
@@ -41,7 +41,7 @@ class ManageRakontuMembersPage(webapp.RequestHandler):
 								   'pending_members': rakontu.getPendingMembers(),
 								   'inactive_members': rakontu.getInactiveMembers(),
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/manage/members.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/members.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)
@@ -173,7 +173,7 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 								   'activity_point_includes': activityPointIncludes,
 								   'site_allows_attachments': DEFAULT_MAX_NUM_ATTACHMENTS > 0,
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/manage/settings.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/settings.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)
@@ -286,7 +286,7 @@ class ManageRakontuQuestionsListPage(webapp.RequestHandler):
 								   'refer_types_plural_display': QUESTION_REFERS_TO_PLURAL_DISPLAY,
 								   'num_types': len(QUESTION_REFERS_TO),
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/manage/questionsList.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/questionsList.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)
@@ -329,7 +329,7 @@ class ManageRakontuQuestionsPage(webapp.RequestHandler):
 								   'refer_type_plural': typePlural,
 								   'refer_type_plural_display': typePluralDisplay,
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/manage/questions.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/questions.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)
@@ -434,7 +434,7 @@ class ManageCharactersPage(webapp.RequestHandler):
 								   'characters': rakontu.getActiveCharacters(),
 								   'inactive_characters': rakontu.getInactiveCharacters(),
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/manage/characters.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/characters.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)
@@ -490,7 +490,7 @@ class ManageCharacterPage(webapp.RequestHandler):
 								   'refer_type': "character",
 								   'refer_type_display': DisplayTypeForQuestionReferType("character"),
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/manage/character.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/character.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)
@@ -592,7 +592,7 @@ class ExportRakontuDataPage(webapp.RequestHandler):
 								   'xml_export': rakontu.getExportOfType("xml_export"),
 								   'csv_export': rakontu.getExportOfType("csv_export_all"),
 								   })
-			path = os.path.join(os.path.dirname(__file__), 'templates/manage/export.html')
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/export.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect(START)
@@ -639,7 +639,7 @@ class InactivateRakontuPage(webapp.RequestHandler):
 								   'rakontu': rakontu, 
 								   'current_member': member,
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/manage/inactivate.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/inactivate.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)

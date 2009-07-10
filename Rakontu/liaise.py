@@ -21,7 +21,7 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 								   'active_members': rakontu.getActiveOfflineMembers(),
 								   'inactive_members': rakontu.getInactiveOfflineMembers(),
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/liaise/members.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('liaise/members.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)
@@ -109,7 +109,7 @@ class ReviewBatchEntriesPage(webapp.RequestHandler):
 								   'offline_members': rakontu.getActiveOfflineMembers(),
 								   'current_member': member,
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/liaise/review.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('liaise/review.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)
@@ -155,7 +155,7 @@ class BatchEntryPage(webapp.RequestHandler):
 								   'online_members': rakontu.getActiveOnlineMembers(),
 								   'current_member': member,
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/liaise/batch.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('liaise/batch.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)

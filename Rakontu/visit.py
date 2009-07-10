@@ -37,7 +37,7 @@ class StartPage(webapp.RequestHandler):
 						   'login_url': users.create_login_url("/"),
 						   'logout_url': users.create_logout_url("/"),
 						   })
-		path = os.path.join(os.path.dirname(__file__), 'templates/start.html')
+		path = os.path.join(os.path.dirname(__file__), FindTemplate('start.html'))
 		self.response.out.write(template.render(path, template_values))
 
 	def post(self):
@@ -124,7 +124,7 @@ class NewMemberPage(webapp.RequestHandler):
 							'current_member': member,
 							'resources': rakontu.getNonDraftNewMemberResources(),
 							})
-			path = os.path.join(os.path.dirname(__file__), 'templates/visit/new.html')
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/new.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect(START)
@@ -146,7 +146,7 @@ class GetHelpPage(webapp.RequestHandler):
 							'manager_resources': managerResources,
 							'guides': rakontu.getGuides(),
 							})
-			path = os.path.join(os.path.dirname(__file__), 'templates/visit/help.html')
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/help.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect(START)
@@ -187,7 +187,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 							'current_search': currentSearch,
 							'member_time_frame_string': member.getFrameStringForViewTimeFrame(),
 							})
-			path = os.path.join(os.path.dirname(__file__), 'templates/visit/home.html')
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/home.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect(START)
@@ -560,7 +560,7 @@ class ReadEntryPage(webapp.RequestHandler):
 				member.lastReadAnything = datetime.now(tz=pytz.utc)
 				member.nudgePoints += rakontu.getMemberNudgePointsForEvent("reading")
 				member.put()
-				path = os.path.join(os.path.dirname(__file__), 'templates/visit/read.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/read.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(BuildResultURL(RESULT_entryNotFound))
@@ -604,7 +604,7 @@ class ReadAnnotationPage(webapp.RequestHandler):
 				member.lastReadAnything = datetime.now(tz=pytz.utc)
 				member.nudgePoints += rakontu.getMemberNudgePointsForEvent("reading")
 				member.put()
-				path = os.path.join(os.path.dirname(__file__), 'templates/visit/readAnnotation.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/readAnnotation.html'))
 				self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect(START)
@@ -634,7 +634,7 @@ class SeeRakontuPage(webapp.RequestHandler):
 								   'rakontu_members': rakontu.getActiveMembers(),
 								   'characters': rakontu.getActiveCharacters(),
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/visit/rakontu.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/rakontu.html'))
 				self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect(START)
@@ -650,7 +650,7 @@ class SeeRakontuMembersPage(webapp.RequestHandler):
 								   'current_member': member,
 								   'rakontu_members': rakontu.getActiveMembers(),
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/visit/members.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/members.html'))
 				self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect(START)
@@ -710,7 +710,7 @@ class SeeMemberPage(webapp.RequestHandler):
 					   		   'grid_form_url': "/visit/member?%s" % memberToSee.key(),
 					   		   'no_profile_text': NO_PROFILE_TEXT,
 					   		   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/visit/member.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/member.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)
@@ -802,7 +802,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 						   		   	   'grid_form_url': "/visit/character?%s" % character.key(),
 						   		   	   'col_headers': colHeaders,
 									   })
-					path = os.path.join(os.path.dirname(__file__), 'templates/visit/character.html')
+					path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/character.html'))
 					self.response.out.write(template.render(path, template_values))
 				else:
 					self.redirect(HOME)
@@ -847,7 +847,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 							   'search_locations': SEARCH_LOCATIONS,
 							   'search_locations_display': SEARCH_LOCATIONS_DISPLAY,
 							   })
-			path = os.path.join(os.path.dirname(__file__), 'templates/visit/profile.html')
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/profile.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect(START)
@@ -988,7 +988,7 @@ class ChangeMemberDraftsPage(webapp.RequestHandler):
 							   'search_locations': SEARCH_LOCATIONS,
 							   'search_locations_display': SEARCH_LOCATIONS_DISPLAY,
 							   })
-			path = os.path.join(os.path.dirname(__file__), 'templates/visit/drafts.html')
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/drafts.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect(START)
@@ -1050,7 +1050,7 @@ class LeaveRakontuPage(webapp.RequestHandler):
 							   "linkback": self.request.headers["Referer"],
 							   'current_member': member,
 							   })
-			path = os.path.join(os.path.dirname(__file__), 'templates/visit/leave.html')
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/leave.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect(START)
@@ -1121,7 +1121,7 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 							'current_search': currentSearch,
 							'questions_and_refs_dict_list': questionsAndRefsDictList,
 							})
-			path = os.path.join(os.path.dirname(__file__), 'templates/visit/filter.html')
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/filter.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect(START)
@@ -1249,7 +1249,7 @@ class ResultFeedbackPage(webapp.RequestHandler):
 							   "linkback": self.request.headers["Referer"],
 							   'current_member': member,
 							   })
-			path = os.path.join(os.path.dirname(__file__), 'templates/result.html')
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('result.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect(START)
@@ -1271,7 +1271,7 @@ class ContextualHelpPage(webapp.RequestHandler):
 								   "linkback": self.request.headers["Referer"],
 								   'current_member': member,
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/help.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('help.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(BuildResultURL(RESULT_helpNotFound))

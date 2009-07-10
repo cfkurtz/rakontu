@@ -47,7 +47,7 @@ class CurateFlagsPage(webapp.RequestHandler):
 								   'search_locations': SEARCH_LOCATIONS,
 								   'search_locations_display': SEARCH_LOCATIONS_DISPLAY,
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/curate/flags.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/flags.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)
@@ -175,7 +175,7 @@ class CurateGapsPage(webapp.RequestHandler):
 								   'collages_without_inclusions': collagesWithoutInclusions,
 								   'current_member': member,
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/curate/gaps.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/gaps.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)
@@ -206,7 +206,7 @@ class CurateAttachmentsPage(webapp.RequestHandler):
 								   'attachments': rakontu.getAttachmentsForAllNonDraftEntries(),
 								   'current_member': member,
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/curate/attachments.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/attachments.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)
@@ -225,7 +225,7 @@ class CurateTagsPage(webapp.RequestHandler):
 								   'tag_sets': rakontu.getNonDraftTagSets(),
 								   'current_member': member,
 								   })
-				path = os.path.join(os.path.dirname(__file__), 'templates/curate/tags.html')
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/tags.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(HOME)

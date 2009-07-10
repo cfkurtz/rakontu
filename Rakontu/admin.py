@@ -18,7 +18,7 @@ class AdministerRakontusPage(webapp.RequestHandler):
 							   'rakontus': Rakontu.all().fetch(FETCH_NUMBER), 
 							   # here we do NOT give the current_member or rakontu
 							   })
-			path = os.path.join(os.path.dirname(__file__), 'templates/admin/review.html')
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('admin/review.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect(START)

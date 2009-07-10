@@ -34,6 +34,9 @@ import pytz
 # ============================================================================================
 # ============================================================================================
 
+def FindTemplate(template):
+	return "templates/%s/%s" % (SITE_LANGUAGE, template)
+	
 def RequireLogin(func):
 	def check_login(request):
 		if not users.get_current_user():
