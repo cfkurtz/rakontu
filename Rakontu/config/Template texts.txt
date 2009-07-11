@@ -1,11 +1,10 @@
 =====================
-../templates/common_attribution.html
+../templates/english/common_attribution.html
 =====================
 
 Since you are a liaison,
 Was this [ref] collected from an off-line member?
 Yes, it was collected from
-(choose)
 on
 (year)
 (month)
@@ -14,32 +13,31 @@ and attributed to
 The selected member
 No, this is my [ref].
 I'd like to say it was contributed by
-Me ([ref])
+Me
 Who would you like to say contributed this [ref]?
-Me ([ref])
+Me
 
 =====================
-../templates/common_footer.html
+../templates/english/common_footer.html
 =====================
 
-Powered by Rakontu [ref]
+Powered by  Rakontu  [ref]
 
 =====================
-../templates/common_grid.html
+../templates/english/common_grid.html
 =====================
 
 BUTTON: Hide details
 BUTTON: Show details
 
 =====================
-../templates/common_head.html
+../templates/english/common_head.html
 =====================
 
-- [ref]
 - Rakontu
 
 =====================
-../templates/common_menus.html
+../templates/english/common_menus.html
 =====================
 
 Visit
@@ -78,24 +76,23 @@ Review all Rakontus
 Generate sample questions
 Generate help resources
 Generate help messages
-Help |
-Preferences |
+Help  |
+Preferences  |
 Log out
 Rakontu site administration
 No user has been found.
 
 =====================
-../templates/common_questions.html
+../templates/english/common_questions.html
 =====================
 
 Please answer these questions about yourself. [ref]
 Answers to questions about this [ref]
 Please answer these questions about this [ref].
 Please enter a number between [ref] and [ref].
-(choose)
 
 =====================
-../templates/create.html
+../templates/english/create.html
 =====================
 
 Create a new Rakontu
@@ -107,15 +104,15 @@ Please choose a nickname to represent yourself in the Rakontu. (You can change i
 Cancel and return to the Rakontu start page
 
 =====================
-../templates/help.html
+../templates/english/help.html
 =====================
 
 Help for [ref]
-Would you like to Go back to the page you were on?
-... or would you like more Help?
+Would you like to   Go back   to the page you were on?
+... or would you like more   Help  ?
 
 =====================
-../templates/result.html
+../templates/english/result.html
 =====================
 
 Your message has been sent.
@@ -129,8 +126,8 @@ There are no entries to which this entry can be related.
 At least one of the attachment(s) you chose are too large. The entry was saved but (at least some of) the attachments were not.
 You are the only owner of this Rakontu. You can't leave it until
 you designate at least one other member as an owner.</p.
-Sample questions have been generated.You can do this again if you need to change the config/sample_questions.csv file.
-Contextual help database objects have been generated.You can do this again if you need to change the config/help.csv file.
+Sample questions have been generated.  You can do this again if you need to change the  config/sample_questions.csv  file.
+Contextual help database objects have been generated.  You can do this again if you need to change the  config/help.csv  file.
 System resource database objects have been generated.
 You can do this again if you need to change the site_resources.py file.
 There is no search filter result to print. You need to go to the Rakontu's home page and apply a search filter,
@@ -141,24 +138,24 @@ search terms.)
 No items were selected for printing.
 There are no questions of that type to export.
 No help message was found for that item. You may want to let your site administrator know there is a problem.
-Would you like to Go back to the page you were on?
-... or perhaps you would like to return to the Home page?
-... or would you like some Help?
+Would you like to   Go back   to the page you were on?
+... or perhaps you would like to return to the   Home page  ?
+... or would you like some   Help  ?
 
 =====================
-../templates/start.html
+../templates/english/start.html
 =====================
 
 Rakontu
 Rakontu
 Helping people take good care of their stories.
-You are a member of these Rakontus.
+You are a  member  of these Rakontus.
 BUTTON: Visit
-You have been invited to join these Rakontus.
+You have been  invited  to join these Rakontus.
 BUTTON: Join
 or
 BUTTON: Create a New Rakontu
-Your Google account is: [ref]Log out
+Your Google account is:  [ref]   Log out
 For the system administrator
 BUTTON: Review Rakontus
 BUTTON: Generate Sample Questions
@@ -167,26 +164,26 @@ BUTTON: Generate Help Texts
 Please enter the alpha testing password.
 For the developer
 BUTTON: Make Fake Data
-You must be logged in to a Google account to use Rakontu.Login at Google
+You must be logged in to a Google account to use Rakontu.   Login at Google
 What's a Rakontu?
 It's a place where people share and use stories together.
 You could see it as a living-history museum of stories, as well as
 a gathering place where people build their story museum together
 and draw from it to remember the past, understand the present
 and find solutions for the future.
-(If you're wondering: Rakontu is Esperanto for "tell a story.")
+(If you're wondering: Rakontu is  Esperanto  for "tell a story.")
 What's Rakontu?
 Rakontu is an open source software package that helps groups of people share and work
 with stories. The Rakontu project is being carried out (at this point) mainly
-by Cynthia Kurtz.
+by  Cynthia Kurtz .
 This alpha stage prototype is currently being tested.
 If you want to help with testing, join the
 Rakontu discussion group
 and ask for the password to try out the site.</p.
-You can find out more at rakontu.org.
+You can find out more at  rakontu.org .
 
 =====================
-../templates/admin/review.html
+../templates/english/admin/review.html
 =====================
 
 Rakontus in this installation
@@ -200,82 +197,73 @@ Pending members (invitations)
 Active?[ref]
 Export
 Remove[ref]
-[ref] [ref] (UTC)
-[ref] [ref]  (UTC)
-none
-[ref] [ref]  (UTC)
-none
+(UTC)
+(UTC)
+(UTC)
 BUTTON: Inactivate
 BUTTON: Activate
 BUTTON: Export all data
 BUTTON: PERMANENTLY REMOVE
-Please remove Rakontus VERY carefully.Deleted Rakontus cannot be recovered.It is best to backup first.
-There are no Rakontus in this Rakontu installation.Make one
+Please remove Rakontus VERY carefully.  Deleted Rakontus cannot be recovered.  It is best to backup first.
+There are no Rakontus in this Rakontu installation.   Make one
 You are not a manager of this Rakontu and cannot change its settings.
 Please ask a manager to make any changes you would like to see made.
 Main page
 Log out
 
 =====================
-../templates/curate/attachments.html
+../templates/english/curate/attachments.html
 =====================
 
 Attachments
-AttachmentEntry
+Attachment  Entry
 There are no attachments in the data set.
 You are not a curator of this Rakontu and cannot review attachments.
 Either become a curator, or ask a curator to review any attachments you would like to be reviewed.
 
 =====================
-../templates/curate/flags.html
+../templates/english/curate/flags.html
 =====================
 
-You are an
-[ref] of this Rakontu, so you can remove any item
+You are a n
+[ref]  of this Rakontu, so you can remove any item
 added to the system.
-You are a curator in this Rakontu, so you can flag items for removal
+You are a  curator  in this Rakontu, so you can flag items for removal
 and notify the Rakontu's managers if you think an item should be removed quickly.
 Flagged entries
-Unflag? [ref]EntryTypeLinked toText (first part)ByComment
+Unflag? [ref]  Entry  Type  Linked to  Text (first part)  By  Comment
 Remove?[ref]
 Notify?
 Unflag
-(you)
 the former member "[ref]"
 the former character "[ref]"
 Remove
 Notify
-none
 Flagged annotations
-Unflag?EntryTypeContentBy
+Unflag?  Entry  Type  Content  By
 Remove?
 Notify?
 Unflag
 Remove comment only
-(you)
 the former member "[ref]"
 Remove
 Notify
-none
 Flagged answers
-Unflag?EntryQuestionAnswerBy
+Unflag?  Entry  Question  Answer  By
 Remove?
 Notify?
 Unflag
-(you)
 the former member "[ref]"
 Remove
 Notify
-none
 Flagged links
-Unflag?FromToComment
+Unflag?  From  To  Comment
 Remove?
 Notify?
 Unflag
 Remove comment only
 Remove
 Notify
-none
 Flagged search filters
 Unflag? [ref]
 Name
@@ -292,12 +280,9 @@ Notify?
 Unflag
 [ref] of [ref]
 [ref] of [ref]
-[ref] [ref]
-[ref] [ref]
 at [ref]
 Remove
 Notify
-none
 Please remove items carefully. Deleted items cannot be recovered.
 BUTTON: Make selected changes
 BUTTON: Send selected notifications
@@ -306,7 +291,7 @@ You are not a curator or manager of this Rakontu and cannot review removal flags
 Either become a curator or ask a curator or manager to make any changes you would like to see made.
 
 =====================
-../templates/curate/gaps.html
+../templates/english/curate/gaps.html
 =====================
 
 Gaps [ref]
@@ -317,23 +302,15 @@ highest activity
 highest nudged
 items first
 BUTTON: Change
-Entries with no tags
-Entries with no links
-Entries with no answers to questions
-Collages with no story links
-[ref] ([ref])
-none
-[ref] ([ref])
-none
-[ref] ([ref])
-none
-[ref] ([ref])
-none
+Entries with no  tags
+Entries with no  links
+Entries with no  answers  to questions
+Collages with no  story links
 You are not a curator of this Rakontu and cannot review its gaps.
 Please ask a curator to make any changes you would like to see made.
 
 =====================
-../templates/curate/tags.html
+../templates/english/curate/tags.html
 =====================
 
 Change tags on entries[ref]
@@ -346,37 +323,36 @@ You are not a manager of this Rakontu and cannot review tags.
 Please ask a manager to make any changes you would like to see made.
 
 =====================
-../templates/guide/invitations.html
+../templates/english/guide/invitations.html
 =====================
 
 Invitations
 BUTTON: Show only invitations with no responses
 Invitations with no responses
 BUTTON: Show all invitations
-NamePublishedResponses
+Name  Published  Responses
 at [ref]
-There are no invitations in the Rakontu. Make one
+There are no invitations in the Rakontu.  Make one
 There are no invitations without responses.
 You are not a guide of this Rakontu and cannot review invitations.
 Please ask a guide to make any changes you would like to see made.
 
 =====================
-../templates/guide/requests.html
+../templates/english/guide/requests.html
 =====================
 
 Requests
 BUTTON: Show only uncompleted requests
 Uncompleted requests
 BUTTON: Show all requests
-CompletedEntryNameText
+Completed  Entry  Name  Text
 Completed
-- none
 BUTTON: Make selected changes
 You are not a guide of this Rakontu and cannot review requests.
 Please ask a guide to make any changes you would like to see made.
 
 =====================
-../templates/guide/resources.html
+../templates/english/guide/resources.html
 =====================
 
 Resources
@@ -389,7 +365,6 @@ For managers only?
 Created
 Last changed
 Last published
-none
 This Rakontu has no resources.
 Make one
 Create all default resources
@@ -397,7 +372,7 @@ You are not a guide or manager of this Rakontu and cannot change its resources.
 Please ask a guide or manager to make any changes you would like to see made.
 
 =====================
-../templates/liaise/batch.html
+../templates/english/liaise/batch.html
 =====================
 
 Batch Story Entry[ref]
@@ -406,7 +381,6 @@ BUTTON: Add stories
 or enter items in the boxes below and click any of the "Add stories" buttons.
 Story [ref]
 Collected from
-(choose)
 Attributed to
 The selected member
 Date collected
@@ -418,7 +392,6 @@ Text
 Interpret as[ref]
 Attachment(s)
 Questions
-(choose)
 Please enter a number between [ref] and [ref].
 Comment
 Subject
@@ -429,7 +402,7 @@ You are not a liaison of this Rakontu and cannot import data collected offline.
 Either become a liaison, or ask a liaison to import any items you would like to see added.
 
 =====================
-../templates/liaise/members.html
+../templates/english/liaise/members.html
 =====================
 
 Active off-line members
@@ -440,7 +413,6 @@ Inactivate?
 (View member page)
 (Change preferences)
 (Edit drafts)
-none
 Inactivate
 There are no active off-line members at this time.
 Add off-line members
@@ -455,20 +427,20 @@ You are not a liaison or manager of this Rakontu and cannot change its off-line 
 Please ask a liaison or manager to make any changes you would like to see made.
 
 =====================
-../templates/liaise/review.html
+../templates/english/liaise/review.html
 =====================
 
 Batch entered stories
 These stories have been entered but are not yet in the main set of stories. You can review them
 and make changes here, then click Import to add them to the main data set.
-Import?TitleCollected from
+Import?  Title  Collected from
 Attribution
 Date
 Attachments
-CommentTag setRemove?
+Comment  Tag set  Remove?
 Import
-[ref](Preview)
-(Change)
+[ref] ( Preview )
+( Change )
 member
 Year
 Month
@@ -482,7 +454,7 @@ You are not a liaison of this Rakontu and cannot import data collected offline.
 Either become a liaison, or ask a liaison to import any items you would like to see added.
 
 =====================
-../templates/manage/character.html
+../templates/english/manage/character.html
 =====================
 
 Character name and description
@@ -493,9 +465,8 @@ Etiquette statement
 Interpret as
 Picture
 Image
-Replace  Attach
+Replace   Attach
 Remove?
-none
 The best picture size is 100 x 60.
 Remove
 BUTTON: Change Settings
@@ -503,7 +474,7 @@ You are not a manager of this Rakontu and cannot change its characters.
 Please ask a manager to make changes to the characters for you.
 
 =====================
-../templates/manage/characters.html
+../templates/english/manage/characters.html
 =====================
 
 Add new characters[ref]
@@ -514,7 +485,6 @@ Description
 Inactivate?
 (View character page)
 (Change character)
-none
 Inactivate
 Inactive characters[ref]
 BUTTON: Submit Changes
@@ -522,52 +492,50 @@ You are not a manager of this Rakontu and cannot change its characters.
 Please ask a manager to make changes to the characters for you.
 
 =====================
-../templates/manage/export.html
+../templates/english/manage/export.html
 =====================
 
-Export all Rakontu data to XML [ref]
+Export all Rakontu data to XML  [ref]
 XML export for [ref]
 was last generated
 on [ref]
 at [ref]
 BUTTON: Regenerate XML Export
-(none)
 BUTTON: Generate XML Export
-Export entries with answers to CSV [ref]
+Export entries with answers to CSV  [ref]
 Entries with answers for [ref]
 was last generated
 on [ref]
 at [ref]
 BUTTON: Regenerate Entries-Answers Export
-(none)
 BUTTON: Generate Entries-Answers Export
 You are not a manager of this Rakontu (or a site administrator) and cannot export its data.
 Please ask a manager to export the Rakontu's data.
 
 =====================
-../templates/manage/first.html
+../templates/english/manage/first.html
 =====================
 
 Welcome to your new Rakontu, [ref]!
 To get you started, here is a thirty-second explanation of important terms.
-The most important thing in a Rakontu is, of course, its stories.
-But there are four other types of entry as well: invitations to tell stories,
-story collages, patterns people have observed in the stories, and resources that help
+The most important thing in a Rakontu is, of course, its  stories .
+But there are four other types of  entry  as well:  invitations  to tell stories,
+story  collages ,  patterns  people have observed in the stories, and  resources  that help
 people remember and understand.
 All of these things can be commented on, given descriptive tags, rated, asked questions about, and searched.
 Many of the people in your Rakontu will participate as regular members.
 However, there are three "helper" roles people can volunteer to take on to help the Rakontu become more useful to everyone.
-Curators watch over the stories. They locate and fix problems in your story "museum."
-Guides watch over the people. They help new members get started and answer questions.
-Liaisons bridge worlds. They help people who don't use computers to participate in the Rakontu by entering
+Curators  watch over the stories. They locate and fix problems in your story "museum."
+Guides  watch over the people. They help new members get started and answer questions.
+Liaisons  bridge worlds. They help people who don't use computers to participate in the Rakontu by entering
 their stories and reading them stories others have told.
-Of course there are also managers, who make the decisions. You, as the group's first owner, are also its first manager.
+Of course there are also  managers , who make the decisions. You, as the group's first owner, are also its first manager.
 Note that even someone as important as you has to "become" a curator, guide or liaison to access those special pages.
-Visit your preferences page to do that.
+Visit your  preferences  page to do that.
 Those are the basics! The best way to get started with your new site is to simply go down the items in the "Manage" menu (at the top of the page)
-clicking on each one, and look at all the options you see there. Then start
-asking some people to join you,
-asking them to tell stories, and telling some stories yourself!
+clicking on each one, and look at all the  options  you see there. Then start
+asking some people to  join  you,
+asking them to  tell  stories, and  telling  some stories yourself!
 One more thing: around the site you will see little icons that provide help. Either hover over them with your mouse or click on them
 to read a bit of help about the area in which they appear.
 If you do not see any icons below, your site administrator has not yet generated the help system.
@@ -576,11 +544,11 @@ If you do not see any icons below, your site administrator has not yet generated
 [ref]  caution
 
 =====================
-../templates/manage/inactivate.html
+../templates/english/manage/inactivate.html
 =====================
 
 Are you sure?
-Are you absolutely completely really totally certain that you want to inactivate this Rakontu?
+Are you  absolutely completely really totally certain  that you want to inactivate this Rakontu?
 If you do, you will have to ask your site administrator if you want to either reinstate the Rakontu or
 remove its content.
 BUTTON: Really And Truly Inactivate This Rakontu
@@ -590,7 +558,7 @@ You are not a manager of this Rakontu and cannot change its settings.
 Please ask a manager to make any changes you would like to see made.
 
 =====================
-../templates/manage/members.html
+../templates/english/manage/members.html
 =====================
 
 Active members
@@ -600,7 +568,7 @@ Google account email
 Type of membership
 Helping roles and availability
 Inactivate?
-[ref] (This is you)
+[ref]    (This is you)
 Member
 Manager
 Owner
@@ -627,16 +595,16 @@ You are not a manager of this Rakontu and cannot change its memberships.
 Please ask a manager to make any changes you would like to see made.
 
 =====================
-../templates/manage/questions.html
+../templates/english/manage/questions.html
 =====================
 
 Add New [ref] Questions[ref]
 Change [ref] Questions
 Name, question, and explanation
 Type
-Minimum and maximumif value
-Responseif boolean[ref]
-Choicesif ordinal or nominal
+Minimum and maximum  if value
+Response  if boolean [ref]
+Choices  if ordinal or nominal
 Inactivate?
 Name
 Question
@@ -651,8 +619,7 @@ Copy [ref] Questions from Samples[ref]
 Copy?
 Question
 Copy
-[ref] ([ref])
-is an [ref] question.
+is a n   [ref]  question.
 Allowed values are between [ref] and [ref].
 Positive answers are given as "[ref]."
 Choices are:
@@ -664,18 +631,18 @@ You are not a manager of this Rakontu and cannot change its questions.
 Please ask a manager to make any changes you would like to see made.
 
 =====================
-../templates/manage/questionsList.html
+../templates/english/manage/questionsList.html
 =====================
 
 Questions about [ref]
 [ref] ([ref] responses)
 Change these questions
-none - Add some
+[ref] -  Add some
 You are not a manager of this Rakontu and cannot change its questions.
 Please ask a manager to make any changes you would like to see made.
 
 =====================
-../templates/manage/settings.html
+../templates/english/manage/settings.html
 =====================
 
 This Rakontu was created
@@ -693,7 +660,7 @@ Etiquette statement[ref]
 Interpret as
 Image[ref]
 Remove
-You are an owner of this Rakontu; you can inactivate it.
+You are an owner of this Rakontu; you can  inactivate  it.
 Time zones and time reporting
 What time zone should members see as the default?
 How should dates be displayed by default?
@@ -715,9 +682,8 @@ Activity system
 How many activity points are added to an item based on each activity?[ref][ref]
 Nudge system
 How many nudge points can be asssigned (maximum) per entry?
-[ref] [ref]
 Enter your nudge category names and questions here.[ref]
-NameQuestion [ref]
+Name  Question [ref]
 How many nudge points do members accumulate by participating in the Rakontu?
 Helping Roles
 Curator read-before text[ref]
@@ -731,29 +697,26 @@ You are not a manager of this Rakontu and cannot change its settings.
 Please ask a manager to make any changes you would like to see made.
 
 =====================
-../templates/visit/annotation.html
+../templates/english/visit/annotation.html
 =====================
 
 For the
 [ref] "[ref]"
-([ref])
 Please choose up to [ref] tags already entered or
 enter up to [ref] new words or short phrases that describe this [ref].
-(choose)
 You can change the subject line of your comment here.
 You can change the text of your comment here.
 Please enter your comment here.
 Interpret as[ref]
 What would you like other members to do with regard to this [ref]?
-(choose)
 You can change the subject line of your request here.
 Please give your request a subject line.
 You can change the text of your request here.
 Please explain your request more fully here.
 Interpret as
-([ref])
-You can assign [ref] points to this [ref] and
-have [ref] points remaining in general.
+( [ref] )
+You can assign  [ref]  points to this [ref] and
+have  [ref]  points remaining in general.
 You can change your comment on this nudge here.
 You can enter a comment on this nudge here.
 BUTTON: Save changes and return
@@ -766,10 +729,9 @@ BUTTON: Preview
 BUTTON: Publish
 
 =====================
-../templates/visit/answers.html
+../templates/english/visit/answers.html
 =====================
 
-[ref] ([ref])
 BUTTON: Save draft
 BUTTON: Preview
 BUTTON: Publish
@@ -778,44 +740,42 @@ BUTTON: Preview
 BUTTON: Publish
 
 =====================
-../templates/visit/character.html
+../templates/english/visit/character.html
 =====================
 
 Information about [ref]
 About [ref]:
 How to be [ref]:
 [ref]'s answers to questions about them:
-[ref]  [ref]
+[ref]   [ref]
 See all characters
 Change this character
 Curate this character's entries
 
 =====================
-../templates/visit/drafts.html
+../templates/english/visit/drafts.html
 =====================
 
 Your saved drafts
 [ref]'s saved drafts
 Entries
-Entry typeNameCreatedLast changedRemove?
+Entry type  Name  Created  Last changed  Remove?
 [ref] at [ref]
 [ref] at [ref]
 Remove
-Entries - none
+Entries
 Annotations
-Annotation typeNameIn reference to the entryCreatedLast changedRemove?
-[ref] ([ref])
+Annotation type  Name  In reference to the entry  Created  Last changed  Remove?
 [ref] at [ref]
 [ref] at [ref]
 Remove
-Annotations - none
+Annotations
 Answer sets for entries
-Answers about entryCreatedLast changedRemove?
-[ref] ([ref])
+Answers about entry  Created  Last changed  Remove?
 [ref] at [ref]
 [ref] at [ref]
 Remove
-Answer sets - none
+Answer sets
 Saved search filters
 Name
 Look in
@@ -828,18 +788,15 @@ Private?
 Remove?
 [ref] of [ref]
 [ref] of [ref]
-[ref] [ref]
-[ref] [ref]
-[ref]at [ref]
+[ref] at [ref]
 Remove
-Saved search filters - none
+Saved search filters
 BUTTON: Save changes
 
 =====================
-../templates/visit/entry.html
+../templates/english/visit/entry.html
 =====================
 
-[ref] ([ref])
 New [ref]
 You can change the text of the [ref] here.
 Please tell your story here.
@@ -873,16 +830,11 @@ PDF, TXT, DOC, JPG, PNG only; maximum 10 megabyte limit per attachment.
 Name
 File
 Remove?
-Replace  Attach
-[ref]none
+Replace   Attach
 Remove
-[ref]none
 Remove
-[ref]none
 Remove
-[ref]none
 Remove
-[ref]none
 Remove
 Stories included in this collage
 Title
@@ -909,7 +861,7 @@ BUTTON: Preview
 BUTTON: Publish
 
 =====================
-../templates/visit/filter.html
+../templates/english/visit/filter.html
 =====================
 
 Filter name and comment
@@ -925,15 +877,9 @@ with
 of the following selection criteria:
 of these words or phrases:
 of these tags:
-(choose)
-[ref] - [ref] --&gt;
-[ref] - [ref] yes
-[ref] - [ref] no
-[ref] - [ref] [ref]
-{# question list #}
-{# num_search_fields #}
-{# iterations #}
-{# list of dictionaries #}
+[ref]  --&gt;
+[ref]  yes
+[ref]  no
 BUTTON: Save and apply
 BUTTON: Cancel
 BUTTON: Save as new search and apply
@@ -943,7 +889,7 @@ BUTTON: Unflag
 BUTTON: Flag
 
 =====================
-../templates/visit/help.html
+../templates/english/visit/help.html
 =====================
 
 Help resources
@@ -956,7 +902,7 @@ name and send them a message.
 (that's you)
 
 =====================
-../templates/visit/home.html
+../templates/english/visit/home.html
 =====================
 
 Show
@@ -970,7 +916,6 @@ BUTTON: Hide details
 BUTTON: Show details
 Filtered by: [ref]
 Search filters
-(choose)
 -- My filters --
 -- Shared filters --
 Stop applying
@@ -990,40 +935,40 @@ The applied search filter resulted in showing no entries. Click this button
 BUTTON: Stop applying
 to stop applying it, or change it.
 This Rakontu has no entries in it.
-Why not add the first story or invitation?
-You can also choose Rakontu settings.
-You can also read here about the Rakontu.
+Why not add the first  story  or  invitation ?
+You can also choose Rakontu  settings .
+You can also read  here  about the Rakontu.
 
 =====================
-../templates/visit/leave.html
+../templates/english/visit/leave.html
 =====================
 
 Are you sure?
-Are you absolutely completely really totally certain that you want to leave this Rakontu?
+Are you  absolutely completely really totally certain  that you want to leave this Rakontu?
 If you do, you will have to ask a manager of the Rakontu if you want to rejoin.
 BUTTON: Really And Truly Leave
 or
 BUTTON: Go Back to My Preferences Page
 
 =====================
-../templates/visit/member.html
+../templates/english/visit/member.html
 =====================
 
 Information about [ref]
 (this is you)
 is
-an [ref] of this Rakontu,
-is an [ref] member,
+an  [ref]  of this Rakontu,
+is an  [ref]  member ,
 and is a
-curator and.
-guide and.
-liaison,
+curator   and .
+guide   and .
+liaison ,
 who joined the Rakontu on
 on [ref].
-About [ref]:[ref]
+About [ref]:  [ref]
 [ref]'s answers to the member questions:
-[ref]  [ref]
-Send this member a message  [ref]
+[ref]   [ref]
+Send this member a message   [ref]
 Please give your message a subject line.
 Please enter your message here.
 BUTTON: Send message
@@ -1031,22 +976,22 @@ Change your profile
 Curate this member's entries
 
 =====================
-../templates/visit/members.html
+../templates/english/visit/members.html
 =====================
 
 Members
 (that's you)
 is
-an [ref] of this Rakontu,
-is an [ref] member,.
+an  [ref]  of this Rakontu,
+is an  [ref]  member , .
 and is a
-curator and.
-guide and.
-liaison.
+curator   and .
+guide   and .
+liaison .
 Make changes to memberships
 
 =====================
-../templates/visit/new.html
+../templates/english/visit/new.html
 =====================
 
 Welcome, [ref]!
@@ -1058,17 +1003,15 @@ to read a bit of help about the area in which they appear.
 [ref]  caution
 
 =====================
-../templates/visit/preview.html
+../templates/english/visit/preview.html
 =====================
 
 For the [ref] "[ref]"
-[ref] [ref]
-([ref])
 [ref] -
 Answers
 Your [ref]:
-[ref]: [ref]
-Your comment:[ref]
+[ref]:  [ref]
+Your comment:   [ref]
 BUTTON: Change
 BUTTON: Return to list
 BUTTON: Edit draft
@@ -1081,17 +1024,16 @@ BUTTON: View all drafts
 BUTTON: Publish
 
 =====================
-../templates/visit/previewAnswers.html
+../templates/english/visit/previewAnswers.html
 =====================
 
-[ref] ([ref])
 Answers
 BUTTON: Edit draft
 BUTTON: View all drafts
 BUTTON: Publish
 
 =====================
-../templates/visit/profile.html
+../templates/english/visit/profile.html
 =====================
 
 Your member information
@@ -1116,7 +1058,7 @@ never
 never
 View or change saved drafts
 [ref] nickname and description
-What nickname do you want to use in the Rakontu? Note that if you change your nickname,
+What nickname do you want to use in the Rakontu?  Note that if you change your nickname,
 the new nickname will display on all of your previous entries as well as new ones.
 What nickname do you want to use to represent this off-line member in the Rakontu?
 Note that if you change this nickname,
@@ -1126,17 +1068,16 @@ Do you want other Rakontu members to be able to send you messages via email?
 Do you want other Rakontu members to be able to send this member messages via email?
 (You, as the member's liaison, will get the messages.)
 Yes, people can send me messages
-Yes, people can send me messagesthe member messages through me
+Yes, people can send  me messages the member messages through me
 What text format would you prefer to use by default when you create a new entry or other item with text in it?
 Please describe yourself to other members.
 Please describe this off-line member to other members.
 Interpret as[ref]
-To leave the Rakontu, click here.
+To leave the Rakontu, click  here .
 [ref] picture
 Image
-Replace  Attach  [ref]
+Replace   Attach   [ref]
 Remove?
-none
 The best picture size is 100 x 60.
 Remove
 Time zones and time reporting
@@ -1146,17 +1087,17 @@ How would [ref] like dates to be displayed?
 How would [ref] like times to be displayed?
 Helping roles
 />
-I am a  [ref]  in this Rakontu.
+I am a   [ref]   in this Rakontu.
 />
-I am a [ref] in this Rakontu.
+I am a  [ref]  in this Rakontu.
 If you are a guide, what would you like to tell members about what sorts of questions you can answer?
 Interpret as
 />
-I am a [ref] in this Rakontu.
+I am a  [ref]  in this Rakontu.
 BUTTON: Save changes
 
 =====================
-../templates/visit/rakontu.html
+../templates/english/visit/rakontu.html
 =====================
 
 About the [ref] Rakontu
@@ -1168,19 +1109,18 @@ Name
 Picture
 About the character
 How to be this character
-Make changes to Rakontu-level settings
-or characters
+Make changes to Rakontu-level  settings
+or  characters
 
 =====================
-../templates/visit/read.html
+../templates/english/visit/read.html
 =====================
 
-[ref]  -  [ref]
-[ref]  -  [ref]
+[ref]  -   [ref]
+[ref]  -   [ref]
 Attachments
 [ref] -
 This [ref] was created by
-(you)
 the former member "[ref]"
 the former character "[ref]"
 on [ref].
@@ -1190,36 +1130,32 @@ at [ref]
 on [ref]
 at [ref]
 This story is a retelling of [ref]
-([ref])
 This story was told because [ref]
-reminded its teller of something.  ([ref])
+reminded its teller of something.
 This story was told in response to the invitation [ref]
-([ref])
-This [ref] is included in the collages
-([ref])
+This [ref] is  included  in the collages
 What would you like to do next?
 BUTTON: Go
 Height means
 BUTTON: Change
 
 =====================
-../templates/visit/readAnnotation.html
+../templates/english/visit/readAnnotation.html
 =====================
 
-This [ref] refers to the [ref] [ref].
+This [ref] refers to the .
 It was entered by
-(you)
 the former member "[ref]"
 on [ref]
 at [ref]
 It was collected off-line and entered by [ref].
-This is a request of the type [ref].
-It has  not  been marked as completed.
+This is a request of the type   [ref]  .
+It has     not     been marked as completed.
 BUTTON: Mark it as completed now
 BUTTON: Un-Mark it as completed
 
 =====================
-../templates/visit/relate.html
+../templates/english/visit/relate.html
 =====================
 
 Entries related to this [ref]
@@ -1229,11 +1165,8 @@ Created by
 Text
 Relation comment
 Remove?
-[ref] ([ref])
-[ref] ([ref])
 incoming
 outgoing
-(you)
 the former member "[ref]"
 Remove
 Relate this [ref] to other entries

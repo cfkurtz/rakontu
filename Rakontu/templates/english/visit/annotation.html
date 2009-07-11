@@ -51,7 +51,7 @@
 				{% for i in num_tags_in_tag_set|makeRange %}
 					{% if already_there_tags %}
 						<select name="alreadyThereTag{{i}}">
-						<option value="none">(choose)</option>
+						<option value="none">({{CHOOSE}})</option>
 						{% for tag in already_there_tags %}
 							{% if tag|orNothing %}
 								<option value="{{tag}}"
@@ -108,7 +108,7 @@
 			{% ifequal annotation_type "request" %}
 				<p>What would you like other members to do with regard to this {{entry.typeForDisplay}}?</p>
 				<select name="typeIfRequest">
-					<option name="none">(choose)</option>
+					<option name="none">({{CHOOSE}})</option>
 					{% for type in request_types %}
 						<option value="{{type}}"
 						{% if annotation %}

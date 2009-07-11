@@ -43,7 +43,7 @@ def BuildURL(dir=None, page=None, query=None, extraSlash=False):
 		return "/"
 	
 def BuildResultURL(query):
-	return "/%s?%s" % (URLS["url_result"], query)
+	return "/%s?%s" % (URLS["url_result"], RESULTS[query])
 	
 def DisplayTypeForEntryType(type):
 	i = 0

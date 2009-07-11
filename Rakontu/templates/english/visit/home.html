@@ -49,7 +49,7 @@
 					Filtered by: {{current_search.displayString}}
 				{% else %}
 					Search filters
-					<select name="savedSearch"><option>(choose)</option>
+					<select name="savedSearch"><option>({{CHOOSE}})</option>
 					{% if member_searches %}
 						<option value="">-- My filters --</option>
 						{% for search in member_searches %}

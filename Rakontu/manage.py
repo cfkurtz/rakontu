@@ -15,7 +15,7 @@ class FirstOwnerVisitPage(webapp.RequestHandler):
 		if access:
 			if member.isManagerOrOwner():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-								'title': TITLE_WELCOME,
+								'title': TITLES["WELCOME"],
 								'rakontu': rakontu, 
 								'current_member': member,
 								})
@@ -34,7 +34,7 @@ class ManageRakontuMembersPage(webapp.RequestHandler):
 			if member.isManagerOrOwner():
 				rakontuMembers = Member.all().filter("rakontu = ", rakontu).fetch(FETCH_NUMBER)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-								   'title': TITLE_MANAGE_MEMBERS, 
+								   'title': TITLES["MANAGE_MEMBERS"], 
 								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'rakontu_members': rakontu.getActiveMembers(),
@@ -121,7 +121,7 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 					for eventType in EVENT_TYPES:
 						if i >= level and i < nextLevel: 
 							if i == 0: 
-								nudgePointIncludes.append("<td>(%s)</td>" % TERMFOR_DOESNOTAPPLY)
+								nudgePointIncludes.append("<td>(%s)</td>" % TERMS["DOESNOTAPPLY"])
 							else:
 								nudgePointIncludes.append('<td><input type="text" name="member|%s" size="2" value="%s" maxlength="{{maxlength_number}}"/></td>' \
 									% (eventType, rakontu.memberNudgePointsPerEvent[i]))
@@ -163,7 +163,7 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 							% (entryType, checkedBlank(rakontu.allowEditingAfterPublishing[i]), entryType, entryType, ENTRY_TYPES_DISPLAY[i]))
 					i += 1
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-								   'title': TITLE_MANAGE_SETTINGS, 
+								   'title': TITLES["MANAGE_SETTINGS"], 
 								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'current_date': datetime.now(tz=pytz.utc),
@@ -274,7 +274,7 @@ class ManageRakontuQuestionsListPage(webapp.RequestHandler):
 						countsForThisType.append((question.text, answerCount))
 					counts.append(countsForThisType)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-								   'title': TITLE_MANAGE_QUESTIONS, 
+								   'title': TITLES["MANAGE_QUESTIONS"], 
 								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'counts': counts,
@@ -313,7 +313,7 @@ class ManageRakontuQuestionsPage(webapp.RequestHandler):
 				inactiveQuestionsOfType = rakontu.getInactiveQuestionsOfType(type)
 				systemQuestionsOfType = Question.all().filter("rakontu = ", None).filter("refersTo = ", type).fetch(FETCH_NUMBER)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-								   'title': TITLE_MANAGE_QUESTIONS_ABOUT, 
+								   'title': TITLES["MANAGE_QUESTIONS_ABOUT"], 
 							   	   'title_extra': DisplayTypePluralForQuestionRefersTo(type), 
 								   'rakontu': rakontu, 
 								   'current_member': member,
@@ -415,7 +415,7 @@ class WriteQuestionsToCSVPage(webapp.RequestHandler):
 					export = rakontu.createOrRefreshExport("exportQuestions", itemList=None, member=None, questionType=type)
 					self.redirect(BuildURL(None, "url_export", 'csv_id=%s' % export.key()))
 				else:
-					self.redirect(BuildResultURL(RESULT_noQuestionsToExport))
+					self.redirect(BuildResultURL("noQuestionsToExport"))
 			else:
 				self.redirect(HOME)
 		else:
@@ -428,7 +428,7 @@ class ManageCharactersPage(webapp.RequestHandler):
 		if access:
 			if member.isManagerOrOwner():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-								   'title': TITLE_MANAGE_CHARACTERS, 
+								   'title': TITLES["MANAGE_CHARACTERS"], 
 								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'characters': rakontu.getActiveCharacters(),
@@ -480,7 +480,7 @@ class ManageCharacterPage(webapp.RequestHandler):
 				except:
 					character = None
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-								   'title': TITLE_MANAGE_CHARACTER,
+								   'title': TITLES["MANAGE_CHARACTER"],
 							   	   'title_extra': character.name, 
 								   'rakontu': rakontu, 
 								   'character': character,
@@ -586,7 +586,7 @@ class ExportRakontuDataPage(webapp.RequestHandler):
 					pass
 		if (rakontu and member and member.isManagerOrOwner()) or (rakontu and users.is_current_user_admin()):
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': TITLE_EXPORT_DATA, 
+							   	   'title': TITLES["EXPORT_DATA"], 
 								   'rakontu': rakontu,
 								   'current_member': member,
 								   'xml_export': rakontu.getExportOfType("xml_export"),
@@ -622,7 +622,7 @@ class ExportSearchPage(webapp.RequestHandler):
 					export = rakontu.createOrRefreshExport("csv_export_search", itemList=None, member=member)
 					self.redirect(BuildURL(None, "url_export", 'csv_id=%s' % export.key()))
 				else:
-					self.redirect(BuildResultURL(RESULT_noSearchResultForExport))
+					self.redirect(BuildResultURL("noSearchResultForExport"))
 			else:
 				self.redirect(HOME)
 		else:
@@ -635,7 +635,7 @@ class InactivateRakontuPage(webapp.RequestHandler):
 		if access: 
 			if member.isOwner():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-								   'title': TITLE_INACTIVATE, 
+								   'title': TITLES["INACTIVATE"], 
 								   'rakontu': rakontu, 
 								   'current_member': member,
 								   })

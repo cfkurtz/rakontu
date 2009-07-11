@@ -101,6 +101,8 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 		items[key] = DIRS[key]
 	for key in URLS.keys():
 		items[key] = URLS[key]
+	for key in TERMS.keys():
+		items[key] = TERMS[key]
 	items["url_story"] = URLForEntryType("story")
 	items["url_invitation"] = URLForEntryType("invitation")
 	items["url_collage"] = URLForEntryType("collage")
@@ -513,20 +515,20 @@ def RelativeTimeDisplayString(whenUTC, member):
 		when = whenUTC.astimezone(timezone(member.timeZoneName))
 		delta = datetime.now(tz=timezone(member.timeZoneName)) - when
 		if delta.days < 1 and delta.seconds < 1: 
-			return TERMFOR_NOW
+			return TERMS["NOW"]
 		elif delta.days < 1 and delta.seconds < 60: # one minute
-			return TERMFOR_MOMENTSAGO
+			return TERMS["MOMENTSAGO"]
 		elif delta.days < 1 and delta.seconds < 60*60: # one hour
-			return "%s %s" % (delta.seconds // 60, TERMFOR_MINUTESAGO)
+			return "%s %s" % (delta.seconds // 60, TERMS["MINUTESAGO"])
 		elif delta.days < 1:
 			return when.strftime(DjangoToPythonTimeFormat(member.timeFormat))
 		elif delta.days < 2:
-			return "%s %s" % (TERMFOR_YESTERDAYAT, when.strftime(DjangoToPythonTimeFormat(member.timeFormat)))
+			return "%s %s" % (TERMS["YESTERDAYAT"], when.strftime(DjangoToPythonTimeFormat(member.timeFormat)))
 		elif delta.days < 7:
-			return when.strftime("%s %s %s" % (DjangoToPythonDateFormat(member.dateFormat), TERMFOR_AT,
+			return when.strftime("%s %s %s" % (DjangoToPythonDateFormat(member.dateFormat), TERMS["AT"],
 											DjangoToPythonTimeFormat(member.timeFormat)))
 		else:
-			return when.strftime("%s %s %s" % (DjangoToPythonDateFormat(member.dateFormat), TERMFOR_AT,
+			return when.strftime("%s %s %s" % (DjangoToPythonDateFormat(member.dateFormat), TERMS["AT"],
 											DjangoToPythonTimeFormat(member.timeFormat)))
 	else:
 		return None

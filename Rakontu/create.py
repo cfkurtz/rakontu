@@ -14,7 +14,7 @@ class CreateRakontuPage(webapp.RequestHandler):
 	def get(self):
 		user = users.get_current_user()
 		template_values = GetStandardTemplateDictionaryAndAddMore({
-						   'title': TITLE_CREATE_RAKONTU,
+						   'title': TITLES["CREATE_RAKONTU"],
 						   'rakontu_types': RAKONTU_TYPES,
 						   })
 		path = os.path.join(os.path.dirname(__file__), FindTemplate('create.html'))
@@ -233,7 +233,7 @@ class EnterEntryPage(webapp.RequestHandler):
 						foundMember = True
 						break
 				if not foundMember:
-					self.redirect(BuildResultURL(RESULT_offlineMemberNotFound)) 
+					self.redirect(BuildResultURL("offlineMemberNotFound")) 
 					return
 				entry.liaison = member
 				entry.collected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
@@ -404,7 +404,7 @@ class EnterEntryPage(webapp.RequestHandler):
 								try:
 									attachmentToEdit.put()
 								except:
-									self.redirect(BuildResultURL(RESULT_attachmentsTooLarge))
+									self.redirect(BuildResultURL("attachmentsTooLarge"))
 									return
 			if preview:
 				self.redirect(BuildURL("dir_visit", "url_preview", entry.key()))
@@ -440,12 +440,12 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 				else:
 					answerRefForQuestions = None
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': TITLE_ANSWERS_FOR, 
+							   	   'title': TITLES["ANSWERS_FOR"], 
 						   	   	   'title_extra': entry.title, 
 								   'current_member': member,
 								   'rakontu': rakontu, 
 								   'entry': entry,
-							   	   'attribution_referent_type': TERMFOR_ANSWER_SET,
+							   	   'attribution_referent_type': TERMS["ANSWER_SET"],
 							       'attribution_referent': answerRefForQuestions,
 								   'refer_type': entry.type,
 								   'refer_type_display': DisplayTypeForQuestionReferType(entry.type),
@@ -486,13 +486,13 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 						if self.request.get("offlineSource") == str(aMember.key()):
 							answersAlreadyInPlace = aMember.getDraftAnswersForEntry(entry)
 							if answersAlreadyInPlace:
-								self.redirect(BuildResultURL(RESULT_offlineMemberAlreadyAnsweredQuestions))
+								self.redirect(BuildResultURL("offlineMemberAlreadyAnsweredQuestions"))
 								return
 							creator = aMember
 							foundMember = True
 							break
 					if not foundMember:
-						self.redirect(BuildResultURL(RESULT_offlineMemberNotFound))
+						self.redirect(BuildResultURL("offlineMemberNotFound"))
 						return
 					liaison = member
 					collected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
@@ -582,8 +582,8 @@ class PreviewAnswersPage(webapp.RequestHandler):
 				answers = entry.getAnswersForMember(member)
 			if entry and answers:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': TITLE_PREVIEW_OF, 
-						   	   	   'title_extra': "%s %s " % (TITLE_ANSWERS_FOR, entry.title), 
+							   	   'title': TITLES["PREVIEW_OF"], 
+						   	   	   'title_extra': "%s %s " % (TITLES["ANSWERS_FOR"], entry.title), 
 								   'current_member': member,
 								   'rakontu': rakontu, 
 								   'entry': entry,
@@ -720,7 +720,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 							foundMember = True
 							break
 					if not foundMember:
-						self.redirect(BuildResultURL(RESULT_offlineMemberNotFound))
+						self.redirect(BuildResultURL("offlineMemberNotFound"))
 						return
 					annotation.liaison = member
 					annotation.collected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
@@ -834,7 +834,7 @@ class PreviewPage(webapp.RequestHandler):
 					entry = annotation.entry
 			if entry:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': TITLE_PREVIEW_OF, 
+							   	   'title': TITLES["PREVIEW_OF"], 
 						   	   	   'title_extra': entry.title, 
 								   'current_member': member,
 								   'rakontu': rakontu, 
@@ -920,7 +920,7 @@ class RelateEntryPage(webapp.RequestHandler):
 						else:
 							thirdColumn.append(entriesThatCanBeRelated[i])
 					template_values = GetStandardTemplateDictionaryAndAddMore({
-									'title': TITLE_RELATE_TO,
+									'title': TITLES["RELATE_TO"],
 								   	'title_extra': entry.title,
 									'rakontu': rakontu, 
 									'current_member': member, 
@@ -934,7 +934,7 @@ class RelateEntryPage(webapp.RequestHandler):
 					path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/relate.html'))
 					self.response.out.write(template.render(path, template_values))
 				else:
-					self.redirect(BuildResultURL(RESULT_noEntriesToRelate))
+					self.redirect(BuildResultURL("noEntriesToRelate"))
 			else:
 				self.redirect(START)
 					

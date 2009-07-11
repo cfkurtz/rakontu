@@ -240,83 +240,89 @@ DEFAULT_SEARCH_NAME = "Untitled search filter"
 # These are just bits of text that come out of the source code and display on pages.
 # ============================================================================================ 
 
-# used to refer to a set of answers
-TERMFOR_ANSWER_SET = "answer set"
-
-# used to send a reminder to manager about items flagged by curator
-TERMFOR_REMINDER = "Reminder about flagged items from" # person who is sending the reminder
-
-# used to describe people
-TERMFOR_YOUR = "your"
-TERMFOR_YOU = "you"
-TERMFOR_THISMEMBERS = "this member's"
-TERMFOR_THISMEMBER = "this member"
-
-TERMFOR_DOESNOTAPPLY = "doesn't apply"
-TERMFOR_COPYOF = "Copy of"
-TERMFOR_NONE = "none"
-
-# used to describe search filters
-TERMFOR_OFTHEWORDS = "of the words"
-TERMFOR_OFTHETAGS = "of the tags"
-TERMFOR_OFTHEENTRYQUESTIONS = "of the entry questions"
-TERMFOR_OFTHECREATORQUESTIONS = "of the creator questions"
-
-# used when printing entries
-TERMFOR_ANSWEREDTHEQUESTION = "answered the question"
-
-# used when displaying times on home page
-TERMFOR_NOW = "Now"
-TERMFOR_MOMENTSAGO = "Moments ago"
-TERMFOR_MINUTESAGO = "minutes ago"
-TERMFOR_YESTERDAYAT = "Yesterday at"
-TERMFOR_AT = "at" # for reporting a time
+TERMS = {
+		# used to refer to a group of answers
+		"ANSWER_SET": "answer set",
+		# used to send a reminder to manager about items flagged by curator
+		"DEARMANAGER": "Dear manager",
+		"REMINDER": "Reminder about flagged items from", # person who is sending the reminder
+		"WANTEDYOUTOKNOW": "I wanted you to know that these items require your attention.",
+		"THANKYOU": "Thank you for your attention.",
+		"SINCERELY": "Sincerely",
+		"YOURSITE": "Your Rakontu site",
+		"LINK": "link",
+		# used to describe people
+		"YOUR": "your",
+		"YOU": "you",
+		"THISMEMBERS": "this member's",
+		"THISMEMBER": "this member",
+		"DOESNOTAPPLY": "doesn't apply",
+		"COPYOF": "Copy of",
+		"NONE": "none",
+		# used to describe search filters
+		"OFTHEWORDS": "of the words",
+		"OFTHETAGS": "of the tags",
+		"OFTHEENTRYQUESTIONS": "of the entry questions",
+		"OFTHECREATORQUESTIONS": "of the creator questions",
+		# used when displaying times on home page
+		"NOW": "Now",
+		"MOMENTSAGO": "Moments ago",
+		"MINUTESAGO": "minutes ago",
+		"YESTERDAYAT": "Yesterday at",
+		"AT": "at", # for reporting a time
+		# used when making a choice from a list 
+		"CHOOSE": "choose",
+		}
 
 # ============================================================================================ 
 # PAGE TITLES
 # These show at the top of pages. Things in comments are things that follow after the specified words.
 # ============================================================================================ 
 
-TITLE_REVIEW_RAKONTUS = "All Rakontus"
-TITLE_CREATE_RAKONTU = "Create Rakontu"
-TITLE_ANSWERS_FOR = "Answers for" # entry name
-TITLE_PREVIEW_OF = "Preview of" # entry name
-TITLE_RELATE_TO = "Relate to" # entry name
-TITLE_REVIEW_FLAGS = "Review flags"
-TITLE_REVIEW_GAPS = "Review gaps"
-TITLE_REVIEW_ATTACHMENTS = "Review attachments"
-TITLE_REVIEW_TAGS = "Review tags"
-TITLE_REVIEW_RESOURCES = "Review resources"
-TITLE_REVIEW_REQUESTS = "Review requests"
-TITLE_REVIEW_INVITATIONS = "Review invitations"
-TITLE_REVIEW_OFFLINE_MEMBERS = "Review off-line members"
-TITLE_REVIEW_BATCH_ENTRIES = "Review batch entries"
-TITLE_BATCH_ENTRY = "Batch entry"
-TITLE_WELCOME = "Welcome"
-TITLE_MANAGE_MEMBERS = "Manage members" 
-TITLE_MANAGE_SETTINGS = "Manage settings" 
-TITLE_MANAGE_QUESTIONS= "Manage questions" 
-TITLE_MANAGE_QUESTIONS_ABOUT = "Manage questions about" # thing referred to
-TITLE_MANAGE_CHARACTERS = "Manage characters"
-TITLE_MANAGE_CHARACTER = "Manage character" # character name
-TITLE_EXPORT_DATA = "Export data" 
-TITLE_INACTIVATE = "Inactivate"
-TITLE_HELP = "Help"
-TITLE_HOME = "Home"
-TITLE_ABOUT = "About"
-TITLE_MEMBERS = "Members" 
-TITLE_MEMBER = "Member" # member nickname
-TITLE_CHARACTER = "Character" # character name
-TITLE_PREFERENCES_FOR = "Preferences for" # member nickname
-TITLE_DRAFTS_FOR = "Drafts for" # member nickname
-TITLE_LEAVE_RAKONTU = "Leave" 
-TITLE_SEARCH_FILTER = "Search filter"
-TITLE_MESSAGE_TO_USER = "Message" # (on page that tells user something is completed or something is wrong)
-TITLE_HELP_ON = "Help on" # help topic
-
+TITLES = {
+        "REVIEW_RAKONTUS": "All Rakontus",
+        "CREATE_RAKONTU": "Create Rakontu",
+        "ANSWERS_FOR": "Answers for", # entry name
+        "PREVIEW_OF": "Preview of", # entry name
+        "RELATE_TO": "Relate to", # entry name
+        "REVIEW_FLAGS": "Review flags",
+        "REVIEW_GAPS": "Review gaps",
+        "REVIEW_ATTACHMENTS": "Review attachments",
+        "REVIEW_TAGS": "Review tags",
+        "REVIEW_RESOURCES": "Review resources",
+        "REVIEW_REQUESTS": "Review requests",
+        "REVIEW_INVITATIONS": "Review invitations",
+        "REVIEW_OFFLINE_MEMBERS": "Review off-line members",
+        "REVIEW_BATCH_ENTRIES": "Review batch entries",
+        "BATCH_ENTRY": "Batch entry",
+        "WELCOME": "Welcome",
+        "MANAGE_MEMBERS": "Manage members" ,
+        "MANAGE_SETTINGS": "Manage settings" ,
+        "MANAGE_QUESTIONS": "Manage questions" ,
+        "MANAGE_QUESTIONS_ABOUT": "Manage questions about", # thing referred to
+        "MANAGE_CHARACTERS": "Manage characters",
+        "MANAGE_CHARACTER": "Manage character", # character name
+        "EXPORT_DATA": "Export data" ,
+        "INACTIVATE": "Inactivate",
+        "HELP": "Help",
+        "HOME": "Home",
+        "ABOUT": "About",
+        "MEMBERS": "Members" ,
+        "MEMBER": "Member", # member nickname
+        "CHARACTER": "Character", # character name
+        "PREFERENCES_FOR": "Preferences for", # member nickname
+        "DRAFTS_FOR": "Drafts for", # member nickname
+        "LEAVE_RAKONTU": "Leave" ,
+        "SEARCH_FILTER": "Search filter",
+        "MESSAGE_TO_USER": "Message", # (on page that tells user something is completed or something is wrong)
+        "HELP_ON": "Help on", # help topic
+		}
 # ============================================================================================ 
 # URLS
 # These define what locations are used to display the pages.
+# Don't change the items on the left, because they are used for internal lookup.
+# You can change the items on the right.
+# Since they are used for URLs, they cannot contain spaces or special characters.
 # If you don't care if the URLs appear in English, you don't have to change these.
 # ============================================================================================ 
 
@@ -397,27 +403,30 @@ URLS = {
 # ============================================================================================ 
 # RESULTS
 # These are parameters passed to the result.html template to choose which thing to tell the user.
-# These MUST match the strings in the result.html template.
-# They are translatable because the user can see them in the URL. 
-# These cannot contain spaces or special characters.
+# The things on the left MUST stay as is, because they match strings in the source code. Don't change them!
+# The things on the right MUST match the strings in the result.html template.
+# The things on the right are translatable because the user can see them in the URL.
+# They cannot contain spaces or special characters.
 # If you don't care if the URLs appear in English, you don't have to change these.
 # ============================================================================================ 
 
-RESULT_sampleQuestionsGenerated = "sampleQuestionsGenerated"
-RESULT_systemResourcesGenerated = "systemResourcesGenerated"
-RESULT_helpsGenerated = "helpsGenerated"
-RESULT_offlineMemberNotFound = "offlineMemberNotFound"
-RESULT_attachmentsTooLarge = "attachmentsTooLarge"
-RESULT_offlineMemberAlreadyAnsweredQuestions = "offlineMemberAlreadyAnsweredQuestions"
-RESULT_offlineMemberNotFound = "offlineMemberNotFound"
-RESULT_noEntriesToRelate = "noEntriesToRelate"
-RESULT_changessaved = "changessaved"
-RESULT_noSearchResultForPrinting = "noSearchResultForPrinting"
-RESULT_noQuestionsToExport = "noQuestionsToExport"
-RESULT_noSearchResultForExport = "noSearchResultForExport"
-RESULT_entryNotFound = "entryNotFound"
-RESULT_nicknameAlreadyInUse = "nicknameAlreadyInUse"
-RESULT_messagesent = "messagesent"
-RESULT_memberNotFound = "memberNotFound"
-RESULT_ownerCannotLeave = "ownerCannotLeave"
-RESULT_helpNotFound = "helpNotFound"
+RESULTS = {
+		"sampleQuestionsGenerated": "sampleQuestionsGenerated",
+		"systemResourcesGenerated": "systemResourcesGenerated",
+		"helpsGenerated": "helpsGenerated",
+		"offlineMemberNotFound": "offlineMemberNotFound",
+		"attachmentsTooLarge": "attachmentsTooLarge",
+		"offlineMemberAlreadyAnsweredQuestions": "offlineMemberAlreadyAnsweredQuestions",
+		"offlineMemberNotFound": "offlineMemberNotFound",
+		"noEntriesToRelate": "noEntriesToRelate",
+		"changessaved": "changessaved",
+		"noSearchResultForPrinting": "noSearchResultForPrinting",
+		"noQuestionsToExport": "noQuestionsToExport",
+		"noSearchResultForExport": "noSearchResultForExport",
+		"entryNotFound": "entryNotFound",
+		"nicknameAlreadyInUse": "nicknameAlreadyInUse",
+		"messagesent": "messagesent",
+		"memberNotFound": "memberNotFound",
+		"ownerCannotLeave": "ownerCannotLeave",
+		"helpNotFound": "helpNotFound",
+		}

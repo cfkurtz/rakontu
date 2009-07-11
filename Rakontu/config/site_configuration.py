@@ -23,32 +23,24 @@
 # BACKUP THIS FILE before you make changes!
 # ============================================================================================ 
 
-# Ignore this
-from constants_base import *
+# ============================================================================================ 
+# LANGUAGE SETUP
+# ============================================================================================ 
 
 # Which language files to load. This must match the suffix on the language_config file and the templates directory.
 SITE_LANGUAGE = "english"
 
-# If you add a language you MUST add an else statement here to load the appropriate files.
-if SITE_LANGUAGE == "english":
-	from english_language_config import *
-	from english_site_resources import *
-elif SITE_LANGUAGE == "yourlanguage": # replace "yourlanguage" here and in the two lines below
-	from yourlanguage_language_config import *
-	from yourlanguage_site_resources import *
-
+# Don't touch this stuff
+from constants_base import *
+exec "from %s_language_config import *" % SITE_LANGUAGE
+exec "from %s_site_resources import *" % SITE_LANGUAGE
 DEFAULT_QUESTIONS_FILE_NAME = "config/%s_default_questions.csv" % SITE_LANGUAGE
 SAMPLE_QUESTIONS_FILE_NAME = "config/%s_sample_questions.csv" % SITE_LANGUAGE
 DEFAULT_CHARACTERS_FILE_NAME = "config/%s_default_characters.csv" % SITE_LANGUAGE
 HELP_FILE_NAME = "config/%s_help.csv" % SITE_LANGUAGE
 
-# This determines how texts will be interpreted by default all over the site.
-# Change this only if the people on your site will be MUCH more likely to prefer a simple HTML or Wiki format.
-# MUST be (exactly) one of FORMAT_PLAIN_TEXT, FORMAT_SIMPLE_HTM, FORMAT_WIKI_MARKUP
-DEFAULT_TEXT_FORMAT = FORMAT_PLAIN_TEXT
-
 # ============================================================================================ 
-# RAKONTU LEVEL
+# RAKONTUS
 # ============================================================================================ 
 
 # Rakontu types. These affect which default questions (in default_questions.csv) 
@@ -69,18 +61,19 @@ RAKONTU_TYPES = [
 				RAKONTU_FAMILY,
 				RAKONTU_CUSTOM]
 
-# ============================================================================================ 
-# MEMBERS
-# ============================================================================================ 
-
-# How many nudge points members should get when they join.
-# Giving people something to start with is encouraging.
-DEFAULT_START_NUDGE_POINTS = 50
+# This determines how texts will be interpreted by default all over the site.
+# Change this only if the people on your site will be MUCH more likely to prefer a simple HTML or Wiki format.
+# MUST be (exactly) one of FORMAT_PLAIN_TEXT, FORMAT_SIMPLE_HTM, FORMAT_WIKI_MARKUP
+DEFAULT_TEXT_FORMAT = FORMAT_PLAIN_TEXT
 
 # The Rakontu contact email is the email address used as the SENDER in all email sent FROM the Rakontu.
 # This appears as the default in the Rakontu settings.
 # It MUST be a valid email address.
 DEFAULT_CONTACT_EMAIL = "support@rakontu.org"
+
+# How many nudge points members should get when they join.
+# Giving people something to start with is encouraging.
+DEFAULT_START_NUDGE_POINTS = 50
 
 # ============================================================================================ 
 # BROWSING

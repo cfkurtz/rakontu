@@ -21,7 +21,7 @@
 			<table style="width:100%;">
 			<tr><th>Collected from</th><td>
 				<select name="source|{{i}}">
-					<option value="none">(choose)</option>
+					<option value="none">({{CHOOSE}})</option>
 					{% if current_member.isManagerOrOwner %}
 						{% for member in online_members %}
 							<option value="{{member.key}}">{{member.nickname}}</option>
@@ -94,7 +94,7 @@
 										{% endif %}
 									{% endfor %}
 								{% else %}
-									<select name="{{i}}|{{question.key}}"><option value="none">(choose)</option>
+									<select name="{{i}}|{{question.key}}"><option value="none">({{CHOOSE}})</option>
 									{% for choice in question.choices %}
 										{% if choice|slugify %}
 										<option value="{{choice}}"

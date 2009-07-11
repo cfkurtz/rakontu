@@ -118,7 +118,7 @@ class NewMemberPage(webapp.RequestHandler):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-							'title': TITLE_WELCOME,
+							'title': TITLES["WELCOME"],
 							'title_extra': member.nickname,
 							'rakontu': rakontu, 
 							'current_member': member,
@@ -139,7 +139,7 @@ class GetHelpPage(webapp.RequestHandler):
 			else:
 				managerResources = None
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-							'title': TITLE_HELP,
+							'title': TITLES["HELP"],
 							'rakontu': rakontu, 
 							'current_member': member,
 							'resources': rakontu.getNonDraftHelpResources(),
@@ -175,7 +175,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 			if entries:
 				(textsForGrid, colHeaders, rowColors) = self.buildGrid(rakontu, member, entries, currentSearch)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-							'title': TITLE_HOME,
+							'title': TITLES["HOME"],
 							'rakontu': rakontu, 
 							'current_member': member, 
 							'rows_cols': textsForGrid, 
@@ -563,7 +563,7 @@ class ReadEntryPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/read.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(BuildResultURL(RESULT_entryNotFound))
+				self.redirect(BuildResultURL("entryNotFound"))
 		else:
 			self.redirect(START)
 			
@@ -628,7 +628,7 @@ class SeeRakontuPage(webapp.RequestHandler):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-								   'title': TITLE_ABOUT, 
+								   'title': TITLES["ABOUT"], 
 								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'rakontu_members': rakontu.getActiveMembers(),
@@ -645,7 +645,7 @@ class SeeRakontuMembersPage(webapp.RequestHandler):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-								   'title': TITLE_MEMBERS, 
+								   'title': TITLES["MEMBERS"], 
 								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'rakontu_members': rakontu.getActiveMembers(),
@@ -698,7 +698,7 @@ class SeeMemberPage(webapp.RequestHandler):
 					textsForGrid = None
 					colHeaders = None
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   'title': TITLE_MEMBER, 
+							   'title': TITLES["MEMBER"], 
 					   		   'title_extra': member.nickname, 
 					   		   'rakontu': rakontu, 
 					   		   'current_member': member,
@@ -745,9 +745,9 @@ class SeeMemberPage(webapp.RequestHandler):
 					message.to = messageMember.googleAccountEmail
 					message.body = htmlEscape(self.request.get("message"))
 					message.send()
-					self.redirect(BuildResultURL(RESULT_messagesent))
+					self.redirect(BuildResultURL("messagesent"))
 				else:
-					self.redirect(BuildResultURL(RESULT_memberNotFound))
+					self.redirect(BuildResultURL("memberNotFound"))
 		else:
 			self.redirect(START)
    
@@ -791,7 +791,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 						textsForGrid = None
 						colHeaders = None
 					template_values = GetStandardTemplateDictionaryAndAddMore({
-								   	   'title': TITLE_CHARACTER, 
+								   	   'title': TITLES["CHARACTER"], 
 						   		   	   'title_extra': character.name, 
 									   'rakontu': rakontu, 
 									   'current_member': member,
@@ -834,7 +834,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 			else:
 				memberToEdit = member
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-							   'title': TITLE_PREFERENCES_FOR, 
+							   'title': TITLES["PREFERENCES_FOR"], 
 						   	   'title_extra': memberToEdit.nickname, 
 							   'rakontu': rakontu, 
 							   'member': memberToEdit,
@@ -876,7 +876,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 				nicknameTheyWantToUse = htmlEscape(self.request.get("nickname")).strip()
 				memberUsingNickname = rakontu.memberWithNickname(nicknameTheyWantToUse)
 				if memberUsingNickname and memberUsingNickname.key() != member.key():
-					self.redirect(BuildResultURL(RESULT_nicknameAlreadyInUse))
+					self.redirect(BuildResultURL("nicknameAlreadyInUse"))
 					return
 				memberToEdit.nickname = nicknameTheyWantToUse
 				memberToEdit.acceptsMessages = self.request.get("acceptsMessages") == "yes"
@@ -974,7 +974,7 @@ class ChangeMemberDraftsPage(webapp.RequestHandler):
 				answers = memberToEdit.getDraftAnswersForEntry(entry)
 				firstDraftAnswerForEachEntry.append(answers[0])
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-							   'title': TITLE_DRAFTS_FOR, 
+							   'title': TITLES["DRAFTS_FOR"], 
 						   	   'title_extra': memberToEdit.nickname, 
 							   'rakontu': rakontu, 
 							   'member': memberToEdit,
@@ -1044,7 +1044,7 @@ class LeaveRakontuPage(webapp.RequestHandler):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-						   	   'title': TITLE_LEAVE_RAKONTU, 
+						   	   'title': TITLES["LEAVE_RAKONTU"], 
 							   'rakontu': rakontu, 
 							   'message': self.request.query_string,
 							   "linkback": self.request.headers["Referer"],
@@ -1061,7 +1061,7 @@ class LeaveRakontuPage(webapp.RequestHandler):
 		if access:
 			if "leave|%s" % member.key() in self.request.arguments():
 				if rakontu.memberIsOnlyOwner(member):
-					self.redirect(BuildResultURL(RESULT_ownerCannotLeave))
+					self.redirect(BuildResultURL("ownerCannotLeave"))
 					return
 				else:
 					member.active = False
@@ -1108,7 +1108,7 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 					creatorQuestionsAndRefsDictionary["anyOrAll"] = None
 				questionsAndRefsDictList.append(creatorQuestionsAndRefsDictionary)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-							'title': TITLE_SEARCH_FILTER,
+							'title': TITLES["SEARCH_FILTER"],
 							'rakontu': rakontu, 
 							'current_member': member, 
 							'num_search_fields': NUM_SEARCH_FIELDS,
@@ -1243,7 +1243,7 @@ class ResultFeedbackPage(webapp.RequestHandler):
 		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
 		if access:
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-						   	   'title': TITLE_MESSAGE_TO_USER, 
+						   	   'title': TITLES["MESSAGE_TO_USER"], 
 							   'rakontu': rakontu, 
 							   'message': self.request.query_string,
 							   "linkback": self.request.headers["Referer"],
@@ -1264,7 +1264,7 @@ class ContextualHelpPage(webapp.RequestHandler):
 			if help:
 				helpShortName = help.name.replace("_", " ").capitalize()
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': TITLE_HELP_ON, 
+							   	   'title': TITLES["HELP_ON"], 
 						   	   	   'title_extra': helpShortName, 
 								   'rakontu': rakontu, 
 								   'help': help,
@@ -1274,6 +1274,6 @@ class ContextualHelpPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('help.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(BuildResultURL(RESULT_helpNotFound))
+				self.redirect(BuildResultURL("helpNotFound"))
 		else:
 			self.redirect(START)

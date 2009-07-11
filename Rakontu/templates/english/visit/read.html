@@ -54,7 +54,7 @@
 			{% if entry.creator.active %}
 				{{entry.creator.linkString}}
 				{% ifequal entry.creator.key current_member.key %}
-					 (you)
+					 ({{YOU}})
 				{% endifequal %}
 			{% else %}
 				the former member "{{entry.creator.nickname}}"

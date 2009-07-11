@@ -8,7 +8,7 @@
 					{% endif %}
 				><label for="collectedOffline">Yes, it was collected from</label>
 				<select name="offlineSource">
-					<option value="none">(choose)</option>
+					<option value="none">({{CHOOSE}})</option>
 					{% for aMember in offline_members %}
 						<option value="{{aMember.key}}"
 						{% if attribution_referent %}

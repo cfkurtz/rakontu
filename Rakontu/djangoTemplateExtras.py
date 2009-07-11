@@ -102,7 +102,7 @@ def orNone(value):
 	if value:
 		return value
 	else:
-		return TERMFOR_NONE
+		return TERMS["NONE"]
 	
 def orNothing(value):
 	if value:
@@ -146,15 +146,15 @@ def upTo(value, number):
 
 def yourOrThis(value):
 	if value:
-		return TERMFOR_YOUR
+		return TERMS["YOUR"]
 	else:
-		return TERMFOR_THISMEMBERS
+		return TERMS["THISMEMBERS"]
 
 def youOrThis(value):
 	if value:
-		return TERMFOR_YOU
+		return TERMS["YOU"]
 	else:
-		return TERMFOR_THISMEMBER
+		return TERMS["THISMEMBER"]
 	
 def toString(value):
 	return "%s" % value

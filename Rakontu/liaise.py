@@ -15,7 +15,7 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 		if access:
 			if member.isLiaison():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-								   'title': TITLE_REVIEW_OFFLINE_MEMBERS, 
+								   'title': TITLES["REVIEW_OFFLINE_MEMBERS"], 
 								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'active_members': rakontu.getActiveOfflineMembers(),
@@ -63,7 +63,7 @@ class PrintSearchPage(webapp.RequestHandler):
 					export = rakontu.createOrRefreshExport("liaisonPrint_simple", itemList=None, member=member)
 					self.redirect(BuildURL(None, "url_export", 'print_id=%s' % export.key()))
 				else:
-					self.redirect(BuildResultURL(RESULT_noSearchResultForPrinting))
+					self.redirect(BuildResultURL("noSearchResultForPrinting"))
 			else:
 				self.redirect(HOME)
 		else:
@@ -100,7 +100,7 @@ class ReviewBatchEntriesPage(webapp.RequestHandler):
 		if access:
 			if member.isLiaison():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': TITLE_REVIEW_BATCH_ENTRIES, 
+							   	   'title': TITLES["REVIEW_BATCH_ENTRIES"], 
 								   'rakontu': rakontu, 
 								   'character_allowed': rakontu.allowCharacter[STORY_ENTRY_TYPE_INDEX],
 								   'batch_entries': rakontu.getEntriesInImportBufferForLiaison(member),
@@ -146,7 +146,7 @@ class BatchEntryPage(webapp.RequestHandler):
 		if access:
 			if member.isLiaison():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': TITLE_BATCH_ENTRY, 
+							   	   'title': TITLES["BATCH_ENTRY"], 
 								   'rakontu': rakontu, 
 								   'num_entries': NUM_ENTRIES_PER_BATCH_PAGE,
 								   'character_allowed': rakontu.allowCharacter[STORY_ENTRY_TYPE_INDEX],

@@ -1146,7 +1146,7 @@ class SavedSearch(db.Model):
 
 	def copyDataFromOtherSearchAndPut(self, search):
 		self.private = True
-		self.name = "%s %s" % (TERMFOR_COPYOF, search.name)
+		self.name = "%s %s" % (TERMS["COPYOF"], search.name)
 		self.entryTypes = []
 		self.entryTypes.extend(search.entrytTypes)
 		self.words_anyOrAll = search.words_anyOrAll
@@ -1213,18 +1213,18 @@ class SavedSearch(db.Model):
 	def shortFormattedText(self):
 		result = ""
 		if self.words:
-			result += '<p>%s %s "%s"</p>' % (self.words_anyOrAll, TERMFOR_OFTHEWORDS, ",".join(self.words))
+			result += '<p>%s %s "%s"</p>' % (self.words_anyOrAll, TERMS["OFTHEWORDS"], ",".join(self.words))
 		if self.tags:
-			result += '<p>%s %s "%s"</p>' % (self.tags_anyOrAll, TERMFOR_OFTHETAGS, ",".join(self.tags))
+			result += '<p>%s %s "%s"</p>' % (self.tags_anyOrAll, TERMS["OFTHETAGS"], ",".join(self.tags))
 		entryRefs = self.getEntryQuestionRefs()
 		if entryRefs:
-			result += "<p>%s %s " % (self.answers_anyOrAll, TERMFOR_OFTHEENTRYQUESTIONS)
+			result += "<p>%s %s " % (self.answers_anyOrAll, TERMS["OFTHEENTRYQUESTIONS"])
 			for ref in entryRefs:
 				result += '%s %s ' % (ref.question.text, ref.answer)
 			result += "</p>"
 		creatorRefs = self.getCreatorQuestionRefs()
 		if creatorRefs:
-			result += "<p>%s %s " % (self.creatorAnswers_anyOrAll, TERMFOR_OFTHECREATORQUESTIONS)
+			result += "<p>%s %s " % (self.creatorAnswers_anyOrAll, TERMS["OFTHECREATORQUESTIONS"])
 			for ref in creatorRefs:
 				result += ' %s %s ' % (ref.question.text, ref.answer)
 			result += "</p>"
@@ -1360,8 +1360,8 @@ class Answer(db.Model):
 		return "%s for %s" % (self.linkStringWithQuestionText(), self.referent.linkString())
 	
 	def PrintText(self):
-		return '<p>%s %s "%s" "%s".</p><hr>' \
-			% (self.memberNickNameOrCharacterName(), TERMFOR_ANSWEREDTHEQUESTION, self.question.text, self.displayStringShort())
+		return '<p>%s %s (%s)</p><hr>' \
+			% (self.question.text, self.displayStringShort(), self.memberNickNameOrCharacterName())
 		
 	# ATTRIBUTION
 	

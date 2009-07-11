@@ -163,7 +163,7 @@
 		      		</tr><td><input type="text" name="attachmentName0" value="{{attachments.0.name}}" size="20" maxlength="{{maxlength_name}}"/></td>
 					<td>{% if attachments.0.fileName %}
 						<a href="{{url_attachment}}?attachment_id={{attachments.0.key}}">
-						{{attachments.0.fileName}}</a>{% else %}none
+						{{attachments.0.fileName}}</a>{% else %}{{NONE}}
 						{% endif %}</td>
 					<td>{% if attachments.0.fileName %}
 							<input type="checkbox" name"removeAttachment|{{attachments.0.key}}" value="removeAttachment|{{attachments.0.key}}" id="0">
@@ -175,7 +175,7 @@
 			      		</tr><td><input type="text" name="attachmentName1" value="{{attachments.1.name}}" size="20" maxlength="{{maxlength_name}}"/></td>
 						<td>{% if attachments.1.fileName %}
 							<a href="{{url_attachment}}?attachment_id={{attachments.1.key}}">
-							{{attachments.1.fileName}}</a>{% else %}none
+							{{attachments.1.fileName}}</a>{% else %}{{NONE}}
 							{% endif %}</td>
 						<td>{% if attachments.1.fileName %}
 								<input type="checkbox" name"removeAttachment|{{attachments.1.key}}" value="removeAttachment|{{attachments.1.key}}" id="1">
@@ -187,7 +187,7 @@
 				      		</tr><td><input type="text" name="attachmentName2" value="{{attachments.2.name}}" size="20" maxlength="{{maxlength_name}}"/></td>
 							<td>{% if attachments.2.fileName %}
 								<a href="{{url_attachment}}?attachment_id={{attachments.2.key}}">
-								{{attachments.2.fileName}}</a>{% else %}none
+								{{attachments.2.fileName}}</a>{% else %}{{NONE}}
 								{% endif %}</td>
 							<td>{% if attachments.2.fileName %}
 									<input type="checkbox" name"removeAttachment|{{attachments.2.key}}" value="removeAttachment|{{attachments.2.key}}" id="2">
@@ -199,7 +199,7 @@
 					      		</tr><td><input type="text" name="attachmentName3" value="{{attachments.3.name}}" size="20" maxlength="{{maxlength_name}}"/></td>
 								<td>{% if attachments.3.fileName %}
 									<a href="{{url_attachment}}?attachment_id={{attachments.3.key}}">
-									{{attachments.3.fileName}}</a>{% else %}none
+									{{attachments.3.fileName}}</a>{% else %}{{NONE}}
 									{% endif %}</td>
 								<td>{% if attachments.3.fileName %}
 										<input type="checkbox" name"removeAttachment|{{attachments.3.key}}" value="removeAttachment|{{attachments.3.key}}" id="3">
@@ -211,7 +211,7 @@
 					      		</tr><td><input type="text" name="attachmentName4" value="{{attachments.4.name}}" size="20" maxlength="{{maxlength_name}}"/></td>
 								<td>{% if attachments.4.fileName %}
 									<a href="{{url_attachment}}?attachment_id={{attachments.4.key}}">
-									{{attachments.4.fileName}}</a>{% else %}none
+									{{attachments.4.fileName}}</a>{% else %}{{NONE}}
 									{% endif %}</td>
 								<td>{% if attachments.4.fileName %}
 										<input type="checkbox" name"removeAttachment|{{attachments.4.key}}" value="removeAttachment|{{attachments.4.key}}" id="4">

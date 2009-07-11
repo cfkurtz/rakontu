@@ -15,7 +15,7 @@ class ReviewResourcesPage(webapp.RequestHandler):
 		if access:
 			if member.isGuide():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': TITLE_REVIEW_RESOURCES, 
+							   	   'title': TITLES["REVIEW_RESOURCES"], 
 								   'rakontu': rakontu, 
 								   'resources': rakontu.getNonDraftEntriesOfType("resource"),
 								   'current_member': member,
@@ -38,7 +38,7 @@ class ReviewResourcesPage(webapp.RequestHandler):
 					 if self.request.get("flag|%s" % resource.key()) == "yes":
 					 	resource.flaggedForRemoval = not resource.flaggedForRemoval
 					 	resource.put()
-				self.redirect(BuildResultURL(RESULT_changessaved))
+				self.redirect(BuildResultURL("changessaved"))
 			else:
 				self.redirect(HOME)
 		else:
@@ -76,7 +76,7 @@ class ReviewRequestsPage(webapp.RequestHandler):
 					requestsByType.append(requests)
 					numRequests += len(requests)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': TITLE_REVIEW_REQUESTS, 
+							   	   'title': TITLES["REVIEW_REQUESTS"], 
 								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'requests': requestsByType,
@@ -103,7 +103,7 @@ class ReviewRequestsPage(webapp.RequestHandler):
 						if self.request.get("toggleComplete|%s" % request.key()):
 							request.completedIfRequest = not request.completedIfRequest
 							request.put()
-					self.redirect(BuildResultURL(RESULT_changessaved))
+					self.redirect(BuildResultURL("changessaved"))
 				elif "showOnlyUncompletedRequests" in self.request.arguments():
 					self.redirect(BuildURL("dir_guide", "url_requests", "uncompleted"))
 				elif "showAllRequests" in self.request.arguments():
@@ -130,7 +130,7 @@ class ReviewInvitationsPage(webapp.RequestHandler):
 				else:
 					invitations.extend(allInvitations)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': TITLE_REVIEW_INVITATIONS, 
+							   	   'title': TITLES["REVIEW_INVITATIONS"], 
 								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'invitations': invitations,

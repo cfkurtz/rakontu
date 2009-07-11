@@ -36,7 +36,7 @@ class CurateFlagsPage(webapp.RequestHandler):
 			if member.isCuratorOrManagerOrOwner():
 				(entries, annotations, answers, links, searches) = rakontu.getAllFlaggedItems()
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': TITLE_REVIEW_FLAGS, 
+							   	   'title': TITLES["REVIEW_FLAGS"], 
 						   	   	   'rakontu': rakontu, 
 						   	   	   'current_member': member,
 								   'entries': entries,
@@ -83,55 +83,55 @@ class CurateFlagsPage(webapp.RequestHandler):
 						elif item.__class__.__name__ == "SavedSearch":
 							item.deleteAllDependents()
 						db.delete(item)
-				self.redirect(BuildResultURL(RESULT_changessaved))
+				self.redirect(BuildResultURL("changessaved"))
 			elif member.isCurator():
 				itemsToSendMessageAbout = []
 				for item in items:
 					if self.request.get("notify|%s" % item.key()) == "yes":
 						itemsToSendMessageAbout.append(item)
 				if itemsToSendMessageAbout:
-					# CFK MARK: LOTS OF TEXT
-					subject = "%s %s" % (TERMFOR_REMINDER, member.nickname)
+					subject = "%s %s" % (TERMS["REMINDER"], member.nickname)
 					URL = self.request.headers["Host"]
 					messageLines = []
-					messageLines.append("The curator %s wanted you to know that these items require your attention.\n" % member.nickname)
+					messageLines.append("%s\n" % TERMS["WANTEDYOUTOKNOW"])
 					itemsToSendMessageAbout.reverse()
 					for item in itemsToSendMessageAbout:
 						if item.__class__.__name__ == "Entry":
 							linkKey = item.key()
-							displayString = 'A %s called "%s"' % (item.type, item.title)
+							displayString = '%s (%s)' % (item.title, item.typeForDisplay())
 						elif item.__class__.__name__ == "Annotation":
 							linkKey = item.entry.key()
 							if item.shortString:
 								shortString = " (%s)" % item.shortString
 							else:
 								shortString = ""
-							displayString = 'A %s%s for the %s called "%s"' % (item.type, shortString, item.entry.type, item.entry.title)
+							displayString = '%s (%s) - "%s" (%s)' % (item.typeForDisplay(), shortString, item.entry.title, item.entry.typeForDisplay())
  						elif item.__class__.__name__ == "Answer":
 							linkKey = item.referent.key()
-							displayString = 'An answer (%s) for the %s called "%s"' % (item.displayString(), item.referent.type, item.referent.title)
+							displayString = '%s %s - "%s" (%s)' % (item.question.text, item.displayString(), item.referent.title, item.referent.typeForDisplay())
 						elif item.__class__.__name__ == "Link":
 							linkKey = item.itemFrom.key()
 							if item.comment:
 								commentString = " (%s)" % item.comment
 							else:
 								commentString = ""
-							displayString = 'A link%s from the %s called "%s" to the %s called "%s"' % \
-								(commentString, item.itemFrom.type, item.itemFrom.displayString(), item.itemTo.type, item.itemTo.displayString())
+							displayString = '%s %s%s "%s" (%s) --> "%s" (%s)' % \
+								(item.itemFrom.type, TERMS["LINK"], commentString, item.itemFrom.displayString(), \
+								item.itemTo.typeForDisplay(), item.itemTo.displayString(), item.itemTo.typeForDisplay())
 						elif item.__class__.__name__ == "SavedSearch":
 							linkKey = item.key()
 							displayString = item.name
 						if item.__class__.__name__ == "SavedSearch":
-							messageLines.append('* %s\n\n	http://%s/visit/home?%s (%s)\n' % (displayString, URL, linkKey, item.flagComment))
+							messageLines.append('* %s\n\n	http://%s/%s/%s?%s (%s)\n' % (displayString, URL, DIRS["dir_visit"], URLS["url_home"], linkKey, item.flagComment))
 						else:
-							messageLines.append('* %s\n\n	http://%s/visit/curate?%s (%s)\n' % (displayString, URL, linkKey, item.flagComment))
-					messageLines.append("Thank you for your attention.\n")
-					messageLines.append("Sincerely,")
-					messageLines.append("	Your Rakontu site")
+							messageLines.append('* %s\n\n	http://%s/%s/%s?%s (%s)\n' % (displayString, URL, DIRS["dir_visit"], URLS["url_curate"], linkKey, item.flagComment))
+					messageLines.append("%s\n" % TERMS["THANKYOU"])
+					messageLines.append("%s," % TERMS["SINCERELY"])
+					messageLines.append("	%s" % TERMS["YOURSITE"])
 					message = "\n".join(messageLines)
 					ownersAndManagers = rakontu.getManagersAndOwners()
 					for ownerOrManager in ownersAndManagers:
-						messageLines.insert(0, "Dear manager %s:\n" % ownerOrManager.nickname)
+						messageLines.insert(0, "% %s:\n" % TERMS["DEARMANAGER"], ownerOrManager.nickname)
 						messageBody = "\n".join(messageLines)
 						message = mail.EmailMessage()
 						message.sender = rakontu.contactEmail
@@ -142,7 +142,7 @@ class CurateFlagsPage(webapp.RequestHandler):
 						# CFK FIX
 						# not putting this last line in until I can start testing it, either locally or on the real server
 						#message.send()
-					self.redirect(BuildResultURL(RESULT_messagesent))
+					self.redirect(BuildResultURL("messagesent"))
 			else:
 				self.redirect(HOME)
 		else:
@@ -164,7 +164,7 @@ class CurateGapsPage(webapp.RequestHandler):
 				invitationsWithoutResponses,
 				collagesWithoutInclusions) = rakontu.getNonDraftEntriesWithMissingMetadata(sortBy)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': TITLE_REVIEW_GAPS, 
+							   	   'title': TITLES["REVIEW_GAPS"], 
 								   'rakontu': rakontu, 
 								   'sort_by': sortBy,
 								   'entries_without_tags': entriesWithoutTags,
@@ -201,7 +201,7 @@ class CurateAttachmentsPage(webapp.RequestHandler):
 		if access:
 			if member.isCurator():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': TITLE_REVIEW_ATTACHMENTS, 
+							   	   'title': TITLES["REVIEW_ATTACHMENTS"], 
 								   'rakontu': rakontu, 
 								   'attachments': rakontu.getAttachmentsForAllNonDraftEntries(),
 								   'current_member': member,
@@ -220,7 +220,7 @@ class CurateTagsPage(webapp.RequestHandler):
 		if access:
 			if member.isCurator():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': TITLE_REVIEW_TAGS, 
+							   	   'title': TITLES["REVIEW_TAGS"], 
 								   'rakontu': rakontu, 
 								   'tag_sets': rakontu.getNonDraftTagSets(),
 								   'current_member': member,

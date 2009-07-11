@@ -14,7 +14,7 @@ class AdministerRakontusPage(webapp.RequestHandler):
 		# this one method does not require a rakontu and member, since the admin has to look at multiple rakontus.
 		if users.is_current_user_admin():
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-						   	   'title': TITLE_REVIEW_RAKONTUS, 
+						   	   'title': TITLES["REVIEW_RAKONTUS"], 
 							   'rakontus': Rakontu.all().fetch(FETCH_NUMBER), 
 							   # here we do NOT give the current_member or rakontu
 							   })
@@ -49,7 +49,7 @@ class GenerateSampleQuestionsPage(webapp.RequestHandler):
 		if access:
 			if users.is_current_user_admin():
 				GenerateSampleQuestions()
-				self.redirect(BuildResultURL(RESULT_sampleQuestionsGenerated))
+				self.redirect(BuildResultURL("sampleQuestionsGenerated"))
 			else:
 				self.redirect(START)
 		else:
@@ -62,7 +62,7 @@ class GenerateSystemResourcesPage(webapp.RequestHandler):
 		if access:
 			if users.is_current_user_admin():
 				GenerateSystemResources()
-				self.redirect(BuildResultURL(RESULT_systemResourcesGenerated))
+				self.redirect(BuildResultURL("systemResourcesGenerated"))
 			else:
 				self.redirect(START)
 		else:
@@ -75,7 +75,7 @@ class GenerateHelpsPage(webapp.RequestHandler):
 		if access:
 			if users.is_current_user_admin():
 				GenerateHelps()
-				self.redirect(BuildResultURL(RESULT_helpsGenerated))
+				self.redirect(BuildResultURL("helpsGenerated"))
 			else:
 				self.redirect(START)
 		else:

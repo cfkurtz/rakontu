@@ -15,7 +15,7 @@
 			{% if annotation.creator.active %}
 				{{annotation.creator.linkString}}
 				{% ifequal annotation.creator.key current_member.key %}
-					 (you)
+					 ({{YOU}})
 				{% endifequal %}
 			{% else %}
 				the former member "{{annotation.creator.nickname}}"

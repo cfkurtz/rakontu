@@ -30,7 +30,7 @@
 			{% endfor %}
 			</table>
 		{% else %}
-			<p><b>Entries</b> - none</p>
+			<p><b>Entries</b> - {{NONE}}</p>
 		{% endif %}
 		{% if draft_annotations %}
 		<h4>Annotations</h4>
@@ -50,7 +50,7 @@
 			{% endfor %}
 			</table>
 		{% else %}
-			<p><b>Annotations</b> - none</p>
+			<p><b>Annotations</b> - {{NONE}}</p>
 		{% endif %}
 		{% if first_draft_answer_per_entry %}
 			<h4>Answer sets for entries</h4>
@@ -68,7 +68,7 @@
 				{% endfor %}
 				</table>
 		{% else %}
-			<p><b>Answer sets</b> - none</p>
+			<p><b>Answer sets</b> - {{NONE}}</p>
 		{% endif %}
 		
 		
@@ -132,7 +132,7 @@
 				{% endfor %}
 				</table>
 		{% else %}
-			<p><b>Saved search filters</b> - none</p>
+			<p><b>Saved search filters</b> - {{NONE}}</p>
 		{% endif %}
 		
       	<p>
