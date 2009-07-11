@@ -27,17 +27,17 @@
 # LANGUAGE SETUP
 # ============================================================================================ 
 
-# Which language files to load. This must match the suffix on the language_config file and the templates directory.
+# Which language files to load. This must match the directory name (under config) under which the language dependent files are stored.
 SITE_LANGUAGE = "english"
 
 # Don't touch this stuff
-from constants_base import *
-exec "from %s_language_config import *" % SITE_LANGUAGE
-exec "from %s_site_resources import *" % SITE_LANGUAGE
-DEFAULT_QUESTIONS_FILE_NAME = "config/%s_default_questions.csv" % SITE_LANGUAGE
-SAMPLE_QUESTIONS_FILE_NAME = "config/%s_sample_questions.csv" % SITE_LANGUAGE
-DEFAULT_CHARACTERS_FILE_NAME = "config/%s_default_characters.csv" % SITE_LANGUAGE
-HELP_FILE_NAME = "config/%s_help.csv" % SITE_LANGUAGE
+sys.path.insert(0, SITE_LANGUAGE)
+from language_config import *
+from site_resources import *
+DEFAULT_QUESTIONS_FILE_NAME = "config/%s/default_questions.csv" % SITE_LANGUAGE
+SAMPLE_QUESTIONS_FILE_NAME = "config/%s/sample_questions.csv" % SITE_LANGUAGE
+DEFAULT_CHARACTERS_FILE_NAME = "config/%s/default_characters.csv" % SITE_LANGUAGE
+HELP_FILE_NAME = "config/%s/help.csv" % SITE_LANGUAGE
 
 # ============================================================================================ 
 # RAKONTUS
