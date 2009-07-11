@@ -15,7 +15,7 @@ from site_configuration import *
 # These are never displayed to the user so don't need to be translated and only appear here.
 # ============================================================================================
 
-DEVELOPMENT = True
+DEVELOPMENT = False
 FETCH_NUMBER = 1000
 DATE_TIME_CSV_FORMAT = "%Y%m%dT%H%M%S"
 

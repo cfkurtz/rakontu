@@ -869,7 +869,7 @@ class PreviewPage(webapp.RequestHandler):
 				else:
 					self.redirect(HOME)
 			elif "profile" in self.request.arguments():
-				self.redirect(BuildURL("dir_visit", "url_preferences", member.key()))
+				self.redirect(BuildURL("dir_visit", "url_drafts", member.key()))
 			elif annotation:
 				if "edit" in self.request.arguments():
 					self.redirect(BuildURL("dir_visit", URLForAnnotationType(annotation.type), annotation.key()))

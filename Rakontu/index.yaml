@@ -1,0 +1,17 @@
+indexes:
+
+- kind: Entry
+  properties:
+  - name: draft
+  - name: rakontu
+  - name: published
+    direction: desc
+
+- kind: Entry
+  properties:
+  - name: draft
+  - name: rakontu
+  - name: type
+  - name: title
+    direction: desc
+ 

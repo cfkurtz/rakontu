@@ -30,15 +30,15 @@
 			</select>
 			&nbsp; <input type="submit" name="visitRakontu" value="Join" class="button"></p>
 		{% endif %}
-		<p><input type="submit" name="createRakontu" value="Create a New Rakontu" class="button"></p>
 		<p>Your Google account is: <b>{{ user.nickname }}</b><br/><a href="{{logout_url}}">Log out</a></p>
 		
 		{% if 1 %}
 			{% if user_is_admin %}
 				<hr>
 				<p>For the system administrator</p>
-				<input type="submit" name="initializeSite" value="Initialize Site" class="button"> &nbsp; 
-				<input type="submit" name="reviewAllRakontus" value="Review Rakontus" class="button"><br/>
+				<p><input type="submit" name="initializeSite" value="Initialize Site" class="button"></p>
+				<p><input type="submit" name="reviewAllRakontus" value="Review Rakontus" class="button"></p>
+				<p><input type="submit" name="createRakontu" value="Create a New Rakontu" class="button"></p>
 			{% else %}
 				<div class="blurb">
 				<p>Please enter the alpha testing password.</p>

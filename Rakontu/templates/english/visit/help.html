@@ -24,6 +24,16 @@
 		</ul>
 	{% endif %}
 	
+	{% if not resources and not manager_resources %}
+		{% if current_member.isGuideOrManagerOrOwner %}
+      		<p>This Rakontu has no help resources.<p>
+      		<ul>
+      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_resource}}">Make one</a></li>
+      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_copy}}">Create all default resources</a></li>
+      		</ul>
+	      {% endif %}
+	{% endif %}
+	
 	{% if guides %}
 		<h3>Ask a guide a question</h3>
 		<p>Guides are Rakontu members who have agreed to answer questions about the Rakontu. Here they have described

@@ -11,6 +11,14 @@ LEFT TO DO IN INTERNATIONALIZATION:
 deal with _id things not being translated (and in general ALL queries to urls)
 move templates to templates/english and deal with calling them up based on language
 
+NEW FROM TESTING:
+
+- more indexes
+- no "start page" in menus
+- "log out" should leave rakontu, not google account
+- admin creates new rakontus
+- url query for rakontu
+
 ===== PUT OFF until a little later :)
 
 TESTING:

@@ -53,7 +53,7 @@
 			<p><b>Annotations</b> - {{term_none}}</p>
 		{% endif %}
 		{% if first_draft_answer_per_entry %}
-			<h4>Answer sets for entries</h4>
+			<h4>Answers for entries</h4>
 		      	<table border="1" cellpadding="4" cellspacing="0">
 		      	<tr><th>Answers about entry</th><th>Created</th><th>Last changed</th><th>Remove?</th>
 		      	{% for answer in first_draft_answer_per_entry %}
@@ -68,7 +68,7 @@
 				{% endfor %}
 				</table>
 		{% else %}
-			<p><b>Answer sets</b> - {{term_none}}</p>
+			<p><b>Answers</b> - {{term_none}}</p>
 		{% endif %}
 		
 		
@@ -136,7 +136,7 @@
 		{% endif %}
 		
       	<p>
-    <center><input type="submit" name="changeSettings|{{member.key}}" value="Save changes" class="button"></center>
+    <center><input type="submit" name="changeSettings|{{member.key}}" value="Remove selected drafts" class="button"></center>
 	</form>	
 	</div>
 	</div>
