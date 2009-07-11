@@ -121,7 +121,7 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 					for eventType in EVENT_TYPES:
 						if i >= level and i < nextLevel: 
 							if i == 0: 
-								nudgePointIncludes.append("<td>(%s)</td>" % TERMS["DOESNOTAPPLY"])
+								nudgePointIncludes.append("<td>(%s)</td>" % TERMS["term_does_not_apply"])
 							else:
 								nudgePointIncludes.append('<td><input type="text" name="member|%s" size="2" value="%s" maxlength="{{maxlength_number}}"/></td>' \
 									% (eventType, rakontu.memberNudgePointsPerEvent[i]))

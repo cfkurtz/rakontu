@@ -26,7 +26,7 @@
 					selected="selected"
 				{% endif %}
 				>{{time_frame|listLookup:0}}</option>
-			{% endfor %}
+			{% endfor %} 
 			</select>
 		<input type="submit" name="changeTimeFrame" value="Change" class="button_small">
 		{% ifnotequal member_time_frame_string "everything" %}
@@ -49,7 +49,7 @@
 					Filtered by: {{current_search.displayString}}
 				{% else %}
 					Search filters
-					<select name="savedSearch"><option>({{CHOOSE}})</option>
+					<select name="savedSearch"><option>({{term_choose}})</option>
 					{% if member_searches %}
 						<option value="">-- My filters --</option>
 						{% for search in member_searches %}

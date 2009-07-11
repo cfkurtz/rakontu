@@ -70,29 +70,27 @@ def GetCurrentRakontuAndMemberFromSession():
 	return rakontu, member, okayToAccess
 
 def GetStandardTemplateDictionaryAndAddMore(newItems):
-	items = {
-		# constants
+	items = { 
 	   'version_number': VERSION_NUMBER,
 	   'text_formats': TEXT_FORMATS,
-	   'text_formats_display': TEXT_FORMATS_DISPLAY,
+	   'text_formats_display': TEXT_FORMATS_DISPLAY,  
 	   'num_nudge_categories': NUM_NUDGE_CATEGORIES,
-	   'num_tags_in_tag_set': NUM_TAGS_IN_TAG_SET,
+	   'num_tags_in_tag_set': NUM_TAGS_IN_TAG_SET, 
 	   'time_zone_names': pytz.all_timezones,
-	   'date_formats': DateFormatStrings(),
-	   'time_formats': TimeFormatStrings(),
-	   'time_frames': TIME_FRAMES, 
+	   'date_formats': DateFormatStrings(), 
+	   'time_formats': TimeFormatStrings(), 
+	   'time_frames': TIME_FRAMES,  
 	   'entry_types': ENTRY_TYPES,
 	   'entry_types_display': ENTRY_TYPES_DISPLAY,
-	   'entry_types_plural': ENTRY_TYPES_PLURAL,
+	   'entry_types_plural': ENTRY_TYPES_PLURAL,  
 	   'entry_types_plural_display': ENTRY_TYPES_PLURAL_DISPLAY,
 	   'request_types': REQUEST_TYPES,
 	   'helping_role_names': HELPING_ROLE_TYPES_DISPLAY,
-	   'maxlength_subject_or_comment': MAXLENGTH_SUBJECT_OR_COMMENT,
+	   'maxlength_subject_or_comment': MAXLENGTH_SUBJECT_OR_COMMENT, 
 	   'maxlength_name': MAXLENGTH_NAME,
-	   'maxlength_tag_or_choice': MAXLENGTH_TAG_OR_CHOICE,
+	   'maxlength_tag_or_choice': MAXLENGTH_TAG_OR_CHOICE, 
 	   'maxlength_number': MAXLENGTH_NUMBER,
 	   'home': HOME,
-	   # stuff about user
 	   'current_user': users.get_current_user(), 
 	   'user_is_admin': users.is_current_user_admin(),
 	   'logout_url': users.create_logout_url("/"),
@@ -100,9 +98,15 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	for key in DIRS.keys():
 		items[key] = DIRS[key]
 	for key in URLS.keys():
-		items[key] = URLS[key]
+		items[key] = URLS[key] 
 	for key in TERMS.keys():
 		items[key] = TERMS[key]
+	for key in TEMPLATE_TERMS.keys(): 
+		items[key] = TEMPLATE_TERMS[key]
+	for key in TEMPLATE_BUTTONS.keys():
+		items[key] = TEMPLATE_BUTTONS[key] 
+	for key in TEMPLATE_MENUS.keys():
+		items[key] = TEMPLATE_MENUS[key]
 	items["url_story"] = URLForEntryType("story")
 	items["url_invitation"] = URLForEntryType("invitation")
 	items["url_collage"] = URLForEntryType("collage")
@@ -515,20 +519,20 @@ def RelativeTimeDisplayString(whenUTC, member):
 		when = whenUTC.astimezone(timezone(member.timeZoneName))
 		delta = datetime.now(tz=timezone(member.timeZoneName)) - when
 		if delta.days < 1 and delta.seconds < 1: 
-			return TERMS["NOW"]
+			return TERMS["term_now"]
 		elif delta.days < 1 and delta.seconds < 60: # one minute
-			return TERMS["MOMENTSAGO"]
+			return TERMS["term_moments_ago"]
 		elif delta.days < 1 and delta.seconds < 60*60: # one hour
-			return "%s %s" % (delta.seconds // 60, TERMS["MINUTESAGO"])
+			return "%s %s" % (delta.seconds // 60, TERMS["term_minutes_ago"])
 		elif delta.days < 1:
 			return when.strftime(DjangoToPythonTimeFormat(member.timeFormat))
 		elif delta.days < 2:
-			return "%s %s" % (TERMS["YESTERDAYAT"], when.strftime(DjangoToPythonTimeFormat(member.timeFormat)))
+			return "%s %s" % (TERMS["term_yesterday_at"], when.strftime(DjangoToPythonTimeFormat(member.timeFormat)))
 		elif delta.days < 7:
-			return when.strftime("%s %s %s" % (DjangoToPythonDateFormat(member.dateFormat), TERMS["AT"],
+			return when.strftime("%s %s %s" % (DjangoToPythonDateFormat(member.dateFormat), TERMS["term_at"],
 											DjangoToPythonTimeFormat(member.timeFormat)))
 		else:
-			return when.strftime("%s %s %s" % (DjangoToPythonDateFormat(member.dateFormat), TERMS["AT"],
+			return when.strftime("%s %s %s" % (DjangoToPythonDateFormat(member.dateFormat), TERMS["term_at"],
 											DjangoToPythonTimeFormat(member.timeFormat)))
 	else:
 		return None

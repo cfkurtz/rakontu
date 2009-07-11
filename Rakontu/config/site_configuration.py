@@ -3,7 +3,7 @@
 # Description: Rakontu is open source story sharing software.
 # Version: pre-0.1
 # License: GPL 3.0
-# Google Code Project: http://code.google.com/p/rakontu/
+# Google Code Project: http://code.google.com/p/rakontu/ 
 # ============================================================================================ 
 
 # ============================================================================================ 
@@ -20,7 +20,7 @@
 # All settings that could vary by language are in the language_config file. To 
 # Warning: This file uses Python syntax. You should be comfortable editing Python code before you edit this file.
 #
-# BACKUP THIS FILE before you make changes!
+# BACKUP THIS FILE before you make changes! 
 # ============================================================================================ 
 
 # ============================================================================================ 
@@ -28,10 +28,11 @@
 # ============================================================================================ 
 
 # Which language files to load. This must match the directory name (under config) under which the language dependent files are stored.
-SITE_LANGUAGE = "english"
+SITE_LANGUAGE = "english" 
 
 # Don't touch this stuff
-sys.path.insert(0, SITE_LANGUAGE)
+import sys
+sys.path.insert(0, "config/%s" % SITE_LANGUAGE) 
 from language_config import *
 from site_resources import *
 DEFAULT_QUESTIONS_FILE_NAME = "config/%s/default_questions.csv" % SITE_LANGUAGE

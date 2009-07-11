@@ -445,7 +445,7 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 								   'current_member': member,
 								   'rakontu': rakontu, 
 								   'entry': entry,
-							   	   'attribution_referent_type': TERMS["ANSWER_SET"],
+							   	   'attribution_referent_type': TERMS["term_answer_set"],
 							       'attribution_referent': answerRefForQuestions,
 								   'refer_type': entry.type,
 								   'refer_type_display': DisplayTypeForQuestionReferType(entry.type),

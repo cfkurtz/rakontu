@@ -42,6 +42,38 @@ class AdministerRakontusPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
+class SiteInitializationTasksPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		if users.is_current_user_admin():
+			numSampleQuestions = Question.all().filter("rakontu = ", None).count()
+			numDefaultResources = Entry.all().filter("rakontu = ", None).filter("type = ", "resource").count()
+			numHelps = Help.all().count()
+			template_values = GetStandardTemplateDictionaryAndAddMore({
+						   	   'title': TITLES["INITIALIZE_SITE"], 
+						   	   'num_sample_questions': numSampleQuestions,
+						   	   'num_default_resources': numDefaultResources,
+						   	   "num_helps": numHelps,
+							   # here we do NOT give the current_member or rakontu
+							   })
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('admin/initialize.html'))
+			self.response.out.write(template.render(path, template_values))
+		else:
+			self.redirect(START)
+			
+	@RequireLogin 
+	def post(self):
+		if users.is_current_user_admin():
+			if "generateSystemQuestions" in self.request.arguments():
+				GenerateSampleQuestions()
+			elif "generateSystemResources" in self.request.arguments():
+				GenerateSystemResources()
+			elif "generateHelps" in self.request.arguments():
+				GenerateHelps()
+			self.redirect(self.request.headers["Referer"])
+		else:
+			self.redirect(START)
+
 class GenerateSampleQuestionsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):

@@ -102,15 +102,8 @@ class StartPage(webapp.RequestHandler):
 		elif "makeFakeData" in self.request.arguments():
 			MakeSomeFakeData()
 			self.redirect(START)
-		elif "generateSystemQuestions" in self.request.arguments():
-			GenerateSampleQuestions()
-			self.redirect(START)
-		elif "generateSystemResources" in self.request.arguments():
-			GenerateSystemResources()
-			self.redirect(START)
-		elif "generateHelps" in self.request.arguments():
-			GenerateHelps()
-			self.redirect(START)
+		elif "initializeSite" in self.request.arguments():
+			self.redirect(BuildURL("dir_admin", "url_site_initialization_tasks"))
 			
 class NewMemberPage(webapp.RequestHandler):
 	@RequireLogin 

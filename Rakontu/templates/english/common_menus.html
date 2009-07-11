@@ -30,78 +30,76 @@
 			<i>{{rakontu.tagline|orNbsp}}</i>
 		{% endif %}
 		<ul id="topmenu">
-	  		<li><a href="{{home}}">Visit</a>
+	  		<li><a href="{{home}}">{{menu_visit}}</a>
 				<ul>
 				{% if rakontu.firstPublish %}
-					<li><a href="{{home}}">Home page</a></li>
+					<li><a href="{{home}}">{{menu_home_page}}</a></li>
 				{% endif %}
-	 			<li><a href="/{{dir_visit}}/{{url_rakontu}}">About this Rakontu</a></li>
-				<li><a href="/{{dir_visit}}/{{url_members}}">About its members</a></li>
-				<li><a href="/">Start page</a></li>
+	 			<li><a href="/{{dir_visit}}/{{url_rakontu}}">{{menu_about_this_rakontu}}</a></li>
+				<li><a href="/{{dir_visit}}/{{url_members}}">{{menu_about_rakontu_members}}</a></li>
+				<li><a href="/">{{menu_start_page}}</a></li>
 				</ul>
 			</li>
-			<li><a href="/{{dir_visit}}/{{url_story}}">Create</a>
+			<li><a href="/{{dir_visit}}/{{url_story}}">{{menu_create}}</a>
 				<ul>
-				<li><a href="/{{dir_visit}}/{{url_story}}">Tell a story</a></li>
-	  			<li><a href="/{{dir_visit}}/{{url_invitation}}">Invite people to tell stories</a></li>
+				<li><a href="/{{dir_visit}}/{{url_story}}">{{menu_story}}</a></li>
+	  			<li><a href="/{{dir_visit}}/{{url_invitation}}">{{menu_invitation}}</a></li>
 	  			{% if rakontu.firstPublish %}
-	  				<li><a href="/{{dir_visit}}/{{url_collage}}">Build a story collage</a></li>
-	  				<li><a href="/{{dir_visit}}/{{url_pattern}}">Describe a pattern</a> </li>
+	  				<li><a href="/{{dir_visit}}/{{url_collage}}">{{menu_collage}}</a></li>
+	  				<li><a href="/{{dir_visit}}/{{url_pattern}}">{{menu_pattern}}</a> </li>
 	  			{% endif %}
 	  			</ul>
 			</li>
 			{% if current_member.isCurator %}
-				<li><a href="/{{dir_curate}}/{{url_flags}}">Curate</a>
+				<li><a href="/{{dir_curate}}/{{url_flags}}">{{menu_curate}}</a>
 				<ul>
-					<li><a href="/{{dir_curate}}/{{url_gaps}}">Gaps</a></li>
-					<li><a href="/{{dir_curate}}/{{url_flags}}">Flags</a></li>
+					<li><a href="/{{dir_curate}}/{{url_gaps}}">{{menu_gaps}}</a></li>
+					<li><a href="/{{dir_curate}}/{{url_flags}}">{{menu_flags}}</a></li>
 					{% if rakontu.allowsAttachments %}
-						<li><a href="/{{dir_curate}}/{{url_attachments}}">Attachments</a></li>
+						<li><a href="/{{dir_curate}}/{{url_attachments}}">{{menu_attachments}}</a></li>
 					{% endif %}
 					{% if current_member.canEditTags %}
-						<li><a href="/{{dir_curate}}/{{url_tags}}">Tags</a></li>
+						<li><a href="/{{dir_curate}}/{{url_tags}}">{{menu_tags}}</a></li>
 					{% endif %}
 				</ul>
 				</li>
 			{% endif %}
 			{% if current_member.isGuide %}
-				<li><a href="/{{dir_guide}}/{{url_invitations}}">Guide</a>
+				<li><a href="/{{dir_guide}}/{{url_invitations}}">{{menu_guide}}</a>
 				<ul>
-					<li><a href="/{{dir_guide}}/{{url_invitations}}">Invitations</a></li>
-					<li><a href="/{{dir_guide}}/{{url_requests}}">Requests</a></li>
-					<li><a href="/{{dir_guide}}/{{url_resources}}">Resources</a>
-					<li><a href="/{{dir_guide}}/{{url_resource}}">Add a resource</a></li>
+					<li><a href="/{{dir_guide}}/{{url_invitations}}">{{menu_invitations}}</a></li>
+					<li><a href="/{{dir_guide}}/{{url_requests}}">{{menu_requests}}</a></li>
+					<li><a href="/{{dir_guide}}/{{url_resources}}">{{menu_resources}}</a>
+					<li><a href="/{{dir_guide}}/{{url_resource}}">{{menu_resource}}</a></li>
 				</ul>
 				</li>
 			{% endif %}
 			{% if current_member.isLiaison %}
-				<li><a href="/{{dir_liaise}}/members">Liaise</a>
+				<li><a href="/{{dir_liaise}}/members">{{menu_liaise}}</a>
 				<ul>
-					<li><a href="/{{dir_liaise}}/{{url_members}}">Manage off-line members</a></li>
-					<li><a href="/{{dir_liaise}}/{{url_batch}}">Add a batch of stories</a></li>
-					<li><a href="/{{dir_liaise}}/{{url_review}}">Review entered batches</a></li>
+					<li><a href="/{{dir_liaise}}/{{url_members}}">{{menu_manage_offline_members}}</a></li>
+					<li><a href="/{{dir_liaise}}/{{url_batch}}">{{menu_add_batch}}</a></li>
+					<li><a href="/{{dir_liaise}}/{{url_review}}">{{menu_review_batches}}</a></li>
 				</ul>
 				</li>
 			{% endif %}
 			{% if current_member.isManagerOrOwner %}
-				<li><a href="/{{dir_manage}}/{{url_settings}}">Manage</a>
+				<li><a href="/{{dir_manage}}/{{url_settings}}">{{menu_manage}}</a>
 					<ul>
-		      		<li><a href="/{{dir_manage}}/{{url_members}}">Members</a></li>
-					<li><a href="/{{dir_manage}}/{{url_settings}}">Settings</a></li>
-		      		<li><a href="/{{dir_manage}}/{{url_questions_list}}">Questions</a></li>
-		      		<li><a href="/{{dir_manage}}/{{url_characters}}">Characters</a></li>
-		      		<li><a href="/{{dir_curate}}/{{url_flags}}">Flags</a></li>
-			      	<li><a href="/{{dir_manage}}/{{url_export}}">Export</a></li>
+		      		<li><a href="/{{dir_manage}}/{{url_members}}">{{menu_members}}</a></li>
+					<li><a href="/{{dir_manage}}/{{url_settings}}">{{menu_settings}}</a></li>
+		      		<li><a href="/{{dir_manage}}/{{url_questions_list}}">{{menu_questions}}</a></li>
+		      		<li><a href="/{{dir_manage}}/{{url_characters}}">{{menu_characters}}</a></li>
+		      		<li><a href="/{{dir_curate}}/{{url_flags}}">{{menu_flags}}</a></li>
+			      	<li><a href="/{{dir_manage}}/{{url_export}}">{{menu_export}}</a></li>
 		      		</ul>
 		      	</li>
 		    {% endif %}
 			{% if user_is_admin %}
-	 			<li><a href="/{{dir_admin}}/{{url_review}}">Administer</a>
+	 			<li><a href="/{{dir_admin}}/{{url_review}}">{{menu_administer}}</a>
 					<ul>
-					<li><a href="/{{dir_admin}}/{{url_review}}">Review all Rakontus</a></li>
-					<li><a href="/{{dir_admin}}/{{url_generate_sample_questions}}">Generate sample questions</a></li>
-					<li><a href="/{{dir_admin}}/{{url_generate_default_resources}}">Generate help resources</a></li>
-					<li><a href="/{{dir_admin}}/{{url_generate_helps}}">Generate help messages</a></li>
+					<li><a href="/{{dir_admin}}/{{url_site_initialization_tasks}}">{{menu_site_initialization_tasks}}</a></li>
+					<li><a href="/{{dir_admin}}/{{url_review}}">{{menu_review_rakontus}}</a></li>
 					</ul>
 				</li>
 			{% endif %}
@@ -109,9 +107,9 @@
 	      	</ul>
 	    </td><td align="right" class="noborder">
     	<p>&nbsp; <b>{{ current_member.nickname }}</b><br/>
-	    <a href="/{{dir_visit}}/{{url_help}}">Help</a> | 
-	    <a href="/{{dir_visit}}/{{url_preferences}}">Preferences</a> | 
-	    <a href="{{logout_url}}">Log out</a></p>
+	    <a href="/{{dir_visit}}/{{url_help}}">{{menu_help}}</a> | 
+	    <a href="/{{dir_visit}}/{{url_preferences}}">{{menu_preferences}}</a> | 
+	    <a href="{{logout_url}}">{{menu_logout}}</a></p>
 		{% if current_member.profileImage %}
 		</td><td align="center" width="20" class="noborder">
 			{{member.imageEmbed}}
@@ -121,9 +119,7 @@
 		{% else %}
 			{% if user_is_admin %}
 				<td class="noborder">
-				<h1>Rakontu site administration</h1>
-			{% else %}
-				<p>No user has been found.</p>
+				<h1>{{menu_site_administration}}</h1>
 			{% endif %}
 	    {% endif %}
 	</td></tr></table>

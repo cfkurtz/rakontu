@@ -31,14 +31,14 @@
 		    		{% if rakontu.lastPublish %}
 		    			{{rakontu.lastPublish|timeZone:"UTC"|date:"F j, Y"}} {{rakontu.lastPublish|timeZone:"UTC"|time:"h:i a"}}  (UTC)
 		    		{% else %}
-		    			{{NONE}}
+		    			{{term_none}}
 		    		{% endif %}
 		    		</td>
 		    	<td>
 		    		{% if rakontu.appRocketTimeStamp %}
 		    			{{rakontu.appRocketTimeStamp|date:"F j, Y"}} {{rakontu.appRocketTimeStamp|time:"h:i a"}}  (UTC)
 		    		{% else %}
-		    			{{NONE}}
+		    			{{term_none}}
 		    		{% endif %}
 		    		</td>
 		    	<td align="center">{{rakontu.getActiveMembers|length}}</td>

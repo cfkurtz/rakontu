@@ -3,11 +3,11 @@
 			<form name="form" action="{{grid_form_url}}" method="post">
 			<h3>{{text_to_display_before_grid}}
 		  	{% if current_member.viewDetails %}
-				<input type="submit" name="toggleShowDetails" value="Hide details" class="button_small">
+				<input type="submit" name="toggleShowDetails" value="{{button_hide_details}}" class="button_small">
 			{% else %}
-				<input type="submit" name="toggleShowDetails" value="Show details" class="button_small">
+				<input type="submit" name="toggleShowDetails" value="{{button_show_details}}" class="button_small">
 			{% endif %}
-			</h3>
+			</h3> 
 			</form>
 			</div>
 			<table cellpadding="4" cellspacing="0" style="width:100%; border-top: 1px solid #FF7F00; border-bottom: 1px solid #FF7F00; border-left: none; border-right: 1px solid #FF7F00">
@@ -15,9 +15,9 @@
 				<tr>
 				{% for header in col_headers %}
 				<th style="border-right: 1px solid #FF7F00; border-top: 1px solid #FF7F00; border-bottom: 1px solid #FF7F00; border-left: 1px solid #FF7F00">{{header}}</th>
-				{% endfor %}
+				{% endfor %} 
 				</tr>
-			{% endif %}
+			{% endif %} 
 			{% for i in rows_cols|makeRangeFromListLength %}
 				<tr>
 				{% for col_list in rows_cols|listLookup:i %}

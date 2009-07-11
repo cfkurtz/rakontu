@@ -1146,7 +1146,7 @@ class SavedSearch(db.Model):
 
 	def copyDataFromOtherSearchAndPut(self, search):
 		self.private = True
-		self.name = "%s %s" % (TERMS["COPYOF"], search.name)
+		self.name = "%s %s" % (TERMS["term_copy_of"], search.name)
 		self.entryTypes = []
 		self.entryTypes.extend(search.entrytTypes)
 		self.words_anyOrAll = search.words_anyOrAll
@@ -1167,7 +1167,7 @@ class SavedSearch(db.Model):
 												key_name=KeyName("searchref"),
 												rakontu=self.rakontu, 
 												creator=self.creator,
-												search=self,
+												search=self, 
 												question=ref.question,
 												type=ref.type,
 												order=ref.order,
@@ -1213,18 +1213,18 @@ class SavedSearch(db.Model):
 	def shortFormattedText(self):
 		result = ""
 		if self.words:
-			result += '<p>%s %s "%s"</p>' % (self.words_anyOrAll, TERMS["OFTHEWORDS"], ",".join(self.words))
+			result += '<p>%s %s "%s"</p>' % (self.words_anyOrAll, TERMS["term_of_the_words"], ",".join(self.words))
 		if self.tags:
-			result += '<p>%s %s "%s"</p>' % (self.tags_anyOrAll, TERMS["OFTHETAGS"], ",".join(self.tags))
+			result += '<p>%s %s "%s"</p>' % (self.tags_anyOrAll, TERMS["term_of_the_tags"], ",".join(self.tags))
 		entryRefs = self.getEntryQuestionRefs()
 		if entryRefs:
-			result += "<p>%s %s " % (self.answers_anyOrAll, TERMS["OFTHEENTRYQUESTIONS"])
+			result += "<p>%s %s " % (self.answers_anyOrAll, TERMS["term_of_the_entry_questions"])
 			for ref in entryRefs:
 				result += '%s %s ' % (ref.question.text, ref.answer)
 			result += "</p>"
 		creatorRefs = self.getCreatorQuestionRefs()
 		if creatorRefs:
-			result += "<p>%s %s " % (self.creatorAnswers_anyOrAll, TERMS["OFTHECREATORQUESTIONS"])
+			result += "<p>%s %s " % (self.creatorAnswers_anyOrAll, TERMS["term_of_the_creator_questions"])
 			for ref in creatorRefs:
 				result += ' %s %s ' % (ref.question.text, ref.answer)
 			result += "</p>"

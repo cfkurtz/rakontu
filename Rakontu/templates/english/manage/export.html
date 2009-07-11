@@ -18,7 +18,7 @@
 			at {{xml_export.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
 			<p>&nbsp; &nbsp; <input type="submit" name="xml_export" value="Regenerate XML Export" class="button"></p>
 		{% else %}
-			<p>&nbsp; &nbsp; ({{NONE}})</p>
+			<p>&nbsp; &nbsp; ({{term_none}})</p>
 			<p>&nbsp; &nbsp; <input type="submit" name="xml_export" value="Generate XML Export" class="button"></p>
 		{% endif %}
 		
@@ -30,7 +30,7 @@
 			at {{csv_export.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
 			<p>&nbsp; &nbsp; <input type="submit" name="csv_export" value="Regenerate Entries-Answers Export" class="button"></p>
 		{% else %}
-			<p>&nbsp; &nbsp; ({{NONE}})</p>
+			<p>&nbsp; &nbsp; ({{term_none}})</p>
 			<p>&nbsp; &nbsp; <input type="submit" name="csv_export" value="Generate Entries-Answers Export" class="button"></p>
 		{% endif %}
 		

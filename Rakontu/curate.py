@@ -90,10 +90,10 @@ class CurateFlagsPage(webapp.RequestHandler):
 					if self.request.get("notify|%s" % item.key()) == "yes":
 						itemsToSendMessageAbout.append(item)
 				if itemsToSendMessageAbout:
-					subject = "%s %s" % (TERMS["REMINDER"], member.nickname)
+					subject = "%s %s" % (TERMS["term_reminder"], member.nickname)
 					URL = self.request.headers["Host"]
 					messageLines = []
-					messageLines.append("%s\n" % TERMS["WANTEDYOUTOKNOW"])
+					messageLines.append("%s\n" % TERMS["term_wanted_you_to_know"])
 					itemsToSendMessageAbout.reverse()
 					for item in itemsToSendMessageAbout:
 						if item.__class__.__name__ == "Entry":
@@ -116,7 +116,7 @@ class CurateFlagsPage(webapp.RequestHandler):
 							else:
 								commentString = ""
 							displayString = '%s %s%s "%s" (%s) --> "%s" (%s)' % \
-								(item.itemFrom.type, TERMS["LINK"], commentString, item.itemFrom.displayString(), \
+								(item.itemFrom.type, TERMS["term_link"], commentString, item.itemFrom.displayString(), \
 								item.itemTo.typeForDisplay(), item.itemTo.displayString(), item.itemTo.typeForDisplay())
 						elif item.__class__.__name__ == "SavedSearch":
 							linkKey = item.key()
@@ -125,13 +125,13 @@ class CurateFlagsPage(webapp.RequestHandler):
 							messageLines.append('* %s\n\n	http://%s/%s/%s?%s (%s)\n' % (displayString, URL, DIRS["dir_visit"], URLS["url_home"], linkKey, item.flagComment))
 						else:
 							messageLines.append('* %s\n\n	http://%s/%s/%s?%s (%s)\n' % (displayString, URL, DIRS["dir_visit"], URLS["url_curate"], linkKey, item.flagComment))
-					messageLines.append("%s\n" % TERMS["THANKYOU"])
-					messageLines.append("%s," % TERMS["SINCERELY"])
-					messageLines.append("	%s" % TERMS["YOURSITE"])
+					messageLines.append("%s\n" % TERMS["term_thank_you"])
+					messageLines.append("%s," % TERMS["term_sincerely"])
+					messageLines.append("	%s" % TERMS["term_your_site"])
 					message = "\n".join(messageLines)
 					ownersAndManagers = rakontu.getManagersAndOwners()
 					for ownerOrManager in ownersAndManagers:
-						messageLines.insert(0, "% %s:\n" % TERMS["DEARMANAGER"], ownerOrManager.nickname)
+						messageLines.insert(0, "% %s:\n" % TERMS["term_dear_manager"], ownerOrManager.nickname)
 						messageBody = "\n".join(messageLines)
 						message = mail.EmailMessage()
 						message.sender = rakontu.contactEmail

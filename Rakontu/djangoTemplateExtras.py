@@ -13,8 +13,13 @@ import pytz
 
 import utils
 from translationLookup import *
+import site_configuration
 
 register = webapp.template.create_template_register()
+
+# --------------------------------------------------------------------------------------------
+# getting things 
+# --------------------------------------------------------------------------------------------
 
 # from http://stackoverflow.com/questions/35948/django-templates-and-variable-attributes
 def dictLookup(dict, key):
@@ -25,6 +30,7 @@ def dictLookup(dict, key):
 			return None
 	else:
 		return None
+register.filter(dictLookup)
 	
 def listLookup(list, index):
 	if list:
@@ -38,6 +44,7 @@ def listLookup(list, index):
 			return None
 	else:
 		return None
+register.filter(listLookup)
 	
 def get(object, fieldName):
 	if object:
@@ -48,9 +55,41 @@ def get(object, fieldName):
 			return getattr(object, fieldName)
 	else:
 		return None
+register.filter(get)
 	
+def sorted(value):
+	result = []
+	value.sort()
+	result.extend(value)
+	return result
+register.filter(sorted)
+
+# --------------------------------------------------------------------------------------------
+# calculations
+# --------------------------------------------------------------------------------------------
+
+def equalTest(value, otherValue):
+	if value == otherValue:
+		return True
+	return False
+register.filter(equalTest)
+
+def add(numberString, addString):
+	try:
+		number = int(numberString)
+		addNumber = int(addString)
+		return str(number + addNumber)
+	except:
+		return numberString
+register.filter(add)
+	
+def dividesBy(value, divideBy):
+	return value != 0 and value % divideBy == 0
+register.filter(dividesBy)
+
 def length(list):
 	return len(list)
+register.filter(length)
 	
 def makeRange(numberString):
 	result = []
@@ -61,20 +100,15 @@ def makeRange(numberString):
 	for i in range(number):
 		result.append(i)
 	return result
+register.filter(makeRange)
 
 def makeRangeFromListLength(list):
 	return range(len(list))
+register.filter(makeRangeFromListLength)
 
-def add(numberString, addString):
-	try:
-		number = int(numberString)
-		addNumber = int(addString)
-		return str(number + addNumber)
-	except:
-		return numberString
-	
-def dividesBy(value, divideBy):
-	return value != 0 and value % divideBy == 0
+# --------------------------------------------------------------------------------------------
+# display
+# --------------------------------------------------------------------------------------------
 	
 def timeZone(time, zoneName):
 	if time:
@@ -85,9 +119,11 @@ def timeZone(time, zoneName):
 			return timeUTC.astimezone(timezone(zoneName))
 	else:
 		return None
+register.filter(timeZone)
 	
 def notNone(value):
 	return value != None and value != "None"
+register.filter(notNone)
 
 def orNbsp(value):
 	if value:
@@ -97,12 +133,14 @@ def orNbsp(value):
 			return value
 	else:
 		return "&nbsp;"
+register.filter(orNbsp)
 
 def orNone(value):
 	if value:
 		return value
 	else:
-		return TERMS["NONE"]
+		return TERMS["term_none"]
+register.filter(orNone)
 	
 def orNothing(value):
 	if value:
@@ -112,29 +150,8 @@ def orNothing(value):
 			return value
 	else:
 		return ""
+register.filter(orNothing)
 	
-def sorted(value):
-	result = []
-	value.sort()
-	result.extend(value)
-	return result
-
-def infoTipCaution(value, type):
-	helpText = utils.helpTextLookup(value, type)
-	if helpText:
-		return '<a href="/help?%s"><img src="../images/%s.png" alt="help" border="0" valign="center" title="%s"/></a>' % (value, type, helpText)
-	else:
-		return ""
-
-def info(value):
-	return infoTipCaution(value, "info")
-
-def tip(value):
-	return infoTipCaution(value, "tip")
-
-def caution(value):
-	return infoTipCaution(value, "caution")
-
 def upTo(value, number):
 	if value:
 		result = value[:number]
@@ -143,59 +160,45 @@ def upTo(value, number):
 	else:
 		result = value
 	return result
+register.filter(upTo)
 
-def yourOrThis(value):
-	if value:
-		return TERMS["YOUR"]
-	else:
-		return TERMS["THISMEMBERS"]
-
-def youOrThis(value):
-	if value:
-		return TERMS["YOU"]
-	else:
-		return TERMS["THISMEMBER"]
-	
 def toString(value):
 	return "%s" % value
+register.filter(toString)
 
 def toUnicode(value):
 	if value:
 		return unicode(value)
 	else:
 		return None
+register.filter(toUnicode)
 	
-def equalTest(value, otherValue):
-	if value == otherValue:
-		return True
-	return False
-
 def spacify(value):
 	return value.replace("_", " ").capitalize()
-	
-register.filter(listLookup)
-register.filter(dictLookup)
-register.filter(makeRange)
-register.filter(makeRangeFromListLength)
-register.filter(timeZone)
-register.filter(notNone)
-register.filter(orNbsp)
-register.filter(orNone)
-register.filter(orNothing)
-register.filter(sorted)
-register.filter(info)
-register.filter(tip)
-register.filter(caution)
-register.filter(upTo)
-register.filter(yourOrThis)
-register.filter(youOrThis)
-register.filter(dividesBy)
-register.filter(add)
-register.filter(length)
-register.filter(toString)
-register.filter(toUnicode)
-register.filter(equalTest)
-register.filter(get)
 register.filter(spacify)
+
+# --------------------------------------------------------------------------------------------
+# help
+# --------------------------------------------------------------------------------------------
+	
+def infoTipCaution(value, type):
+	helpText = utils.helpTextLookup(value, type)
+	if helpText:
+		return '<a href="/%s?%s"><img src="../images/%s.png" alt="help" border="0" valign="center" title="%s"/></a>' % \
+			(URLS["url_help"], value, type, helpText)
+	else:
+		return ""
+
+def info(value):
+	return infoTipCaution(value, "info")
+register.filter(info)
+
+def tip(value):
+	return infoTipCaution(value, "tip")
+register.filter(tip)
+
+def caution(value):
+	return infoTipCaution(value, "caution")
+register.filter(caution)
 
 

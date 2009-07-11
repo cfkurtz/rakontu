@@ -15,7 +15,7 @@
 	      		{% endfor %}
 	      		<li class="nobullet"><a href="/{{dir_manage}}/{{url_questions}}_{{refer_types_urls|listLookup:i}}">Change these questions</a></li>
 	      	{% else %}
-	      		<li class="nobullet">{{NONE}} - <a href="/{{dir_manage}}/{{url_questions}}_{{refer_types_urls|listLookup:i}}">Add some</a></li>
+	      		<li class="nobullet">{{term_none}} - <a href="/{{dir_manage}}/{{url_questions}}_{{refer_types_urls|listLookup:i}}">Add some</a></li>
 	      	{% endif %}
       		</ul>
       	{% endfor %}

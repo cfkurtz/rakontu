@@ -77,7 +77,7 @@
 		<p></p>
 		<div class="rightalign"><a href="/{{dir_visit}}/{{url_drafts}}?{{member.key}}">View or change saved drafts</a></div>
 		
-		<h3>{{member.isOnlineMember|yourOrThis|capfirst}} nickname and description</h3>
+		<h3>Nickname and description</h3>
 		<fieldset>
 		{% if member.isOnlineMember %}
 			<p>What nickname do you want to use in the Rakontu? <i>Note that if you change your nickname,
@@ -151,7 +151,7 @@
 
 			</fieldset>
 			
-		<h3>{{member.isOnlineMember|yourOrThis|capfirst}} picture</h3>
+		<h3>Picture</h3>
 		<fieldset>
 		      	<table border="1" cellpadding="4" cellspacing="0">
 		      	<tr>
@@ -164,7 +164,7 @@
 					<td>{% if member.profileImage %}
 							{{member.imageEmbed}}
 						{% else %}
-							{{NONE}}
+							{{term_none}}
 						{% endif %}
 						</td>
 					<td><input type="file" name="img" size="40" accept="jpg/png"/></p><p><i>The best picture size is 100 x 60.</i></p></td>
@@ -196,7 +196,7 @@
 				>{{name}}</option>
 			{% endfor %}
 			</select></p>
-		<p>How would {{member.isOnlineMember|youOrThis}} like dates to be displayed?
+		<p>How should dates be displayed?
 			<select name="dateFormat">
 			{% for format in date_formats.keys %}
 				<option value="{{format}}"
@@ -206,7 +206,7 @@
 				>{{date_formats|dictLookup:format}}</option>
 			{% endfor %}
 			</select></p>
-		<p>How would {{member.isOnlineMember|youOrThis}} like times to be displayed?
+		<p>How should times be displayed?
 			<select name="timeFormat">
 			{% for format in time_formats.keys %}
 				<option value="{{format}}"

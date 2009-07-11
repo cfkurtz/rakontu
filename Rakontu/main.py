@@ -122,9 +122,7 @@ application = webapp.WSGIApplication(
 									  (BuildURL("dir_admin"), AdministerRakontusPage),
 									  (BuildURL("dir_admin", extraSlash=True), AdministerRakontusPage),
 									  (BuildURL("dir_admin", "url_review"), AdministerRakontusPage),
-									  (BuildURL("dir_admin", "url_generate_sample_questions"), GenerateSampleQuestionsPage),
-									  (BuildURL("dir_admin", "url_generate_default_resources"), GenerateSystemResourcesPage),
-									  (BuildURL("dir_admin", "url_generate_helps"), GenerateHelpsPage),
+									  (BuildURL("dir_admin", "url_site_initialization_tasks"), SiteInitializationTasksPage),
 									  
 									  # message-to-user pages
 									   (BuildURL(None, "url_result"), ResultFeedbackPage),

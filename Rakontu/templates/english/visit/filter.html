@@ -165,7 +165,7 @@
 			{% endfor %}
 			</select> {{search_dict|dictLookup:"afterAnyText"}}<br/>
 			{% for i in num_search_fields|makeRange %} 
-				&nbsp; &nbsp; <select name="{{search_dict|dictLookup:"result_preface"}}|question|{{i}}"><option>({{CHOOSE}})</option>
+				&nbsp; &nbsp; <select name="{{search_dict|dictLookup:"result_preface"}}|question|{{i}}"><option>({{term_choose}})</option>
 				{% for question in search_dict|dictLookup:"questions" %}
 					{% if question.isTextOrValue %}
 						<option value="{{question.key}}"

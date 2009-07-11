@@ -15,10 +15,9 @@
 # Warning: This file uses Python syntax. You should be comfortable editing Python code before you edit this file.
 #
 # Note: The reason many of these texts have a "u" in front of them is to mark them as a unicode string.
-# I have done this mainly to prepare (a little) for translation of things like these default strings
-# and templates for use in other languages. If you need "special characters" like accents in these
-# strings, make sure there is a "u" in front of them. There are a few exceptions where a unicode
-# string will break things, mainly in the time/date formatting strings which must be ASCII.
+# This is to prepare for translation of terms into other languages. 
+# If you need "special characters" like accents in these strings, make sure there is a "u" in front of them. 
+# Note that URL strings CANNOT contain special characters or spaces.
 #
 # BACKUP THIS FILE before you make changes!
 # ============================================================================================ 
@@ -237,41 +236,117 @@ DEFAULT_SEARCH_NAME = "Untitled search filter"
 
 # ============================================================================================ 
 # DISPLAY TERMS
-# These are just bits of text that come out of the source code and display on pages.
+# These are bits of text that come out of the source code and display on pages.
 # ============================================================================================ 
 
 TERMS = {
 		# used to refer to a group of answers
-		"ANSWER_SET": "answer set",
+		"term_answer_set": "answer set",
 		# used to send a reminder to manager about items flagged by curator
-		"DEARMANAGER": "Dear manager",
-		"REMINDER": "Reminder about flagged items from", # person who is sending the reminder
-		"WANTEDYOUTOKNOW": "I wanted you to know that these items require your attention.",
-		"THANKYOU": "Thank you for your attention.",
-		"SINCERELY": "Sincerely",
-		"YOURSITE": "Your Rakontu site",
-		"LINK": "link",
-		# used to describe people
-		"YOUR": "your",
-		"YOU": "you",
-		"THISMEMBERS": "this member's",
-		"THISMEMBER": "this member",
-		"DOESNOTAPPLY": "doesn't apply",
-		"COPYOF": "Copy of",
-		"NONE": "none",
+		"term_dear_manager": "Dear manager",
+		"term_reminder": "Reminder about flagged items from", # person who is sending the reminder
+		"term_wanted_you_to_know": "I wanted you to know that these items require your attention.",
+		"term_thank_you": "Thank you for your attention.",
+		"term_sincerely": "Sincerely",
+		"term_your_site": "Your Rakontu site",
+		"term_link": "link",
 		# used to describe search filters
-		"OFTHEWORDS": "of the words",
-		"OFTHETAGS": "of the tags",
-		"OFTHEENTRYQUESTIONS": "of the entry questions",
-		"OFTHECREATORQUESTIONS": "of the creator questions",
+		"term_of_the_words": "of the words",
+		"term_of_the_tags": "of the tags",
+		"term_of_the_entry_questions": "of the entry questions",
+		"term_of_the_creator_questions": "of the creator questions", 
 		# used when displaying times on home page
-		"NOW": "Now",
-		"MOMENTSAGO": "Moments ago",
-		"MINUTESAGO": "minutes ago",
-		"YESTERDAYAT": "Yesterday at",
-		"AT": "at", # for reporting a time
-		# used when making a choice from a list 
-		"CHOOSE": "choose",
+		"term_now": "Now",
+		"term_moments_ago": "Moments ago", # NOT followed by time
+		"term_minutes_ago": "minutes ago", # preceded by number
+		"term_yesterday_at": "Yesterday at", # followed by time
+		"term_at": "at", # followed by time
+		# used when making a choice from a list  
+		"term_choose": "choose",
+		# miscellaneous
+		"term_does_not_apply": "doesn't apply",
+		"term_copy_of": "Copy of",
+		"term_none": "none",
+		}
+
+# ============================================================================================ 
+# TEMPLATE DISPLAY TERMS
+# These are bits of text that are used on templates.
+# ============================================================================================ 
+
+TEMPLATE_TERMS = {
+		# common_attribution.html
+		"template_since_you_are_a_liaison": "Since you are a liaison",
+		"template_collected_from_offline_member": "Was this collected from an off-line member?",
+		"template_yes_collected_from": "Yes, it was collected from",
+		"template_year": "year",
+		"template_month": "month",
+		"template_day": "day",
+		"template_attributed_to": "It should be attributed to",
+		"template_selected_member": "The selected member",
+		"template_no_my_contribution": "No, this is my contribution", 
+		"template_attribute_to": "I'd like to attribute it to", 
+		"template_myself": "myself",
+		"template_attribute_to_whom": "To whom would you like to attribute this contribution?",
+		# common_footer.html
+		"template_powered_by": "Powered by",
+		# common_questions.html
+		}
+
+TEMPLATE_BUTTONS = {
+		# common_grid.html
+		"button_hide_details": "Hidez les details",
+		"button_show_details": "Show details",
+		
+		}
+
+TEMPLATE_MENUS = {
+		# visit
+		"menu_visit": "Visit",
+		"menu_home_page": "Home page",
+		"menu_about_this_rakontu": "About this Rakontu",
+		"menu_about_rakontu_members": "About the members",
+		"menu_start_page": "Start page",
+		# create
+		"menu_create": "Create",
+		"menu_story": "Tell a story",
+		"menu_invitation": "Invite people to tell stories",
+		"menu_collage": "Build a story collage",
+		"menu_pattern": "Describe a pattern",
+		# curate
+		"menu_curate": "Curate",
+		"menu_gaps": "Gaps",
+		"menu_flags": "Flags",
+		"menu_attachments": "Attachments",
+		"menu_tags": "Tags",
+		# guide
+		"menu_guide": "Guide",
+		"menu_invitations": "Invitations",
+		"menu_requests": "Requests",
+		"menu_resources": "Resources",
+		"menu_resource": "Add a resource",
+		# liaison
+		"menu_liaise": "Liaise",
+		"menu_manage_offline_members": "Manage off-line members",
+		"menu_add_batch": "Add a batch of stories",
+		"menu_review_batches": "Review entered batches",
+		# manage
+		"menu_manage": "Manage",
+		"menu_members": "Members",
+		"menu_settings": "Settings",
+		"menu_questions": "Questions",
+		"menu_characters": "Characters",
+		"menu_export": "Export",
+		# administer
+		"menu_administer": "Administer",
+		"menu_review_rakontus": "Review all Rakontus",
+		"menu_site_initialization_tasks": "Site initialization tasks",
+		# to right side of menus
+		"menu_help": "Help",
+		"menu_preferences": "Preferences",
+		"menu_logout": "Log out",
+		# this appears when site admin is looking ABOVE the Rakontu level
+		"menu_site_administration": "Rakontu site administration",
 		}
 
 # ============================================================================================ 
@@ -316,7 +391,9 @@ TITLES = {
         "SEARCH_FILTER": "Search filter",
         "MESSAGE_TO_USER": "Message", # (on page that tells user something is completed or something is wrong)
         "HELP_ON": "Help on", # help topic
+        "INITIALIZE_SITE": "Initialize site",
 		}
+
 # ============================================================================================ 
 # URLS
 # These define what locations are used to display the pages.
@@ -390,9 +467,7 @@ URLS = {
 	# admin 
     "url_export": "export",
     "url_review": "review",
-    "url_generate_sample_questions": "generateSampleQuestions",
-    "url_generate_default_resources": "generateDefaultResources",
-    "url_generate_helps": "generateHelps",
+    "url_site_initialization_tasks": "startup",
 	# general
     "url_help": "help",
     "url_result": "result",

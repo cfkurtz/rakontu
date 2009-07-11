@@ -30,9 +30,6 @@
 			</select>
 			&nbsp; <input type="submit" name="visitRakontu" value="Join" class="button"></p>
 		{% endif %}
-		{% if rakontus_member_of or rakontus_invited_to %}
-			<p>or</p>
-		{% endif %}
 		<p><input type="submit" name="createRakontu" value="Create a New Rakontu" class="button"></p>
 		<p>Your Google account is: <b>{{ user.nickname }}</b><br/><a href="{{logout_url}}">Log out</a></p>
 		
@@ -40,10 +37,8 @@
 			{% if user_is_admin %}
 				<hr>
 				<p>For the system administrator</p>
+				<input type="submit" name="initializeSite" value="Initialize Site" class="button"> &nbsp; 
 				<input type="submit" name="reviewAllRakontus" value="Review Rakontus" class="button"><br/>
-				<input type="submit" name="generateSystemQuestions" value="Generate Sample Questions" class="button"><br/>
-				<input type="submit" name="generateSystemResources" value="Generate Help Resources" class="button"><br/>
-				<input type="submit" name="generateHelps" value="Generate Help Texts" class="button">
 			{% else %}
 				<div class="blurb">
 				<p>Please enter the alpha testing password.</p>

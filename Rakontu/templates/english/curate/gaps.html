@@ -35,14 +35,14 @@
 					<p>{{entry.linkString}} ({{entry.typeForDisplay}})</p>
 				{% endfor %}
 			{% else %}
-				{{NONE}}
+				{{term_none}}
 			{% endif %}</td>
 	      	<td valign="top">{% if entries_without_links %}
 				{% for entry in entries_without_links %}
 					<p>{{entry.linkString}} ({{entry.typeForDisplay}})</p>
 				{% endfor %}
 			{% else %}
-				{{NONE}}
+				{{term_none}}
 			{% endif %}</td>
 			{% if rakontu.hasActiveNonMemberQuestions %} 
 		      	<td valign="top">{% if entries_without_answers %}
@@ -50,7 +50,7 @@
 						<p>{{entry.linkString}} ({{entry.typeForDisplay}})</p>
 					{% endfor %}
 				{% else %}
-					{{NONE}}
+					{{term_none}}
 				{% endif %}</td>
 			{% endif %}
 	      	<td valign="top">{% if collages_without_inclusions %}
@@ -58,7 +58,7 @@
 					<p>{{entry.linkString}} ({{entry.typeForDisplay}})</p>
 				{% endfor %}
 			{% else %}
-				{{NONE}}
+				{{term_none}}
 			{% endif %}</td>
 		</tr></table>
 			
