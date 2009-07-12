@@ -2,5 +2,8 @@
 <p>
 {{template_powered_by}} <a href="http://www.rakontu.org">Rakontu</a> {{version_number}}
 <a href="http://www.rakontu.org"><img src="/images/Rakontu_tiny.jpg" alt="Rakontu logo" class="bordered" width="20" height="18"></a>
+{% if user_is_admin %}
+	</p><p><a href="/{{dir_admin}}/{{url_admin}}">Site administration</a>
+{% endif %}
 </p>
 </div>

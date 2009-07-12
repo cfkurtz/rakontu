@@ -95,7 +95,6 @@ application = webapp.WSGIApplication(
 									  (BuildURL("dir_liaise", "url_print_entry"), PrintEntryAnnotationsPage),
 									   
 									  # managing
-									  (BuildURL(None, "url_create"), CreateRakontuPage),
 									  (BuildURL("dir_manage", "url_first"), FirstOwnerVisitPage),
 									  (BuildURL("dir_manage"), ManageRakontuSettingsPage),
 									  (BuildURL("dir_manage", extraSlash=True), ManageRakontuSettingsPage),
@@ -119,10 +118,13 @@ application = webapp.WSGIApplication(
 									  (BuildURL("dir_manage", "url_export_search"), ExportSearchPage),
 									  
 									  # site admin
-									  (BuildURL("dir_admin"), AdministerRakontusPage),
-									  (BuildURL("dir_admin", extraSlash=True), AdministerRakontusPage),
-									  (BuildURL("dir_admin", "url_review"), AdministerRakontusPage),
-									  (BuildURL("dir_admin", "url_site_initialization_tasks"), SiteInitializationTasksPage),
+									  (BuildURL("dir_admin"), AdministerSitePage),
+									  (BuildURL("dir_admin", extraSlash=True), AdministerSitePage),
+									  (BuildURL("dir_admin", "url_admin"), AdministerSitePage),
+									  (BuildURL("dir_admin", "url_create"), CreateRakontuPage),
+									  (BuildURL("dir_admin", "url_sample_questions"), GenerateSampleQuestionsPage),
+									  (BuildURL("dir_admin", "url_default_resources"), GenerateSystemResourcesPage),
+									  (BuildURL("dir_admin", "url_helps"), GenerateHelpsPage),
 									  
 									  # message-to-user pages
 									   (BuildURL(None, "url_result"), ResultFeedbackPage),

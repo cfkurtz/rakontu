@@ -8,23 +8,15 @@
 	{% if current_member %}
 	
 		<td align="left" valign="center" class="noborder" width="70">
-		{% if rakontu.firstPublish %}
-			<a href="{{home}}">
-		{% endif %}
+		<a href="{{home}}">
 		{% if rakontu.image %}
 			{{rakontu.imageEmbed}}
 		{% else %}
 			<p><img src="/images/Rakontu.jpg" width="100" height="64" alt="Rakontu logo" class="bordered" ></p>
 		{% endif %}
-		{% if rakontu.firstPublish %}
-			</a>
-		{% endif %}
+		</a>
 		
-		</td><td align="left" valign="center" class="noborder"
-		{% if current_member.isCurator and current_member.isGuide and current_member.isLiaison and current_member.isManagerOrOwner and user_is_admin %}
-			width="650"
-		{% endif %}
-		>
+		</td><td align="left" valign="center" class="noborder">
 		<b>{{ rakontu.name }}</b><br/>
 		{% if rakontu.tagline %}
 			<i>{{rakontu.tagline|orNbsp}}</i>
@@ -32,12 +24,9 @@
 		<ul id="topmenu">
 	  		<li><a href="{{home}}">{{menu_visit}}</a>
 				<ul>
-				{% if rakontu.firstPublish %}
-					<li><a href="{{home}}">{{menu_home_page}}</a></li>
-				{% endif %}
+				<li><a href="{{home}}">{{menu_home_page}}</a></li>
 	 			<li><a href="/{{dir_visit}}/{{url_rakontu}}">{{menu_about_this_rakontu}}</a></li>
 				<li><a href="/{{dir_visit}}/{{url_members}}">{{menu_about_rakontu_members}}</a></li>
-				<li><a href="/">{{menu_start_page}}</a></li>
 				</ul>
 			</li>
 			<li><a href="/{{dir_visit}}/{{url_story}}">{{menu_create}}</a>
@@ -95,21 +84,12 @@
 		      		</ul>
 		      	</li>
 		    {% endif %}
-			{% if user_is_admin %}
-	 			<li><a href="/{{dir_admin}}/{{url_review}}">{{menu_administer}}</a>
-					<ul>
-					<li><a href="/{{dir_admin}}/{{url_site_initialization_tasks}}">{{menu_site_initialization_tasks}}</a></li>
-					<li><a href="/{{dir_admin}}/{{url_review}}">{{menu_review_rakontus}}</a></li>
-					</ul>
-				</li>
-			{% endif %}
 			
 	      	</ul>
 	    </td><td align="right" class="noborder">
     	<p>&nbsp; <b>{{ current_member.nickname }}</b><br/>
-	    <a href="/{{dir_visit}}/{{url_help}}">{{menu_help}}</a> | 
-	    <a href="/{{dir_visit}}/{{url_preferences}}">{{menu_preferences}}</a> | 
-	    <a href="{{logout_url}}">{{menu_logout}}</a></p>
+	    <a href="/{{dir_visit}}/{{url_preferences}}">{{menu_preferences}}</a> |  
+	    <a href="/{{dir_visit}}/{{url_help}}">{{menu_help}}</a>
 		{% if current_member.profileImage %}
 		</td><td align="center" width="20" class="noborder">
 			{{member.imageEmbed}}

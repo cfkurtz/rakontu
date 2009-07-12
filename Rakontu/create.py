@@ -9,41 +9,6 @@
 from utils import *
 
 							 
-class CreateRakontuPage(webapp.RequestHandler):
-	@RequireLogin 
-	def get(self):
-		user = users.get_current_user()
-		template_values = GetStandardTemplateDictionaryAndAddMore({
-						   'title': TITLES["CREATE_RAKONTU"],
-						   'rakontu_types': RAKONTU_TYPES,
-						   })
-		path = os.path.join(os.path.dirname(__file__), FindTemplate('create.html'))
-		self.response.out.write(template.render(path, template_values))
-			
-	@RequireLogin 
-	def post(self):
-		user = users.get_current_user()
-		rakontu = Rakontu(key_name=KeyName("rakontu"), name=htmlEscape(self.request.get('name')))
-		rakontu.initializeFormattedTexts()
-		rakontuType = self.request.get("type")
-		rakontu.type = rakontuType
-		rakontu.put()
-		if rakontuType != RAKONTU_TYPES[-1]:
-			GenerateDefaultQuestionsForRakontu(rakontu, rakontuType)
-		GenerateDefaultCharactersForRakontu(rakontu)
-		member = Member(
-			key_name=KeyName("member"), 
-			googleAccountID=user.user_id(),
-			googleAccountEmail=user.email(),
-			active=True,
-			rakontu=rakontu,
-			governanceType="owner",
-			nickname = htmlEscape(self.request.get('nickname')))
-		member.initialize()
-		member.put()
-		CopyDefaultResourcesForNewRakontu(rakontu, member)
-		self.redirect(BuildURL("dir_manage", "url_first"))
-		
 class EnterEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):

@@ -1,0 +1,41 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+		<title>Create a new Rakontu</title>
+	</head>
+	<body>
+	
+		<div id="stylized" class="rakontu_form_centered">
+		<form action="/{{dir_admin}}/{{url_create}}" method="post">
+		<table border="0" width="400" class="noborder"><tr><td class="noborder">
+			<h3>You are about to create a new Rakontu.</h3>
+			
+			<p>Please enter a short name for the Rakontu web link.
+			<i>This name cannot be changed. It should be short, and it cannot contain
+			spaces or special characters.</i></p>
+			<input type="text" name="url" value="" size="20" maxlength="{{maxlength_tag_or_choice}}"/>
+			
+			<p>Please provide a longer name to display on the Rakontu pages. 
+			<i>The Rakontu's managers can change the name later.</i></p>
+			<input type="text" name="name" value="" size="40" maxlength="{{maxlength_name}}"/>
+			
+			<p>Which of these types best represents this Rakontu? (This will determine what sorts of questions
+				are asked about people and the stories they tell. The Rakontu's managers can change the questions later.)</p>
+			<select name="type">
+				{% for type in rakontu_types %}
+					<option value="{{type}}">{{type}}</option>
+				{% endfor %}
+			</select>
+			
+			<p>Please enter an email address for the new Rakontu's owner. 
+			<i>The address must be associated with a valid Google account.</i></p>
+			<input type="text" name="ownerEmail" value="" size="40" maxlength="{{maxlength_name}}"/>
+		
+			<p>&nbsp;</p>
+			<center><input type="submit" value="Create a New Rakontu" class="button"></center>
+		</td></tr></table>
+		</form>
+		</div>
+		<center><p><a href="/{{dir_admin}}/{{url_admin}}">Cancel and return to the Rakontu site administration page</a></p></center>
+	</body>
+</html>

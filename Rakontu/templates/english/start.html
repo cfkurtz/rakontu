@@ -30,23 +30,14 @@
 			</select>
 			&nbsp; <input type="submit" name="visitRakontu" value="Join" class="button"></p>
 		{% endif %}
-		<p>Your Google account is: <b>{{ user.nickname }}</b><br/><a href="{{logout_url}}">Log out</a></p>
+		<p>Your Google account is: <b>{{ user.nickname }}</b></p>
+		<p><a href="{{logout_url}}">Log out</a> from Google</p>
 		
 		{% if 1 %}
 			{% if user_is_admin %}
-				<hr>
-				<p>For the system administrator</p>
-				<p><input type="submit" name="initializeSite" value="Initialize Site" class="button"></p>
-				<p><input type="submit" name="reviewAllRakontus" value="Review Rakontus" class="button"></p>
-				<p><input type="submit" name="createRakontu" value="Create a New Rakontu" class="button"></p>
-			{% else %}
-				<div class="blurb">
-				<p>Please enter the alpha testing password.</p>
-				<p><input type="password" name="entryPassword"></p>
-				</div>
+				<a href="/{{dir_admin}}/{{url_admin}}">Site administration</a>
 			{% endif %}
 			{% if DEVELOPMENT %}
-				<p>For the developer</p>
 				<p><input type="submit" name="makeFakeData" value="Make Fake Data" class="button"></p>
 			{% endif %}
 		{% endif %}
@@ -55,7 +46,7 @@
 		</div>
 
 	{% else %}
-		<p>You must be logged in to a Google account to use Rakontu.</p><p><a href="{{login_url}}">Login at Google</a></p>
+		<p>You must be logged in to a Google account to use Rakontu.</p><p><a href="{{login_url}}">Login</a> at Google</p>
 	{% endif %}
 	
 	<table class="noborder"><tr><td class="noborder" width="500">
@@ -77,7 +68,7 @@
 		<p>This alpha stage prototype is currently being tested.
 		If you want to help with testing, join the 
 		<a href="http://groups.google.com/group/rakontu-discuss">Rakontu discussion group</a>
-		and ask for the password to try out the site.</p.
+		and ask to try out the site.</p.
 		<p>You can find out more at <a href="http://www.rakontu.org">rakontu.org</a>.</p>
 		<hr>
 	</td></tr></table>

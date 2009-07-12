@@ -5,13 +5,22 @@
 	<div id="content">
 	{% if user_is_admin %}
 		<div id="stylized" class="rakontu_form">
-		<form action="/{{dir_admin}}/{{url_review}}" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_admin}}/{{url_admin}}" method="post" enctype="multipart/form-data">
+		
+		<h1>Rakontu site initialization tasks</h1>
+		<p>&nbsp; &nbsp; Sample questions: <b>{{num_sample_questions}}</b> - <a href="/{{dir_admin}}/{{url_sample_questions}}">generate</a></p>
+		
+		<p>&nbsp; &nbsp; Default help resources: <b>{{num_default_resources}}</b> - <a href="/{{dir_admin}}/{{url_default_resources}}">generate</a></p>
+		
+		<p>&nbsp; &nbsp; Short help texts: <b>{{num_helps}}</b> - <a href="/{{dir_admin}}/{{url_helps}}">generate</a></p>
+		
+		<h1>Rakontus in this installation</h1>
 		{% if rakontus %}
-			<h3>Rakontus in this installation</h3>
 			<fieldset>
 			<table>
 			<tr>
 				<th>Name</th>
+				<th>URL</th>
 				<th>Created</th>
 				<th>Last activity</th>
 				<th>AppRocket timestamp</th>
@@ -26,6 +35,7 @@
 	    	{% for rakontu in rakontus %}
 		    	<tr>
 		    	<td>{{rakontu.name}}</td>
+		    	<td>{{rakontu.url}}</td>
 		    	<td>{{rakontu.created|timeZone:"UTC"|date:"F j, Y"}} {{rakontu.created|timeZone:"UTC"|time:"h:i a"}} (UTC)</td>
 		    	<td>
 		    		{% if rakontu.lastPublish %}
@@ -59,29 +69,32 @@
 	  				</td>
 				</td>
 				<td>
-				<input type="submit" name="remove|{{rakontu.key}}" value="PERMANENTLY REMOVE" class="button" 
+				<input type="submit" name="remove|{{rakontu.key}}" value="REMOVE" class="button" 
 				onClick="javascript:return confirm('Are you REALLY SURE you want to PERMANENTLY REMOVE the Rakontu {{rakontu.name}}?')">
 	  					</td>
 				</td>
 	    	{% endfor %}
 	    	</table>
 	    	</fieldset>
+			<p><a href="/{{dir_admin}}/{{url_create}}">Make another Rakontu</a></p>
 			<p></p>
-			<center><p><i><b>Please remove Rakontus VERY carefully.</p><p>Deleted Rakontus cannot be recovered.</p><p>It is best to backup first.</b></i></p>
+			<center><p><i><b>Please remove Rakontus VERY carefully.</p>
+			<p>Deleted Rakontus cannot be recovered.</p>
+			<p>It is best to backup first.</b></i></p>
 			</form>
 			</div>
 	    {% else %}
-	    	<p><center>There are no Rakontus in this Rakontu installation.</p><p><a href="/{{url_create}}">Make one</a></center></p>
+	    	<p>&nbsp; &nbsp; none - <a href="/{{dir_admin}}/{{url_create}}">Make one</a></p>
 	    {% endif %}	
 	{% else %}
 		<p>You are not a manager of this Rakontu and cannot change its settings.
 		Please ask a manager to make any changes you would like to see made.</p>
 	{% endif %}
 	</div>
-	<center>
-	<p><a href="/">Main page</a></p>
-	<p><a href="{{logout_url}}">Log out</a></p>
-	</center>
+	<div class="rightalign">
+	<p><a href="/">Go to site start page</a></p>
+	<p><a href="{{logout_url}}">Log out</a> from Google</p>
+	</div>
 	{% include "../common_footer.html" %}
 	</body>
 </html>

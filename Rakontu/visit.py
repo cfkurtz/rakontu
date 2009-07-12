@@ -42,11 +42,6 @@ class StartPage(webapp.RequestHandler):
 
 	def post(self):
 		user = users.get_current_user()
-		if not users.is_current_user_admin():
-			password = self.request.get("entryPassword")
-			if not password == "testingRakontu":
-				self.redirect(START)
-				return
 		if "visitRakontu" in self.request.arguments():
 			rakontu_key = self.request.get('rakontu_key')
 			if rakontu_key:
@@ -83,12 +78,15 @@ class StartPage(webapp.RequestHandler):
 								googleAccountEmail=user.email(),
 								rakontu=rakontu,
 								active=True,
-								governanceType="member")
+								governanceType=pendingMember.governanceType)
 							newMember.initialize()
 							newMember.put()
 							db.delete(pendingMember)
 							session['member_key'] = newMember.key()
-							self.redirect(BuildURL("dir_visit", "url_new"))
+							if pendingMember.governanceType == "owner": # new Rakontu
+								self.redirect(BuildURL("dir_manage", "url_first"))
+							else:
+								self.redirect(BuildURL("dir_visit", "url_new"))
 						else:
 							self.redirect(START)
 				else:

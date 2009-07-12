@@ -79,6 +79,7 @@ class Rakontu(db.Model):
 # ============================================================================================
 
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
+	url = db.StringProperty(required=True) # appears in URL
 	name = db.StringProperty(required=True) # appears on all pages at top
 	type = db.StringProperty(choices=RAKONTU_TYPES, default=RAKONTU_TYPES[-1]) # only used to determine questions at front, but may be useful later so saving
 	tagline = db.StringProperty(default="", indexed=False) # appears under name, optional
@@ -1055,6 +1056,7 @@ class PendingMember(db.Model): # person invited to join rakontu but not yet logg
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="pending_members_to_rakontu")
 	email = db.StringProperty(required=True) # must match google account
 	invited = TzDateTimeProperty(auto_now_add=True)
+	governanceType = db.StringProperty(default="member")
 	
 # ============================================================================================
 # ============================================================================================

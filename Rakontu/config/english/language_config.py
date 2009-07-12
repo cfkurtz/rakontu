@@ -466,8 +466,10 @@ URLS = {
     "url_inactivate": "inactivate",
 	# admin 
     "url_export": "export",
-    "url_review": "review",
-    "url_site_initialization_tasks": "startup",
+    "url_admin": "admin",
+    "url_sample_questions": "sample_questions",
+    "url_default_resources": "default_resources",
+    "url_helps": "helps",
 	# general
     "url_help": "help",
     "url_result": "result",
