@@ -453,7 +453,6 @@ URLS = {
     "url_attachments": "attachments",
     "url_tags": "tags",
 	# manage
-    "url_create": "create",
     "url_first": "first",
     "url_members": "members",
     "url_questions_list": "questions_list",
@@ -465,6 +464,8 @@ URLS = {
     "url_export_search": "exportSearch",
     "url_inactivate": "inactivate",
 	# admin 
+	"url_create1": "create1",
+	"url_create2": "create2",
     "url_export": "export",
     "url_admin": "admin",
     "url_sample_questions": "sample_questions",
@@ -506,4 +507,5 @@ RESULTS = {
 		"memberNotFound": "memberNotFound",
 		"ownerCannotLeave": "ownerCannotLeave",
 		"helpNotFound": "helpNotFound",
+		"rakontuNameTaken": "rakontuNameTaken", 
 		}

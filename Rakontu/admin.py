@@ -8,7 +8,42 @@
 
 from utils import *
 
-class CreateRakontuPage(webapp.RequestHandler):
+class CreateRakontuPage_PartOne(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		user = users.get_current_user()
+		if users.is_current_user_admin():
+			template_values = GetStandardTemplateDictionaryAndAddMore({
+							   'title': TITLES["CREATE_RAKONTU"],
+							   'name_taken': self.request.query_string == "nameTaken",
+							   })
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('admin/create_rakontu_part_one.html'))
+			self.response.out.write(template.render(path, template_values))
+		else:
+			self.redirect(START)
+			
+	@RequireLogin 
+	def post(self):
+		user = users.get_current_user()
+		if users.is_current_user_admin():
+				url = self.request.get('url')
+				url = url.strip()
+				url = htmlEscape(url)
+				url = url.replace(" ", "")
+				url.encode("ascii", "ignore")
+				foundRakontuWithSameURL = False
+				for rakontu in Rakontu.all():
+					if rakontu.url == url:
+						foundRakontuWithSameURL = True
+						break
+				if not foundRakontuWithSameURL:
+					self.redirect(BuildURL("dir_admin", "url_create2", url))
+				else:
+					self.redirect(BuildURL("dir_admin", "url_create1", "nameTaken"))
+		else:
+			self.redirect(START)
+
+class CreateRakontuPage_PartTwo(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
 		user = users.get_current_user()
@@ -16,8 +51,9 @@ class CreateRakontuPage(webapp.RequestHandler):
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': TITLES["CREATE_RAKONTU"],
 							   'rakontu_types': RAKONTU_TYPES,
+							   'url': self.request.query_string,
 							   })
-			path = os.path.join(os.path.dirname(__file__), FindTemplate('admin/create.html'))
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('admin/create_rakontu_part_two.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect(START)
@@ -27,14 +63,15 @@ class CreateRakontuPage(webapp.RequestHandler):
 		user = users.get_current_user()
 		if users.is_current_user_admin():
 			ownerEmail = self.request.get('ownerEmail').strip()
-			if ownerEmail:
-				rakontu = Rakontu(
-								key_name=KeyName("rakontu"), 
-								url=htmlEscape(self.request.get('url')), 
-								name=htmlEscape(self.request.get('name')))
+			if ownerEmail: # cfk fix - check if valid email?
+				url = self.request.get('url')
+				name = htmlEscape(self.request.get('name'))
+				type = self.request.get("type")
+				DebugPrint(url)
+				rakontu = Rakontu(key_name=url, name=name, type=type)
 				rakontu.initializeFormattedTexts()
-				rakontu.type = self.request.get("type")
 				rakontu.put()
+				DebugPrint(rakontu.key().name())
 				if rakontu.type != RAKONTU_TYPES[-1]:
 					GenerateDefaultQuestionsForRakontu(rakontu, rakontu.type)
 				GenerateDefaultCharactersForRakontu(rakontu)

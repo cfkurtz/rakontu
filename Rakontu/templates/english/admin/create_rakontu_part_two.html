@@ -6,14 +6,10 @@
 	<body>
 	
 		<div id="stylized" class="rakontu_form_centered">
-		<form action="/{{dir_admin}}/{{url_create}}" method="post">
+		<form action="/{{dir_admin}}/{{url_create2}}" method="post">
 		<table border="0" width="400" class="noborder"><tr><td class="noborder">
-			<h3>You are about to create a new Rakontu.</h3>
-			
-			<p>Please enter a short name for the Rakontu web link.
-			<i>This name cannot be changed. It should be short, and it cannot contain
-			spaces or special characters.</i></p>
-			<input type="text" name="url" value="" size="20" maxlength="{{maxlength_tag_or_choice}}"/>
+			<h3>Create a new Rakontu: Step Two</h3>
+			<input type="hidden" name="url" value="{{url}}">
 			
 			<p>Please provide a longer name to display on the Rakontu pages. 
 			<i>The Rakontu's managers can change the name later.</i></p>
@@ -32,7 +28,7 @@
 			<input type="text" name="ownerEmail" value="" size="40" maxlength="{{maxlength_name}}"/>
 		
 			<p>&nbsp;</p>
-			<center><input type="submit" value="Create a New Rakontu" class="button"></center>
+			<center><input type="submit" value="Create the New Rakontu" class="button"></center>
 		</td></tr></table>
 		</form>
 		</div>

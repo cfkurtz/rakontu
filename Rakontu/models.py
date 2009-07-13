@@ -6,14 +6,9 @@
 # Google Code Project: http://code.google.com/p/rakontu/
 # ============================================================================================
 
-import logging
+import logging, pytz, re, csv, uuid, random
 from datetime import *
-import pytz
 from pytz import timezone
-import re
-import csv
-import base64
-import uuid
 
 VERSION_NUMBER = "0.9"
 
@@ -21,12 +16,40 @@ from translationLookup import *
 
 from google.appengine.ext import db
 
+def KeyName(type):
+	IncrementCount(type)
+	return "%s%s" % (type, GetShardCount(type))
+	#return "%s:%s" % (type, uuid.uuid4())
+
+def GetShardCount(type):
+	result = 0
+	for counter in CounterShard.all().filter("type = ", type).fetch(FETCH_NUMBER):
+		result += counter.count
+	return result
+
+def IncrementCount(type):
+	config = CounterShardConfiguration.get_or_insert(type, type=type)
+	def transaction():
+		i = random.randint(0, config.numShards - 1)
+		shardKeyName = type + str(i)
+		counter = CounterShard.get_by_key_name(shardKeyName)
+		if not counter:
+			counter = CounterShard(key_name=shardKeyName, type=type)
+		counter.count += 1
+		counter.put()
+	db.run_in_transaction(transaction)
+	
+def IncreaseNumberOfShards(type, number):
+	config = CounterShardConfiguration.get_or_insert(type, type=type)
+	def transaction():
+		if config.numShards < number:
+			config.numShards = number
+			config.put()
+	db.run_in_transaction(transaction)
+	
 def DebugPrint(text, msg="print"):
 	logging.info(">>>>>>>> %s >>>>>>>> %s" %(msg, text))
 	
-def KeyName(type):
-	return "%s:%s" % (type, uuid.uuid4())
-
 def stripTags(text):
 	if text:
 		pattern = re.compile(r'<.*?>')
@@ -71,7 +94,25 @@ class TzDateTimeProperty(db.DateTimeProperty):
 			else:
 				value = value.astimezone(pytz.utc)
 		return value
+	
+# ============================================================================================
+# ============================================================================================
+class CounterShard(db.Model):
+# ============================================================================================
+# ============================================================================================
 
+	type = db.StringProperty(required=True)
+	count = db.IntegerProperty(required=True, default=0)
+	
+# ============================================================================================
+# ============================================================================================
+class CounterShardConfiguration(db.Model):
+# ============================================================================================
+# ============================================================================================
+
+	type = db.StringProperty(required=True)
+	numShards = db.IntegerProperty(required=True, default=20)
+	
 # ============================================================================================
 # ============================================================================================
 class Rakontu(db.Model):
@@ -79,8 +120,30 @@ class Rakontu(db.Model):
 # ============================================================================================
 
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
-	url = db.StringProperty(required=True) # appears in URL
+	
+	# identification
 	name = db.StringProperty(required=True) # appears on all pages at top
+	
+	# state
+	active = db.BooleanProperty(default=True)
+	created = TzDateTimeProperty(auto_now_add=True) 
+	firstVisit = TzDateTimeProperty(default=None)
+	lastPublish = TzDateTimeProperty(default=None)
+	firstPublish = TzDateTimeProperty(default=None)
+
+	# governance options
+	maxNumAttachments = db.IntegerProperty(choices=NUM_ATTACHMENT_CHOICES, default=DEFAULT_MAX_NUM_ATTACHMENTS, indexed=False)
+	nonMembersCanSeeContent = db.BooleanProperty(default=False)
+	maxNudgePointsPerEntry = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ENTRY, indexed=False)
+	memberNudgePointsPerEvent = db.ListProperty(int, default=DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS, indexed=False)
+	nudgeCategories = db.StringListProperty(default=DEFAULT_NUDGE_CATEGORIES, indexed=False)
+	nudgeCategoryQuestions = db.StringListProperty(default=DEFAULT_NUDGE_CATEGORY_QUESTIONS, indexed=False)
+	entryActivityPointsPerEvent = db.ListProperty(int, default=DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS, indexed=False)
+	allowCharacter = db.ListProperty(bool, default=DEFAULT_ALLOW_CHARACTERS, indexed=False)
+	allowEditingAfterPublishing = db.ListProperty(bool, default=DEFAULT_ALLOW_EDITING_AFTER_PUBLISHING, indexed=False)
+	allowNonManagerCuratorsToEditTags = db.BooleanProperty(default=False, indexed=False)
+	
+	# descriptive options
 	type = db.StringProperty(choices=RAKONTU_TYPES, default=RAKONTU_TYPES[-1]) # only used to determine questions at front, but may be useful later so saving
 	tagline = db.StringProperty(default="", indexed=False) # appears under name, optional
 	image = db.BlobProperty(default=None) # appears on all pages, should be small (100x60 is best)
@@ -98,39 +161,20 @@ class Rakontu(db.Model):
 	welcomeMessage_formatted = db.TextProperty()
 	welcomeMessage_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
-	active = db.BooleanProperty(default=True)
-	
-	defaultTimeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE, indexed=False) # appears on member preferences page
-	defaultTimeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT, indexed=False) # appears on member preferences page
-	defaultDateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT, indexed=False) # appears on member preferences page
-	
-	created = TzDateTimeProperty(auto_now_add=True) 
-	lastPublish = TzDateTimeProperty(default=None)
-	firstPublish = TzDateTimeProperty(default=None)
-	
-	firstVisit = TzDateTimeProperty(default=None)
-	
-	maxNumAttachments = db.IntegerProperty(choices=NUM_ATTACHMENT_CHOICES, default=DEFAULT_MAX_NUM_ATTACHMENTS, indexed=False)
-
-	maxNudgePointsPerEntry = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ENTRY, indexed=False)
-	memberNudgePointsPerEvent = db.ListProperty(int, default=DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS, indexed=False)
-	nudgeCategories = db.StringListProperty(default=DEFAULT_NUDGE_CATEGORIES, indexed=False)
-	nudgeCategoryQuestions = db.StringListProperty(default=DEFAULT_NUDGE_CATEGORY_QUESTIONS, indexed=False)
-
-	entryActivityPointsPerEvent = db.ListProperty(int, default=DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS, indexed=False)
-	
-	allowCharacter = db.ListProperty(bool, default=DEFAULT_ALLOW_CHARACTERS, indexed=False)
-	allowEditingAfterPublishing = db.ListProperty(bool, default=DEFAULT_ALLOW_EDITING_AFTER_PUBLISHING, indexed=False)
-	allowNonManagerCuratorsToEditTags = db.BooleanProperty(default=False, indexed=False)
-	
 	roleReadmes = db.ListProperty(db.Text, default=[db.Text(DEFAULT_ROLE_READMES[0]), db.Text(DEFAULT_ROLE_READMES[1]), db.Text(DEFAULT_ROLE_READMES[2])])
 	roleReadmes_formatted = db.ListProperty(db.Text, default=[db.Text(""), db.Text(""), db.Text("")])
 	roleReadmes_formats = db.StringListProperty(default=DEFAULT_ROLE_READMES_FORMATS, indexed=False)
+	
+	# display options
+	defaultTimeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE, indexed=False) # appears on member preferences page
+	defaultTimeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT, indexed=False) # appears on member preferences page
+	defaultDateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT, indexed=False) # appears on member preferences page
 	
 	def initializeFormattedTexts(self):
 		self.description_formatted = db.Text("<p>%s</p>" % self.description)
 		self.etiquetteStatement_formatted = db.Text("<p>%s</p>" % self.etiquetteStatement)
 		self.welcomeMessage_formatted = db.Text("<p>%s</p>" % self.welcomeMessage)
+		
 	
 	# OPTIONS
 	
@@ -161,6 +205,9 @@ class Rakontu(db.Model):
 	
 	def imageEmbed(self):
 		return '<img src="/%s/%s?rakontu_id=%s" class="bordered">' % (DIRS["dir_visit"], URLS["url_image"], self.key())
+	
+	def getKeyName(self):
+		return self.key().name()
 	
 	# MEMBERS
 	

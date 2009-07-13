@@ -35,7 +35,7 @@
 	    	{% for rakontu in rakontus %}
 		    	<tr>
 		    	<td>{{rakontu.name}}</td>
-		    	<td>{{rakontu.url}}</td>
+		    	<td>{{rakontu.getKeyName}}</td>
 		    	<td>{{rakontu.created|timeZone:"UTC"|date:"F j, Y"}} {{rakontu.created|timeZone:"UTC"|time:"h:i a"}} (UTC)</td>
 		    	<td>
 		    		{% if rakontu.lastPublish %}
@@ -76,7 +76,7 @@
 	    	{% endfor %}
 	    	</table>
 	    	</fieldset>
-			<p><a href="/{{dir_admin}}/{{url_create}}">Make another Rakontu</a></p>
+			<p><a href="/{{dir_admin}}/{{url_create1}}">Make another Rakontu</a></p>
 			<p></p>
 			<center><p><i><b>Please remove Rakontus VERY carefully.</p>
 			<p>Deleted Rakontus cannot be recovered.</p>
@@ -84,7 +84,7 @@
 			</form>
 			</div>
 	    {% else %}
-	    	<p>&nbsp; &nbsp; none - <a href="/{{dir_admin}}/{{url_create}}">Make one</a></p>
+	    	<p>&nbsp; &nbsp; none - <a href="/{{dir_admin}}/{{url_create1}}">Make one</a></p>
 	    {% endif %}	
 	{% else %}
 		<p>You are not a manager of this Rakontu and cannot change its settings.

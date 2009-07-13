@@ -94,7 +94,7 @@ class StartPage(webapp.RequestHandler):
 			else:
 				self.redirect(START)
 		elif "createRakontu" in self.request.arguments():
-			self.redirect(BuildURL(None, "url_create"))
+			self.redirect(BuildURL(None, "url_create1"))
 		elif "reviewAllRakontus" in self.request.arguments():
 			self.redirect(BuildURL("dir_admin", "url_review"))
 		elif "makeFakeData" in self.request.arguments():
