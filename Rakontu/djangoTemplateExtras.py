@@ -184,8 +184,8 @@ register.filter(spacify)
 def infoTipCaution(value, type):
 	helpText = utils.helpTextLookup(value, type)
 	if helpText:
-		return '<a href="/%s?%s"><img src="../images/%s.png" alt="help" border="0" valign="center" title="%s"/></a>' % \
-			(URLS["url_help"], value, type, helpText)
+		return '<a href="/%s?%s=%s"><img src="../images/%s.png" alt="help" border="0" valign="center" title="%s"/></a>' % \
+			(URLS["url_help"], URL_OPTIONS["url_query_help"], value, type, helpText)
 	else:
 		return ""
 

@@ -7,12 +7,12 @@
 	{% if current_member.isManagerOrOwner or user_is_admin %}
 
 		<div id="stylized" class="rakontu_form">
-		<form action="/{{dir_manage}}/{{url_export}}" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_manage}}/{{url_export}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
 		<p><b>Export all Rakontu data to XML</b> {{"exporting_data_to_xml"|info}} </p>
 		<p></p>
 		{% if xml_export %}
-			<p>&nbsp; &nbsp; <a href="/{{url_export}}?xml_id={{xml_export.key}}">XML export for {{rakontu.name}}</a>
+			<p>&nbsp; &nbsp; <a href="/{{url_export}}?{{xml_export.urlQuery}}">XML export for {{rakontu.name}}</a>
 			was last generated 
 			on {{xml_export.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 			at {{xml_export.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
@@ -24,7 +24,7 @@
 		
 		<p><b>Export entries with answers to CSV</b> {{"exporting_entries_with_answers_to_CSV"|info}} </p>
 		{% if csv_export %}
-			<p>&nbsp; &nbsp; <a href="/{{url_export}}?csv_id={{csv_export.key}}">Entries with answers for {{rakontu.name}}</a>
+			<p>&nbsp; &nbsp; <a href="/{{url_export}}?{{csv_export.urlQuery}}">Entries with answers for {{rakontu.name}}</a>
 			was last generated 
 			on {{csv_export.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 			at {{csv_export.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>

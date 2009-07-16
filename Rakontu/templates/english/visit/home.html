@@ -6,11 +6,11 @@
 	
 	<p></p>
 	<div id="stylized" class="rakontu_form">
-	<form action=
+	<form action="/{{dir_visit}}/{{url_home}}
 	{% if current_search %}
-		"/visit/home?{{current_search.key}}"
+		?{{current_search.urlQuery}}"
 	{% else %}
-		"/visit/home"
+		?{{rakontu.urlQuery}}"
 	{% endif %}
 	method="post">
 	
@@ -118,6 +118,8 @@
 		{% endfor %}
 		</table>
 		
+		<table style="border:none;width:100%;">
+		<tr><td align="right" valign="center" style="border:none;">
 		<p>Height means
 		{% for i in rakontu.nudgeCategories|makeRangeFromListLength %}
 			<input type="checkbox" name="showCategory|{{i}}" value="yes" id="{{rakontu.nudgeCategories|listLookup:i}}"
@@ -127,7 +129,10 @@
 			>
 			<label for="{{rakontu.nudgeCategories|listLookup:i}}">{{rakontu.nudgeCategories|listLookup:i}}</label>
 		{% endfor %}
+		</td>
+		<td align="right" valign="center" style="border:none;">
 		<input type="submit" name="changeNudgeCategoriesShowing" value="Change" class="button_small"></p>
+		</td></tr></table>
 	{% else %}
 		<h4>Nothing here!</h4>
 		{% if current_search %}
@@ -136,12 +141,13 @@
 			to stop applying it, or change it.
 		{% else %}
 			<p>This Rakontu has no entries in it.
-			Why not add the first <a href="/{{dir_visit}}/{{url_story}}">story</a> or <a href="/{{dir_visit}}/{{url_invitation}}">invitation</a>?
+			Why not add the first <a href="/{{dir_visit}}/{{url_story}}?{{rakontu.urlQuery}}">story</a> 
+			or <a href="/{{dir_visit}}/{{url_invitation}}?{{rakontu.urlQuery}}">invitation</a>?
 			{% if current_member.isManagerOrOwner %}
-				You can also choose Rakontu <a href="/{{dir_manage}}/{{url_settings}}">settings</a>.
+				You can also choose Rakontu <a href="/{{dir_manage}}/{{url_settings}}?{{rakontu.urlQuery}}">settings</a>.
 				</p>
 			{% else %}
-				You can also read <a href="/{{dir_visit}}/{{url_rakontu}}">here</a> about the Rakontu.</p>
+				You can also read <a href="/{{dir_visit}}/{{url_rakontu}}?{{rakontu.urlQuery}}">here</a> about the Rakontu.</p>
 			{% endif %}
 		{% endif %}
 	{% endif %}

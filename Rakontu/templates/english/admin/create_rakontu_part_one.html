@@ -12,7 +12,7 @@
 			
 			<p>Please enter a short URL name for the Rakontu web link.
 			<i>This name cannot be changed. It cannot contain spaces or special characters.</i></p>
-			<input type="text" name="url" value="" size="20" maxlength="{{maxlength_tag_or_choice}}"/>
+			<input type="text" name="url" value="{{url}}" size="20" maxlength="{{maxlength_tag_or_choice}}"/>
 			{% if name_taken %}
 				<p><font color="red">That Rakontu name is already in use. Please choose another.</font></p>
 			{% endif %}

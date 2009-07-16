@@ -11,27 +11,23 @@ from utils import *
 class FlagOrUnflagItemPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			item = None
-			if self.request.query_string:
-				try:
-					item = db.get(self.request.query_string)
-				except:
-					item = None
+			item = GetObjectOfUnknownTypeFromURLQuery(self.request.query_string)
+			DebugPrint(item)
 			if item:
 				item.flaggedForRemoval = not item.flaggedForRemoval
 				item.put()
 				self.redirect(self.request.headers["Referer"])
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 	
 class CurateFlagsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isCuratorOrManagerOrOwner():
 				(entries, annotations, answers, links, searches) = rakontu.getAllFlaggedItems()
@@ -50,16 +46,16 @@ class CurateFlagsPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/flags.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 				
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if "cancel" in self.request.arguments():
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 				return
 			items = rakontu.getAllFlaggedItemsAsOneList()
 			for item in items:
@@ -83,7 +79,7 @@ class CurateFlagsPage(webapp.RequestHandler):
 						elif item.__class__.__name__ == "SavedSearch":
 							item.deleteAllDependents()
 						db.delete(item)
-				self.redirect(BuildResultURL("changessaved"))
+				self.redirect(BuildResultURL("changessaved", rakontu=rakontu))
 			elif member.isCurator():
 				itemsToSendMessageAbout = []
 				for item in items:
@@ -142,19 +138,19 @@ class CurateFlagsPage(webapp.RequestHandler):
 						# CFK FIX
 						# not putting this last line in until I can start testing it, either locally or on the real server
 						#message.send()
-					self.redirect(BuildResultURL("messagesent"))
+					self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			
 class CurateGapsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isCurator():
-				sortBy = self.request.query_string
+				sortBy = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_sort_by")
 				if not sortBy:
 					sortBy = "date"
 				(entriesWithoutTags, \
@@ -178,26 +174,31 @@ class CurateGapsPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/gaps.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isCurator():
 				if "sortBy" in self.request.arguments():
-					self.redirect(BuildURL("dir_curate", "url_gaps", self.request.get("sortBy")))
+					query = "%s=%s" % (URL_OPTIONS["url_query_sort_by"], self.request.get("sortBy"))
+					url = BuildURL("dir_curate", "url_gaps", query, rakontu=rakontu)
+					self.redirect(url)
+				else:
+					url = BuildURL("dir_curate", "url_gaps", rakontu=rakontu)
+					self.redirect(url)
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			
 class CurateAttachmentsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isCurator():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
@@ -209,14 +210,14 @@ class CurateAttachmentsPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/attachments.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			
 class CurateTagsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isCurator():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
@@ -228,13 +229,13 @@ class CurateTagsPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/tags.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isCurator():
 				tagsets = rakontu.getNonDraftTagSets()
@@ -246,5 +247,5 @@ class CurateTagsPage(webapp.RequestHandler):
 						else:
 							tagset.tagsIfTagSet.append("")
 				db.put(tagsets)
-				self.redirect(BuildURL("dir_curate", "url_tags"))
+				self.redirect(BuildURL("dir_curate", "url_tags", rakontu=rakontu))
 

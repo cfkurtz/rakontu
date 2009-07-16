@@ -26,10 +26,10 @@ both a living history museum and a gathering place to share what's going on.
 These are the things you can do in a Rakontu:
 
   * You can tell stories, and people can comment on them, answer questions about them, describe them with 
-tags, ask questions about them, and rate them on issues important to the Rakontu. 
+    tags, ask questions about them, and rate them on issues important to the Rakontu. 
   * You can ask other people to tell stories about things you want to hear about.
   * You can look for stories in many different ways. If you see an interesting pattern, you can save it and ask 
-other people to comment on it.
+    other people to comment on it.
   * You can build story collages, which are assemblages of stories you want to remember or present for a reason.
 
 === Doing more
@@ -39,7 +39,7 @@ If you like, you can take on a *helping role* in your Rakontu.
   * *Curators* watch over the living museum of stories, making sure they are clean and well connected.
   * *Guides* help other people use the system and encourage people to participate in the Rakontu.
   * *Liaisons* provide bridges between on-line members of the Rakontu (people who use the web site) 
-and off-line members (people who tell and hear stories but don't use the web site).
+    and off-line members (people who tell and hear stories but don't use the web site).
 
 To get started, click on a story title and start reading!
 """]

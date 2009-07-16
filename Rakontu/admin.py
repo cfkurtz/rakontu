@@ -16,6 +16,7 @@ class CreateRakontuPage_PartOne(webapp.RequestHandler):
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': TITLES["CREATE_RAKONTU"],
 							   'name_taken': self.request.query_string == "nameTaken",
+							   'url': self.request.query_string,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('admin/create_rakontu_part_one.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -33,7 +34,7 @@ class CreateRakontuPage_PartOne(webapp.RequestHandler):
 				url.encode("ascii", "ignore")
 				foundRakontuWithSameURL = False
 				for rakontu in Rakontu.all():
-					if rakontu.url == url:
+					if rakontu.getKeyName() == url:
 						foundRakontuWithSameURL = True
 						break
 				if not foundRakontuWithSameURL:
@@ -50,6 +51,7 @@ class CreateRakontuPage_PartTwo(webapp.RequestHandler):
 		if users.is_current_user_admin():
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': TITLES["CREATE_RAKONTU"],
+							   "title_extra": self.request.query_string,
 							   'rakontu_types': RAKONTU_TYPES,
 							   'url': self.request.query_string,
 							   })
@@ -67,25 +69,23 @@ class CreateRakontuPage_PartTwo(webapp.RequestHandler):
 				url = self.request.get('url')
 				name = htmlEscape(self.request.get('name'))
 				type = self.request.get("type")
-				DebugPrint(url)
 				rakontu = Rakontu(key_name=url, name=name, type=type)
 				rakontu.initializeFormattedTexts()
 				rakontu.put()
-				DebugPrint(rakontu.key().name())
 				if rakontu.type != RAKONTU_TYPES[-1]:
 					GenerateDefaultQuestionsForRakontu(rakontu, rakontu.type)
 				GenerateDefaultCharactersForRakontu(rakontu)
-				# add administrator to Rakontu
-				member = Member(
-					key_name=KeyName("member"), 
-					googleAccountEmail=user.email(),
-					googleAccountID=user.user_id(),
-					active=True,
-					rakontu=rakontu,
-					governanceType="member",
-					nickname = "administrator")
-				member.initialize()
-				member.put()
+				if self.request.get("becomeMember") == "yes" and ownerEmail != user.email():
+					member = Member(
+						key_name=KeyName("member"), 
+						googleAccountEmail=user.email(),
+						googleAccountID=user.user_id(),
+						active=True,
+						rakontu=rakontu,
+						governanceType="member",
+						nickname = "administrator")
+					member.initialize()
+					member.put()
 				# add new owner as pending member
 				newPendingMember = PendingMember(
 					key_name=KeyName("pendingmember"), 
@@ -93,11 +93,7 @@ class CreateRakontuPage_PartTwo(webapp.RequestHandler):
 					email=ownerEmail,
 					governanceType="owner")
 				newPendingMember.put()
-				CopyDefaultResourcesForNewRakontu(rakontu, member)
-				if ownerEmail == user.email():
-					self.redirect(BuildURL("dir_manage", "url_first"))
-				else:
-					self.redirect(BuildURL("dir_admin", "url_admin"))
+				self.redirect(BuildURL("dir_admin", "url_admin"))
 		else:
 			self.redirect(START)
 
@@ -115,6 +111,7 @@ class AdministerSitePage(webapp.RequestHandler):
 						   	   'num_sample_questions': numSampleQuestions,
 						   	   'num_default_resources': numDefaultResources,
 						   	   "num_helps": numHelps,
+						   	   'host': self.request.headers["Host"],
 							   # here we do NOT give the current_member or rakontu
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('admin/admin.html'))
@@ -137,7 +134,7 @@ class AdministerSitePage(webapp.RequestHandler):
 					db.delete(aRakontu)
 					self.redirect(BuildURL("dir_admin", "url_admin"))
 				elif "export|%s" % aRakontu.key() in self.request.arguments():
-					self.redirect(BuildURL("dir_manage", "url_export", "rakontu_id=%s" % aRakontu.key()))
+					self.redirect(BuildURL("dir_manage", "url_export", aRakontu.urlQuery()))
 		else:
 			self.redirect(START)
 			

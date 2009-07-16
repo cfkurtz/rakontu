@@ -8,7 +8,7 @@
 	
 	{% if current_member.isOwner %}
 		<div id="stylized" class="rakontu_form">
-		<form action="/{{dir_manage}}/{{url_inactivate}}" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_manage}}/{{url_inactivate}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		<h1>Are you sure?</h1>
 		<p><b>Are you <b>absolutely completely really totally certain</b> that you want to inactivate this Rakontu?</b></p>
 		<p>If you do, you will have to ask your site administrator if you want to either reinstate the Rakontu or

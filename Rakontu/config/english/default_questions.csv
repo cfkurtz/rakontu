@@ -15,13 +15,7 @@
 "member, character","Want to get","What do you want to get out of this group?","text",,,,,"interest or support group"
 ,,,,,,,,
 "; SUPPORT GROUP",,,,,,,,
-"member, character","How long involved","How long have you been involved with this issue?",,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
+"member, character","How long involved","How long have you been involved with this issue?","ordinal","6 months or less, 6 months to a year, 1 to 2 years, 2 to 5 years, 5 to 10 years, 10 to 20 years, 20 to 30 years, more than 30 years",,,,"interest or support group"
 ,,,,,,,,
 "; WORKGROUP",,,,,,,,
 "member, character","How long working","How long have you been working in this group?","ordinal","6 months or less, 6 months to a year, 1 to 2 years, 2 to 5 years, 5 to 10 years, 10 to 20 years, 20 to 30 years, more than 30 years","no",,,"work group"

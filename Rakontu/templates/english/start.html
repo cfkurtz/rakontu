@@ -14,18 +14,18 @@
 		<form action="/" method="post">
 		{% if rakontus_member_of %}
 			<p>You are a <b>member</b> of these Rakontus.</p>
-			<select name="rakontu_key">
+			<select name="rakontu_key_name">
 			{% for rakontu in rakontus_member_of %}
-				<option value="{{ rakontu.key }}">{{ rakontu.name }}</option>
+				<option value="{{ rakontu.getKeyName }}">{{ rakontu.name }}</option>
 			{% endfor %}
 			</select>
 			&nbsp; <input type="submit" name="visitRakontu" value="Visit" class="button"></p>
 		{% endif %}
 		{% if rakontus_invited_to %}
 			<p>You have been <b>invited</b> to join these Rakontus.</p>
-			<select name="rakontu_key">
+			<select name="rakontu_key_name">
 			{% for rakontu in rakontus_invited_to %}
-				<option value="{{ rakontu.key }}">{{ rakontu.name }}</option>
+				<option value="{{ rakontu.getKeyName }}">{{ rakontu.name }}</option>
 			{% endfor %}
 			</select>
 			&nbsp; <input type="submit" name="visitRakontu" value="Join" class="button"></p>
@@ -33,13 +33,8 @@
 		<p>Your Google account is: <b>{{ user.nickname }}</b></p>
 		<p><a href="{{logout_url}}">Log out</a> from Google</p>
 		
-		{% if 1 %}
-			{% if user_is_admin %}
-				<a href="/{{dir_admin}}/{{url_admin}}">Site administration</a>
-			{% endif %}
-			{% if DEVELOPMENT %}
-				<p><input type="submit" name="makeFakeData" value="Make Fake Data" class="button"></p>
-			{% endif %}
+		{% if user_is_admin %}
+			<a href="/{{dir_admin}}/{{url_admin}}">Site administration</a>
 		{% endif %}
 		
 		</form>

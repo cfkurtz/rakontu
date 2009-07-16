@@ -6,13 +6,10 @@
 	
 	<div id="content">
 	
-		<div id="stylized" class="rakontu_form">
-		<form action="/{{dir_liaise}}/{{url_members}}" method="post" enctype="multipart/form-data">
-		
 		{% if current_member.isLiaisonOrManagerOrOwner %}
 	
 			<div id="stylized" class="rakontu_form">
-			<form action="/{{dir_liaise}}/{{url_members}}" method="post">
+			<form action="/{{dir_liaise}}/{{url_members}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 			
 			<h3>Active off-line members</h3>
 			{% if  active_members %}
@@ -28,10 +25,10 @@
 		  				<tr>
 		  				<td>
 		  					{{ aMember.nickname }}<br/>
-		  					<a href="/{{dir_visit}}/{{url_member}}?{{aMember.key}}">(View member page)</a>
+		  					<a href="/{{dir_visit}}/{{url_member}}?{{url_query_member}}={{aMember.getKeyName}}">(View member page)</a>
 		  					{% ifequal aMember.liaisonIfOfflineMember.key current_member.key %}
-		  						<br/><a href="/{{dir_visit}}/{{url_preferences}}?{{aMember.key}}">(Change preferences)</a>
-		  						<br/><a href="/{{dir_visit}}/{{url_drafts}}?{{aMember.key}}">(Edit drafts)</a>
+		  						<br/><a href="/{{dir_visit}}/{{url_preferences}}?{{aMember.urlQuery}}">(Change preferences)</a>
+		  						<br/><a href="/{{dir_visit}}/{{url_drafts}}?{{aMember.urlQuery}}">(Edit drafts)</a>
 		  					{% endifequal %}
 		  				</td>
 		  				<td width="80" valign="top">

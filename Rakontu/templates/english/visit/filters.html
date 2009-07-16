@@ -1,0 +1,84 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+	
+	
+	<div id="content">
+	
+		<div id="stylized" class="rakontu_form">
+		<form action="/{{dir_visit}}/{{url_filters}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
+		
+		{% if searches %}
+			<h4>Saved search filters</h4>
+		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<tr>
+		      		<th>Name (click to apply)</th>
+		      		<th>Look in </th>
+		      		<th>Words</th>
+		      		<th>Tags</th>
+		      		<th>Questions about entries</th>
+		      		<th>Questions about members/characters</th>
+		      		<th>Created</th>
+		      		<th>Private?</th>
+		      		<th>Remove?</th>
+		      	{% for search in searches %}
+			      	<tr>
+			      	<td>{{search.linkString}}</td>
+			      	<td>
+			      		{% for i in entry_types|makeRangeFromListLength %}
+			      			{% if search.entryTypes|listLookup:i %}
+			      				{{entry_types_display|listLookup:i}}<br/>
+			      			{% endif %}
+			      		{% endfor %}&nbsp;
+			      		</td>
+			      	<td>
+			      		{% if search.words %}
+			      			{{search.words_anyOrAll}} of {{search.words|join:", "}} <br/>
+				      		{% for i in search_locations|makeRangeFromListLength %}
+				      			{% if search.words_locations|listLookup:i %}
+				      				{{search_locations_display|listLookup:i}}<br/>
+				      			{% endif %}
+				      		{% endfor %}
+			      		{% else %}
+			      			&nbsp;
+			      		{% endif %}
+			      		</td>
+			      	<td>{% if search.tags %}
+			      			{{search.tags_anyOrAll}} of {{search.tags|join:", "}}
+			      		{% endif %}&nbsp;
+			      		</td>
+			      	<td>
+			      		{% for ref in search.getEntryQuestionRefs %}
+			      			{{ref.question.text}} {{ref.answer}}<br/>
+			      		{% endfor %}
+			      		&nbsp;
+			      		</td>
+			      	<td>
+			      		{% for ref in search.getCreatorQuestionRefs %}
+			      			{{ref.question.text}} {{ref.answer}}<br/>
+			      		{% endfor %}
+			      		&nbsp;
+			      		</td>
+					<td>{{search.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}<br/>at {{search.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</td>
+					<td>{{search.private|yesno:"yes, no"}}</td>
+					<td width="80"><input type="checkbox" name="remove|{{ search.key }}" value="yes" id="remove|{{ search.key }}"/>
+						<label for="remove|{{ search.key }}">Remove</label>
+						</td>
+					</tr>
+				{% endfor %}
+				</table>
+		{% else %}
+			<p><b>Saved search filters</b> - {{term_none}}</p>
+		{% endif %}
+		
+      	<p>
+    {% if searches %}
+    	<center><input type="submit" name="changeSettings|{{member.key}}" value="Remove selected searches" class="button"></center>
+    {% endif %}
+	</form>	
+	</div>
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

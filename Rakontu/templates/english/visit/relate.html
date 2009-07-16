@@ -7,7 +7,9 @@
 		<div id="stylized" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_relate}}
 		{% if entry %}
-		?{{entry.key}}
+			?{{entry.urlQuery}}
+		{% else %}
+			?{{rakontu.urlQuery}}
 		{% endif %}
 		" method="post" enctype="multipart/form-data">
 		
@@ -43,7 +45,7 @@
 							{% if link.creator.active %}
 								{{link.creator.linkString}}
 								{% ifequal link.creator.key current_member.key %}
-									 ({{YOU}})
+									 ({{template_you}})
 								{% endifequal %}
 							{% else %}
 								the former member "{{link.creator.nickname}}"
@@ -68,24 +70,21 @@
 	  				{% if entries_first_column|listLookup:i %}
 	  					<input type="checkbox" name="addLink|{{entries_first_column|listLookup:i|get:"key"}}" value="yes" 
 	  					id="addLink|{{entries_first_column|listLookup:i|get:"key"}}"/>
-						<label for="addLink|{{entries_first_column|listLookup:i|get:"key"}}">
-						<a href="{{url_read}}?{{entries_first_column|listLookup:i|get:"key"}}">{{entries_first_column|listLookup:i|get:"title"}}</a></label>
+						{{entries_first_column|listLookup:i|get:"linkString"}}
 	  				{% endif %}
 	  				</td>
 	  				<td style="border:none;padding:0;margin:0;">
 	  				{% if entries_second_column|listLookup:i %}
 	  					<input type="checkbox" name="addLink|{{entries_second_column|listLookup:i|get:"key"}}" value="yes" 
 	  					id="addLink|{{entries_second_column|listLookup:i|get:"key"}}"/>
-						<label for="addLink|{{entries_second_column|listLookup:i|get:"key"}}">
-						<a href="{{url_read}}?{{entries_second_column|listLookup:i|get:"key"}}">{{entries_second_column|listLookup:i|get:"title"}}</a></label>
+						{{entries_second_column|listLookup:i|get:"linkString"}}
 	  				{% endif %}
 	  				</td>
 	  				<td style="border:none;padding:0;margin:0;">
 	  				{% if entries_third_column|listLookup:i %}
 	  					<input type="checkbox" name="addLink|{{entries_third_column|listLookup:i|get:"key"}}" value="yes" 
 	  					id="addLink|{{entries_third_column|listLookup:i|get:"key"}}"/>
-						<label for="addLink|{{entries_third_column|listLookup:i|get:"key"}}">
-						<a href="{{url_read}}?{{entries_third_column|listLookup:i|get:"key"}}">{{entries_third_column|listLookup:i|get:"title"}}</a></label>
+						{{entries_third_column|listLookup:i|get:"linkString"}}
 	  				{% endif %}
 	  				</td>
 	  				</tr>

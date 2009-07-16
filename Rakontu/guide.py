@@ -11,7 +11,7 @@ from utils import *
 class ReviewResourcesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isGuide():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
@@ -24,13 +24,13 @@ class ReviewResourcesPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/resources.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isGuide():
 				resources = rakontu.getNonDraftEntriesOfType("resource")
@@ -38,20 +38,20 @@ class ReviewResourcesPage(webapp.RequestHandler):
 					 if self.request.get("flag|%s" % resource.key()) == "yes":
 					 	resource.flaggedForRemoval = not resource.flaggedForRemoval
 					 	resource.put()
-				self.redirect(BuildResultURL("changessaved"))
+				self.redirect(BuildResultURL("changessaved", rakontu=rakontu))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			
 class CopySystemResourcesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isGuide():
 				CopyDefaultResourcesForNewRakontu(rakontu, member)
-				self.redirect(BuildURL("dir_guide", "url_resources"))
+				self.redirect(BuildURL("dir_guide", "url_resources", rakontu=rakontu))
 			else:
 				self.redirect(START)
 		else:
@@ -60,10 +60,10 @@ class CopySystemResourcesPage(webapp.RequestHandler):
 class ReviewRequestsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isGuide():
-				uncompletedOnly = self.request.query_string == "uncompleted"
+				uncompletedOnly = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_uncompleted") == URL_OPTIONS["url_query_uncompleted"]
 				requestsByType = []
 				numRequests = 0
 				for type in REQUEST_TYPES:
@@ -88,13 +88,13 @@ class ReviewRequestsPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/requests.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isGuide():
 				if "submitChanges" in self.request.arguments():
@@ -103,23 +103,23 @@ class ReviewRequestsPage(webapp.RequestHandler):
 						if self.request.get("toggleComplete|%s" % request.key()):
 							request.completedIfRequest = not request.completedIfRequest
 							request.put()
-					self.redirect(BuildResultURL("changessaved"))
+					self.redirect(BuildResultURL("changessaved", rakontu=rakontu))
 				elif "showOnlyUncompletedRequests" in self.request.arguments():
-					self.redirect(BuildURL("dir_guide", "url_requests", "uncompleted"))
+					self.redirect(BuildURL("dir_guide", "url_requests", URL_OPTIONS["url_query_uncompleted"], rakontu=rakontu))
 				elif "showAllRequests" in self.request.arguments():
-					self.redirect(BuildURL("dir_guide", "url_requests"))
+					self.redirect(BuildURL("dir_guide", "url_requests", rakontu=rakontu))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			
 class ReviewInvitationsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isGuide():
-				noResponsesOnly = self.request.query_string == "noresponses"
+				noResponsesOnly = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_no_responses") == URL_OPTIONS["url_query_no_responses"]
 				invitations = []
 				allInvitations = Entry.all().filter("rakontu = ", rakontu.key()).filter("draft = ", False).\
 					filter("type = ", "invitation").fetch(FETCH_NUMBER)
@@ -139,21 +139,21 @@ class ReviewInvitationsPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/invitations.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isGuide():
 				if "showOnlyUnrespondedInvitations" in self.request.arguments():
-					self.redirect(BuildURL("dir_guide", "url_invitations", "noresponses"))
+					self.redirect(BuildURL("dir_guide", "url_invitations", URL_OPTIONS["url_query_noresponses"], rakontu=rakontu))
 				elif "showAllInvitations" in self.request.arguments():
-					self.redirect(BuildURL("dir_guide", "url_invitations"))
+					self.redirect(BuildURL("dir_guide", "url_invitations", rakontu=rakontu))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			

@@ -35,6 +35,7 @@ application = webapp.WSGIApplication(
 									  (BuildURL("dir_visit", "url_new"), NewMemberPage),
 									  (BuildURL("dir_visit", "url_preferences"), ChangeMemberProfilePage),
 									  (BuildURL("dir_visit", "url_drafts"), ChangeMemberDraftsPage),
+									  (BuildURL("dir_visit", "url_filters"), ChangeMemberFiltersPage),
 									  (BuildURL("dir_visit", "url_leave"), LeaveRakontuPage),
 									  
 									  # help
@@ -142,6 +143,7 @@ application = webapp.WSGIApplication(
 									 debug=True)
 
 def real_main():
+	#MakeSomeFakeData()
 	run_wsgi_app(application)
 
 def profile_log_main():

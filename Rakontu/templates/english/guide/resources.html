@@ -26,9 +26,9 @@
 	  				<tr>
 	  				<td>
 	  				{% if resource.flaggedForRemoval %}
-	  					<a href="/{{dir_visit}}/{{url_flag}}?{{resource.key}}" class="image"><img src="../images/flag_red.png" alt="flag" border="0"></a>
+	  					<a href="/{{dir_visit}}/{{url_flag}}?{{resource.urlQuery}}" class="image"><img src="../images/flag_red.png" alt="flag" border="0"></a>
 	  				{% else %}
-	  					<a href="/{{dir_visit}}/{{url_flag}}?{{resource.key}}" class="image"><img src="../images/flag_green.png" alt="flag" border="0"></a>
+	  					<a href="/{{dir_visit}}/{{url_flag}}?{{resource.urlQuery}}" class="image"><img src="../images/flag_green.png" alt="flag" border="0"></a>
 					{% endif %}
 
 	  				{{resource.linkString}}</td>
@@ -62,8 +62,8 @@
 	      	{% else %}
 	      		<p>This Rakontu has no help resources.<p>
 	      		<ul>
-	      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_resource}}">Make one</a></li>
-	      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_copy}}">Create all default resources</a></li>
+	      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_resource}}?{{rakontu.urlQuery}}">Make one</a></li>
+	      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_copy}}?{{rakontu.urlQuery}}">Create all default resources</a></li>
 	      		</ul>
 	      	{% endif %}
 			

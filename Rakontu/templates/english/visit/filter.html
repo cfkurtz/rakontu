@@ -4,11 +4,11 @@
 	{% include "../common_menus.html" %}
 	<div id="content">
 		<div id="stylized" class="rakontu_form">
-		<form action=
+		<form action="/{{dir_visit}}/{{url_search_filter}}
 		{% if current_search %}
-			"/visit/filter?{{current_search.key}}"
+			?{{current_search.urlQuery}}"
 		{% else %}
-			"/visit/filter"
+			?{{rakontu.urlQuery}}"
 		{% endif %}
 		method="post">
 	

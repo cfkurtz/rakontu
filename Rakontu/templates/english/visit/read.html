@@ -6,7 +6,7 @@
 	
 	<h2><img src="/images/{{entry.type}}.png" alt="tags" align="left" border="0">
 	{% if curating %}
-		<a href="/{{dir_visit}}/{{url_flag}}?{{entry.key}}" class="imagelight"><img src="../images/
+		<a href="/{{dir_visit}}/{{url_flag}}?{{url_query_entry}}={{entry.getKeyName}}" class="imagelight"><img src="../images/
 		{% if entry.flaggedForRemoval %}
 			flag_red.png
 		{% else %}
@@ -37,6 +37,11 @@
 		<p><b>Attachments</b></p>
 		{% for attachment in attachments %}
 			{% if attachment.isImage %}
+				{% if attachment.name %}
+					<p>{{attachment.name}} ({{attachment.attachmentEmbed}})</p>
+				{% else %}
+					<p>{{attachment.attachmentEmbed}}</p>
+				{% endif %}
 				{{attachment.imageEmbed}}
 			{% else %}
 				<p>&nbsp; &nbsp; 
@@ -54,7 +59,7 @@
 			{% if entry.creator.active %}
 				{{entry.creator.linkString}}
 				{% ifequal entry.creator.key current_member.key %}
-					 ({{YOU}})
+					 ({{template_you}})
 				{% endifequal %}
 			{% else %}
 				the former member "{{entry.creator.nickname}}"
@@ -114,7 +119,7 @@
 	
 	{% if things_member_can_do %}
 		<div id="stylized" class="rakontu_form">
-		<form name="read" action="/{{dir_visit}}/read" method="post">
+		<form name="read" action="/{{dir_visit}}/{{url_read}}?{{rakontu.urlQuery}}" method="post">
 		&nbsp; What would you like to do next?
 		<select name="nextAction">
 		{% for key in things_member_can_do.keys|sorted %}
@@ -131,7 +136,7 @@
 	{% if rows_cols %}
 		<p></p>
 		<div id="stylized" class="rakontu_form">
-		<form name="read" action="/{{dir_visit}}/read" method="post">
+		<form name="read" action="/{{dir_visit}}/{{url_read}}?{{rakontu.urlQuery}}" method="post">
 		<p>Height means
 		{% for i in rakontu.nudgeCategories|makeRangeFromListLength %}
 			<input type="checkbox" name="showCategory|{{i}}" value="yes" id="{{rakontu.nudgeCategories|listLookup:i}}"

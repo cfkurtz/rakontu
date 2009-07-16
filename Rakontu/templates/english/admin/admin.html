@@ -8,52 +8,55 @@
 		<form action="/{{dir_admin}}/{{url_admin}}" method="post" enctype="multipart/form-data">
 		
 		<h1>Rakontu site initialization tasks</h1>
-		<p>&nbsp; &nbsp; Sample questions: <b>{{num_sample_questions}}</b> - <a href="/{{dir_admin}}/{{url_sample_questions}}">generate</a></p>
+		<p>&nbsp; &nbsp; Sample questions: <b>{{num_sample_questions}}</b> - 
+		<a href="/{{dir_admin}}/{{url_sample_questions}}">generate</a></p>
 		
-		<p>&nbsp; &nbsp; Default help resources: <b>{{num_default_resources}}</b> - <a href="/{{dir_admin}}/{{url_default_resources}}">generate</a></p>
+		<p>&nbsp; &nbsp; Short help texts (for hover-over info, tip and caution icons): <b>{{num_helps}}</b> - 
+		<a href="/{{dir_admin}}/{{url_helps}}">generate</a></p>
 		
-		<p>&nbsp; &nbsp; Short help texts: <b>{{num_helps}}</b> - <a href="/{{dir_admin}}/{{url_helps}}">generate</a></p>
+		<p>&nbsp; &nbsp; Default help resources: <b>{{num_default_resources}}</b> -
+		<a href="/{{dir_admin}}/{{url_default_resources}}">generate</a></p>
+		<p>&nbsp; &nbsp; &nbsp; &nbsp; <i>Note: The default help resources should be initialized <b>before</b> any Rakontus are created.</i></p>
 		
 		<h1>Rakontus in this installation</h1>
 		{% if rakontus %}
 			<fieldset>
 			<table>
 			<tr>
-				<th>Name</th>
 				<th>URL</th>
-				<th>Created</th>
-				<th>Last activity</th>
-				<th>AppRocket timestamp</th>
+				<th>Name</th>
+				<th>Created<br/>(UTC)</th>
+				<th>Last activity<br/>(UTC)</th>
+				<th>AppRocket timestamp<br/>(UTC)</th>
 				<th>Active members</th>
+				<th>Pending members</th>
 				<th>Inactive members</th>
-				<th>Pending members (invitations)</th>
 				<th>Active?{{"activating_rakontus"|caution}}</th>
-				<th>Export</th>
 				<th>Remove{{"removing_rakontus"|caution}}</th>
 				</tr>
 			
 	    	{% for rakontu in rakontus %}
 		    	<tr>
+		    	<td><a href="http://{{host}}{{rakontu.linkURL}}">{{rakontu.getKeyName}}</a></td>
 		    	<td>{{rakontu.name}}</td>
-		    	<td>{{rakontu.getKeyName}}</td>
-		    	<td>{{rakontu.created|timeZone:"UTC"|date:"F j, Y"}} {{rakontu.created|timeZone:"UTC"|time:"h:i a"}} (UTC)</td>
+		    	<td>{{rakontu.created|timeZone:"UTC"|date:"F j, Y"}}<br/>{{rakontu.created|timeZone:"UTC"|time:"h:i a"}}</td>
 		    	<td>
 		    		{% if rakontu.lastPublish %}
-		    			{{rakontu.lastPublish|timeZone:"UTC"|date:"F j, Y"}} {{rakontu.lastPublish|timeZone:"UTC"|time:"h:i a"}}  (UTC)
+		    			{{rakontu.lastPublish|timeZone:"UTC"|date:"F j, Y"}}<br/>{{rakontu.lastPublish|timeZone:"UTC"|time:"h:i a"}}
 		    		{% else %}
 		    			{{term_none}}
 		    		{% endif %}
 		    		</td>
 		    	<td>
 		    		{% if rakontu.appRocketTimeStamp %}
-		    			{{rakontu.appRocketTimeStamp|date:"F j, Y"}} {{rakontu.appRocketTimeStamp|time:"h:i a"}}  (UTC)
+		    			{{rakontu.appRocketTimeStamp|date:"F j, Y"}}<br/>{{rakontu.appRocketTimeStamp|time:"h:i a"}}
 		    		{% else %}
 		    			{{term_none}}
 		    		{% endif %}
 		    		</td>
 		    	<td align="center">{{rakontu.getActiveMembers|length}}</td>
+			    	<td align="center">{{rakontu.getPendingMembers|length}}</td>
 		    	<td align="center">{{rakontu.getInactiveMembers|length}}</td>
-		    	<td align="center">{{rakontu.getPendingMembers|length}}</td>
 				<td align="center">
 					{{rakontu.active|yesno:"active, inactive"}}<br/>
 	  					{% if rakontu.active %}
@@ -65,10 +68,6 @@
 	  					{% endif %}
 	  					</td>
 				<td>
-				<input type="submit" name="export|{{rakontu.key}}" value="Export all data" class="button">
-	  				</td>
-				</td>
-				<td>
 				<input type="submit" name="remove|{{rakontu.key}}" value="REMOVE" class="button" 
 				onClick="javascript:return confirm('Are you REALLY SURE you want to PERMANENTLY REMOVE the Rakontu {{rakontu.name}}?')">
 	  					</td>
@@ -76,7 +75,7 @@
 	    	{% endfor %}
 	    	</table>
 	    	</fieldset>
-			<p><a href="/{{dir_admin}}/{{url_create1}}">Make another Rakontu</a></p>
+			<p><a href="/{{dir_admin}}/{{url_create1}}">Create another Rakontu</a></p>
 			<p></p>
 			<center><p><i><b>Please remove Rakontus VERY carefully.</p>
 			<p>Deleted Rakontus cannot be recovered.</p>
@@ -84,16 +83,12 @@
 			</form>
 			</div>
 	    {% else %}
-	    	<p>&nbsp; &nbsp; none - <a href="/{{dir_admin}}/{{url_create1}}">Make one</a></p>
+	    	<p>&nbsp; &nbsp; none - <a href="/{{dir_admin}}/{{url_create1}}">Create one</a></p>
 	    {% endif %}	
 	{% else %}
 		<p>You are not a manager of this Rakontu and cannot change its settings.
 		Please ask a manager to make any changes you would like to see made.</p>
 	{% endif %}
-	</div>
-	<div class="rightalign">
-	<p><a href="/">Go to site start page</a></p>
-	<p><a href="{{logout_url}}">Log out</a> from Google</p>
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

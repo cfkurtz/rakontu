@@ -52,8 +52,11 @@ def DebugPrint(text, msg="print"):
 	
 def stripTags(text):
 	if text:
-		pattern = re.compile(r'<.*?>')
-		return pattern.sub('', text)
+		tags = re.compile(r'\<(.+?)\>').findall(text)
+		for tag in tags:
+			text = text.replace('<%s>' % tag, " ")
+		text = text.replace("  ", " ")
+		return text
 	else:
 		return "none"
    
@@ -133,7 +136,6 @@ class Rakontu(db.Model):
 
 	# governance options
 	maxNumAttachments = db.IntegerProperty(choices=NUM_ATTACHMENT_CHOICES, default=DEFAULT_MAX_NUM_ATTACHMENTS, indexed=False)
-	nonMembersCanSeeContent = db.BooleanProperty(default=False)
 	maxNudgePointsPerEntry = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ENTRY, indexed=False)
 	memberNudgePointsPerEvent = db.ListProperty(int, default=DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS, indexed=False)
 	nudgeCategories = db.StringListProperty(default=DEFAULT_NUDGE_CATEGORIES, indexed=False)
@@ -204,11 +206,23 @@ class Rakontu(db.Model):
 	# DISPLAY
 	
 	def imageEmbed(self):
-		return '<img src="/%s/%s?rakontu_id=%s" class="bordered">' % (DIRS["dir_visit"], URLS["url_image"], self.key())
+		return '<img src="/%s/%s?%s=%s" class="bordered">' % (DIRS["dir_visit"], URLS["url_image"], URL_IDS["url_query_rakontu"], self.getKeyName())
 	
 	def getKeyName(self):
 		return self.key().name()
 	
+	def linkString(self):
+		return '<a href="%s">%s</a>' % (self.linkURL(), self.name)
+		
+	def linkURL(self):
+		return '%s?%s' % (self.urlWithoutQuery(), self.urlQuery())
+		
+	def urlWithoutQuery(self):
+		return "/%s/%s" % (DIRS["dir_visit"], URLS["url_home"])
+
+	def urlQuery(self):
+		return "%s=%s" % (URL_IDS["url_query_rakontu"], self.key().name())
+
 	# MEMBERS
 	
 	def getPendingMembers(self):
@@ -688,11 +702,11 @@ class Rakontu(db.Model):
 	def getExportOfType(self, type):
 		return Export.all().filter("rakontu = ", self.key()).filter("type = ", type).get()
 
-	def createOrRefreshExport(self, type, itemList=None, member=None, questionType=None):
+	def createOrRefreshExport(self, type, itemList=None, member=None, questionType=None, fileFormat="csv"):
 		exportAlreadyThereForType = self.getExportOfType(type)
 		if exportAlreadyThereForType:
 			db.delete(exportAlreadyThereForType)
-		export = Export(key_name=KeyName("export"), rakontu=self, type=type)
+		export = Export(key_name=KeyName("export"), rakontu=self, type=type, fileFormat=fileFormat)
 		exportText = ""
 		if type == "csv_export_search":
 			if member and member.viewSearch and member.viewSearchResultList:
@@ -737,7 +751,7 @@ class Rakontu(db.Model):
 				entries = self.getNonDraftEntriesOfType(type)
 				if entries:
 					questions = self.getActiveQuestionsOfType(type)
-					exportText += '%s\nNumber,Title,Contributor,' % ENTRY_TYPES_PLURAL_DISPLAY[typeCount].upper()
+					exportText += '\n%s\nNumber,Title,Contributor,' % ENTRY_TYPES_PLURAL_DISPLAY[typeCount].upper()
 					for question in questions:
 						exportText += question.name + ","
 					for question in memberQuestions:
@@ -918,6 +932,7 @@ class Member(db.Model):
 	dateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT, indexed=False) # how they want to see times
 	
 	joined = TzDateTimeProperty(auto_now_add=True)
+	firstVisited = db.DateTimeProperty()
 	lastEnteredEntry = db.DateTimeProperty()
 	lastEnteredAnnotation = db.DateTimeProperty()
 	lastEnteredLink = db.DateTimeProperty()
@@ -926,7 +941,7 @@ class Member(db.Model):
 	
 	nudgePoints = db.IntegerProperty(default=DEFAULT_START_NUDGE_POINTS) # accumulated through participation
 	
-	viewTimeEnd = TzDateTimeProperty(auto_now_add=True, indexed=False)
+	viewTimeEnd = TzDateTimeProperty(auto_now_add=True)
 	viewTimeFrameInSeconds = db.IntegerProperty(default=WEEK_SECONDS, indexed=False)
 	viewNudgeCategories = db.ListProperty(bool, default=[True] * NUM_NUDGE_CATEGORIES, indexed=False)
 	viewSearch = db.ReferenceProperty(None, collection_name="member_to_search", indexed=False)
@@ -939,6 +954,9 @@ class Member(db.Model):
 		self.timeZoneName = self.rakontu.defaultTimeZoneName
 		self.timeFormat = self.rakontu.defaultTimeFormat
 		self.dateFormat = self.rakontu.defaultDateFormat
+		if self.viewTimeEnd.tzinfo is None:
+			self.viewTimeEnd = self.viewTimeEnd.replace(tzinfo=pytz.utc)
+		# caller does put
 		
 	# INFO
 	
@@ -1020,6 +1038,12 @@ class Member(db.Model):
 		self.viewTimeEnd = self.rakontu.firstPublish + timedelta(seconds=self.viewTimeFrameInSeconds)
 		# caller should do the put
 		
+	def firstVisitURL(self):
+		if self.isManagerOrOwner():
+			return BuildURL("dir_manage", "url_first", rakontu=self.rakontu)
+		else:
+			return BuildURL("dir_visit", "url_new", rakontu=self.rakontu)
+		
 	# CONTRIBUTIONS
 	
 	def getAllItemsAttributedToMember(self):
@@ -1071,21 +1095,34 @@ class Member(db.Model):
 		answers = Answer.all().filter("creator = ", self.key()).filter("draft = ", True).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
 		entries = {}
 		for answer in answers:
-			if not entries.has_key(answer.referent):
-				entries[answer.referent] = 1
-		return entries.keys()
+			if not answer.referent.draft: # don't include entries that are themselves in draft format
+				if not entries.has_key(answer.referent.getKeyName()):
+					entries[answer.referent.getKeyName()] = answer.referent
+		return entries.values()
 	
 	# DISPLAY
+	
+	def getKeyName(self):
+		return self.key().name()
 	
 	def linkString(self):
 		if self.isOnlineMember:
 			offlineImageString = ""
 		else:
-			offlineImageString = '<img src="/images/offline.png" alt="offline member">'
-		return '%s <a href="/%s/%s?%s">%s</a>' % (offlineImageString, DIRS["dir_visit"], URLS["url_member"], self.key(), self.nickname)
-	
+			offlineImageString = '<img src="/images/offline.png" alt="offline member"> '
+		return '%s<a href="%s?%s">%s</a>' % (offlineImageString, self.urlWithoutQuery(), self.urlQuery(), self.nickname)
+		
+	def linkURL(self):
+		return '%s?%s' % (self.urlWithoutQuery(), self.urlQuery())
+		
+	def urlWithoutQuery(self):
+		return "/%s/%s" % (DIRS["dir_visit"], URLS["url_member"])
+
+	def urlQuery(self):
+		return "%s=%s" % (URL_IDS["url_query_member"], self.getKeyName())
+
 	def imageEmbed(self):
-		return '<img src="/%s/%s?member_id=%s">' % (DIRS["dir_visit"], URLS["url_image"], self.key())
+		return '<img src="/%s/%s?%s=%s">' % (DIRS["dir_visit"], URLS["url_image"], URL_IDS["url_query_member"], self.getKeyName())
 	
 	def getSavedSearches(self):
 		return SavedSearch.all().filter("creator = ", self.key()).fetch(FETCH_NUMBER)
@@ -1146,11 +1183,23 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 	def getNonDraftAnswersAboutEntriesAttributedToCharacter(self):
 		return Answer.all().filter("character = ", self.key()).filter("draft = ", False).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
 
+	def getKeyName(self):
+		return self.key().name()
+	
 	def linkString(self):
-		return '<a href="/%s/%s?%s">%s</a>' % (DIRS["dir_visit"], URLS["url_character"], self.key(), self.name)
+		return '<a href="%s?%s">%s</a>' % (self.urlWithoutQuery(), self.urlQuery(), self.name)
+		
+	def linkURL(self):
+		return '%s?%s' % (self.urlWithoutQuery(), self.urlQuery())
+		
+	def urlWithoutQuery(self):
+		return "/%s/%s" % (DIRS["dir_visit"], URLS["url_character"])
+
+	def urlQuery(self):
+		return "%s=%s" % (URL_IDS["url_query_character"], self.key().name())
 	
 	def imageEmbed(self):
-		return '<img src="/%s/%s?character_id=%s">' % (DIRS["dir_visit"], URLS["url_image"], self.key())
+		return '<img src="/%s/%s?%s=%s">' % (DIRS["dir_visit"], URLS["url_image"], URL_IDS["url_query_character"], self.getKeyName())
 		
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
@@ -1256,9 +1305,21 @@ class SavedSearch(db.Model):
 	
 	# LINKING TO PATTERNS
 		
-	def linkString(self):
-		return '<a href="?%s">%s</a>' % (HOME, self.key(), self.name)
+	def getKeyName(self):
+		return self.key().name()
 	
+	def linkString(self):
+		return '<a href="%s?%s">%s</a>' % (self.urlWithoutQuery(), self.urlQuery(), self.name)
+		
+	def linkURL(self):
+		return '%s?%s' % (self.urlWithoutQuery(), self.urlQuery())
+		
+	def urlWithoutQuery(self):
+		return "/%s/%s" % (DIRS["dir_visit"], URLS["url_home"])
+
+	def urlQuery(self):
+		return "%s=%s" % (URL_IDS["url_query_search_filter"], self.key().name())
+
 	def shortFormattedText(self):
 		result = ""
 		if self.words:
@@ -1393,8 +1454,14 @@ class Answer(db.Model):
 			result +=  "%s" % self.answerIfValue
 		return result
 	
+	def getKeyName(self):
+		return self.key().name()
+	
 	def linkString(self):
 		return self.displayString()
+	
+	def urlQuery(self):
+		return "%s=%s" % (URL_IDS["url_query_answer"], self.getKeyName())
 	
 	def linkStringWithQuestionName(self):
 		return self.displayString(includeQuestionName=True, includeQuestionText=False)
@@ -1897,9 +1964,21 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	def displayString(self):
 		return self.title
 	
-	def linkString(self):
-		return '<a href="/%s/%s?%s">%s</a>' % (DIRS["dir_visit"], URLS["url_read"], self.key(), self.title)
+	def getKeyName(self):
+		return self.key().name()
 	
+	def linkString(self):
+		return '<a href="%s?%s" %s>%s</a>' % (self.urlWithoutQuery(), self.urlQuery(), self.getTooltipText(), self.title)
+		
+	def linkURL(self):
+		return '%s?%s' % (self.urlWithoutQuery(), self.urlQuery())
+		
+	def urlWithoutQuery(self):
+		return "/%s/%s" % (DIRS["dir_visit"], URLS["url_read"])
+
+	def urlQuery(self):
+		return "%s=%s" % (URL_IDS["url_query_entry"], self.key().name())
+
 	def typeAsURL(self):
 		return URLForEntryType(self.type)
 	
@@ -2069,6 +2148,9 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 			result += ", (%s)" % self.comment
 		return result
 	
+	def getKeyName(self):
+		return self.key().name()
+	
 	def linkString(self):
 		return self.displayString()
 	
@@ -2091,18 +2173,31 @@ class Attachment(db.Model):								   # binary attachments to entries
 	fileName = db.StringProperty() # as uploaded
 	data = db.BlobProperty() # there is a practical limit on this size - cfk look at
 	entry = db.ReferenceProperty(Entry, collection_name="attachments")
+	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="attachments_to_rakontu")
+	
+	def getKeyName(self):
+		return self.key().name()
 	
 	def linkString(self):
-		return '<a href="/%s/%s?attachment_id=%s">%s</a>' % (DIRS["dir_visit"], URLS["url_attachment"], self.key(), self.fileName)
+		return '<a href="%s?%s">%s</a>' % (self.urlWithoutQuery(), self.urlQuery(), self.fileName)
+		
+	def linkURL(self):
+		return '%s?%s' % (self.urlWithoutQuery(), self.urlQuery())
+		
+	def urlWithoutQuery(self):
+		return "/%s/%s" % (DIRS["dir_visit"], URLS["url_attachment"])
+
+	def urlQuery(self):
+		return "%s=%s" % (URL_IDS["url_query_attachment"], self.getKeyName())
 	
 	def isImage(self):
 		return self.mimeType == "image/jpeg" or self.mimeType == "image/png"
 	
-	def ImageEmbed(self):
-		return '<img src="/%s/%s?attachment_id=%s">' % (DIRS["dir_visit"], URLS["url_image"], self.key())
+	def imageEmbed(self):
+		return '<img src="/%s/%s?%s=%s">' % (DIRS["dir_visit"], URLS["url_image"], URL_IDS["url_query_attachment"], self.getKeyName())
 	
-	def AttachmentEmbed(self):
-		return '<a href="/%s?attachment_id=%s">%s</a>' %(URLS["url_attachment"], self.key(), self.fileName)
+	def attachmentEmbed(self):
+		return '<a href="/%s?%s=%s">%s</a>' %(URLS["url_attachment"], URL_IDS["url_query_attachment"], self.getKeyName(), self.fileName)
 	
 # ============================================================================================
 # ============================================================================================
@@ -2260,11 +2355,23 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 			return '<p>%s "%s" (%s)</p><hr>\n\n' % \
 				(self.type, self.displayString(), self.memberNickNameOrCharacterName())
 		
+	def getKeyName(self):
+		return self.key().name()
+	
 	def linkString(self):
 		if self.type == "comment" or self.type == "request":
-			return '<a href="/%s/%s?%s">%s</a>' % (DIRS["dir_visit"], URLS["url_read_annotation"], self.key(), self.shortString)
+			return '<a href="%s?%s">%s</a>' % (self.urlWithoutQuery(), self.urlQuery(), self.shortString)
 		else:
 			return self.displayString()
+		
+	def linkURL(self):
+		return '%s?%s' % (self.urlWithoutQuery(), self.urlQuery())
+		
+	def urlWithoutQuery(self):
+		return "/%s/%s" % (DIRS["dir_visit"], URLS["url_read_annotation"])
+
+	def urlQuery(self):
+		return "%s=%s" % (URL_IDS["url_query_annotation"], self.key().name())
 		
 	def linkStringWithEntryLink(self):
 		return "%s for %s" % (self.linkString(), self.entry.linkString())
@@ -2301,5 +2408,28 @@ class Export(db.Model):		 # data prepared for export, in XML or CSV or TXT forma
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="export_to_rakontu")
 	type = db.StringProperty()
+	fileFormat = db.StringProperty()
 	created = TzDateTimeProperty(auto_now_add=True)
 	data = db.TextProperty()
+	
+	def getKeyName(self):
+		return self.key().name()
+	
+	def linkString(self):
+		return '<a href="%s?%s">%s</a>' % (self.urlWithoutQuery(), self.urlQuery(), self.type)
+		
+	def linkURL(self):
+		return '%s?%s' % (self.urlWithoutQuery(), self.urlQuery())
+		
+	def urlWithoutQuery(self):
+		return "/%s/%s" % (DIRS["dir_visit"], URLS["url_export"])
+
+	def urlQuery(self):
+		if self.fileFormat == "csv":
+			return "%s=%s" % (URL_IDS["url_query_export_csv"], self.getKeyName())
+		elif self.fileFormat == "txt":
+			return "%s=%s" % (URL_IDS["url_query_export_txt"], self.getKeyName())
+		elif self.fileFormat == "xml":
+			return "%s=%s" % (URL_IDS["url_query_export_xml"], self.getKeyName())
+
+

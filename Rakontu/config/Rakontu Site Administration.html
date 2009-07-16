@@ -18,16 +18,8 @@ xxx
 
 <h3>Translating Rakontu</h3>
 
-<p>You can translate a Rakontu site to any language you like. There can only be one language working on a Rakontu installation
-at any one time,
-but you can <i>store</i> more than one set of language files on a site and change which are being used by switching one
-constant. In this way you can <i>develop</i> a set of language files and implement them on several sites
-in nearly the same way (except for that one constant). Thus for example if you want to offer multiple
-languages to people whose Rakontus you are supporting, just set up multiple installations and
-direct people to whichever language installation they want to use.</p>
-
-<p>An important thing to understand about translating Rakontu is that <i>only the things the user sees
-are translated</i>. Everything that is internally used is in English.</p>
+<p>You can translate a Rakontu site to any language you like. The copy you have downloaded may already include
+multiple translations, so check the <code>config</code> directory to see what languages are available.</p>
 
 <p>To create a new Rakontu translation:</p>
 <ol>
@@ -35,41 +27,28 @@ are translated</i>. Everything that is internally used is in English.</p>
 "francais" or "espanol." <i>Don't include any spaces or special characters in your language name.</i></li>
 <li>Make copies of all of the files in the <code>config</code> directory that start with <code>english_</code>.
 Substitute your language name for <code>english</code> in the copies. </li>
-<li>Edit each of these <code>yourlanguage_</code> files so that they work for your language. There
-are instructions inside each file.</li>
-<li>Create a directory under <code>templates</code> with your language name.</li>
-<li>Copy <i>all</i> of the template files you find under the directory <code>templates/english</code>
-and place the copies (with subdirectories intact) under your new directory.
-<i>Do not rename any of the template subdirectories or files.</i></li>
-<li>Edit each of the template files in your new directory (and subdirectories) and replace
-all English terms with the appropriate translations. </li>
-<li>Now that you have everything in place, open the file <code>config/site_configuration.py</code>.
+<li>Edit each of these <code>yourlanguage_</code> files so that they work for your language. 
+Follow the instructions in each file and section. Always <i>make lots of backups</i> of all files you are changing!</li>
+<li>Open the file <code>config/site_configuration.py</code>.
 Change the line that reads <code>SITE_LANGUAGE = "english"</code> to your language name.
 </li>
 </ol>
 
-<p>That's it! You should now have a Rakontu site that can work either in English or in
-your chosen language. If you don't need the English <code>yourlanguage_</code> files
-and templates, you can delete them.</p>
-
 <p>Notes on translation:</p>
 <ul>
-<li><b>Always <i>make lots of backups</i> of all files you are changing!</b></li>
-<li>Editing template files is complicated, because the "raw" text is hard to find. 
-It's mixed in with many HTML tags and django template
-control statements (if, else, for). It's better not to pull these things out to a lookup file,
-however, because word order can be different in different languages.
-To help you out with this, there is a Python script in the <code>config</code>
-directory called <code>showTranslationStringsInTemplates.py</code>. Running that script
-will create a file in the <code>config</code> directory called <code>Template texts.txt</code>.
-In that file will be a listing of <i>all</i> non-tag, non-django, "raw" texts in all template files
-(including in all languages). You can use that "report" to wade through the non-raw stuff in the templates
-and check that you have it all in the right language. </li>
-<li>Export and import of questions does not use translations, because they refer to internal designations which are in English.</li>
-<li>Exports of entries to CSV (with answers) does use translations, as does XML export, because they are not then imported.</li>
-<li>Backup and restore to MySQL uses internal (English) names.</li>
+<li>There can only be one language working on a Rakontu installation
+at any one time,
+but you can <i>store</i> more than one set of language files on a site and change which are being used by switching one
+constant. In this way you can <i>develop</i> a set of language files and implement them on several sites
+in nearly the same way (except for that one constant). Thus for example if you want to offer multiple
+languages to people whose Rakontus you are supporting, just set up multiple installations and
+direct people to whichever language installation they want to use.</li>
+<li>An important thing to understand about translating Rakontu is that <i>only the things the user sees
+are translated</i>. All <i>internal</i> references are in English. This means that question export and import 
+does not use translations, nor does backup and restore to MySQL.
+However, exports of entries to CSV (with answers) DOES use translations, as does XML export, because these are not "round trip"
+(import <i>and</i> export) functions.</li>
 </ul>
-
 
 <h3>Backup and restore using AppRocket</h3>
 

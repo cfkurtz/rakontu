@@ -13,10 +13,6 @@ import htmllib
 
 from models import *
 
-import sys
-sys.path.insert(0,'lib')
-from appengine_utilities.sessions import Session
-
 from google.appengine.api import users
 from google.appengine.ext.webapp import template
 from google.appengine.ext import webapp
@@ -38,7 +34,7 @@ def FindTemplate(template):
 	return "templates/%s/%s" % (SITE_LANGUAGE, template)
 	
 def RequireLogin(func):
-	def check_login(request):
+	def check_login(request): 
 		if not users.get_current_user():
 			loginURL = users.create_login_url("/")
 			request.redirect(loginURL)
@@ -46,28 +42,153 @@ def RequireLogin(func):
 		func(request)
 	return check_login 
 
-def GetCurrentRakontuAndMemberFromSession():
-	session = Session()
-	if session and session.has_key('rakontu_key'):
-		rakontu_key = session['rakontu_key']
-	else:
-		rakontu_key = None
-	if session and session.has_key('member_key'):
-		member_key = session['member_key']
-	else:
-		member_key = None
-	if rakontu_key: 
-		rakontu = db.get(rakontu_key) 
-	else:
-		rakontu = None
-	if member_key:
-		member = db.get(member_key)
-		if not member.rakontu.key() == rakontu.key():
-			member = None
-	else:
-		member = None
+def GetCurrentRakontuAndMemberFromRequest(request):
+	rakontu = GetRakontuFromURLQuery(request.query_string)
+	member = GetCurrentMemberFromRakontuAndUser(rakontu, users.get_current_user())
 	okayToAccess = rakontu and rakontu.active and member and member.active
-	return rakontu, member, okayToAccess
+	if okayToAccess:
+		isFirstVisit = SetFirstThingsAndReturnWhetherMemberIsNew(rakontu, member)
+	else:
+		isFirstVisit = False
+	return rakontu, member, okayToAccess, isFirstVisit
+
+def GetCurrentMemberFromRakontuAndUser(rakontu, user):
+	member = None
+	if rakontu:
+		if user:
+			member = activeMemberForUserIDAndRakontu(user.user_id(), rakontu)
+			if not member:
+				pendingMember = pendingMemberForEmailAndRakontu(user.email(), rakontu)
+				if pendingMember:
+					member = Member(
+						key_name=KeyName("member"), 
+						nickname=user.email(),
+						googleAccountID=user.user_id(),
+						googleAccountEmail=user.email(),
+						rakontu=rakontu,
+						active=True,
+						governanceType=pendingMember.governanceType) 
+					member.initialize()
+					member.put()
+					db.delete(pendingMember)
+	return member
+
+def SetFirstThingsAndReturnWhetherMemberIsNew(rakontu, member):
+	isFirstVisit = False
+	if rakontu and member:
+		isFirstVisit = not member.firstVisited
+		if not rakontu.firstVisit:
+			rakontu.firstVisit = datetime.now(tz=pytz.utc)
+			rakontu.put()
+			if member.governanceType == "owner":
+				CopyDefaultResourcesForNewRakontu(rakontu, member)
+		if not member.firstVisited:
+			member.firstVisited = datetime.now(tz=pytz.utc)
+			member.put()
+	return isFirstVisit
+
+def activeMemberForUserIDAndRakontu(userID, rakontu):
+	return Member.all().filter("googleAccountID = ", userID).filter("rakontu = ", rakontu).filter("active = ", True).get()
+
+def pendingMemberForEmailAndRakontu(email, rakontu):
+	return PendingMember.all().filter("email = ", email).filter("rakontu = ", rakontu).get()
+
+def GetDictionaryFromURLQuery(query):
+	result = {}
+	pairs = query.split("&")
+	for pair in pairs:
+		try:
+			key, value = pair.split("=")
+			result[key] = value
+		except:
+			pass
+	return result
+
+def GetRakontuFromURLQuery(query): 
+	queryAsDictionary = GetDictionaryFromURLQuery(query)
+	rakontuLookupKey = URL_IDS["url_query_rakontu"]
+	if queryAsDictionary.has_key(rakontuLookupKey):
+		rakontuKey = queryAsDictionary[rakontuLookupKey]
+		return Rakontu.get_by_key_name(rakontuKey)
+	else:
+		for lookup, url in URL_IDS.items():
+			if queryAsDictionary.has_key(url):
+				entityKeyName = queryAsDictionary[url]
+				if lookup == "url_query_entry":
+					entity = Entry.get_by_key_name(entityKeyName)
+				elif lookup == "url_query_attachment":
+					entity = Attachment.get_by_key_name(entityKeyName)
+				elif lookup == "url_query_annotation":
+					entity = Annotation.get_by_key_name(entityKeyName)
+				elif lookup == "url_query_answer":
+					entity = Answer.get_by_key_name(entityKeyName)
+				elif lookup == "url_query_member":
+					entity = Member.get_by_key_name(entityKeyName)
+				elif lookup == "url_query_character":
+					entity = Character.get_by_key_name(entityKeyName)
+				elif lookup == "url_query_search_filter":
+					entity = SavedSearch.get_by_key_name(entityKeyName)
+				elif lookup == "url_query_attachment":
+					entity = Attachment.get_by_key_name(entityKeyName)
+				elif lookup in ["url_query_export_csv", "url_query_export_txt", "url_query_export_xml"]:
+					entity = Export.get_by_key_name(entityKeyName)
+				if entity and entity.rakontu:
+					return entity.rakontu
+				else:
+					return None
+				
+def GetStringOfTypeFromURLQuery(query, type):
+	dictionary = GetDictionaryFromURLQuery(query)
+	lookupKey = URL_OPTIONS[type]
+	if dictionary.has_key(lookupKey):
+		return dictionary[lookupKey]
+	else:
+		return None
+
+def GetObjectOfTypeFromURLQuery(query, type): 
+	dictionary = GetDictionaryFromURLQuery(query)
+	lookupKey = URL_IDS[type]
+	if dictionary.has_key(lookupKey):
+		keyName = dictionary[lookupKey]
+		if type == "url_query_rakontu":
+			return Rakontu.get_by_key_name(keyName)
+		if type == "url_query_entry":
+			return Entry.get_by_key_name(keyName)
+		if type == "url_query_attachment":
+			return Attachment.get_by_key_name(keyName)
+		if type == "url_query_annotation":
+			return Annotation.get_by_key_name(keyName)
+		if type == "url_query_answer":
+			return Answer.get_by_key_name(keyName)
+		if type == "url_query_member":
+			return Member.get_by_key_name(keyName)
+		if type == "url_query_character":
+			return Character.get_by_key_name(keyName)
+		if type == "url_query_search_filter":
+			return SavedSearch.get_by_key_name(keyName)
+		if type == "url_query_attachment":
+			return Attachment.get_by_key_name(keyName)
+		if type == "url_query_export":
+			return Export.get_by_key_name(keyName)
+	else:
+		return None
+	
+def GetObjectOfUnknownTypeFromURLQuery(query):
+	dictionary = GetDictionaryFromURLQuery(query)
+	DebugPrint(dictionary)
+	for lookupKey in URL_IDS.keys():
+		if dictionary.has_key(URL_IDS[lookupKey]):
+			DebugPrint('looking up %s' % lookupKey)
+			return GetObjectOfTypeFromURLQuery(query, lookupKey)
+	
+def GetEntryAndAnnotationFromURLQuery(query):
+	annotation = None
+	entry = GetObjectOfTypeFromURLQuery(query, "url_query_entry")
+	if not entry:
+		annotation = GetObjectOfTypeFromURLQuery(query, "url_query_annotation")
+		if annotation:
+			entry = annotation.entry
+	return entry, annotation
 
 def GetStandardTemplateDictionaryAndAddMore(newItems):
 	items = { 
@@ -95,18 +216,14 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'user_is_admin': users.is_current_user_admin(),
 	   'logout_url': users.create_logout_url("/"),
 	   }
-	for key in DIRS.keys():
-		items[key] = DIRS[key]
-	for key in URLS.keys():
-		items[key] = URLS[key] 
-	for key in TERMS.keys():
-		items[key] = TERMS[key]
-	for key in TEMPLATE_TERMS.keys(): 
-		items[key] = TEMPLATE_TERMS[key]
-	for key in TEMPLATE_BUTTONS.keys():
-		items[key] = TEMPLATE_BUTTONS[key] 
-	for key in TEMPLATE_MENUS.keys():
-		items[key] = TEMPLATE_MENUS[key]
+	for key in DIRS.keys():				items[key] = DIRS[key]
+	for key in URLS.keys():				items[key] = URLS[key] 
+	for key in URL_IDS.keys():			items[key] = URL_IDS[key] 
+	for key in URL_OPTIONS.keys():		items[key] = URL_OPTIONS[key] 
+	for key in TERMS.keys():			items[key] = TERMS[key]
+	for key in TEMPLATE_TERMS.keys(): 	items[key] = TEMPLATE_TERMS[key]
+	for key in TEMPLATE_BUTTONS.keys(): items[key] = TEMPLATE_BUTTONS[key] 
+	for key in TEMPLATE_MENUS.keys():	items[key] = TEMPLATE_MENUS[key]
 	items["url_story"] = URLForEntryType("story")
 	items["url_invitation"] = URLForEntryType("invitation")
 	items["url_collage"] = URLForEntryType("collage")
@@ -169,12 +286,12 @@ def ItemDisplayStringForGrid(item, curating=False, showingMember=False, showDeta
 				nameString = ' (%s)' % item.character.name
 	else:
 		nameString = ""
-	# curating flag
-	if curating:
+	# curating flag 
+	if curating: 
 		if item.flaggedForRemoval:
-			curateString = '<a href="flag?%s" class="imagelight"><img src="../images/flag_red.png" alt="flag" border="0"></a>' % item.key()
+			curateString = '<a href="flag?%s" class="imagelight"><img src="../images/flag_red.png" alt="flag" border="0"></a>' % item.urlQuery()
 		else:
-			curateString = '<a href="flag?%s" class="imagelight"><img src="../images/flag_green.png" alt="flag" border="0"></a>' % item.key()
+			curateString = '<a href="flag?%s" class="imagelight"><img src="../images/flag_green.png" alt="flag" border="0"></a>' % item.urlQuery()
 	else:
 		curateString = ""
 	# longer text if showing details
@@ -182,13 +299,13 @@ def ItemDisplayStringForGrid(item, curating=False, showingMember=False, showDeta
 		if item.__class__.__name__ == "Annotation":
 			if item.type == "comment" or item.type == "request":
 				if item.longString_formatted:
-					textString = ": %s" % upToWithLink(stripTags(item.longString_formatted), DEFAULT_DETAILS_TEXT_LENGTH, item.linkString())
+					textString = ": %s" % upToWithLink(stripTags(item.longString_formatted), DEFAULT_DETAILS_TEXT_LENGTH, item.linkURL())
 				else:
 					textString = ""
 			else:
 				textString = ""
 		elif item.__class__.__name__ == "Entry":
-			textString = ": %s" % upToWithLink(stripTags(item.text_formatted), DEFAULT_DETAILS_TEXT_LENGTH, item.linkString())
+			textString = ": %s" % upToWithLink(stripTags(item.text_formatted), DEFAULT_DETAILS_TEXT_LENGTH, item.linkURL())
 		else:
 			textString = ""
 	else:
@@ -208,40 +325,46 @@ def checkedBlank(value):
 
 class ImageHandler(webapp.RequestHandler):
 	def get(self):
-		if self.request.get("member_id"):
-			member = db.get(self.request.get("member_id"))
+		memberKeyName = self.request.get(URL_IDS["url_query_member"])
+		rakontuKeyName = self.request.get(URL_IDS["url_query_rakontu"])
+		entryKeyName = self.request.get(URL_IDS["url_query_entry"])
+		characterKeyName = self.request.get(URL_IDS["url_query_character"])
+		attachmentKeyName = self.request.get(URL_IDS["url_query_attachment"])
+		if memberKeyName:
+			member = Member.get_by_key_name(memberKeyName)
 			if member and member.profileImage:
 				self.response.headers['Content-Type'] = "image/jpg"
 				self.response.out.write(member.profileImage)
 			else:
 				self.error(404)
-		elif self.request.get("rakontu_id"):
-			rakontu = db.get(self.request.get("rakontu_id"))
+		elif rakontuKeyName:
+			rakontu = Rakontu.get_by_key_name(rakontuKeyName)
 			if rakontu and rakontu.image:
 				self.response.headers['Content-Type'] = "image/jpg"
 				self.response.out.write(rakontu.image)
 			else:
 				self.error(404)
-		elif self.request.get("entry_id"):
-			entry = db.get(self.request.get("entry_id"))
+		elif entryKeyName:
+			entry = Entry.get_by_key_name(entryKeyName)
 			if entry and entry.type == "pattern" and entry.screenshotIfPattern:
 				self.response.headers['Content-Type'] = "image/jpg"
 				self.response.out.write(entry.screenshotIfPattern)
-		elif self.request.get("character_id"):
-			character = db.get(self.request.get("character_id"))
+		elif characterKeyName:
+			character = Character.get_by_key_name(characterKeyName)
 			if character:
 				self.response.headers['Content-Type'] = "image/jpg"
 				self.response.out.write(character.image)
-		elif self.request.get("attachment_id"):
-			attachment = db.get(self.request.get("attachment_id"))
+		elif attachmentKeyName:
+			attachment = Attachment.get_by_key_name(attachmentKeyName)
 			if attachment:
 				self.response.headers['Content-Type'] = attachment.mimeType
 				self.response.out.write(attachment.data)
 			   
 class AttachmentHandler(webapp.RequestHandler):
 	def get(self):
-		if self.request.get("attachment_id"):
-			attachment = db.get(self.request.get("attachment_id"))
+		attachmentKeyName = self.request.get(URL_IDS["url_query_attachment"])
+		if attachmentKeyName:
+			attachment = Attachment.get_by_key_name(attachmentKeyName)
 			if attachment and attachment.data:
 				if attachment.mimeType in ["image/jpeg", "image/png", "text/html", "text/plain"]:
 					self.response.headers.add_header('Content-Disposition', 'filename="%s"' % attachment.fileName)
@@ -253,27 +376,30 @@ class AttachmentHandler(webapp.RequestHandler):
 				self.error(404)
 				
 class ExportHandler(webapp.RequestHandler):
-	def get(self):
-		if self.request.get("csv_id"):
-			export = db.get(self.request.get("csv_id"))
+	def get(self): 
+		csvKeyName = self.request.get(URL_IDS["url_query_export_csv"])
+		txtKeyName = self.request.get(URL_IDS["url_query_export_txt"])
+		xmlKeyName = self.request.get(URL_IDS["url_query_export_xml"])
+		if csvKeyName:
+			export = Export.get_by_key_name(csvKeyName)
 			if export and export.data:
-				self.response.headers.add_header('Content-Disposition', 'export; filename="%s"' % "export.csv")
+				self.response.headers.add_header('Content-Disposition', 'export; filename="%s.%s"' % (TERMS["term_export"], "csv"))
 				self.response.headers.add_header('Content-Type', "text/csv")
 				self.response.out.write(export.data)
 			else:
 				self.error(404)
-		elif self.request.get("print_id"):
-			export = db.get(self.request.get("print_id"))
+		elif txtKeyName:
+			export = Export.get_by_key_name(txtKeyName)
 			if export and export.data:
-				self.response.headers.add_header('Content-Disposition', 'export; filename="%s"' % "print.html")
+				self.response.headers.add_header('Content-Disposition', 'export; filename="%s.%s"' % (TERMS["term_print"], "html"))
 				self.response.headers.add_header('Content-Type', "text/html")
 				self.response.out.write(export.data)
 			else:
 				self.error(404)
-		elif self.request.get("xml_id"):
-			export = db.get(self.request.get("xml_id"))
+		elif xmlKeyName:
+			export = Export.get_by_key_name(xmlKeyName)
 			if export and export.data:
-				self.response.headers.add_header('Content-Disposition', 'export; filename="%s"' % "export.xml")
+				self.response.headers.add_header('Content-Disposition', 'export; filename="%s.%s"' % (TERMS["term_export"], "xml"))
 				self.response.headers.add_header('Content-Type', "text/xml")
 				self.response.out.write(export.data)
 			else:
@@ -463,17 +589,21 @@ def HTMLColorToRGB(colorstring):
 
 def RGBToHTMLColor(rgb_tuple):
     return '%02x%02x%02x' % rgb_tuple
-	
+    
 def HexColorStringForRowIndex(index):
 	if index == 0:
 		return GRID_DISPLAY_ROW_COLORS_TOP
 	else:
-		r,g,b = HTMLColorToRGB(GRID_DISPLAY_ROW_COLORS_TOP)
-		r -= index * COLOR_DECREMENT
-		g -= index * COLOR_DECREMENT
-		b -= index * COLOR_DECREMENT
-		return RGBToHTMLColor((r,g,b))
-	
+		startR, startG, startB = HTMLColorToRGB(GRID_DISPLAY_ROW_COLORS_TOP)
+		endR, endG, endB = HTMLColorToRGB(GRID_DISPLAY_ROW_COLORS_BOTTOM)
+		rDecrement = (startR - endR) // BROWSE_NUM_ROWS
+		gDecrement = (startG - endG) // BROWSE_NUM_ROWS
+		bDecrement = (startB - endB) // BROWSE_NUM_ROWS
+		r = min(255, max(0, startR - index * rDecrement))
+		g = min(255, max(0, startG - index * gDecrement))
+		b = min(255, max(0, startB - index * bDecrement))
+		return RGBToHTMLColor((r,g,b)) 
+	  
 # ============================================================================================
 # ============================================================================================
 # DATE AND TIME

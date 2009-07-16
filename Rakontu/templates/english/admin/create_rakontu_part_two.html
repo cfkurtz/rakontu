@@ -9,26 +9,35 @@
 		<form action="/{{dir_admin}}/{{url_create2}}" method="post">
 		<table border="0" width="400" class="noborder"><tr><td class="noborder">
 			<h3>Create a new Rakontu: Step Two</h3>
+			
+			<p>The short (URL) name chosen for this Rakontu is:</p>
+			<p>&nbsp; &nbsp; <b>{{url}}</b></p>
 			<input type="hidden" name="url" value="{{url}}">
 			
-			<p>Please provide a longer name to display on the Rakontu pages. 
-			<i>The Rakontu's managers can change the name later.</i></p>
+			<p>Please provide a longer name to display on the Rakontu pages.{{"setting_up_Rakontu_long_names"|tip}}</p>
 			<input type="text" name="name" value="" size="40" maxlength="{{maxlength_name}}"/>
 			
-			<p>Which of these types best represents this Rakontu? (This will determine what sorts of questions
-				are asked about people and the stories they tell. The Rakontu's managers can change the questions later.)</p>
+			<p>Which of these types best represents this Rakontu? {{"choosing_a_Rakontu_type"|info}}</p>
 			<select name="type">
 				{% for type in rakontu_types %}
 					<option value="{{type}}">{{type}}</option>
 				{% endfor %}
 			</select>
 			
-			<p>Please enter an email address for the new Rakontu's owner. 
-			<i>The address must be associated with a valid Google account.</i></p>
+			<p>Please enter an email address for the new Rakontu's owner. {{"setting_up_an_email_adddress_for_a_new_Rakontu"|caution}}</p>
 			<input type="text" name="ownerEmail" value="" size="40" maxlength="{{maxlength_name}}"/>
+			
+			<p>Do you want to become a member of the Rakontu? {{"becoming_a_member_of_a_Rakontu_you_have_set_up"|caution}}</p>
+			<select name="becomeMember">
+				<option value="yes">Yes, make me a member of the new Rakontu</option>
+				<option value="no">No, don't make me a member</option>
+				</select>
 		
-			<p>&nbsp;</p>
-			<center><input type="submit" value="Create the New Rakontu" class="button"></center>
+			<center>
+			<p><input type="submit" name="create" value="Create the New Rakontu" class="button"></p>
+			<p>(or <a href="/{{dir_admin}}/{{url_create1}}?{{url}}">Go back to the first page</a>)
+			</center>
+			
 		</td></tr></table>
 		</form>
 		</div>

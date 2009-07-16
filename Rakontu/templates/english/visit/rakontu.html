@@ -23,7 +23,7 @@
 	      			<th>How to be this character</th></tr>
 	      		{% for character in characters %}
 	      			<tr>
-					<td><a href="/{{dir_visit}}/{{url_character}}?{{character.key}}">{{character.name}}</a></td>
+					<td><a href="/{{dir_visit}}/{{url_character}}?{{url_query_character}}={{character.getKeyName}}">{{character.name}}</a></td>
 	  				<td>
 			 		{% if character.image %}
 						{{character.imageEmbed}}

@@ -7,7 +7,7 @@
 		{% if current_member.isManagerOrOwner %}
 	
 			<div id="stylized" class="rakontu_form">
-			<form action="/{{dir_manage}}/{{url_members}}" method="post">
+			<form action="/{{dir_manage}}/{{url_members}}?{{rakontu.urlQuery}}" method="post">
 			
 			<h3>Active members</h3>
 			<fieldset>

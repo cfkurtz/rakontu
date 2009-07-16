@@ -24,7 +24,7 @@
 			{% endif %}
 			</div>
 		{% else %}
-			<div class="blurb">{{entry.text_formatted}}</div>
+			<div class="blurb">{{entry.text_formatted}}
 		{% endif %}
 		{% if attachments %}
 			{% for attachment in attachments %}
@@ -32,7 +32,7 @@
 				{% if attachment.name %}
 					{{attachment.name}} -
 				{% endif %}
-				<a href="/{{url_attachment}}?attachment_id={{attachment.key}}">{{attachment.fileName}}</a><p>
+				{{attachment.linkString}}<p>
 			{% endfor %}
 		{% endif %}
 		{% if answers_with_entry %}
@@ -75,12 +75,13 @@
 			{% endif %}
 		{% endif %}
 	{% endif %}
+	</div>
 	
 	{% if annotation %}
 		<p><b>Your {{annotation.typeForDisplay|capfirst}}:</b></p>
 		{% ifequal annotation.type "comment" %}
 			<p><b>{{annotation.shortString}}</b></p>
-			<p>{{annotation.longString_formatted}}</p>
+			<ul><li class="nobullet">{{annotation.longString_formatted}}</li></ul>
 		{% endifequal %}
 		{% ifequal annotation.type "request" %}
 			<p><b>{{annotation.shortString}}</b></p>
@@ -106,10 +107,10 @@
 	<div id="stylized" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_preview}}
 		{% if annotation %}
-			?{{annotation.key}}
+			?{{annotation.urlQuery}}
 		{% else %}
 				{% if entry %}
-					?{{entry.key}}
+					?{{entry.urlQuery}}
 				{% endif %}
 		{% endif %}
 	" method="post" enctype="multipart/form-data">

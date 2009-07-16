@@ -5,7 +5,7 @@
 	<div id="content">
 	{% if current_member.isCuratorOrManagerOrOwner %}
 		<div id="stylized" class="rakontu_form">
-		<form action="/{{dir_curate}}/{{url_flags}}" method="post">
+		<form action="/{{dir_curate}}/{{url_flags}}?{{rakontu.urlQuery}}" method="post">
 			{% if current_member.isManagerOrOwner %}
 				<p>You are a{% if current_member.isOwner %}n{% endif %} 
 				<b>{{current_member.governanceType}}</b> of this Rakontu, so you can remove any item
@@ -45,7 +45,7 @@
 								{% if entry.creator.active %}
 									{{entry.creator.linkString}}
 									{% ifequal entry.creator.key current_member.key %}
-										 ({{YOU}})
+										 ({{template_you}})
 									{% endifequal %}
 								{% else %}
 									the former member "{{entry.creator.nickname}}"
@@ -113,7 +113,7 @@
 								{% if annotation.creator.active %}
 									{{annotation.creator.linkString}}
 									{% ifequal annotation.creator.key current_member.key %}
-										 ({{YOU}})
+										 ({{template_you}})
 									{% endifequal %}
 								{% else %}
 									the former member "{{annotation.creator.nickname}}"
@@ -163,7 +163,7 @@
 								{% if answer.creator.active %}
 									{{answer.creator.linkString}}
 									{% ifequal answer.creator.key current_member.key %}
-										 ({{YOU}})
+										 ({{template_you}})
 									{% endifequal %}
 								{% else %}
 									the former member "{{answer.creator.nickname}}"

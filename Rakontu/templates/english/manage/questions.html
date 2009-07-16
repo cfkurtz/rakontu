@@ -5,7 +5,7 @@
 	
 	{% if current_member.isManagerOrOwner %}
 		<div id="stylized" class="rakontu_form">
-		<form action="/{{dir_manage}}/{{url_questions}}_{{refer_type_url}}" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_manage}}/{{url_questions}}_{{refer_type_url}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		<h3>Add New {{refer_type_display|capfirst}} Questions{{"adding_new_questions"|tip}}</h3>
 		<fieldset>
 		<textarea name="newQuestionNames" rows="6" cols="40"></textarea>
@@ -64,7 +64,7 @@
 	    <p>Choose a CSV file to import questions from:
 	    <input type="file" name="import" size="40" accept="csv"/></p>
 	    {% if questions %}
-	    	<p><a href="/{{dir_manage}}/{{url_questionsToCSV}}?{{refer_type}}">Export questions to CSV</a></p>
+	    	<p><a href="/{{dir_manage}}/{{url_questionsToCSV}}?{{url_query_export_type}}={{refer_type}}&{{rakontu.urlQuery}}">Export questions to CSV</a></p>
 	    {% endif %}
 	    </fieldset>
 	      	

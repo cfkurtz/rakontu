@@ -44,7 +44,7 @@ RAKONTU_NEIGHBORHOOD = u"neighborhood"
 RAKONTU_INTEREST_SUPPORT_GROUP = u"interest or support group"
 RAKONTU_WORK_GROUP = u"work group"
 RAKONTU_FAMILY = u"family"
-RAKONTU_CUSTOM = u"I'd rather choose the questions myself"
+RAKONTU_CUSTOM = u"don't ask any questions by default (managers will add later)"
 
 DEFAULT_RAKONTU_DESCRIPTION = \
 u"""
@@ -263,6 +263,9 @@ TERMS = {
 		"term_at": "at", # followed by time
 		# used when making a choice from a list  
 		"term_choose": "choose",
+		# used when exporting to files
+		"term_export": "export",
+		"term_print": "print",
 		# miscellaneous
 		"term_does_not_apply": "doesn't apply",
 		"term_copy_of": "Copy of",
@@ -291,11 +294,13 @@ TEMPLATE_TERMS = {
 		# common_footer.html
 		"template_powered_by": "Powered by",
 		# common_questions.html
+		# read.html
+		"template_you": "you",
 		}
 
 TEMPLATE_BUTTONS = {
 		# common_grid.html
-		"button_hide_details": "Hidez les details",
+		"button_hide_details": "Hide details",
 		"button_show_details": "Show details",
 		
 		}
@@ -313,6 +318,8 @@ TEMPLATE_MENUS = {
 		"menu_invitation": "Invite people to tell stories",
 		"menu_collage": "Build a story collage",
 		"menu_pattern": "Describe a pattern",
+		"menu_drafts": "Review saved drafts",
+		"menu_filters": "Review saved search filters",
 		# curate
 		"menu_curate": "Curate",
 		"menu_gaps": "Gaps",
@@ -417,6 +424,7 @@ HOME = "/visit/home"
 
 URLS = {
 	# visit
+	"url_home": "home",
     "url_new": "new",
     "url_entry": "entry",
     "url_annotation": "annotation",
@@ -425,12 +433,13 @@ URLS = {
     "url_read": "read",
     "url_read_annotation": "readAnnotation",
     "url_preview_answers": "previewAnswers",
-    "url_answers": "answers",
+    "url_answers": "answers", 
     "url_preferences": "preferences",
     "url_search_filter": "filter",
     "url_member": "member",
     "url_rakontu": "rakontu",
     "url_leave": "leave",
+    "url_filters": "filters",
 	# link creating 
     "url_retell": "retell",
     "url_remind": "remind",
@@ -477,6 +486,50 @@ URLS = {
     "url_image": "img",
     "url_attachment": "attachment",
     }
+
+# ============================================================================================ 
+# URL IDS
+# These are the parts of URLs after the ?, and specifically those that look up items in the database.
+# The things on the left MUST stay as is, because they match strings in the source code. Don't change them!
+# The things on the right can be translated.
+# Because these appear in URLs they cannot contain spaces or special characters.
+# ============================================================================================ 
+
+URL_IDS = {
+	# used to send database keynames
+	"url_query_rakontu": "rakontu",
+	"url_query_entry": "entry",
+	"url_query_attachment": "attachment",
+	"url_query_annotation": "annotation",
+	"url_query_answer": "answer",
+	"url_query_member": "member",
+	"url_query_character": "character",
+	"url_query_search_filter": "filter",
+	"url_query_attachment": "attachment",
+	"url_query_export_csv": "csv",
+	"url_query_export_txt": "txt",
+	"url_query_export_xml": "xml",
+	}
+
+# ============================================================================================ 
+# URL OPTIONS
+# These are the parts of URLs after the ?, and specifically those that provide options to the page.
+# The things on the left MUST stay as is, because they match strings in the source code. Don't change them!
+# The things on the right can be translated.
+# Because these appear in URLs they cannot contain spaces or special characters.
+# ============================================================================================ 
+
+URL_OPTIONS = {
+	# used to send options or strings
+	"url_query_export_type": "exporttype",
+	"url_query_link_type": "linktype",
+	"url_query_sort_by": "sortby",
+	"url_query_uncompleted": "uncompleted",
+	"url_query_no_responses": "noresponses",
+	"url_query_curate": "curate",
+	"url_query_result": "message",
+	"url_query_help": "help",
+	}
 
 # ============================================================================================ 
 # RESULTS

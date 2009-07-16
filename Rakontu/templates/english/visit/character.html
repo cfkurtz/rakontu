@@ -29,12 +29,12 @@
 		
 		{% include "../common_grid.html" %}
 		
-	<div class="rightalign"><a href="/{{dir_visit}}/{{url_rakontu}}">See all characters</a></div>
+	<div class="rightalign"><a href="/{{dir_visit}}/{{url_rakontu}}?{{rakontu.urlQuery}}">See all characters</a></div>
   	{% if current_member.isManagerOrOwner %}
-  		<div class="rightalign"><p><a href="/{{dir_manage}}/{{url_character}}?{{character.key}}">Change this character</a></p></div>
+  		<div class="rightalign"><p><a href="/{{dir_manage}}/{{url_character}}?{{character.urlQuery}}">Change this character</a></p></div>
   	{% endif %}
   	{% if current_member.isCurator %}
-  		<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_character}}?{{character.key}}&curate">Curate this character's entries</a></p></div>
+  		<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_character}}?{{character.urlQuery}}&{{url_query_curate}}={{url_query_curate}}">Curate this character's entries</a></p></div>
   	{% endif %}
   	
 	</div>

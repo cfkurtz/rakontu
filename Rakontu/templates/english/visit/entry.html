@@ -7,7 +7,9 @@
 		<div id="stylized" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_entry}}
 		{% if entry %}
-		?{{entry.key}}
+			?{{entry.urlQuery}}
+		{% else %}
+			?{{rakontu.urlQuery}}
 		{% endif %}
 		" method="post" enctype="multipart/form-data">
 		
@@ -90,7 +92,7 @@
 				{% ifequal link_type "respond" %}
 					why you responded to the invitation?</p>
 				{% endifequal %}
-				<p><input type="text" name="link_comment" value="" size="60" maxlength="{{maxlength_subject_or_comment}}"></p>
+				<p><input type="text" name="link_comment" value="" size="80" maxlength="{{maxlength_subject_or_comment}}"></p>
 				<input type="hidden" name="link_type" value="{{link_type}}">
 				<input type="hidden" name="link_item_from" value="{{link_item_from.key}}">
 				</fieldset>
@@ -141,91 +143,6 @@
 			{% if questions %}
 				{% include "../common_questions.html" %}
 			{% endif %}
-			
-			{% ifnotequal rakontu.maxNumAttachments 0 %}
-				<h3>Attachments {{"attaching_files"|tip}}</h3>
-				<fieldset>
-				{% if entry %}
-					<p>This {{entry_type}} has these attachments. Click the Browse button to replace any attachment,
-					or check the Remove box to delete it.
-				{% else %}
-					<p>You can attach up to {{rakontu.maxNumAttachments}} files to this {{entry_type}} here.
-				{% endif %}
-				<i>PDF, TXT, DOC, JPG, PNG only; maximum 10 megabyte limit per attachment.</i></p>
-				
-		      	<table border="1" cellpadding="4" cellspacing="0">
-		      	<tr>
-		      		<th>Name</th>
-		      		<th>File</th>
-		      		<th>Remove?</th>
-		      		<th>{% if entry %} Replace {% else %} Attach {% endif %} </th>
-		      		
-		      		</tr><td><input type="text" name="attachmentName0" value="{{attachments.0.name}}" size="20" maxlength="{{maxlength_name}}"/></td>
-					<td>{% if attachments.0.fileName %}
-						<a href="{{url_attachment}}?attachment_id={{attachments.0.key}}">
-						{{attachments.0.fileName}}</a>{% else %}{{term_none}}
-						{% endif %}</td>
-					<td>{% if attachments.0.fileName %}
-							<input type="checkbox" name"removeAttachment|{{attachments.0.key}}" value="removeAttachment|{{attachments.0.key}}" id="0">
-							<label for="0">Remove</label>{% else %}&nbsp; 
-						{% endif %}</td>
-					<td><input type="file" name="attachment0" size="20"/></p></td></tr>
-
-					{% if rakontu.allowsAtLeastTwoAttachments %}
-			      		</tr><td><input type="text" name="attachmentName1" value="{{attachments.1.name}}" size="20" maxlength="{{maxlength_name}}"/></td>
-						<td>{% if attachments.1.fileName %}
-							<a href="{{url_attachment}}?attachment_id={{attachments.1.key}}">
-							{{attachments.1.fileName}}</a>{% else %}{{term_none}}
-							{% endif %}</td>
-						<td>{% if attachments.1.fileName %}
-								<input type="checkbox" name"removeAttachment|{{attachments.1.key}}" value="removeAttachment|{{attachments.1.key}}" id="1">
-								<label for="1">Remove</label>{% else %}&nbsp; 
-							{% endif %}</td>
-						<td><input type="file" name="attachment1" size="20"/></p></td></tr>
-				
-						{% if rakontu.allowsAtLeastThreeAttachments %}
-				      		</tr><td><input type="text" name="attachmentName2" value="{{attachments.2.name}}" size="20" maxlength="{{maxlength_name}}"/></td>
-							<td>{% if attachments.2.fileName %}
-								<a href="{{url_attachment}}?attachment_id={{attachments.2.key}}">
-								{{attachments.2.fileName}}</a>{% else %}{{term_none}}
-								{% endif %}</td>
-							<td>{% if attachments.2.fileName %}
-									<input type="checkbox" name"removeAttachment|{{attachments.2.key}}" value="removeAttachment|{{attachments.2.key}}" id="2">
-									<label for="2">Remove</label>{% else %}&nbsp; 
-								{% endif %}</td>
-							<td><input type="file" name="attachment2" size="20"/></p></td></tr>
-							
-							{% if rakontu.allowsAtLeastFourAttachments %}
-					      		</tr><td><input type="text" name="attachmentName3" value="{{attachments.3.name}}" size="20" maxlength="{{maxlength_name}}"/></td>
-								<td>{% if attachments.3.fileName %}
-									<a href="{{url_attachment}}?attachment_id={{attachments.3.key}}">
-									{{attachments.3.fileName}}</a>{% else %}{{term_none}}
-									{% endif %}</td>
-								<td>{% if attachments.3.fileName %}
-										<input type="checkbox" name"removeAttachment|{{attachments.3.key}}" value="removeAttachment|{{attachments.3.key}}" id="3">
-										<label for="3">Remove</label>{% else %}&nbsp; 
-									{% endif %}</td>
-								<td><input type="file" name="attachment3" size="20"/></p></td></tr>
-								
-								{% if rakontu.allowsFiveAttachments %}
-					      		</tr><td><input type="text" name="attachmentName4" value="{{attachments.4.name}}" size="20" maxlength="{{maxlength_name}}"/></td>
-								<td>{% if attachments.4.fileName %}
-									<a href="{{url_attachment}}?attachment_id={{attachments.4.key}}">
-									{{attachments.4.fileName}}</a>{% else %}{{term_none}}
-									{% endif %}</td>
-								<td>{% if attachments.4.fileName %}
-										<input type="checkbox" name"removeAttachment|{{attachments.4.key}}" value="removeAttachment|{{attachments.4.key}}" id="4">
-										<label for="4">Remove</label>{% else %}&nbsp; 
-									{% endif %}</td>
-								<td><input type="file" name="attachment4" size="20"/></p></td></tr>
-							
-								{% endif %}
-							{% endif %}
-						{% endif %}
-					{% endif %}
-				</table>
-				</fieldset>
-			{% endifnotequal %}
 			
 		{% ifequal entry_type "collage" %}
 			{% if included_links_outgoing %}
@@ -284,7 +201,7 @@
 	  				</tr>
 	      		{% endfor %}			
 	      	</table>
-	      	</fieldset>
+		    </fieldset>
 	      	{% endif %}
 	  {% endifequal %}
 	  
@@ -328,6 +245,42 @@
 	      	{% endif %}
 	  {% endifequal %}
 	  
+			{% if rakontu.allowsAttachments %}
+				<h3>Attachments</h3>
+				<fieldset>
+		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<tr><th>Name</th><th>File</th><th>Remove?</th><th>Attach or replace {{"replacing_attachments"|tip}}</th></tr>
+	      		{% for i in rakontu.maxNumAttachments|makeRange %}
+	      			<tr>
+		      		<td>
+		      			<input type="text" name="attachmentName{{i}}" value="{{attachments|listLookup:i|get:"name"|orNothing}}" size="20" maxlength="{{maxlength_name}}"/>
+		      		</td>
+					<td>
+						{% if attachments|listLookup:i|get:"fileName" %} 
+							{{attachments|listLookup:i|get:"attachmentEmbed"}} 
+						{% else %} 
+							{{term_none}} 
+						{% endif %}
+					</td>
+					<td>
+						{% if attachments|listLookup:i|get:"fileName" %}
+							<input type="checkbox" name="removeAttachment|{{attachments|listLookup:i|get:"key"}}" 
+							value="removeAttachment|{{attachments|listLookup:i|get:"key"}}"  id="{{i}}">
+							<label for="{{i}}">Remove</label>
+						{% else %}
+							&nbsp; 
+						{% endif %}
+					</td>
+					<td>
+						<input type="file" name="attachment{{i}}" size="20"/>
+					</td>
+					</tr>
+	      		{% endfor %}
+				</table>
+				<p><i>Accepted file types: {{attachment_file_types|join:", "}}.</i></p>
+				</fieldset>
+			{% endif %}
+			
 			<p>
 			<center>
 			{% if entry %}

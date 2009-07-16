@@ -7,7 +7,7 @@
 	<div id="content">
 	
 		<div id="stylized" class="rakontu_form">
-		<form action="/{{dir_visit}}/{{url_preferences}}" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		{% if member.isOnlineMember %}
 			<h3>Your member information</h3>
 		{% else %}
@@ -73,9 +73,6 @@
 		{% endif %}
 		</tr>
 		</table>
-		
-		<p></p>
-		<div class="rightalign"><a href="/{{dir_visit}}/{{url_drafts}}?{{member.key}}">View or change saved drafts</a></div>
 		
 		<h3>Nickname and description</h3>
 		<fieldset>
@@ -146,7 +143,7 @@
 					</select>
 				</td></tr></table>
 		{% if show_leave_link %}
-			<div class="rightalign">To leave the Rakontu, click <a href="/{{dir_visit}}/{{url_leave}}?{{member.key}}">here</a>.</div>
+			<div class="rightalign">To leave the Rakontu, click <a href="/{{dir_visit}}/{{url_leave}}?{{url_query_member}}={{member.getKeyName}}">here</a>.</div>
 		{% endif %}
 
 			</fieldset>

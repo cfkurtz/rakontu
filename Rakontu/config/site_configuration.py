@@ -128,9 +128,7 @@ DEFAULT_TIME_ZONE = "US/Eastern"
 
 # This is the top (hex) color for the browsing tables for the home page and for each entry. 
 GRID_DISPLAY_ROW_COLORS_TOP = "FAEBD7"
-
-# Lower rows in the main and entry browse tables get darker and darker by this increment.
-COLOR_DECREMENT = 5
+GRID_DISPLAY_ROW_COLORS_BOTTOM = "CD853F"
 
 # This is how many rows there are (nudge values) in the main and entry browse tables.
 BROWSE_NUM_ROWS = 10
@@ -139,7 +137,7 @@ BROWSE_NUM_ROWS = 10
 BROWSE_NUM_COLS = 7
 
 # This is how many of things you can search for of each type (texts, tags, answers)
-NUM_SEARCH_FIELDS = 3
+NUM_SEARCH_FIELDS = 3 
 
 # ============================================================================================ 
 # ENTRIES
@@ -156,6 +154,7 @@ DEFAULT_MAX_NUM_ATTACHMENTS = 3
 # Lists of MIME types can be found here:
 # http://www.iana.org/assignments/media-types/
 # http://www.w3schools.com/media/media_mimeref.asp
+# You should make sure your entry in the help.csv file (which tells the user which types are accepted) matches this list.
 ACCEPTED_ATTACHMENT_FILE_TYPES = ["jpg", "png", "pdf", "doc", "txt", "mpg", "mp3", "html", "zip"]
 ACCEPTED_ATTACHMENT_MIME_TYPES = ["image/jpeg", "image/png", "application/pdf", "application/msword", "text/plain", "video/mpeg", "audio/mpeg", "text/html", "application/zip"]
 

@@ -25,8 +25,8 @@
 	  		{% if member.helpingRoles.2 %} <b>liaison</b>,{% endif %}
 	  	{% endif %}
 	  	
-	  	who joined the Rakontu on 
-	  	on {{member.joined|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.
+	  	who joined the Rakontu on
+	  	{{member.joined|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.
 	  	</p>
   		{% if member.profileText_formatted|orNothing %}
   			{% ifnotequal member.profileText_formatted no_profile_text %}
@@ -39,7 +39,8 @@
 			<ul>
 			{% for answer in answers %}
 				{% if answer.question.active %}
-					<li class="nobullet">{{answer.question.text}} &nbsp; {{answer.displayStringShort}}</li>
+					<li class="nobullet">{{answer.question.text}}</li>
+					<li class="nobullet">&nbsp; &nbsp; &nbsp; {{answer.displayStringShort}}</li>
 				{% endif %}
 			{% endfor %}
 			</ul>
@@ -50,7 +51,7 @@
 				<h4>Send this member a message {% if not member.isOnlineMember %} {{"messages_to_offline_members"|info}} {% endif %}</h4>
 				<fieldset>
 				<div id="stylized" class="rakontu_form">
-				<form action="/{{dir_visit}}/{{url_member}}?{{member.key}}" method="post">
+				<form action="/{{dir_visit}}/{{url_member}}?{{member.urlQuery}}" method="post">
 				<p>Please give your message a subject line.</p>
 				<p><input type="text" name="subject" size="80" value="" maxlength="{{maxlength_subject_or_comment}}"/></p>
 				<p>Please enter your message here.</p>
@@ -65,10 +66,10 @@
   		{% include "../common_grid.html" %}
   		
       	{% ifequal member.key current_member.key %}
-      		<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_preferences}}?{{member.key}}">Change your profile</a></p></div>
+      		<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_preferences}}?{{member.urlQuery}}">Change your profile</a></p></div>
       	{% endifequal %}
       	{% if current_member.isCurator %}
-      		<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_member}}?{{member.key}}&{{url_curate}}">Curate this member's entries</a></p></div>
+      		<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_member}}?{{member.urlQuery}}&{{url_query_curate}}={{url_query_curate}}">Curate these entries</a></p></div>
       	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}

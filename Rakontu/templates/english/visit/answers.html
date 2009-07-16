@@ -5,12 +5,12 @@
 		<div id="content">
 		
 		<div id="stylized" class="rakontu_form">
-		<form action="/{{dir_visit}}/{{url_answers}}?{{entry.key}}
+		<form action="/{{dir_visit}}/{{url_answers}}?{{url_query_entry}}={{entry.getKeyName}}
 		" method="post" enctype="multipart/form-data">
 		
 			<h2>{{entry.title}} ({{entry.typeForDisplay}})</h2>
 	
-			<div class="blurb">{{entry.text}}</div
+			<div class="blurb">{{entry.text_formatted}}</div
 			
 			{% if questions %}
 				{% include "../common_questions.html" %}

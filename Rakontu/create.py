@@ -7,38 +7,44 @@
 # --------------------------------------------------------------------------------------------
 
 from utils import *
-
 							 
 class EnterEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
+			queryEntry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
+			# if this is a retelling, reminding or responding, the query entry is the item to link FROM, not the current entry
 			if self.request.uri.find(URLS["url_retell"]) >= 0:
 				type = "story"
 				linkType = "retell"
-				itemFromKey = self.request.query_string
-				itemFrom = db.get(itemFromKey)
+				itemFrom = queryEntry
 				entry = None
-				entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
 				entryName = None
+				answers = None
+				attachments = None
+				entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
 			elif self.request.uri.find(URLS["url_remind"]) >= 0:
 				type = "story"
 				linkType = "remind"
-				itemFromKey = self.request.query_string
-				itemFrom = db.get(itemFromKey)
+				itemFrom = queryEntry
 				entry = None
-				entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
 				entryName = None
+				answers = None
+				attachments = None
+				entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
 			elif self.request.uri.find(URLS["url_respond"]) >= 0:
 				type = "story"
 				linkType = "respond"
-				itemFromKey = self.request.query_string
-				itemFrom = db.get(itemFromKey)
+				itemFrom = queryEntry
 				entry = None
-				entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
 				entryName = None
+				answers = None
+				attachments = None
+				entryTypeIndexForCharacters = STORY_ENTRY_TYPE_INDEX
 			else:
+				# otherwise, the query entry (if there is one) is the current entry
 				linkType = ""
 				itemFrom = None
 				i = 0
@@ -48,19 +54,16 @@ class EnterEntryPage(webapp.RequestHandler):
 						entryTypeIndexForCharacters = i
 						break
 					i += 1
-				if not self.request.uri.find("?") >= 0:
+				if queryEntry:
+					entry = queryEntry
+					entryName = entry.title
+					answers = entry.getAnswers()
+					attachments = entry.getAttachments()
+				else:
 					entry = None
 					entryName = None
-				else:
-					entryKey = self.request.query_string
-					entry = db.get(entryKey)
-					entryName = entry.title
-			if entry:
-				answers = entry.getAnswers()
-				attachments = entry.getAttachments()
-			else:
-				answers = None
-				attachments = None
+					answers = None
+					attachments = None
 			if type == "collage":
 				if entry:
 					includedLinksOutgoing = entry.getOutgoingLinksOfType("included")
@@ -125,6 +128,7 @@ class EnterEntryPage(webapp.RequestHandler):
 							   'entry_type': type,
 							   'entry': entry,
 							   'attachments': attachments,
+							   'attachment_file_types': ACCEPTED_ATTACHMENT_FILE_TYPES,
 							   # used by common_attribution
 							   'attribution_referent_type': type,
 							   'attribution_referent': entry,
@@ -155,18 +159,14 @@ class EnterEntryPage(webapp.RequestHandler):
 			
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			for aType in ENTRY_TYPES:
 				for argument in self.request.arguments():
 					if argument.find(aType) >= 0:
 						type = aType
 						break
-			if not self.request.uri.find("?") >= 0:
-				entry = None
-			else:
-				entryKey = self.request.query_string
-				entry = db.get(entryKey)
+			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 			newEntry = False
 			if not entry:
 				entry=Entry(key_name=KeyName("entry"), rakontu=rakontu, type=type, title=DEFAULT_UNTITLED_ENTRY_TITLE)
@@ -198,7 +198,7 @@ class EnterEntryPage(webapp.RequestHandler):
 						foundMember = True
 						break
 				if not foundMember:
-					self.redirect(BuildResultURL("offlineMemberNotFound")) 
+					self.redirect(BuildResultURL("offlineMemberNotFound", rakontu=rakontu)) 
 					return
 				entry.liaison = member
 				entry.collected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
@@ -346,58 +346,64 @@ class EnterEntryPage(webapp.RequestHandler):
 				for attachment in attachmentsToRemove:
 					db.delete(attachment)
 			foundAttachments = Attachment.all().filter("entry = ", entry.key()).fetch(FETCH_NUMBER)
-			for i in range(3):
+			DebugPrint(self.request.params.items())
+			for i in range(rakontu.maxNumAttachments):
+				DebugPrint(i)
 				for name, value in self.request.params.items():
 					if name == "attachment%s" % i:
+						DebugPrint(value, name)
 						if value != None and value != "":
+							DebugPrint("value not none")
 							filename = value.filename
 							if len(foundAttachments) > i:
 								attachmentToEdit = foundAttachments[i]
 							else:
-								attachmentToEdit = Attachment(key_name=KeyName("attachment"), entry=entry)
+								attachmentToEdit = Attachment(key_name=KeyName("attachment"), entry=entry, rakontu=rakontu)
 							j = 0
 							mimeType = None
 							for type in ACCEPTED_ATTACHMENT_FILE_TYPES:
-								if filename.find(".%s" % type) >= 0:
+								if filename.lower().find(".%s" % type.lower()) >= 0:
 									mimeType = ACCEPTED_ATTACHMENT_MIME_TYPES[j]
 								j += 1
+							DebugPrint(mimeType, "mime type")
 							if mimeType:
 								attachmentToEdit.mimeType = mimeType
 								attachmentToEdit.fileName = filename
 								attachmentToEdit.name = htmlEscape(self.request.get("attachmentName%s" % i))
-								attachmentToEdit.data = db.Blob(str(self.request.get("attachment%s" % i)))
+								blob = db.Blob(str(self.request.get("attachment%s" % i)))
+								attachmentToEdit.data = blob
+								DebugPrint(attachmentToEdit, "attachmentToEdit")
 								try:
 									attachmentToEdit.put()
 								except:
-									self.redirect(BuildResultURL("attachmentsTooLarge"))
+									self.redirect(BuildResultURL("attachmentsTooLarge", rakontu=rakontu))
 									return
 			if preview:
-				self.redirect(BuildURL("dir_visit", "url_preview", entry.key()))
+				self.redirect(BuildURL("dir_visit", "url_preview", entry.urlQuery()))
 			elif entry.draft:
 				if entry.collectedOffline:
 					if entry.inBatchEntryBuffer:
-						self.redirect(BuildURL("dir_liaise", "url_review"))
+						self.redirect(BuildURL("dir_liaise", "url_review", rakontu=rakontu))
 					else: # not in batch entry buffer
-						self.redirect(BuildURL("dir_visit", "url_drafts", entry.creator.key()))
+						self.redirect(BuildURL("dir_visit", "url_drafts", entry.creator.urlQuery()))
 				else: # not collected offline 
-					self.redirect(BuildURL("dir_visit", "url_drafts", member.key()))
+					self.redirect(BuildURL("dir_visit", "url_drafts", member.urlQuery()))
 			else: # new entry
 				# this is the one time when I'll manipulate the member's time view
 				# they want to see the story they made
 				member.viewTimeEnd = entry.published + timedelta(seconds=1)
 				member.put()
-				self.redirect(BuildURL("dir_visit", "url_read", entry.key()))
+				self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
 		else: # no rakontu or member
 			self.redirect(START)
 			
 class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			entry = None
-			if self.request.query_string:
-				entry = Entry.get(self.request.query_string)
+			if isFirstVisit: self.redirect(member.firstVisitURL())
+			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 			if entry:
 				answers = entry.getAnswersForMember(member)
 				if len(answers):
@@ -423,16 +429,15 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/answers.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 				
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			entryKey = self.request.query_string
-			entry = db.get(entryKey)
+			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 			if entry:
 				newAnswers = False
 				preview = False
@@ -451,13 +456,13 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 						if self.request.get("offlineSource") == str(aMember.key()):
 							answersAlreadyInPlace = aMember.getDraftAnswersForEntry(entry)
 							if answersAlreadyInPlace:
-								self.redirect(BuildResultURL("offlineMemberAlreadyAnsweredQuestions"))
+								self.redirect(BuildResultURL("offlineMemberAlreadyAnsweredQuestions", rakontu=rakontu))
 								return
 							creator = aMember
 							foundMember = True
 							break
 					if not foundMember:
-						self.redirect(BuildResultURL("offlineMemberNotFound"))
+						self.redirect(BuildResultURL("offlineMemberNotFound", rakontu=rakontu))
 						return
 					liaison = member
 					collected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
@@ -526,25 +531,27 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 						else:
 							answerToEdit.publish()
 				if preview:
-					self.redirect(BuildURL("dir_visit", "url_preview_answers", entry.key()))
+					self.redirect(BuildURL("dir_visit", "url_preview_answers", entry.urlQuery()))
 				elif setAsDraft:
-					self.redirect(BuildURL("dir_visit", "url_drafts", creator.key()))
+					self.redirect(BuildURL("dir_visit", "url_drafts", creator.urlQuery()))
 				else:
-					self.redirect(BuildURL("dir_visit", "url_read", entry.key()))
+					self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
 			else:
-				self.redirect(BuildURL("dir_visit", "url_read", entry.key()))
+				self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
 		else:
 			self.redirect(START)
 			
 class PreviewAnswersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			entry = None
-			if self.request.query_string:
-				entry = Entry.get(self.request.query_string)
+			if isFirstVisit: self.redirect(member.firstVisitURL())
+			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
+			if entry:
 				answers = entry.getAnswersForMember(member)
+			else:
+				answers = None
 			if entry and answers:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["PREVIEW_OF"], 
@@ -563,29 +570,28 @@ class PreviewAnswersPage(webapp.RequestHandler):
 		
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			entry = None
-			if self.request.query_string:
-				entry = Entry.get(self.request.query_string)
-				if entry:
-					if "edit" in self.request.arguments():
-						self.redirect(BuildURL("dir_visit", "url_answers", entry.key()))
-					elif "profile" in self.request.arguments():
-						self.redirect(BuildURL("dir_visit", "url_preferences", member.key()))
-					elif "publish" in self.request.arguments():
-						answers = entry.getAnswersForMember(member)
-						for answer in answers:
-							answer.draft = False
-							answer.published = datetime.now(tz=pytz.utc)
-						db.put(answers)
-						self.redirect(HOME)
+			entry = Entry.get(self.request.query_string)
+			if entry:
+				if "edit" in self.request.arguments():
+					self.redirect(BuildURL("dir_visit", "url_answers", entry.urlQuery()))
+				elif "profile" in self.request.arguments():
+					self.redirect(BuildURL("dir_visit", "url_preferences", member.urlQuery()))
+				elif "publish" in self.request.arguments():
+					answers = entry.getAnswersForMember(member)
+					for answer in answers:
+						answer.draft = False
+						answer.published = datetime.now(tz=pytz.utc)
+					db.put(answers)
+					self.redirect(rakontu.linkURL())
 
 class EnterAnnotationPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
 			i = 0
 			for aType in ANNOTATION_TYPES_URLS:
 				if self.request.uri.find(aType) >= 0:
@@ -598,14 +604,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					entryTypeIndex = i
 					break
 				i += 1
-			entry = None
-			annotation = None
-			if self.request.query_string:
-				try:
-					entry = Entry.get(self.request.query_string)
-				except:
-					annotation = Annotation.get(self.request.query_string)
-					entry = annotation.entry
+			entry, annotation = GetEntryAndAnnotationFromURLQuery(self.request.query_string)
 			if entry:
 				if not entry.memberCanNudge(member):
 					nudgePointsMemberCanAssign = 0
@@ -636,28 +635,21 @@ class EnterAnnotationPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/annotation.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			for aType in ANNOTATION_TYPES:
 				for argument in self.request.arguments():
 					if argument.find(aType) >= 0:
 						type = aType
 						break
-			entry = None
-			annotation = None
 			newAnnotation = False
-			if self.request.query_string:
-				try:
-					entry = Entry.get(self.request.query_string)
-				except:
-					annotation = Annotation.get(self.request.query_string)
-					entry = annotation.entry
+			entry, annotation = GetEntryAndAnnotationFromURLQuery(self.request.query_string)
 			if entry:
 				if not annotation:
 					annotation = Annotation(key_name=KeyName("annotation"), 
@@ -685,7 +677,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 							foundMember = True
 							break
 					if not foundMember:
-						self.redirect(BuildResultURL("offlineMemberNotFound"))
+						self.redirect(BuildResultURL("offlineMemberNotFound", rakontu=rakontu))
 						return
 					annotation.liaison = member
 					annotation.collected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
@@ -768,35 +760,29 @@ class EnterAnnotationPage(webapp.RequestHandler):
 				if not annotation.draft:
 					annotation.publish()
 				if preview:
-					self.redirect(BuildURL("dir_visit", "url_preview", annotation.key()))
+					self.redirect(BuildURL("dir_visit", "url_preview", annotation.urlQuery()))
 				elif annotation.draft:
 					if annotation.collectedOffline:
 						if entry.inBatchEntryBuffer:
-							self.redirect(BuildURL("dir_liaise", "url_review"))
+							self.redirect(BuildURL("dir_liaise", "url_review", rakontu=rakontu))
 						else: # not in batch entry 
-							self.redirect(BuildURL("dir_visit", "url_drafts", annotation.creator.key()))
+							self.redirect(BuildURL("dir_visit", "url_drafts", annotation.creator.urlQuery()))
 					else: # not collected offline
-						self.redirect(BuildURL("dir_visit", "url_drafts", member.key()))
+						self.redirect(BuildURL("dir_visit", "url_drafts", member.urlQuery()))
 				else: # not draft
-					self.redirect(BuildURL("dir_visit", "url_read", entry.key()))
+					self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
 			else: # new entry
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else: # no rakontu or member
 			self.redirect(START)
 			
 class PreviewPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			entry = None
-			annotation = None
-			if self.request.query_string:
-				try:
-					entry = Entry.get(self.request.query_string)
-				except:
-					annotation = Annotation.get(self.request.query_string)
-					entry = annotation.entry
+			if isFirstVisit: self.redirect(member.firstVisitURL())
+			entry, annotation = GetEntryAndAnnotationFromURLQuery(self.request.query_string)
 			if entry:
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["PREVIEW_OF"], 
@@ -818,49 +804,38 @@ class PreviewPage(webapp.RequestHandler):
 		
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			entry = None
-			annotation = None
-			if self.request.query_string:
-				try:
-					entry = Entry.get(self.request.query_string)
-				except:
-					annotation = Annotation.get(self.request.query_string)
-					entry = annotation.entry
+			entry, annotation = GetEntryAndAnnotationFromURLQuery(self.request.query_string)
 			if "batch" in self.request.arguments():
 				if member.isLiaison():
-					self.redirect(BuildURL("dir_liaise", "url_review"))
+					self.redirect(BuildURL("dir_liaise", "url_review", rakontu=rakontu))
 				else:
-					self.redirect(HOME)
+					self.redirect(rakontu.linkURL())
 			elif "profile" in self.request.arguments():
-				self.redirect(BuildURL("dir_visit", "url_drafts", member.key()))
+				self.redirect(BuildURL("dir_visit", "url_drafts", member.urlQuery()))
 			elif annotation:
 				if "edit" in self.request.arguments():
-					self.redirect(BuildURL("dir_visit", URLForAnnotationType(annotation.type), annotation.key()))
+					self.redirect(BuildURL("dir_visit", URLForAnnotationType(annotation.type), annotation.urlQuery()))
 				elif "publish" in self.request.arguments():
 					annotation.publish()
-					self.redirect(BuildURL("dir_visit", "url_read", annotation.entry.key()))
+					self.redirect(BuildURL("dir_visit", "url_read", annotation.entry.urlQuery()))
 			else:
 				if "edit" in self.request.arguments():
-					self.redirect(BuildURL("dir_visit", URLForEntryType(entry.type), entry.key()))
+					self.redirect(BuildURL("dir_visit", URLForEntryType(entry.type), entry.urlQuery()))
 				elif "publish" in self.request.arguments():
 					entry.publish()
-					self.redirect(HOME)
+					self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 					
 class RelateEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			entry = None
-			if self.request.query_string:
-				try:
-					entry = Entry.get(self.request.query_string)
-				except:
-					entry = None
+			if isFirstVisit: self.redirect(member.firstVisitURL())
+			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 			if entry:
 				links = entry.getLinksOfType("related")
 				entries = rakontu.getNonDraftEntriesInAlphabeticalOrder()
@@ -899,45 +874,40 @@ class RelateEntryPage(webapp.RequestHandler):
 					path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/relate.html'))
 					self.response.out.write(template.render(path, template_values))
 				else:
-					self.redirect(BuildResultURL("noEntriesToRelate"))
+					self.redirect(BuildResultURL("noEntriesToRelate", rakontu=rakontu))
 			else:
 				self.redirect(START)
 					
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-				entry = None
-				if self.request.query_string:
-					try:
-						entry = Entry.get(self.request.query_string)
-					except:
-						entry = None
-				if entry:
-					linksToRemove = []
-					for link in entry.getLinksOfType("related"):
-						if self.request.get("linkComment|%s" % link.key()):
-							link.comment = self.request.get("linkComment|%s" % link.key())
-							link.put()
-						if self.request.get("removeLink|%s" % link.key()) == "yes":
-							linksToRemove.append(link)
-					for link in linksToRemove:
-						db.delete(link)
-					for anEntry in rakontu.getNonDraftEntries():
-						if self.request.get("addLink|%s" % anEntry.key()) == "yes":
-							comment = htmlEscape(self.request.get("linkComment|%s" % anEntry.key()))
-							link = Link(key_name=KeyName("link"), 
-									rakontu=rakontu,
-									itemFrom=entry, 
-									itemTo=anEntry, 
-									type="related", 
-									creator=member, 
-									comment=comment)
-							link.put()
-							link.publish()
-					self.redirect(BuildURL("dir_visit", "url_read", entry.key()))
-				else:
-					self.redirect(HOME)
+			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
+			if entry:
+				linksToRemove = []
+				for link in entry.getLinksOfType("related"):
+					if self.request.get("linkComment|%s" % link.key()):
+						link.comment = self.request.get("linkComment|%s" % link.key())
+						link.put()
+					if self.request.get("removeLink|%s" % link.key()) == "yes":
+						linksToRemove.append(link)
+				for link in linksToRemove:
+					db.delete(link)
+				for anEntry in rakontu.getNonDraftEntries():
+					if self.request.get("addLink|%s" % anEntry.key()) == "yes":
+						comment = htmlEscape(self.request.get("linkComment|%s" % anEntry.key()))
+						link = Link(key_name=KeyName("link"), 
+								rakontu=rakontu,
+								itemFrom=entry, 
+								itemTo=anEntry, 
+								type="related", 
+								creator=member, 
+								comment=comment)
+						link.put()
+						link.publish()
+				self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
+			else:
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			

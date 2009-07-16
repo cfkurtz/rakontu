@@ -11,7 +11,7 @@ from utils import *
 class FirstOwnerVisitPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
@@ -22,15 +22,16 @@ class FirstOwnerVisitPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/first.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 		
 class ManageRakontuMembersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
 			if member.isManagerOrOwner():
 				rakontuMembers = Member.all().filter("rakontu = ", rakontu).fetch(FETCH_NUMBER)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
@@ -44,13 +45,13 @@ class ManageRakontuMembersPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/members.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 				
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
 				rakontuMembers = rakontu.getActiveMembers()
@@ -92,17 +93,18 @@ class ManageRakontuMembersPage(webapp.RequestHandler):
 						if not rakontu.hasMemberWithGoogleEmail(email.strip()):
 							newPendingMember = PendingMember(key_name=KeyName("pendingmember"), rakontu=rakontu, email=email.strip())
 							newPendingMember.put()
-				self.redirect(BuildURL("dir_manage", "url_members"))
+				self.redirect(BuildURL("dir_manage", "url_members", rakontu=rakontu))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 				
 class ManageRakontuSettingsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
 			if member.isManagerOrOwner():
 				nudgePointIncludes = []
 				for level in [0, len(EVENT_TYPES) // 2]:
@@ -176,13 +178,13 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/settings.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 	
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
 				rakontu.name = htmlEscape(self.request.get("name"))
@@ -255,15 +257,16 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 					rakontu.roleReadmes_formatted[i] = db.Text(InterpretEnteredText(self.request.get("readme%s" % i), self.request.get("roleReadmes_formats%s" % i)))
 					rakontu.roleReadmes_formats[i] = self.request.get("roleReadmes_formats%s" % i)
 				rakontu.put()
-			self.redirect(HOME)
+			self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 		
 class ManageRakontuQuestionsListPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
 			if member.isManagerOrOwner():
 				counts = []
 				for type in QUESTION_REFERS_TO:
@@ -278,7 +281,6 @@ class ManageRakontuQuestionsListPage(webapp.RequestHandler):
 								   'rakontu': rakontu, 
 								   'current_member': member,
 								   'counts': counts,
-								   'url_questions': "url_questions",
 								   'refer_types': QUESTION_REFERS_TO,
 								   'refer_types_display': QUESTION_REFERS_TO_DISPLAY,
 								   'refer_types_urls': QUESTION_REFERS_TO_URLS,
@@ -289,15 +291,16 @@ class ManageRakontuQuestionsListPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/questionsList.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 				
 class ManageRakontuQuestionsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
 			if member.isManagerOrOwner():
 				i = 0
 				for aType in QUESTION_REFERS_TO_URLS:
@@ -332,13 +335,13 @@ class ManageRakontuQuestionsPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/questions.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 	
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
 				for aType in QUESTION_REFERS_TO:
@@ -398,34 +401,36 @@ class ManageRakontuQuestionsPage(webapp.RequestHandler):
 						rakontu.AddCopyOfQuestion(sysQuestion)
 				if self.request.get("import"):
 					rakontu.addQuestionsOfTypeFromCSV(type, str(self.request.get("import")))
-				self.redirect(BuildURL("dir_manage", "url_questions_list"))
+				self.redirect(BuildURL("dir_manage", "url_questions_list", rakontu=rakontu))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 		
 class WriteQuestionsToCSVPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
 			if member.isManagerOrOwner():
-				type = self.request.query_string
+				type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_export_type")
 				if type in QUESTION_REFERS_TO:
-					export = rakontu.createOrRefreshExport("exportQuestions", itemList=None, member=None, questionType=type)
-					self.redirect(BuildURL(None, "url_export", 'csv_id=%s' % export.key()))
+					export = rakontu.createOrRefreshExport("exportQuestions", itemList=None, member=None, questionType=type, fileFormat="csv")
+					self.redirect(BuildURL(None, "url_export", export.urlQuery()))
 				else:
-					self.redirect(BuildResultURL("noQuestionsToExport"))
+					self.redirect(BuildResultURL("noQuestionsToExport", rakontu=rakontu))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			
 class ManageCharactersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
 			if member.isManagerOrOwner():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["MANAGE_CHARACTERS"], 
@@ -437,13 +442,13 @@ class ManageCharactersPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/characters.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 				
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
 				for character in rakontu.getActiveCharacters():
@@ -463,22 +468,20 @@ class ManageCharactersPage(webapp.RequestHandler):
 						if not foundCharacter:
 							newCharacter = Character(key_name=KeyName("character"), name=name, rakontu=rakontu)
 							newCharacter.put()
-				self.redirect(BuildURL("dir_manage", "url_characters"))
+				self.redirect(BuildURL("dir_manage", "url_characters", rakontu=rakontu))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 		
 class ManageCharacterPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
 			if member.isManagerOrOwner():
-				try:
-					character = db.get(self.request.query_string)
-				except:
-					character = None
+				character = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_character")
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["MANAGE_CHARACTER"],
 							   	   'title_extra': character.name, 
@@ -493,13 +496,13 @@ class ManageCharacterPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/character.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 							 
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
 				goAhead = True
@@ -562,9 +565,9 @@ class ManageCharacterPage(webapp.RequestHandler):
 								answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
 						answerToEdit.creator = member
 						answerToEdit.put()
-					self.redirect(BuildURL("dir_manage", "url_characters"))
+					self.redirect(BuildURL("dir_manage", "url_characters", rakontu=rakontu))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 		
@@ -574,64 +577,58 @@ class ManageRakontuTechnicalPage(webapp.RequestHandler):
 class ExportRakontuDataPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
-		if not rakontu:
-			rakontuKey = None
-			if self.request.query_string:
-				rakontuKey = GetKeyFromQueryString(self.request.query_string, "rakontu_id")
-			if rakontuKey:
-				try:
-					rakontu = db.get(rakontuKey)
-				except:
-					pass
-		if (rakontu and member and member.isManagerOrOwner()) or (rakontu and users.is_current_user_admin()):
-			template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': TITLES["EXPORT_DATA"], 
-								   'rakontu': rakontu,
-								   'current_member': member,
-								   'xml_export': rakontu.getExportOfType("xml_export"),
-								   'csv_export': rakontu.getExportOfType("csv_export_all"),
-								   })
-			path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/export.html'))
-			self.response.out.write(template.render(path, template_values))
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if member.isManagerOrOwner():
+				template_values = GetStandardTemplateDictionaryAndAddMore({
+								   	   'title': TITLES["EXPORT_DATA"], 
+									   'rakontu': rakontu,
+									   'current_member': member,
+									   'xml_export': rakontu.getExportOfType("xml_export"),
+									   'csv_export': rakontu.getExportOfType("csv_export_all"),
+									   })
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/export.html'))
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect(START)
 		else:
 			self.redirect(START)
 				
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
 				if "csv_export" in self.request.arguments():
-					rakontu.createOrRefreshExport(type="csv_export_all")
+					rakontu.createOrRefreshExport(type="csv_export_all", fileFormat="csv")
 				elif "xml_export" in self.request.arguments():
-					rakontu.createOrRefreshExport(type="xml_export")
-				self.redirect(BuildURL("dir_manage", "url_export"))
+					rakontu.createOrRefreshExport(type="xml_export", fileFormat="xml")
+				self.redirect(self.request.uri)
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 
 class ExportSearchPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
 				if member.viewSearchResultList:
-					export = rakontu.createOrRefreshExport("csv_export_search", itemList=None, member=member)
-					self.redirect(BuildURL(None, "url_export", 'csv_id=%s' % export.key()))
+					export = rakontu.createOrRefreshExport("csv_export_search", itemList=None, member=member, fileFormat="csv")
+					self.redirect(BuildURL(None, "url_export", export.urlQuery()))
 				else:
-					self.redirect(BuildResultURL("noSearchResultForExport"))
+					self.redirect(BuildResultURL("noSearchResultForExport", rakontu=rakontu))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 		
 class InactivateRakontuPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access: 
 			if member.isOwner():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
@@ -642,13 +639,13 @@ class InactivateRakontuPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/inactivate.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isOwner():
 				if "inactivate|%s" % member.key() in self.request.arguments():
@@ -656,8 +653,8 @@ class InactivateRakontuPage(webapp.RequestHandler):
 					rakontu.put()
 					self.redirect(START)
 				else:
-					self.redirect(BuildURL("dir_manage", "url_settings"))
+					self.redirect(BuildURL("dir_manage", "url_settings", rakontu=rakontu))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)

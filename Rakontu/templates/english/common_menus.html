@@ -8,7 +8,7 @@
 	{% if current_member %}
 	
 		<td align="left" valign="center" class="noborder" width="70">
-		<a href="{{home}}">
+		<a href="{{rakontu.linkURL}}">
 		{% if rakontu.image %}
 			{{rakontu.imageEmbed}}
 		{% else %}
@@ -22,65 +22,67 @@
 			<i>{{rakontu.tagline|orNbsp}}</i>
 		{% endif %}
 		<ul id="topmenu">
-	  		<li><a href="{{home}}">{{menu_visit}}</a>
+	  		<li><a href="{{rakontu.linkURL}}">{{menu_visit}}</a>
 				<ul>
-				<li><a href="{{home}}">{{menu_home_page}}</a></li>
-	 			<li><a href="/{{dir_visit}}/{{url_rakontu}}">{{menu_about_this_rakontu}}</a></li>
-				<li><a href="/{{dir_visit}}/{{url_members}}">{{menu_about_rakontu_members}}</a></li>
+				<li><a href="{{rakontu.linkURL}}">{{menu_home_page}}</a></li>
+	 			<li><a href="/{{dir_visit}}/{{url_rakontu}}?{{rakontu.urlQuery}}">{{menu_about_this_rakontu}}</a></li>
+				<li><a href="/{{dir_visit}}/{{url_members}}?{{rakontu.urlQuery}}">{{menu_about_rakontu_members}}</a></li>
 				</ul>
 			</li>
-			<li><a href="/{{dir_visit}}/{{url_story}}">{{menu_create}}</a>
+			<li><a href="/{{dir_visit}}/{{url_story}}?{{rakontu.urlQuery}}">{{menu_create}}</a>
 				<ul>
-				<li><a href="/{{dir_visit}}/{{url_story}}">{{menu_story}}</a></li>
-	  			<li><a href="/{{dir_visit}}/{{url_invitation}}">{{menu_invitation}}</a></li>
+				<li><a href="/{{dir_visit}}/{{url_story}}?{{rakontu.urlQuery}}">{{menu_story}}</a></li>
+	  			<li><a href="/{{dir_visit}}/{{url_invitation}}?{{rakontu.urlQuery}}">{{menu_invitation}}</a></li>
 	  			{% if rakontu.firstPublish %}
-	  				<li><a href="/{{dir_visit}}/{{url_collage}}">{{menu_collage}}</a></li>
-	  				<li><a href="/{{dir_visit}}/{{url_pattern}}">{{menu_pattern}}</a> </li>
+	  				<li><a href="/{{dir_visit}}/{{url_collage}}?{{rakontu.urlQuery}}">{{menu_collage}}</a></li>
+	  				<li><a href="/{{dir_visit}}/{{url_pattern}}?{{rakontu.urlQuery}}">{{menu_pattern}}</a> </li>
 	  			{% endif %}
+	  			<li><a href="/{{dir_visit}}/{{url_drafts}}?{{current_member.urlQuery}}">{{menu_drafts}}</a></li>
+	  			<li><a href="/{{dir_visit}}/{{url_filters}}?{{current_member.urlQuery}}">{{menu_filters}}</a></li>
 	  			</ul>
 			</li>
 			{% if current_member.isCurator %}
-				<li><a href="/{{dir_curate}}/{{url_flags}}">{{menu_curate}}</a>
+				<li><a href="/{{dir_curate}}/{{url_gaps}}?{{rakontu.urlQuery}}">{{menu_curate}}</a>
 				<ul>
-					<li><a href="/{{dir_curate}}/{{url_gaps}}">{{menu_gaps}}</a></li>
-					<li><a href="/{{dir_curate}}/{{url_flags}}">{{menu_flags}}</a></li>
+					<li><a href="/{{dir_curate}}/{{url_gaps}}?{{rakontu.urlQuery}}">{{menu_gaps}}</a></li>
+					<li><a href="/{{dir_curate}}/{{url_flags}}?{{rakontu.urlQuery}}">{{menu_flags}}</a></li>
 					{% if rakontu.allowsAttachments %}
-						<li><a href="/{{dir_curate}}/{{url_attachments}}">{{menu_attachments}}</a></li>
+						<li><a href="/{{dir_curate}}/{{url_attachments}}?{{rakontu.urlQuery}}">{{menu_attachments}}</a></li>
 					{% endif %}
 					{% if current_member.canEditTags %}
-						<li><a href="/{{dir_curate}}/{{url_tags}}">{{menu_tags}}</a></li>
+						<li><a href="/{{dir_curate}}/{{url_tags}}?{{rakontu.urlQuery}}">{{menu_tags}}</a></li>
 					{% endif %}
 				</ul>
 				</li>
 			{% endif %}
 			{% if current_member.isGuide %}
-				<li><a href="/{{dir_guide}}/{{url_invitations}}">{{menu_guide}}</a>
+				<li><a href="/{{dir_guide}}/{{url_invitations}}?{{rakontu.urlQuery}}">{{menu_guide}}</a>
 				<ul>
-					<li><a href="/{{dir_guide}}/{{url_invitations}}">{{menu_invitations}}</a></li>
-					<li><a href="/{{dir_guide}}/{{url_requests}}">{{menu_requests}}</a></li>
-					<li><a href="/{{dir_guide}}/{{url_resources}}">{{menu_resources}}</a>
-					<li><a href="/{{dir_guide}}/{{url_resource}}">{{menu_resource}}</a></li>
+					<li><a href="/{{dir_guide}}/{{url_invitations}}?{{rakontu.urlQuery}}">{{menu_invitations}}</a></li>
+					<li><a href="/{{dir_guide}}/{{url_requests}}?{{rakontu.urlQuery}}">{{menu_requests}}</a></li>
+					<li><a href="/{{dir_guide}}/{{url_resources}}?{{rakontu.urlQuery}}">{{menu_resources}}</a>
+					<li><a href="/{{dir_guide}}/{{url_resource}}?{{rakontu.urlQuery}}">{{menu_resource}}</a></li>
 				</ul>
 				</li>
 			{% endif %}
 			{% if current_member.isLiaison %}
-				<li><a href="/{{dir_liaise}}/members">{{menu_liaise}}</a>
+				<li><a href="/{{dir_liaise}}/{{url_members}}?{{rakontu.urlQuery}}">{{menu_liaise}}</a>
 				<ul>
-					<li><a href="/{{dir_liaise}}/{{url_members}}">{{menu_manage_offline_members}}</a></li>
-					<li><a href="/{{dir_liaise}}/{{url_batch}}">{{menu_add_batch}}</a></li>
-					<li><a href="/{{dir_liaise}}/{{url_review}}">{{menu_review_batches}}</a></li>
+					<li><a href="/{{dir_liaise}}/{{url_members}}?{{rakontu.urlQuery}}">{{menu_manage_offline_members}}</a></li>
+					<li><a href="/{{dir_liaise}}/{{url_batch}}?{{rakontu.urlQuery}}">{{menu_add_batch}}</a></li>
+					<li><a href="/{{dir_liaise}}/{{url_review}}?{{rakontu.urlQuery}}">{{menu_review_batches}}</a></li>
 				</ul>
 				</li>
 			{% endif %}
 			{% if current_member.isManagerOrOwner %}
-				<li><a href="/{{dir_manage}}/{{url_settings}}">{{menu_manage}}</a>
+				<li><a href="/{{dir_manage}}/{{url_members}}?{{rakontu.urlQuery}}">{{menu_manage}}</a>
 					<ul>
-		      		<li><a href="/{{dir_manage}}/{{url_members}}">{{menu_members}}</a></li>
-					<li><a href="/{{dir_manage}}/{{url_settings}}">{{menu_settings}}</a></li>
-		      		<li><a href="/{{dir_manage}}/{{url_questions_list}}">{{menu_questions}}</a></li>
-		      		<li><a href="/{{dir_manage}}/{{url_characters}}">{{menu_characters}}</a></li>
-		      		<li><a href="/{{dir_curate}}/{{url_flags}}">{{menu_flags}}</a></li>
-			      	<li><a href="/{{dir_manage}}/{{url_export}}">{{menu_export}}</a></li>
+		      		<li><a href="/{{dir_manage}}/{{url_members}}?{{rakontu.urlQuery}}">{{menu_members}}</a></li>
+					<li><a href="/{{dir_manage}}/{{url_settings}}?{{rakontu.urlQuery}}">{{menu_settings}}</a></li>
+		      		<li><a href="/{{dir_manage}}/{{url_questions_list}}?{{rakontu.urlQuery}}">{{menu_questions}}</a></li>
+		      		<li><a href="/{{dir_manage}}/{{url_characters}}?{{rakontu.urlQuery}}">{{menu_characters}}</a></li>
+		      		<li><a href="/{{dir_curate}}/{{url_flags}}?{{rakontu.urlQuery}}">{{menu_flags}}</a></li>
+			      	<li><a href="/{{dir_manage}}/{{url_export}}?{{rakontu.urlQuery}}">{{menu_export}}</a></li>
 		      		</ul>
 		      	</li>
 		    {% endif %}
@@ -88,8 +90,8 @@
 	      	</ul>
 	    </td><td align="right" class="noborder">
     	<p>&nbsp; <b>{{ current_member.nickname }}</b><br/>
-	    <a href="/{{dir_visit}}/{{url_preferences}}">{{menu_preferences}}</a> |  
-	    <a href="/{{dir_visit}}/{{url_help}}">{{menu_help}}</a>
+	    <a href="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}">{{menu_preferences}}</a> |  
+	    <a href="/{{dir_visit}}/{{url_help}}?{{rakontu.urlQuery}}">{{menu_help}}</a>
 		{% if current_member.profileImage %}
 		</td><td align="center" width="20" class="noborder">
 			{{member.imageEmbed}}

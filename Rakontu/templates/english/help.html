@@ -4,7 +4,7 @@
 	{% include "common_menus.html" %}
 	<div id="content">
 		
-	<h3>Help for {{help.name|spacify}}</h3>
+	<h3>Help on: {{help.name|spacify}}</h3>
 	{% ifequal help.type "info" %}
 		<img src="../images/info.png" alt="help" border="0" valign="center"/>
 	{% else %}
@@ -20,7 +20,7 @@
 	
 	<hr>
 	<p>&nbsp; Would you like to <b><a href="{{linkback}}">Go back</a></b> to the page you were on?</p>
-	<p>&nbsp; &nbsp; &nbsp; &nbsp; ... or would you like more <b><a href="/visit/help">Help</a></b>?</p>
+	<p>&nbsp; &nbsp; &nbsp; &nbsp; ... or would you like more <b><a href="/{{dir_visit}}/{{url_help}}?{{rakontu.urlQuery}}">Help</a></b>?</p>
 		
 	</div>
 	{% include "common_footer.html" %}

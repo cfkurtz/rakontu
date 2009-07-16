@@ -11,7 +11,7 @@
   				<tr>
   				<td style="border:none; border-right:1px solid #FF7F00;" width="100" valign="center" align="center">
 			 		{% if aMember.profileImage %}
-			 			{{member.imageEmbed}}
+			 			{{aMember.imageEmbed}}
 					{% else %}
 						&nbsp;
 					{% endif %}
@@ -39,7 +39,7 @@
       		{% endfor %}
       	
       	{% if current_member.isManagerOrOwner %}
-      		<div class="rightalign"><p><a href="/{{dir_manage}}/{{url_members}}">Make changes to memberships</a></p></div>
+      		<div class="rightalign"><p><a href="/{{dir_manage}}/{{url_members}}?{{rakontu.urlQuery}}">Make changes to memberships</a></p></div>
       	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}

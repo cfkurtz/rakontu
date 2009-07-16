@@ -13,7 +13,7 @@ sys.path.insert(0,'config')
 from site_configuration import *
 from constants_configdependent import *
 
-def BuildURL(dir=None, page=None, query=None, extraSlash=False):
+def BuildURL(dir=None, page=None, query=None, extraSlash=False, rakontu=None):
 	if dir:
 		if DIRS.has_key(dir):
 			dirString = DIRS[dir]
@@ -29,21 +29,33 @@ def BuildURL(dir=None, page=None, query=None, extraSlash=False):
 	else:
 		pageString = None
 	if dirString and pageString and query:
-		return "/%s/%s?%s" % (dirString, pageString, query)
+		result = "/%s/%s?%s" % (dirString, pageString, query)
+	elif pageString and query:
+		result = "/%s?%s" % (pageString, query)
 	elif dirString and pageString:
-		return "/%s/%s" % (dirString, pageString)
+		result = "/%s/%s" % (dirString, pageString)
 	elif dirString:
 		if extraSlash:
-			return "/%s/" % (dirString)
+			result = "/%s/" % (dirString)
 		else:
-			return "/%s" % (dirString)
+			result = "/%s" % (dirString)
 	elif pageString:
-		return "/%s" % (pageString)
+		result = "/%s" % (pageString)
 	else:
-		return "/"
+		result = "/"
+	if rakontu:
+		if query:
+			result += "&"
+		else:
+			result += "?"
+		result += rakontu.urlQuery()
+	return result
 	
-def BuildResultURL(query):
-	return "/%s?%s" % (URLS["url_result"], RESULTS[query])
+def BuildResultURL(query, rakontu=None):
+	result = "/%s?%s=%s" % (URLS["url_result"], URL_OPTIONS["url_query_result"], RESULTS[query])
+	if rakontu:
+		result += "&" + rakontu.urlQuery()
+	return result
 	
 def DisplayTypeForEntryType(type):
 	i = 0

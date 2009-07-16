@@ -28,8 +28,8 @@
 		{% if current_member.isGuideOrManagerOrOwner %}
       		<p>This Rakontu has no help resources.<p>
       		<ul>
-      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_resource}}">Make one</a></li>
-      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_copy}}">Create all default resources</a></li>
+      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_resource}}?{{rakontu.urlQuery}}">Make one</a></li>
+      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_copy}}?{{rakontu.urlQuery}}">Create all default resources</a></li>
       		</ul>
 	      {% endif %}
 	{% endif %}
@@ -45,7 +45,7 @@
   				<tr>
   				<td style="border:none; border-right:1px solid #FF7F00;" width="100" valign="center" align="center">
 			 		{% if guide.profileImage %}
-						<a href="/{{dir_visit}}/{{url_member}}?{{guide.key}}">{{member.imageEmbed}}</a>
+						<a href="/{{dir_visit}}/{{url_member}}?{{guide.urlQuery}}">{{guide.imageEmbed}}</a>
 					{% else %}
 						&nbsp;
 					{% endif %}

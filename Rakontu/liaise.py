@@ -11,7 +11,7 @@ from utils import *
 class ReviewOfflineMembersPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isLiaison():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
@@ -24,13 +24,13 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('liaise/members.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isLiaison():
 				offlineMembers = rakontu.getActiveOfflineMembers()
@@ -51,52 +51,52 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 											googleAccountID = None,
 											googleAccountEmail = None)
 							newMember.put()
-			self.redirect(BuildURL("dir_liaise", "url_members"))
+			self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
 			
 class PrintSearchPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isLiaison():
 				if member.viewSearchResultList:
-					export = rakontu.createOrRefreshExport("liaisonPrint_simple", itemList=None, member=member)
-					self.redirect(BuildURL(None, "url_export", 'print_id=%s' % export.key()))
+					export = rakontu.createOrRefreshExport("liaisonPrint_simple", itemList=None, member=member, fileFormat="txt")
+					self.redirect(BuildURL(None, "url_export", export.urlQuery()))
 				else:
-					self.redirect(BuildResultURL("noSearchResultForPrinting"))
+					self.redirect(BuildResultURL("noSearchResultForPrinting", rakontu=rakontu))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			
 class PrintEntryAnnotationsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isLiaison():
-				try:
-					entry = db.get(self.request.query_string)
-				except:
-					entry = None
+				entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
+				DebugPrint(entry)
 				if entry:
 					entryAndItems = []
 					entryAndItems.extend(entry.getNonDraftAnswers())
 					entryAndItems.extend(entry.getNonDraftAnnotations())
 					entryAndItems.insert(0, entry)
-					export = rakontu.createOrRefreshExport("liaisonPrint_simple", itemList=entryAndItems, member=None)
-					self.redirect(BuildURL(None, "url_export", 'print_id=%s' % export.key()))
+					export = rakontu.createOrRefreshExport("liaisonPrint_simple", itemList=entryAndItems, member=None, fileFormat="txt")
+					url = BuildURL(None, "url_export", export.urlQuery())
+					DebugPrint(url)
+					self.redirect(url)
 				else:
-					self.redirect(HOME)
+					self.redirect(rakontu.linkURL())
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			
 class ReviewBatchEntriesPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isLiaison():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
@@ -112,17 +112,17 @@ class ReviewBatchEntriesPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('liaise/review.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isLiaison():
 				if "addMore" in self.request.arguments():
-					self.redirect(BuildURL("dir_liaise", "url_batch"))
+					self.redirect(BuildURL("dir_liaise", "url_batch", rakontu=rakontu))
 				else:
 					entriesToFinalize = []
 					entries = rakontu.getEntriesInImportBufferForLiaison(member)
@@ -137,12 +137,12 @@ class ReviewBatchEntriesPage(webapp.RequestHandler):
 							entriesToFinalize.append(entry)
 					if entriesToFinalize:
 						rakontu.moveImportedEntriesOutOfBuffer(entriesToFinalize)
-					self.redirect(BuildURL("dir_liaise", "url_review"))
+					self.redirect(BuildURL("dir_liaise", "url_review", rakontu=rakontu))
 
 class BatchEntryPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isLiaison():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
@@ -158,13 +158,13 @@ class BatchEntryPage(webapp.RequestHandler):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('liaise/batch.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(HOME)
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			
 	@RequireLogin 
 	def post(self):
-		rakontu, member, access = GetCurrentRakontuAndMemberFromSession()
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isLiaison():
 				if "importEntriesFromCSV" in self.request.arguments():
@@ -218,7 +218,7 @@ class BatchEntryPage(webapp.RequestHandler):
 										if name == "attachment|%s|%s" % (i, j):
 											if value != None and value != "":
 												filename = value.filename
-												attachment = Attachment(key_name=KeyName("attachment"), entry=entry)
+												attachment = Attachment(key_name=KeyName("attachment"), entry=entry, rakontu=rakontu)
 												k = 0
 												mimeType = None
 												for type in ACCEPTED_ATTACHMENT_FILE_TYPES:
@@ -314,4 +314,4 @@ class BatchEntryPage(webapp.RequestHandler):
 									tagset.collected = entry.collected
 									tagset.collectedOffline = not memberToAttribute.isOnlineMember
 									tagset.put()
-		self.redirect(BuildURL("dir_liaise", "url_review"))
+		self.redirect(BuildURL("dir_liaise", "url_review", rakontu=rakontu))
