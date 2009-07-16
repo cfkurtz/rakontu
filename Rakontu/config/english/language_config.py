@@ -454,6 +454,7 @@ URLS = {
 	# liaise
     "url_print_search": "printSearch",
     "url_print_entry": "printEntryAndAnnotations",
+    "url_review": "review",
 	# curate
     "url_curate": "curate",
     "url_flag": "flag",

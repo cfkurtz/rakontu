@@ -204,6 +204,8 @@ class BatchEntryPage(webapp.RequestHandler):
 								entry = Entry(key_name=KeyName("entry"), rakontu=rakontu, type="story", title=title, text=text, text_format=textFormat)
 								entry.creator = memberToAttribute
 								entry.collected = date
+								entry.text_formatted = db.Text(InterpretEnteredText(text, format))
+								entry.text_format = format
 								entry.draft = True
 								entry.inBatchEntryBuffer = True
 								entry.collectedOffline = not memberToAttribute.isOnlineMember
