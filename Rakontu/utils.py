@@ -6,14 +6,14 @@
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
 
-import os
+import os 
 import string
 import cgi
-import htmllib
+import htmllib 
 
 from models import *
 
-from google.appengine.api import users
+from google.appengine.api import users 
 from google.appengine.ext.webapp import template
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
@@ -48,7 +48,7 @@ def GetCurrentRakontuAndMemberFromRequest(request):
 	okayToAccess = rakontu and rakontu.active and member and member.active
 	if okayToAccess:
 		isFirstVisit = SetFirstThingsAndReturnWhetherMemberIsNew(rakontu, member)
-	else:
+	else: 
 		isFirstVisit = False
 	return rakontu, member, okayToAccess, isFirstVisit
 
@@ -192,7 +192,7 @@ def GetEntryAndAnnotationFromURLQuery(query):
 
 def GetStandardTemplateDictionaryAndAddMore(newItems):
 	items = { 
-	   'version_number': VERSION_NUMBER,
+	   'version_number': VERSION_NUMBER, 
 	   'text_formats': TEXT_FORMATS,
 	   'text_formats_display': TEXT_FORMATS_DISPLAY,  
 	   'num_nudge_categories': NUM_NUDGE_CATEGORIES,
@@ -587,30 +587,30 @@ def GetSystemResources():
 # COLORS
 # ============================================================================================
 # ============================================================================================
-
-def HTMLColorToRGB(colorstring):
-    colorstring = colorstring.strip()
+ 
+def HTMLColorToRGB(colorstring):     
+    colorstring = colorstring.strip() 
     r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:]
-    r, g, b = [int(n, 16) for n in (r, g, b)]
-    return (r, g, b)
-
-def RGBToHTMLColor(rgb_tuple):
-    return '%02x%02x%02x' % rgb_tuple
-    
-def HexColorStringForRowIndex(index):
-	if index == 0:
-		return GRID_DISPLAY_ROW_COLORS_TOP
+    r, g, b = [int(n, 16) for n in (r, g, b)]   
+    return (r, g, b)           
+          
+def RGBToHTMLColor(rgb_tuple):       
+    return '%02x%02x%02x' % rgb_tuple 
+           
+def HexColorStringForRowIndex(index, colorDict):    
+	if index == 0:   
+		return colorDict["background_grid_top"]  
 	else:
-		startR, startG, startB = HTMLColorToRGB(GRID_DISPLAY_ROW_COLORS_TOP)
-		endR, endG, endB = HTMLColorToRGB(GRID_DISPLAY_ROW_COLORS_BOTTOM)
+		startR, startG, startB = HTMLColorToRGB(colorDict["background_grid_top"])
+		endR, endG, endB = HTMLColorToRGB(colorDict["background_grid_bottom"])
 		rDecrement = (startR - endR) // BROWSE_NUM_ROWS
-		gDecrement = (startG - endG) // BROWSE_NUM_ROWS
-		bDecrement = (startB - endB) // BROWSE_NUM_ROWS
+		gDecrement = (startG - endG) // BROWSE_NUM_ROWS 
+		bDecrement = (startB - endB) // BROWSE_NUM_ROWS 
 		r = min(255, max(0, startR - index * rDecrement))
 		g = min(255, max(0, startG - index * gDecrement))
 		b = min(255, max(0, startB - index * bDecrement))
 		return RGBToHTMLColor((r,g,b)) 
-	  
+	   
 # ============================================================================================
 # ============================================================================================
 # DATE AND TIME
@@ -621,7 +621,7 @@ def parseDate(yearString, monthString, dayString):
 	if yearString and monthString and dayString:
 		try:
 			year = int(yearString)
-			month = int(monthString)
+			month = int(monthString) 
 			day = int(dayString)
 			date = datetime(year, month, day, tzinfo=pytz.utc)
 			return date

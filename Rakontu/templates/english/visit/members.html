@@ -9,7 +9,7 @@
       		{% for aMember in rakontu_members %}
   				<table style="width:100%;" class="noborder">
   				<tr>
-  				<td style="border:none; border-right:1px solid #FF7F00;" width="100" valign="center" align="center">
+  				<td style="border:none; border-right:1px solid #{{colors|dictLookup:"border_normal"}};" width="100" valign="center" align="center">
 			 		{% if aMember.profileImage %}
 			 			{{aMember.imageEmbed}}
 					{% else %}

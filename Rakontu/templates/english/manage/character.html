@@ -40,7 +40,7 @@
 		</p><p>Etiquette statement
 			<table style="width:100%; border:none">
 			<tr><td class="noborder">
-			<textarea name="description" rows="10" cols="60">{{character.etiquetteStatement}}</textarea>
+			<textarea name="etiquetteStatement" rows="10" cols="60">{{character.etiquetteStatement}}</textarea>
 			</td><td class="noborder" width="80">
 			<p>Interpret as</p>
 				<select name="etiquetteStatement_format">
@@ -57,7 +57,7 @@
 			
 		<h3>Picture</h3>
 		<fieldset>
-		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
 		      		<th>Image</th>
 		      		<th>{% if member.profileImage %} Replace {% else %} Attach {% endif %} </th>

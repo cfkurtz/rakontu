@@ -13,9 +13,9 @@
   			<p>About {{character.name}}:</p>
   			<div class="blurb">{{character.description}}</div>
   		{% endif %}
-	  	{% if character.etiquetteStatement|orNothing %}
+	  	{% if character.etiquetteStatement_formatted|orNothing %}
 	  		<p>How to be {{character.name}}:</p>
-	  		<div class="blurb">{{character.etiquetteStatement}}</div>
+	  		<div class="blurb">{{character.etiquetteStatement_formatted}}</div>
 	  	{% endif %}
 
 		{% if answers %}

@@ -8,13 +8,12 @@
 	{% if current_member %}
 	
 		<td align="left" valign="center" class="noborder" width="70">
-		<a href="{{rakontu.linkURL}}">
+		
 		{% if rakontu.image %}
-			{{rakontu.imageEmbed}}
+			<a href="{{rakontu.linkURL}}">{{rakontu.imageEmbed}}</a>
 		{% else %}
-			<p><img src="/images/Rakontu.jpg" width="100" height="64" alt="Rakontu logo" class="bordered" ></p>
+			<a href="{{rakontu.linkURL}}"><img src="/images/Rakontu.jpg" width="100" height="64" alt="Rakontu logo" class="bordered"></a>
 		{% endif %}
-		</a>
 		
 		</td><td align="left" valign="center" class="noborder">
 		<b>{{ rakontu.name }}</b><br/>
@@ -94,7 +93,7 @@
 	    <a href="/{{dir_visit}}/{{url_help}}?{{rakontu.urlQuery}}">{{menu_help}}</a>
 		{% if current_member.profileImage %}
 		</td><td align="center" width="20" class="noborder">
-			{{current_member.imageEmbed}}
+			<a href="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}">{{current_member.imageEmbed}}</a>
 		{% endif %}
 		</td><td valign="center" class="noborder">
 	

@@ -148,7 +148,7 @@
 			{% if included_links_outgoing %}
 				<h3>Stories included in this collage</h3>
 				<fieldset>
-		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
 		      		<th>Title</th>
 		      		<th>Text</th>
@@ -209,7 +209,7 @@
 			{% if referenced_links_outgoing %}
 				<h3>Search filters referred to by this pattern</h3>
 				<fieldset>
-		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
 		      		<th>Name</th>
 		      		<th>Description</th>
@@ -248,7 +248,7 @@
 			{% if rakontu.allowsAttachments %}
 				<h3>Attachments</h3>
 				<fieldset>
-		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr><th>Name</th><th>File</th><th>Remove?</th><th>Attach or replace {{"replacing_attachments"|tip}}</th></tr>
 	      		{% for i in rakontu.maxNumAttachments|makeRange %}
 	      			<tr>

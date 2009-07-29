@@ -17,6 +17,7 @@ class FirstOwnerVisitPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								'title': TITLES["WELCOME"],
 								'rakontu': rakontu, 
+								'colors': rakontu.colorDictionary(),
 								'current_member': member,
 								})
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/first.html'))
@@ -37,6 +38,7 @@ class ManageRakontuMembersPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["MANAGE_MEMBERS"], 
 								   'rakontu': rakontu, 
+								   'colors': rakontu.colorDictionary(),
 								   'current_member': member,
 								   'rakontu_members': rakontu.getActiveMembers(),
 								   'pending_members': rakontu.getPendingMembers(),
@@ -148,7 +150,7 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 						if i >= level and i < nextLevel:
 							activityPointIncludes.append('<td><input type="text" name="entry|%s" size="3" value="%s" maxlength="{{maxlength_number}}"/></td>' \
 														% (eventType, rakontu.entryActivityPointsPerEvent[i]))
-						i += 1
+						i += 1 
 					activityPointIncludes.append('</tr>')
 				
 				characterIncludes = []
@@ -167,6 +169,7 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["MANAGE_SETTINGS"], 
 								   'rakontu': rakontu, 
+								   'colors': rakontu.colorDictionary(),
 								   'current_member': member,
 								   'current_date': datetime.now(tz=pytz.utc),
 								   'character_includes': characterIncludes,
@@ -174,6 +177,8 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 								   'nudge_point_includes': nudgePointIncludes,
 								   'activity_point_includes': activityPointIncludes,
 								   'site_allows_attachments': DEFAULT_MAX_NUM_ATTACHMENTS > 0,
+								   'color_scheme_names': COLOR_SCHEMES.keys(),
+								   'color_scheme_display_name_dict': COLOR_SCHEMES_DISPLAY_NAMES,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/settings.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -189,6 +194,7 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 			if member.isManagerOrOwner():
 				rakontu.name = htmlEscape(self.request.get("name"))
 				rakontu.tagline = htmlEscape(self.request.get("tagline"))
+				rakontu.colorScheme = self.request.get("colorScheme")
 				text = self.request.get("description")
 				format = self.request.get("description_format").strip()
 				rakontu.description = text
@@ -279,6 +285,7 @@ class ManageRakontuQuestionsListPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["MANAGE_QUESTIONS"], 
 								   'rakontu': rakontu, 
+								   'colors': rakontu.colorDictionary(),
 								   'current_member': member,
 								   'counts': counts,
 								   'refer_types': QUESTION_REFERS_TO,
@@ -319,6 +326,7 @@ class ManageRakontuQuestionsPage(webapp.RequestHandler):
 								   'title': TITLES["MANAGE_QUESTIONS_ABOUT"], 
 							   	   'title_extra': DisplayTypePluralForQuestionRefersTo(type), 
 								   'rakontu': rakontu, 
+								   'colors': rakontu.colorDictionary(),
 								   'current_member': member,
 								   'questions': rakontuQuestionsOfType,
 								   'inactive_questions': inactiveQuestionsOfType,
@@ -435,6 +443,7 @@ class ManageCharactersPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["MANAGE_CHARACTERS"], 
 								   'rakontu': rakontu, 
+								   'colors': rakontu.colorDictionary(),
 								   'current_member': member,
 								   'characters': rakontu.getActiveCharacters(),
 								   'inactive_characters': rakontu.getInactiveCharacters(),
@@ -486,6 +495,7 @@ class ManageCharacterPage(webapp.RequestHandler):
 								   'title': TITLES["MANAGE_CHARACTER"],
 							   	   'title_extra': character.name, 
 								   'rakontu': rakontu, 
+								   'colors': rakontu.colorDictionary(),
 								   'character': character,
 								   'current_member': member,
 								   'questions': rakontu.getActiveQuestionsOfType("character"),
@@ -583,6 +593,7 @@ class ExportRakontuDataPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   	   'title': TITLES["EXPORT_DATA"], 
 									   'rakontu': rakontu,
+									   'colors': rakontu.colorDictionary(),
 									   'current_member': member,
 									   'xml_export': rakontu.getExportOfType("xml_export"),
 									   'csv_export': rakontu.getExportOfType("csv_export_all"),
@@ -634,6 +645,7 @@ class InactivateRakontuPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["INACTIVATE"], 
 								   'rakontu': rakontu, 
+								   'colors': rakontu.colorDictionary(),
 								   'current_member': member,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/inactivate.html'))

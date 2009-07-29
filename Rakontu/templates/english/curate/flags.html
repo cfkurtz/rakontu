@@ -18,7 +18,7 @@
 			<h3>Flagged entries</h3>
 			{% if entries %}
 				<fieldset>
-		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr><th>Unflag? {{"unflag_item"|tip}}</th><th>Entry</th><th>Type</th><th>Linked to</th><th>Text (first part)</th><th>By</th><th>Comment</th>
 	      		{% if current_member.isManagerOrOwner %} 
 	      			<th>Remove?{{"removing_flagged_items"|caution}}</th> 
@@ -79,7 +79,7 @@
 			<h3>Flagged annotations</h3>
 			{% if annotations %}
 				<fieldset>
-		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr><th>Unflag?</th><th>Entry</th><th>Type</th><th>Content</th><th>By</th>
 	      		{% if current_member.isManagerOrOwner %} 
 	      			<th>Remove?</th> 
@@ -141,7 +141,7 @@
 			<h3>Flagged answers</h3>
 			{% if answers %}
 				<fieldset>
-		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr><th>Unflag?</th><th>Entry</th><th>Question</th><th>Answer</th><th>By</th>
 	      		{% if current_member.isManagerOrOwner %} 
 	      			<th>Remove?</th> 
@@ -191,7 +191,7 @@
 			<h3>Flagged links</h3>
 			{% if links %}
 				<fieldset>
-		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr><th>Unflag?</th><th>From</th><th>To</th><th>Comment</th>
 	      		{% if current_member.isManagerOrOwner %} 
 	      			<th>Remove?</th> 
@@ -232,7 +232,7 @@
 			<h3>Flagged search filters</h3>
 			{% if searches %}
 				<fieldset>
-		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr><th>Unflag? {{"unflagging_items"|tip}}</th>
 		      		<th>Name</th>
 		      		<th>Linked to</th>

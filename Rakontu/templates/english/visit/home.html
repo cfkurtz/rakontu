@@ -15,11 +15,14 @@
 	method="post">
 	
 	{% if rows_cols %}
-		<table cellpadding="4" cellspacing="0" style="width: 100%; border-top: 1px solid #FF7F00; border-bottom: 1px solid #FF7F00; border-left: none; border-right: 1px solid #FF7F00">
+		<table 
+			cellpadding="4" 
+			cellspacing="0" class="grid">
 		{% for i in rows_cols|makeRangeFromListLength %}
 			<tr>
 			{% for col_list in rows_cols|listLookup:i %}
-				<td style="background-color:#{{row_colors|listLookup:i}};border-left: 1px solid #FF7F00; border-top: none; border-bottom: none; border-right: none">
+				<td style="background-color:#{{row_colors|listLookup:i}};border-left: 1px solid #{{colors|dictLookup:"border_normal"}}; 
+				border-top: none; border-bottom: none; border-right: none">
 				{% if col_list %}
 					{% for text in col_list %}
 						{{text}}
@@ -55,9 +58,10 @@
 		<table style="border:none;width:100%;">
 		<tr>
 		
-		</td><td align="center" valign="top" style="border:none;border-right:1px solid #FF7F00;border-bottom:1px solid #FF7F00;">
+		</td><td align="center" valign="top" style="border:none;border-right:1px solid #{{colors|dictLookup:"border_normal"}};
+		border-bottom:1px solid #{{colors|dictLookup:"border_normal"}};">
 		<p>
-		<p>Showing activity from {{min_time}} to {{max_time}}</p>
+		<p>{{min_time}}<br/>to<br/>{{max_time}}</p>
 		{% ifnotequal member_time_frame_string "everything" %}
 			<input type="submit" name="setToFirst" value=" |&lt; " class="button_small">
 			<input type="submit" name="moveTimeBack" value=" &lt; " class="button_small">
@@ -67,14 +71,6 @@
 			<input type="submit" name="refreshView" value="Refresh" class="button_small">
 		{% endifnotequal %}
 		</p>
-		<p>
-		{% if current_member.viewDetails %}
-			<input type="submit" name="toggleShowDetails" value="Hide details" class="button_small">
-		{% else %}
-			<input type="submit" name="toggleShowDetails" value="Show details" class="button_small">
-		{% endif %}
-		</p>
-		
 		<p>Show
 		<select name="timeFrame" width="200">
 			{% for time_frame in time_frames %}
@@ -86,8 +82,16 @@
 			{% endfor %} 
 			</select>
 		<input type="submit" name="changeTimeFrame" value="Change" class="button_small"></p>
+		<p>
+		{% if current_member.viewDetails %}
+			<input type="submit" name="toggleShowDetails" value="Hide details" class="button_small">
+		{% else %}
+			<input type="submit" name="toggleShowDetails" value="Show details" class="button_small">
+		{% endif %}
+		</p>
 
-		</td><td align="center" valign="top" style="border:none;border-right:1px solid #FF7F00;border-bottom:1px solid #FF7F00;">
+		</td><td align="center" valign="top" style="border:none;border-right:1px solid #{{colors|dictLookup:"border_normal"}};
+			border-bottom:1px solid #{{colors|dictLookup:"border_normal"}};">
 		{% if shared_searches or member_searches %}
 				{% if current_search %}
 					<p>Filtered by:</p><p><b>{{current_search.displayString}}</b></p>
@@ -135,7 +139,7 @@
 		{% endif %}
 		</td>
 		
-		<td align="center" valign="top" style="border:none;border-bottom:1px solid #FF7F00;">
+		<td align="center" valign="top" style="border:none;border-bottom:1px solid #{{colors|dictLookup:"border_normal"}};">
 		<p>Height means</p>
 		<table cellpadding=0 cellspacing=0 class="noborder"><tr><td style="border:none;">
 		{% for i in rakontu.nudgeCategories|makeRangeFromListLength %}

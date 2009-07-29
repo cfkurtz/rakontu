@@ -12,10 +12,20 @@
 
 			<h3>Name and description</h3>
 			<fieldset>
-			<p>Rakontu name{{"rakontu_name"|tip}}</p>
+			<p>Rakontu name {{"rakontu_name"|tip}}</p>
 			<input type="text" name="name" value="{{ rakontu.name }}" size="30" maxlength="{{maxlength_name}}"/>
-			<p>Tag line{{"tag_line"|tip}}</p>
+			<p>Tag line {{"tag_line"|tip}}</p>
 			<input type="text" name="tagline" value="{{ rakontu.tagline }}" size="80" maxlength="{{maxlength_subject_or_comment}}"/>
+			<p>Color scheme {{"color_schemes"|tip}}</p>
+			<select name="colorScheme">
+				{% for name in color_scheme_names|sorted %}
+					<option value="{{name}}"
+					{% ifequal name rakontu.colorScheme %}
+						selected="selected"
+					{% endifequal %}
+					>{{color_scheme_display_name_dict|dictLookup:name}}</option>
+				{% endfor %}
+				</select>
 			<p>Rakontu contact email{{"rakontu_contact_email"|caution}}</p>
 			<input type="text" name="contactEmail" value="{{ rakontu.contactEmail }}" size="80" maxlength="{{maxlength_name}}"/>
 			<p>Description{{"rakontu_description"|tip}}</p>
@@ -177,7 +187,7 @@
 			<h3>Activity system</h3>
 			<fieldset>
 			<p>How many activity points are added to an item based on each activity?{{"activity_points"|info}}{{"what_downdrift_is_about"|tip}}</p>
-			<table  border="1" cellpadding="4" cellspacing="0">
+			<table  border="0" cellpadding="4" cellspacing="0">
 			{% for text in activity_point_includes %}
 				{{ text }}
 			{% endfor %}
@@ -191,7 +201,7 @@
 			<input type="text" name="maxNudgePointsPerEntry" size="4" value="{{rakontu.maxNudgePointsPerEntry}}" maxlength="4"/>
 			{{"nudge_points"|info}} {{"nudge_points_per_entry"|caution}}
 			<p>Enter your nudge category names and questions here.{{"nudge_category_names"|caution}}</p>
-			<table  border="1" cellpadding="4" cellspacing="0">
+			<table border="0" cellpadding="4" cellspacing="0">
 			<tr><th>Name</th><th>Question {{"nudge_category_questions"|tip}}</th></tr>
 			{% for i in num_nudge_categories|makeRange %}
 				<tr>
@@ -202,7 +212,7 @@
 			</table>
 			</p>
 			<p>How many nudge points do members accumulate by participating in the Rakontu?</p>
-			<table  border="1" cellpadding="4" cellspacing="0">
+			<table  border="0" cellpadding="4" cellspacing="0">
 			{% for text in nudge_point_includes %}
 				{{ text }}
 			{% endfor %}

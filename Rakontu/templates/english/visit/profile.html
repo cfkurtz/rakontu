@@ -13,7 +13,7 @@
 		{% else %}
 			<h3>{{member.nickname}}'s information</h3>
 		{% endif %}
-      	<table border="1" cellpadding="4" cellspacing="0">
+      	<table border="0" cellpadding="4" cellspacing="0">
       	<tr>
 	      	{% if member.isOnlineMember %}
 	      		<th>Member type</th>
@@ -150,7 +150,7 @@
 			
 		<h3>Picture</h3>
 		<fieldset>
-		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
 		      		<th>Image</th>
 		      		<th>{% if member.profileImage %} Replace {% else %} Attach {% endif %} {{"profile_images"|tip}}</th>

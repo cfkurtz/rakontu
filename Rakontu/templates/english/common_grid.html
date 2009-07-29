@@ -10,11 +10,19 @@
 			</h3> 
 			</form>
 			</div>
-			<table cellpadding="4" cellspacing="0" style="width:100%; border-top: 1px solid #FF7F00; border-bottom: 1px solid #FF7F00; border-left: none; border-right: 1px solid #FF7F00">
+			<table 
+				cellpadding="4" 
+				cellspacing="0" 
+				style="width:100%; 
+				border-top: 1px solid #{{colors|dictLookup:"border_normal"}}; 
+				border-bottom: 1px solid #{{colors|dictLookup:"border_normal"}}; 
+				border-left: none; 
+				border-right: 1px solid #{{colors|dictLookup:"border_normal"}}"
+				>
 			{% for i in rows_cols|makeRangeFromListLength %}
 				<tr>
 				{% for col_list in rows_cols|listLookup:i %}
-					<td style="background-color:#{{row_colors|listLookup:i}};border-left: 1px solid #FF7F00; border-top: none; border-bottom: none; border-right: none">
+					<td style="background-color:#{{row_colors|listLookup:i}};border-left: 1px solid #{{colors|dictLookup:"border_normal"}}; border-top: none; border-bottom: none; border-right: none">
 					{% if col_list %}
 						{% for text in col_list %}
 							{{text}}

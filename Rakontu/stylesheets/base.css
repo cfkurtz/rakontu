@@ -4,39 +4,16 @@
 body {
   	font-family: Georgia, "Times New Roman", Times, serif;
   	font-size: 90%;
-  	background-color: #FAEBD7;
 	}
 	
 hr {
 	height: 1px;
-	border-top: 1px solid #FF7F00;
-	}
-	
-h1 {
- 	color: #993300;
-	}
-	
-a {
-	color: #8B4500;
-	text-decoration: none;
+	border-top: 1px solid #000000;
 	}
 	
 p
 	{
 	margin: 8px 0px 8px 0px;
-	}
-	
-a:hover {
-	background: #993300;
-	color: #FFFFFF;
-	}
-	
-.image:hover {
-	background: #EECBAD;
-	}
-	
-.imagelight:hover {
-	background: #FFEECC;
 	}
 	
 img {
@@ -45,13 +22,17 @@ img {
 	}
 	
 img.bordered {
-	border: 1px solid #FF7F00;
+	border: 1px solid #000000;
+	}
+	
+img.bordered:hover {
+	border: 1px solid #000000;
 	}
 	
 table {
 	width: auto;
-	border-right: 1px solid #FF7F00;
-	border-bottom: 1px solid #FF7F00;
+	border-right: 1px solid #000000;
+	border-bottom: 1px solid #000000;
 	}
 	
 table.fullwidth {
@@ -66,13 +47,21 @@ table.noborder {
 	
 table.fullborder {
 	width: auto;
-	border: 1px solid #FF7F00;
+	border: 1px solid #000000;
+	}
+	
+table.grid {
+	width: 100%; 
+	border-top: 1px solid #000000; 
+	border-bottom: 1px solid #000000; 
+	border-left: none; 
+	border-right: 1px solid #000000">
 	}
 	
 td {
 	font-size: 80%;
-	border-left: 1px solid #FF7F00;
-	border-top: 1px solid #FF7F00;
+	border-left: 1px solid #000000;
+	border-top: 1px solid #000000;
 	padding: 4px 4px 4px 4px;
 	}
 	
@@ -85,23 +74,12 @@ th {
 	font-size: 80%;
 	font-style: plain;
 	font-weight: normal;
-	background: #FFEECC;
-	border-left: 1px solid #FF7F00;
-	border-top: 1px solid #FF7F00;
-	}
-	
-th.fullborder {
-	font-size: 80%;
-	font-style: plain;
-	font-weight: normal;
-	background: #FFEECC;
-	border: 1px solid #FF7F00;
 	}
 	
 fieldset {
-	background: #EECBAD; 
+	background: #EEEEEE; 
 	width: auto;
-	border: 1px solid #FF7F00;
+	border: 1px solid #000000;
 	}
 		
 ul li.nobullet {
@@ -114,19 +92,14 @@ ul li.nobullet {
 
 /* ----------- division classes ----------- */
 
-.entry_text {
-	padding: 4px 4px 4px 4px;
-	font-size: 110%;
-	}
-	
 .rightalign {
 	text-align: right;
 	}
 	
 .blurb {
-	background: #FFE4C4;
+	background: #CCCCCC;
 	width: auto;
-	border: 1px solid #FF7F00;
+	border: 1px solid #000000;
 	padding: 4px 8px 4px 8px;
 	margin-left: 0px;
 	margin-bottom: 8px;
@@ -141,19 +114,10 @@ ul li.nobullet {
 	font-size: 80%;
 	}
 	
-.flag {
-	background: #FFE303; 
-	width: auto;
-	border: 1px solid #E3170D;
-	padding: 4px;
-	}
-	
 /* ----------- page areas ----------- */
 #header {
-	!background: #FFE4C4;
 	font-family: Verdana, Arial, Helvetica, sans-serif;
 	font-size: 100%;
-	!border: 1px solid #FF7F00;
 	}
 	
 #content {
@@ -182,19 +146,19 @@ ul li.nobullet {
     margin-right: 2px;
     margin-top: 1px;
     margin-bottom: 0px;
-    border: 1px solid #FF7F00;
+    border: 1px solid #000000;
     }
 #topmenu li a {
     display: block;
     padding: 3px 8px;
-    background-color: #FFEECC;
+    background-color: #CCCCCC;
     color: #000;
     text-decoration: none; 
     }
 #topmenu li ul {
     display: none;
     width: 10em; /* Width to help Opera out */
-    background-color: #FFEECC;
+    background-color: #CCCCCC;
     }
 #topmenu li:hover ul, #topmenu li.hover ul {
     display: block;
@@ -206,15 +170,15 @@ ul li.nobullet {
     float: none; 
     }
 #topmenu li:hover li a, #topmenu li.hover a {
-    background-color: #FFEECC;
-    color: #000; 
+    background-color: #CCCCCC;
+    color: #000000; 
     }
 #topmenu li li {
 	width: 200px;
 	}
 #topmenu li li a:hover {
-    background-color: #FF7F00; 
-    color: #fff;
+    background-color: #000000; 
+    color: #FFFFFF;
     }
 
 /* ----------- forms ----------- */
@@ -223,16 +187,13 @@ ul li.nobullet {
 	margin: 0 auto;
 	width: 400px;
 	padding: 14px;
-	border: solid 1px #FF7F00;
+	border: solid 1px #000000;
+	background-color: #EEEEEE;
 	}
 	
 .rakontu_form {
 	margin: 0px;
 	padding: 0px;
-	}
-	
-#stylized {
-	!background: #FFEECC;
 	}
 	
 #stylized h1 {
@@ -249,42 +210,42 @@ ul li.nobullet {
 	}
 	
 #stylized label:hover{
-	color: #666666;
+	color: #999999;
 	}
 	
 #stylized select {
 	font-size: 12px;
 	padding: 4px 2px;
-	border: solid 1px #FF7F00;
+	border: solid 1px #000000;
 	margin: 2px 0px 10px 2px;
 	}
 	
 #stylized select:hover{
-	border: solid 1px #993300;
+	border: solid 1px #000000;
 	}
 	
 #stylized input{
 	font-size: 12px;
-	border: solid 1px #FF7F00;
+	border: solid 1px #000000;
 	margin: 2px 2px 2px 2px;
 	padding: 4px 4px 4px 4px;
 	}
 	
 #stylized input:hover{
-	border: solid 1px #993300;
+	border: solid 1px #000000;
 	}
 	
 #stylized textarea{
 	font-family: Verdana, Helvetica, sans-serif;
 	font-size: 13px;
 	padding: 4px 2px;
-	border: solid 1px #FF7F00;
+	border: solid 1px #000000;
 	width: 98%;
 	margin: 2px 0px 10px 2px;
 	}
 	
 #stylized textarea:hover{
-	border: solid 1px #993300;
+	border: solid 1px #000000;
 	}
 	
 #stylized input.button{
@@ -293,16 +254,16 @@ ul li.nobullet {
 	width: auto;
 	height: 34px;
 	line-height: 32px;
-	background: #FFD39B;
+	background: #CCCCCC;
 	text-align: center;
 	font-size: 130%;
 	font-weight: bold;
-	border: solid 2px #FF7F00;
+	border: solid 2px #000000;
 	}
 	
 #stylized input.button:hover{
-	border: solid 2px #993300;
-	background: #FF7F24;
+	border: solid 2px #000000;
+	background: #999999;
 	}
 	
 #stylized input.button_small{
@@ -311,15 +272,15 @@ ul li.nobullet {
 	width: auto;
 	height: 26px;
 	line-height: 24px;
-	background: #FFD39B;
+	background: #CCCCCC;
 	text-align: center;
 	font-size: 80%;
-	border: solid 1px #FF7F00;
+	border: solid 1px #000000;
 	}
 	
 #stylized input.button_small:hover{
-	border: solid 1px #993300;
-	background: #FF7F24;
+	border: solid 1px #000000;
+	background: #999999;
 	}
 	
 /* ----------- margin: top right bottom left ----------- */

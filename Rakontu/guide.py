@@ -17,6 +17,7 @@ class ReviewResourcesPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_RESOURCES"], 
 								   'rakontu': rakontu, 
+								   'colors': rakontu.colorDictionary(),
 								   'resources': rakontu.getNonDraftEntriesOfType("resource"),
 								   'current_member': member,
 								   'url_resource': URLForEntryType("resource"),
@@ -78,6 +79,7 @@ class ReviewRequestsPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_REQUESTS"], 
 								   'rakontu': rakontu, 
+								   'colors': rakontu.colorDictionary(),
 								   'current_member': member,
 								   'requests': requestsByType,
 								   'num_types': len(REQUEST_TYPES),
@@ -132,6 +134,7 @@ class ReviewInvitationsPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_INVITATIONS"], 
 								   'rakontu': rakontu, 
+								   'colors': rakontu.colorDictionary(),
 								   'current_member': member,
 								   'invitations': invitations,
 								   'showing_all_invitations': not noResponsesOnly,

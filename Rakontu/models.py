@@ -172,6 +172,8 @@ class Rakontu(db.Model):
 	defaultTimeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT, indexed=False) # appears on member preferences page
 	defaultDateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT, indexed=False) # appears on member preferences page
 	
+	colorScheme = db.StringProperty(default=DEFAULT_COLOR_SCHEME, indexed=False)
+	
 	def initializeFormattedTexts(self):
 		self.description_formatted = db.Text("<p>%s</p>" % self.description)
 		self.etiquetteStatement_formatted = db.Text("<p>%s</p>" % self.etiquetteStatement)
@@ -202,6 +204,12 @@ class Rakontu(db.Model):
 	
 	def allowsFiveAttachments(self):
 		return self.maxNumAttachments == 5
+	
+	def colorDictionary(self):
+		if COLOR_SCHEMES.has_key(self.colorScheme):
+			return COLOR_SCHEMES[self.colorScheme]
+		else:
+			return COLOR_SCHEMES[DEFAULT_COLOR_SCHEME]
 		
 	# DISPLAY
 	
@@ -1122,7 +1130,7 @@ class Member(db.Model):
 		return "%s=%s" % (URL_IDS["url_query_member"], self.getKeyName())
 
 	def imageEmbed(self):
-		return '<img src="/%s/%s?%s=%s">' % (DIRS["dir_visit"], URLS["url_image"], URL_IDS["url_query_member"], self.getKeyName())
+		return '<img src="/%s/%s?%s=%s" class="bordered">' % (DIRS["dir_visit"], URLS["url_image"], URL_IDS["url_query_member"], self.getKeyName())
 	
 	def getSavedSearches(self):
 		return SavedSearch.all().filter("creator = ", self.key()).fetch(FETCH_NUMBER)

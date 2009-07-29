@@ -77,6 +77,190 @@ DEFAULT_CONTACT_EMAIL = "support@rakontu.org"
 DEFAULT_START_NUDGE_POINTS = 50
 
 # ============================================================================================ 
+# COLOR SCHEMES
+# ============================================================================================ 
+
+# These are the color schemes that appear as choices to the Rakontu manager and determine
+# how things look on the page. 
+# Note that each color scheme name must have a matching name in the COLOR_SCHEMES_DISPLAY_NAMES dictionary
+# in the language_config.py file - that is the (possibly translated) name shown to Rakontu managers
+# when they choose the color scheme. If you add a new color scheme, be sure to add an entry there.
+
+COLOR_SCHEMES = {
+	"grayscale":
+		{
+		# backgrounds
+		"background_general": "FFFFFF", # on all pages
+		"background_excerpt": "FFFFFF", # behind story texts and other "highlighted" boxes
+		"background_entry": "BBBBBB", # to indicate the user is entering data
+		"background_menus": "DDDDDD", # menu backgrounds
+		
+		"background_grid_top": "FFFFFF", # entry grid on home page, annotation grid on entry page
+		"background_grid_bottom": "444444", # same but on bottom of grid (should be "faded" from top)
+		
+		"background_button": "FFFFFF", # button at bottom of pages
+		"background_button_hover": "DDDDDD", # when button is hovered over
+		
+		# borders
+		"border_normal": "999999", # around everything
+		"border_input_hover": "000000", # lights up when mouse is over entries (text, drop-down box)
+		"border_image": "000000", # border around images
+		
+		# links
+		"text_link": "000000", # links in text
+		"text_link_hover": "FFFFFF", # link light-up on hover (usually white, constrasts with background_link_hover)
+		"background_link_hover": "666666", # light-up effect for links
+
+		# texts
+		"text_plain": "000000", # plain text - usually black
+		"text_excerpt": "000000", # text color in excerpts
+		"text_menus": "000000", # text color in menus
+		"text_buttons": "000000", # text color on buttons
+		"text_h1": "000000", # h1 text
+		"text_h2": "000000", # h2 text
+		"text_h3": "000000", # h3 text
+		"text_label_hover": "666666", # color of labels, like checkbox names
+		},
+	"sunset":
+		{
+		# backgrounds
+		"background_general": "FAEBD7", # on all pages
+		"background_excerpt": "FFEECC", # behind story texts and other "highlighted" boxes
+		"background_entry": "EECBAD", # to indicate the user is entering data
+		"background_menus": "FFEECC", # menu backgrounds
+		
+		"background_grid_top": "FAEBD7", # entry grid on home page, annotation grid on entry page
+		"background_grid_bottom": "CD853F", # same but on bottom of grid (should be "faded" from top)
+		
+		"background_button": "FFD39B", # button at bottom of pages
+		"background_button_hover": "CD6839", # when button is hovered over
+		
+		# borders
+		"border_normal": "FF7F00", # around everything
+		"border_input_hover": "993300", # lights up when mouse is over entries (text, drop-down box)
+		"border_image": "FF7F00", # border around images
+		
+		# links
+		"text_link": "8B4500", # links in text
+		"text_link_hover": "FFFFFF", # link light-up on hover (usually white, constrasts with background_link_hover)
+		"background_link_hover": "EECBAD", # light-up effect for links
+		
+		# texts
+		"text_plain": "000000", # plain text - usually black
+		"text_excerpt": "000000", # text color in excerpts
+		"text_menus": "000000", # text color in menus
+		"text_buttons": "000000", # text color on buttons
+		"text_h1": "000000", # h1 text
+		"text_h2": "000000", # h2 text
+		"text_h3": "000000", # h3 text
+		"text_label_hover": "666666", # color of labels, like checkbox names
+		},
+	"pinky purple":
+		{
+		# backgrounds
+		"background_general": "FFE1FF", # on all pages
+		"background_excerpt": "FFF0F5", # behind story texts and other "highlighted" boxes
+		"background_entry": "FF92BB", # to indicate the user is entering data
+		"background_menus": "FFB6C1", # menu backgrounds
+		
+		"background_grid_top": "EEAEEE", # entry grid on home page, annotation grid on entry page
+		"background_grid_bottom": "9C6B98", # same but on bottom of grid (should be "faded" from top)
+		
+		"background_button": "DA70D6", # button at bottom of pages
+		"background_button_hover": "FF00FF", # when button is hovered over
+		
+		# borders
+		"border_normal": "9E0508", # around everything
+		"border_input_hover": "862A51", # lights up when mouse is over entries (text, drop-down box)
+		"border_image": "000000", # border around images
+		
+		# links
+		"text_link": "9E0508", # links in text
+		"text_link_hover": "FFFFFF", # link light-up on hover (usually white, constrasts with background_link_hover)
+		"background_link_hover": "FF00FF", # light-up effect for links
+
+		# texts
+		"text_plain": "000000", # plain text - usually black
+		"text_excerpt": "000000", # text color in excerpts
+		"text_menus": "000000", # text color in menus
+		"text_buttons": "000000", # text color on buttons
+		"text_h1": "000000", # h1 text
+		"text_h2": "000000", # h2 text
+		"text_h3": "000000", # h3 text
+		"text_label_hover": "8B5F65", # color of labels, like checkbox names
+		},
+	"growing things":
+		{
+		# backgrounds
+		"background_general": "CCFFCC", # on all pages
+		"background_excerpt": "F0FFF0", # behind story texts and other "highlighted" boxes
+		"background_entry": "D2B48C", # to indicate the user is entering data
+		"background_menus": "A6D785", # menu backgrounds
+		
+		"background_grid_top": "CCFFCC", # entry grid on home page, annotation grid on entry page
+		"background_grid_bottom": "548B54", # same but on bottom of grid (should be "faded" from top)
+		
+		"background_button": "CD8500", # button at bottom of pages
+		"background_button_hover": "0AC92B", # when button is hovered over
+		
+		# borders
+		"border_normal": "3EA055", # around everything
+		"border_input_hover": "003300", # lights up when mouse is over entries (text, drop-down box)
+		"border_image": "003300", # border around images
+		
+		# links
+		"text_link": "2C5D3F", # links in text
+		"text_link_hover": "FFFFFF", # link light-up on hover (usually white, constrasts with background_link_hover)
+		"background_link_hover": "2F4F2F", # light-up effect for links
+		
+		# texts
+		"text_plain": "000000", # plain text - usually black
+		"text_excerpt": "000000", # text color in excerpts
+		"text_menus": "000000", # text color in menus
+		"text_buttons": "000000", # text color on buttons
+		"text_h1": "215E21", # h1 text
+		"text_h2": "215E21", # h2 text
+		"text_h3": "215E21", # h3 text
+		"text_label_hover": "4D6B50", # color of labels, like checkbox names
+		},
+	"funky":
+		{
+		# backgrounds
+		"background_general": "00688B", # on all pages
+		"background_excerpt": "00FA9A", # behind story texts and other "highlighted" boxes
+		"background_entry": "00B2EE", # to indicate the user is entering data
+		"background_menus": "00FF66", # menu backgrounds
+		
+		"background_grid_top": "7CFC00", # entry grid on home page, annotation grid on entry page
+		"background_grid_bottom": "2F4F4F", # same but on bottom of grid (should be "faded" from top)
+		
+		"background_button": "EE5C42", # button at bottom of pages
+		"background_button_hover": "FF3300", # when button is hovered over
+		
+		# borders
+		"border_normal": "7FFF00", # around everything
+		"border_input_hover": "FF2400", # lights up when mouse is over entries (text, drop-down box)
+		"border_image": "7FFF00", # border around images
+		
+		# links
+		"text_link": "7FFF00", # links in text
+		"text_link_hover": "FFFFFF", # link light-up on hover (usually white, constrasts with background_link_hover)
+		"background_link_hover": "00B2EE", # light-up effect for links
+
+		# texts
+		"text_plain": "DDDDDD", # plain text - usually black
+		"text_excerpt": "000000", # text color in excerpts
+		"text_menus": "007FFF", # text color in menus
+		"text_buttons": "104E8B", # text color on buttons
+		"text_h1": "DDDDDD", # h1 text
+		"text_h2": "DDDDDD", # h2 text
+		"text_h3": "DDDDDD", # h3 text
+		"text_label_hover": "4D6B50", # color of labels, like checkbox names
+		},
+	}
+DEFAULT_COLOR_SCHEME = "sunset"
+
+# ============================================================================================ 
 # BROWSING
 # ============================================================================================ 
 
@@ -277,3 +461,7 @@ DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS = [
 # The number of tags in each tag set. Reasonable values are between 3 and 7.
 # CAUTION: You cannot set this number to zero; the system expects it to be at least one.
 NUM_TAGS_IN_TAG_SET = 5
+
+
+
+

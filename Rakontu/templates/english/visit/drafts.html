@@ -16,7 +16,7 @@
 		{% endif %}
 		{% if draft_entries %}
 			<h4>Entries</h4>
-	      	<table border="1" cellpadding="4" cellspacing="0">
+	      	<table border="0" cellpadding="4" cellspacing="0">
 	      	<tr><th>Entry type</th><th>Name (click to change)</th><th>Created</th><th>Last changed</th><th>Remove?</th>
 	      	{% for entry in draft_entries %}
 		      	<tr>
@@ -35,7 +35,7 @@
 		
 		{% if draft_annotations %}
 		<h4>Annotations</h4>
-	      	<table border="1" cellpadding="4" cellspacing="0">
+	      	<table border="0" cellpadding="4" cellspacing="0">
 	      	<tr><th>Annotation type</th><th>Name</th><th>In reference to the entry</th><th>Created</th><th>Last changed</th><th>Remove?</th>
 	      	{% for annotation in draft_annotations %}
 		      	<tr>
@@ -56,7 +56,7 @@
 		
 		{% if first_draft_answer_per_entry %}
 			<h4>Answers for entries</h4>
-		      	<table border="1" cellpadding="4" cellspacing="0">
+		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr><th>Answers about entry</th><th>Created</th><th>Last changed</th><th>Remove?</th>
 		      	{% for answer in first_draft_answer_per_entry %}
 			      	<tr>

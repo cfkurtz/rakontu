@@ -17,6 +17,7 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["REVIEW_OFFLINE_MEMBERS"], 
 								   'rakontu': rakontu, 
+								   'colors': rakontu.colorDictionary(),
 								   'current_member': member,
 								   'active_members': rakontu.getActiveOfflineMembers(),
 								   'inactive_members': rakontu.getInactiveOfflineMembers(),
@@ -102,6 +103,7 @@ class ReviewBatchEntriesPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_BATCH_ENTRIES"], 
 								   'rakontu': rakontu, 
+								   'colors': rakontu.colorDictionary(),
 								   'character_allowed': rakontu.allowCharacter[STORY_ENTRY_TYPE_INDEX],
 								   'batch_entries': rakontu.getEntriesInImportBufferForLiaison(member),
 								   'batch_comments': rakontu.getCommentsInImportBufferForLiaison(member),
@@ -148,6 +150,7 @@ class BatchEntryPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["BATCH_ENTRY"], 
 								   'rakontu': rakontu, 
+								   'colors': rakontu.colorDictionary(),
 								   'num_entries': NUM_ENTRIES_PER_BATCH_PAGE,
 								   'character_allowed': rakontu.allowCharacter[STORY_ENTRY_TYPE_INDEX],
 								   'questions': rakontu.getActiveQuestionsOfType("story"),
