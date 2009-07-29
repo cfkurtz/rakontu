@@ -346,14 +346,10 @@ class EnterEntryPage(webapp.RequestHandler):
 				for attachment in attachmentsToRemove:
 					db.delete(attachment)
 			foundAttachments = Attachment.all().filter("entry = ", entry.key()).fetch(FETCH_NUMBER)
-			DebugPrint(self.request.params.items())
 			for i in range(rakontu.maxNumAttachments):
-				DebugPrint(i)
 				for name, value in self.request.params.items():
 					if name == "attachment%s" % i:
-						DebugPrint(value, name)
 						if value != None and value != "":
-							DebugPrint("value not none")
 							filename = value.filename
 							if len(foundAttachments) > i:
 								attachmentToEdit = foundAttachments[i]
@@ -365,14 +361,12 @@ class EnterEntryPage(webapp.RequestHandler):
 								if filename.lower().find(".%s" % type.lower()) >= 0:
 									mimeType = ACCEPTED_ATTACHMENT_MIME_TYPES[j]
 								j += 1
-							DebugPrint(mimeType, "mime type")
 							if mimeType:
 								attachmentToEdit.mimeType = mimeType
 								attachmentToEdit.fileName = filename
 								attachmentToEdit.name = htmlEscape(self.request.get("attachmentName%s" % i))
 								blob = db.Blob(str(self.request.get("attachment%s" % i)))
 								attachmentToEdit.data = blob
-								DebugPrint(attachmentToEdit, "attachmentToEdit")
 								try:
 									attachmentToEdit.put()
 								except:

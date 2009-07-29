@@ -14,93 +14,8 @@
 	{% endif %}
 	method="post">
 	
-	{% if has_entries %}
-		<table style="border:none;width:100%;">
-		<tr>
-		<td align="left" style="border:none;">
-		Show
-		<select name="timeFrame">
-			{% for time_frame in time_frames %}
-				<option value="{{time_frame|listLookup:0}}"
-				{% if time_frame|listLookup:0|equalTest:member_time_frame_string %}
-					selected="selected"
-				{% endif %}
-				>{{time_frame|listLookup:0}}</option>
-			{% endfor %} 
-			</select>
-		<input type="submit" name="changeTimeFrame" value="Change" class="button_small">
-		{% ifnotequal member_time_frame_string "everything" %}
-			<input type="submit" name="setToFirst" value=" |&lt; " class="button_small">
-			<input type="submit" name="moveTimeBack" value=" &lt; " class="button_small">
-			<input type="submit" name="moveTimeForward" value=" &gt; " class="button_small">
-			<input type="submit" name="setToLast" value=" &gt;| " class="button_small">
-		{% else %}
-			<input type="submit" name="refreshView" value="Refresh" class="button_small">
-		{% endifnotequal %}
-		{% if current_member.viewDetails %}
-			<input type="submit" name="toggleShowDetails" value="Hide details" class="button_small">
-		{% else %}
-			<input type="submit" name="toggleShowDetails" value="Show details" class="button_small">
-		{% endif %}
-		
-		</td><td align="right" style="border:none;">
-		{% if shared_searches or member_searches %}
-				{% if current_search %}
-					Filtered by: {{current_search.displayString}}
-				{% else %}
-					Search filters
-					<select name="savedSearch"><option>({{term_choose}})</option>
-					{% if member_searches %}
-						<option value="">-- My filters --</option>
-						{% for search in member_searches %}
-							<option value="{{search.key}}">{{search.displayString}}</option>
-						{% endfor %}
-					{% endif %}
-					{% if shared_searches %}
-						<option value="">-- Shared filters --</option>
-						{% for search in shared_searches %}
-							<option value="{{search.key}}">{{search.displayString}}</option>
-						{% endfor %}
-					{% endif %}
-					</select>
-				{% endif %}
-			{% if current_search %}
-				<select name="doWithSearch">
-				<option value="clearSearch">Stop applying</option>
-				{% ifnotequal current_member.key current_search.creator.key %}
-					<option value="copySearchAs">Make copy</option>
-				{% else %}
-					<option value="changeSearch">Change</option>
-				{% endifnotequal %}
-				<option value="makeNewSavedSearch">Create another</option>
-				{% if current_member.isLiaison %}
-					<option value="printSearchResults">Print results</option>
-				{% endif %}
-				{% if current_member.isManagerOrOwner %}
-					<option value="exportSearchResults">Write results to CSV</option>
-				{% endif %}
-				</select>
-				<input type="submit" name="doSomethingWithSearch" value="Go" class="button_small">
-			{% else %}
-				<input type="submit" name="loadAndApplySavedSearch" value="Apply" class="button_small">
-				<input type="submit" name="makeNewSavedSearch" value="New" class="button_small">
-			{% endif %}	
-		{% else %}
-			<input type="submit" name="makeNewSavedSearch" value="Create search filter" class="button_small">
-		{% endif %}
-	
-		</td></tr></table>
-	{% endif %}
-
 	{% if rows_cols %}
-		<table cellpadding="4" cellspacing="0" style="width: 100%; border-top: none; border-bottom: 1px solid #FF7F00; border-left: none; border-right: 1px solid #FF7F00">
-		{% if col_headers %}
-			<tr>
-			{% for header in col_headers %}
-			<th style="border-right: 1px solid #FF7F00; border-top: 1px solid #FF7F00; border-bottom: 1px solid #FF7F00; border-left: 1px solid #FF7F00">{{header}}</th>
-			{% endfor %}
-			</tr>
-		{% endif %}
+		<table cellpadding="4" cellspacing="0" style="width: 100%; border-top: 1px solid #FF7F00; border-bottom: 1px solid #FF7F00; border-left: none; border-right: 1px solid #FF7F00">
 		{% for i in rows_cols|makeRangeFromListLength %}
 			<tr>
 			{% for col_list in rows_cols|listLookup:i %}
@@ -117,22 +32,6 @@
 			</tr>
 		{% endfor %}
 		</table>
-		
-		<table style="border:none;width:100%;">
-		<tr><td align="right" valign="center" style="border:none;">
-		<p>Height means
-		{% for i in rakontu.nudgeCategories|makeRangeFromListLength %}
-			<input type="checkbox" name="showCategory|{{i}}" value="yes" id="{{rakontu.nudgeCategories|listLookup:i}}"
-			{% if current_member.viewNudgeCategories|listLookup:i %}
-				checked
-			{% endif %}
-			>
-			<label for="{{rakontu.nudgeCategories|listLookup:i}}">{{rakontu.nudgeCategories|listLookup:i}}</label>
-		{% endfor %}
-		</td>
-		<td align="right" valign="center" style="border:none;">
-		<input type="submit" name="changeNudgeCategoriesShowing" value="Change" class="button_small"></p>
-		</td></tr></table>
 	{% else %}
 		<h4>Nothing here!</h4>
 		{% if current_search %}
@@ -152,6 +51,107 @@
 		{% endif %}
 	{% endif %}
 		
+	{% if has_entries %}
+		<table style="border:none;width:100%;">
+		<tr>
+		
+		</td><td align="center" valign="top" style="border:none;border-right:1px solid #FF7F00;border-bottom:1px solid #FF7F00;">
+		<p>
+		<p>Showing activity from {{min_time}} to {{max_time}}</p>
+		{% ifnotequal member_time_frame_string "everything" %}
+			<input type="submit" name="setToFirst" value=" |&lt; " class="button_small">
+			<input type="submit" name="moveTimeBack" value=" &lt; " class="button_small">
+			<input type="submit" name="moveTimeForward" value=" &gt; " class="button_small">
+			<input type="submit" name="setToLast" value=" &gt;| " class="button_small">
+		{% else %}
+			<input type="submit" name="refreshView" value="Refresh" class="button_small">
+		{% endifnotequal %}
+		</p>
+		<p>
+		{% if current_member.viewDetails %}
+			<input type="submit" name="toggleShowDetails" value="Hide details" class="button_small">
+		{% else %}
+			<input type="submit" name="toggleShowDetails" value="Show details" class="button_small">
+		{% endif %}
+		</p>
+		
+		<p>Show
+		<select name="timeFrame" width="200">
+			{% for time_frame in time_frames %}
+				<option value="{{time_frame|listLookup:0}}"
+				{% if time_frame|listLookup:0|equalTest:member_time_frame_string %}
+					selected="selected"
+				{% endif %}
+				>{{time_frame|listLookup:0}}</option>
+			{% endfor %} 
+			</select>
+		<input type="submit" name="changeTimeFrame" value="Change" class="button_small"></p>
+
+		</td><td align="center" valign="top" style="border:none;border-right:1px solid #FF7F00;border-bottom:1px solid #FF7F00;">
+		{% if shared_searches or member_searches %}
+				{% if current_search %}
+					<p>Filtered by:</p><p><b>{{current_search.displayString}}</b></p>
+				{% else %}
+					<p>Choose a search filter to apply</p>
+					<p><select name="savedSearch"><option>({{term_choose}})</option>
+					{% if member_searches %}
+						<option value="">-- My filters --</option>
+						{% for search in member_searches %}
+							<option value="{{search.key}}">{{search.displayString}}</option>
+						{% endfor %}
+					{% endif %}
+					{% if shared_searches %}
+						<option value="">-- Shared filters --</option>
+						{% for search in shared_searches %}
+							<option value="{{search.key}}">{{search.displayString}}</option>
+						{% endfor %}
+					{% endif %}
+					</select></p>
+				{% endif %}
+			{% if current_search %}
+				<p>
+				<select name="doWithSearch">
+				<option value="clearSearch">Stop applying</option>
+				{% ifnotequal current_member.key current_search.creator.key %}
+					<option value="copySearchAs">Make copy</option>
+				{% else %}
+					<option value="changeSearch">Change</option>
+				{% endifnotequal %}
+				<option value="makeNewSavedSearch">Create another</option>
+				{% if current_member.isLiaison %}
+					<option value="printSearchResults">Print results</option>
+				{% endif %}
+				{% if current_member.isManagerOrOwner %}
+					<option value="exportSearchResults">Write results to CSV</option>
+				{% endif %}
+				</select></p>
+				<p><input type="submit" name="doSomethingWithSearch" value="Go" class="button_small"></p>
+			{% else %}
+				<p><input type="submit" name="loadAndApplySavedSearch" value="Apply" class="button_small"> &nbsp; 
+				<input type="submit" name="makeNewSavedSearch" value="Make New" class="button_small"></p>
+			{% endif %}	
+		{% else %}
+			<p><input type="submit" name="makeNewSavedSearch" value="Create search filter" class="button_small"></p>
+		{% endif %}
+		</td>
+		
+		<td align="center" valign="top" style="border:none;border-bottom:1px solid #FF7F00;">
+		<p>Height means</p>
+		<table cellpadding=0 cellspacing=0 class="noborder"><tr><td style="border:none;">
+		{% for i in rakontu.nudgeCategories|makeRangeFromListLength %}
+			<p><input type="checkbox" name="showCategory|{{i}}" value="yes" id="{{rakontu.nudgeCategories|listLookup:i}}"
+			{% if current_member.viewNudgeCategories|listLookup:i %}
+				checked
+			{% endif %}
+			>
+			<label for="{{rakontu.nudgeCategories|listLookup:i}}">{{rakontu.nudgeCategories|listLookup:i}}</label></p>
+		{% endfor %}
+		</td></tr></table>
+		<p><input type="submit" name="changeNudgeCategoriesShowing" value="Change" class="button_small"></p>
+		</td></tr></table>
+
+	{% endif %}
+
 	</form>	
 	</div>
 		

@@ -61,3 +61,4 @@
 "caution","setting_up_an_email_adddress_for_a_new_Rakontu","This email MUST be associated with a valid Google account. The person who has this account will be the Rakontu's first owner."
 "caution","becoming_a_member_of_a_Rakontu_you_have_set_up","If you don't become a member of the Rakontu, ONLY the person you specify here (through their email) as the Rakontu owner will be able to access it. If YOU are the person specified here, you can ignore this choice."
 "tip","attaching_files","Click the Browse button to attach a file or to replace an existing attachment. Click the Remove box to delete it. There is a maximum 10 megabyte limit per attachment."
+"tip","what_height_means","To choose more than one category, hold down the Control key and click another category in the list."

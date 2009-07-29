@@ -260,6 +260,7 @@ TERMS = {
 		"term_moments_ago": "Moments ago", # NOT followed by time
 		"term_minutes_ago": "minutes ago", # preceded by number
 		"term_yesterday_at": "Yesterday at", # followed by time
+		"term_today_at": "Today at", # followed by time
 		"term_at": "at", # followed by time
 		# used when making a choice from a list  
 		"term_choose": "choose",

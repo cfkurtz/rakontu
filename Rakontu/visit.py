@@ -125,6 +125,8 @@ class BrowseEntriesPage(webapp.RequestHandler):
 							'member_searches': member.getPrivateSavedSearches(),
 							'current_search': currentSearch,
 							'member_time_frame_string': member.getFrameStringForViewTimeFrame(),
+							'min_time': RelativeTimeDisplayString(member.getViewStartTime(), member),
+							'max_time': RelativeTimeDisplayString(member.viewTimeEnd, member),
 							})
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/home.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -225,14 +227,15 @@ class BrowseEntriesPage(webapp.RequestHandler):
 							if member.viewDetails:
 								if entry.attributedToMember():
 									if entry.creator.active:
-										nameString = ' (<a href="member?%s">%s</a>)' % (entry.creator.key(), entry.creator.nickname)
+										nameString = ' (<a href="member?%s">%s</a>, ' % (entry.creator.key(), entry.creator.nickname)
 									else:
-										nameString = " (%s)" % entry.creator.nickname
+										nameString = " (%s, " % entry.creator.nickname
 								else:
 									if entry.character.active:
-										nameString = ' (<a href="character?%s">%s</a>)' % (entry.character.key(), entry.character.name)
+										nameString = ' (<a href="character?%s">%s</a>, ' % (entry.character.key(), entry.character.name)
 									else:
-										nameString = " (%s)" % entry.character.name
+										nameString = " (%s, " % entry.character.name
+								dateTimeString = " %s)" % RelativeTimeDisplayString(entry.published, member)
 								if entry.text_formatted:
 									textString = ": %s" % upToWithLink(stripTags(entry.text_formatted), DEFAULT_DETAILS_TEXT_LENGTH, entry.linkURL())
 								else:
@@ -240,8 +243,9 @@ class BrowseEntriesPage(webapp.RequestHandler):
 							else:
 								nameString = ""
 								textString = ""
-							text = '<p>%s <span style="font-size:%s%%">%s</span>%s%s</p>' % \
-								(entry.getImageLinkForType(), fontSizePercent, entry.linkString(), nameString, textString)
+								dateTimeString = ""
+							text = '<p>%s <span style="font-size:%s%%">%s</span>%s%s%s</p>' % \
+								(entry.getImageLinkForType(), fontSizePercent, entry.linkString(), nameString, dateTimeString, textString)
 							textsInThisCell.append(text)
 				textsInThisRow.append(textsInThisCell)
 			textsForGrid.append(textsInThisRow)
@@ -422,7 +426,7 @@ class ReadEntryPage(webapp.RequestHandler):
 								shouldBeInRow = nudgePoints >= startNudgePoints and nudgePoints < endNudgePoints
 								shouldBeInCol = item.published >= startTime and item.published < endTime
 								if shouldBeInRow and shouldBeInCol:
-									text = ItemDisplayStringForGrid(item, curating, showingMember=False, showDetails=member.viewDetails)
+									text = ItemDisplayStringForGrid(item, member, curating, showingMember=False, showDetails=member.viewDetails)
 									textsInThisCell.append(text)
 							haveContent = haveContent or len(textsInThisCell) > 0
 							textsInThisRow.append(textsInThisCell)
@@ -628,7 +632,7 @@ class SeeMemberPage(webapp.RequestHandler):
 								shouldBeInRow = True
 								shouldBeInCol = item.published >= startTime and item.published < endTime
 								if shouldBeInRow and shouldBeInCol:
-									text = ItemDisplayStringForGrid(item, curating, showingMember=not memberToSee.isLiaison(), showDetails=member.viewDetails)
+									text = ItemDisplayStringForGrid(item, member, curating, showingMember=not memberToSee.isLiaison(), showDetails=member.viewDetails)
 									textsInThisCell.append(text)
 							textsInThisRow.append(textsInThisCell)
 						textsForGrid.append(textsInThisRow)
@@ -720,7 +724,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 								shouldBeInRow = True
 								shouldBeInCol = item.published >= startTime and item.published < endTime
 								if shouldBeInRow and shouldBeInCol:
-									text = ItemDisplayStringForGrid(item, curating, showingMember=True, showDetails=member.viewDetails)
+									text = ItemDisplayStringForGrid(item, member, curating, showingMember=True, showDetails=member.viewDetails)
 									textsInThisCell.append(text)
 							textsInThisRow.append(textsInThisCell)
 						textsForGrid.append(textsInThisRow)

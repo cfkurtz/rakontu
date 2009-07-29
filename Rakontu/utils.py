@@ -249,7 +249,7 @@ def GetKeyFromQueryString(queryString, keyname):
 	else:
 		return None
 
-def ItemDisplayStringForGrid(item, curating=False, showingMember=False, showDetails=False):
+def ItemDisplayStringForGrid(item, member, curating=False, showingMember=False, showDetails=False):
 	# link 
 	if item.__class__.__name__ == "Answer":
 		if showDetails:
@@ -269,21 +269,19 @@ def ItemDisplayStringForGrid(item, curating=False, showingMember=False, showDeta
 	# name
 	if not showingMember:
 		if item.attributedToMember():
-			if item.creator.isOnlineMember:
-				if item.creator.active:
-					nameString = ' (%s)' % (item.creator.linkString())
-				else:
-					nameString = ' (%s)' % item.creator.nickname
+			if item.creator.active:
+				nameString = ' (%s' % (item.creator.linkString())
 			else:
-				if item.creator.active:
-					nameString = ' (<img src="/images/offline.png" alt="offline member"><a href="member?%s">%s</a>)' % (item.creator.key(), item.creator.nickname)
-				else:
-					nameString = ' (<img src="/images/offline.png" alt="offline member"> %s)' % item.creator.nickname
+				nameString = ' (%s' % item.creator.nickname
 		else:
 			if item.character.active:
-				nameString = ' (%s)' % (item.character.linkString())
+				nameString = ' (%s' % (item.character.linkString())
 			else:
-				nameString = ' (%s)' % item.character.name
+				nameString = ' (%s' % item.character.name
+		if showDetails:
+			nameString += ", "
+		else:
+			nameString += ")"
 	else:
 		nameString = ""
 	# curating flag 
@@ -294,6 +292,15 @@ def ItemDisplayStringForGrid(item, curating=False, showingMember=False, showDeta
 			curateString = '<a href="flag?%s" class="imagelight"><img src="../images/flag_green.png" alt="flag" border="0"></a>' % item.urlQuery()
 	else:
 		curateString = ""
+	# date string if showing details
+	if showDetails:
+		if showingMember:
+			dateTimeString = " ("
+		else:
+			dateTimeString = " "
+		dateTimeString += "%s)" % RelativeTimeDisplayString(item.published, member)
+	else:
+		dateTimeString = ""
 	# longer text if showing details
 	if showDetails:
 		if item.__class__.__name__ == "Annotation":
@@ -310,7 +317,7 @@ def ItemDisplayStringForGrid(item, curating=False, showingMember=False, showDeta
 			textString = ""
 	else:
 		textString = ""
-	return '<p>%s %s %s%s%s</p>' % (item.getImageLinkForType(), curateString, linkString, nameString, textString)
+	return '<p>%s %s %s%s%s%s</p>' % (item.getImageLinkForType(), curateString, linkString, nameString, dateTimeString, textString)
 
 def checkedBlank(value):
 	if value:
@@ -647,26 +654,34 @@ def TimeFormatStrings():
 def RelativeTimeDisplayString(whenUTC, member):
 	if member and member.timeZoneName:
 		when = whenUTC.astimezone(timezone(member.timeZoneName))
+		return "%s %s" % (stripZeroOffStart(when.strftime(DjangoToPythonTimeFormat(member.timeFormat))),
+						(when.strftime(DjangoToPythonDateFormat(member.dateFormat))))
+		"""
 		delta = datetime.now(tz=timezone(member.timeZoneName)) - when
 		if delta.days < 1 and delta.seconds < 1: 
-			return TERMS["term_now"]
+			result = TERMS["term_now"]
 		elif delta.days < 1 and delta.seconds < 60: # one minute
-			return TERMS["term_moments_ago"]
+			result = TERMS["term_moments_ago"]
 		elif delta.days < 1 and delta.seconds < 60*60: # one hour
-			return "%s %s" % (delta.seconds // 60, TERMS["term_minutes_ago"])
+			result = "%s %s" % (delta.seconds // 60, TERMS["term_minutes_ago"])
 		elif delta.days < 1:
-			return when.strftime(DjangoToPythonTimeFormat(member.timeFormat))
+			result = "%s %s" % (TERMS["term_today_at"], stripZeroOffStart(when.strftime(DjangoToPythonTimeFormat(member.timeFormat))))
 		elif delta.days < 2:
-			return "%s %s" % (TERMS["term_yesterday_at"], when.strftime(DjangoToPythonTimeFormat(member.timeFormat)))
-		elif delta.days < 7:
-			return when.strftime("%s %s %s" % (DjangoToPythonDateFormat(member.dateFormat), TERMS["term_at"],
-											DjangoToPythonTimeFormat(member.timeFormat)))
+			result = "%s %s" % (TERMS["term_yesterday_at"], stripZeroOffStart(when.strftime(DjangoToPythonTimeFormat(member.timeFormat))))
 		else:
-			return when.strftime("%s %s %s" % (DjangoToPythonDateFormat(member.dateFormat), TERMS["term_at"],
-											DjangoToPythonTimeFormat(member.timeFormat)))
+			result = when.strftime(DjangoToPythonDateFormat(member.dateFormat))
+		result = stripZeroOffStart(result)
+		return result
+		"""
 	else:
 		return None
-
+	
+def stripZeroOffStart(text):
+	if text[0] == "0":
+		return text[1:]
+	else:
+		return text
+	
 # ============================================================================================
 # ============================================================================================
 # TEXT PROCESING

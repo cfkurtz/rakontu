@@ -150,10 +150,10 @@ ul li.nobullet {
 	
 /* ----------- page areas ----------- */
 #header {
-	background: #FFE4C4;
+	!background: #FFE4C4;
 	font-family: Verdana, Arial, Helvetica, sans-serif;
 	font-size: 100%;
-	border: 1px solid #FF7F00;
+	!border: 1px solid #FF7F00;
 	}
 	
 #content {

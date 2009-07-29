@@ -13,6 +13,11 @@ move templates to templates/english and deal with calling them up based on langu
 
 special place for discussion group urls in rakontu ?
 
+instead of asking admin if they want to join new rakontu during creation,
+have easy way to join and unjoin in admin page.
+
+move show what to main page and not in search filter??
+
 ===== PUT OFF until a little later :)
 
 TESTING:

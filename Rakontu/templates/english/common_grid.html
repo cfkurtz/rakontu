@@ -11,13 +11,6 @@
 			</form>
 			</div>
 			<table cellpadding="4" cellspacing="0" style="width:100%; border-top: 1px solid #FF7F00; border-bottom: 1px solid #FF7F00; border-left: none; border-right: 1px solid #FF7F00">
-			{% if col_headers %}
-				<tr>
-				{% for header in col_headers %}
-				<th style="border-right: 1px solid #FF7F00; border-top: 1px solid #FF7F00; border-bottom: 1px solid #FF7F00; border-left: 1px solid #FF7F00">{{header}}</th>
-				{% endfor %} 
-				</tr>
-			{% endif %} 
 			{% for i in rows_cols|makeRangeFromListLength %}
 				<tr>
 				{% for col_list in rows_cols|listLookup:i %}

@@ -137,16 +137,15 @@
 		<p></p>
 		<div id="stylized" class="rakontu_form">
 		<form name="read" action="/{{dir_visit}}/{{url_read}}?{{rakontu.urlQuery}}" method="post">
-		<p>Height means
+		<p>Height means</p>
 		{% for i in rakontu.nudgeCategories|makeRangeFromListLength %}
-			<input type="checkbox" name="showCategory|{{i}}" value="yes" id="{{rakontu.nudgeCategories|listLookup:i}}"
+			<p> &nbsp; &nbsp; <input type="checkbox" name="showCategory|{{i}}" value="yes" id="{{rakontu.nudgeCategories|listLookup:i}}"
 			{% if current_member.viewNudgeCategories|listLookup:i %}
 				checked
 			{% endif %}
-			>
-			<label for="{{rakontu.nudgeCategories|listLookup:i}}">{{rakontu.nudgeCategories|listLookup:i}}</label>
+			><label for="{{rakontu.nudgeCategories|listLookup:i}}">{{rakontu.nudgeCategories|listLookup:i}}</label></p>
 		{% endfor %}
-		<input type="submit" name="changeNudgeCategoriesShowing" value="Change" class="button_small"></p>
+		<p><input type="submit" name="changeNudgeCategoriesShowing" value="Change" class="button_small"></p>
 		</form>
 		</div>
 	{% endif %}

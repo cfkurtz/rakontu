@@ -14,4 +14,11 @@ indexes:
   - name: type
   - name: title
     direction: desc
+    
+- kind: Question
+  properties:
+  - name: active
+  - name: rakontu
+  - name: refersTo
+
  
