@@ -14,53 +14,17 @@
 	{% endif %}
 	method="post">
 	
-	{% if rows_cols %}
-		<table 
-			cellpadding="4" 
-			cellspacing="0" class="grid">
-		{% for i in rows_cols|makeRangeFromListLength %}
-			<tr>
-			{% for col_list in rows_cols|listLookup:i %}
-				<td style="background-color:#{{row_colors|listLookup:i}};border-left: 1px solid #{{colors|dictLookup:"border_normal"}}; 
-				border-top: none; border-bottom: none; border-right: none">
-				{% if col_list %}
-					{% for text in col_list %}
-						{{text}}
-					{% endfor %}
-				{% else %}
-				&nbsp; 
-				{% endif %}
-				</td>
-			{% endfor %}
-			</tr>
-		{% endfor %}
-		</table>
-	{% else %}
-		<h4>Nothing here!</h4>
-		{% if current_search %}
-			<p>The applied search filter resulted in showing no entries. Click this button
-			<input type="submit" name="clearSearch" value="Stop applying" class="button_small">
-			to stop applying it, or change it.
-		{% else %}
-			<p>This Rakontu has no entries in it.
-			Why not add the first <a href="/{{dir_visit}}/{{url_story}}?{{rakontu.urlQuery}}">story</a> 
-			or <a href="/{{dir_visit}}/{{url_invitation}}?{{rakontu.urlQuery}}">invitation</a>?
-			{% if current_member.isManagerOrOwner %}
-				You can also choose Rakontu <a href="/{{dir_manage}}/{{url_settings}}?{{rakontu.urlQuery}}">settings</a>.
-				</p>
-			{% else %}
-				You can also read <a href="/{{dir_visit}}/{{url_rakontu}}?{{rakontu.urlQuery}}">here</a> about the Rakontu.</p>
-			{% endif %}
-		{% endif %}
+	{% if not current_member.viewHomeOptionsOnTop %}
+		{% include "home_grid.html" %}
 	{% endif %}
 		
 	{% if has_entries %}
-		<table style="border:none;width:100%;">
+		<table style="border:none;width:100%;" cellpadding="0" cellspacing="0">
 		<tr>
 		
-		</td><td align="center" valign="top" style="border:none;border-right:1px solid #{{colors|dictLookup:"border_normal"}};
-		border-bottom:1px solid #{{colors|dictLookup:"border_normal"}};">
+		</td><td align="center" valign="top" style="border:1px solid #{{colors|dictLookup:"border_normal"}};">
 		<p>
+		<p>Time range</p>
 		<p>{{min_time}}<br/>to<br/>{{max_time}}</p>
 		{% ifnotequal member_time_frame_string "everything" %}
 			<input type="submit" name="setToFirst" value=" |&lt; " class="button_small">
@@ -89,14 +53,33 @@
 			<input type="submit" name="toggleShowDetails" value="Show details" class="button_small">
 		{% endif %}
 		</p>
+		<p>
+		{% if current_member.viewHomeOptionsOnTop %}
+			<input type="submit" name="toggleViewHomeOptionsOnTop" value="Move Choices to Bottom" class="button_small">
+		{% else %}
+			<input type="submit" name="toggleViewHomeOptionsOnTop" value="Move Choices to Top" class="button_small">
+		{% endif %}
 
-		</td><td align="center" valign="top" style="border:none;border-right:1px solid #{{colors|dictLookup:"border_normal"}};
-			border-bottom:1px solid #{{colors|dictLookup:"border_normal"}};">
+		</td><td align="center" valign="top" style="border:1px solid #{{colors|dictLookup:"border_normal"}};">
+		<p>Include</p>
+		<table cellpadding=0 cellspacing=0 class="noborder"><tr><td style="border:none;">
+		{% for i in entry_types|makeRangeFromListLength %}
+			<p><input type="checkbox" name="showEntryType|{{i}}" value="yes" id="{{entry_types|listLookup:i}}"
+			{% if current_member.viewEntryTypes|listLookup:i %}
+				checked
+			{% endif %}
+			>
+			<label for="{{entry_types|listLookup:i}}">{{entry_types_plural|listLookup:i}}</label></p>
+		{% endfor %}
+		</td></tr></table>
+		<p><input type="submit" name="changeEntryTypesShowing" value="Change" class="button_small"></p>
+
+		</td><td align="center" valign="top" style="border:1px solid #{{colors|dictLookup:"border_normal"}};">
 		{% if shared_searches or member_searches %}
 				{% if current_search %}
 					<p>Filtered by:</p><p><b>{{current_search.displayString}}</b></p>
 				{% else %}
-					<p>Choose a search filter to apply</p>
+					<p>Search filters - choose one</p>
 					<p><select name="savedSearch"><option>({{term_choose}})</option>
 					{% if member_searches %}
 						<option value="">-- My filters --</option>
@@ -135,11 +118,12 @@
 				<input type="submit" name="makeNewSavedSearch" value="Make New" class="button_small"></p>
 			{% endif %}	
 		{% else %}
-			<p><input type="submit" name="makeNewSavedSearch" value="Create search filter" class="button_small"></p>
+			<p>Search filters - none</p>
+			<p><input type="submit" name="makeNewSavedSearch" value="Create one" class="button_small"></p>
 		{% endif %}
 		</td>
 		
-		<td align="center" valign="top" style="border:none;border-bottom:1px solid #{{colors|dictLookup:"border_normal"}};">
+		<td align="center" valign="top" style="border:1px solid #{{colors|dictLookup:"border_normal"}};">
 		<p>Height means</p>
 		<table cellpadding=0 cellspacing=0 class="noborder"><tr><td style="border:none;">
 		{% for i in rakontu.nudgeCategories|makeRangeFromListLength %}
@@ -155,7 +139,11 @@
 		</td></tr></table>
 
 	{% endif %}
-
+	
+	{% if current_member.viewHomeOptionsOnTop %}
+		{% include "home_grid.html" %}
+	{% endif %}
+		
 	</form>	
 	</div>
 		

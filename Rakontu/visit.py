@@ -109,12 +109,42 @@ class BrowseEntriesPage(webapp.RequestHandler):
 				member.viewSearch = querySearch
 				member.viewSearchResultList = []
 				member.put()
-			textsForGrid = []
-			colHeaders = []
-			rowColors = []
-			entries = rakontu.getNonDraftEntriesInReverseTimeOrder()
+			if currentSearch:
+				entryRefs = currentSearch.getEntryQuestionRefs()
+				creatorRefs = currentSearch.getCreatorQuestionRefs()
+			else:
+				entryRefs = None
+				creatorRefs = None
+			typeList = []
+			i = 0
+			for type in ENTRY_TYPES:
+				if member.viewEntryTypes[i]:
+					typeList.append(type)
+				i += 1
+			entries = rakontu.getNonDraftEntriesOfTypesInListInReverseTimeOrder(typeList)
 			if entries:
-				(textsForGrid, colHeaders, rowColors) = self.buildGrid(rakontu, member, entries, currentSearch)
+				entriesThatMatchNewSearch = []
+				entriesToShow = []
+				for entry in entries:
+					if currentSearch:
+						if member.viewSearchResultList:
+							goAhead = entry.key() in member.viewSearchResultList
+							if goAhead:
+								entriesToShow.append(entry)
+						else:
+							goAhead = entry.satisfiesSearchCriteria(currentSearch, entryRefs, creatorRefs)
+							if goAhead:
+								entriesThatMatchNewSearch.append(entry)
+								entriesToShow.append(entry)
+					else:
+						entriesToShow.append(entry)
+				if entriesThatMatchNewSearch:
+					member.viewSearchResultList = []
+					for entry in entriesThatMatchNewSearch:
+						member.viewSearchResultList.append(entry.key())
+					member.put()
+				if entriesToShow:
+					(textsForGrid, colHeaders, rowColors) = self.buildGrid(rakontu, member, entriesToShow, currentSearch)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': TITLES["HOME"],
 							'rakontu': rakontu, 
@@ -137,12 +167,10 @@ class BrowseEntriesPage(webapp.RequestHandler):
 			self.redirect(START)
 			
 	def buildGrid(self, rakontu, member, entries, currentSearch):
-		if currentSearch:
-			entryRefs = currentSearch.getEntryQuestionRefs()
-			creatorRefs = currentSearch.getCreatorQuestionRefs()
-		else:
-			entryRefs = None
-			creatorRefs = None
+		textsForGrid = []
+		colHeaders = []
+		rowColors = []
+
 		maxTime = member.viewTimeEnd
 		minTime = member.getViewStartTime()
 		maxNudgePoints = -9999999
@@ -150,45 +178,32 @@ class BrowseEntriesPage(webapp.RequestHandler):
 		minActivityPoints = -9999999
 		maxActivityPoints = -9999999
 		for entry in entries:
-			nudgePoints = entry.nudgePointsForMemberViewOptions(member.viewNudgeCategories)
-			if minNudgePoints == -9999999:
-				minNudgePoints = nudgePoints
-			elif nudgePoints < minNudgePoints:
-				minNudgePoints = nudgePoints
-			if maxNudgePoints == -9999999:
-				maxNudgePoints = nudgePoints
-			elif nudgePoints > maxNudgePoints:
-				maxNudgePoints = nudgePoints
-			activityPoints = entry.activityPoints
-			if minActivityPoints == -9999999:
-				minActivityPoints = activityPoints
-			elif activityPoints < minActivityPoints:
-				minActivityPoints = activityPoints
-			if maxActivityPoints == -9999999:
-				maxActivityPoints = activityPoints
-			elif activityPoints > maxActivityPoints:
-				maxActivityPoints = activityPoints
+			timeToCheck = entry.lastPublishedOrAnnotated()
+			shouldBeCounted = timeToCheck >= minTime and timeToCheck < maxTime 
+			if shouldBeCounted: 
+				nudgePoints = entry.nudgePointsForMemberViewOptions(member.viewNudgeCategories)
+				if minNudgePoints == -9999999:
+					minNudgePoints = nudgePoints
+				elif nudgePoints < minNudgePoints:
+					minNudgePoints = nudgePoints
+				if maxNudgePoints == -9999999:
+					maxNudgePoints = nudgePoints
+				elif nudgePoints > maxNudgePoints:
+					maxNudgePoints = nudgePoints
+				activityPoints = entry.activityPoints
+				if minActivityPoints == -9999999:
+					minActivityPoints = activityPoints
+				elif activityPoints < minActivityPoints:
+					minActivityPoints = activityPoints
+				if maxActivityPoints == -9999999:
+					maxActivityPoints = activityPoints
+				elif activityPoints > maxActivityPoints:
+					maxActivityPoints = activityPoints
 		numRows = BROWSE_NUM_ROWS
 		numCols = BROWSE_NUM_COLS
 		nudgeStep = max(1, (maxNudgePoints - minNudgePoints) // numRows)
 		timeStep = (maxTime - minTime) // numCols
 		
-		textsForGrid = []
-		colHeaders = []
-		rowColors = []
-		entriesThatMatchSearch = []
-		entriesToShow = []
-		for entry in entries:
-			if currentSearch:
-				if member.viewSearchResultList:
-					goAhead = entry.key() in member.viewSearchResultList
-				else:
-					goAhead = entry.satisfiesSearchCriteria(currentSearch, entryRefs, creatorRefs)
-					if goAhead:
-						entriesThatMatchSearch.append(entry)
-						entriesToShow.append(entry)
-			else:
-				entriesToShow.append(entry)
 		for row in range(numRows):
 			rowColors.append(HexColorStringForRowIndex(row, rakontu.colorDictionary()))
 			textsInThisRow = []
@@ -197,67 +212,53 @@ class BrowseEntriesPage(webapp.RequestHandler):
 				endNudgePoints = 100000000
 			else:
 				endNudgePoints = minNudgePoints + nudgeStep * (row+1)
-			for col in range(numCols):
+			for col in range(numCols): 
 				textsInThisCell = []
 				startTime = minTime + timeStep * col
 				endTime = minTime + timeStep * (col+1)
 				if row == numRows - 1:
 					colHeaders.append(RelativeTimeDisplayString(startTime, member))
+				entryCount = 0
 				for entry in entries:
-					if currentSearch:
-						if member.viewSearchResultList:
-							goAhead = entry.key() in member.viewSearchResultList
-						else:
-							goAhead = entry in entriesToShow
-					else:
-						goAhead = True
-					if goAhead:
-						nudgePoints = entry.nudgePointsForMemberViewOptions(member.viewNudgeCategories)
-						shouldBeInRow = nudgePoints >= startNudgePoints and nudgePoints < endNudgePoints
-						if entry.lastAnnotatedOrAnsweredOrLinked:
-							timeToCheck = entry.lastAnnotatedOrAnsweredOrLinked
-						else:
-							timeToCheck = entry.published
-						shouldBeInCol = timeToCheck >= startTime and timeToCheck < endTime  
-						if shouldBeInRow and shouldBeInCol:
-							fontSizePercent = min(200, 90 + entry.activityPoints - minActivityPoints)
-							downdrift = rakontu.getEntryActivityPointsForEvent("downdrift")
-							if downdrift:
-								daysSinceTouched = 1.0 * (datetime.now(tz=pytz.utc) - entry.lastTouched()).seconds / DAY_SECONDS
-								timeLoss = daysSinceTouched * downdrift
-								fontSizePercent += timeLoss
-								fontSizePercent = int(max(MIN_BROWSE_FONT_SIZE_PERCENT, min(fontSizePercent, MAX_BROWSE_FONT_SIZE_PERCENT)))
-							if member.viewDetails:
-								if entry.attributedToMember():
-									if entry.creator.active:
-										nameString = ' (<a href="member?%s">%s</a>, ' % (entry.creator.key(), entry.creator.nickname)
-									else:
-										nameString = " (%s, " % entry.creator.nickname
+					nudgePoints = entry.nudgePointsForMemberViewOptions(member.viewNudgeCategories)
+					shouldBeInRow = nudgePoints >= startNudgePoints and nudgePoints < endNudgePoints
+					timeToCheck = entry.lastPublishedOrAnnotated()
+					shouldBeInCol = timeToCheck >= startTime and timeToCheck < endTime  
+					if shouldBeInRow and shouldBeInCol:
+						fontSizePercent = min(200, 90 + entry.activityPoints - minActivityPoints)
+						downdrift = rakontu.getEntryActivityPointsForEvent("downdrift")
+						if downdrift:
+							daysSinceTouched = 1.0 * (datetime.now(tz=pytz.utc) - entry.lastTouched()).seconds / DAY_SECONDS
+							timeLoss = daysSinceTouched * downdrift
+							fontSizePercent += timeLoss
+							fontSizePercent = int(max(MIN_BROWSE_FONT_SIZE_PERCENT, min(fontSizePercent, MAX_BROWSE_FONT_SIZE_PERCENT)))
+						if member.viewDetails:
+							if entry.attributedToMember():
+								if entry.creator.active:
+									nameString = ' (<a href="member?%s">%s</a>, ' % (entry.creator.key(), entry.creator.nickname)
 								else:
-									if entry.character.active:
-										nameString = ' (<a href="character?%s">%s</a>, ' % (entry.character.key(), entry.character.name)
-									else:
-										nameString = " (%s, " % entry.character.name
-								dateTimeString = " %s)" % RelativeTimeDisplayString(entry.published, member)
-								if entry.text_formatted:
-									textString = ": %s" % upToWithLink(stripTags(entry.text_formatted), DEFAULT_DETAILS_TEXT_LENGTH, entry.linkURL())
-								else:
-									textString = ""
+									nameString = " (%s, " % entry.creator.nickname
 							else:
-								nameString = ""
+								if entry.character.active:
+									nameString = ' (<a href="character?%s">%s</a>, ' % (entry.character.key(), entry.character.name)
+								else:
+									nameString = " (%s, " % entry.character.name
+							dateTimeString = " %s)" % RelativeTimeDisplayString(entry.published, member)
+							if entry.text_formatted:
+								textString = ": %s" % upToWithLink(stripTags(entry.text_formatted), DEFAULT_DETAILS_TEXT_LENGTH, entry.linkURL())
+							else:
 								textString = ""
-								dateTimeString = ""
-							text = '<p>%s <span style="font-size:%s%%">%s</span>%s%s%s</p>' % \
-								(entry.getImageLinkForType(), fontSizePercent, entry.linkString(), nameString, dateTimeString, textString)
-							textsInThisCell.append(text)
+						else:
+							nameString = ""
+							textString = ""
+							dateTimeString = ""
+						text = '<p>%s <span style="font-size:%s%%">%s</span>%s%s%s</p>' % \
+							(entry.getImageLinkForType(), fontSizePercent, entry.linkString(), nameString, dateTimeString, textString)
+						textsInThisCell.append(text)
+					entryCount += 1
 				textsInThisRow.append(textsInThisCell)
 			textsForGrid.append(textsInThisRow)
 		textsForGrid.reverse()
-		if entriesThatMatchSearch:
-			member.viewSearchResultList = []
-			for entry in entriesThatMatchSearch:
-				member.viewSearchResultList.append(entry.key())
-			member.put()
 		return (textsForGrid, colHeaders, rowColors)
 			
 	@RequireLogin 
@@ -269,6 +270,12 @@ class BrowseEntriesPage(webapp.RequestHandler):
 				member.viewNudgeCategories = []
 				for i in range(NUM_NUDGE_CATEGORIES):
 					member.viewNudgeCategories.append(self.request.get("showCategory|%s" % i) == "yes")
+				member.put()
+				self.redirect(rakontu.linkURL())
+			elif "changeEntryTypesShowing" in self.request.arguments():
+				member.viewEntryTypes = []
+				for i in range(len(ENTRY_TYPES)):
+					member.viewEntryTypes.append(self.request.get("showEntryType|%s" % i) == "yes")
 				member.put()
 				self.redirect(rakontu.linkURL())
 			elif "changeTimeFrame" in self.request.arguments():
@@ -284,6 +291,10 @@ class BrowseEntriesPage(webapp.RequestHandler):
 				self.redirect(rakontu.linkURL())
 			elif "toggleShowDetails" in self.request.arguments():
 				member.viewDetails = not member.viewDetails
+				member.put()
+				self.redirect(rakontu.linkURL())
+			elif "toggleViewHomeOptionsOnTop" in self.request.arguments():
+				member.viewHomeOptionsOnTop = not member.viewHomeOptionsOnTop
 				member.put()
 				self.redirect(rakontu.linkURL())
 			elif "loadAndApplySavedSearch" in self.request.arguments():
@@ -917,7 +928,6 @@ class ChangeMemberDraftsPage(webapp.RequestHandler):
 			else:
 				memberToEdit = member
 			draftAnswerEntries = memberToEdit.getEntriesWithDraftAnswers()
-			DebugPrint(draftAnswerEntries)
 			firstDraftAnswerForEachEntry = []
 			for entry in draftAnswerEntries:
 				answers = memberToEdit.getDraftAnswersForEntry(entry)

@@ -493,6 +493,9 @@ URLS = {
     "url_sample_questions": "sample_questions",
     "url_default_resources": "default_resources",
     "url_helps": "helps",
+    # testing
+    "url_make_fake_data": "make_fake_data",
+    "url_stress_test": "stress_test",
 	# general
     "url_help": "help",
     "url_result": "result",

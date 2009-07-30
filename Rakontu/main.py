@@ -128,6 +128,10 @@ application = webapp.WSGIApplication(
 									  (BuildURL("dir_admin", "url_default_resources"), GenerateSystemResourcesPage),
 									  (BuildURL("dir_admin", "url_helps"), GenerateHelpsPage),
 									  
+									  # for testing
+									  (BuildURL("dir_admin", "url_make_fake_data"), GenerateFakeDataPage),
+									  (BuildURL("dir_admin", "url_stress_test"), GenerateStressTestPage),
+									  
 									  # message-to-user pages
 									   (BuildURL(None, "url_result"), ResultFeedbackPage),
 									   (BuildURL(None, "url_help"), ContextualHelpPage),
@@ -143,7 +147,6 @@ application = webapp.WSGIApplication(
 									 debug=True)
 
 def real_main():
-	#MakeSomeFakeData()
 	run_wsgi_app(application)
 
 def profile_log_main():

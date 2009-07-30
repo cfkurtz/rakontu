@@ -164,4 +164,22 @@ class GenerateHelpsPage(webapp.RequestHandler):
 			self.redirect(self.request.headers["Referer"])
 		else:
 			self.redirect(START)
+
+class GenerateFakeDataPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		if users.is_current_user_admin():
+			GenerateFakeTestingData()
+			self.redirect(self.request.headers["Referer"])
+		else:
+			self.redirect(START)
+				
+class GenerateStressTestPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		if users.is_current_user_admin():
+			GenerateStressTestData()
+			self.redirect(self.request.headers["Referer"])
+		else:
+			self.redirect(START)
 				

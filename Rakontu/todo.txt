@@ -18,6 +18,8 @@ have easy way to join and unjoin in admin page.
 
 move show what to main page and not in search filter??
 
+font in color scheme
+
 ===== PUT OFF until a little later :)
 
 TESTING:

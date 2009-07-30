@@ -58,23 +58,7 @@
 
 		<h3>Filter selections</h3>
 		<fieldset>
-		<p>Show &nbsp; 
-			{% for i in entry_types|makeRangeFromListLength %}
-				<input type="checkbox" name="{{entry_types|listLookup:i}}" value="yes" id="{{entry_types|listLookup:i}}"
-				{% if current_search %}
-					{% if current_search.entryTypes|listLookup:i %}
-						checked
-					{% endif %}
-				{% else %}
-					{% ifequal i 0 %}
-						checked
-					{% endifequal %}
-				{% endif %}
-				>
-				<label for="{{entry_types|listLookup:i}}">{{entry_types_plural_display|listLookup:i}}</label>&nbsp; 
-			{% endfor %}
-			{{"filter_entry_types"|tip}}</p>
-		<p>&nbsp; &nbsp; with
+		<p>Show entries with
 		<select name="overall_anyOrAll"
 		{% for i in any_or_all_choices|makeRangeFromListLength %}
 			<option value="{{any_or_all_choices|listLookup:i}}"
@@ -176,7 +160,7 @@
 								{% endifequal %}
 							{% endifequal %}
 						{% endfor %}
-						>{{question.refersTo}} - {{question.text}} --&gt;</option>
+						>{{question.refersTo}} - {{question.name}} --&gt;</option>
 					{% endif %}
 					{% ifequal question.type "boolean" %}
 						<option value="yes|{{question.key}}"
@@ -189,7 +173,7 @@
 								{% endifequal %}
 							{% endifequal %}
 						{% endfor %}
-						>{{question.refersTo}} - {{question.text}} yes</option>
+						>{{question.refersTo}} - {{question.name}} - yes</option>
 						<option value="no|{{question.key}}"
 						{% for ref in search_dict|dictLookup:"references" %}
 							{% ifequal ref.question.key question.key %}
@@ -200,7 +184,7 @@
 								{% endifequal %}
 							{% endifequal %}
 						{% endfor %}
-						>{{question.refersTo}} - {{question.text}} no</option>
+						>{{question.refersTo}} - {{question.name}} - no</option>
 					{% endifequal %}
 					{% if question.isOrdinalOrNominal %}
 						{% for choice in question.choices %}
@@ -214,7 +198,7 @@
 									{% endifequal %}
 								{% endifequal %}
 							{% endfor %}
-							>{{question.refersTo}} - {{question.text}} {{choice}}</option>
+							>{{question.refersTo}} - {{question.name}} - {{choice}}</option>
 						{% endfor %}
 					{% endif %}
 				{% endfor %} {# question list #}

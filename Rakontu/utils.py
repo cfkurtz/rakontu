@@ -175,10 +175,8 @@ def GetObjectOfTypeFromURLQuery(query, type):
 	
 def GetObjectOfUnknownTypeFromURLQuery(query):
 	dictionary = GetDictionaryFromURLQuery(query)
-	DebugPrint(dictionary)
 	for lookupKey in URL_IDS.keys():
 		if dictionary.has_key(URL_IDS[lookupKey]):
-			DebugPrint('looking up %s' % lookupKey)
 			return GetObjectOfTypeFromURLQuery(query, lookupKey)
 	
 def GetEntryAndAnnotationFromURLQuery(query):
@@ -865,7 +863,7 @@ def upToWithLink(value, number, link):
 # ============================================================================================
 # ============================================================================================
 
-def MakeSomeFakeData():
+def GenerateFakeTestingData():
 	user = users.get_current_user()
 	rakontu = Rakontu(key_name=KeyName("rakontu"), name="Test rakontu", description="Test description")
 	rakontu.initializeFormattedTexts()
@@ -893,7 +891,122 @@ def MakeSomeFakeData():
 	entry = Entry(key_name=KeyName("entry"), rakontu=rakontu, type="story", creator=member, title="The circus", text="I went the the circus. It was great.", draft=False)
 	entry.put()
 	entry.publish()
+	
+STRESS_NUM_MEMBERS = 100
+STRESS_NUM_ENTRIES = 300 
+STRESS_NUM_ANNOTATIONS = 500
+LOREM_IPSUM = [
+"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla malesuada arcu a lorem interdum euismod aliquet dui vehicula. Integer posuere mollis massa, ac posuere diam vestibulum eget. Quisque gravida arcu non lorem placerat tempus eget in risus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aliquam velit nulla, tempus sit amet gravida vel, gravida sit amet libero. Maecenas bibendum nulla ac leo feugiat egestas. Suspendisse vel dui velit. Duis a velit eget augue pellentesque bibendum in non urna. Nunc vestibulum mi vitae neque pulvinar et feugiat urna auctor. Proin volutpat euismod nunc, adipiscing pharetra leo commodo a. Suspendisse potenti. Vestibulum luctus velit non purus laoreet elementum. Donec euismod, ipsum interdum facilisis porttitor, dui dui suscipit turpis, faucibus imperdiet ante metus tempus elit. Ut vulputate, leo quis tincidunt tincidunt, massa ante fringilla libero, iaculis varius tortor quam tempor ipsum. Praesent cursus consequat tellus, eget molestie dui aliquet vitae.",
+"Cras sagittis nibh tempor orci pellentesque condimentum. Etiam vel ipsum tortor. Phasellus quam erat, aliquet sit amet egestas a, vehicula vitae risus. Nam ac quam sit amet risus imperdiet eleifend. Pellentesque nec arcu ut nunc rutrum posuere. Fusce at elit est, ac auctor sapien. Pellentesque semper enim et turpis euismod tincidunt. Donec nibh nunc, placerat vitae semper et, ullamcorper vel lectus. Praesent ut tellus eros. Ut sit amet odio vel risus auctor mollis. Duis luctus viverra diam, eu tincidunt ante sodales nec. Suspendisse potenti.",
+"Fusce pharetra mauris eget neque adipiscing a suscipit ante laoreet. Sed nec risus risus, quis vulputate quam. Nam tristique fringilla tristique. Phasellus ultricies scelerisque feugiat. Etiam hendrerit elementum varius. Sed nibh massa, sollicitudin quis semper id, tempor nec nisl. Fusce sodales cursus nunc a elementum. Suspendisse potenti. Nulla facilisi. Maecenas mattis, nibh sed sodales congue, turpis nunc bibendum felis, ac malesuada erat mi id lorem. Fusce blandit venenatis gravida. In posuere diam at magna bibendum suscipit.",
+"Fusce tincidunt iaculis justo, in viverra ipsum ullamcorper quis. Cras sed molestie libero. Praesent laoreet nisi volutpat enim bibendum porttitor. Duis rhoncus vestibulum justo nec adipiscing. Cras quam lorem, cursus ut gravida eget, porttitor ac nisl. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur eget mauris ante, sit amet convallis dui. Donec metus augue, condimentum ut tempus vel, ullamcorper et nisi. Integer vestibulum, risus eget accumsan malesuada, turpis ligula posuere eros, nec consectetur metus nisl nec ligula. Fusce non est sit amet mi pellentesque placerat eget ut magna. Nulla sit amet diam augue, quis gravida magna. Donec eleifend nunc sit amet lacus vehicula quis ornare sem sagittis. Duis sodales, lectus nec vestibulum lobortis, orci erat fermentum augue, interdum varius nulla ipsum ac mi. Sed at tellus quam, sed rhoncus enim. Pellentesque scelerisque consectetur turpis eu ullamcorper. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Mauris a sapien orci. Integer volutpat ornare urna non tristique. Nullam eget elit est, sed mollis ante. Sed eget risus tortor.",
+"Nullam sapien ligula, suscipit adipiscing elementum et, faucibus quis metus. Aliquam ullamcorper libero et purus adipiscing ut feugiat ligula dictum. Duis ante est, volutpat vitae suscipit eu, ultricies sed orci. Fusce eleifend elit ullamcorper felis molestie vitae convallis mi vehicula. Nullam eu turpis non purus feugiat fringilla. Morbi egestas sem eget eros adipiscing a pharetra enim vestibulum. Ut eu nisl quis nisl elementum elementum. In feugiat sapien eu leo rhoncus aliquet. Cras porttitor adipiscing orci, nec tristique tellus adipiscing et. Nulla ut dui arcu, non tincidunt nulla. Nunc lacus turpis, adipiscing eget vestibulum vel, congue nec leo. Maecenas est arcu, pretium at congue sed, venenatis eget metus.",
+]
 
-
-
+def GenerateRandomDate(start, end):
+    delta = end - start
+    deltaSeconds = (delta.days * 24 * 60 * 60) + delta.seconds
+    randomSeconds = random.randrange(deltaSeconds)
+    return start + timedelta(seconds=randomSeconds)
+	
+def GenerateStressTestData():
+	user = users.get_current_user()
+	startDate = datetime.strptime('1/1/2008 1:30 PM', '%m/%d/%Y %I:%M %p')
+	startDate = startDate.replace(tzinfo=pytz.utc)
+	endDate = datetime.now()
+	endDate = endDate.replace(tzinfo=pytz.utc)
+	rakontu = Rakontu(
+					key_name=KeyName("rakontu"), 
+					type="neighborhood", 
+					name="Stress test Rakontu", 
+					description="Test description")
+	rakontu.initializeFormattedTexts()
+	rakontu.created = startDate
+	rakontu.firstPublish = startDate
+	rakontu.put()
+	GenerateDefaultQuestionsForRakontu(rakontu, rakontu.type)
+	GenerateDefaultCharactersForRakontu(rakontu)
+	
+	memberKeyNames = []
+	member = Member(
+				key_name=KeyName("member"), 
+				googleAccountID=user.user_id(), 
+				googleAccountEmail=user.email(), 
+				nickname="Tester", 
+				rakontu=rakontu, 
+				governanceType="owner")
+	member.initialize()
+	member.put()
+	memberKeyNames.append(member.getKeyName())
+	for i in range(STRESS_NUM_MEMBERS):
+		member = Member(
+					key_name=KeyName("member"), 
+					nickname="Member %s" % i, 
+					rakontu=rakontu, 
+					governanceType="member")
+		member.joined = startDate
+		member.initialize()
+		member.put()
+		memberKeyNames.append(member.getKeyName())
+		if i % 10 == 0:
+			DebugPrint("member %s" % i)
+	DebugPrint("%s members generated" % STRESS_NUM_MEMBERS)
+	
+	entryKeyNames = []
+	for i in range(STRESS_NUM_ENTRIES):
+		type = random.choice(ENTRY_TYPES)
+		member = Member.get_by_key_name(random.choice(memberKeyNames))
+		text = random.choice(LOREM_IPSUM)
+		entry = Entry( 
+					key_name=KeyName("entry"), 
+					rakontu=rakontu, 
+					type=type, 
+					creator=member, 
+					title=text[:random.randrange(5,40)], 
+					text=text, 
+					draft=False)
+		entry.text_formatted = db.Text(InterpretEnteredText(text, "plain text"))
+		entry.put()
+		entry.publish()
+		entry.published = GenerateRandomDate(startDate, endDate)
+		entry.created = entry.published
+		entry.put()
+		entryKeyNames.append(entry.getKeyName())
+		if i % 10 == 0:
+			DebugPrint("entry %s" % i)
+	DebugPrint("%s entries generated" % STRESS_NUM_ENTRIES)
+	
+	for i in range(STRESS_NUM_ANNOTATIONS):
+		type = random.choice(ANNOTATION_TYPES)
+		member = Member.get_by_key_name(random.choice(memberKeyNames))
+		entry = Entry.get_by_key_name(random.choice(entryKeyNames))
+		text = random.choice(LOREM_IPSUM)
+		annotation = Annotation(
+							key_name=KeyName("annotation"), 
+							rakontu=rakontu, 
+							type=type, 
+							creator=member, 
+							entry=entry, 
+							shortString=text[:random.randrange(5,40)], 
+							longString=text, 
+							draft=False)
+		if type == "nudge":
+			annotation.valuesIfNudge = []
+			for j in range(NUM_NUDGE_CATEGORIES):
+				annotation.valuesIfNudge.append(random.randint(-10, 10))
+		elif type == "tag set":
+			annotation.tagsIfTagSet = []
+			for i in range(4):
+				annotation.tagsIfTagSet.append(random.choice(LOREM_IPSUM)[:random.randrange(5,20)])
+		annotation.longString_formatted = db.Text(InterpretEnteredText(annotation.longString, "plain text"))
+		annotation.put()
+		annotation.publish()
+		annotation.published = GenerateRandomDate(entry.published, endDate)
+		annotation.created = annotation.published
+		annotation.put()
+		entry.lastAnnotatedOrAnsweredOrLinked = annotation.published
+		entry.put()
+		if i % 10 == 0:
+			DebugPrint("annotation %s" % i)
+	DebugPrint("%s annotations generated" % STRESS_NUM_ANNOTATIONS)
 

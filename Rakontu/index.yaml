@@ -20,5 +20,14 @@ indexes:
   - name: active
   - name: rakontu
   - name: refersTo
+  
+- kind: Entry
+  properties:
+  - name: draft
+  - name: rakontu
+  - name: type
+  - name: published
+    direction: desc
+  
 
  

@@ -344,6 +344,9 @@ class Rakontu(db.Model):
 	def getNonDraftEntriesInReverseTimeOrder(self):
 		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-published").fetch(FETCH_NUMBER)
 	
+	def getNonDraftEntriesOfTypesInListInReverseTimeOrder(self, typeList):
+		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type IN ", typeList).order("-published").fetch(FETCH_NUMBER)
+	
 	def getNonDraftEntriesInAlphabeticalOrder(self):
 		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-title").fetch(FETCH_NUMBER)
 	
@@ -954,6 +957,8 @@ class Member(db.Model):
 	viewNudgeCategories = db.ListProperty(bool, default=[True] * NUM_NUDGE_CATEGORIES, indexed=False)
 	viewSearch = db.ReferenceProperty(None, collection_name="member_to_search", indexed=False)
 	viewDetails = db.BooleanProperty(default=False, indexed=False)
+	viewEntryTypes = db.ListProperty(bool, default=[True, True, False, False, False]) # stories and invitations on by default
+	viewHomeOptionsOnTop = db.BooleanProperty(default=False)
 	viewSearchResultList = db.ListProperty(db.Key, indexed=False)
 	
 	# CREATION
@@ -1233,8 +1238,6 @@ class SavedSearch(db.Model):
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	flagComment = db.StringProperty(indexed=False)
 
-	entryTypes = db.ListProperty(bool, default=[True] * len(ENTRY_TYPES))
-	
 	words_anyOrAll = db.StringProperty(choices=ANY_ALL, default="any")
 	words_locations = db.ListProperty(bool, default=[True] * (len(ANNOTATION_TYPES) + 1))
 	words = db.StringListProperty()
@@ -1253,8 +1256,6 @@ class SavedSearch(db.Model):
 	def copyDataFromOtherSearchAndPut(self, search):
 		self.private = True
 		self.name = "%s %s" % (TERMS["term_copy_of"], search.name)
-		self.entryTypes = []
-		self.entryTypes.extend(search.entrytTypes)
 		self.words_anyOrAll = search.words_anyOrAll
 		self.words_locations = []
 		self.words_locations.extend(search.words_locations)
@@ -1596,6 +1597,12 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		else:
 			return None
 		
+	def lastPublishedOrAnnotated(self):
+		if self.lastAnnotatedOrAnsweredOrLinked:
+			return self.lastAnnotatedOrAnsweredOrLinked
+		else:
+			return self.published
+		
 	def removeAllDependents(self):
 		db.delete(self.getAttachments())
 		db.delete(self.getAllLinks())
@@ -1603,12 +1610,6 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		db.delete(self.getAnnotations())
 		
 	def satisfiesSearchCriteria(self, search, entryRefs, creatorRefs):
-		i = 0
-		for type in ENTRY_TYPES:
-			if type == self.type:
-				if not search.entryTypes[i]:
-					return False
-			i += 1
 		if not search.words and not search.tags and not entryRefs and not creatorRefs: # empty search
 			return True
 		if search.overall_anyOrAll == "any":
@@ -1633,7 +1634,7 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 			return satisfiesWords or satisfiesTags or satisfiesEntryQuestions or satisfiesCreatorQuestions
 		else:
 			return satisfiesWords and satisfiesTags and satisfiesEntryQuestions and satisfiesCreatorQuestions
-	
+		
 	def satisfiesQuestionSearch(self, anyOrAll, refs, aboutCreator):
 		numAnswerSearchesSatisfied = 0
 		for ref in refs:
@@ -1764,6 +1765,15 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		else:
 			return numWordSearchesSatisfied >= len(words)
 
+	def satisfiesEntryTypesCriteria(self, entryTypesToInclude):
+		i = 0
+		for type in ENTRY_TYPES:
+			if type == self.type:
+				if not entryTypesToInclude[i]:
+					return False
+			i += 1
+		return True
+	
 	# TYPE
 	
 	def isStory(self):

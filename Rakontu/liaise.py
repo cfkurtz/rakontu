@@ -77,7 +77,6 @@ class PrintEntryAnnotationsPage(webapp.RequestHandler):
 		if access:
 			if member.isLiaison():
 				entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
-				DebugPrint(entry)
 				if entry:
 					entryAndItems = []
 					entryAndItems.extend(entry.getNonDraftAnswers())
@@ -85,7 +84,6 @@ class PrintEntryAnnotationsPage(webapp.RequestHandler):
 					entryAndItems.insert(0, entry)
 					export = rakontu.createOrRefreshExport("liaisonPrint_simple", itemList=entryAndItems, member=None, fileFormat="txt")
 					url = BuildURL(None, "url_export", export.urlQuery())
-					DebugPrint(url)
 					self.redirect(url)
 				else:
 					self.redirect(rakontu.linkURL())

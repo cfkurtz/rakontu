@@ -1,0 +1,40 @@
+	{% if rows_cols %}
+		<table 
+			cellpadding="4" 
+			cellspacing="0" class="grid">
+		{% for i in rows_cols|makeRangeFromListLength %}
+			<tr>
+			{% for col_list in rows_cols|listLookup:i %}
+				<td style="background-color:#{{row_colors|listLookup:i}};border-left: 1px solid #{{colors|dictLookup:"border_normal"}}; 
+				border-top: none; border-bottom: none; border-right: none">
+				{% if col_list %}
+					{% for text in col_list %}
+						{{text}}
+					{% endfor %}
+				{% else %}
+				&nbsp; 
+				{% endif %}
+				</td>
+			{% endfor %}
+			</tr>
+		{% endfor %}
+		</table>
+	{% else %}
+		<h4>Nothing here!</h4>
+		{% if current_search %}
+			<p>The applied search filter resulted in showing no entries. Click this button
+			<input type="submit" name="clearSearch" value="Stop applying" class="button_small">
+			to stop applying it, or change it.
+		{% else %}
+			<p>This Rakontu has no entries in it.
+			Why not add the first <a href="/{{dir_visit}}/{{url_story}}?{{rakontu.urlQuery}}">story</a> 
+			or <a href="/{{dir_visit}}/{{url_invitation}}?{{rakontu.urlQuery}}">invitation</a>?
+			{% if current_member.isManagerOrOwner %}
+				You can also choose Rakontu <a href="/{{dir_manage}}/{{url_settings}}?{{rakontu.urlQuery}}">settings</a>.
+				</p>
+			{% else %}
+				You can also read <a href="/{{dir_visit}}/{{url_rakontu}}?{{rakontu.urlQuery}}">here</a> about the Rakontu.</p>
+			{% endif %}
+		{% endif %}
+	{% endif %}
+		

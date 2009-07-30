@@ -14,7 +14,6 @@ class FlagOrUnflagItemPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			item = GetObjectOfUnknownTypeFromURLQuery(self.request.query_string)
-			DebugPrint(item)
 			if item:
 				item.flaggedForRemoval = not item.flaggedForRemoval
 				item.put()

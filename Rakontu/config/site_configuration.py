@@ -191,8 +191,8 @@ COLOR_SCHEMES = {
 		},
 	"growing things":
 		{
-		# backgrounds
-		"background_general": "CCFFCC", # on all pages
+		# backgrounds 
+		"background_general": "F0FFF0", # on all pages
 		"background_excerpt": "F0FFF0", # behind story texts and other "highlighted" boxes
 		"background_entry": "D2B48C", # to indicate the user is entering data
 		"background_menus": "A6D785", # menu backgrounds

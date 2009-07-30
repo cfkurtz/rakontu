@@ -85,6 +85,11 @@
 	    {% else %}
 	    	<p>&nbsp; &nbsp; none - <a href="/{{dir_admin}}/{{url_create1}}">Create one</a></p>
 	    {% endif %}	
+	    
+	    <p><b>For developers only</b></p>
+	    <p>&nbsp; &nbsp; <a href="/{{dir_admin}}/{{url_make_fake_data}}">Generate fake testing Rakontu</a></p>
+	    <p>&nbsp; &nbsp; <a href="/{{dir_admin}}/{{url_stress_test}}">Generate stress-test Rakontu with large amount of data</a></p>
+	    
 	{% else %}
 		<p>You are not a manager of this Rakontu and cannot change its settings.
 		Please ask a manager to make any changes you would like to see made.</p>
