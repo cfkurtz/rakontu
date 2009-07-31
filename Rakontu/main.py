@@ -127,6 +127,7 @@ application = webapp.WSGIApplication(
 									  (BuildURL("dir_admin", "url_sample_questions"), GenerateSampleQuestionsPage),
 									  (BuildURL("dir_admin", "url_default_resources"), GenerateSystemResourcesPage),
 									  (BuildURL("dir_admin", "url_helps"), GenerateHelpsPage),
+									  (BuildURL("dir_admin", "url_skins"), GenerateSkinsPage),
 									  
 									  # for testing
 									  (BuildURL("dir_admin", "url_make_fake_data"), GenerateFakeDataPage),

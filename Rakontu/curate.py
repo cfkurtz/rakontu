@@ -33,7 +33,7 @@ class CurateFlagsPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_FLAGS"], 
 						   	   	   'rakontu': rakontu, 
-						   	   	   'colors': rakontu.colorDictionary(),
+						   	   	   'skin': rakontu.getSkinDictionary(),
 						   	   	   'current_member': member,
 								   'entries': entries,
 								   'annotations': annotations,
@@ -162,7 +162,7 @@ class CurateGapsPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_GAPS"], 
 								   'rakontu': rakontu, 
-								   'colors': rakontu.colorDictionary(),
+								   'skin': rakontu.getSkinDictionary(),
 								   'sort_by': sortBy,
 								   'entries_without_tags': entriesWithoutTags,
 								   'entries_without_links': entriesWithoutLinks,
@@ -205,7 +205,7 @@ class CurateAttachmentsPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_ATTACHMENTS"], 
 								   'rakontu': rakontu, 
-								   'colors': rakontu.colorDictionary(),
+								   'skin': rakontu.getSkinDictionary(),
 								   'attachments': rakontu.getAttachmentsForAllNonDraftEntries(),
 								   'current_member': member,
 								   })
@@ -225,7 +225,7 @@ class CurateTagsPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_TAGS"], 
 								   'rakontu': rakontu, 
-								   'colors': rakontu.colorDictionary(),
+								   'skin': rakontu.getSkinDictionary(),
 								   'tag_sets': rakontu.getNonDraftTagSets(),
 								   'current_member': member,
 								   })

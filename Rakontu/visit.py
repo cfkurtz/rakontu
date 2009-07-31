@@ -62,7 +62,7 @@ class NewMemberPage(webapp.RequestHandler):
 							'title': TITLES["WELCOME"],
 							'title_extra': member.nickname,
 							'rakontu': rakontu, 
-							'colors': rakontu.colorDictionary(),
+							'skin': rakontu.getSkinDictionary(),
 							'current_member': member,
 							'resources': rakontu.getNonDraftNewMemberResources(),
 							})
@@ -84,7 +84,7 @@ class GetHelpPage(webapp.RequestHandler):
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': TITLES["HELP"],
 							'rakontu': rakontu, 
-							'colors': rakontu.colorDictionary(),
+							'skin': rakontu.getSkinDictionary(),
 							'current_member': member,
 							'resources': rakontu.getNonDraftHelpResources(),
 							'manager_resources': managerResources,
@@ -148,7 +148,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': TITLES["HOME"],
 							'rakontu': rakontu, 
-							'colors': rakontu.colorDictionary(),
+							'skin': rakontu.getSkinDictionary(),
 							'current_member': member, 
 							'rows_cols': textsForGrid, 
 							'col_headers': colHeaders, 
@@ -205,7 +205,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 		timeStep = (maxTime - minTime) // numCols
 		
 		for row in range(numRows):
-			rowColors.append(HexColorStringForRowIndex(row, rakontu.colorDictionary()))
+			rowColors.append(HexColorStringForRowIndex(row, rakontu.getSkinDictionary()))
 			textsInThisRow = []
 			startNudgePoints = minNudgePoints + nudgeStep * row
 			if row == numRows - 1:
@@ -419,7 +419,7 @@ class ReadEntryPage(webapp.RequestHandler):
 					haveContent = False
 					rowIndex = 0
 					for row in range(numRows):
-						rowColors.append(HexColorStringForRowIndex(rowIndex, rakontu.colorDictionary()))
+						rowColors.append(HexColorStringForRowIndex(rowIndex, rakontu.getSkinDictionary()))
 						textsInThisRow = []
 						startNudgePoints = minNudgePoints + nudgeStep * row
 						if row == numRows - 1:
@@ -495,7 +495,7 @@ class ReadEntryPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': entry.title, 
 								   'rakontu': rakontu, 
-								   'colors': rakontu.colorDictionary(),
+								   'skin': rakontu.getSkinDictionary(),
 								   'current_member': member,
 								   'current_member_key': member.key(),
 								   'curating': curating,
@@ -532,11 +532,11 @@ class ReadEntryPage(webapp.RequestHandler):
 				for i in range(NUM_NUDGE_CATEGORIES):
 					member.viewNudgeCategories.append(self.request.get("showCategory|%s" % i) == "yes")
 				member.put()
-				self.redirect(self.request.headers["Referer"])
+				self.redirect(self.request.uri)
 			elif "toggleShowDetails" in self.request.arguments():
 				member.viewDetails = not member.viewDetails
 				member.put()
-				self.redirect(self.request.headers["Referer"])
+				self.redirect(self.request.uri)
 			else:
 				self.redirect(self.request.get("nextAction"))
 		else:
@@ -553,7 +553,7 @@ class ReadAnnotationPage(webapp.RequestHandler):
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': annotation.displayString(includeType=False), 
 								   'rakontu': rakontu, 
-								   'colors': rakontu.colorDictionary(),
+								   'skin': rakontu.getSkinDictionary(),
 								   'current_member': member,
 								   'current_member_key': member.key(),
 								   'annotation': annotation,
@@ -570,13 +570,14 @@ class ReadAnnotationPage(webapp.RequestHandler):
 	@RequireLogin 
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		DebugPrint(access)
 		if access:
 			annotation = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_annotation")
 			if annotation:
 				if "toggleRequestCompleted" in self.request.arguments():
 					annotation.completedIfRequest = not annotation.completedIfRequest
 					annotation.put()
-			self.redirect(self.request.headers["Referer"])
+			self.redirect(self.request.uri)
 		else:
 			self.redirect(rakontu.linkURL())
 
@@ -589,7 +590,7 @@ class SeeRakontuPage(webapp.RequestHandler):
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': TITLES["ABOUT"], 
 							   'rakontu': rakontu, 
-							   'colors': rakontu.colorDictionary(),
+							   'skin': rakontu.getSkinDictionary(),
 							   'current_member': member,
 							   'rakontu_members': rakontu.getActiveMembers(),
 							   'characters': rakontu.getActiveCharacters(),
@@ -608,7 +609,7 @@ class SeeRakontuMembersPage(webapp.RequestHandler):
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': TITLES["MEMBERS"], 
 							   'rakontu': rakontu, 
-							   'colors': rakontu.colorDictionary(),
+							   'skin': rakontu.getSkinDictionary(),
 							   'current_member': member,
 							   'rakontu_members': rakontu.getActiveMembers(),
 							   })
@@ -662,7 +663,7 @@ class SeeMemberPage(webapp.RequestHandler):
 							   'title': TITLES["MEMBER"], 
 					   		   'title_extra': member.nickname, 
 					   		   'rakontu': rakontu, 
-					   		   'colors': rakontu.colorDictionary(),
+					   		   'skin': rakontu.getSkinDictionary(),
 					   		   'current_member': member,
 					   		   'member': memberToSee,
 					   		   'answers': memberToSee.getAnswers(),
@@ -688,7 +689,7 @@ class SeeMemberPage(webapp.RequestHandler):
 			if "toggleShowDetails" in self.request.arguments():
 				member.viewDetails = not member.viewDetails
 				member.put()
-				self.redirect(self.request.headers["Referer"])
+				self.redirect(self.request.uri)
 			else:
 				for argument in self.request.arguments():
 					if argument.find("|") >= 0:
@@ -755,7 +756,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 							   	   'title': TITLES["CHARACTER"], 
 					   		   	   'title_extra': character.name, 
 								   'rakontu': rakontu, 
-								   'colors': rakontu.colorDictionary(),
+								   'skin': rakontu.getSkinDictionary(),
 								   'current_member': member,
 								   'character': character,
 								   'answers': character.getAnswers(),
@@ -778,7 +779,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 			if "toggleShowDetails" in self.request.arguments():
 				member.viewDetails = not member.viewDetails
 				member.put()
-			self.redirect(self.request.headers["Referer"])
+			self.redirect(self.request.uri)
 		else:
 			self.redirect(START)
    
@@ -797,7 +798,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 							   'title': TITLES["PREFERENCES_FOR"], 
 						   	   'title_extra': memberToEdit.nickname, 
 							   'rakontu': rakontu, 
-							   'colors': rakontu.colorDictionary(),
+							   'skin': rakontu.getSkinDictionary(),
 							   'member': memberToEdit,
 							   'current_member': member,
 							   'questions': rakontu.getActiveMemberQuestions(),
@@ -937,7 +938,7 @@ class ChangeMemberDraftsPage(webapp.RequestHandler):
 							   'title': TITLES["DRAFTS_FOR"], 
 						   	   'title_extra': memberToEdit.nickname, 
 							   'rakontu': rakontu, 
-							   'colors': rakontu.colorDictionary(),
+							   'skin': rakontu.getSkinDictionary(),
 							   'member': memberToEdit,
 							   'current_member': member,
 							   'draft_entries': memberToEdit.getDraftEntries(),
@@ -1008,7 +1009,7 @@ class ChangeMemberFiltersPage(webapp.RequestHandler):
 							   'title': TITLES["DRAFTS_FOR"], 
 						   	   'title_extra': memberToEdit.nickname, 
 							   'rakontu': rakontu, 
-							   'colors': rakontu.colorDictionary(),
+							   'skin': rakontu.getSkinDictionary(),
 							   'member': memberToEdit,
 							   'current_member': member,
 							   'searches': member.getSavedSearches(),
@@ -1066,9 +1067,8 @@ class LeaveRakontuPage(webapp.RequestHandler):
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 						   	   'title': TITLES["LEAVE_RAKONTU"], 
 							   'rakontu': rakontu, 
-							   'colors': rakontu.colorDictionary(),
+							   'skin': rakontu.getSkinDictionary(),
 							   'message': member.getKeyName(),
-							   "linkback": self.request.headers["Referer"],
 							   'current_member': member,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/leave.html'))
@@ -1132,7 +1132,7 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': TITLES["SEARCH_FILTER"],
 							'rakontu': rakontu, 
-							'colors': rakontu.colorDictionary(),
+							'skin': rakontu.getSkinDictionary(),
 							'current_member': member, 
 							'num_search_fields': NUM_SEARCH_FIELDS,
 							'search_locations': SEARCH_LOCATIONS,
@@ -1269,9 +1269,8 @@ class ResultFeedbackPage(webapp.RequestHandler):
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 						   	   'title': TITLES["MESSAGE_TO_USER"], 
 							   'rakontu': rakontu, 
-							   'colors': rakontu.colorDictionary(),
+							   'skin': rakontu.getSkinDictionary(),
 							   'message': message,
-							   "linkback": self.request.headers["Referer"],
 							   'current_member': member,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('result.html'))
@@ -1292,9 +1291,8 @@ class ContextualHelpPage(webapp.RequestHandler):
 						   	   'title': TITLES["HELP_ON"], 
 					   	   	   'title_extra': helpShortName, 
 							   'rakontu': rakontu, 
-							   'colors': rakontu.colorDictionary(),
+							   'skin': rakontu.getSkinDictionary(),
 							   'help': help,
-							   "linkback": self.request.headers["Referer"],
 							   'current_member': member,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('help.html'))

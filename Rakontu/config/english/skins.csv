@@ -1,0 +1,35 @@
+"; Rakontu skins - to add a skin, add a column and fill it in.",,,,,,,
+"; Except for font names all others are hex color codes.",,,,,,,
+"; All numeric hex colors must have quotes around them.",,,,,,,
+"; Don't change the first column - these must match names in the source code!",,,,,,,
+"; The names of skins (which are displayed to the user) can be translated.",,,,,,,
+"; Skin names must be unique (no two the same).",,,,,,,
+,,,,,,,
+"NAME","EXPLANATION OF ELEMENT","grayscale","sunset","pinky purple","growing things","funky","toast"
+"font_general","on general content","""Courier New"", Courier, monospace","Garamond, Baskerville, Caslon, Georgia, ""Times New Roman"", Times, serif'","""Apple Chancery"", ""Zapf Chancery"", cursive","Verdana, Arial, Helvetica, sans-serif","Gadget, fantasy, sans-serif","Georgia, ""Times New Roman"", Times, serif'"
+"font_top","on top banner area","Verdana, Arial, Helvetica, sans-serif","Verdana, Arial, Helvetica, sans-serif","Trebuchet, Arial, Helvetica, sans-serif","Verdana, Arial, Helvetica, sans-serif","Gadget, fantasy, sans-serif","Verdana, Arial, Helvetica, sans-serif"
+"font_menus","on menus","Verdana, Arial, Helvetica, sans-serif","Verdana, Arial, Helvetica, sans-serif","Trebuchet, Arial, Helvetica, sans-serif","Verdana, Arial, Helvetica, sans-serif","Gadget, fantasy, sans-serif","Verdana, Arial, Helvetica, sans-serif"
+"font_buttons","on buttons","sans-serif","sans-serif","sans-serif","sans-serif","sans-serif","sans-serif"
+"font_headers","on h1, h2, h3 headers in text","sans-serif","sans-serif","sans-serif","sans-serif","sans-serif","sans-serif"
+"color_background_general","on all pages","FFFFFF","FAEBD7","FFE1FF","F0FFF0","00688B","FEE8D6"
+"color_background_excerpt","behind story text and other highlighted items","FFFFFF","FFEECC","FFF0F5","F0FFF0","00FA9A","FAF0E6"
+"color_background_entry","to indicate the user is entering data","BBBBBB","EECBAD","FF92BB","D2B48C","00B2EE","CDB38B"
+"color_background_menus","on menus","DDDDDD","FFEECC","FFB6C1","A6D785","00FF66","EDC393"
+"color_background_grid_top","entry grid on home page, annotation grid on entry page","FFFFFF","FAEBD7","EEAEEE","CCFFCC","7CFC00","FEE8D6"
+"color_background_grid_bottom","bottom of same grid (should be faded from top)","""444444""","CD853F","9C6B98","548B54","2F4F4F","B6AFA9"
+"color_background_button","all buttons","FFFFFF","FFD39B","DA70D6","CD8500","EE5C42","8B4513"
+"color_background_button_hover","mouse-over effect for buttons","DDDDDD","CD6839","FF00FF","0AC92B","FF3300","E3701A"
+"color_border_normal","around everything","""999999""","FF7F00","""9E0508""","3EA055","7FFF00","""603311"""
+"color_border_input_hover","mouse-over effect for input boxes","""000000""","""993300""","862A51","""003300""","FF2400","AA6600"
+"color_border_image","around images","""000000""","FF7F00","""000000""","""003300""","7FFF00","""603311"""
+"color_text_link","links in text","""000000""","8B4500","""9E0508""","2C5D3F","7FFF00","A68064"
+"color_text_link_hover","mouse-over effect for links","FFFFFF","FFFFFF","FFFFFF","FFFFFF","FFFFFF","FAF0E6"
+"color_background_link_hover","mouse-over effect for links","""666666""","EECBAD","FF00FF","2F4F2F","00B2EE","8B5A2B"
+"color_text_plain","plain text - usually black","""000000""","""000000""","""000000""","""000000""","DDDDDD","5C3317"
+"color_text_excerpt","in excerpts - goes with color_background_excerpt","""000000""","""000000""","""000000""","""000000""","""000000""","733D1A"
+"color_text_menus","in menus - goes with color_background_menus","""000000""","""000000""","""000000""","""000000""","007FFF","5C3317"
+"color_text_buttons","in buttons - goes with color_background_button and _hover","""000000""","""000000""","""000000""","""000000""","104E8B","FFFFFF"
+"color_text_h1","h1 text","""000000""","""000000""","""000000""","""215E21""","DDDDDD","B13E0F"
+"color_text_h2","h2 text","""000000""","""000000""","""000000""","""215E21""","DDDDDD","""993300"""
+"color_text_h3","h3 text","""000000""","""000000""","""000000""","""215E21""","DDDDDD","8A360F"
+"color_text_label_hover","labels like checkbox names","""666666""","""666666""","8B5F65","4D6B50","4D6B50","CDC5BF"

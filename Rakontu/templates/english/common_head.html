@@ -8,123 +8,139 @@
 			- Rakontu</title>
 		<style type="text/css">
 			body {
-				color: #{{colors|dictLookup:"text_plain"}};
-			  	background-color: #{{colors|dictLookup:"background_general"}};
+  				font-family: {{skin|dictLookup:"font_general"}};
+				color: #{{skin|dictLookup:"color_text_plain"}};
+			  	background-color: #{{skin|dictLookup:"color_background_general"}};
 				}
 			hr {
-				border-top: 1px solid #{{colors|dictLookup:"border_normal"}};
+				border-top: 1px solid #{{skin|dictLookup:"color_border_normal"}};
 				}
 			h1 {
-			 	color: #{{colors|dictLookup:"text_h1"}};
+  				font-family: {{skin|dictLookup:"font_headers"}};
+			 	color: #{{skin|dictLookup:"color_text_h1"}};
 				}
 			h2 {
-			 	color: #{{colors|dictLookup:"text_h2"}};
+  				font-family: {{skin|dictLookup:"font_headers"}};
+			 	color: #{{skin|dictLookup:"color_text_h2"}};
 				}
 			h3 {
-			 	color: #{{colors|dictLookup:"text_h3"}};
+  				font-family: {{skin|dictLookup:"font_headers"}};
+			 	color: #{{skin|dictLookup:"color_text_h3"}};
 				}
 			a {
-				color: #{{colors|dictLookup:"text_link"}};
+				color: #{{skin|dictLookup:"color_text_link"}};
 				}
 			a:hover {
-				background: #{{colors|dictLookup:"background_link_hover"}};
-				color: #{{colors|dictLookup:"text_link_hover"}};
+				background: #{{skin|dictLookup:"color_background_link_hover"}};
+				color: #{{skin|dictLookup:"color_text_link_hover"}};
 				}
 			img.bordered {
-				border: 1px solid #{{colors|dictLookup:"border_image"}};
+				border: 1px solid #{{skin|dictLookup:"color_border_image"}};
 				}
 			img.bordered:hover {
-				border: 1px solid #{{colors|dictLookup:"border_image"}};
+				border: 1px solid #{{skin|dictLookup:"color_border_image"}};
 				}
 			table {
-				border-right: 1px solid #{{colors|dictLookup:"border_normal"}};
-				border-bottom: 1px solid #{{colors|dictLookup:"border_normal"}};
+				border-right: 1px solid #{{skin|dictLookup:"color_border_normal"}};
+				border-bottom: 1px solid #{{skin|dictLookup:"color_border_normal"}};
 				}
 			table.grid {
-				border-top: 1px solid #{{colors|dictLookup:"border_normal"}}; 
-				border-bottom: 1px solid #{{colors|dictLookup:"border_normal"}}; 
-				border-right: 1px solid #{{colors|dictLookup:"border_normal"}}">
+				border-top: 1px solid #{{skin|dictLookup:"color_border_normal"}}; 
+				border-bottom: 1px solid #{{skin|dictLookup:"color_border_normal"}}; 
+				border-right: 1px solid #{{skin|dictLookup:"color_border_normal"}}">
 				}
 			td {
-				border-left: 1px solid #{{colors|dictLookup:"border_normal"}};
-				border-top: 1px solid #{{colors|dictLookup:"border_normal"}};
+				border-left: 1px solid #{{skin|dictLookup:"color_border_normal"}};
+				border-top: 1px solid #{{skin|dictLookup:"color_border_normal"}};
 				}
 			th {
-				border-left: 1px solid #{{colors|dictLookup:"border_normal"}};
-				border-top: 1px solid #{{colors|dictLookup:"border_normal"}};
+				border-left: 1px solid #{{skin|dictLookup:"color_border_normal"}};
+				border-top: 1px solid #{{skin|dictLookup:"color_border_normal"}};
 				}
 			fieldset {
-				background: #{{colors|dictLookup:"background_entry"}}; 
-				border: 1px solid #{{colors|dictLookup:"border_normal"}};
+				background: #{{skin|dictLookup:"color_background_entry"}}; 
+				border: 1px solid #{{skin|dictLookup:"color_border_normal"}};
 				}
 			.blurb {
-				background: #{{colors|dictLookup:"background_excerpt"}};
-				border: 1px solid #{{colors|dictLookup:"border_normal"}};
-				color: #{{colors|dictLookup:"text_excerpt"}};
+				background: #{{skin|dictLookup:"color_background_excerpt"}};
+				border: 1px solid #{{skin|dictLookup:"color_border_normal"}};
+				color: #{{skin|dictLookup:"color_text_excerpt"}};
+				}
+			#header {
+				font-family: {{skin|dictLookup:"font_top"}};
 				}
 			#topmenu li {
-			    border: 1px solid #{{colors|dictLookup:"border_normal"}};
-			    color: #{{colors|dictLookup:"text_menus"}};
+				font-family: {{skin|dictLookup:"font_menus"}};
+			    border: 1px solid #{{skin|dictLookup:"color_border_normal"}};
+			    color: #{{skin|dictLookup:"color_text_menus"}};
 			    }
 			#topmenu li a {
-			    background-color: #{{colors|dictLookup:"background_menus"}};
-			    color: #{{colors|dictLookup:"text_menus"}};
+				font-family: {{skin|dictLookup:"font_menus"}};
+			    background-color: #{{skin|dictLookup:"color_background_menus"}};
+			    color: #{{skin|dictLookup:"color_text_menus"}};
 			    }
 			#topmenu li ul {
-			    background-color: #{{colors|dictLookup:"background_menus"}};
-			    color: #{{colors|dictLookup:"text_menus"}};
+				font-family: {{skin|dictLookup:"font_menus"}};
+			    background-color: #{{skin|dictLookup:"color_background_menus"}};
+			    color: #{{skin|dictLookup:"color_text_menus"}};
 			    }
 			#topmenu li:hover li a, #topmenu li.hover a {
-			    background-color: #{{colors|dictLookup:"background_menus"}};
-			    color: #{{colors|dictLookup:"text_menus"}};
+				font-family: {{skin|dictLookup:"font_menus"}};
+			    background-color: #{{skin|dictLookup:"color_background_menus"}};
+			    color: #{{skin|dictLookup:"color_text_menus"}};
 			    }
 			#topmenu li li a:hover {
-			    background-color: #{{colors|dictLookup:"border_normal"}}; 
-			    color: #{{colors|dictLookup:"text_menus"}};
+				font-family: {{skin|dictLookup:"font_menus"}};
+			    background-color: #{{skin|dictLookup:"color_border_normal"}}; 
+			    color: #{{skin|dictLookup:"color_text_menus"}};
 			    }
 			.rakontu_form_centered {
-				border: solid 1px #{{colors|dictLookup:"border_normal"}};
+				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
 				}
 			#stylized label:hover{
-				color: #{{colors|dictLookup:"text_label_hover"}};
+				color: #{{skin|dictLookup:"color_text_label_hover"}};
 				}
 			#stylized select {
-				border: solid 1px #{{colors|dictLookup:"border_normal"}};
+				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
 				}
 			#stylized select:hover{
-				border: solid 1px #{{colors|dictLookup:"border_input_hover"}};
+				border: solid 1px #{{skin|dictLookup:"color_border_input_hover"}};
 				}
 			#stylized input{
-				border: solid 1px #{{colors|dictLookup:"border_normal"}};
+				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
 				}
 			#stylized input:hover{
-				border: solid 1px #{{colors|dictLookup:"border_input_hover"}};
+				border: solid 1px #{{skin|dictLookup:"color_border_input_hover"}};
 				}
 			#stylized textarea{
-				border: solid 1px #{{colors|dictLookup:"border_normal"}};
+				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
 				}
 			#stylized textarea:hover{
-				border: solid 1px #{{colors|dictLookup:"border_input_hover"}};
+				border: solid 1px #{{skin|dictLookup:"color_border_input_hover"}};
 				}
 			#stylized input.button{
-				background: #{{colors|dictLookup:"background_button"}};
-				border: solid 2px #{{colors|dictLookup:"border_normal"}};
-				color: #{{colors|dictLookup:"text_buttons"}};
+  				font-family: {{skin|dictLookup:"font_buttons"}};
+				background: #{{skin|dictLookup:"color_background_button"}};
+				border: solid 2px #{{skin|dictLookup:"color_border_normal"}};
+				color: #{{skin|dictLookup:"color_text_buttons"}};
 				}
 			#stylized input.button:hover{
-				background: #{{colors|dictLookup:"background_button_hover"}};
-				border: solid 2px #{{colors|dictLookup:"border_normal"}};
-				color: #{{colors|dictLookup:"text_buttons"}};
+  				font-family: {{skin|dictLookup:"font_buttons"}};
+				background: #{{skin|dictLookup:"color_background_button_hover"}};
+				border: solid 2px #{{skin|dictLookup:"color_border_normal"}};
+				color: #{{skin|dictLookup:"color_text_buttons"}};
 				}
 			#stylized input.button_small{
-				background: #{{colors|dictLookup:"background_button"}};
-				border: solid 1px #{{colors|dictLookup:"border_normal"}};
-				color: #{{colors|dictLookup:"text_buttons"}};
+  				font-family: {{skin|dictLookup:"font_buttons"}};
+				background: #{{skin|dictLookup:"color_background_button"}};
+				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
+				color: #{{skin|dictLookup:"color_text_buttons"}};
 				}
 			#stylized input.button_small:hover{
-				background: #{{colors|dictLookup:"background_button_hover"}};
-				border: solid 1px #{{colors|dictLookup:"border_normal"}};
-				color: #{{colors|dictLookup:"text_buttons"}};
+  				font-family: {{skin|dictLookup:"font_buttons"}};
+				background: #{{skin|dictLookup:"color_background_button_hover"}};
+				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
+				color: #{{skin|dictLookup:"color_text_buttons"}};
 				}
 				
 			</style>

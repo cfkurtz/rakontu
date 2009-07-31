@@ -11,14 +11,12 @@ LEFT TO DO IN INTERNATIONALIZATION:
 deal with _id things not being translated (and in general ALL queries to urls)
 move templates to templates/english and deal with calling them up based on language
 
-special place for discussion group urls in rakontu ?
-
 instead of asking admin if they want to join new rakontu during creation,
 have easy way to join and unjoin in admin page.
 
-move show what to main page and not in search filter??
-
-font in color scheme
+have removed all references to http header "referer" except the one for flags
+need way to return to previous page when flagging. may need to make it a form 
+and respond in each screen that does it :(
 
 ===== PUT OFF until a little later :)
 

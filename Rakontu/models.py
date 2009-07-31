@@ -172,7 +172,7 @@ class Rakontu(db.Model):
 	defaultTimeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT, indexed=False) # appears on member preferences page
 	defaultDateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT, indexed=False) # appears on member preferences page
 	
-	colorScheme = db.StringProperty(default=DEFAULT_COLOR_SCHEME, indexed=False)
+	skinName = db.StringProperty()
 	
 	def initializeFormattedTexts(self):
 		self.description_formatted = db.Text("<p>%s</p>" % self.description)
@@ -205,11 +205,12 @@ class Rakontu(db.Model):
 	def allowsFiveAttachments(self):
 		return self.maxNumAttachments == 5
 	
-	def colorDictionary(self):
-		if COLOR_SCHEMES.has_key(self.colorScheme):
-			return COLOR_SCHEMES[self.colorScheme]
+	def getSkinDictionary(self):
+		skin = Skin.all().filter("name = ", self.skinName).get()
+		if skin:
+			return skin.getPropertiesAsDictionary()
 		else:
-			return COLOR_SCHEMES[DEFAULT_COLOR_SCHEME]
+			return {}
 		
 	# DISPLAY
 	
@@ -2417,6 +2418,58 @@ class Help(db.Model):		 # context-sensitive help string - appears as title hover
 	name = db.StringProperty() # links to name in template
 	text = db.StringProperty(indexed=False) # text to show user (plain text)
 	
+# ============================================================================================
+# ============================================================================================
+class Skin(db.Model):		 # style sets to change look of each Rakontu
+# ============================================================================================
+# ============================================================================================
+
+	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
+	created = TzDateTimeProperty(auto_now_add=True)
+	name = db.StringProperty(required=True) 
+	
+	font_general = db.StringProperty(indexed=False) # on everything except buttons and headers
+	font_top = db.StringProperty(indexed=False)
+	font_menus = db.StringProperty(indexed=False)
+	font_buttons = db.StringProperty(indexed=False)
+	font_headers = db.StringProperty(indexed=False)
+	
+	color_background_general = db.StringProperty(indexed=False) # on all pages
+	color_background_excerpt = db.StringProperty(indexed=False) # behind story texts and other "highlighted" boxes
+	color_background_entry = db.StringProperty(indexed=False) # to indicate the user is entering data
+	color_background_menus = db.StringProperty(indexed=False) # menu backgrounds
+		
+	color_background_grid_top = db.StringProperty(indexed=False) # entry grid on home page, annotation grid on entry page
+	color_background_grid_bottom = db.StringProperty(indexed=False) # same but on bottom of grid (should be "faded" from top)
+		
+	color_background_button = db.StringProperty(indexed=False) # button at bottom of pages
+	color_background_button_hover = db.StringProperty(indexed=False) # when button is hovered over
+		
+	color_border_normal = db.StringProperty(indexed=False) # around everything
+	color_border_input_hover = db.StringProperty(indexed=False) # lights up when mouse is over entries (text, drop-down box)
+	color_border_image = db.StringProperty(indexed=False) # border around images
+		
+	color_text_link = db.StringProperty(indexed=False) # links in text
+	color_text_link_hover = db.StringProperty(indexed=False) # link light-up on hover (usually white, constrasts with background_link_hover)
+	color_background_link_hover = db.StringProperty(indexed=False) # light-up effect for links
+
+	color_text_plain = db.StringProperty(indexed=False) # plain text - usually black
+	color_text_excerpt = db.StringProperty(indexed=False) # text color in excerpts
+	color_text_menus = db.StringProperty(indexed=False) # text color in menus
+	color_text_buttons = db.StringProperty(indexed=False) # text color on buttons
+	color_text_h1 = db.StringProperty(indexed=False) # h1 text
+	color_text_h2 = db.StringProperty(indexed=False) # h2 text
+	color_text_h3 = db.StringProperty(indexed=False) # h3 text
+	color_text_label_hover = db.StringProperty(indexed=False) # color of labels, like checkbox names
+	
+
+	def getPropertiesAsDictionary(self):
+		result = {}
+		properties = Skin.properties()
+		for key in properties.keys():
+			result[key] = getattr(self, key)
+		return result
+
 # ============================================================================================
 # ============================================================================================
 class Export(db.Model):		 # data prepared for export, in XML or CSV or TXT format

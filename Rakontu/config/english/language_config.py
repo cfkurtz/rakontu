@@ -64,17 +64,6 @@ be damaging. Be considerate when you tell stories, both about who is listening a
 who is mentioned in the story.
 """
 
-# These are names to be displayed to describe the color schemes available to Rakontu managers.
-# The names on the left MUST match the color scheme names in the site_configuration.py file.
-# The names on the right are shown to the user and should be translated.
-COLOR_SCHEMES_DISPLAY_NAMES = {
-							"grayscale": "grayscale",
-							"sunset": "sunset",
-							"pinky purple": "pinky purple",
-							"growing things": "growing things",
-							"funky": "funky",
-							}
-
 # ============================================================================================ 
 # MEMBERS
 # ============================================================================================ 
@@ -493,6 +482,7 @@ URLS = {
     "url_sample_questions": "sample_questions",
     "url_default_resources": "default_resources",
     "url_helps": "helps",
+    "url_skins": "skins",
     # testing
     "url_make_fake_data": "make_fake_data",
     "url_stress_test": "stress_test",

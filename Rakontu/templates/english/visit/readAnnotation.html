@@ -35,7 +35,7 @@
 	
 	{% if annotation.isRequest %}
 		<div id="stylized" class="rakontu_form">
-		<form action="/{{dir_visit}}/{{url_readAnnotation}}?{{annotation.urlQuery}}" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_visit}}/{{url_read_annotation}}?{{annotation.urlQuery}}" method="post" enctype="multipart/form-data">
 		<div class="blurb">
 		<p>This is a request of the type <i><b>{{annotation.typeIfRequest}}</b></i>. 
 		It has {% if not annotation.completedIfRequest %} <i><b>not</b></i> {% endif %} been marked as completed.

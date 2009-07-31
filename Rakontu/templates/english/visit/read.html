@@ -119,7 +119,7 @@
 	
 	{% if things_member_can_do %}
 		<div id="stylized" class="rakontu_form">
-		<form name="read" action="/{{dir_visit}}/{{url_read}}?{{rakontu.urlQuery}}" method="post">
+		<form name="read" action="/{{dir_visit}}/{{url_read}}?{{entry.urlQuery}}" method="post">
 		&nbsp; What would you like to do next?
 		<select name="nextAction">
 		{% for key in things_member_can_do.keys|sorted %}
@@ -136,7 +136,7 @@
 	{% if rows_cols %}
 		<p></p>
 		<div id="stylized" class="rakontu_form">
-		<form name="read" action="/{{dir_visit}}/{{url_read}}?{{rakontu.urlQuery}}" method="post">
+		<form name="read" action="/{{dir_visit}}/{{url_read}}?{{entry.urlQuery}}" method="post">
 		<p>Height means</p>
 		{% for i in rakontu.nudgeCategories|makeRangeFromListLength %}
 			<p> &nbsp; &nbsp; <input type="checkbox" name="showCategory|{{i}}" value="yes" id="{{rakontu.nudgeCategories|listLookup:i}}"

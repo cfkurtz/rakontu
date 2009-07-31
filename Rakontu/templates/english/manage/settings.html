@@ -16,14 +16,14 @@
 			<input type="text" name="name" value="{{ rakontu.name }}" size="30" maxlength="{{maxlength_name}}"/>
 			<p>Tag line {{"tag_line"|tip}}</p>
 			<input type="text" name="tagline" value="{{ rakontu.tagline }}" size="80" maxlength="{{maxlength_subject_or_comment}}"/>
-			<p>Color scheme {{"color_schemes"|tip}}</p>
-			<select name="colorScheme">
-				{% for name in color_scheme_names|sorted %}
+			<p>Skin {{"skins"|tip}}</p>
+			<select name="skinName">
+				{% for name in skin_names %}
 					<option value="{{name}}"
-					{% ifequal name rakontu.colorScheme %}
+					{% ifequal name rakontu.skinName %}
 						selected="selected"
 					{% endifequal %}
-					>{{color_scheme_display_name_dict|dictLookup:name}}</option>
+					>{{name}}</option>
 				{% endfor %}
 				</select>
 			<p>Rakontu contact email{{"rakontu_contact_email"|caution}}</p>
@@ -272,8 +272,7 @@
 					</select>
 				</td></tr></table>
 			</fieldset>
-		<p></p>
-	    <center><input type="submit" name="changeSettings" value="Change Settings" class="button"></center>
+	    <p><center><input type="submit" name="changeSettings" value="Save Settings" class="button"></center></p>
 		</form>
 		</div>
 	{% else %}

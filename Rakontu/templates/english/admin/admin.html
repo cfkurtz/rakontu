@@ -7,18 +7,35 @@
 		<div id="stylized" class="rakontu_form">
 		<form action="/{{dir_admin}}/{{url_admin}}" method="post" enctype="multipart/form-data">
 		
-		<h1>Rakontu site initialization tasks</h1>
-		<p>&nbsp; &nbsp; Sample questions: <b>{{num_sample_questions}}</b> - 
-		<a href="/{{dir_admin}}/{{url_sample_questions}}">generate</a></p>
+		<h2>Site initialization tasks {{"site_initialization_tasks"|tip}}  {{"site_initialization_tasks"|caution}}</h2>
 		
-		<p>&nbsp; &nbsp; Short help texts (for hover-over info, tip and caution icons): <b>{{num_helps}}</b> - 
-		<a href="/{{dir_admin}}/{{url_helps}}">generate</a></p>
+		<fieldset>
+		<p>&nbsp; &nbsp; <b>Must be done before any Rakontus are created</b></p>
 		
-		<p>&nbsp; &nbsp; Default help resources: <b>{{num_default_resources}}</b> -
-		<a href="/{{dir_admin}}/{{url_default_resources}}">generate</a></p>
-		<p>&nbsp; &nbsp; &nbsp; &nbsp; <i>Note: The default help resources should be initialized <b>before</b> any Rakontus are created.</i></p>
+		<p>&nbsp; &nbsp; &nbsp; &nbsp; 
+		<a href="/{{dir_admin}}/{{url_default_resources}}">Generate</a> default help <b>resources</b> -
+		<b>{{num_default_resources}}</b> have been created
+		(source: default_resources.py)</p>
 		
-		<h1>Rakontus in this installation</h1>
+		<p>&nbsp; &nbsp; &nbsp; &nbsp; 
+		<a href="/{{dir_admin}}/{{url_skins}}">Generate</a> <b>skins</b> -
+		<b>{{num_skins}}</b> have been created
+		(source: skins.csv)</p>
+		
+		<p>&nbsp; &nbsp; <b>Can be done anytime</b></p>
+		
+		<p>&nbsp; &nbsp; &nbsp; &nbsp; 
+		<a href="/{{dir_admin}}/{{url_sample_questions}}">Generate</a> <b>sample questions</b> -
+		<b>{{num_sample_questions}}</b> have been created
+		(source: sample_questions.csv)</p>
+		
+		<p>&nbsp; &nbsp; &nbsp; &nbsp; <a href="/{{dir_admin}}/{{url_helps}}">Generate</a> short mouse-over <b>help</b> texts -
+		<b>{{num_helps}}</b> have been created
+		(source: help.csv)</p>
+		
+		</fieldset>
+		
+		<h2>Rakontus in this installation</h2>
 		{% if rakontus %}
 			<fieldset>
 			<table>
@@ -79,20 +96,21 @@
 			<p></p>
 			<center><p><i><b>Please remove Rakontus VERY carefully.</p>
 			<p>Deleted Rakontus cannot be recovered.</p>
-			<p>It is best to backup first.</b></i></p>
+			<p>It is best to back up first.</b></i></p>
 			</form>
 			</div>
 	    {% else %}
 	    	<p>&nbsp; &nbsp; none - <a href="/{{dir_admin}}/{{url_create1}}">Create one</a></p>
 	    {% endif %}	
 	    
+	    <hr>
 	    <p><b>For developers only</b></p>
 	    <p>&nbsp; &nbsp; <a href="/{{dir_admin}}/{{url_make_fake_data}}">Generate fake testing Rakontu</a></p>
 	    <p>&nbsp; &nbsp; <a href="/{{dir_admin}}/{{url_stress_test}}">Generate stress-test Rakontu with large amount of data</a></p>
 	    
 	{% else %}
-		<p>You are not a manager of this Rakontu and cannot change its settings.
-		Please ask a manager to make any changes you would like to see made.</p>
+		<p>You are not an administrator of this site and cannot change it.
+		Please ask an administrator to make any changes you would like to see made.</p>
 	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}

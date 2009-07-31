@@ -11,6 +11,19 @@ from constants_base import *
 from site_configuration import *
 
 # ============================================================================================
+# FILE LINK-UP
+# This section connects to files in the correct directory based on the SITE_LANGUAGE constant
+# set in site_configuration.py.
+# ============================================================================================
+
+from default_resources import *
+DEFAULT_QUESTIONS_FILE_NAME = "config/%s/default_questions.csv" % SITE_LANGUAGE
+SAMPLE_QUESTIONS_FILE_NAME = "config/%s/sample_questions.csv" % SITE_LANGUAGE
+DEFAULT_CHARACTERS_FILE_NAME = "config/%s/default_characters.csv" % SITE_LANGUAGE
+HELP_FILE_NAME = "config/%s/help.csv" % SITE_LANGUAGE
+SKINS_FILE_NAME = "config/%s/skins.csv" % SITE_LANGUAGE
+
+# ============================================================================================
 # NO LANGUAGE-SPECIFIC DEFINITION
 # These are never displayed to the user so don't need to be translated and only appear here.
 # ============================================================================================

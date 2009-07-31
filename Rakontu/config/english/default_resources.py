@@ -8,6 +8,7 @@
 
 # These are site-wide system resources, mainly help resources, that all Rakontus in the installation get 
 # when they are created. (If some Rakontus don't want the resources, they can flag and delete them after creation.)
+# Warning: This file uses Python syntax. You should be comfortable editing Python code before you edit this file.
 
 SYSTEM_INTRO_RESOURCE = [u"About Rakontu", u"Wiki markup", False, # boolean is whether it is for managers/owners only
 u"""

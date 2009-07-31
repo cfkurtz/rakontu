@@ -61,4 +61,6 @@
 "caution","setting_up_an_email_adddress_for_a_new_Rakontu","This email MUST be associated with a valid Google account. The person who has this account will be the Rakontu's first owner."
 "caution","becoming_a_member_of_a_Rakontu_you_have_set_up","If you don't become a member of the Rakontu, ONLY the person you specify here (through their email) as the Rakontu owner will be able to access it. If YOU are the person specified here, you can ignore this choice."
 "tip","attaching_files","Click the Browse button to attach a file or to replace an existing attachment. Click the Remove box to delete it. There is a maximum 10 megabyte limit per attachment."
-"tip","color_schemes","Color schemes are set up in the site configuration. If you want to customize a new color scheme, ask your site administrator for help."
+"tip","skins","Skins determine how your web pages looks. They are set up in the site configuration. If you want to create a custom skin, ask your site administrator for help."
+"tip","site_initialization_tasks","Each of these tasks creates database objects from information in source (py or csv) files. If you change any of the source files and want to update the database objects, simply click the 'generate' link again, and the database objects will be replaced with new versions."
+"caution","site_initialization_tasks","Beware of changing the names of things in the resource files, like skin names, if there are existing Rakontus, because they might not match up correctly."

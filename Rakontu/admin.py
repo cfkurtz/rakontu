@@ -105,12 +105,14 @@ class AdministerSitePage(webapp.RequestHandler):
 			numSampleQuestions = Question.all().filter("rakontu = ", None).count()
 			numDefaultResources = Entry.all().filter("rakontu = ", None).filter("type = ", "resource").count()
 			numHelps = Help.all().count()
+			numSkins = Skin.all().count()
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 						   	   'title': TITLES["REVIEW_RAKONTUS"], 
 							   'rakontus': Rakontu.all().fetch(FETCH_NUMBER), 
 						   	   'num_sample_questions': numSampleQuestions,
 						   	   'num_default_resources': numDefaultResources,
 						   	   "num_helps": numHelps,
+						   	   "num_skins": numSkins,
 						   	   'host': self.request.headers["Host"],
 							   # here we do NOT give the current_member or rakontu
 							   })
@@ -143,7 +145,7 @@ class GenerateSampleQuestionsPage(webapp.RequestHandler):
 	def get(self):
 		if users.is_current_user_admin():
 			GenerateSampleQuestions()
-			self.redirect(self.request.headers["Referer"])
+			self.redirect(BuildURL("dir_admin", "url_admin"))
 		else:
 			self.redirect(START)
 				
@@ -152,7 +154,7 @@ class GenerateSystemResourcesPage(webapp.RequestHandler):
 	def get(self):
 		if users.is_current_user_admin():
 			GenerateSystemResources()
-			self.redirect(self.request.headers["Referer"])
+			self.redirect(BuildURL("dir_admin", "url_admin"))
 		else:
 			self.redirect(START)
 				
@@ -161,7 +163,16 @@ class GenerateHelpsPage(webapp.RequestHandler):
 	def get(self):
 		if users.is_current_user_admin():
 			GenerateHelps()
-			self.redirect(self.request.headers["Referer"])
+			self.redirect(BuildURL("dir_admin", "url_admin"))
+		else:
+			self.redirect(START)
+			
+class GenerateSkinsPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		if users.is_current_user_admin():
+			GenerateSkins()
+			self.redirect(BuildURL("dir_admin", "url_admin"))
 		else:
 			self.redirect(START)
 
@@ -170,7 +181,7 @@ class GenerateFakeDataPage(webapp.RequestHandler):
 	def get(self):
 		if users.is_current_user_admin():
 			GenerateFakeTestingData()
-			self.redirect(self.request.headers["Referer"])
+			self.redirect(BuildURL("dir_admin", "url_admin"))
 		else:
 			self.redirect(START)
 				
@@ -179,7 +190,7 @@ class GenerateStressTestPage(webapp.RequestHandler):
 	def get(self):
 		if users.is_current_user_admin():
 			GenerateStressTestData()
-			self.redirect(self.request.headers["Referer"])
+			self.redirect(BuildURL("dir_admin", "url_admin"))
 		else:
 			self.redirect(START)
 				

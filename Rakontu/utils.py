@@ -17,9 +17,9 @@ from google.appengine.api import users
 from google.appengine.ext.webapp import template
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
-from google.appengine.api import images
+from google.appengine.api import images 
 from google.appengine.api import mail
-
+ 
 webapp.template.register_template_library('djangoTemplateExtras')
 import csv
 import pytz
@@ -35,7 +35,7 @@ def FindTemplate(template):
 	
 def RequireLogin(func):
 	def check_login(request): 
-		if not users.get_current_user():
+		if not users.get_current_user(): 
 			loginURL = users.create_login_url("/")
 			request.redirect(loginURL)
 			return
@@ -418,13 +418,16 @@ class ExportHandler(webapp.RequestHandler):
 
 def GenerateHelps():
 	db.delete(Help.all().fetch(FETCH_NUMBER))
+	helps = []
 	file = open(HELP_FILE_NAME)
-	helpStrings = csv.reader(file)
-	for row in helpStrings:
-		if len(row[0]) > 0 and row[0][0] != ";":
-			help = Help(key_name=KeyName("help"), type=row[0].strip(), name=row[1].strip(), text=row[2].strip())
-			help.put()
-	file.close()
+	try:
+		helpStrings = csv.reader(file)
+		for row in helpStrings:
+			if len(row[0]) > 0 and row[0][0] != ";":
+				helps.append(Help(key_name=KeyName("help"), type=row[0].strip(), name=row[1].strip(), text=row[2].strip()))
+		db.put(helps)
+	finally:
+		file.close()
 		
 def helpLookup(name, type):
 	return Help.all().filter("name = ", name).filter("type = ", type).get()
@@ -433,9 +436,43 @@ def helpTextLookup(name, type):
 	match = Help.all().filter("name = ", name).filter("type = ", type).get()
 	if match:
 		return match.text
-	else:
+	else: 
 		return None
 	
+def GenerateSkins():
+	db.delete(Skin.all().fetch(FETCH_NUMBER))
+	skins = []
+	file = open(SKINS_FILE_NAME)
+	try:
+		rows = csv.reader(file)
+		for row in rows:
+			key = row[0]
+			if len(key) > 0 and key[0] != ";":
+				if key == "NAME":
+					for cell in row[2:]: # 2 because 1 is explanation of element
+						skins.append(Skin(name=cell.strip()))
+				else:
+					colIndex = 0
+					for cell in row[2:]: # 2 because 1 is explanation of element
+						# this is because for numerical hex entries there needs to be quotes around it
+						textToUse = cell.strip()
+						if textToUse[0] == '"' and textToUse[-1] == '"':
+							textToUse = textToUse[1:]
+							textToUse = textToUse[:-1]
+						setattr(skins[colIndex], key, textToUse)
+						colIndex += 1
+		db.put(skins)
+	finally:	
+		file.close()
+		
+def GetSkinNames():
+	skins = Skin.all().fetch(FETCH_NUMBER)
+	result = []
+	for skin in skins:
+		result.append(skin.name)
+	result.sort()
+	return result
+
 def ReadQuestionsFromFile(fileName, rakontu=None, rakontuType="ALL"):
 	if not rakontu:
 		db.delete(Question.all().filter("rakontu = ", None).fetch(FETCH_NUMBER))
@@ -596,11 +633,19 @@ def RGBToHTMLColor(rgb_tuple):
     return '%02x%02x%02x' % rgb_tuple 
            
 def HexColorStringForRowIndex(index, colorDict):    
-	if index == 0:   
-		return colorDict["background_grid_top"]  
+	if colorDict.has_key("color_background_grid_top"):
+		topColor = colorDict["color_background_grid_top"]  
 	else:
-		startR, startG, startB = HTMLColorToRGB(colorDict["background_grid_top"])
-		endR, endG, endB = HTMLColorToRGB(colorDict["background_grid_bottom"])
+		topColor = "FFFFFF"
+	if index == 0:   
+		return topColor
+	else:
+		startR, startG, startB = HTMLColorToRGB(topColor)
+		if colorDict.has_key("color_background_grid_bottom"):
+			bottomColor = colorDict["color_background_grid_bottom"]  
+		else:
+			bottomColor = "333333"
+		endR, endG, endB = HTMLColorToRGB(bottomColor)
 		rDecrement = (startR - endR) // BROWSE_NUM_ROWS
 		gDecrement = (startG - endG) // BROWSE_NUM_ROWS 
 		bDecrement = (startB - endB) // BROWSE_NUM_ROWS 
