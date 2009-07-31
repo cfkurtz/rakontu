@@ -64,6 +64,8 @@ be damaging. Be considerate when you tell stories, both about who is listening a
 who is mentioned in the story.
 """
 
+DEFAULT_SKIN_NAME = "sunset"
+
 # ============================================================================================ 
 # MEMBERS
 # ============================================================================================ 

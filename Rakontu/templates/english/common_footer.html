@@ -2,13 +2,12 @@
 <p>
 {{template_powered_by}} 
 <a href="http://www.rakontu.org"><img src="/images/Rakontu_tiny.jpg" alt="Rakontu logo" class="bordered" width="20" height="18"></a>
-<a href="http://www.rakontu.org">Rakontu</a> {{version_number}}</p>
+<a href="http://www.rakontu.org">Rakontu</a> {{version_number}} |
 
+<a href="/">Site start page</a> | 
 {% if user_is_admin %}
-	<p><a href="/{{dir_admin}}/{{url_admin}}">Site administration</a></p>
+	<a href="/{{dir_admin}}/{{url_admin}}">Site administration</a> |
 {% endif %}
-
-<p><a href="/">Site start page</a></p>
-<p><a href="{{logout_url}}">Log out</a> from Google</p>
+Google account: {{user_email}} | <a href="{{logout_url}}">Log out</a></p>
 
 </div>

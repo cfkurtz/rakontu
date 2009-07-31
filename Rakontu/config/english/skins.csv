@@ -4,6 +4,7 @@
 "; Don't change the first column - these must match names in the source code!",,,,,,,
 "; The names of skins (which are displayed to the user) can be translated.",,,,,,,
 "; Skin names must be unique (no two the same).",,,,,,,
+"; In the file ""language_config.py"" there is a DEFAULT_SKIN_NAME setting. Its value MUST match one of these names. It is what skin is used before the Rakontu's managers have selected a skin.",,,,,,,
 ,,,,,,,
 "NAME","EXPLANATION OF ELEMENT","grayscale","sunset","pinky purple","growing things","funky","toast"
 "font_general","on general content","""Courier New"", Courier, monospace","Garamond, Baskerville, Caslon, Georgia, ""Times New Roman"", Times, serif'","""Apple Chancery"", ""Zapf Chancery"", cursive","Verdana, Arial, Helvetica, sans-serif","Gadget, fantasy, sans-serif","Georgia, ""Times New Roman"", Times, serif'"

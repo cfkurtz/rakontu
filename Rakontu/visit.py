@@ -101,6 +101,9 @@ class BrowseEntriesPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
+			textsForGrid = []
+			colHeaders = []
+			rowColors = []
 			currentSearch = GetCurrentSearchForMember(member)
 			querySearch = None
 			querySearch = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_search_filter")

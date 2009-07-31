@@ -212,6 +212,7 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'home': HOME,
 	   'current_user': users.get_current_user(), 
 	   'user_is_admin': users.is_current_user_admin(),
+	   'user_email': users.get_current_user().email(), 
 	   'logout_url': users.create_logout_url("/"),
 	   }
 	for key in DIRS.keys():				items[key] = DIRS[key]

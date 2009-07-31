@@ -35,7 +35,7 @@
 		
 		</fieldset>
 		
-		<h2>Rakontus in this installation</h2>
+		<h2>Rakontus</h2>
 		{% if rakontus %}
 			<fieldset>
 			<table>
@@ -48,6 +48,7 @@
 				<th>Active members</th>
 				<th>Pending members</th>
 				<th>Inactive members</th>
+				<th>Member?</th>
 				<th>Active?{{"activating_rakontus"|caution}}</th>
 				<th>Remove{{"removing_rakontus"|caution}}</th>
 				</tr>
@@ -63,17 +64,34 @@
 		    		{% else %}
 		    			{{term_none}}
 		    		{% endif %}
-		    		</td>
+		    	</td>
 		    	<td>
 		    		{% if rakontu.appRocketTimeStamp %}
 		    			{{rakontu.appRocketTimeStamp|date:"F j, Y"}}<br/>{{rakontu.appRocketTimeStamp|time:"h:i a"}}
 		    		{% else %}
 		    			{{term_none}}
 		    		{% endif %}
-		    		</td>
+		    	</td>
 		    	<td align="center">{{rakontu.getActiveMembers|length}}</td>
 			    	<td align="center">{{rakontu.getPendingMembers|length}}</td>
 		    	<td align="center">{{rakontu.getInactiveMembers|length}}</td>
+		    	<td align="center">
+		    		{% if member_of|dictLookup:rakontu.key %}
+		    			yes, as {{member_of|dictLookup:rakontu.key}}
+		    		{% else %}
+		    			no
+		    		{% endif %}
+		    		<br/>
+		    		{% if member_of|dictLookup:rakontu.key %}
+		    			<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="Leave" class="button">
+		    		{% else %}
+		    			<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="Join" class="button"><br/>
+		    			as <select name="joinAs|{{rakontu.key}}">
+		    			<option value="member">member</option>
+		    			<option value="manager">manager</option>
+		    			</select>
+		    		{% endif %}
+		    	</td>
 				<td align="center">
 					{{rakontu.active|yesno:"active, inactive"}}<br/>
 	  					{% if rakontu.active %}
@@ -83,7 +101,7 @@
 	  						<input type="submit" name="toggleActiveState|{{rakontu.key}}" value="Activate" class="button"
 							onClick="javascript:return confirm('Are you sure you want to ACTIVATE the Rakontu {{rakontu.name}}?')">
 	  					{% endif %}
-	  					</td>
+	  			</td>
 				<td>
 				<input type="submit" name="remove|{{rakontu.key}}" value="REMOVE" class="button" 
 				onClick="javascript:return confirm('Are you REALLY SURE you want to PERMANENTLY REMOVE the Rakontu {{rakontu.name}}?')">
@@ -103,10 +121,11 @@
 	    	<p>&nbsp; &nbsp; none - <a href="/{{dir_admin}}/{{url_create1}}">Create one</a></p>
 	    {% endif %}	
 	    
-	    <hr>
+	    <fieldset>
 	    <p><b>For developers only</b></p>
 	    <p>&nbsp; &nbsp; <a href="/{{dir_admin}}/{{url_make_fake_data}}">Generate fake testing Rakontu</a></p>
 	    <p>&nbsp; &nbsp; <a href="/{{dir_admin}}/{{url_stress_test}}">Generate stress-test Rakontu with large amount of data</a></p>
+	    </fieldset>
 	    
 	{% else %}
 		<p>You are not an administrator of this site and cannot change it.

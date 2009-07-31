@@ -2,7 +2,6 @@
 /* ----------- margin: top right bottom left ----------- */
 
 body {
-  	font-family: Georgia, "Times New Roman", Times, serif;
   	font-size: 90%;
 	}
 	
@@ -110,13 +109,12 @@ ul li.nobullet {
 	}
 	
 .footer {
-	text-align: right;
+	text-align: center;
 	font-size: 80%;
 	}
 	
 /* ----------- page areas ----------- */
 #header {
-	font-family: Verdana, Arial, Helvetica, sans-serif;
 	font-size: 100%;
 	}
 	
@@ -236,7 +234,6 @@ ul li.nobullet {
 	}
 	
 #stylized textarea{
-	font-family: Verdana, Helvetica, sans-serif;
 	font-size: 13px;
 	padding: 4px 2px;
 	border: solid 1px #000000;

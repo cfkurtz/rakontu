@@ -172,7 +172,7 @@ class Rakontu(db.Model):
 	defaultTimeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT, indexed=False) # appears on member preferences page
 	defaultDateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT, indexed=False) # appears on member preferences page
 	
-	skinName = db.StringProperty()
+	skinName = db.StringProperty(default=DEFAULT_SKIN_NAME)
 	
 	def initializeFormattedTexts(self):
 		self.description_formatted = db.Text("<p>%s</p>" % self.description)
@@ -286,6 +286,13 @@ class Rakontu(db.Model):
 			if member.googleAccountEmail == email:
 				return True
 		return False
+	
+	def memberWithGoogleUserID(self, id):
+		members = self.getActiveMembers()
+		for member in members:
+			if member.googleAccountID == id:
+				return member
+		return None
 	
 	def memberWithNickname(self, nickname):
 		members = self.getActiveAndInactiveMembers()

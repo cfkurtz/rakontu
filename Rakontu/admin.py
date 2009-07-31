@@ -75,18 +75,6 @@ class CreateRakontuPage_PartTwo(webapp.RequestHandler):
 				if rakontu.type != RAKONTU_TYPES[-1]:
 					GenerateDefaultQuestionsForRakontu(rakontu, rakontu.type)
 				GenerateDefaultCharactersForRakontu(rakontu)
-				if self.request.get("becomeMember") == "yes" and ownerEmail != user.email():
-					member = Member(
-						key_name=KeyName("member"), 
-						googleAccountEmail=user.email(),
-						googleAccountID=user.user_id(),
-						active=True,
-						rakontu=rakontu,
-						governanceType="member",
-						nickname = "administrator")
-					member.initialize()
-					member.put()
-				# add new owner as pending member
 				newPendingMember = PendingMember(
 					key_name=KeyName("pendingmember"), 
 					rakontu=rakontu, 
@@ -106,9 +94,18 @@ class AdministerSitePage(webapp.RequestHandler):
 			numDefaultResources = Entry.all().filter("rakontu = ", None).filter("type = ", "resource").count()
 			numHelps = Help.all().count()
 			numSkins = Skin.all().count()
+			rakontus = Rakontu.all().fetch(FETCH_NUMBER)
+			memberOfRakontus = {}
+			for rakontu in rakontus:
+				member = rakontu.memberWithGoogleUserID(users.get_current_user().user_id())
+				if member and member.active:
+					memberOfRakontus[rakontu.key()] = member.governanceType
+				else:
+					memberOfRakontus[rakontu.key()] = None
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 						   	   'title': TITLES["REVIEW_RAKONTUS"], 
-							   'rakontus': Rakontu.all().fetch(FETCH_NUMBER), 
+							   'rakontus': rakontus, 
+							   'member_of': memberOfRakontus,
 						   	   'num_sample_questions': numSampleQuestions,
 						   	   'num_default_resources': numDefaultResources,
 						   	   "num_helps": numHelps,
@@ -126,8 +123,28 @@ class AdministerSitePage(webapp.RequestHandler):
 		# this one method does not require a rakontu and member, since the admin has to look at multiple rakontus.
 		if users.is_current_user_admin():
 			rakontus = Rakontu.all().fetch(FETCH_NUMBER)
+			user = users.get_current_user()
 			for aRakontu in rakontus:
-				if "toggleActiveState|%s" % aRakontu.key() in self.request.arguments():
+				if "joinOrLeave|%s" % aRakontu.key() in self.request.arguments():
+					member = aRakontu.memberWithGoogleUserID(user.user_id())
+					joinAs = self.request.get("joinAs|%s" % aRakontu.key())
+					if member and not aRakontu.memberIsOnlyOwner(member):
+						member.active = not member.active
+						member.governanceType = joinAs
+						member.put()
+					else:
+						member = Member(
+							key_name=KeyName("member"), 
+							nickname="administrator",
+							googleAccountID=user.user_id(),
+							googleAccountEmail=user.email(),
+							rakontu=aRakontu,
+							active=True,
+							governanceType=joinAs) 
+						member.initialize()
+						member.put()
+					self.redirect(BuildURL("dir_admin", "url_admin"))
+				elif "toggleActiveState|%s" % aRakontu.key() in self.request.arguments():
 					aRakontu.active = not aRakontu.active
 					aRakontu.put()
 					self.redirect(BuildURL("dir_admin", "url_admin"))
