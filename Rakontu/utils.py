@@ -937,10 +937,7 @@ def GenerateFakeTestingData():
 	entry = Entry(key_name=KeyName("entry"), rakontu=rakontu, type="story", creator=member, title="The circus", text="I went the the circus. It was great.", draft=False)
 	entry.put()
 	entry.publish()
-	
-STRESS_NUM_MEMBERS = 100
-STRESS_NUM_ENTRIES = 300 
-STRESS_NUM_ANNOTATIONS = 500
+
 LOREM_IPSUM = [
 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla malesuada arcu a lorem interdum euismod aliquet dui vehicula. Integer posuere mollis massa, ac posuere diam vestibulum eget. Quisque gravida arcu non lorem placerat tempus eget in risus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aliquam velit nulla, tempus sit amet gravida vel, gravida sit amet libero. Maecenas bibendum nulla ac leo feugiat egestas. Suspendisse vel dui velit. Duis a velit eget augue pellentesque bibendum in non urna. Nunc vestibulum mi vitae neque pulvinar et feugiat urna auctor. Proin volutpat euismod nunc, adipiscing pharetra leo commodo a. Suspendisse potenti. Vestibulum luctus velit non purus laoreet elementum. Donec euismod, ipsum interdum facilisis porttitor, dui dui suscipit turpis, faucibus imperdiet ante metus tempus elit. Ut vulputate, leo quis tincidunt tincidunt, massa ante fringilla libero, iaculis varius tortor quam tempor ipsum. Praesent cursus consequat tellus, eget molestie dui aliquet vitae.",
 "Cras sagittis nibh tempor orci pellentesque condimentum. Etiam vel ipsum tortor. Phasellus quam erat, aliquet sit amet egestas a, vehicula vitae risus. Nam ac quam sit amet risus imperdiet eleifend. Pellentesque nec arcu ut nunc rutrum posuere. Fusce at elit est, ac auctor sapien. Pellentesque semper enim et turpis euismod tincidunt. Donec nibh nunc, placerat vitae semper et, ullamcorper vel lectus. Praesent ut tellus eros. Ut sit amet odio vel risus auctor mollis. Duis luctus viverra diam, eu tincidunt ante sodales nec. Suspendisse potenti.",
@@ -956,6 +953,14 @@ def GenerateRandomDate(start, end):
     return start + timedelta(seconds=randomSeconds)
 	
 def GenerateStressTestData():
+	if os.environ.get('SERVER_SOFTWARE','').startswith('Devel'):
+		STRESS_NUM_MEMBERS = 100
+		STRESS_NUM_ENTRIES = 300 
+		STRESS_NUM_ANNOTATIONS = 500
+	else:
+		STRESS_NUM_MEMBERS = 3
+		STRESS_NUM_ENTRIES = 20
+		STRESS_NUM_ANNOTATIONS = 10
 	user = users.get_current_user()
 	startDate = datetime.strptime('1/1/2008 1:30 PM', '%m/%d/%Y %I:%M %p')
 	startDate = startDate.replace(tzinfo=pytz.utc)

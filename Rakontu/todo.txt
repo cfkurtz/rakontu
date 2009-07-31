@@ -2,21 +2,11 @@ Things to do before v0.9 is complete
 
 ===== RIGHT NOW:
 
-backup/restore (to SQL) - backup working, restore not so much
-
-grid display color on bottom - not just greyer
-
-LEFT TO DO IN INTERNATIONALIZATION:
-
-deal with _id things not being translated (and in general ALL queries to urls)
-move templates to templates/english and deal with calling them up based on language
-
-instead of asking admin if they want to join new rakontu during creation,
-have easy way to join and unjoin in admin page.
-
 have removed all references to http header "referer" except the one for flags
 need way to return to previous page when flagging. may need to make it a form 
 and respond in each screen that does it :(
+
+do that thing about the pytz info files being zipped - too many files!
 
 ===== PUT OFF until a little later :)
 
@@ -27,15 +17,13 @@ test "send this member a note" thing
 FLESHING OUT:
 
 help resources 
-export csv details (community options, etc)
 
 SCALING UP:
 
-sharding counters
 transactions
 custom indexes?
 more than 1000 in a query
-internationalization
+finish internationalization
 get keys only when possible?
 more caching for speed
 look at all puts to see if they can be better lumped together
@@ -45,6 +33,5 @@ PRETTIFYING:
 add cancel button on all pages that save things
 javascript sliders for values?
 javascript in search creation?
-address that ?xx= issue in urls ??
 problem with CSS and font sizes...
 
