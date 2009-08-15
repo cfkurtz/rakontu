@@ -9,37 +9,36 @@
 		<div id="stylized" class="rakontu_form">
 		<form action="/{{dir_manage}}/{{url_export}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
-		<p><b>Export all Rakontu data to XML</b> {{"exporting_data_to_xml"|info}} </p>
+		<p><b>{{template_export_to_xml}}</b> {{"exporting_data_to_xml"|info}} </p>
 		<p></p>
 		{% if xml_export %}
-			<p>&nbsp; &nbsp; <a href="/{{url_export}}?{{xml_export.urlQuery}}">XML export for {{rakontu.name}}</a>
-			was last generated 
-			on {{xml_export.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-			at {{xml_export.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
-			<p>&nbsp; &nbsp; <input type="submit" name="xml_export" value="Regenerate XML Export" class="button"></p>
+			<p>&nbsp; &nbsp; <a href="/{{url_export}}?{{xml_export.urlQuery}}">{{template_xml_export_for}} {{rakontu.name}}</a>
+			{{template_last_generated}}
+			{{xml_export.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+			{{xml_export.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+			<input type="submit" name="xml_export" value="{{button_regenerate}}" class="button"></p>
 		{% else %}
-			<p>&nbsp; &nbsp; ({{term_none}})</p>
-			<p>&nbsp; &nbsp; <input type="submit" name="xml_export" value="Generate XML Export" class="button"></p>
+			<p>&nbsp; &nbsp; ({{term_none}})
+			<input type="submit" name="xml_export" value="{{button_generate}}" class="button"></p>
 		{% endif %}
 		
-		<p><b>Export entries with answers to CSV</b> {{"exporting_entries_with_answers_to_CSV"|info}} </p>
+		<p><b>{{template_export_entries_with_answers}}</b> {{"exporting_entries_with_answers_to_CSV"|info}} </p>
 		{% if csv_export %}
-			<p>&nbsp; &nbsp; <a href="/{{url_export}}?{{csv_export.urlQuery}}">Entries with answers for {{rakontu.name}}</a>
-			was last generated 
-			on {{csv_export.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-			at {{csv_export.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
-			<p>&nbsp; &nbsp; <input type="submit" name="csv_export" value="Regenerate Entries-Answers Export" class="button"></p>
+			<p>&nbsp; &nbsp; <a href="/{{url_export}}?{{csv_export.urlQuery}}">{{template_entries_with_answers_for}} {{rakontu.name}}</a>
+			{{template_last_generated}}
+			{{csv_export.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+			{{csv_export.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+			<input type="submit" name="csv_export" value="{{button_regenerate}}" class="button"></p>
 		{% else %}
-			<p>&nbsp; &nbsp; ({{term_none}})</p>
-			<p>&nbsp; &nbsp; <input type="submit" name="csv_export" value="Generate Entries-Answers Export" class="button"></p>
+			<p>&nbsp; &nbsp; ({{term_none}})
+			<input type="submit" name="csv_export" value="{{button_generate}}" class="button"></p>
 		{% endif %}
 		
       	<p>
 	</form>
 	</div>
 	{% else %}
-		<p>You are not a manager of this Rakontu (or a site administrator) and cannot export its data.
-		Please ask a manager to export the Rakontu's data.</p>
+		<p>{{no_access|dictLookup:"export"}}</p>
 	{% endif %}
 	
 	</div>

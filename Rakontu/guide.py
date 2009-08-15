@@ -52,7 +52,7 @@ class CopySystemResourcesPage(webapp.RequestHandler):
 		if access:
 			if member.isGuide():
 				CopyDefaultResourcesForNewRakontu(rakontu, member)
-				self.redirect(BuildURL("dir_guide", "url_resources", rakontu=rakontu))
+				self.redirect(BuildURL("dir_visit", "url_help", rakontu=rakontu))
 			else:
 				self.redirect(START)
 		else:
@@ -99,17 +99,24 @@ class ReviewRequestsPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isGuide():
-				if "submitChanges" in self.request.arguments():
-					requests = Annotation.all().filter("rakontu = ", rakontu.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
-					for request in requests:
-						if self.request.get("toggleComplete|%s" % request.key()):
-							request.completedIfRequest = not request.completedIfRequest
-							request.put()
-					self.redirect(BuildResultURL("changessaved", rakontu=rakontu))
-				elif "showOnlyUncompletedRequests" in self.request.arguments():
-					self.redirect(BuildURL("dir_guide", "url_requests", URL_OPTIONS["url_query_uncompleted"], rakontu=rakontu))
+				if "showOnlyUncompletedRequests" in self.request.arguments():
+					query = "%s=%s" % (URL_OPTIONS["url_query_uncompleted"], URL_OPTIONS["url_query_uncompleted"])
+					self.redirect(BuildURL("dir_guide", "url_requests", query, rakontu=rakontu))
 				elif "showAllRequests" in self.request.arguments():
 					self.redirect(BuildURL("dir_guide", "url_requests", rakontu=rakontu))
+				else:
+					requests = Annotation.all().filter("rakontu = ", rakontu.key()).filter("draft = ", False).filter("type = ", "request").fetch(FETCH_NUMBER)
+					DebugPrint(self.request.arguments())
+					for request in requests:
+						if "setCompleted|%s" % request.key() in self.request.arguments():
+							request.completedIfRequest = True
+							request.put()
+							break
+						elif "setUncompleted|%s" % request.key() in self.request.arguments():
+							request.completedIfRequest = False
+							request.put()
+							break
+					self.redirect(self.request.uri)
 			else:
 				self.redirect(rakontu.linkURL())
 		else:
@@ -152,7 +159,8 @@ class ReviewInvitationsPage(webapp.RequestHandler):
 		if access:
 			if member.isGuide():
 				if "showOnlyUnrespondedInvitations" in self.request.arguments():
-					self.redirect(BuildURL("dir_guide", "url_invitations", URL_OPTIONS["url_query_noresponses"], rakontu=rakontu))
+					query = "%s=%s" % (URL_OPTIONS["url_query_no_responses"], URL_OPTIONS["url_query_no_responses"])
+					self.redirect(BuildURL("dir_guide", "url_invitations", query, rakontu=rakontu))
 				elif "showAllInvitations" in self.request.arguments():
 					self.redirect(BuildURL("dir_guide", "url_invitations", rakontu=rakontu))
 			else:

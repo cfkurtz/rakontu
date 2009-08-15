@@ -5,7 +5,7 @@
 		<div id="content">
 		
 		{% if current_member.isCurator %}
-		<h3>Gaps {{"entries_with_gaps"|tip}}</h3>
+		<h3>{{template_gaps}} {{"entries_with_gaps"|tip}}</h3>
 		
 		<div id="stylized" class="rakontu_form">
 		<form action="/{{dir_curate}}/{{url_gaps}}?{{rakontu.urlQuery}}
@@ -13,24 +13,25 @@
 			&{{url_query_sort_by}}={{sort_by}}
 		{% endif %}
 		" method="post" enctype="multipart/form-data">
-		<p>Show the 
+		<p>{{template_sort_by}}
 		<select name="sortBy">
-			<option value="date" {% ifequal sort_by "date" %} selected="selected" {% endifequal %}>most recent</option>
-			<option value="annotations" {% ifequal sort_by "annotations" %} selected="selected" {% endifequal %}>most annotated</option>
-			<option value="activity" {% ifequal sort_by "activity" %} selected="selected" {% endifequal %}>highest activity</option>
-			<option value="nudges" {% ifequal sort_by "nudges" %} selected="selected" {% endifequal %}>highest nudged</option>
+			<option value="date" {% ifequal sort_by "date" %} selected="selected" {% endifequal %}>{{template_most_recent}}</option>
+			<option value="annotations" {% ifequal sort_by "annotations" %} selected="selected" {% endifequal %}>{{template_most_annotated}}</option>
+			<option value="activity" {% ifequal sort_by "activity" %} selected="selected" {% endifequal %}>{{template_highest_activity}}</option>
+			<option value="nudges" {% ifequal sort_by "nudges" %} selected="selected" {% endifequal %}>{{template_highest_nudged}}</option>
 			</select>
-		items first
-		<input type="submit" name="sortBy" value="Change" class="button_small">
+		<input type="submit" name="sortBy" value="{{button_change}}" class="button_small">
 		</form>
 		</div>
 
 		<table border="0" cellpadding="4" cellspacing="0">
 	      	<tr>
-	      		<th>Entries with no <b>tags</b></th>
-	      		<th>Entries with no <b>links</b></th>
-	      		{% if rakontu.hasActiveNonMemberQuestions %} <th>Entries with no <b>answers</b> to questions</th> {% endif %}
-	      		<th>Collages with no <b>story links</b></th>
+	      		<th>{{template_entries_with_no_tags}}</th>
+	      		<th>{{template_entries_with_no_links}}</th>
+	      		{% if rakontu.hasActiveNonMemberQuestions %} 
+	      			<th>{{template_entries_with_no_answers_to_questions}}</th> 
+	      		{% endif %}
+	      		<th>{{template_collages_with_no_story_links}}</b></th>
 	      	</tr>
 	      	<tr>
 	      	<td valign="top">
@@ -67,8 +68,7 @@
 		</tr></table>
 			
 	{% else %}
-		<p>You are not a curator of this Rakontu and cannot review its gaps.
-		Please ask a curator to make any changes you would like to see made.</p>
+		<p>{{no_access|dictLookup:"gaps"}}</p>
 	{% endif %}
 
 	</div>

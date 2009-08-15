@@ -7,7 +7,7 @@
 		<div id="stylized" class="rakontu_form">
 		<form action="/{{dir_curate}}/{{url_tags}}?{{rakontu.urlQuery}}" method="post">
 			
-			<h3>Change tags on entries{{"changing_tags_on_entries"|caution}}</h3>
+			<h3>{{template_change_entry_tags}} {{"changing_tags_on_entries"|caution}}</h3>
 			{% if tag_sets %}
 				<fieldset>
 				{% for tag_set in tag_sets %}
@@ -28,24 +28,22 @@
 				{% endfor %}
 				</fieldset>
 			{% else %}
-				<p>There are no tags to review.</p>
+				<p>{{template_no_tags}}</p>
 			{% endif %}
       	
       	{% if tag_sets %}
 			<p>&nbsp; </p>
 		    <center>
-		    <p><i><b>Please make changes carefully. Deleted or changed tags cannot be recovered.</b></i></p>
-		    <input type="submit" name="submitChanges" value="Change tags" class="button"></center>
+		    <p><i><b>{{template_tags_warning}}</b></i></p>
+		    <input type="submit" name="submitChanges" value="{{button_change_tags}}" class="button"></center>
 		{% endif %}
 		</form>	
 		</div>
 	{% else %}
 		{% if rakontu.allowNonManagerCuratorsToEditTags %}
-			<p>You are not a curator of this Rakontu and cannot review tags.
-			Either become a curator or ask a curator to make any changes you would like to see made.</p>
+			<p>{{no_access|dictLookup:"tags_curator"}}</p>
 		{% else %}
-			<p>You are not a manager of this Rakontu and cannot review tags.
-			Please ask a manager to make any changes you would like to see made.</p>
+			<p>{{no_access|dictLookup:"tags_manager"}}</p>
 		{% endif %}
 	{% endif %}
 	</div>

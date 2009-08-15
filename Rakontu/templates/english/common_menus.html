@@ -26,6 +26,9 @@
 				<li><a href="{{rakontu.linkURL}}">{{menu_home_page}}</a></li>
 	 			<li><a href="/{{dir_visit}}/{{url_rakontu}}?{{rakontu.urlQuery}}">{{menu_about_this_rakontu}}</a></li>
 				<li><a href="/{{dir_visit}}/{{url_members}}?{{rakontu.urlQuery}}">{{menu_about_rakontu_members}}</a></li>
+			    <li><a href="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}">{{menu_preferences}}</a></li>
+			    <li><a href="/{{dir_visit}}/{{url_filters}}?{{rakontu.urlQuery}}">{{menu_filters}}</a></li>
+			    <li><a href="/{{dir_visit}}/{{url_drafts}}?{{rakontu.urlQuery}}">{{menu_drafts}}</a></li>
 				</ul>
 			</li>
 			<li><a href="/{{dir_visit}}/{{url_story}}?{{rakontu.urlQuery}}">{{menu_create}}</a>
@@ -36,8 +39,6 @@
 	  				<li><a href="/{{dir_visit}}/{{url_collage}}?{{rakontu.urlQuery}}">{{menu_collage}}</a></li>
 	  				<li><a href="/{{dir_visit}}/{{url_pattern}}?{{rakontu.urlQuery}}">{{menu_pattern}}</a> </li>
 	  			{% endif %}
-	  			<li><a href="/{{dir_visit}}/{{url_drafts}}?{{current_member.urlQuery}}">{{menu_drafts}}</a></li>
-	  			<li><a href="/{{dir_visit}}/{{url_filters}}?{{current_member.urlQuery}}">{{menu_filters}}</a></li>
 	  			</ul>
 			</li>
 			{% if current_member.isCurator %}
@@ -88,8 +89,7 @@
 			
 	      	</ul>
 	    </td><td align="right" class="noborder">
-    	<p>&nbsp; <b>{{ current_member.nickname }}</b><br/>
-	    <a href="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}">{{menu_preferences}}</a> |  
+    	<p>&nbsp; <b>{{ current_member.nickname }}</b></p>
 	    <a href="/{{dir_visit}}/{{url_help}}?{{rakontu.urlQuery}}">{{menu_help}}</a>
 		{% if current_member.profileImage %}
 		</td><td align="center" width="20" class="noborder">
@@ -98,10 +98,15 @@
 		</td><td valign="center" class="noborder">
 	
 		{% else %}
-			{% if user_is_admin %}
+			{% if system_message %}
 				<td class="noborder">
-				<h1>{{menu_site_administration}}</h1>
-				<hr>
+				<h1><i>{{system_message}}</i></h1>
+			{% else %}
+				{% if user_is_admin %}
+					<td class="noborder">
+					<h1>{{menu_site_administration}}</h1>
+					<hr>
+				{% endif %}
 			{% endif %}
 	    {% endif %}
 	</td></tr></table>

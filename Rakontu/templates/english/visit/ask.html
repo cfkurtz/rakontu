@@ -1,0 +1,47 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+		<div id="content">
+	
+		<h3>{{template_ask_this_guide}} - {{member.nickname}}</h3>
+		
+   		<table style="width:100%;" class="noborder">
+  		<tr>
+  		<td style="border:none; border-right:1px solid #{{skin|dictLookup:"color_border_normal"}};" width="100" valign="center" align="center">
+	 		{% if member.profileImage %}
+				{{member.imageEmbed}}
+			{% else %}
+				&nbsp;
+			{% endif %}
+		</td>
+		<td style="border:none;padding-left:16px;">
+	  		<div class="blurb">
+	  		{% if member.guideIntro|orNothing %}
+	  			{{member.guideIntro_formatted}}
+	  		{% else %}
+	  			{{template_guide_has_not_entered_intro}}
+	  		{% endif %}
+	  		</div>
+  		</td></tr></table>
+  		<p></p>
+		{% ifnotequal member.key current_member.key %}
+			{% if member.isGuide or member.acceptsMessages %}
+				<fieldset>
+				<div id="stylized" class="rakontu_form">
+				<form action="/{{dir_visit}}/{{url_ask}}?{{member.urlQuery}}" method="post">
+				<p>{{template_ask_body}}</p>
+				<textarea name="message" rows="8" cols="60"></textarea>
+				<p>{{template_ask_subject}}</p>
+				<p><input type="text" name="subject" size="80" value="" maxlength="{{maxlength_subject_or_comment}}"/></p>
+				<center><input type="submit" name="message|{{member.key}}" value="{{button_send_question}}" class="button"></center>
+				</form>
+				</div>
+				</fieldset>
+			{% endif %}
+		{% endifnotequal %}
+				
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

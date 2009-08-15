@@ -2,7 +2,6 @@
 "; ALL COMMUNITIES",,,,,,,,
 "member, character","Generation","Which generation do you fall into?","ordinal","Gen-Y, Gen-X, Baby boomers, Greatest Generation, Even older than that!","no",,,
 ,,,,,,,,
-,,,,,,,,
 "; NEIGHBORHOOD",,,,,,,,
 "member, character","Know about history","How much do you know about the history of this area?","ordinal","everything, an awful lot, pretty much, some, not much, nothing at all","no",,,"neighborhood"
 "member, character","Living here ranks","How would you say that living in our community ranks among places you have lived?","ordinal","the highest, very high, high, medium, low, very low, the absolute bottom","no",,,"neighborhood"

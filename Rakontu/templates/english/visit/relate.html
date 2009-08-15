@@ -14,31 +14,31 @@
 		" method="post" enctype="multipart/form-data">
 		
 			{% if related_links %}
-				<h3>Entries related to this {{entry.typeForDisplay}}</h3>
+				<h3>{{template_entries_related_to_this_one}}</h3>
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
-		      		<th>Title (type)</th>
-		      		<th>Incoming or outgoing?</th>
-		      		<th>Created by</th>
-		      		<th>Text</th>
-		      		<th>Relation comment</th>
-		      		<th>Remove?</th>
+		      		<th>{{template_incoming_or_outgoing}}?</th>
+		      		<th>{{template_name}} ({{template_type|lower}})</th>
+		      		<th>{{template_contributed_by}}</th>
+		      		<th>{{template_first_part_of_text}}</th>
+		      		<th>{{template_link_comment}}</th>
+		      		<th width="80">{{template_remove}}?</th>
 		      		</tr>
 		      		{% for link in related_links %}
 		  				<tr>
 		  				<td>
 		  				{% ifequal entry.key link.itemTo.key %}
-		  					{{link.itemFrom.linkString}}</a> ({{link.itemFrom.type}})
+		  					{{template_incoming}}
 		  				{% else %}
-		  					{{link.itemTo.linkString}} ({{link.itemTo.type}})
+		  					{{template_outgoing}}
 		  				{% endifequal %}
 		  				</td>
 		  				<td>
 		  				{% ifequal entry.key link.itemTo.key %}
-		  					incoming
+		  					{{link.itemFrom.linkString}}</a> ({{link.itemFrom.type}})
 		  				{% else %}
-		  					outgoing
+		  					{{link.itemTo.linkString}} ({{link.itemTo.type}})
 		  				{% endifequal %}
 		  				</td>
 		  				<td>
@@ -48,21 +48,21 @@
 									 ({{template_you}})
 								{% endifequal %}
 							{% else %}
-								the former member "{{link.creator.nickname}}"
+								{{template_the_former_member}} "{{link.creator.nickname}}"
 							{% endif %}
 		  				</td>
 		  				<td>{{link.itemTo.shortFormattedText|orNone}}</td>
 		  				<td><input type="text" name="linkComment|{{link.key}}" value="{{link.comment}}" size="40"/></td>
 		  				<td>
 		  					<input type="checkbox" name="removeLink|{{ link.key }}" value="yes" id="removeLink|{{ link.key }}"/>
-							<label for="removeLink|{{ link.key }}">Remove</label>
+							<label for="removeLink|{{ link.key }}">{{template_remove}}</label>
 		  					</td>
 		  				</tr>
 		      		{% endfor %}
 		      	</table>
 		      	</fieldset>
 	      {% endif %}
-			<h3>Relate this {{entry.typeForDisplay}} to other entries</h3>
+			<h3>{{template_add_relations}}</h3>
 			<fieldset>
 			<table  style="border:none;padding:0;margin:0;"><tr>
 			{% for i in num_rows|makeRange %}
@@ -96,9 +96,9 @@
 			<p>
 			<center>
 			{% if related_links %}
-				<input type="submit" name="save" value="Save changes" class="button">
+				<input type="submit" name="save" value="{{button_save_changes}}" class="button">
 			{% else %}
-				<input type="submit" name="save" value="Save new relations" class="button">
+				<input type="submit" name="save" value="{{button_save_new_relations}}" class="button">
 			{% endif %}
 			</center>
 			

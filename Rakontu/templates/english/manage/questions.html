@@ -6,28 +6,28 @@
 	{% if current_member.isManagerOrOwner %}
 		<div id="stylized" class="rakontu_form">
 		<form action="/{{dir_manage}}/{{url_questions}}_{{refer_type_url}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
-		<h3>Add New {{refer_type_display|capfirst}} Questions{{"adding_new_questions"|tip}}</h3>
+		<h3>{{template_add_new_questions_about}} {{refer_type_plural_display}} {{"adding_new_questions"|tip}}</h3>
 		<fieldset>
 		<textarea name="newQuestionNames" rows="6" cols="40"></textarea>
 		</fieldset>
 
 		{% if questions %}
-			<h3>Change {{refer_type_display|capfirst}} Questions</h3>
+			<h3>{{template_change_questions_about}} {{refer_type_plural_display}}</h3>
 			<fieldset>
 	      	<table border="0" cellpadding="4" cellspacing="0">
 	      	<tr>
-	      		<th>Name, question, and explanation</th>
-	      		<th>Type</th>
-	      		<th>Minimum and maximum<br><i>if value</i></th>
-	      		<th>Response<br><i>if boolean</i>{{"response_if_boolean"|info}}</th>
-	      		<th>Choices<br><i>if ordinal or nominal</i></i></th>
-	      		<th>Inactivate?</th>
+	      		<th>{{template_name_question_explanation}}</th>
+	      		<th>{{template_type}}</th>
+	      		<th>{{template_min_max}}<br><i>{{template_if_value}}</i></th>
+	      		<th>{{template_response}}<br><i>{{template_if_boolean}}</i>{{"response_if_boolean"|info}}</th>
+	      		<th>{{template_choices}}<br><i>{{template_if_ordinal_or_nominal}}</i></i></th>
+	      		<th width="100">{{template_inactivate}}?</th>
 	      		</tr>
 	      		{% for question in questions %}
 	      			<tr>
-	      			<td valign="top">Name<div><input type="text" name="name|{{question.key}}" size="40" value="{{question.name}}" maxlength="{{maxlength_name}}"></div>
-	      				<br>Question<div><input type="text" name="text|{{question.key}}" size="40" value="{{question.text}}" maxlength="{{maxlength_subject_or_comment}}"></div>
-	      				<br>Explanation<div><input type="text" name="help|{{question.key}}" size="40" value="{{question.help}}" maxlength="{{maxlength_subject_or_comment}}"></div></td>
+	      			<td valign="top">{{template_name}}<div><input type="text" name="name|{{question.key}}" size="40" value="{{question.name}}" maxlength="{{maxlength_name}}"></div>
+	      				<br>{{template_question}}<div><input type="text" name="text|{{question.key}}" size="40" value="{{question.text}}" maxlength="{{maxlength_subject_or_comment}}"></div>
+	      				<br>{{template_explanation}}<div><input type="text" name="help|{{question.key}}" size="40" value="{{question.help|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></div></td>
 	      			<td valign="top"><div><select name="type|{{question.key}}">
 	      				{% for i in question_types|makeRangeFromListLength %}
 	      			 		<option value="{{question_types|listLookup:i}}"
@@ -49,9 +49,12 @@
 	     			 	{% if question.multiple %}
 	     			 		checked="checked"
 	     			 	{% endif %}
-	     			 	> Multiple answers allowed</label></div>
+	     			 	> {{template_multiple_answers_allowed}}</label></div>
 	     			 </td>
-	      			 <td valign="top" align="center"><input type="checkbox" name="inactivate|{{question.key}}" />Inactivate</td>
+	      			 <td valign="top" align="center">
+	      			 	<input type="checkbox" name="inactivate|{{question.key}}" id="inactivate|{{question.key}}">
+	      			 	<label for="inactivate|{{question.key}}">{{template_inactivate}}</label>
+	      			 </td>
 	      				</tr>
 	      		{% endfor %}
 	      	</table>
@@ -59,46 +62,47 @@
 	      	
 	    {% endif %}
 	    
-	    <h3>Import/Export</h3>
+	    <h3>{{template_import_export_questions_about}} {{refer_type_plural_display}}</h3>
 	    <fieldset>
-	    <p>Choose a CSV file to import questions from:
+	    <p>{{template_choose_csv_question_file}}:
 	    <input type="file" name="import" size="40" accept="csv"/></p>
 	    {% if questions %}
-	    	<p><a href="/{{dir_manage}}/{{url_questionsToCSV}}?{{url_query_export_type}}={{refer_type}}&{{rakontu.urlQuery}}">Export questions to CSV</a></p>
+	    	<p><a href="/{{dir_manage}}/{{url_questionsToCSV}}?{{url_query_export_type}}={{refer_type}}&{{rakontu.urlQuery}}">{{template_export_questions_to_csv}}</a></p>
 	    {% endif %}
 	    </fieldset>
 	      	
 		{% if inactive_questions %}
-			<h3>Inactive questions{{"inactive_questions"|caution}}</h3>
+			<h3>{{template_inactive_questions}} {{"inactive_questions"|caution}}</h3>
 			<ul>
 			{% for question in inactive_questions %}
-				<li class="nobullet">{{question.name}}</li>
+				<li class="nobullet">{{question.name}} 
+				</li>
 			{% endfor %}
 			</ul>
 		{% endif %}
 
 	    {% if system_questions %}
-			<h3>Copy {{refer_type_display|capfirst}} Questions from Samples{{"copying_sample_questions"|tip}}</h3>
+			<h3>{{template_copy_sample_questions_about}} {{refer_type_plural_display}} {{"copying_sample_questions"|tip}}</h3>
 			<fieldset>
 	      	<table border="0" cellpadding="4" cellspacing="0">
 	      	<tr>
-	      		<th>Copy?</th>
-	      		<th>Question</th>
+	      		<th>{{template_copy}}?</th>
+	      		<th>{{template_question}}</th>
 	      		</tr>
 				{% for sys_question in system_questions %}
 	      			<td valign="top" width="80"><input type="checkbox" name="copy|{{sys_question.key}}" value="copy|{{sys_question.key}}" id="copy|{{sys_question.key}}">
-	      			<label for="copy|{{sys_question.key}}">Copy</label></td>
+	      			<label for="copy|{{sys_question.key}}">{{template_copy}}</label></td>
 					<td valign="top">
 					<b>{{sys_question.text}}</b> ({{sys_question.name}})
-					is a{% ifequal sys_question.type "ordinal" %}n{% endifequal %} <b>{{sys_question.type}}</b> question.
+					{{template_is_of_the_type}} <b>{{sys_question.type}}</b>.
 					{% ifequal sys_question.type "value" %} 
-						Allowed values are between {{sys_question.minIfValue}} and {{sys_question.maxIfValue}}. 
+						{{template_min_max_are}} {{sys_question.minIfValue}} - {{sys_question.maxIfValue}}. 
 					{% endifequal %}
 					{% ifequal sys_question.type "boolean" %} 
-						Positive answers are given as "{{sys_question.responseIfBoolean}}." 
+						{{template_a_positive_answer_is}}: {{sys_question.responseIfBoolean}}.
 					{% endifequal %}
 					{% ifequal sys_question.type "ordinal" %}
-						Choices are:
+						{{template_choices_are}}:
 						<ol>
 						{% for choice in sys_question.choices %}
 							<li>{{choice}}</li>
@@ -106,15 +110,19 @@
 						</ol>
 					{% endifequal %}
 					{% ifequal sys_question.type "nominal" %}
-						Choices are:
+						{{template_choices_are}}:
 						<ul>
 						{% for choice in sys_question.choices %}
 							<li>{{choice}}</li>
 						{% endfor %}
 						</ul>
 					{% endifequal %}
-					{% if sys_question.multiple %} Multiple answers are allowed. {% endif %}
-					{% if sys_question.help %} The explanation given is "{{sys_question.help}}" {% endif %}
+					{% if sys_question.multiple %} 
+						{{template_multiple_answers_allowed}} 
+					{% endif %}
+					{% if sys_question.help %} 
+						{{template_explanation_is}} "{{sys_question.help}}" 
+					{% endif %}
 					</td>
 					</tr>
 				{% endfor %}
@@ -123,12 +131,11 @@
 			{% endif %}
 
 		<p>
-    <center><input type="submit" name="changesTo|{{refer_type}}" value="Change Questions About {{refer_type_plural_display|capfirst}}" class="button"/></center>
+    <center><input type="submit" name="changesTo|{{refer_type}}" value="{{button_save_changes}}" class="button"/></center>
 	</form>	
 	</div>
 	{% else %}
-		<p>You are not a manager of this Rakontu and cannot change its questions.
-		Please ask a manager to make any changes you would like to see made.</p>
+		<p>{{no_access|dictLookup:"questions"}}</p>
 	{% endif %}
 
 	</div>

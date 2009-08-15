@@ -4,7 +4,10 @@
 	{% include "common_menus.html" %}
 	<div id="content">
 		
-	<h3>Help on: {{help.name|spacify}}</h3>
+	<h3>{{help.name|spacify}}</h3>
+	
+	<div class="blurb">
+	
 	{% ifequal help.type "info" %}
 		<img src="../images/info.png" alt="help" border="0" valign="center"/>
 	{% else %}
@@ -15,12 +18,13 @@
 		{% endifequal %}
 	{% endifequal %}
 	
-	{{help.text}}</p>
+	{{help.text}}
+	</div>
 		
 	
-	<hr>
-	<p>&nbsp; Click the Back button to return to the page you were on.</p>
-	<p>&nbsp; &nbsp; &nbsp; &nbsp; ... or would you like more <b><a href="/{{dir_visit}}/{{url_help}}?{{rakontu.urlQuery}}">Help</a></b>?</p>
+	<p>&nbsp; {{template_click_back_button}}</p>
+	<p>&nbsp; &nbsp; &nbsp; &nbsp; ... {{template_or_would_you_like_more}} 
+	<b><a href="/{{dir_visit}}/{{url_help}}?{{rakontu.urlQuery}}">{{template_help}}</a></b>?</p>
 		
 	</div>
 	{% include "common_footer.html" %}

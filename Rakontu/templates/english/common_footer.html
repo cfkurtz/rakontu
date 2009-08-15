@@ -4,10 +4,21 @@
 <a href="http://www.rakontu.org"><img src="/images/Rakontu_tiny.jpg" alt="Rakontu logo" class="bordered" width="20" height="18"></a>
 <a href="http://www.rakontu.org">Rakontu</a> {{version_number}} |
 
-<a href="/">Site start page</a> | 
+<a href="/">{{template_site_start_page}}</a> | 
 {% if user_is_admin %}
-	<a href="/{{dir_admin}}/{{url_admin}}">Site administration</a> |
+	<a href="/{{dir_admin}}/{{url_admin}}">{{template_site_administration}}</a> |
+{% else %}
+	{% if current_user.isManagerOrOwner %}
+		<a href="mailto:{{site_support_email}}">{{template_site_support}}</a> |
+		<a href="mailto:{{site_support_email}}?subject=
+			{% if rakontu %}
+				{{template_support_for_rakontu}}{{rakontu.getKeyName}}
+			{% else %}
+				{{template_support}}
+			{% endif %}
+			">Site support</a>
+	{% endif %}
 {% endif %}
-Google account: {{user_email}} | <a href="{{logout_url}}">Log out</a></p>
+{{template_google_account}}: {{user_email}} | <a href="{{logout_url}}">{{template_log_out}}</a></p>
 
 </div>

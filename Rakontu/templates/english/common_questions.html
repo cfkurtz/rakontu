@@ -1,96 +1,105 @@
 		<h3>
 			{% ifequal refer_type "member" %}
-				Please answer these questions about yourself. {{"answering_questions"|tip}}
+				{% ifequal member current_member %}
+					{{template_answer_questions_about_yourself}} 
+				{% else %}
+					{{template_answer_questions_about_member}} {{member.nickname}}.
+				{% endifequal %}
 			{% else %}
 				{% if entry %}
-					Answers to questions about this {{ refer_type_display }}
+					{{template_answers_to_questions_about}} {{ entry.linkString }}
 				{% else %}
-					Please answer these questions about this {{ refer_type_display }}.
+					{{template_answer_questions_about}} {{ refer_type_display }}.
 				{% endif %}
 			{% endifequal %}
+			{{"answering_questions"|tip}}
 			</h3>
 		<fieldset>
-		{% for question in questions %}
-			<p>{{ question.text }}
-			{% ifequal question.type "value" %}
-				<i>Please enter a number between {{question.minIfValue}} and {{question.maxIfValue}}. </i>
-			{% endifequal %}
-			{% if question.help|notNone %}
-				<i>{{question.help}}</i>
-			{% endif %}
-			</p>
-			
-			{% ifequal question.type "text" %}
-				&nbsp; &nbsp; <input type="text" size="80" name="{{question.key}}" value="
-				{% for answer in answers %}
-					{% ifequal answer.questionKey question.key %}
-						{{ answer.answerIfText }}
-					{% endifequal %}
-				{% endfor %} 
-				" maxlength="{{maxlength_subject_or_comment}}"/>
-			{% endifequal %}
-			
-			{% if question.isOrdinalOrNominal %}
-				{% if question.multiple %}
-					{% for i in question.choices|makeRangeFromListLength %}
-						{% if question.choices|listLookup:i|slugify %}
-							{% if i|dividesBy:5 %}
-								<br/>
-							{% endif %}
-							&nbsp; &nbsp; <input type="checkbox" name="{{question.key}}|{{question.choices|listLookup:i}}" 
-							value="yes" id="{{question.key}}|{{question.choices|listLookup:i}}" 
-							{% for answer in answers %}
-								{% ifequal answer.questionKey question.key %}
-									{% for answerText in answer.answerIfMultiple %}
-										{% if question.choices|listLookup:i|equalTest:answerText %}
-											checked="checked"
-										{% endif %}
-									{% endfor %}
-								{% endifequal %}
-							{% endfor %}
-							/><label for="{{question.key}}|{{question.choices|listLookup:i}}">{{question.choices|listLookup:i}}</label>
-						{% endif %}
-					{% endfor %}
-				{% else %}
-					&nbsp; &nbsp; <select name="{{question.key}}"><option value="None">({{term_choose}})</option>
-					{% for choice in question.choices %}
-						{% if choice|slugify %}
-						<option value="{{choice}}"
-							{% for answer in answers %}
-								{% ifequal answer.questionKey question.key %}
-									{% ifequal answer.answerIfText choice %}
-										selected="selected"
-									{% endifequal %}
-								{% endifequal %}
-							{% endfor %}
-						/>{{choice}}</option>
-						{% endif %}
-					{% endfor %}
-					</select>			
+		{% if questions %}
+			{% for question in questions %}
+				<p>{{ question.text }}
+				{% ifequal question.type "value" %}
+					<i>{{template_enter_number}} {{question.minIfValue}} {{template_and}} {{question.maxIfValue}}. </i>
+				{% endifequal %}
+				{% if question.help|notNone %}
+					<i>{{question.help}}</i>
 				{% endif %}
-			{% endif %}
-			
-			{% ifequal question.type "boolean" %}
-				&nbsp; &nbsp; <input type="checkbox" name="{{question.key}}" value="yes" id="{{question.key}}"
-				{% for answer in answers %}
-					{% ifequal answer.questionKey question.key %}
-						{% if answer.answerIfBoolean %}
-							checked="checked"
-						{% endif %}
-					{% endifequal %}
-				{% endfor %}
-				/><label for="{{question.key}}">{{question.responseIfBoolean}}</label>
-			{% endifequal %}
-			
-			{% ifequal question.type "value" %}
-				&nbsp; &nbsp; <input type="text" size="{{maxlength_number}}" name="{{question.key}}" value="
-				{% for answer in answers %}
-					{% ifequal answer.questionKey question.key %}
-						{{ answer.answerIfValue }}
-					{% endifequal %}
-				{% endfor %}
-				" maxlength="{{maxlength_number}}"/>
-			{% endifequal %}
-			
-		{% endfor %}
+				</p>
+				
+				{% ifequal question.type "text" %}
+					&nbsp; &nbsp; <input type="text" size="80" name="{{question.key}}" 
+					{% for answer in answers %}
+						{% ifequal answer.questionKey question.key %}
+							value="{{answer.answerIfText}}"
+						{% endifequal %}
+					{% endfor %} 
+					maxlength="{{maxlength_subject_or_comment}}"/>
+				{% endifequal %}
+				
+				{% if question.isOrdinalOrNominal %}
+					{% if question.multiple %}
+						{% for i in question.choices|makeRangeFromListLength %}
+							{% if question.choices|listLookup:i|slugify %}
+								{% if i|dividesBy:5 %}
+									<br/>
+								{% endif %}
+								&nbsp; &nbsp; <input type="checkbox" name="{{question.key}}|{{question.choices|listLookup:i}}" 
+								value="yes" id="{{question.key}}|{{question.choices|listLookup:i}}" 
+								{% for answer in answers %}
+									{% ifequal answer.questionKey question.key %}
+										{% for answerText in answer.answerIfMultiple %}
+											{% if question.choices|listLookup:i|equalTest:answerText %}
+												checked="checked"
+											{% endif %}
+										{% endfor %}
+									{% endifequal %}
+								{% endfor %}
+								/><label for="{{question.key}}|{{question.choices|listLookup:i}}">{{question.choices|listLookup:i}}</label>
+							{% endif %}
+						{% endfor %}
+					{% else %}
+						&nbsp; &nbsp; <select name="{{question.key}}"><option value="None">({{term_choose}})</option>
+						{% for choice in question.choices %}
+							{% if choice|slugify %}
+							<option value="{{choice}}"
+								{% for answer in answers %}
+									{% ifequal answer.questionKey question.key %}
+										{% ifequal answer.answerIfText choice %}
+											selected="selected"
+										{% endifequal %}
+									{% endifequal %}
+								{% endfor %}
+							/>{{choice}}</option>
+							{% endif %}
+						{% endfor %}
+						</select>			
+					{% endif %}
+				{% endif %}
+				
+				{% ifequal question.type "boolean" %}
+					&nbsp; &nbsp; <input type="checkbox" name="{{question.key}}" value="yes" id="{{question.key}}"
+					{% for answer in answers %}
+						{% ifequal answer.questionKey question.key %}
+							{% if answer.answerIfBoolean %}
+								checked="checked"
+							{% endif %}
+						{% endifequal %}
+					{% endfor %}
+					/><label for="{{question.key}}">{{question.responseIfBoolean}}</label>
+				{% endifequal %}
+				
+				{% ifequal question.type "value" %}
+					&nbsp; &nbsp; <input type="text" size="{{maxlength_number}}" name="{{question.key}}" 
+					{% for answer in answers %}
+						{% ifequal answer.questionKey question.key %}
+							value="{{answer.answerIfValue}}"
+						{% endifequal %}
+					{% endfor %}
+					maxlength="{{maxlength_number}}"/>
+				{% endifequal %}
+				
+			{% endfor %}
+		{% else %}
+			{{template_no_questions}}
+		{% endif %}	
 		</fieldset>

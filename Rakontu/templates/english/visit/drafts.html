@@ -9,73 +9,87 @@
 		<div id="stylized" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_drafts}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
-		{% if member.isOnlineMember %}
-			<h3>Your saved drafts</h3>
-		{% else %}
-			<h3>{{member.nickname}}'s saved drafts</h3>
-		{% endif %}
+		<h3>{{template_draft}} {{template_entries|lower}}, {{template_annotations|lower}} {{template_and}} {{template_answers|lower}}</h3>
 		{% if draft_entries %}
-			<h4>Entries</h4>
+			<p><b>{{template_entries}}</b></p>
 	      	<table border="0" cellpadding="4" cellspacing="0">
-	      	<tr><th>Entry type</th><th>Name (click to change)</th><th>Created</th><th>Last changed</th><th>Remove?</th>
+	      	<tr>
+	      		<th>{{template_type}}</th>
+	      		<th>{{template_name}}</th>
+	      		<th>{{template_created}}</th>
+	      		<th>{{template_last_changed}}</th>
+	      		<th>{{template_remove}}?</th>
+	      		</tr>
 	      	{% for entry in draft_entries %}
 		      	<tr>
 		      	<td>{{entry.typeForDisplay}}</td>
 				<td><a href="{{entry.typeAsURL}}?{{entry.urlQuery}}">{{entry.title}}</a></td>
-				<td>{{entry.created|timeZone:member.timeZoneName|date:member.dateFormat}} at {{entry.created|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
-				<td>{{entry.edited|timeZone:member.timeZoneName|date:member.dateFormat}} at {{entry.edited|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
-				<td><input type="checkbox" name="remove|{{ entry.key }}" value="yes" id="remove|{{ entry.key }}"/>
-					<label for="remove|{{ entry.key }}">Remove</label></td>
+				<td>{{entry.created|timeZone:member.timeZoneName|time:member.timeFormat}}<br/>{{entry.created|timeZone:member.timeZoneName|date:member.dateFormat}}</td>
+				<td>{{entry.edited|timeZone:member.timeZoneName|time:member.timeFormat}}<br/>{{entry.edited|timeZone:member.timeZoneName|date:member.dateFormat}}</td>
+				<td><input type="checkbox" name="remove|{{entry.key}}" value="yes" id="remove|{{ entry.key }}"/>
+					<label for="remove|{{ entry.key }}">{{template_remove}}</label></td>
 				</tr>
 			{% endfor %}
 			</table>
 		{% else %}
-			<p><b>Entries</b> - {{term_none}}</p>
+			<p><b>{{template_entries}}</b> - {{term_none}}</p>
 		{% endif %}
 		
 		{% if draft_annotations %}
-		<h4>Annotations</h4>
+			<p><b>{{template_annotations}}</b></p>
 	      	<table border="0" cellpadding="4" cellspacing="0">
-	      	<tr><th>Annotation type</th><th>Name</th><th>In reference to the entry</th><th>Created</th><th>Last changed</th><th>Remove?</th>
+	      	<tr>
+	      		<th>{{template_type}}</th>
+	      		<th>{{template_name}}</th>
+	      		<th>{{template_entry}} ({{template_type|lower}})</th>
+	      		<th>{{template_created}}</th>
+	      		<th>{{template_last_changed}}</th>
+	      		<th>{{template_remove}}?</th>
+	      		</tr>
 	      	{% for annotation in draft_annotations %}
 		      	<tr>
 		      	<td>{{annotation.typeForDisplay}}</td>
 				<td><a href="{{annotation.typeAsURL}}?{{annotation.urlQuery}}">{{annotation.displayString}}</a></td>
 				<td>{{annotation.entry.linkString}} ({{annotation.entry.typeForDisplay}})</td>
-				<td>{{annotation.created|timeZone:member.timeZoneName|date:member.dateFormat}} at {{annotation.created|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
-				<td>{{annotation.edited|timeZone:member.timeZoneName|date:member.dateFormat}} at {{annotation.edited|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
+				<td>{{annotation.created|timeZone:member.timeZoneName|time:member.timeFormat}}<br/>{{annotation.created|timeZone:member.timeZoneName|date:member.dateFormat}}</td>
+				<td>{{annotation.edited|timeZone:member.timeZoneName|time:member.timeFormat}}<br/>{{annotation.edited|timeZone:member.timeZoneName|date:member.dateFormat}} </td>
 				<td><input type="checkbox" name="remove|{{ annotation.key }}" value="yes" id="remove|{{ annotation.key }}"/>
-					<label for="remove|{{ annotation.key }}">Remove</label>
+					<label for="remove|{{ annotation.key }}">{{template_remove}}</label>
 					</td>
 				</tr>
 			{% endfor %}
 			</table>
 		{% else %}
-			<p><b>Annotations</b> - {{term_none}}</p>
+			<p><b>{{template_annotations}}</b> - {{term_none}}</p>
 		{% endif %}
 		
 		{% if first_draft_answer_per_entry %}
-			<h4>Answers for entries</h4>
+			<p><b>{{template_answers}}</b></p>
 		      	<table border="0" cellpadding="4" cellspacing="0">
-		      	<tr><th>Answers about entry</th><th>Created</th><th>Last changed</th><th>Remove?</th>
+		      	<tr>
+		      		<th>{{template_entry}}</th>
+		      		<th>{{template_created}}</th>
+		      		<th>{{template_last_changed}}</th>
+		      		<th>{{template_remove}}?</th>
+		      		</tr>
 		      	{% for answer in first_draft_answer_per_entry %}
 			      	<tr>
 					<td><a href="/{{dir_visit}}/{{url_answers}}?{{answer.referent.urlQuery}}">{{answer.referent.title}}</a> ({{answer.referent.type}})</td>
-					<td>{{answer.created|timeZone:member.timeZoneName|date:member.dateFormat}} at {{answer.created|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
-					<td>{{answer.edited|timeZone:member.timeZoneName|date:member.dateFormat}} at {{answer.edited|timeZone:member.timeZoneName|time:member.timeFormat}}</td>
+					<td>{{answer.created|timeZone:member.timeZoneName|time:member.timeFormat}}<br/>{{answer.created|timeZone:member.timeZoneName|date:member.dateFormat}}</td>
+					<td>{{answer.edited|timeZone:member.timeZoneName|time:member.timeFormat}}<br/>{{answer.edited|timeZone:member.timeZoneName|date:member.dateFormat}}</td>
 					<td><input type="checkbox" name="removeAnswers|{{answer.referent.key}}" value="yes" id="removeAnswers|{{answer.referent.key}}"/>
-						<label for="removeAnswers|{{answer.referent.key}}">Remove</label>
+						<label for="removeAnswers|{{answer.referent.key}}">{{template_remove}}</label>
 						</td>
 					</tr>
 				{% endfor %}
 				</table>
 		{% else %}
-			<p><b>Answers</b> - {{term_none}}</p>
+			<p><b>{{template_answers}}</b> - {{term_none}}</p>
 		{% endif %}
 		
-      	<p>
     {% if draft_entries or draft_annotations or first_draft_answer_per_entry  %}
-    	<center><input type="submit" name="changeSettings|{{member.key}}" value="Remove selected drafts" class="button"></center>
+    	<p></p>
+    	<p><center><input type="submit" name="changeSettings|{{member.key}}" value="{{button_remove_selected_drafts}}" class="button"></center></p>
     {% endif %}
 	</form>	
 	</div>

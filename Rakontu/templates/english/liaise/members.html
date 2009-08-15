@@ -11,24 +11,24 @@
 			<div id="stylized" class="rakontu_form">
 			<form action="/{{dir_liaise}}/{{url_members}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 			
-			<h3>Active off-line members</h3>
-			{% if  active_members %}
+			<h3>{{template_active_offline_members}}</h3>
+			{% if active_members %}
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
-		      		<th>Nickname</th>
-		      		<th>Picture</th>
-		      		<th>Liaison</th>
-		      		<th>Inactivate?</th>
+		      		<th>{{template_nickname}}</th>
+		      		<th>{{template_picture}}</th>
+		      		<th>{{template_liaison}}</th>
+		      		<th>{{template_inactivate}}?</th>
 		      		</tr>
 		      		{% for aMember in active_members %}
 		  				<tr>
 		  				<td>
-		  					{{ aMember.nickname }}<br/>
-		  					<a href="/{{dir_visit}}/{{url_member}}?{{url_query_member}}={{aMember.getKeyName}}">(View member page)</a>
+		  					{{aMember.nickname}}<br/>
+		  					<a href="/{{dir_visit}}/{{url_member}}?{{url_query_member}}={{aMember.getKeyName}}">({{template_view_member_page}})</a>
 		  					{% ifequal aMember.liaisonIfOfflineMember.key current_member.key %}
-		  						<br/><a href="/{{dir_visit}}/{{url_preferences}}?{{aMember.urlQuery}}">(Change preferences)</a>
-		  						<br/><a href="/{{dir_visit}}/{{url_drafts}}?{{aMember.urlQuery}}">(Edit drafts)</a>
+		  						<br/><a href="/{{dir_visit}}/{{url_preferences}}?{{aMember.urlQuery}}">({{template_change_preferences}})</a>
+		  						<br/><a href="/{{dir_visit}}/{{url_drafts}}?{{aMember.urlQuery}}">({{template_edit_drafts}})</a>
 		  					{% endifequal %}
 		  				</td>
 		  				<td width="80" valign="top">
@@ -41,29 +41,24 @@
 		  				<td>{{aMember.liaisonIfOfflineMember.linkString}}</td>
 		  				<td>
 		  					<input type="checkbox" name="remove|{{ aMember.key }}" value="yes" id="remove|{{ aMember.key }}"/>
-							<label for="remove|{{ aMember.key }}">Inactivate</label>
+							<label for="remove|{{ aMember.key }}">{{template_inactivate}}</label>
 		  					</td>
 		  				</tr>
 		      		{% endfor %}
 		      	</table>
 		      	</fieldset>
 		    {% else %}
-		    	<p>&nbsp; &nbsp; <i>There are no active off-line members at this time.</i></p>
+		    	<p>&nbsp; &nbsp; <i>{{template_no_active_offline_members}}</i></p>
 		    {% endif %}
 			
-	 		<h3>Add off-line members</h3>
+	 		<h3>{{template_add_offline_members}} {{"adding_offline_members"|tip}}</h3>
 			<fieldset>
 			<div><textarea name="newMemberNicknames" rows="6" cols="40"></textarea></div>
-			<p>Instructions: Add nicknames for each off-line member you want to add.
-			Place each nickname on a separate line.</p>
 			</fieldset>
 			
 			{% if inactive_members %}
-				<h3>Inactive members</h3>
+				<h3>{{template_inactive_members}} {{"inactive_offline_members"|tip}}</h3>
 				<fieldset>
-				These members have been removed from the active members list. To reinstate an inactive member, 
-				copy their nickname to the "Add off-line members" box to reinstate them. Reinstated
-				members will reconnect to their old histories and profiles.
 				<ul>
 				{% for member in inactive_members %}
 					<li class="nobullet">{{member.nickname}}</li>
@@ -73,12 +68,11 @@
 			{% endif %}
 	
 		<p></p>
-	    <center><input type="submit" name="submitChanges" value="Submit Changes" class="button"></center>	
+	    <center><input type="submit" name="submitChanges" value="{{button_save_changes}}" class="button"></center>	
 		</form>	
 		</div>
 	{% else %}
-		<p>You are not a liaison or manager of this Rakontu and cannot change its off-line memberships.
-		Please ask a liaison or manager to make any changes you would like to see made.</p>
+		<p>{{no_access|dictLookup:"offline_members"}}</p>
 	{% endif %}
 
 	</div>

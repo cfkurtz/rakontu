@@ -4,90 +4,12 @@
 	{% include "common_menus.html" %}
 	<div id="content">
 		
-	<h3>
-	{% ifequal message "messagesent" %}
-		<p>Your message has been sent.</p>
-	{% endifequal %}
-	
-	{% ifequal message "changessaved" %}
-		<p>Your changes have been saved.</p>
-	{% endifequal %}
-	
-	{% ifequal message "offlineMemberNotFound" %}
-		<p>That off-line member was not found.</p>
-	{% endifequal %}
-	
-	{% ifequal message "offlineMemberAlreadyAnsweredQuestions" %}
-		<p>That off-line member has already answered questions about this entry.</p>
-	{% endifequal %}
-	
-	{% ifequal message "nicknameAlreadyInUse" %}
-		<p>That nickname is already in use. Could you please choose another?</p>
-	{% endifequal %}
-	
-	{% ifequal message "memberNotFound" %}
-		<p>That member was not found.</p>
-	{% endifequal %}
-	
-	{% ifequal message "entryNotFound" %}
-		<p>That entry was not found.</p>
-	{% endifequal %}
-	
-	{% ifequal message "noEntriesToRelate" %}
-		<p>There are no entries to which this entry can be related.</p>
-	{% endifequal %}
-	
-	{% ifequal message "attachmentsTooLarge" %}
-		<p>At least one of the attachment(s) you chose are too large. The entry was saved but (at least some of) the attachments were not.</p>
-	{% endifequal %}
-	
-	{% ifequal message "ownerCannotLeave" %}
-		<p>You are the only owner of this Rakontu. You can't leave it until
-		you designate at least one other member as an owner.</p.
-	{% endifequal %}
-	
-	{% ifequal message "sampleQuestionsGenerated" %}
-		<p>Sample questions have been generated.</h3><p>You can do this again if you need to change the <code>config/sample_questions.csv</code> file.</p>
-	{% endifequal %}
-	
-	{% ifequal message "helpsGenerated" %}
-		<p>Contextual help database objects have been generated.</h3><p>You can do this again if you need to change the <code>config/help.csv</code> file.</p>
-	{% endifequal %}
-	
-	{% ifequal message "systemResourcesGenerated" %}
-		<p>System resource database objects have been generated.</h3><p>
-		You can do this again if you need to change the site_resources.py file.</p>
-	{% endifequal %}
-	
-	{% ifequal message "noSearchResultForPrinting" %}
-		<p>There is no search filter result to print. You need to go to the Rakontu's home page and apply a search filter, 
-		then come back to the print page.</p>
-	{% endifequal %}
-	
-	{% ifequal message "noSearchResultForExport" %}
-		<p>There is no search filter result to export. You need to go to the Rakontu's home page and apply a search filter, 
-		then come back to the print page. (If you want to print everything, just create a search filter with no
-		search terms.)</p>
-	{% endifequal %}
-	
-	{% ifequal message "noItemsSelectedForPrinting" %}
-		<p>No items were selected for printing.</p>
-	{% endifequal %}
-	
-	{% ifequal message "noQuestionsToExport" %}
-		<p>There are no questions of that type to export.</p>
-	{% endifequal %}
-	
-	{% ifequal message "helpNotFound" %}
-		<p>No help message was found for that item. You may want to let your site administrator know there is a problem.</p>
-	{% endifequal %}
-	
-	</h3>
-	
-	<hr>
-	<p>&nbsp; Click the Back button to return to the page you were on.</p>
-	<p>&nbsp; &nbsp; ... or perhaps you would like to return to the <b><a href="{{rakontu.linkURL}}">Home page</a></b>?</p>
-	<p>&nbsp; &nbsp; &nbsp; &nbsp; ... or would you like some <b><a href="/{{dir_visit}}/{{url_help}}?{{rakontu.urlQuery}}">Help</a></b>?</p>
+	<div class="blurb">{{results|dictLookup:message|listLookup:1}}</div>
+		
+	<p>&nbsp; {{template_click_back_button}}</p>
+	<p>&nbsp; &nbsp; ... {{template_or_return_to_home}} <b><a href="{{rakontu.linkURL}}">{{template_home_page}}</a></b>?</p>
+	<p>&nbsp; &nbsp; &nbsp; &nbsp; ... {{template_or_would_you_like_some}} 
+	<b><a href="/{{dir_visit}}/{{url_help}}?{{rakontu.urlQuery}}">{{template_help}}</a></b>?</p>
 		
 	</div>
 	{% include "common_footer.html" %}

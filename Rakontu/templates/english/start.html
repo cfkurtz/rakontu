@@ -6,65 +6,49 @@
 	<body>
 	<center>
 	<h1>Rakontu</h1>
-	<p><i>Helping people take good care of their stories.</i></p>
+	<p><i>{{template_rakontu_motto}}</i></p>
 	<p><img src="/images/Rakontu.jpg" alt="Rakontu logo" class="bordered"></p>
 	
 	{% if user %}
 		<div id="stylized" class="rakontu_form_centered">
 		<form action="/" method="post">
 		{% if rakontus_member_of %}
-			<p>You are a <b>member</b> of these Rakontus.</p>
-			<select name="rakontu_key_name">
+			<p>{{template_you_are_member_of}}</p>
+			<select name="rakontu_key_name_visit">
 			{% for rakontu in rakontus_member_of %}
-				<option value="{{ rakontu.getKeyName }}">{{ rakontu.name }}</option>
+				<option value="{{ rakontu.getKeyName }}">{{rakontu.name}}</option>
 			{% endfor %}
 			</select>
-			&nbsp; <input type="submit" name="visitRakontu" value="Visit" class="button"></p>
+			&nbsp; <input type="submit" name="visitRakontu" value="{{button_visit}}" class="button"></p>
 		{% endif %}
 		{% if rakontus_invited_to %}
-			<p>You have been <b>invited</b> to join these Rakontus.</p>
-			<select name="rakontu_key_name">
+			<p>{{template_you_are_invited_to}}</p>
+			<select name="rakontu_key_name_join">
 			{% for rakontu in rakontus_invited_to %}
-				<option value="{{ rakontu.getKeyName }}">{{ rakontu.name }}</option>
+				<option value="{{ rakontu.getKeyName }}">{{rakontu.name}}</option>
 			{% endfor %}
 			</select>
-			&nbsp; <input type="submit" name="visitRakontu" value="Join" class="button"></p>
+			&nbsp; <input type="submit" name="joinRakontu" value="{{button_join}}" class="button"></p>
 		{% endif %}
-		<p>Your Google account is: <b>{{ user.nickname }}</b></p>
-		<p><a href="{{logout_url}}">Log out</a> from Google</p>
+		<p>{{template_google_account}}: {{user.nickname}} | <a href="{{logout_url}}">{{template_log_out}}</a></p>
 		
 		{% if user_is_admin %}
-			<a href="/{{dir_admin}}/{{url_admin}}">Site administration</a>
+			<p><a href="/{{dir_admin}}/{{url_admin}}">{{template_site_administration}}</a></p>
 		{% endif %}
 		
 		</form>
 		</div>
 
 	{% else %}
-		<p>You must be logged in to a Google account to use Rakontu.</p><p><a href="{{login_url}}">Login</a> at Google</p>
+		<p>{{template_must_be_logged_in}}</p><p><a href="{{login_url}}">{{template_login}}</a> {{template_at_google}}</p>
 	{% endif %}
 	
 	<table class="noborder"><tr><td class="noborder" width="500">
 		{% if user %}
-			<hr>
-			<p><b>What's a Rakontu?</b></p>
-			<p>It's a place where people share and use stories together.</p>
-			<p>You could see it as a living-history museum of stories, as well as
-			a gathering place where people build their story museum together 
-			and draw from it to remember the past, understand the present
-			and find solutions for the future.</p>
-			<p>(If you're wondering: Rakontu is <a href="http://en.wikipedia.org/wiki/Esperanto">Esperanto</a> for "tell a story.")</p>
+			{{blurbs|dictLookup:"logged in"}}
 		{% endif %}
 		<hr>
-		<p><b>What's Rakontu?</b></p>
-		<p>Rakontu is an open source software package that helps groups of people share and work 
-		with stories. The Rakontu project is being carried out (at this point) mainly
-		by <a href="http://www.cfkurtz.com">Cynthia Kurtz</a>. 
-		<p>This alpha stage prototype is currently being tested.
-		If you want to help with testing, join the 
-		<a href="http://groups.google.com/group/rakontu-discuss">Rakontu discussion group</a>
-		and ask to try out the site.</p.
-		<p>You can find out more at <a href="http://www.rakontu.org">rakontu.org</a>.</p>
+		{{blurbs|dictLookup:"not logged in"}}
 		<hr>
 	</td></tr></table>
 	

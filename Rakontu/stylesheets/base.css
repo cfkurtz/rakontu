@@ -30,8 +30,7 @@ img.bordered:hover {
 	
 table {
 	width: auto;
-	border-right: 1px solid #000000;
-	border-bottom: 1px solid #000000;
+	border: 1px solid #000000;
 	}
 	
 table.fullwidth {
@@ -69,10 +68,16 @@ td.noborder {
 	border: 0;
 	}
 	
+td.fullborder {
+	font-size: 80%;
+	border: 1px solid #000000;
+	}
+	
 th {
 	font-size: 80%;
 	font-style: plain;
 	font-weight: normal;
+	border: 1px solid #000000;
 	}
 	
 fieldset {

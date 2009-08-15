@@ -4,42 +4,102 @@
 	{% include "../common_menus.html" %}
 		<div id="content">
 	
-		<h3>Information about {{member.nickname}}</h3>
+		<h3>{{template_information_about}} {{member.nickname}}
+		{% ifequal member.key current_member.key %}<i>({{template_you}})</i> {% endifequal %} 
+		</h3>
 		
 		{% if member.profileImage %}
 			{{member.imageEmbed}}
 		{% endif %}
-		<p>
-		{{member.nickname}}
-  		{% ifequal member.key current_member.key %}<i>(this is you)</i> {% endifequal %} 
-  		is {% ifequal member.governanceType "member" %}
-  			{% else %}
-  				an <b>{{ member.governanceType }}</b> of this Rakontu,
-  			{% endifequal %}
-  		is an <b>{{ member.isOnlineMember|yesno:"on-line, off-line" }}</b> member{% if member.hasAnyHelpingRole %},{% else %} {% endif %}
-  		
+
+  		<p>
+  		{% if member.isOnlineMember %}
+  			{{template_online}};
+  		{% else %}
+  			{{template_offline}} ({{template_liaison}}: {{member.liaisonIfOfflineMember.linkString}});
+  		{% endif %}
+		{{template_joined|lower}} {{member.joined|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}; 
+
   		{% if member.hasAnyHelpingRole %}
-  			and is a
-	  		{% if member.helpingRoles.0 %} <b>curator</b>{% if member.helpingRoles.1 or member.helpingRoles.2 %} and{% else %}. {% endif %}{% endif %}
-	  		{% if member.helpingRoles.1 %} <b>guide</b>{% if member.helpingRoles.2 %} and{% else %}. {% endif %} {% endif %}
-	  		{% if member.helpingRoles.2 %} <b>liaison</b>,{% endif %}
-	  	{% endif %}
-	  	
-	  	who joined the Rakontu on
-	  	{{member.joined|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.
-	  	</p>
+  			{{member.governanceTypeForDisplayNotShowingOwner}}, {{member.helpingRolesForDisplay|join:", "}}.
+  		{% else %}
+  			{{member.governanceTypeForDisplayNotShowingOwner}}.
+  		{% endif %}
+  		</p>
+  	  	
   		{% if member.profileText_formatted|orNothing %}
-  			{% ifnotequal member.profileText_formatted no_profile_text %}
-  				<p>About {{member.nickname}}:</p><div class="blurb">{{member.profileText_formatted}}</div>
+  			{% ifnotequal member.profileText no_profile_text %}
+  				<div class="blurb">{{member.profileText_formatted}}</div>
   			{% endifnotequal %}
   		{% endif %}
   		
+      	<table border="0" cellpadding="4" cellspacing="0">
+      	<tr>
+	      	<th>{{template_joined}}</th>
+	      	{% if member.isOnlineMember %}
+	      		<th>{{template_type}}</th>
+	      	{% endif %}
+	      	<th>{{template_last_entry}}</th>
+	      	<th>{{template_last_annotation}}</th>
+	      	<th>{{template_last_answer}}</th>
+	      	<th>{{template_last_link}}</th>
+			{% if member.isOnlineMember %}
+				<th>{{template_last_reading}}</th>
+				<th>{{template_nudge_points_accumulated}}</th>
+			{% endif %}
+      	</tr>
+      	
+		<td>{{member.joined|timeZone:member.timeZoneName|date:member.dateFormat}}</td>
+      	{% if member.isOnlineMember %}
+			<td>{{member.governanceTypeForDisplayNotShowingOwner}}</td>
+		{% endif %}
+		<td>
+			{% if member.lastEnteredEntry %} 
+				{{member.lastEnteredEntry|timeZone:member.timeZoneName|date:member.dateFormat}}
+			{% else %}
+				{{template_never}}
+			{% endif %}
+			</td>
+		<td>
+			{% if member.lastEnteredAnnotation %} 
+				{{member.lastEnteredAnnotation|timeZone:member.timeZoneName|date:member.dateFormat}}
+			{% else %}
+				{{template_never}}
+			{% endif %}
+			</td>
+		<td>
+			{% if member.lastAnsweredQuestion %} 
+				{{member.lastAnsweredQuestion|timeZone:member.timeZoneName|date:member.dateFormat}}
+			{% else %}
+				{{template_never}}
+			{% endif %}
+			</td>
+		<td>
+			{% if member.lastEnteredLink %} 
+				{{member.lastEnteredLink|timeZone:member.timeZoneName|date:member.dateFormat}}
+			{% else %}
+				{{template_never}}
+			{% endif %}
+			</td>
+		{% if member.isOnlineMember %}
+			<td>
+				{% if member.lastReadAnything %} 
+					{{member.lastReadAnything|timeZone:member.timeZoneName|date:member.dateFormat}}
+				{% else %}
+					{{template_never}}
+				{% endif %}
+				</td>
+			<td>{{member.nudgePoints}}</td>
+		{% endif %}
+		</tr>
+		</table>
+
 		{% if answers %}
-			<p>{{member.nickname}}'s answers to the member questions:</p>
+			<p>{{template_member_answers_to_questions}}:</p>
 			<ul>
 			{% for answer in answers %}
 				{% if answer.question.active %}
-					<li class="nobullet">{{answer.question.text}}</li>
+					<li class="nobullet"><i>{{answer.question.text}}</i></li>
 					<li class="nobullet">&nbsp; &nbsp; &nbsp; {{answer.displayStringShort}}</li>
 				{% endif %}
 			{% endfor %}
@@ -48,28 +108,37 @@
 		
 		{% ifnotequal member.key current_member.key %}
 			{% if member.isGuide or member.acceptsMessages %}
-				<h4>Send this member a message {% if not member.isOnlineMember %} {{"messages_to_offline_members"|info}} {% endif %}</h4>
+				<h4>{{template_send_a_message_to}} {{member.nickname}} {% if not member.isOnlineMember %} {{"messages_to_offline_members"|info}} {% endif %}</h4>
 				<fieldset>
 				<div id="stylized" class="rakontu_form">
 				<form action="/{{dir_visit}}/{{url_member}}?{{member.urlQuery}}" method="post">
-				<p>Please give your message a subject line.</p>
-				<p><input type="text" name="subject" size="80" value="" maxlength="{{maxlength_subject_or_comment}}"/></p>
-				<p>Please enter your message here.</p>
-				<textarea name="message" rows="5" cols="60"></textarea>
-				<center><input type="submit" name="message|{{member.key}}" value="Send message" class="button"></center>
+				<p>{{template_subject}} <input type="text" name="subject" size="80" value="" maxlength="{{maxlength_subject_or_comment}}"/></p>
+				<textarea name="message" rows="8" cols="60"></textarea>
+				<center><input type="submit" name="message|{{member.key}}" value="{{button_send_message}}" class="button"></center>
 				</form>
 				</div>
 				</fieldset>
 			{% endif %}
 		{% endifnotequal %}
-
+				
   		{% include "../common_grid.html" %}
   		
+ 		<p>
+  		{% for i in stat_names|makeRangeFromListLength %}
+  			{% if stats|listLookup:i %}
+	  			{% ifnotequal i 0 %}
+	  				|
+	  			{% endifnotequal %}
+  				{{stats|listLookup:i}} {{stat_names|listLookup:i}} 
+  			{% endif %}
+  		{% endfor %}
+  		</p>
+
       	{% ifequal member.key current_member.key %}
-      		<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_preferences}}?{{member.urlQuery}}">Change your profile</a></p></div>
+      		<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_preferences}}?{{member.urlQuery}}">{{template_change_your_preferences}}</a></p></div>
       	{% endifequal %}
       	{% if current_member.isCurator %}
-      		<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_member}}?{{member.urlQuery}}&{{url_query_curate}}={{url_query_curate}}">Curate these entries</a></p></div>
+      		<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_member}}?{{member.urlQuery}}&{{url_query_curate}}={{url_query_curate}}">{{template_curate_this_members_entries}}</a></p></div>
       	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}

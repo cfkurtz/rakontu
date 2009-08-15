@@ -19,6 +19,7 @@ class FirstOwnerVisitPage(webapp.RequestHandler):
 								'rakontu': rakontu, 
 								'skin': rakontu.getSkinDictionary(),
 								'current_member': member,
+								"blurbs": BLURBS,
 								})
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/first.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -209,6 +210,11 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 				rakontu.etiquetteStatement = text
 				rakontu.etiquetteStatement_formatted = db.Text(InterpretEnteredText(text, format))
 				rakontu.etiquetteStatement_format = format
+				
+				DebugPrint(text)
+				DebugPrint(format)
+				DebugPrint(rakontu.etiquetteStatement_formatted)
+				
 				rakontu.contactEmail = self.request.get("contactEmail")
 				rakontu.defaultTimeZoneName = self.request.get("defaultTimeZoneName")
 				rakontu.defaultDateFormat = self.request.get("defaultDateFormat")
@@ -401,7 +407,7 @@ class ManageRakontuQuestionsPage(webapp.RequestHandler):
 											rakontu=rakontu, 
 											name=name, 
 											refersTo=type, 
-											text="No question text.")
+											text=name)
 							question.put()
 				for sysQuestion in systemQuestionsOfType:
 					if self.request.get("copy|%s" % sysQuestion.key()) == "copy|%s" % sysQuestion.key():
@@ -625,7 +631,7 @@ class ExportSearchPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
-				if member.viewSearchResultList:
+				if member.viewEntriesList:
 					export = rakontu.createOrRefreshExport("csv_export_search", itemList=None, member=member, fileFormat="csv")
 					self.redirect(BuildURL(None, "url_export", export.urlQuery()))
 				else:
@@ -646,6 +652,7 @@ class InactivateRakontuPage(webapp.RequestHandler):
 								   'rakontu': rakontu, 
 								   'skin': rakontu.getSkinDictionary(),
 								   'current_member': member,
+								   "blurbs": BLURBS,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/inactivate.html'))
 				self.response.out.write(template.render(path, template_values))

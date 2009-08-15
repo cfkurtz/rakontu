@@ -4,7 +4,7 @@
 	{% include "../common_menus.html" %}
 		<div id="content">
 	
-		<h3>Members</h3>
+		<h3>{{template_members}}</h3>
       		<hr>
       		{% for aMember in rakontu_members %}
   				<table style="width:100%;" class="noborder">
@@ -18,28 +18,28 @@
 				</td>
 				<td style="border:none;padding-left:16px;">
 	 				{{aMember.linkString}}  
-	  				{% ifequal aMember.key current_member.key %}<i>(that's you)</i> {% endifequal %} 
-	  				is {% ifequal aMember.governanceType "member" %}
-	  					{% else %}
-	  						an <b>{{ aMember.governanceType }}</b> of this Rakontu,
-	  					{% endifequal %}
-	  				is an <b>{{ aMember.isOnlineMember|yesno:"on-line, off-line" }}</b> member{% if aMember.isOnlineMember and aMember.hasAnyHelpingRole %},{% else %}.{% endif %}
-	  				{% if aMember.isOnlineMember %}
-		  					{% if aMember.hasAnyHelpingRole %}
-		  						and is a
-			  					{% if aMember.helpingRoles.0 %} <b>curator</b>{% if aMember.helpingRoles.1 or aMember.helpingRoles.2 %} and{% else %}. {% endif %}{% endif %}
-			  					{% if aMember.helpingRoles.1 %} <b>guide</b>{% if aMember.helpingRoles.2 %} and{% else %}. {% endif %} {% endif %}
-			  					{% if aMember.helpingRoles.2 %} <b>liaison</b>.{% endif %}
-			  				{% endif %}
+	  				{% ifequal aMember.key current_member.key %}<i>({{template_you}})</i> {% endifequal %} 
+			  		<p>
+			  		{% if aMember.isOnlineMember %}
+			  			{{template_online}};
+			  		{% else %}
+			  			{{template_offline}} ({{template_liaison}}: {{aMember.liaisonIfOfflineMember.linkString}});
 			  		{% endif %}
-  				</td>
+					{{template_joined|lower}} {{aMember.joined|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}; 
+			  		{% if aMember.hasAnyHelpingRole %}
+			  			{{aMember.governanceTypeForDisplayNotShowingOwner}}, {{aMember.helpingRolesForDisplay|join:", "}}.
+			  		{% else %}
+			  			{{aMember.governanceTypeForDisplayNotShowingOwner}}.
+			  		{% endif %}
+			  		</p>
+	  				</td>
    				</tr>
   				</table>
   				<hr>
       		{% endfor %}
       	
       	{% if current_member.isManagerOrOwner %}
-      		<div class="rightalign"><p><a href="/{{dir_manage}}/{{url_members}}?{{rakontu.urlQuery}}">Make changes to memberships</a></p></div>
+      		<div class="rightalign"><p><a href="/{{dir_manage}}/{{url_members}}?{{rakontu.urlQuery}}">{{template_make_changes_to_members}}</a></p></div>
       	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}

@@ -52,7 +52,7 @@ def BuildURL(dir=None, page=None, query=None, extraSlash=False, rakontu=None):
 	return result
 	
 def BuildResultURL(query, rakontu=None):
-	result = "/%s?%s=%s" % (URLS["url_result"], URL_OPTIONS["url_query_result"], RESULTS[query])
+	result = "/%s?%s=%s" % (URLS["url_result"], URL_OPTIONS["url_query_result"], RESULTS[query][0])
 	if rakontu:
 		result += "&" + rakontu.urlQuery()
 	return result

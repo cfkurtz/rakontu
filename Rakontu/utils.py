@@ -4,26 +4,26 @@
 # Version: pre-0.1
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
-# --------------------------------------------------------------------------------------------
-
-import os 
-import string
-import cgi
-import htmllib 
-
-from models import *
-
-from google.appengine.api import users 
-from google.appengine.ext.webapp import template
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp.util import run_wsgi_app
+# -------------------------------------------------------------------------- -------- ----------
+      
+import os  
+import string       
+import cgi      
+import htmllib        
+      
+from models import *     
+  
+from google.appengine.api import users  
+from google.appengine.ext.webapp import template    
+from google.appengine.ext import webapp   
+from google.appengine.ext.webapp.util import run_wsgi_app  
 from google.appengine.api import images 
 from google.appengine.api import mail
- 
+  
 webapp.template.register_template_library('djangoTemplateExtras')
 import csv
 import pytz
-
+ 
 # ============================================================================================
 # ============================================================================================
 # PREPARING INFO FOR TEMPLATES
@@ -36,7 +36,7 @@ def FindTemplate(template):
 def RequireLogin(func):
 	def check_login(request): 
 		if not users.get_current_user(): 
-			loginURL = users.create_login_url("/")
+			loginURL = users.create_login_url("/") 
 			request.redirect(loginURL)
 			return
 		func(request)
@@ -96,27 +96,27 @@ def pendingMemberForEmailAndRakontu(email, rakontu):
 def GetDictionaryFromURLQuery(query):
 	result = {}
 	pairs = query.split("&")
-	for pair in pairs:
-		try:
-			key, value = pair.split("=")
-			result[key] = value
-		except:
-			pass
-	return result
-
-def GetRakontuFromURLQuery(query): 
-	queryAsDictionary = GetDictionaryFromURLQuery(query)
+	for pair in pairs: 
+		try: 
+			key, value = pair.split("=")  
+			result[key] = value 
+		except:  
+			pass 
+	return result 
+  
+def GetRakontuFromURLQuery(query):  
+	queryAsDictionary = GetDictionaryFromURLQuery(query)  
 	rakontuLookupKey = URL_IDS["url_query_rakontu"]
 	if queryAsDictionary.has_key(rakontuLookupKey):
 		rakontuKey = queryAsDictionary[rakontuLookupKey]
-		return Rakontu.get_by_key_name(rakontuKey)
+		return Rakontu.get_by_key_name(rakontuKey) 
 	else:
 		for lookup, url in URL_IDS.items():
 			if queryAsDictionary.has_key(url):
 				entityKeyName = queryAsDictionary[url]
 				if lookup == "url_query_entry":
 					entity = Entry.get_by_key_name(entityKeyName)
-				elif lookup == "url_query_attachment":
+				elif lookup == "url_query_attachment": 
 					entity = Attachment.get_by_key_name(entityKeyName)
 				elif lookup == "url_query_annotation":
 					entity = Annotation.get_by_key_name(entityKeyName)
@@ -125,20 +125,22 @@ def GetRakontuFromURLQuery(query):
 				elif lookup == "url_query_member":
 					entity = Member.get_by_key_name(entityKeyName)
 				elif lookup == "url_query_character":
-					entity = Character.get_by_key_name(entityKeyName)
+					entity = Character.get_by_key_name(entityKeyName) 
 				elif lookup == "url_query_search_filter":
 					entity = SavedSearch.get_by_key_name(entityKeyName)
 				elif lookup == "url_query_attachment":
 					entity = Attachment.get_by_key_name(entityKeyName)
+				elif lookup == "url_query_link":
+					entity = Link.get_by_key_name(entityKeyName)
 				elif lookup in ["url_query_export_csv", "url_query_export_txt", "url_query_export_xml"]:
 					entity = Export.get_by_key_name(entityKeyName)
-				if entity and entity.rakontu:
-					return entity.rakontu
-				else:
-					return None
+				if entity and entity.rakontu: 
+					return entity.rakontu 
+				else: 
+					return None 
 				
 def GetStringOfTypeFromURLQuery(query, type):
-	dictionary = GetDictionaryFromURLQuery(query)
+	dictionary = GetDictionaryFromURLQuery(query) 
 	lookupKey = URL_OPTIONS[type]
 	if dictionary.has_key(lookupKey):
 		return dictionary[lookupKey]
@@ -152,31 +154,33 @@ def GetObjectOfTypeFromURLQuery(query, type):
 		keyName = dictionary[lookupKey]
 		if type == "url_query_rakontu":
 			return Rakontu.get_by_key_name(keyName)
-		if type == "url_query_entry":
+		elif type == "url_query_entry":
 			return Entry.get_by_key_name(keyName)
-		if type == "url_query_attachment":
+		elif type == "url_query_attachment":
 			return Attachment.get_by_key_name(keyName)
-		if type == "url_query_annotation":
+		elif type == "url_query_annotation":
 			return Annotation.get_by_key_name(keyName)
-		if type == "url_query_answer":
+		elif type == "url_query_answer":
 			return Answer.get_by_key_name(keyName)
-		if type == "url_query_member":
+		elif type == "url_query_member":
 			return Member.get_by_key_name(keyName)
-		if type == "url_query_character":
-			return Character.get_by_key_name(keyName)
-		if type == "url_query_search_filter":
-			return SavedSearch.get_by_key_name(keyName)
-		if type == "url_query_attachment":
+		elif type == "url_query_character": 
+			return Character.get_by_key_name(keyName) 
+		elif type == "url_query_link": 
+			return Link.get_by_key_name(keyName)
+		elif type == "url_query_search_filter":
+			return SavedSearch.get_by_key_name(keyName)  
+		elif type == "url_query_attachment":
 			return Attachment.get_by_key_name(keyName)
-		if type == "url_query_export":
+		elif type == "url_query_export": 
 			return Export.get_by_key_name(keyName)
 	else:
 		return None
 	
 def GetObjectOfUnknownTypeFromURLQuery(query):
-	dictionary = GetDictionaryFromURLQuery(query)
-	for lookupKey in URL_IDS.keys():
-		if dictionary.has_key(URL_IDS[lookupKey]):
+	dictionary = GetDictionaryFromURLQuery(query) 
+	for lookupKey in URL_IDS.keys(): 
+		if dictionary.has_key(URL_IDS[lookupKey]): 
 			return GetObjectOfTypeFromURLQuery(query, lookupKey)
 	
 def GetEntryAndAnnotationFromURLQuery(query):
@@ -184,21 +188,29 @@ def GetEntryAndAnnotationFromURLQuery(query):
 	entry = GetObjectOfTypeFromURLQuery(query, "url_query_entry")
 	if not entry:
 		annotation = GetObjectOfTypeFromURLQuery(query, "url_query_annotation")
-		if annotation:
-			entry = annotation.entry
-	return entry, annotation
-
-def GetStandardTemplateDictionaryAndAddMore(newItems):
+		if annotation:  
+			entry = annotation.entry    
+	return entry, annotation       
+    
+def GetStandardTemplateDictionaryAndAddMore(newItems):      
+	user = users.get_current_user()  
+	if user != None:  
+		email = user.email()   
+	else:
+		email = None  
 	items = { 
 	   'version_number': VERSION_NUMBER, 
-	   'text_formats': TEXT_FORMATS,
+	   'text_formats': TEXT_FORMATS,  
 	   'text_formats_display': TEXT_FORMATS_DISPLAY,  
-	   'num_nudge_categories': NUM_NUDGE_CATEGORIES,
+	   'governance_roles_display': GOVERNANCE_ROLE_TYPES_DISPLAY, 
+	   'no_access': NO_ACCESS,
+	   'num_nudge_categories': NUM_NUDGE_CATEGORIES, 
 	   'num_tags_in_tag_set': NUM_TAGS_IN_TAG_SET, 
-	   'time_zone_names': pytz.all_timezones,
+	   'time_zone_names': pytz.all_timezones,   
 	   'date_formats': DateFormatStrings(), 
 	   'time_formats': TimeFormatStrings(), 
 	   'time_frames': TIME_FRAMES,  
+	   'time_frame_everything': TIMEFRAME_EVERYTHING,
 	   'entry_types': ENTRY_TYPES,
 	   'entry_types_display': ENTRY_TYPES_DISPLAY,
 	   'entry_types_plural': ENTRY_TYPES_PLURAL,  
@@ -210,10 +222,13 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'maxlength_tag_or_choice': MAXLENGTH_TAG_OR_CHOICE, 
 	   'maxlength_number': MAXLENGTH_NUMBER,
 	   'home': HOME,
-	   'current_user': users.get_current_user(), 
+	   'current_user': user, 
 	   'user_is_admin': users.is_current_user_admin(),
-	   'user_email': users.get_current_user().email(), 
+	   'user_email': email,
 	   'logout_url': users.create_logout_url("/"),
+	   'site_language': SITE_LANGUAGE,
+	   'site_support_email': SITE_SUPPORT_EMAIL,
+	   'max_possible_attachments': MAX_POSSIBLE_ATTACHMENTS,
 	   }
 	for key in DIRS.keys():				items[key] = DIRS[key]
 	for key in URLS.keys():				items[key] = URLS[key] 
@@ -546,18 +561,18 @@ def GenerateDefaultCharactersForRakontu(rakontu):
 	for row in questionStrings:
 		if len(row) >= 4 and row[0][0] != ";":
 			name = row[0]
-			description = row[1]
-			etiquetteStatement = row[2]
-			imageFileName = row[3]
-			fullImageFileName = "config/images/%s" % imageFileName
-			imageData = open(fullImageFileName).read()
-			image = db.Blob(imageData)
-			character = Character(
-							   key_name=KeyName("character"), 
-							   name=row[0],
+			description = row[1] 
+			etiquetteStatement = row[2] 
+			imageFileName = row[3]  
+			fullImageFileName = "config/images/%s" % imageFileName    
+			imageData = open(fullImageFileName).read()  
+			image = db.Blob(imageData) 
+			character = Character( 
+							   key_name=KeyName("character"),   
+							   name=row[0], 
 							   rakontu=rakontu,
 							   )
-			format = "plain text"
+			format = "plain text" 
 			character.description = db.Text(description)
 			character.description_formatted = db.Text(InterpretEnteredText(description, format))
 			character.description_format = format
@@ -626,10 +641,10 @@ def GetSystemResources():
  
 def HTMLColorToRGB(colorstring):     
     colorstring = colorstring.strip() 
-    r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:]
-    r, g, b = [int(n, 16) for n in (r, g, b)]   
-    return (r, g, b)           
-          
+    r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:] 
+    r, g, b = [int(n, 16) for n in (r, g, b)]    
+    return (r, g, b)            
+           
 def RGBToHTMLColor(rgb_tuple):       
     return '%02x%02x%02x' % rgb_tuple 
            
@@ -737,16 +752,16 @@ HTML_ESCAPES = {
  	'"': "&quot;",
  	"'": "&apos;",
  	">": "&gt;",
- 	"<": "&lt;",
- 	 }
-
-def htmlEscape(text):
-	result = []
-	for character in text:
-		result.append(HTML_ESCAPES.get(character, character))
+ 	"<": "&lt;",  
+ 	 } 
+  
+def htmlEscape(text):  
+	result = []  
+	for character in text:  
+		result.append(HTML_ESCAPES.get(character, character))  
 	return "".join(result)
-
-SIMPLE_HTML_REPLACEMENTS = [
+ 
+SIMPLE_HTML_REPLACEMENTS = [  
 							("<p>", "{{startPar}}"), ("</p>", "{{stopPar}}"),
 							("<b>", "{{startBold}}"), ("</b>", "{{stopBold}}"),
 							("<i>", "{{startItalic}}"), ("</i>", "{{stopItalic}}"),
@@ -760,17 +775,24 @@ SIMPLE_HTML_REPLACEMENTS = [
 							("<h3>", "{{startH3}}"), ("</h3>", "{{stopH3}}"),
 							("<br/>", "{{BR}}"),
 							("<hr>", "{{HR}}"),
-							("&nbsp;", "{{NBSP}}")
+							("&nbsp;", "{{NBSP}}")  
 							]
-
+ 
 def InterpretEnteredText(text, mode="text"):
 	result = text
 	if mode == "plain text":
+		""" Plain text format:
+		Blank lines denote paragraphs; all others are merged.
+		"""
 		result = htmlEscape(result)
 		lines = result.split("\n")
 		changedLines = []
+		changedLines.append("<p>")
 		for line in lines:
-			changedLines.append("<p>%s</p>" % line)
+			if len(line.strip()) == 0:
+				changedLines.append("</p>\n<p>")
+			changedLines.append(line)
+		changedLines.append("</p>")
 		result = "\n".join(changedLines)
 	elif mode == "simple HTML":
 		""" Simple HTML support:

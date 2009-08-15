@@ -4,23 +4,23 @@
 	{% include "../common_menus.html" %}
 		<div id="content">
 	
-		<h3>About the {{rakontu.name}} Rakontu</h3>
+		<h3>{{template_information_about}} "{{rakontu.name}}"</h3>
 		
-		<p>This Rakontu was created on {{rakontu.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.</p>
-		<p>Description:</p>
+		<p>{{template_rakontu_created_on}} {{rakontu.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.</p>
+		<p>{{template_description}}:</p>
 		<div class="blurb">{{rakontu.description_formatted}}</div>
 		{% if rakontu.etiquetteStatement_formatted %}
-			<p>Etiquette rules:</p>
+			<p>{{template_etiquette_statement}}:</p>
 			<div class="blurb">{{rakontu.etiquetteStatement_formatted}}</div>
 		{% endif %}
 		
 		{% if rakontu.getActiveCharacters %}
-			<h3>Characters {{"what_characters_are_for"|info}}</h3>
+			<h3>{{template_characters}} {{"what_characters_are_for"|info}}</h3>
 	      	<table>
-	      		<tr><th>Name</th>
-	      			<th>Picture</th>
-	      			<th>About the character</th>
-	      			<th>How to be this character</th></tr>
+	      		<tr><th>{{template_name}}</th>
+	      			<th>{{template_picture}}</th>
+	      			<th>{{template_about}}</th>
+	      			<th>{{template_how_to_be_character}}</th></tr>
 	      		{% for character in characters %}
 	      			<tr>
 					<td><a href="/{{dir_visit}}/{{url_character}}?{{url_query_character}}={{character.getKeyName}}">{{character.name}}</a></td>
@@ -40,9 +40,9 @@
 		
       	{% if current_member.isManagerOrOwner %}
       		<div class="rightalign">
-      		Make changes to Rakontu-level <a href="/{{dir_manage}}/{{url_settings}}">settings</a>
+      		<p><a href="/{{dir_manage}}/{{url_settings}}?{{rakontu.urlQuery}}">{{template_make_changes_to_settings}}</a></p>
       		{% if rakontu.getActiveCharacters %}
-      			or <a href="/{{dir_manage}}/{{url_characters}}">characters</a>
+      			<p><a href="/{{dir_manage}}/{{url_characters}}?{{rakontu.urlQuery}}">{{template_make_changes_to_characters}}</a></p>
       		{% endif %}
       		</div>
       	{% endif %}

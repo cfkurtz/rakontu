@@ -13,13 +13,151 @@
 		{% endif %}
 		" method="post" enctype="multipart/form-data">
 		
-	<h2>
-	
-	For the 
-	
-	
-	{{entry.typeForDisplay}} "{{entry.title}}"</h2>
-	
+		{% ifequal annotation_type "comment" %}
+			<h3>{{template_comment_on}} {{entry.linkString}}</h3>
+			<fieldset>
+			<p>{{template_subject}} <input type="text" name="shortString" size="80" value="{% if annotation %}{{annotation.shortString}}{% endif %}" maxlength="{{maxlength_subject_or_comment}}"/></p>
+			<table style="width:100%; border:none">
+			<tr><td class="noborder">
+			<textarea name="longString" rows="10" cols="60">{% if annotation %}{{annotation.longString}}{% endif %}</textarea>
+			</td><td class="noborder" width="80">
+			<p>{{template_interpret_as}} {{"interpreting_texts"|tip}}</p>
+				<select name="longString_format">
+				{% for i in text_formats|makeRangeFromListLength %}
+					<option value="{{text_formats|listLookup:i}}" 
+					{% if annotation %}
+						{% if text_formats|listLookup:i|equalTest:annotation.longString_format %}
+							selected="selected"
+						{% endif %}
+					{% else %}
+						{% if text_formats|listLookup:i|equalTest:current_member.preferredTextFormatt %}
+							selected="selected"
+						{% endif %}
+					{% endif %}
+					>{{text_formats_display|listLookup:i}}</option>
+				{% endfor %}
+				</select>
+			</td></tr></table>
+			{% include "../common_attribution.html" %}
+			</fieldset>
+		{% endifequal %}
+		
+		{% ifequal annotation_type "request" %}
+			<h3>{{template_request_about}} {{entry.linkString}}</h3>
+			<fieldset>
+			{{template_subject}} <input type="text" name="shortString" size="80" value="{% if annotation %}{{annotation.shortString}}{% endif %}" maxlength="{{maxlength_subject_or_comment}}"/>
+			<table style="width:100%; border:none">
+			<tr><td class="noborder">
+			<textarea name="longString" rows="10" cols="60">{% if annotation %}{{annotation.longString}}{% endif %}</textarea>
+			</td><td class="noborder" width="80">
+			<p>{{template_interpret_as}}</p>
+				<select name="longString_format">
+				{% for i in text_formats|makeRangeFromListLength %}
+					<option value="{{text_formats|listLookup:i}}" 
+					{% if annotation %}
+						{% if text_formats|listLookup:i|equalTest:annotation.longString_format %}
+							selected="selected"
+						{% endif %}
+					{% else %}
+						{% if text_formats|listLookup:i|equalTest:current_member.preferredTextFormatt %}
+							selected="selected"
+						{% endif %}
+					{% endif %}
+					>{{text_formats_display|listLookup:i}}</option>
+				{% endfor %}
+				</select>
+			</td></tr></table>
+			<p>{{template_what_is_request_type}}
+			<select name="typeIfRequest">
+				<option name="none">({{term_choose}})</option>
+				{% for type in request_types %}
+					<option value="{{type}}"
+					{% if annotation %}
+						{% ifequal annotation.typeIfRequest type %}
+							selected="selected"
+						{% endifequal %}
+					{% endif %}
+					>{{type}}</option>
+				{% endfor %}
+				</select></p>
+			{% include "../common_attribution.html" %}
+			</fieldset>
+		{% endifequal %}
+		
+		{% ifequal annotation_type "tag set" %}
+			<h3>{{template_tag_set_for}} {{entry.linkString}}</h3>
+			<fieldset>
+			<p>{{template_enter_tags}}</p>
+			<p>
+			{% for i in num_tags_in_tag_set|makeRange %}
+				{% if already_there_tags %}
+					<select name="alreadyThereTag{{i}}">
+					<option value="none">({{term_choose}})</option>
+					{% for tag in already_there_tags %}
+						{% if tag|orNothing %}
+							<option value="{{tag}}"
+							{% ifequal annotation.tagsIfTagSet|listLookup:i tag %}
+								selected="selected"
+							{% endifequal %}
+							>{{tag}}</option>
+						{% endif %}
+					{% endfor %}
+					</select>
+				{% endif %}
+				<input type="text" name="tag{{i}}" size="15" value="{% if annotation %}{{annotation.tagsIfTagSet|listLookup:i|orNothing}}{% endif %}" maxlength="{{maxlength_tag_or_choice}}"/>
+				<br/> 
+			{% endfor %}
+			</p>
+			{% include "../common_attribution.html" %}
+			</fieldset>
+		{% endifequal %}
+		
+		{% ifequal annotation_type "nudge" %}
+			<h3>{{template_nudge_for}} {{entry.linkString}}</h3>
+			<fieldset>
+			<p>{{template_nudge_points_can_assign_to_entry}}: <b>{{nudge_points_member_can_assign}}</b>  {{"what_nudge_points_are_for"|info}} {{"nudge_point_allocation"|caution}}</p>
+			<table class="noborder">
+			{% for i in num_nudge_categories|makeRange %}
+				{% if rakontu.nudgeCategories|listLookup:i %}
+					<tr>
+					<td class="noborder"><input type="text" name="nudge{{i}}" size="4" value="{{annotation.valuesIfNudge|listLookup:i|orNothing}}" maxlength="{{maxlength_number}}"/></td>
+					<td class="noborder">
+					{% if rakontu.nudgeCategoryQuestions|listLookup:i %}
+						{{rakontu.nudgeCategoryQuestions|listLookup:i}}
+						(<i>{{rakontu.nudgeCategories|listLookup:i}}</i>)
+					{% else %}
+						{{rakontu.nudgeCategories|listLookup:i}}
+					{% endif %}
+					</td>
+					</tr>
+				{% endif %}
+			{% endfor %}
+			</table>
+			{{template_comment}} <input type="text" name="shortString" size="80" value="{% if annotation %}{{annotation.shortString}}{% endif %}" maxlength="{{maxlength_subject_or_comment}}"/>
+			</p>
+			{% include "../common_attribution.html" %}
+			</fieldset>
+		{% endifequal %}
+
+			<p>
+			<center>
+			{% if annotation %}
+				{% if annotation.inBatchEntryBuffer %}
+					<input type="submit" name="save|{{annotation_type}}" value="{{button_save_changes_and_return}}" class="button">
+					<input type="submit" name="preview|{{annotation_type}}" value="{{button_preview}}" class="button">
+				{% else %}
+					<input type="submit" name="save|{{annotation_type}}" value="{{button_save_draft}}" class="button">
+					<input type="submit" name="preview|{{annotation_type}}" value="{{button_preview}}" class="button">
+					<input type="submit" name="publish|{{annotation_type}}" value="{{button_publish}}" class="button">
+				{% endif %}
+			{% else %}
+				<input type="submit" name="save|{{annotation_type}}" value="{{button_save_as_draft}}" class="button">
+				<input type="submit" name="preview|{{annotation_type}}" value="{{button_preview}}" class="button">
+				<input type="submit" name="publish|{{annotation_type}}" value="{{button_publish}}" class="button">
+			{% endif %}
+			</center>
+			
+		<p>{{entry.linkString}} ({{entry.typeForDisplay}})</p>
 		{% if entry.isCollage %}
 			<div class="blurb">
 			{{entry.text_formatted}}
@@ -37,174 +175,6 @@
 			<div class="blurb">{{entry.text_formatted}}</div>
 		{% endif %}
 		
-			<h3>{{annotation_type|capfirst}}</h3>
-			<fieldset>
-			
-			{% ifequal annotation_type "tag set" %}
-				<p>
-				
-				Please choose up to {{num_tags_in_tag_set}} tags already entered or 
-				enter up to {{num_tags_in_tag_set}} new words or short phrases that describe this {{entry.typeForDisplay}}.
-				
-				</p>
-				<p>
-				{% for i in num_tags_in_tag_set|makeRange %}
-					{% if already_there_tags %}
-						<select name="alreadyThereTag{{i}}">
-						<option value="none">({{term_choose}})</option>
-						{% for tag in already_there_tags %}
-							{% if tag|orNothing %}
-								<option value="{{tag}}"
-								{% ifequal annotation.tagsIfTagSet|listLookup:i tag %}
-									selected="selected"
-								{% endifequal %}
-								>{{tag}}</option>
-							{% endif %}
-						{% endfor %}
-						</select>
-					{% endif %}
-					<input type="text" name="tag{{i}}" size="15" value="{% if annotation %}{{annotation.tagsIfTagSet|listLookup:i|orNothing}}{% endif %}" maxlength="{{maxlength_tag_or_choice}}"/>
-					<br/> 
-				{% endfor %}
-				</p>
-			{% endifequal %}
-			
-			{% ifequal annotation_type "comment" %}
-				{% if annotation %}
-					<p>You can change the subject line of your comment here.</p>
-				{% else %}
-				{% endif %}
-				<p><input type="text" name="shortString" size="80" value="{% if annotation %}{{annotation.shortString}}{% endif %}" maxlength="{{maxlength_subject_or_comment}}"/></p>
-
-				{% if annotation %}
-					<p>You can change the text of your comment here.</p>
-				{% else %}
-					<p>Please enter your comment here.</p>
-				{% endif %}
-				<table style="width:100%; border:none">
-				<tr><td class="noborder">
-				<textarea name="longString" rows="10" cols="60">{% if annotation %}{{annotation.longString}}{% endif %}</textarea>
-				</td><td class="noborder" width="80">
-				<p>Interpret as{{"interpreting_texts"|tip}}</p>
-					<select name="longString_format">
-					{% for i in text_formats|makeRangeFromListLength %}
-						<option value="{{text_formats|listLookup:i}}" 
-						{% if annotation %}
-							{% if text_formats|listLookup:i|equalTest:annotation.longString_format %}
-								selected="selected"
-							{% endif %}
-						{% else %}
-							{% if text_formats|listLookup:i|equalTest:current_member.preferredTextFormatt %}
-								selected="selected"
-							{% endif %}
-						{% endif %}
-						>{{text_formats_display|listLookup:i}}</option>
-					{% endfor %}
-					</select>
-				</td></tr></table>
-
-			{% endifequal %}
-			
-			{% ifequal annotation_type "request" %}
-				<p>What would you like other members to do with regard to this {{entry.typeForDisplay}}?</p>
-				<select name="typeIfRequest">
-					<option name="none">({{term_choose}})</option>
-					{% for type in request_types %}
-						<option value="{{type}}"
-						{% if annotation %}
-							{% ifequal annotation.typeIfRequest type %}
-								selected="selected"
-							{% endifequal %}
-						{% endif %}
-						>{{type}}</option>
-					{% endfor %}
-					</select></p>
-				{% if annotation %}
-					<p>You can change the subject line of your request here.</p>
-				{% else %}
-					<p>Please give your request a subject line.</p>
-				{% endif %}
-				<input type="text" name="shortString" size="80" value="{% if annotation %}{{annotation.shortString}}{% endif %}" maxlength="{{maxlength_subject_or_comment}}"/>
-				
-				{% if annotation %}
-					<p>You can change the text of your request here.</p>
-				{% else %}
-					<p>Please explain your request more fully here.</p>
-				{% endif %}
-				<table style="width:100%; border:none">
-				<tr><td class="noborder">
-				<textarea name="longString" rows="10" cols="60">{% if annotation %}{{annotation.longString}}{% endif %}</textarea>
-				</td><td class="noborder" width="80">
-				<p>Interpret as</p>
-					<select name="longString_format">
-					{% for i in text_formats|makeRangeFromListLength %}
-						<option value="{{text_formats|listLookup:i}}" 
-						{% if annotation %}
-							{% if text_formats|listLookup:i|equalTest:annotation.longString_format %}
-								selected="selected"
-							{% endif %}
-						{% else %}
-							{% if text_formats|listLookup:i|equalTest:current_member.preferredTextFormatt %}
-								selected="selected"
-							{% endif %}
-						{% endif %}
-						>{{text_formats_display|listLookup:i}}</option>
-					{% endfor %}
-					</select>
-				</td></tr></table>
-			{% endifequal %}
-			
-			{% ifequal annotation_type "nudge" %}
-					<table class="noborder">
-					{% for i in num_nudge_categories|makeRange %}
-						<tr>
-						<td class="noborder"><input type="text" name="nudge{{i}}" size="4" value="{{annotation.valuesIfNudge|listLookup:i|orNothing}}" maxlength="{{maxlength_number}}"/></td>
-						<td class="noborder">
-						{% if rakontu.nudgeCategoryQuestions|listLookup:i %}
-							{{rakontu.nudgeCategoryQuestions|listLookup:i}}
-							(<i>{{rakontu.nudgeCategories|listLookup:i}}</i>)
-						{% else %}
-							{{rakontu.nudgeCategories|listLookup:i}}
-						{% endif %}
-						</td>
-						</tr>
-					{% endfor %}
-					</table>
-					You can assign <b>{{nudge_points_member_can_assign}}</b> points to this {{entry.typeForDisplay}} and 
-					have <b>{{current_member.nudgePoints}}</b> points remaining in general.
-					{{"what_nudge_points_are_for"|info}}
-					{{"nudge_point_allocation"|caution}}</p>
-					{% if annotation %}
-						<p>You can change your comment on this nudge here.</p>
-					{% else %}
-						<p>You can enter a comment on this nudge here.</p>
-					{% endif %}
-					&nbsp; &nbsp; <input type="text" name="shortString" size="80" value="{% if annotation %}{{annotation.shortString}}{% endif %}" maxlength="{{maxlength_subject_or_comment}}"/>
-					</p>
-			{% endifequal %}
-			
-			{% include "../common_attribution.html" %}
-
-			</fieldset>
-
-			<p>
-			<center>
-			{% if annotation %}
-				{% if annotation.inBatchEntryBuffer %}
-					<input type="submit" name="save|{{annotation_type}}" value="Save changes and return" class="button">
-					<input type="submit" name="preview|{{annotation_type}}" value="Preview" class="button">
-				{% else %}
-					<input type="submit" name="save|{{annotation_type}}" value="Save draft" class="button">
-					<input type="submit" name="preview|{{annotation_type}}" value="Preview" class="button">
-					<input type="submit" name="publish|{{annotation_type}}" value="Publish" class="button">
-				{% endif %}
-			{% else %}
-				<input type="submit" name="save|{{annotation_type}}" value="Save as draft" class="button">
-				<input type="submit" name="preview|{{annotation_type}}" value="Preview" class="button">
-				<input type="submit" name="publish|{{annotation_type}}" value="Publish" class="button">
-			{% endif %}
-			</center>
-			
 		</form>
 		</div>
 		</div>

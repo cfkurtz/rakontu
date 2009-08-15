@@ -4,10 +4,10 @@
 	{% include "../common_menus.html" %}
 	<div id="content">
 	{% if current_member.isCurator %}
-			<h3>Attachments</h3>
+			<h3>{{template_attachments}}</h3>
 			{% if attachments %}
 		      	<table border="0" cellpadding="4" cellspacing="0">
-		      	<tr><th>Attachment</th><th>Entry</th></tr>
+		      	<tr><th>{{template_attachment}}</th><th>{{template_entry}}</th></tr>
 	      		{% for attachment in attachments %}
 	      			<tr>
 	      			 <td>{{attachment.linkString}}</td>
@@ -24,11 +24,10 @@
 	      		{% endfor %}
 		      	</table>
 		    {% else %}
-		    	<p>There are no attachments in the data set.</p>
+		    	<p>{{template_no_attachments}}</p>
 			{% endif %}
 	{% else %}
-		<p>You are not a curator of this Rakontu and cannot review attachments.
-		Either become a curator, or ask a curator to review any attachments you would like to be reviewed.</p>
+		<p>{{no_access|dictLookup:"attachments"}}</p>
 	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}

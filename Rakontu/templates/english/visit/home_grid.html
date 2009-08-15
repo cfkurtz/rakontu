@@ -20,21 +20,12 @@
 		{% endfor %}
 		</table>
 	{% else %}
-		<h4>Nothing here!</h4>
 		{% if current_search %}
-			<p>The applied search filter resulted in showing no entries. Click this button
-			<input type="submit" name="clearSearch" value="Stop applying" class="button_small">
-			to stop applying it, or change it.
+			<h4>{{template_no_search_results_header}}</h4>
+			<div class="blurb">{{template_no_search_results_message}}</div>
 		{% else %}
-			<p>This Rakontu has no entries in it.
-			Why not add the first <a href="/{{dir_visit}}/{{url_story}}?{{rakontu.urlQuery}}">story</a> 
-			or <a href="/{{dir_visit}}/{{url_invitation}}?{{rakontu.urlQuery}}">invitation</a>?
-			{% if current_member.isManagerOrOwner %}
-				You can also choose Rakontu <a href="/{{dir_manage}}/{{url_settings}}?{{rakontu.urlQuery}}">settings</a>.
-				</p>
-			{% else %}
-				You can also read <a href="/{{dir_visit}}/{{url_rakontu}}?{{rakontu.urlQuery}}">here</a> about the Rakontu.</p>
-			{% endif %}
+			<h4>{{template_empty_rakontu_header}}</h4>
+			<p>{{template_empty_rakontu_message}}</p>
 		{% endif %}
 	{% endif %}
 		

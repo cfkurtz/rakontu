@@ -79,7 +79,7 @@ class CurateFlagsPage(webapp.RequestHandler):
 						elif item.__class__.__name__ == "SavedSearch":
 							item.deleteAllDependents()
 						db.delete(item)
-				self.redirect(BuildResultURL("changessaved", rakontu=rakontu))
+				self.redirect(BuildURL("dir_curate", "url_flags", rakontu=rakontu))
 			elif member.isCurator():
 				itemsToSendMessageAbout = []
 				for item in items:

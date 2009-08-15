@@ -9,22 +9,24 @@
 		<form action="/{{dir_guide}}/{{url_invitations}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
 		{% if showing_all_invitations %}
-			<h3>Invitations</h3>
-			&nbsp; &nbsp; <input type="submit" name="showOnlyUnrespondedInvitations" value="Show only invitations with no responses" class="button_small">
+			<h3>{{template_invitations}}</h3>
 		{% else %}
-			<h3>Invitations with no responses</h3>
-			&nbsp; &nbsp; <input type="submit" name="showAllInvitations" value="Show all invitations" class="button_small">
+			<h3>{{template_invitations_with_no_responses}}</h3>
 		{% endif %}
 		
 		<p></p>
 		{% if invitations %}
-			<table style="margin-left:20px;"><tr><th>Name</th><th>Published</th><th>Responses</th></tr>
+			<table style="margin-left:20px;">
+			<tr>
+				<th>{{template_name}}</th>
+				<th>{{template_published}}</th>
+				<th>{{template_responses}}</th></tr>
 			{% for invitation in invitations %}
 	      		<tr>
 	      		<td>{{invitation.linkString}}</td>
 	      		<td>
+					{{invitation.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
 					{{invitation.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-					at {{invitation.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
 				</td>
 	      		<td>
 	      			{% for entry in invitation.getResponses %}
@@ -37,17 +39,23 @@
 	        </table>
 	    {% else %}
 			{% if showing_all_invitations %}
-				<p>There are no invitations in the Rakontu. <a href="/{{dir_visit}}/{{url_invitation}}?{{rakontu.urlQuery}}">Make one</a></p>
+				<p>{{template_no_invitations}} <a href="/{{dir_visit}}/{{url_invitation}}?{{rakontu.urlQuery}}">{{template_create_one}}</a></p>
 			{% else %}
-				<p>There are no invitations without responses.</p>
+				<p>{{template_no_invitations_without_responses}}</p>
 			{% endif %}
         {% endif %}
       	
+
+		{% if showing_all_invitations %}
+			<p><input type="submit" name="showOnlyUnrespondedInvitations" value="{{button_show_only_invitations_with_no_responses}}" class="button_small"></p>
+		{% else %}
+			<p><input type="submit" name="showAllInvitations" value="{{button_show_all_invitations}}" class="button_small"></p>
+		{% endif %}
+		
 	</form>
 	</div>
 	{% else %}
-		<p>You are not a guide of this Rakontu and cannot review invitations.
-		Please ask a guide to make any changes you would like to see made.</p>
+		<p>{{no_access|dictLookup:"invitations"}}</p>
 	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}

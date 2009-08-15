@@ -30,6 +30,10 @@
 # Which language files to load. This must match the directory name (under config) under which the language dependent files are stored.
 SITE_LANGUAGE = "english" 
 
+# You MUST replace this with whomever is supporting the site.
+# All Rakontu managers/owners see this email link at the bottom of each page.
+SITE_SUPPORT_EMAIL = "support@xyz.org"
+
 # Don't touch this
 import sys
 sys.path.insert(0, "config/%s" % SITE_LANGUAGE) 
@@ -141,8 +145,10 @@ NUM_SEARCH_FIELDS = 3
 # This is the list of numbers of attachments Rakontus can choose from, and the choice
 # that appears chosen by default.
 # To disallow attachments completely for the site, set NUM_ATTACHMENT_CHOICES to [0] and DEFAULT_MAX_NUM_ATTACHMENTS to 0.
+# MAX_POSSIBLE_ATTACHMENTS should be set to the highest number on the list.
 NUM_ATTACHMENT_CHOICES = [0, 1, 2, 3, 4, 5]
 DEFAULT_MAX_NUM_ATTACHMENTS = 3
+MAX_POSSIBLE_ATTACHMENTS = 5
 
 # These are the accepted attachment file types. You can add or remove any types here.
 # However, these two lists MUST match up exactly (by order).

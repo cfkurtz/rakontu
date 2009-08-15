@@ -4,12 +4,12 @@
 	{% include "../common_menus.html" %}
 	<div id="content">
 	
-	<h3>Welcome, {{current_member.nickname}}!</h3>
+	<h3>{{template_welcome}}, {{current_member.nickname}}!</h3>
 	
 	{{rakontu.welcomeMessage}}
 
 	{% if resources %}
-		<p>You may find these resources of help in getting started:</p>
+		<p>{{template_resources_for_new_members}}:</p>
 		<ul>
 		{% for resource in resources %}
 		<li class="nobullet">{{resource.linkString}}</li>
@@ -17,13 +17,14 @@
 		</ul>
 	{% endif %}
 	
-	<p>Around the site you will see little icons that provide help. Either hover over them with your mouse or click on them
-	to read a bit of help about the area in which they appear.</p>
-	<ul>
-	<li class="nobullet">{{"information_hovers"|info}} information</li>
-	<li class="nobullet">{{"tip_hovers"|tip}} tip</li>
-	<li class="nobullet">{{"caution_hovers"|caution}}  caution</li>
-	</ul>
+	{% if have_helps %}
+		<p>{{template_about_help_icons}}</p>
+		<ul>
+		<li class="nobullet">{{"information_hovers"|info}} {{template_information}}</li>
+		<li class="nobullet">{{"tip_hovers"|tip}} {{template_tip}}</li>
+		<li class="nobullet">{{"caution_hovers"|caution}}  {{template_caution}}</li>
+		</ul>
+	{% endif %}
 
 	</div>
 	{% include "../common_footer.html" %}

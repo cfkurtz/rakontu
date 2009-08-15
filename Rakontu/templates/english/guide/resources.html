@@ -7,20 +7,20 @@
 		{% if current_member.isGuide %}
 	
 			{% if resources %}
-			<h3>Resources</h3>
+			<h3>{{template_resources}}</h3>
 	      	<table border="0" cellpadding="4" cellspacing="0">
 	      	<tr>
-	      		<th>Name{{"flagging_and_unflagging_items"|tip}}</th>
-	      		<th>Text</th>
-	      		<th>Attachments</th>
-	      		<th>Help?</th>
-	      		<th>For new members?</th>
+	      		<th>{{template_name}} {{"flagging_and_unflagging_items"|tip}}</th>
+	      		<th>{{template_first_part_of_text}}</th>
+	      		<th>{{template_attachments}}</th>
+	      		<th>{{template_help}}?</th>
+	      		<th>{{template_for_new_members}}?</th>
 	      		{% if current_member.isManagerOrOwner %}
-	      			<th>For managers only?</th>
+	      			<th>{{template_for_managers_only}}?</th>
 	      		{% endif %}
-	      		<th>Created</th>
-	      		<th>Last changed</th>
-	      		<th>Last published</th>
+	      		<th>{{template_created}}</th>
+	      		<th>{{template_last_changed}}</th>
+	      		<th>{{template_last_published}}</th>
 	      		</tr>
 	      		{% for resource in resources %}
 	  				<tr>
@@ -42,34 +42,51 @@
 	  					<p>{{term_none}}</p>
 	  				{% endif %}
 					</td>
-					<td>{{resource.resourceForHelpPage|yesno:"YES, no"}}</td>
-					<td>{{resource.resourceForNewMemberPage|yesno:"YES, no"}}</td>
+					<td>
+						{% if resource.resourceForHelpPage %}
+							{{template_yes}}
+						{% else %}
+							{{template_no}}
+						{% endif %}
+					</td>
+					<td>
+						{% if resource.resourceForNewMemberPage %}
+							{{template_yes}}
+						{% else %}
+							{{template_no}}
+						{% endif %}
+					</td>
 					{% if current_member.isManagerOrOwner %}
-						<td>{{resource.resourceForManagersAndOwnersOnly|yesno:"YES, no"}}</td>
+						<td>
+							{% if resource.resourceForManagersAndOwnersOnly %}
+								{{template_yes}}
+							{% else %}
+								{{template_no}}
+							{% endif %}
+						</td>
 					{% endif %}
-					<td>{{resource.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-						<br/> {{resource.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					<td>{{resource.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					{{resource.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 					</td>
-					<td>{{resource.edited|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-						<br/> {{resource.edited|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					<td>{{resource.edited|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					{{resource.edited|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 					</td>
-					<td>{{resource.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-						<br/> {{resource.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					<td>{{resource.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					{{resource.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 					</td>
 	  				</tr>
 	      		{% endfor %}
 	      	</table>
 	      	{% else %}
-	      		<p>This Rakontu has no help resources.<p>
+	      		<p>{{template_no_help_resources}}.<p>
 	      		<ul>
-	      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_resource}}?{{rakontu.urlQuery}}">Make one</a></li>
-	      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_copy}}?{{rakontu.urlQuery}}">Create all default resources</a></li>
+	      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_resource}}?{{rakontu.urlQuery}}">{{template_create_one}}</a></li>
+	      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_copy}}?{{rakontu.urlQuery}}">{{template_generate_default_help_resources}}</a></li>
 	      		</ul>
 	      	{% endif %}
 			
 	{% else %}
-		<p>You are not a guide or manager of this Rakontu and cannot change its resources.
-		Please ask a guide or manager to make any changes you would like to see made.</p>
+		<p>{{no_access|dictLookup:"resources"}}</p>
 	{% endif %}
 
 	</div>

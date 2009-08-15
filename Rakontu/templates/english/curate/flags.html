@@ -5,32 +5,30 @@
 	<div id="content">
 	{% if current_member.isCuratorOrManagerOrOwner %}
 		<div id="stylized" class="rakontu_form">
-		<form action="/{{dir_curate}}/{{url_flags}}?{{rakontu.urlQuery}}" method="post">
-			{% if current_member.isManagerOrOwner %}
-				<p>You are a{% if current_member.isOwner %}n{% endif %} 
-				<b>{{current_member.governanceType}}</b> of this Rakontu, so you can remove any item
-				added to the system.</p>
-			{% else %}
-				<p>You are a <b>curator</b> in this Rakontu, so you can flag items for removal
-				and notify the Rakontu's managers if you think an item should be removed quickly.<p>
-			{% endif %}
-			
-			<h3>Flagged entries</h3>
+		<form action="/{{dir_curate}}/{{url_flags}}?{{rakontu.urlQuery}}" method="post">			
+			<h3>{{template_entries}} {{template_with_flags}}</h3>
 			{% if entries %}
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
-		      	<tr><th>Unflag? {{"unflag_item"|tip}}</th><th>Entry</th><th>Type</th><th>Linked to</th><th>Text (first part)</th><th>By</th><th>Comment</th>
-	      		{% if current_member.isManagerOrOwner %} 
-	      			<th>Remove?{{"removing_flagged_items"|caution}}</th> 
-	      		{% else %}  
-	      			<th>Notify?</th> 
-	      		{% endif %}
+		      	<tr>
+		      		<th>{{template_unflag}}? {{"unflag_item"|tip}}</th>
+		      		<th>{{template_entry}}</th>
+		      		<th>{{template_type}}</th>
+		      		<th>{{template_linked_to}}</th>
+		      		<th>{{template_first_part_of_text}}</th>
+		      		<th>{{template_contributor}}</th>
+		      		<th>{{template_flag_comment}}</th>
+		      		{% if current_member.isManagerOrOwner %} 
+		      			<th>{{template_remove}}?{{"removing_flagged_items"|caution}}</th> 
+		      		{% else %}  
+		      			<th>{{template_notify}}? {{"flag_notifications"|caution}}</th> 
+		      		{% endif %}
 	      		</tr>
 	      		{% for entry in entries %}
 	  				<tr>
 	  				<td width="80">
 	  					<input type="checkbox" name="unflag|{{entry.key}}" value="yes" id="unflag|{{entry.key}}"/>
-						<label for="unflag|{{entry.key}}">Unflag</label>
+						<label for="unflag|{{entry.key}}">{{template_unflag}}</label>
 	  				</td>	  				
 	  				<td>{{entry.linkString}}</td>
 	  				<td>{{entry.typeForDisplay}}</td>
@@ -48,13 +46,13 @@
 										 ({{template_you}})
 									{% endifequal %}
 								{% else %}
-									the former member "{{entry.creator.nickname}}"
+									{{template_the_former_member}} "{{entry.creator.nickname}}"
 								{% endif %}
 						{% else %}
 							{% if entry.character.active %}
 								{{entry.character.linkString}}
 							{% else %}
-								the former character "{{entry.character.name}}"
+								{{template_the_former_character}} "{{entry.character.name}}"
 							{% endif %}
 						{% endif %}
 	  				</td>
@@ -62,10 +60,10 @@
 	  				<td width="80">
 	  				{% if current_member.isManagerOrOwner %}
 	  						<input type="checkbox" name="remove|{{entry.key}}" value="yes" id="remove|{{entry.key}}"/>
-							<label for="remove|{{entry.key}}">Remove</label>
+							<label for="remove|{{entry.key}}">{{template_remove}}</label>
 	  				{% else %}
 	  						<input type="checkbox" name="notify|{{entry.key}}" value="yes" id="notify|{{entry.key}}"/>
-							<label for="notify|{{entry.key}}">Notify</label>
+							<label for="notify|{{entry.key}}">{{template_notify}}</label>
 	  				{% endif %}	
 	  				</td>	  				
 	  				</tr>
@@ -76,22 +74,28 @@
 	      		<ul><li class="nobullet">{{term_none}}</li></ul>
 	      	{% endif %}
 	      	
-			<h3>Flagged annotations</h3>
+			<h3>{{template_annotations}} {{template_with_flags}}</h3>
 			{% if annotations %}
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
-		      	<tr><th>Unflag?</th><th>Entry</th><th>Type</th><th>Content</th><th>By</th>
-	      		{% if current_member.isManagerOrOwner %} 
-	      			<th>Remove?</th> 
-	      		{% else %}  
-	      			<th>Notify?</th> 
-	      		{% endif %}
+		      	<tr>
+		      		<th>{{template_unflag}}?</th>
+		      		<th>{{template_entry}}</th>
+		      		<th>{{template_type}}</th>
+		      		<th>{{template_content}}</th>
+		      		<th>{{template_contributor}}</th>
+		      		<th>{{template_flag_comment}}</th>
+		      		{% if current_member.isManagerOrOwner %} 
+		      			<th>{{template_remove}}?</th> 
+		      		{% else %}  
+		      			<th>{{template_notify}}?</th> 
+		      		{% endif %}
 	      		</tr>
 	      		{% for annotation in annotations %}
 	  				<tr>
 	  				<td>
 	  					<input type="checkbox" name="unflag|{{annotation.key}}" value="yes" id="unflag|{{annotation.key}}"/>
-						<label for="unflag|{{annotation.key}}">Unflag</label>
+						<label for="unflag|{{annotation.key}}">{{template_unflag}}</label>
 	  				</td>	  				
 	  				<td>{{annotation.entry.linkString}}</td>
 	  				<td>{{annotation.typeForDisplay}}</td>
@@ -104,7 +108,7 @@
 	  				{% if annotation.isNudge %}
 	  					{% if nudge.shortString and current_member.isManagerOrOwner %}
 		  						<p><input type="checkbox" name="removeComment|{{annotation.key}}" value="yes" id="removeComment|{{annotation.key}}"/>
-								<label for="removeComment|{{annotation.key}}">Remove comment only</label></p>
+								<label for="removeComment|{{annotation.key}}">{{template_remove}} {{template_comment_only}}</label></p>
 						{% endif %}
 	  				{% endif %}
 	  				</td>
@@ -116,19 +120,24 @@
 										 ({{template_you}})
 									{% endifequal %}
 								{% else %}
-									the former member "{{annotation.creator.nickname}}"
+									{{template_the_former_member}} "{{annotation.creator.nickname}}"
 								{% endif %}
 						{% else %}
-							{{annotation.character.linkString}}
+							{% if annotation.character.active %}
+								{{annotation.character.linkString}}
+							{% else %}
+								{{template_the_former_character}} "{{annotation.character.name}}"
+							{% endif %}
 						{% endif %}
 	  				</td>
+	  				<td><input type="text" name="flagComment|{{annotation.key}}" value="{{annotation.flagComment|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></td>
 	  				<td>
 	  				{% if current_member.isManagerOrOwner %}
 	  						<input type="checkbox" name="remove|{{annotation.key}}" value="yes" id="remove|{{annotation.key}}"/>
-							<label for="remove|{{annotation.key}}">Remove</label>
+							<label for="remove|{{annotation.key}}">{{template_remove}}</label>
 	  				{% else %}
 	  						<input type="checkbox" name="notify|{{annotation.key}}" value="yes" id="notify|{{annotation.key}}"/>
-							<label for="notify|{{annotation.key}}">Notify</label>
+							<label for="notify|{{annotation.key}}">{{template_notify}}</label>
 	  				{% endif %}	
 	  				</tr>
 	      		{% endfor %}
@@ -138,22 +147,28 @@
 	      		<ul><li class="nobullet">{{term_none}}</li></ul>
 	      	{% endif %}
       	
-			<h3>Flagged answers</h3>
+			<h3>{{template_answers}} {{template_with_flags}}</h3>
 			{% if answers %}
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
-		      	<tr><th>Unflag?</th><th>Entry</th><th>Question</th><th>Answer</th><th>By</th>
-	      		{% if current_member.isManagerOrOwner %} 
-	      			<th>Remove?</th> 
-	      		{% else %}  
-	      			<th>Notify?</th> 
-	      		{% endif %}
+		      	<tr>
+		      		<th>{{template_unflag}}?</th>
+		      		<th>{{template_entry}}</th>
+		      		<th>{{template_question}}</th>
+		      		<th>{{template_answer}}</th>
+		      		<th>{{template_contributor}}</th>
+		      		<th>{{template_flag_comment}}</th>
+		      		{% if current_member.isManagerOrOwner %} 
+		      			<th>{{template_remove}}?</th> 
+		      		{% else %}  
+		      			<th>{{template_notify}}?</th> 
+		      		{% endif %}
 	      		</tr>
 	      		{% for answer in answers %}
 	  				<tr>
 	  				<td>
 	  					<input type="checkbox" name="unflag|{{answer.key}}" value="yes" id="unflag|{{answer.key}}"/>
-						<label for="unflag|{{answer.key}}">Unflag</label>
+						<label for="unflag|{{answer.key}}">{{template_unflag}}</label>
 	  				</td>	  				
 	  				<td>{{answer.referent.linkString}}</td>
 	  				<td>{{answer.question.text}}</td>
@@ -166,19 +181,24 @@
 										 ({{template_you}})
 									{% endifequal %}
 								{% else %}
-									the former member "{{answer.creator.nickname}}"
+									{{template_the_former_member}} "{{answer.creator.nickname}}"
 								{% endif %}
 						{% else %}
-							{{answer.character.linkString}}
+							{% if answer.character.active %}
+								{{answer.character.linkString}}
+							{% else %}
+								{{template_the_former_character}} "{{answer.character.name}}"
+							{% endif %}
 						{% endif %}
 	  				</td>
+	  				<td><input type="text" name="flagComment|{{answer.key}}" value="{{answer.flagComment|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></td>
 	  				<td>
 	  				{% if current_member.isManagerOrOwner %}
 	  						<input type="checkbox" name="remove|{{answer.key}}" value="yes" id="remove|{{answer.key}}"/>
-							<label for="remove|{{answer.key}}">Remove</label>
+							<label for="remove|{{answer.key}}">{{template_remove}}</label>
 	  				{% else %}
 	  						<input type="checkbox" name="notify|{{answer.key}}" value="yes" id="notify|{{answer.key}}"/>
-							<label for="notify|{{answer.key}}">Notify</label>
+							<label for="notify|{{answer.key}}">{{template_notify}}</label>
 	  				{% endif %}	
 	  				</tr>
 	      		{% endfor %}
@@ -188,38 +208,44 @@
 	      		<ul><li class="nobullet">{{term_none}}</li></ul>
 	      	{% endif %}
       	
-			<h3>Flagged links</h3>
+			<h3>{{template_links}} {{template_with_flags}}</h3>
 			{% if links %}
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
-		      	<tr><th>Unflag?</th><th>From</th><th>To</th><th>Comment</th>
-	      		{% if current_member.isManagerOrOwner %} 
-	      			<th>Remove?</th> 
-	      		{% else %}  
-	      			<th>Notify?</th> 
-	      		{% endif %}
+		      	<tr>
+		      		<th>{{template_unflag}}?</th>
+		      		<th>{{template_from|capitalize}}</th>
+		      		<th>{{template_to|capitalize}}</th>
+		      		<th>{{template_comment}}</th>
+		      		<th>{{template_flag_comment}}</th>
+		      		{% if current_member.isManagerOrOwner %} 
+		      			<th>{{template_remove}}?</th> 
+		      		{% else %}  
+		      			<th>{{template_notify}}?</th> 
+		      		{% endif %}
 	      		</tr>
 	      		{% for link in links %}
 	  				<tr>
 	  				<td>
 	  					<input type="checkbox" name="unflag|{{link.key}}" value="yes" id="unflag|{{link.key}}"/>
-						<label for="unflag|{{link.key}}">Unflag</label>
+						<label for="unflag|{{link.key}}">{{template_unflag}}</label>
 	  				</td>	  				
 	  				<td>{{link.itemFrom.linkString}}</td>
 	  				<td>{{link.itemTo.linkString}}</td>
 	  				<td>{{link.comment|orNbsp}}
 	  					{% if link.comment and current_member.isManagerOrOwner %}
 		  						<p><input type="checkbox" name="removeComment|{{link.key}}" value="yes" id="removeComment|{{link.key}}"/>
-								<label for="removeComment|{{link.key}}">Remove comment only</label></p>
+								<label for="removeComment|{{link.key}}">{{template_remove}} {{template_comment_only}}</label></p>
 						{% endif %}
 	  				</td>
+	  				<td><input type="text" name="flagComment|{{link.key}}" value="{{link.flagComment|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></td>
 	  				<td>
 	  				{% if current_member.isManagerOrOwner %}
 	  						<input type="checkbox" name="remove|{{link.key}}" value="yes" id="remove|{{link.key}}"/>
-							<label for="remove|{{link.key}}">Remove</label>
+							<label for="remove|{{link.key}}">{{template_remove}}</label>
 	  				{% else %}
 	  						<input type="checkbox" name="notify|{{link.key}}" value="yes" id="notify|{{link.key}}"/>
-							<label for="notify|{{link.key}}">Notify</label>
+							<label for="notify|{{link.key}}">{{template_notify}}</label>
 	  				{% endif %}	
 	  				</tr>
 	      		{% endfor %}
@@ -229,31 +255,30 @@
 	      		<ul><li class="nobullet">{{term_none}}</li></ul>
 	      	{% endif %}
       	
-			<h3>Flagged search filters</h3>
+			<h3>{{template_filters}} {{template_with_flags}}</h3>
 			{% if searches %}
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
-		      	<tr><th>Unflag? {{"unflagging_items"|tip}}</th>
-		      		<th>Name</th>
-		      		<th>Linked to</th>
-		      		<th>Look in</th>
-		      		<th>Words</th>
-		      		<th>Tags</th>
-		      		<th>Entry questions</th>
-		      		<th>Member questions</th>
-		      		<th>Created</th>
-		      	<th>Comment</th>
-	      		{% if current_member.isManagerOrOwner %} 
-	      			<th>Remove?{{"removing_flagged_items"|caution}}</th> 
-	      		{% else %}  
-	      			<th>Notify?</th> 
-	      		{% endif %}
+		      	<tr><th>{{template_unflag}}? {{"unflagging_items"|tip}}</th>
+		      		<th>{{template_name}}</th>
+		      		<th>{{template_linked_to}}</th>
+		      		<th>{{template_words}}</th>
+		      		<th>{{template_tags}}</th>
+		      		<th>{{template_entry_questions}}</th>
+		      		<th>{{template_member_questions}}</th>
+		      		<th>{{template_created}}</th>
+		      		<th>{{template_flag_comment}}</th>
+		      		{% if current_member.isManagerOrOwner %} 
+		      			<th>{{template_remove}}?{{"removing_flagged_items"|caution}}</th> 
+		      		{% else %}  
+		      			<th>{{template_notify}}?</th> 
+		      		{% endif %}
 	      		</tr>
 	      		{% for search in searches %}
 	  				<tr>
 	  				<td width="80">
 	  					<input type="checkbox" name="unflag|{{search.key}}" value="yes" id="unflag|{{search.key}}"/>
-						<label for="unflag|{{search.key}}">Unflag</label>
+						<label for="unflag|{{search.key}}">{{template_unflag}}</label>
 	  				</td>	  				
 	  				<td>{{search.linkString}}</td>
 	  				<td>
@@ -262,15 +287,8 @@
 	  				{% endfor %}&nbsp;
 	  				</td>
 			      	<td>
-			      		{% for i in entry_types|makeRangeFromListLength %}
-			      			{% if search.entryTypes|listLookup:i %}
-			      				{{entry_types_display|listLookup:i}}<br/>
-			      			{% endif %}
-			      		{% endfor %}&nbsp;
-			      		</td>
-			      	<td>
 			      		{% if search.words %}
-			      			{{search.words_anyOrAll}} of {{search.words|join:", "}} <br/>
+			      			{{search.words_anyOrAll}}: {{search.words|join:", "}} <br/>
 				      		{% for i in search_locations|makeRangeFromListLength %}
 				      			{% if search.words_locations|listLookup:i %}
 				      				{{search_locations_display|listLookup:i}}<br/>
@@ -281,7 +299,7 @@
 			      		{% endif %}
 			      		</td>
 			      	<td>{% if search.tags %}
-			      			{{search.tags_anyOrAll}} of {{search.tags|join:", "}}
+			      			{{search.tags_anyOrAll}}: {{search.tags|join:", "}}
 			      		{% endif %}&nbsp;
 			      		</td>
 			      	<td>
@@ -296,16 +314,17 @@
 			      		{% endfor %}
 			      		&nbsp;
 			      		</td>
-					<td>{{search.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}<br/>
-					at {{search.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</td>
+					<td>{{search.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					    {{search.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}<br/>
+					 </td>
 	  				<td><input type="text" name="flagComment|{{search.key}}" value="{{search.flagComment|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></td>
 	  				<td width="80">
 	  				{% if current_member.isManagerOrOwner %}
 	  						<input type="checkbox" name="remove|{{search.key}}" value="yes" id="remove|{{search.key}}"/>
-							<label for="remove|{{search.key}}">Remove</label>
+							<label for="remove|{{search.key}}">{{template_remove}}</label>
 	  				{% else %}
 	  						<input type="checkbox" name="notify|{{search.key}}" value="yes" id="notify|{{search.key}}"/>
-							<label for="notify|{{search.key}}">Notify</label>
+							<label for="notify|{{search.key}}">{{template_notify}}</label>
 	  				{% endif %}	
 	  				</td>	  				
 	  				</tr>
@@ -320,18 +339,17 @@
 			<p>&nbsp; </p>
 		    <center>
 		    {% if current_member.isManagerOrOwner %}
-		    	<p><i><b>Please remove items carefully. Deleted items cannot be recovered.</b></i></p>
-		    	<input type="submit" name="submitChanges" value="Make selected changes" class="button">&nbsp; 
+		    	<p><i><b>{{template_remove_warning}}</b></i></p>
+		    	<input type="submit" name="submitChanges" value="{{button_make_selected_changes}}" class="button">&nbsp; 
 		    {% else %}
-		    	<input type="submit" name="submitChanges" value="Send selected notifications" class="button">&nbsp; 
+		    	<input type="submit" name="submitChanges" value="{{button_send_selected_notifications}}" class="button">&nbsp; 
 		    {% endif %}
-		    <input type="submit" name="cancel" value="Cancel" class="button">
+		    <input type="submit" name="cancel" value="{{button_cancel}}" class="button">
 		{% endif %}
 		</form>	
 		</div>
 	{% else %}
-		<p>You are not a curator or manager of this Rakontu and cannot review removal flags.
-		Either become a curator or ask a curator or manager to make any changes you would like to see made.</p>
+		<p>{{no_access|dictLookup:"flags"}}</p>
 	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}

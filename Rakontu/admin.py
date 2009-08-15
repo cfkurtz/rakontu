@@ -99,7 +99,7 @@ class AdministerSitePage(webapp.RequestHandler):
 			for rakontu in rakontus:
 				member = rakontu.memberWithGoogleUserID(users.get_current_user().user_id())
 				if member and member.active:
-					memberOfRakontus[rakontu.key()] = member.governanceType
+					memberOfRakontus[rakontu.key()] = member.governanceTypeForDisplay()
 				else:
 					memberOfRakontus[rakontu.key()] = None
 			template_values = GetStandardTemplateDictionaryAndAddMore({

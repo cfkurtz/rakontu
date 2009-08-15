@@ -1,27 +1,26 @@
 <html>
 	<head>
 		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
-		<title>Create a new Rakontu</title>
+		<title>{{template_create_rakontu}}</title>
 	</head>
 	<body>
 	
 		<div id="stylized" class="rakontu_form_centered">
-		<form action="/{{dir_admin}}/{{url_create1}}" method="post">
+		<form action="/{{dir_admin}}/{{url_create1}}" method="post"> 
 		<table border="0" width="400" class="noborder"><tr><td class="noborder">
-			<h3>Create a new Rakontu: Step One</h3>
+			<h3>{{template_create_rakontu}}: {{template_step_one}}</h3>
 			
-			<p>Please enter a short URL name for the Rakontu web link.
-			<i>This name cannot be changed. It cannot contain spaces or special characters.</i></p>
+			<p>{{template_short_rakontu_name}}</p>
 			<input type="text" name="url" value="{{url}}" size="20" maxlength="{{maxlength_tag_or_choice}}"/>
 			{% if name_taken %}
-				<p><font color="red">That Rakontu name is already in use. Please choose another.</font></p>
+				<p><font color="red">{{template_rakontu_name_taken}}</font></p>
 			{% endif %}
 					
 			<p>&nbsp;</p>
-			<center><input type="submit" value="Enter Short Name" class="button"></center>
+			<center><input type="submit" value="{{button_enter_short_name}}" class="button"></center>
 		</td></tr></table>
 		</form>
 		</div>
-		<center><p><a href="/{{dir_admin}}/{{url_admin}}">Cancel and return to the Rakontu site administration page</a></p></center>
+		<center><p><a href="/{{dir_admin}}/{{url_admin}}">{{template_cancel_rakontu_creation}}</a></p></center>
 	</body>
 </html>

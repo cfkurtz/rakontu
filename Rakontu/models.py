@@ -178,7 +178,8 @@ class Rakontu(db.Model):
 		self.description_formatted = db.Text("<p>%s</p>" % self.description)
 		self.etiquetteStatement_formatted = db.Text("<p>%s</p>" % self.etiquetteStatement)
 		self.welcomeMessage_formatted = db.Text("<p>%s</p>" % self.welcomeMessage)
-		
+		for i in range(3):
+			self.roleReadmes_formatted[i] = db.Text(self.roleReadmes[i])
 	
 	# OPTIONS
 	
@@ -728,8 +729,11 @@ class Rakontu(db.Model):
 		export = Export(key_name=KeyName("export"), rakontu=self, type=type, fileFormat=fileFormat)
 		exportText = ""
 		if type == "csv_export_search":
-			if member and member.viewSearch and member.viewSearchResultList:
-				exportText += '"Export of search result ""%s"" for Rakontu %s"\n' % (member.viewSearch.name, self.name)
+			if member and member.viewEntriesList:
+				if member.viewSearch:
+					exportText += '"Export of search result ""%s"" for Rakontu %s"\n' % (member.viewSearch.name, self.name)
+				else:
+					exportText += '"Export of entries for Rakontu %s"\n' % self.name
 				members = self.getActiveMembers()
 				characters = self.getActiveCharacters()
 				memberQuestions = self.getActiveQuestionsOfType("member")
@@ -739,7 +743,7 @@ class Rakontu(db.Model):
 					entries = self.getNonDraftEntriesOfType(type)
 					entriesToInclude = []
 					for entry in entries:
-						if entry.key() in member.viewSearchResultList:
+						if entry.key() in member.viewEntriesList:
 							entriesToInclude.append(entry)
 					if entriesToInclude:
 						questions = self.getActiveQuestionsOfType(type)
@@ -816,9 +820,9 @@ class Rakontu(db.Model):
 					except: 
 						pass
 			elif member:
-				if member.viewSearchResultList:
+				if member.viewEntriesList:
 					for entry in self.getNonDraftEntries():
-						if entry.key() in member.viewSearchResultList:
+						if entry.key() in member.viewEntriesList:
 							try:
 								exportText += entry.PrintText()
 							except:
@@ -935,7 +939,7 @@ class Member(db.Model):
 	helpingRoles = db.ListProperty(bool, default=[False, False, False]) # members can choose
 	helpingRolesAvailable = db.ListProperty(bool, default=[True, True, True], indexed=False) # managers can ban members from roles
 	
-	guideIntro = db.TextProperty(default=None) # appears on the welcome and get help pages if the member is a guide
+	guideIntro = db.TextProperty(default=DEFAULT_GUIDE_INTRO) # appears on the welcome and get help pages if the member is a guide
 	guideIntro_formatted = db.TextProperty()
 	guideIntro_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
@@ -949,6 +953,7 @@ class Member(db.Model):
 	timeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE) # members choose these in their prefs page
 	timeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT, indexed=False) # how they want to see dates
 	dateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT, indexed=False) # how they want to see times
+	showAttachedImagesInline = db.BooleanProperty(default=False)
 	
 	joined = TzDateTimeProperty(auto_now_add=True)
 	firstVisited = db.DateTimeProperty()
@@ -967,7 +972,7 @@ class Member(db.Model):
 	viewDetails = db.BooleanProperty(default=False, indexed=False)
 	viewEntryTypes = db.ListProperty(bool, default=[True, True, False, False, False]) # stories and invitations on by default
 	viewHomeOptionsOnTop = db.BooleanProperty(default=False)
-	viewSearchResultList = db.ListProperty(db.Key, indexed=False)
+	viewEntriesList = db.ListProperty(db.Key, indexed=False)
 	
 	# CREATION
 	
@@ -977,6 +982,8 @@ class Member(db.Model):
 		self.dateFormat = self.rakontu.defaultDateFormat
 		if self.viewTimeEnd.tzinfo is None:
 			self.viewTimeEnd = self.viewTimeEnd.replace(tzinfo=pytz.utc)
+		self.profileText_formatted = db.Text("<p>%s</p>" % self.profileText)
+		self.guideIntro_formatted = db.Text("<p>%s</p>" % self.guideIntro)
 		# caller does put
 		
 	# INFO
@@ -987,7 +994,7 @@ class Member(db.Model):
 	def googleUserEmailOrNotOnline(self):
 		if self.isOnlineMember:
 			return self.googleAccountEmail
-		return "Offline member"
+		return "%s (%s)" % (TERMS["term_none"], TEMPLATE_TERMS["template_offline"])
 	
 	# GOVERNANCE
 	
@@ -1002,6 +1009,24 @@ class Member(db.Model):
 	
 	def isManagerOrOwner(self):
 		return self.governanceType == "manager" or self.governanceType == "owner"
+	
+	def governanceTypeForDisplay(self):
+		# GOVERNANCE_ROLE_TYPES_DISPLAY = ["member", "manager", "owner"]
+		if self.governanceType == "member":
+			return GOVERNANCE_ROLE_TYPES_DISPLAY[0]
+		elif self.governanceType == "manager":
+			return GOVERNANCE_ROLE_TYPES_DISPLAY[1]
+		elif self.governanceType == "owner":
+			return GOVERNANCE_ROLE_TYPES_DISPLAY[2]
+	
+	def governanceTypeForDisplayNotShowingOwner(self):
+		# GOVERNANCE_ROLE_TYPES_DISPLAY = ["member", "manager", "owner"]
+		if self.governanceType == "member":
+			return GOVERNANCE_ROLE_TYPES_DISPLAY[0]
+		elif self.governanceType == "manager":
+			return GOVERNANCE_ROLE_TYPES_DISPLAY[1]
+		elif self.governanceType == "owner":
+			return GOVERNANCE_ROLE_TYPES_DISPLAY[1]
 	
 	# HELPING ROLES
 	
@@ -1025,6 +1050,16 @@ class Member(db.Model):
 	
 	def hasAnyHelpingRole(self):
 		return self.helpingRoles[0] or self.helpingRoles[1] or self.helpingRoles[2]
+
+	def helpingRolesForDisplay(self):
+		result = []
+		if self.helpingRoles[0]:
+			result.append(HELPING_ROLE_TYPES_DISPLAY[0])
+		if self.helpingRoles[1]:
+			result.append(HELPING_ROLE_TYPES_DISPLAY[1])
+		if self.helpingRoles[2]:
+			result.append(HELPING_ROLE_TYPES_DISPLAY[2])
+		return result
 
 	def canTakeOnAnyHelpingRole(self):
 		return self.helpingRolesAvailable[0] or self.helpingRolesAvailable[1] or self.helpingRolesAvailable[2]
@@ -1132,12 +1167,18 @@ class Member(db.Model):
 		else:
 			offlineImageString = '<img src="/images/offline.png" alt="offline member"> '
 		return '%s<a href="%s?%s">%s</a>' % (offlineImageString, self.urlWithoutQuery(), self.urlQuery(), self.nickname)
-		
+	
+	def askLinkString(self):
+		return '<a href="%s?%s">%s</a>' % (self.askUrlWithoutQuery(), self.urlQuery(), self.nickname)
+	
 	def linkURL(self):
 		return '%s?%s' % (self.urlWithoutQuery(), self.urlQuery())
 		
 	def urlWithoutQuery(self):
 		return "/%s/%s" % (DIRS["dir_visit"], URLS["url_member"])
+
+	def askUrlWithoutQuery(self):
+		return "/%s/%s" % (DIRS["dir_visit"], URLS["url_ask"])
 
 	def urlQuery(self):
 		return "%s=%s" % (URL_IDS["url_query_member"], self.getKeyName())
@@ -1453,9 +1494,9 @@ class Answer(db.Model):
 			result += self.question.name + ": "
 		if self.question.type == "boolean":
 			if self.answerIfBoolean: 
-				result += "yes"
+				result += TERMS["term_yes"]
 			else:
-				result += "no"
+				result += TERMS["term_no"]
 		elif self.question.type == "text":
 			result += self.answerIfText
 		elif self.question.type == "ordinal" or self.question.type == "nominal":
@@ -1665,24 +1706,24 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 				for answer in answers:
 					if answer:
 						if ref.question.type == "text":
-							if comparison == "contains":
+							if ref.comparison == "contains":
 								match = caseInsensitiveFind(answer.answerIfText, ref.answer)
-							elif comparison == "is":
+							elif ref.comparison == "is":
 								match = answer.answerIfText.lower() == ref.answer.lower()
 						elif ref.question.type == "value":
-							if comparison == "is less than":
+							if ref.comparison == "is less than":
 								try:
 									answerValue = int(ref.answer)
 									match = answer.answerIfValue < answerValue
 								except:
 									match = False
-							elif comparison == "is greater than":
+							elif ref.comparison == "is greater than":
 								try:
 									answerValue = int(ref.answer)
 									match = answer.answerIfValue > answerValue
 								except:
 									match = False
-							elif comparison == "is":
+							elif ref.comparison == "is":
 								try:
 									answerValue = int(ref.answer)
 									match = answer.answerIfValue == answerValue
@@ -2179,6 +2220,9 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 	
 	def linkString(self):
 		return self.displayString()
+	
+	def urlQuery(self):
+		return "%s=%s" % (URL_IDS["url_query_link"], self.getKeyName())
 	
 	def linkStringWithFromItem(self):
 		result = self.itemFrom.linkString()

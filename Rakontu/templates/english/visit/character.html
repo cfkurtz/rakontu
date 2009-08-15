@@ -4,37 +4,48 @@
 	{% include "../common_menus.html" %}
 		<div id="content">
 	
-		<h3>Information about {{character.name}}</h3>
+		<h3>{{character.name}}</h3>
 		
 		 {% if character.image %}
 		 	{{character.imageEmbed}}
 		{% endif %}
+		<p>{{template_about}} {{character.name}}:</p>
+		<div class="blurb">
   		{% if character.description|orNothing %}
-  			<p>About {{character.name}}:</p>
-  			<div class="blurb">{{character.description}}</div>
+  			{{character.description}}
+  		{% else %}
+  			({{template_no_character_description}})
   		{% endif %}
+  		</div>
+  		<p>{{template_how_to_be_character}} {{character.name}}:</p>
+  		<div class="blurb">
 	  	{% if character.etiquetteStatement_formatted|orNothing %}
-	  		<p>How to be {{character.name}}:</p>
-	  		<div class="blurb">{{character.etiquetteStatement_formatted}}</div>
+	  		{{character.etiquetteStatement_formatted}}
+	  	{% else %}
+	  		({{template_no_character_how_to}})
 	  	{% endif %}
+	  	</div>
 
+		<p>{{template_answers_to_questions_about}} {{character.name}}:</p>
 		{% if answers %}
-			<p>{{character.name}}'s answers to questions about them:</p>
 			<ul>
 			{% for answer in answers %}
 				<li class="nobullet">{{answer.question.text}} &nbsp; {{answer.displayStringShort}}</li>
 			{% endfor %}
 			</ul>
+		{% else %}
+			<ul><li class="nobullet">({{template_none}})</li></ul>
 		{% endif %}
 		
 		{% include "../common_grid.html" %}
 		
-	<div class="rightalign"><a href="/{{dir_visit}}/{{url_rakontu}}?{{rakontu.urlQuery}}">See all characters</a></div>
+	<div class="rightalign"><a href="/{{dir_visit}}/{{url_rakontu}}?{{rakontu.urlQuery}}">{{template_see_all_characters}}</a></div>
   	{% if current_member.isManagerOrOwner %}
-  		<div class="rightalign"><p><a href="/{{dir_manage}}/{{url_character}}?{{character.urlQuery}}">Change this character</a></p></div>
+  		<div class="rightalign"><p><a href="/{{dir_manage}}/{{url_character}}?{{character.urlQuery}}">{{template_change_this_character}}</a></p></div>
   	{% endif %}
   	{% if current_member.isCurator %}
-  		<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_character}}?{{character.urlQuery}}&{{url_query_curate}}={{url_query_curate}}">Curate this character's entries</a></p></div>
+  		<div class="rightalign"><p>
+  		<a href="/{{dir_visit}}/{{url_character}}?{{character.urlQuery}}&{{url_query_curate}}={{url_query_curate}}">{{template_curate_this_characters_entries}}</a></p></div>
   	{% endif %}
   	
 	</div>

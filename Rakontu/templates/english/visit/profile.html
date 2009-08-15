@@ -8,130 +8,26 @@
 	
 		<div id="stylized" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
-		{% if member.isOnlineMember %}
-			<h3>Your member information</h3>
-		{% else %}
-			<h3>{{member.nickname}}'s information</h3>
-		{% endif %}
-      	<table border="0" cellpadding="4" cellspacing="0">
-      	<tr>
-	      	{% if member.isOnlineMember %}
-	      		<th>Member type</th>
-	      	{% endif %}
-	      	<th>Joined</th>
-	      	<th>Last entered entry</th>
-	      	<th>Last entered annotation</th>
-	      	<th>Last answered question</th>
-	      	<th>Last entered link</th>
-			{% if member.isOnlineMember %}
-				<th>Last read anything</th>
-				<th>Accumulated nudge points</th>
-			{% endif %}
-      	</tr>
-      	
-      	{% if member.isOnlineMember %}
-			<td>{{member.governanceType}}</td>
-		{% endif %}
-		<td>{{member.joined|timeZone:member.timeZoneName|date:member.dateFormat}}</td>
-		<td>
-			{% if member.lastEnteredEntry %} 
-				{{member.lastEnteredEntry|timeZone:member.timeZoneName|date:member.dateFormat}} at {{member.lastEnteredEntry|timeZone:member.timeZoneName|time:member.timeFormat}}
-			{% else %}
-				never
-			{% endif %}
-			</td>
-		<td>
-			{% if member.lastEnteredAnnotation %} 
-				{{member.lastEnteredAnnotation|timeZone:member.timeZoneName|date:member.dateFormat}} at {{member.lastEnteredAnnotation|timeZone:member.timeZoneName|time:member.timeFormat}}
-			{% else %}
-				never
-			{% endif %}
-			</td>
-		<td>
-			{% if member.lastAnsweredQuestion %} 
-				{{member.lastAnsweredQuestion|timeZone:member.timeZoneName|date:member.dateFormat}} at {{member.lastAnsweredQuestion|timeZone:member.timeZoneName|time:member.timeFormat}}
-			{% else %}
-				never
-			{% endif %}
-			</td>
-		<td>
-			{% if member.lastEnteredLink %} 
-				{{member.lastEnteredLink|timeZone:member.timeZoneName|date:member.dateFormat}} at {{member.lastEnteredLink|timeZone:member.timeZoneName|time:member.timeFormat}}
-			{% else %}
-				never
-			{% endif %}
-			</td>
-		{% if member.isOnlineMember %}
-			<td>
-				{% if member.lastReadAnything %} 
-					{{member.lastReadAnything|timeZone:member.timeZoneName|date:member.dateFormat}} at {{member.lastReadAnything|timeZone:member.timeZoneName|time:member.timeFormat}}
-				{% else %}
-					never
-				{% endif %}
-				</td>
-			<td>{{member.nudgePoints}}</td>
-		{% endif %}
-		</tr>
-		</table>
 		
-		<h3>Nickname and description</h3>
+		<h3>{{template_nickname_and_description}}</h3>
 		<fieldset>
 		{% if member.isOnlineMember %}
-			<p>What nickname do you want to use in the Rakontu? <i>Note that if you change your nickname,
-			the new nickname will display on all of your previous entries as well as new ones.</i></p>
+			<p>{{template_what_nickname_do_you_want}} {{"changing_nicknames"|caution}}</p>
 		{% else %}
-			<p>What nickname do you want to use to represent this off-line member in the Rakontu? 
-			<i>Note that if you change this nickname,
-			the new nickname will display on all of the member's previous entries as well as new ones.</i></p>
+			<p>{{template_what_nickname_for_offline_member}} {{"changing_offline_member_nicknames"|caution}} </p>
 		{% endif %}
-		<input type="text" name="nickname" value="{{ member.nickname }}" maxlength="{{maxlength_name}}"/>
-		{% if member.isOnlineMember %}
-			<p>Do you want other Rakontu members to be able to send you messages via email? 
-			{% if member.isGuide %}
-				<i>(Actually, since you are a guide you have to accept messages so you can answer questions.)</i>
-			{% endif %}
-			{{"getting_messages"|tip}} </p>
-		{% else %}
-			<p>Do you want other Rakontu members to be able to send this member messages via email?
-			<i>(You, as the member's liaison, will get the messages.)</i></p>
-		{% endif %}
-		
-		{% if member.isGuide %}
-			<p><input type="checkbox" name="guideAlwaysAcceptsMessages" value="yes" id="guideAlwaysAcceptsMessages"
-				checked disabled>
-			<label for="guideAlwaysAcceptsMessages">Yes, people can send me messages</label></p>
-		{% else %}
-			<p><input type="checkbox" name="acceptsMessages" value="yes" id="acceptsMessages"
-				{% if member.acceptsMessages %}
-					checked
-				{% endif %}
-				><label for="acceptsMessages">Yes, people can send {% if member.isOnlineMember %}me messages{% else %}the member messages through me{% endif %}</label></p>
-		{% endif %}
+		<input type="text" name="nickname" value="{{member.nickname}}" maxlength="{{maxlength_name}}"/>
 		
 		{% if member.isOnlineMember %}
-			<p>What text format would you prefer to use by default when you create a new entry or other item with text in it?</i></p>
-			<select name="preferredTextFormat">
-				{% for format in text_formats %}
-					<option value="{{format}}"
-					{% ifequal member.preferredTextFormat format %}
-						selected="selected"
-					{% endifequal %}
-					>{{format}}</option>
-				{% endfor %}
-			</select>
-		{% endif %}
-		
-		{% if member.isOnlineMember %}
-			<p>Please describe yourself to other members.</p>
+			<p>{{template_describe_yourself}}</p>
 		{% else %}
-			<p>Please describe this off-line member to other members.</p>
+			<p>{{template_describe_offline_member}}</p>
 		{% endif %}
-
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
 				<textarea name="profileText" rows="10" cols="60">{{member.profileText}}</textarea>
 				</td><td class="noborder" width="80">
-				<p>Interpret as{{"interpreting_texts"|tip}}</p>
+				<p>{{template_interpret_as}} {{"interpreting_texts"|tip}}</p>
 					<select name="profileText_format">
 					{% for i in text_formats|makeRangeFromListLength %}
 						<option value="{{text_formats|listLookup:i}}" 
@@ -142,48 +38,120 @@
 					{% endfor %}
 					</select>
 				</td></tr></table>
-		{% if show_leave_link %}
-			<div class="rightalign">To leave the Rakontu, click <a href="/{{dir_visit}}/{{url_leave}}?{{url_query_member}}={{member.getKeyName}}">here</a>.</div>
-		{% endif %}
 
-			</fieldset>
-			
-		<h3>Picture</h3>
-		<fieldset>
-		      	<table border="0" cellpadding="4" cellspacing="0">
-		      	<tr>
-		      		<th>Image</th>
-		      		<th>{% if member.profileImage %} Replace {% else %} Attach {% endif %} {{"profile_images"|tip}}</th>
-		      		<th>Remove?</th>
-		      		
-		      	</tr>
-		      	<tr>
-					<td>{% if member.profileImage %}
-							{{member.imageEmbed}}
-						{% else %}
-							{{term_none}}
-						{% endif %}
-						</td>
-					<td><input type="file" name="img" size="40" accept="jpg/png"/></p><p><i>The best picture size is 100 x 60.</i></p></td>
-					<td>{% if member.profileImage %}
-							<input type="checkbox" name="removeProfileImage" value="yes" id="removeProfileImage">
-							<label for="removeProfileImage">Remove</label>{% else %}&nbsp; 
-						{% endif %}</td>
-				</tr>
-				</table>
+		{% if member.isOnlineMember %}
+			<p>{{template_please_add_a_picture}}</p>
+		{% else %}
+			<p>{{template_please_add_a_picture_of_offline_member}}</p>
+		{% endif %}
+      	<table border="0" cellpadding="4" cellspacing="0">
+      	<tr>
+      		<th>{{template_picture}}</th>
+      		<th>{% if member.profileImage %} {{template_replace}} {% else %} {{template_attach}} {% endif %} {{"profile_images"|tip}}</th>
+      		<th>{{template_remove}}?</th>
+      	</tr>
+      	<tr>
+			<td>{% if member.profileImage %}
+					{{member.imageEmbed}}
+				{% else %}
+					{{term_none}}
+				{% endif %}
+				</td>
+			<td><input type="file" name="img" size="40" accept="jpg/png"/></td>
+			<td>{% if member.profileImage %}
+					<input type="checkbox" name="removeProfileImage" value="yes" id="removeProfileImage">
+					<label for="removeProfileImage">{{template_remove}}</label>{% else %}&nbsp; 
+				{% endif %}</td>
+		</tr>
+		</table>
+		
+		{% if member.isOnlineMember %}
+			<p>{{template_do_you_want_messages}}
+			{% if member.isGuide %}
+				<i>({{template_guides_must_accept_messages}})</i>
+			{% endif %}
+			{{"getting_messages"|tip}} </p>
+		{% else %}
+			<p>{{template_offline_member_accept_messages}}</p>
+		{% endif %}
+		{% if not member.isOnlineMember %}
+			<p><input type="checkbox" name="acceptsMessages" value="yes" id="acceptsMessages"
+				{% if member.acceptsMessages %}
+					checked
+				{% endif %}
+			<label for="acceptsMessages">{{template_yes_people_can_send_messages_through_me}}</label></p>
+		{% else %}
+			{% if member.isGuide %}
+				<p><input type="checkbox" name="guideAlwaysAcceptsMessages" value="yes" id="guideAlwaysAcceptsMessages"
+					checked disabled>
+				<label for="guideAlwaysAcceptsMessages">{{template_yes_people_can_send_me_messages}}</label></p>
+			{% else %}
+				<p><input type="checkbox" name="acceptsMessages" value="yes" id="acceptsMessages"
+					{% if member.acceptsMessages %}
+						checked
+					{% endif %}
+					><label for="acceptsMessages">{{template_yes_people_can_send_me_messages}}</label></p>
+			{% endif %}
+		{% endif %}
 		</fieldset>
 		
-		{% if questions %}
-			{% include "../common_questions.html" %}
+		{% if member.isOnlineMember %}
+			{% if member.canTakeOnAnyHelpingRole %}
+				<h3>{{template_helping_roles}}</h3>
+				<fieldset>
+				{% for i in 3|makeRange %}
+					{% if member.helpingRolesAvailable|listLookup:i %}
+						<p><input type="checkbox" name="helpingRole{{i}}" value="helpingRole{{i}}" id="helpingRole{{i}}"
+							{% if member.helpingRoles|listLookup:i %}
+								checked="checked"
+							{% endif %}
+							/><label for="helpingRole{{i}}">{{template_i_am_a}} {{helping_role_names|listLookup:i}}</label></p>
+						{% if rakontu.roleReadmes_formatted|listLookup:i %}
+							<div class="indented">{{rakontu.roleReadmes_formatted|listLookup:i}}</div>
+						{% endif %}
+						{% ifequal i 1 %}
+							<table style="width:90%; border:none; margin-left:20px;">
+							<tr><th align="left" style="border:none; padding-left:6px;">{{template_guide_intro_question}}</th></tr>
+							<tr><td class="noborder">
+							<textarea name="guideIntro" rows="3" cols="60">{{member.guideIntro|orNothing}}</textarea>
+							</td><td class="noborder" width="80">
+							<p>{{template_interpret_as}}</p>
+								<select name="guideIntro_format">
+								{% for i in text_formats|makeRangeFromListLength %}
+									<option value="{{text_formats|listLookup:i}}" 
+										{% if text_formats|listLookup:i|equalTest:member.guideIntro_format %}
+											selected="selected"
+										{% endif %}
+									>{{text_formats_display|listLookup:i}}</option>
+								{% endfor %}
+								</select>
+							</td></tr></table>
+						{% endifequal %}
+					{% endif %}
+				{% endfor %}
+				</fieldset>
+			{% endif %}
 		{% endif %}
 		
-		<h3>Time zones and time reporting</h3>
+ 		{% if questions %}
+			{% include "../common_questions.html" %}
+		{% endif %}
+
+ 		<h3>{{template_other_options}}</h3>
 		<fieldset>
 		{% if member.isOnlineMember %}
-			<p>What time zone are you in?
-		{% else %}
-			<p>What time zone is this member in?
+			<p>{{template_choose_member_default_text_format}}
+			<select name="preferredTextFormat">
+				{% for format in text_formats %}
+					<option value="{{format}}"
+					{% ifequal member.preferredTextFormat format %}
+						selected="selected"
+					{% endifequal %}
+					>{{format}}</option>
+				{% endfor %}
+			</select></p>
 		{% endif %}
+		<p>{{template_time_zone_choice}}
 			<select name="timeZoneName"">
 			{% for name in time_zone_names %}
 				<option value="{{name}}"
@@ -193,7 +161,7 @@
 				>{{name}}</option>
 			{% endfor %}
 			</select></p>
-		<p>How should dates be displayed?
+		<p>{{template_date_display_choice}}
 			<select name="dateFormat">
 			{% for format in date_formats.keys %}
 				<option value="{{format}}"
@@ -203,7 +171,7 @@
 				>{{date_formats|dictLookup:format}}</option>
 			{% endfor %}
 			</select></p>
-		<p>How should times be displayed?
+		<p>{{template_time_display_choice}}
 			<select name="timeFormat">
 			{% for format in time_formats.keys %}
 				<option value="{{format}}"
@@ -213,75 +181,32 @@
 				>{{time_formats|dictLookup:format}}</option>
 			{% endfor %}
 			</select></p>
-		</fieldset>
-		
 		{% if member.isOnlineMember %}
-			{% if member.canTakeOnAnyHelpingRole %}
-				<h3>Helping roles</h3>
-				<fieldset>
-				
-				{% if member.helpingRolesAvailable.0 %}
-					<p><label><input type="checkbox" name="helpingRole0" value="helpingRole0"
-						{% if member.helpingRoles.0 %}
-							checked="checked"/>
-						{% else %}
-							/>
-						{% endif %}
-						I am a <b> {{helping_role_names.0}} </b> in this Rakontu.</label></p>
-					{% if rakontu.roleReadmes_formatted.0 %}
-						<div class="indented">{{rakontu.roleReadmes_formatted.0}}</div>
-					{% endif %}
+			<p>{{template_inline_image_display_choice}}
+			<select name="showAttachedImagesInline">
+				<option value="yes"
+				{% if member.showAttachedImagesInline %}
+					selected="selected"
 				{% endif %}
-				
-				{% if member.helpingRolesAvailable.1 %}
-					<p><label><input type="checkbox" name="helpingRole1" value="helpingRole1"
-						{% if member.helpingRoles.1 %}
-							checked="checked"/>
-						{% else %}
-							/>
-						{% endif %}
-						I am a <b>{{helping_role_names.1}}</b> in this Rakontu.</label></p>
-					{% if rakontu.roleReadmes_formatted.1 %}
-						<div class="indented">{{rakontu.roleReadmes_formatted.1}}</div>
-					{% endif %}
-					<p>If you are a guide, what would you like to tell members about what sorts of questions you can answer?</p>
-
-				<table style="width:100%; border:none">
-				<tr><td class="noborder">
-				<textarea name="guideIntro" rows="5" cols="60">{{member.guideIntro|orNothing}}</textarea>
-				</td><td class="noborder" width="80">
-				<p>Interpret as</p>
-					<select name="guideIntro_format">
-					{% for i in text_formats|makeRangeFromListLength %}
-						<option value="{{text_formats|listLookup:i}}" 
-							{% if text_formats|listLookup:i|equalTest:member.guideIntro_format %}
-								selected="selected"
-							{% endif %}
-						>{{text_formats_display|listLookup:i}}</option>
-					{% endfor %}
-					</select>
-				</td></tr></table>
-
+				>{{template_yes}}</option>
+				<option value="no"
+				{% if not member.showAttachedImagesInline %}
+					selected="selected"
 				{% endif %}
-				
-				{% if member.helpingRolesAvailable.2 %}
-					<p><label><input type="checkbox" name="helpingRole2" value="helpingRole2"
-						{% if member.helpingRoles.2 %}
-							checked="checked"/>
-						{% else %}
-							/>
-						{% endif %}
-						I am a <b>{{helping_role_names.2}}</b> in this Rakontu.</label></p>
-					{% if rakontu.roleReadmes_formatted.2 %}
-						<div class="indented">{{rakontu.roleReadmes_formatted.2}}</div>
-					{% endif %}
-				{% endif %}
-				</fieldset>
+				>{{template_no}}</option>
+			</select></p>
+		{% endif %}
+		{% if member.isOnlineMember %}
+			{% if show_leave_link %}
+				<div class="rightalign"><a href="/{{dir_visit}}/{{url_leave}}?{{url_query_member}}={{member.getKeyName}}">{{template_leave_rakontu}}</a></div>
 			{% endif %}
 		{% endif %}
+		</fieldset>
+			
+		
 		
       	<p>
-    <center><input type="submit" name="changeSettings|{{member.key}}" value="Save changes" class="button"></center>
+    <center><input type="submit" name="changeSettings|{{member.key}}" value="{{button_save_changes}}" class="button"></center>
 	</form>	
 	</div>
 	</div>

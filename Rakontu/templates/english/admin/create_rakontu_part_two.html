@@ -1,40 +1,40 @@
 <html>
 	<head>
 		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
-		<title>Create a new Rakontu</title>
+		<title>{{template_create_rakontu}}</title>
 	</head>
 	<body>
 	
 		<div id="stylized" class="rakontu_form_centered">
 		<form action="/{{dir_admin}}/{{url_create2}}" method="post">
 		<table border="0" width="400" class="noborder"><tr><td class="noborder">
-			<h3>Create a new Rakontu: Step Two</h3>
+			<h3>{{template_create_rakontu}}: {{template_step_two}}</h3>
 			
-			<p>The short (URL) name chosen for this Rakontu is:</p>
+			<p>{{template_short_name_is}}</p>
 			<p>&nbsp; &nbsp; <b>{{url}}</b></p>
 			<input type="hidden" name="url" value="{{url}}">
 			
-			<p>Please provide a longer name to display on the Rakontu pages.{{"setting_up_Rakontu_long_names"|tip}}</p>
+			<p>{{template_longer_rakontu_name}} {{"setting_up_Rakontu_long_names"|tip}}</p>
 			<input type="text" name="name" value="" size="40" maxlength="{{maxlength_name}}"/>
 			
-			<p>Which of these types best represents this Rakontu? {{"choosing_a_Rakontu_type"|info}}</p>
+			<p>{{template_choose_rakontu_type}} {{"choosing_a_Rakontu_type"|info}}</p>
 			<select name="type">
 				{% for type in rakontu_types %}
 					<option value="{{type}}">{{type}}</option>
 				{% endfor %}
 			</select>
 			
-			<p>Please enter an email address for the new Rakontu's owner. {{"setting_up_an_email_adddress_for_a_new_Rakontu"|caution}}</p>
+			<p>{{template_rakontu_owner_email}} {{"setting_up_an_email_adddress_for_a_new_Rakontu"|caution}}</p>
 			<input type="text" name="ownerEmail" value="" size="40" maxlength="{{maxlength_name}}"/>
 			
 			<center>
-			<p><input type="submit" name="create" value="Create the New Rakontu" class="button"></p>
-			<p>(or <a href="/{{dir_admin}}/{{url_create1}}?{{url}}">Go back to the first page</a>)
+			<p><input type="submit" name="create" value="{{button_create_rakontu}}" class="button"></p>
+			<p>(<a href="/{{dir_admin}}/{{url_create1}}?{{url}}">{{template_back_to_first_page}}</a>)
 			</center>
 			
 		</td></tr></table>
 		</form>
 		</div>
-		<center><p><a href="/{{dir_admin}}/{{url_admin}}">Cancel and return to the Rakontu site administration page</a></p></center>
+		<center><p><a href="/{{dir_admin}}/{{url_admin}}">{{template_cancel_rakontu_creation}}</a></p></center>
 	</body>
 </html>

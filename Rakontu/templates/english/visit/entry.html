@@ -16,26 +16,24 @@
 			{% if entry %}
 			 	<h3>{{entry.title}} ({{entry_type}})</h3>
 			{% else %}
-				<h3>New {{entry_type|capfirst}}</h3>
+				<h3>{{template_new}} {{entry_type|capfirst}}</h3>
 			{% endif %}
 			<fieldset>
-			{% if entry %}
-				You can change the text of the {{entry_type}} here.
-			{% else %} 
+			{% if not entry %}
 				{% ifequal entry_type "story" %}
-					Please tell your story here.
+					{{template_tell_new_story}} 
 				{% endifequal %}
 				{% ifequal entry_type "pattern" %}
-					Please describe the pattern of stories you want to make note of here.
+					{{template_describe_new_pattern}}
 				{% endifequal %} 
 				{% ifequal entry_type "collage" %}
-					Please describe your collage here. 
+					{{template_describe_new_collage}}
 				{% endifequal %}
 				{% ifequal entry_type "invitation" %}
-					Please describe to other members what you would like them to tell stories about.
+					{{template_describe_new_invitation}}
 				{% endifequal %}
 				{% ifequal entry_type "resource" %}
-					Type the text of your resource here.
+					{{template_text_for_new_resource}}
 				{% endifequal %}
 			{% endif %}
 			 
@@ -43,7 +41,7 @@
 			<tr><td class="noborder">
 			<textarea name="text" rows="10" cols="60">{% if entry %}{{entry.text}}{% endif %}</textarea>
 			</td><td class="noborder" width="80">
-			<p>Interpret as{{"interpreting_texts"|tip}}</p>
+			<p>{{template_interpret_as}} {{"interpreting_texts"|tip}}</p>
 				<select name="text_format">
 				{% for i in text_formats|makeRangeFromListLength %}
 					<option value="{{text_formats|listLookup:i}}" 
@@ -62,35 +60,33 @@
 			</td></tr></table>
 			
 			{% if entry %}
-				<p>You can change the name of this {{entry_type}} here.</p>
+				<p>{{template_name}}
 			{% else %}
-				<p>Please give this {{entry_type}} a name.</p>
+				<p>{{template_please_give_name_to_your}} {{entry_type}}.</p><p>
 			{% endif %}
-			<p><input type="text" name="title" size="60" value="{% if entry %}{{entry.title}}{% endif %}" maxlength="{{maxlength_name}}"/></p>
+			<input type="text" name="title" size="60" value="{% if entry %}{{entry.title}}{% endif %}" maxlength="{{maxlength_name}}"/></p>
 			
 			{% include "../common_attribution.html" %}
 
 			{% if link_item_from %}
-				<p>Since you created this story 
 				{% ifequal link_type "retell" %}
-					as your own version of the story "{{link_item_from.title}},"
-				{% endifequal %}
+					<p>{{template_since_you_retold}} {{link_item_from.linkString}}:</p>
+				{% endifequal %} 
 				{% ifequal link_type "remind" %}
-					because the story "{{link_item_from.title}}" reminded you of it,
+					<p>{{template_since_you_reminded}} {{link_item_from.linkString}}:</p>
 				{% endifequal %}
 				{% ifequal link_type "respond" %}
-					in response to the invitation "{{link_item_from.title}},"
+					<p>{{template_since_you_responded}} {{link_item_from.linkString}}:</p>
 				{% endifequal %}
 				<fieldset>
-				<p>Would you like to comment on 
 				{% ifequal link_type "retell" %}
-					why you retold the original story?</p>
+					<p>{{template_comment_on_retold_link}}</p>
 				{% endifequal %}
 				{% ifequal link_type "remind" %}
-					what reminded you of this story?</p>
+					<p>{{template_comment_on_reminded_link}}</p>
 				{% endifequal %}
 				{% ifequal link_type "respond" %}
-					why you responded to the invitation?</p>
+					<p>{{template_comment_on_responded_link}}</p>
 				{% endifequal %}
 				<p><input type="text" name="link_comment" value="" size="80" maxlength="{{maxlength_subject_or_comment}}"></p>
 				<input type="hidden" name="link_type" value="{{link_type}}">
@@ -99,9 +95,10 @@
 			{% endif %}
 			
 			{% ifequal entry_type "resource" %}
-				<p>Since this is a resource,</p>
+				<p>{{template_since_this_is_a_resource}}:</p>
 				<fieldset>
-				<p>Should it be listed on the help page?</p>
+				<p>{{template_which_resource_options_apply}}</p>
+				<p>
 				<input type="checkbox" name="resourceForHelpPage" value="yes" 
 				{% if entry %}
 					{% if entry.resourceForHelpPage %}
@@ -109,9 +106,9 @@
 					{% endif %}
 				{% endif %}
 				id="resourceForHelpPage">
-				<label for="resourceForHelpPage">Yes, mark this as a help resource</label>
-				
-				<p>Should it be listed on the page that new members see first?</p>
+				<label for="resourceForHelpPage">{{template_yes_is_help_resource}}</label>
+				</p>
+				<p>
 				<input type="checkbox" name="resourceForNewMemberPage" value="yes" 
 				{% if entry %}
 					{% if entry.resourceForNewMemberPage %}
@@ -119,19 +116,19 @@
 					{% endif %}
 				{% endif %}
 				id="resourceForNewMemberPage">
-				<label for="resourceForNewMemberPage">Yes, mark this as a new-member resource</label>
-				
+				<label for="resourceForNewMemberPage">{{template_yes_is_new_member_resource}}</label>
+				</p>
 				{% if current_member.isManagerOrOwner %}
-				<p>Should it be available only to Rakontu managers and owners?</p>
-				<input type="checkbox" name="resourceForManagersAndOwnersOnly" value="yes" 
-				{% if entry %}
-					{% if entry.resourceForManagersAndOwnersOnly %}
-						checked
+					<p>
+					<input type="checkbox" name="resourceForManagersAndOwnersOnly" value="yes" 
+					{% if entry %}
+						{% if entry.resourceForManagersAndOwnersOnly %}
+							checked
+						{% endif %}
 					{% endif %}
-				{% endif %}
-				id="resourceForManagersAndOwnersOnly">
-				<label for="resourceForManagersAndOwnersOnly">Yes, make this only available to managers and owners</label>
-				
+					id="resourceForManagersAndOwnersOnly">
+					<label for="resourceForManagersAndOwnersOnly">{{template_yes_manager_only_resource}}</label>
+					</p>
 				{% endif %}
 			
 				</fieldset>
@@ -146,14 +143,14 @@
 			
 		{% ifequal entry_type "collage" %}
 			{% if included_links_outgoing %}
-				<h3>Stories included in this collage</h3>
+				<h3>{{template_stories_included_in_collage}}</h3>
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
-		      		<th>Title</th>
-		      		<th>Text</th>
-		      		<th>Link comment</th>
-		      		<th>Remove?</th>
+		      		<th>{{template_name}}</th>
+		      		<th>{{template_first_part_of_text}}</th>
+		      		<th>{{template_link_comment}}</th>
+		      		<th>{{template_remove}}?</th>
 		      		</tr>
 		      		{% for link in included_links_outgoing %}
 		  				<tr>
@@ -162,7 +159,7 @@
 		  				<td><input type="text" name="linkComment|{{link.key}}" value="{{link.comment}}" size="60" maxlength="{{maxlength_subject_or_comment}}"/></td>
 		  				<td width="80">
 		  					<input type="checkbox" name="removeLink|{{ link.key }}" value="yes" id="removeLink|{{ link.key }}"/>
-							<label for="removeLink|{{ link.key }}">Remove</label>
+							<label for="removeLink|{{ link.key }}">{{template_remove}}</label>
 		  					</td>
 		  				</tr>
 		      		{% endfor %}
@@ -170,7 +167,7 @@
 		      	</fieldset>
 	      {% endif %}
 	      {% if num_collage_rows %}
-			<h3>Add stories to the collage {{"adding_collage_link_comments"|tip}}</h3>
+			<h3>{{template_add_stories_to_the_collage}} {{"adding_collage_link_comments"|tip}}</h3>
 			<fieldset>
 			<table  style="border:none;padding:0;margin:0;"><tr>
 			{% for i in num_collage_rows|makeRange %}
@@ -207,14 +204,14 @@
 	  
 		{% ifequal entry_type "pattern" %}
 			{% if referenced_links_outgoing %}
-				<h3>Search filters referred to by this pattern</h3>
+				<h3>{{template_search_filters_referred_to_by_this_pattern}}</h3>
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
-		      		<th>Name</th>
-		      		<th>Description</th>
-		      		<th>Link comment</th>
-		      		<th>Remove?</th>
+		      		<th>{{template_name}}</th>
+		      		<th>{{template_description}}</th>
+		      		<th>{{template_link_comment}}</th>
+		      		<th>{{template_remove}}?</th>
 		      		</tr>
 		      		{% for link in referenced_links_outgoing %}
 		  				<tr>
@@ -223,14 +220,14 @@
 		  				<td><input type="text" name="linkComment|{{link.key}}" value="{{link.comment}}" size="60" maxlength="{{maxlength_subject_or_comment}}"/></td>
 		  				<td width="80">
 		  					<input type="checkbox" name="removeLink|{{ link.key }}" value="yes" id="removeLink|{{ link.key }}"/>
-							<label for="removeLink|{{ link.key }}">Remove</label>
+							<label for="removeLink|{{ link.key }}">{{template_remove}}</label>
 		  					</td>
 		  				</tr>
 		      		{% endfor %}
 		      	</table>
 		      	</fieldset>
 	      {% endif %}
-			<h3>Add search filters to the pattern {{"adding_pattern_link_comments"|tip}}</h3>
+			<h3>{{template_add_search_filters_to_the_pattern}} {{"adding_pattern_link_comments"|tip}}</h3>
 			{% if searches_that_can_be_added_to_pattern %}
 			<fieldset>
 			<ul>
@@ -241,15 +238,20 @@
 			</ul>
 	      	</fieldset>
 	      	{% else %}
-	      		<ul><li class="nobullet">There are no shared searches available.</li></ul>
+	      		<ul><li class="nobullet">{{template_no_shared_searches_available}}</li></ul>
 	      	{% endif %}
 	  {% endifequal %}
 	  
 			{% if rakontu.allowsAttachments %}
-				<h3>Attachments</h3>
+				<h3>{{template_attachments}}</h3>
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
-		      	<tr><th>Name</th><th>File</th><th>Remove?</th><th>Attach or replace {{"replacing_attachments"|tip}}</th></tr>
+		      	<tr>
+		      		<th>{{template_name}}</th>
+		      		<th>{{template_file_name}}</th>
+		      		<th>{{template_attach_or_replace}} {{"replacing_attachments"|tip}}</th>
+		      		<th>{{template_remove}}?</th>
+		      		</tr>
 	      		{% for i in rakontu.maxNumAttachments|makeRange %}
 	      			<tr>
 		      		<td>
@@ -263,21 +265,21 @@
 						{% endif %}
 					</td>
 					<td>
+						<input type="file" name="attachment{{i}}" size="20"/>
+					</td>
+					<td>
 						{% if attachments|listLookup:i|get:"fileName" %}
 							<input type="checkbox" name="removeAttachment|{{attachments|listLookup:i|get:"key"}}" 
 							value="removeAttachment|{{attachments|listLookup:i|get:"key"}}"  id="{{i}}">
-							<label for="{{i}}">Remove</label>
+							<label for="{{i}}">{{template_remove}}</label>
 						{% else %}
 							&nbsp; 
 						{% endif %}
 					</td>
-					<td>
-						<input type="file" name="attachment{{i}}" size="20"/>
-					</td>
 					</tr>
 	      		{% endfor %}
 				</table>
-				<p><i>Accepted file types: {{attachment_file_types|join:", "}}.</i></p>
+				<p><i>{{template_accepted_file_types}}: {{attachment_file_types|join:", "}}.</i></p>
 				</fieldset>
 			{% endif %}
 			
@@ -285,17 +287,17 @@
 			<center>
 			{% if entry %}
 				{% if entry.inBatchEntryBuffer %}
-					<input type="submit" name="save|{{entry_type}}" value="Save changes and return" class="button">
-					<input type="submit" name="preview|{{entry_type}}" value="Preview" class="button">
+					<input type="submit" name="save|{{entry_type}}" value="{{button_save_changes_and_return}}" class="button">
+					<input type="submit" name="preview|{{entry_type}}" value="{{button_preview}}" class="button">
 				{% else %}
-					<input type="submit" name="save|{{entry_type}}" value="Save draft" class="button">
-					<input type="submit" name="preview|{{entry_type}}" value="Preview" class="button">
-					<input type="submit" name="publish|{{entry_type}}" value="Publish" class="button">
+					<input type="submit" name="save|{{entry_type}}" value="{{button_save_draft}}" class="button">
+					<input type="submit" name="preview|{{entry_type}}" value="{{button_preview}}" class="button">
+					<input type="submit" name="publish|{{entry_type}}" value="{{button_publish}}" class="button">
 				{% endif %}
 			{% else %}
-				<input type="submit" name="save|{{entry_type}}" value="Save as draft" class="button">
-				<input type="submit" name="preview|{{entry_type}}" value="Preview" class="button">
-				<input type="submit" name="publish|{{entry_type}}" value="Publish" class="button">
+				<input type="submit" name="save|{{entry_type}}" value="{{button_save_as_draft}}" class="button">
+				<input type="submit" name="preview|{{entry_type}}" value="{{button_preview}}" class="button">
+				<input type="submit" name="publish|{{entry_type}}" value="{{button_publish}}" class="button">
 			{% endif %}
 			</center>
 			

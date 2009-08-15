@@ -3,134 +3,131 @@
 	<body>
 	{% include "../common_menus.html" %}
 	<div id="content">
-	{% if user_is_admin %}
-		<div id="stylized" class="rakontu_form">
-		<form action="/{{dir_admin}}/{{url_admin}}" method="post" enctype="multipart/form-data">
-		
-		<h2>Site initialization tasks {{"site_initialization_tasks"|tip}}  {{"site_initialization_tasks"|caution}}</h2>
-		
+	
+	<div id="stylized" class="rakontu_form">
+	<form action="/{{dir_admin}}/{{url_admin}}" method="post" enctype="multipart/form-data">
+	
+	<h2>{{template_site_initialization_tasks}} {{"site_initialization_tasks"|tip}}  {{"site_initialization_tasks"|caution}}</h2>
+	
+	<fieldset>
+	<p>&nbsp; &nbsp; <b>{{template_must_be_done_before_rakontus}}</b></p>
+	
+	<p>&nbsp; &nbsp; &nbsp; &nbsp; 
+	<a href="/{{dir_admin}}/{{url_default_resources}}">{{template_generate}}</a> {{template_default_help_resources}} -
+	<b>{{num_default_resources}}</b> {{template_have_been_created}}
+	(config/{{site_language}}/default_resources.py)</p>
+	
+	<p>&nbsp; &nbsp; &nbsp; &nbsp; 
+	<a href="/{{dir_admin}}/{{url_skins}}">{{template_generate}}</a> {{template_skins|lower}} -
+	<b>{{num_skins}}</b> {{template_have_been_created}}
+	(config/{{site_language}}/skins.csv)</p>
+	
+	<p>&nbsp; &nbsp; <b>{{template_can_be_done_anytime}}</b></p>
+	
+	<p>&nbsp; &nbsp; &nbsp; &nbsp; 
+	<a href="/{{dir_admin}}/{{url_sample_questions}}">{{template_generate}}</a> {{template_sample_questions}} -
+	<b>{{num_sample_questions}}</b> {{template_have_been_created}}
+	(config/{{site_language}}/sample_questions.csv)</p>
+	
+	<p>&nbsp; &nbsp; &nbsp; &nbsp; <a href="/{{dir_admin}}/{{url_helps}}">{{template_generate}}</a> 
+	{{template_help_texts}} -
+	<b>{{num_helps}}</b> {{template_have_been_created}}
+	(config/{{site_language}}/help.csv)</p>
+	
+	</fieldset>
+	
+	<h2>Rakontus</h2>
+	{% if rakontus %}
 		<fieldset>
-		<p>&nbsp; &nbsp; <b>Must be done before any Rakontus are created</b></p>
+		<table>
+		<tr>
+			<th>URL</th>
+			<th>{{template_name}}</th>
+			<th>{{template_created}}<br/>(UTC)</th>
+			<th>{{template_last_activity}}<br/>(UTC)</th>
+			<th>{{template_approcket_timestamp}}<br/>(UTC)</th>
+			<th>{{template_active_members}}</th>
+			<th>{{template_pending_members}}</th>
+			<th>{{template_inactive_members}}</th>
+			<th>{{template_member}}?</th>
+			<th>{{template_active}}? {{"activating_rakontus"|caution}}</th>
+			<th>{{template_remove}} {{"removing_rakontus"|caution}}</th>
+			</tr>
 		
-		<p>&nbsp; &nbsp; &nbsp; &nbsp; 
-		<a href="/{{dir_admin}}/{{url_default_resources}}">Generate</a> default help <b>resources</b> -
-		<b>{{num_default_resources}}</b> have been created
-		(source: default_resources.py)</p>
-		
-		<p>&nbsp; &nbsp; &nbsp; &nbsp; 
-		<a href="/{{dir_admin}}/{{url_skins}}">Generate</a> <b>skins</b> -
-		<b>{{num_skins}}</b> have been created
-		(source: skins.csv)</p>
-		
-		<p>&nbsp; &nbsp; <b>Can be done anytime</b></p>
-		
-		<p>&nbsp; &nbsp; &nbsp; &nbsp; 
-		<a href="/{{dir_admin}}/{{url_sample_questions}}">Generate</a> <b>sample questions</b> -
-		<b>{{num_sample_questions}}</b> have been created
-		(source: sample_questions.csv)</p>
-		
-		<p>&nbsp; &nbsp; &nbsp; &nbsp; <a href="/{{dir_admin}}/{{url_helps}}">Generate</a> short mouse-over <b>help</b> texts -
-		<b>{{num_helps}}</b> have been created
-		(source: help.csv)</p>
-		
-		</fieldset>
-		
-		<h2>Rakontus</h2>
-		{% if rakontus %}
-			<fieldset>
-			<table>
-			<tr>
-				<th>URL</th>
-				<th>Name</th>
-				<th>Created<br/>(UTC)</th>
-				<th>Last activity<br/>(UTC)</th>
-				<th>AppRocket timestamp<br/>(UTC)</th>
-				<th>Active members</th>
-				<th>Pending members</th>
-				<th>Inactive members</th>
-				<th>Member?</th>
-				<th>Active?{{"activating_rakontus"|caution}}</th>
-				<th>Remove{{"removing_rakontus"|caution}}</th>
-				</tr>
-			
-	    	{% for rakontu in rakontus %}
-		    	<tr>
-		    	<td><a href="http://{{host}}{{rakontu.linkURL}}">{{rakontu.getKeyName}}</a></td>
-		    	<td>{{rakontu.name}}</td>
-		    	<td>{{rakontu.created|timeZone:"UTC"|date:"F j, Y"}}<br/>{{rakontu.created|timeZone:"UTC"|time:"h:i a"}}</td>
-		    	<td>
-		    		{% if rakontu.lastPublish %}
-		    			{{rakontu.lastPublish|timeZone:"UTC"|date:"F j, Y"}}<br/>{{rakontu.lastPublish|timeZone:"UTC"|time:"h:i a"}}
-		    		{% else %}
-		    			{{term_none}}
-		    		{% endif %}
-		    	</td>
-		    	<td>
-		    		{% if rakontu.appRocketTimeStamp %}
-		    			{{rakontu.appRocketTimeStamp|date:"F j, Y"}}<br/>{{rakontu.appRocketTimeStamp|time:"h:i a"}}
-		    		{% else %}
-		    			{{term_none}}
-		    		{% endif %}
-		    	</td>
-		    	<td align="center">{{rakontu.getActiveMembers|length}}</td>
-			    	<td align="center">{{rakontu.getPendingMembers|length}}</td>
-		    	<td align="center">{{rakontu.getInactiveMembers|length}}</td>
-		    	<td align="center">
-		    		{% if member_of|dictLookup:rakontu.key %}
-		    			yes, as {{member_of|dictLookup:rakontu.key}}
-		    		{% else %}
-		    			no
-		    		{% endif %}
-		    		<br/>
-		    		{% if member_of|dictLookup:rakontu.key %}
-		    			<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="Leave" class="button">
-		    		{% else %}
-		    			<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="Join" class="button"><br/>
-		    			as <select name="joinAs|{{rakontu.key}}">
-		    			<option value="member">member</option>
-		    			<option value="manager">manager</option>
-		    			</select>
-		    		{% endif %}
-		    	</td>
-				<td align="center">
-					{{rakontu.active|yesno:"active, inactive"}}<br/>
-	  					{% if rakontu.active %}
-	  						<input type="submit" name="toggleActiveState|{{rakontu.key}}" value="Inactivate" class="button"
-							onClick="javascript:return confirm('Are you sure you want to INACTIVATE the Rakontu {{rakontu.name}}?')">
-	  					{% else %}
-	  						<input type="submit" name="toggleActiveState|{{rakontu.key}}" value="Activate" class="button"
-							onClick="javascript:return confirm('Are you sure you want to ACTIVATE the Rakontu {{rakontu.name}}?')">
-	  					{% endif %}
-	  			</td>
-				<td>
-				<input type="submit" name="remove|{{rakontu.key}}" value="REMOVE" class="button" 
-				onClick="javascript:return confirm('Are you REALLY SURE you want to PERMANENTLY REMOVE the Rakontu {{rakontu.name}}?')">
-	  					</td>
-				</td>
-	    	{% endfor %}
-	    	</table>
-	    	</fieldset>
-			<p><a href="/{{dir_admin}}/{{url_create1}}">Create another Rakontu</a></p>
-			<p></p>
-			<center><p><i><b>Please remove Rakontus VERY carefully.</p>
-			<p>Deleted Rakontus cannot be recovered.</p>
-			<p>It is best to back up first.</b></i></p>
-			</form>
-			</div>
-	    {% else %}
-	    	<p>&nbsp; &nbsp; none - <a href="/{{dir_admin}}/{{url_create1}}">Create one</a></p>
-	    {% endif %}	
+    	{% for rakontu in rakontus %}
+	    	<tr>
+	    	<td><a href="http://{{host}}{{rakontu.linkURL}}">{{rakontu.getKeyName}}</a></td>
+	    	<td>{{rakontu.name}}</td>
+	    	<td>{{rakontu.created|timeZone:"UTC"|date:"F j, Y"}}<br/>{{rakontu.created|timeZone:"UTC"|time:"h:i a"}}</td>
+	    	<td>
+	    		{% if rakontu.lastPublish %}
+	    			{{rakontu.lastPublish|timeZone:"UTC"|date:"F j, Y"}}<br/>{{rakontu.lastPublish|timeZone:"UTC"|time:"h:i a"}}
+	    		{% else %}
+	    			{{term_none}}
+	    		{% endif %}
+	    	</td>
+	    	<td>
+	    		{% if rakontu.appRocketTimeStamp %}
+	    			{{rakontu.appRocketTimeStamp|date:"F j, Y"}}<br/>{{rakontu.appRocketTimeStamp|time:"h:i a"}}
+	    		{% else %}
+	    			{{term_none}}
+	    		{% endif %}
+	    	</td>
+	    	<td align="center">{{rakontu.getActiveMembers|length}}</td>
+		    	<td align="center">{{rakontu.getPendingMembers|length}}</td>
+	    	<td align="center">{{rakontu.getInactiveMembers|length}}</td>
+	    	<td align="center">
+	    		{% if member_of|dictLookup:rakontu.key %}
+	    			{{template_yes}}, {{member_of|dictLookup:rakontu.key}}
+	    		{% else %}
+	    			{{template_no}}
+	    		{% endif %}
+	    		<br/>
+	    		{% if member_of|dictLookup:rakontu.key %}
+	    			<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="{{button_leave}}" class="button">
+	    		{% else %}
+	    			<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="{{button_join}}" class="button"><br/>
+	    			{{template_join_as_a}}
+	    			<select name="joinAs|{{rakontu.key}}">
+	    			<option value="member">{{governance_roles_display|listLookup:0}}</option>
+	    			<option value="manager">{{governance_roles_display|listLookup:1}}</option>
+	    			</select>
+	    		{% endif %}
+	    	</td>
+			<td align="center">
+  					{% if rakontu.active %}
+  						{{template_active}}<br/>
+  						<input type="submit" name="toggleActiveState|{{rakontu.key}}" value="{{button_inactivate_shorter}}" class="button"
+						onClick="javascript:return confirm('{{template_confirm_inactivate}} {{rakontu.name}}?')">
+  					{% else %}
+  						{{template_inactive}}<br/>
+  						<input type="submit" name="toggleActiveState|{{rakontu.key}}" value="{{button_activate}}" class="button"
+						onClick="javascript:return confirm('{{template_confirm_activate}} {{rakontu.name}}?')">
+  					{% endif %}
+  			</td>
+			<td>
+			<input type="submit" name="remove|{{rakontu.key}}" value="{{button_remove|allcaps}}" class="button" 
+			onClick="javascript:return confirm('{{template_confirm_remove}} {{rakontu.name}}?')">
+  					</td>
+			</td>
+    	{% endfor %}
+    	</table>
+    	</fieldset>
+		<p><a href="/{{dir_admin}}/{{url_create1}}">{{template_create_another}} Rakontu</a></p>
+		<p></p>
+		<center><p><i><b>{{template_admin_warning}}</b></i></p>
+		</form>
+		</div>
+    {% else %}
+    	<p>&nbsp; &nbsp; {{template_none}} - <a href="/{{dir_admin}}/{{url_create1}}">{{template_create_one}}</a></p>
+    {% endif %}	
+    
+    <fieldset>
+    <p><b>For developers only</b></p>
+    <p>&nbsp; &nbsp; <a href="/{{dir_admin}}/{{url_make_fake_data}}">Generate fake testing Rakontu</a></p>
+    <p>&nbsp; &nbsp; <a href="/{{dir_admin}}/{{url_stress_test}}">Generate stress-test Rakontu with large amount of data</a></p>
+    </fieldset>
 	    
-	    <fieldset>
-	    <p><b>For developers only</b></p>
-	    <p>&nbsp; &nbsp; <a href="/{{dir_admin}}/{{url_make_fake_data}}">Generate fake testing Rakontu</a></p>
-	    <p>&nbsp; &nbsp; <a href="/{{dir_admin}}/{{url_stress_test}}">Generate stress-test Rakontu with large amount of data</a></p>
-	    </fieldset>
-	    
-	{% else %}
-		<p>You are not an administrator of this site and cannot change it.
-		Please ask an administrator to make any changes you would like to see made.</p>
-	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

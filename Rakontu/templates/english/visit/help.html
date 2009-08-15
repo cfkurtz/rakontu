@@ -4,59 +4,71 @@
 	{% include "../common_menus.html" %}
 	<div id="content">
 	
-	<h3>Help resources</h3>
+	<h3>{{template_help_resources}}</h3>
 	
-	{% if resources %}
-		<p>You may find these resources helpful in using this Rakontu.</p>
-		<ul>
-		{% for resource in resources %}
-		<li class="nobullet">{{resource.linkString}}</li>
-		{% endfor %}
-		</ul>
-	{% endif %}
-	
-	{% if manager_resources %}
-		<p>As a manager, you may find these resources helpful.</p>
-		<ul>
-		{% for resource in manager_resources %}
-		<li class="nobullet">{{resource.linkString}}</li>
-		{% endfor %}
-		</ul>
-	{% endif %}
-	
-	{% if not resources and not manager_resources %}
+	{% if not non_manager_resources and not manager_resources %}
 		{% if current_member.isGuideOrManagerOrOwner %}
-      		<p>This Rakontu has no help resources.<p>
+			<div class="blurb">
+      		<p>{{template_no_resources_manager}}<p>
       		<ul>
-      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_resource}}?{{rakontu.urlQuery}}">Make one</a></li>
-      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_copy}}?{{rakontu.urlQuery}}">Create all default resources</a></li>
+      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_resource}}?{{rakontu.urlQuery}}">{{template_create_a_resource}}</a></li>
+      		{% if have_system_resources %}
+      			<li class="nobullet">
+      			<a href="/{{dir_guide}}/{{url_copy_resources}}?{{rakontu.urlQuery}}">{{template_generate_default_resources}}</a>
+      			{{"default_help_resources"|info}}</li>
+      		{% else %}
+      			<li class="nobullet">
+      			{{template_no_system_resources}} 
+      			<a href="mailto:{{site_support_email}}?subject={{template_support_for_rakontu}}{{rakontu.getKeyName}}">
+      			{{template_site_support|lower}}</a></li>
+      		{% endif %}
       		</ul>
-	      {% endif %}
+      		</div>
+      	{% else %}
+      		<p>{{template_no_resources_non_manager}}</p>
+      	{% endif %}
 	{% endif %}
+	
+	{% if non_manager_resources %}
+		<ul>
+		{% for resource in non_manager_resources %}
+			<li class="nobullet">{{resource.linkString}}</li>
+		{% endfor %}
+		{% if current_member.isManagerOrOwner %}
+			{% if manager_resources %}
+				{% for resource in manager_resources %}
+					<li class="nobullet">{{resource.linkString}}</li>
+				{% endfor %}
+			{% endif %}
+		{% endif %}
+		</ul>
+	{% endif %}
+	
 	
 	{% if guides %}
-		<h3>Ask a guide a question</h3>
-		<p>Guides are Rakontu members who have agreed to answer questions about the Rakontu. Here they have described
-		which sorts of questions they are most able and willing to answer. To ask a question, click on a guide's
-		name and send them a message.
+		<h3>{{template_ask_a_guide}} {{"asking_a_guide_a_question"|info}}</h3>
       		<hr>
       		{% for guide in guides %}
   				<table style="width:100%;" class="noborder">
   				<tr>
   				<td style="border:none; border-right:1px solid #{{skin|dictLookup:"color_border_normal"}};" width="100" valign="center" align="center">
 			 		{% if guide.profileImage %}
-						<a href="/{{dir_visit}}/{{url_member}}?{{guide.urlQuery}}">{{guide.imageEmbed}}</a>
+						<a href="/{{dir_visit}}/{{url_ask}}?{{guide.urlQuery}}">{{guide.imageEmbed}}</a>
 					{% else %}
 						&nbsp;
 					{% endif %}
 				</td>
 				<td style="border:none;padding-left:16px;">
-	 				<p>{{guide.linkString}}  
-	  				{% ifequal guide.key current_member.key %}<i>(that's you)</i> {% endifequal %} 
+	 				<p>{{guide.askLinkString}}  
+	  				{% ifequal guide.key current_member.key %}<i>({{template_you}})</i> {% endifequal %} 
 	  				</p>
-	  				{% if guide.guideIntro_formatted %}
-	  					<div class="blurb">{{guide.guideIntro_formatted}}</div>
+	  				<div class="blurb">
+	  				{% if guide.guideIntro|orNothing %}
+	  					{{guide.guideIntro_formatted}}
+	  				{% else %}
+	  					{{template_guide_has_not_entered_intro}}
 	  				{% endif %}
+	  				</div>
   				</td>
    				</tr>
   				</table>

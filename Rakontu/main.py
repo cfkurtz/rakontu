@@ -39,8 +39,11 @@ application = webapp.WSGIApplication(
 									  (BuildURL("dir_visit", "url_leave"), LeaveRakontuPage),
 									  
 									  # help
-									  (BuildURL("dir_visit", "url_help"), GetHelpPage),
-
+									  (BuildURL("dir_visit", "url_help"), GeneralHelpPage),
+									  (BuildURL(None, "url_result"), ResultFeedbackPage),
+									  (BuildURL(None, "url_help"), ContextualHelpPage),
+									  (BuildURL("dir_visit", "url_ask"), AskGuidePage),
+									  
 									  # entering entries
 									  (BuildURL("dir_visit", URLForEntryType("story")), EnterEntryPage),
 									  (BuildURL("dir_visit", "url_retell"), EnterEntryPage),
@@ -132,10 +135,6 @@ application = webapp.WSGIApplication(
 									  # for testing
 									  (BuildURL("dir_admin", "url_make_fake_data"), GenerateFakeDataPage),
 									  (BuildURL("dir_admin", "url_stress_test"), GenerateStressTestPage),
-									  
-									  # message-to-user pages
-									   (BuildURL(None, "url_result"), ResultFeedbackPage),
-									   (BuildURL(None, "url_help"), ContextualHelpPage),
 									  
 									  # file handlers
 									  (BuildURL(None, "url_image"), ImageHandler),

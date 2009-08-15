@@ -9,76 +9,112 @@
 			<div id="stylized" class="rakontu_form">
 			<form action="/{{dir_manage}}/{{url_members}}?{{rakontu.urlQuery}}" method="post">
 			
-			<h3>Active members</h3>
+			<h3>{{template_active_members}}</h3>
 			<fieldset>
 	      	<table border="0" cellpadding="4" cellspacing="0">
 	      	<tr>
-	      		<th>Nickname</th>
-	      		<th>Online member?</th>
-	      		<th>Google account email</th>
-	      		<th>Type of membership</th>
-	      		<th>Helping roles and availability</th>
-	      		<th>Inactivate?</th>
+	      		<th>{{template_nickname}}</th>
+	      		<th>{{template_online}}?</th>
+	      		<th>{{template_google_email}}</th>
+	      		<th>{{template_membership_type}}</th>
+	      		<th>{{template_helping_roles_taken_on}}</th>
+	      		<th>{{template_helping_roles_available}} {{"available_helping_roles"|tip}}</th>
+	      		<th>{{template_inactivate}}?</th>
 	      		</tr>
 	      		{% for aMember in rakontu_members %}
 	  				<tr>
-	  				<td>{{ aMember.nickname }} {% ifequal aMember.key current_member.key %}<br><i>(This is you)</i> {% endifequal %} </td>
-	  				<td>{{ aMember.isOnlineMember|yesno:"yes, no, maybe" }}</td>
-	  				<td>{{ aMember.googleUserEmailOrNotOnline}}</td>
+	  				<td>{{aMember.nickname}} {% ifequal aMember.key current_member.key %}<br><i>({{template_you}})</i> {% endifequal %} </td>
+	  				<td>
+	  					{% if aMember.isOnlineMember %}
+	  						{{template_online}}
+	  					{% else %}
+	  						{{template_offline}}
+	  					{% endif %}
+	  				</td>
+	  				<td>{{aMember.googleUserEmailOrNotOnline}}</td>
 	  				<td>
 	  					<select name="governanceType" class="select">
-	  						<option value="member|{{ aMember.googleAccountID }}"
+	  						<option value="member|{{aMember.googleAccountID}}"
 	  							{% if aMember.isRegularMember %}
 	  								selected="selected"
 	  							{% endif %}
-	  							>Member</option>
-	  						<option value="manager|{{ aMember.googleAccountID }}"
+	  							>{{template_member}}</option>
+	  						<option value="manager|{{aMember.googleAccountID}}"
 	  							{% if aMember.isManager %}
 	  								selected="selected"
 	  							{% endif %}
-	  							>Manager</option>
-	  						<option value="owner|{{ aMember.googleAccountID }}"
+	  							>{{template_manager}}</option>
+	  						<option value="owner|{{aMember.googleAccountID}}"
 	  							{% if aMember.isOwner %}
 	  								selected="selected"
 	  							{% endif %}
-	  							>Owner</option>
+	  							>{{template_owner}}</option>
 						</select>
 	  					</td>
 	  				<td>
-	  					Curator: {{aMember.helpingRoles.0|yesno:"yes, no, maybe"}}
-	  					{% if not aMember.isManagerOrOwner %}
-	      					<input type="checkbox" name="curatorAvailable|{{aMember.key}}" value="yes" id="curatorAvailable"
+	  					<p>{{template_curator}}: 
+	  					{% if aMember.helpingRoles.0 %}
+	  						{{template_yes}}
+	  					{% else %}
+	  						{{template_no}}
+	  					{% endif %}
+	  					</p>
+	  					<p>{{template_guide}}: 
+	  					{% if aMember.helpingRoles.1 %}
+	  						{{template_yes}}
+	  					{% else %}
+	  						{{template_no}}
+	  					{% endif %}
+	  					</p>
+	  					<p>{{template_liaison}}: 
+	  					{% if aMember.helpingRoles.2 %}
+	  						{{template_yes}}
+	  					{% else %}
+	  						{{template_no}}
+	  					{% endif %}
+	  					</p>
+	  					</td>
+	  				<td>
+	  					<p>{{template_curator}}: 
+	  					{% if aMember.isManagerOrOwner %}
+	  						{{template_available}}
+	  					{% else %}
+	      					<input type="checkbox" name="curatorAvailable|{{aMember.key}}" value="yes" id="curatorAvailable|{{aMember.key}}"
 	      					{% if aMember.helpingRolesAvailable.0 %}
 	      						checked="checked"
 	      					{% endif %}
-	      					><label for="curatorAvailable">Available</label>
+	      					><label for="curatorAvailable|{{aMember.key}}">{{template_available}}</label>
 	      				{% endif %}
 	      				</p>
 	  					
-	  					Guide: {{aMember.helpingRoles.1|yesno:"yes, no, maybe"}}
-	  					{% if not aMember.isManagerOrOwner %}
-	      					<input type="checkbox" name="guideAvailable|{{aMember.key}}" value="yes" id="guideAvailable"
+	  					<p>{{template_guide}}: 
+	  					{% if aMember.isManagerOrOwner %}
+	  						{{template_available}}
+	  					{% else %}
+	      					<input type="checkbox" name="guideAvailable|{{aMember.key}}" value="yes" id="guideAvailable|{{aMember.key}}"
 	     					{% if aMember.helpingRolesAvailable.1 %}
 	      						checked="checked"
 	      					{% endif %}
-	      					><label for="guideAvailable">Available</label>
+	      					><label for="guideAvailable|{{aMember.key}}">{{template_available}}</label>
 						{% endif %}
 						</p>
 						
-	  					Liaison: {{aMember.helpingRoles.2|yesno:"yes, no, maybe"}}
-	  					{% if not aMember.isManagerOrOwner %}
-	      					<input type="checkbox" name="liaisonAvailable|{{aMember.key}}" value="yes" id="liaisonAvailable"
+	  					<p>{{template_liaison}}: 
+	  					{% if aMember.isManagerOrOwner %}
+	  						{{template_available}}
+	  					{% else %}
+	      					<input type="checkbox" name="liaisonAvailable|{{aMember.key}}" value="yes" id="liaisonAvailable|{{aMember.key}}"
 	     					{% if aMember.helpingRolesAvailable.2 %}
 	      						checked="checked"
 	      					{% endif %}
-	      					><label for="liaisonAvailable">Available</label>
+	      					><label for="liaisonAvailable|{{aMember.key}}">{{template_available}}</label>
 	      				{% endif %}
 	      				</p>
 	      				
 	  					</td>
 	  				<td>
-	  					<input type="checkbox" name="remove|{{ aMember.key }}" value="yes" id="remove|{{ aMember.key }}"/>
-						<label for="remove|{{ aMember.key }}">Inactivate</label>
+	  					<p><input type="checkbox" name="remove|{{aMember.key}}" value="yes" id="remove|{{aMember.key}}">
+						<label for="remove|{{aMember.key}}">{{template_inactivate}}</label></p>
 	  					</td>
 	  				</tr>
 	      		{% endfor %}
@@ -86,38 +122,34 @@
 	      	</fieldset>
 			
 			{% if pending_members %}
-				<h3>Pending members</h3>
+				<h3>{{template_pending_members}}</h3>
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
-		      		<th>Email</th>
-		      		<th>Invited</th>
-		      		<th>Remove? </th>
+		      		<th>{{template_email}}</th>
+		      		<th>{{template_invited}}</th>
+		      		<th>{{template_remove}}? </th>
 		      		</tr>
 		      		{% for pending_member in pending_members %}
 		  				<tr>
 		  				<td><input type="text" name="email|{{pending_member.key}}" size="20" value="{{pending_member.email}}" maxlength="{{maxlength_name}}"/></td>
 		  				<td>{{pending_member.invited.date}}</td>
 		  				<td><input type="checkbox" name="removePendingMember|{{pending_member.key}}" id="removePendingMember|{{pending_member.key}}"/>
-		  				<label for="removePendingMember|{{pending_member.key}}">Remove</label></td>
+		  				<label for="removePendingMember|{{pending_member.key}}">{{template_remove}}</label></td>
 		  				</tr>
 		      		{% endfor %}
 		      	</table>
 		      	</fieldset>
 		    {% endif %}
 			
-	 		<h3>Add new members {{"adding_members"|tip}}</h3>
+	 		<h3>{{template_add_new_members}} {{"adding_members"|tip}}</h3>
 			<fieldset>
 			<div><textarea name="newMemberEmails" rows="6" cols="40"></textarea></div>
 			</fieldset>
 			
 			{% if inactive_members %}
-				<h3>Inactive members</h3>
+				<h3>{{template_inactive_members}} {{"inactive_online_members"|tip}}</h3>
 				<fieldset>
-				These members have been removed from the active members list. To reinstate an inactive member, 
-				copy their email to the "Add members" box and re-invite them to the Rakontu. Reinstated
-				members will reconnect to their old histories and profiles, if the email address on the
-				Google account is the same.
 				<ul>
 				{% for member in inactive_members %}
 					<li class="nobullet">{{member.googleAccountEmail}}</li>
@@ -127,12 +159,11 @@
 			{% endif %}
 	
 		<p></p>
-	    <center><input type="submit" name="submitChanges" value="Submit Changes" class="button"></center>	
+	    <center><input type="submit" name="submitChanges" value="{{button_save_changes}}" class="button"></center>	
 		</form>	
 		</div>
 	{% else %}
-		<p>You are not a manager of this Rakontu and cannot change its memberships.
-		Please ask a manager to make any changes you would like to see made.</p>
+		<p>{{no_access|dictLookup:"members"}}</p>
 	{% endif %}
 
 	</div>

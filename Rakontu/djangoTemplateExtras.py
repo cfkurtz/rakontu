@@ -106,6 +106,18 @@ def makeRangeFromListLength(list):
 	return range(len(list))
 register.filter(makeRangeFromListLength)
 
+def makeRangeStartingAtOne(numberString):
+	result = []
+	try:
+		number = int(numberString)
+	except:
+		return result
+	for i in range(1, number, 1):
+		result.append(i)
+	result.append(number) # range does one less
+	return result
+register.filter(makeRangeStartingAtOne)
+
 # --------------------------------------------------------------------------------------------
 # display
 # --------------------------------------------------------------------------------------------
@@ -176,6 +188,22 @@ register.filter(toUnicode)
 def spacify(value):
 	return value.replace("_", " ").capitalize()
 register.filter(spacify)
+
+def allcaps(value):
+	return value.upper()
+register.filter(allcaps)
+
+def capitalize(value):
+	return value.capitalize()
+register.filter(capitalize)
+
+def lower(value):
+	return value.lower()
+register.filter(lower)
+
+def strip(value):
+	return value.strip()
+register.filter(strip)
 
 # --------------------------------------------------------------------------------------------
 # help

@@ -172,10 +172,10 @@ class EnterEntryPage(webapp.RequestHandler):
 			if not entry:
 				entry=Entry(key_name=KeyName("entry"), rakontu=rakontu, type=type, title=DEFAULT_UNTITLED_ENTRY_TITLE)
 				newEntry = True
+			entry.edited = datetime.now(tz=pytz.utc)
 			preview = False
 			if "save|%s" % type in self.request.arguments():
 				entry.draft = True
-				entry.edited = datetime.now(tz=pytz.utc)
 			elif "preview|%s" % type in self.request.arguments():
 				entry.draft = True
 				preview = True
@@ -299,44 +299,44 @@ class EnterEntryPage(webapp.RequestHandler):
 										creator=member,
 										referent=entry, 
 										referentType="entry")
+				if (question.type == "nominal" or question.type == "ordinal") and question.multiple:
 					keepAnswer = False
+					answerToEdit.answerIfMultiple = []
+					for choice in question.choices:
+						if self.request.get("%s|%s" % (question.key(), choice)) == "yes":
+							answerToEdit.answerIfMultiple.append(choice)
+							keepAnswer = True
+				else:
 					queryText = "%s" % question.key()
-					if question.type == "text":
-						keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
-						if keepAnswer:
-							answerToEdit.answerIfText = htmlEscape(self.request.get(queryText))
-					elif question.type == "value":
-						keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
-						if keepAnswer:
+					response = self.request.get(queryText).strip()
+					if question.type == "boolean":
+						keepAnswer = queryText in self.request.params.keys()
+					else:
+						keepAnswer = len(response) > 0 and response != "None"
+					if keepAnswer:
+						if question.type == "text":
+							answerToEdit.answerIfText = htmlEscape(response)
+						elif question.type == "value":
 							oldValue = answerToEdit.answerIfValue
 							try:
-								answerToEdit.answerIfValue = int(self.request.get(queryText))
+								answerToEdit.answerIfValue = int(response)
 							except:
 								answerToEdit.answerIfValue = oldValue
-					elif question.type == "boolean":
-						keepAnswer = queryText in self.request.params.keys()
-						if keepAnswer:
-							answerToEdit.answerIfBoolean = self.request.get(queryText) == "yes"
-					elif question.type == "nominal" or question.type == "ordinal":
-						if question.multiple:
-							answerToEdit.answerIfMultiple = []
-							for choice in question.choices:
-								if self.request.get("%s|%s" % (question.key(), choice)) == "yes":
-									answerToEdit.answerIfMultiple.append(choice)
-									keepAnswer = True
-						else:
-							keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
-							if keepAnswer:
-								answerToEdit.answerIfText = self.request.get(queryText)
+						elif question.type == "boolean":
+							answerToEdit.answerIfBoolean = response == "yes"
+						elif (question.type == "nominal" or question.type == "ordinal") and not question.multiple:
+							answerToEdit.answerIfText = response
+				if keepAnswer:
 					answerToEdit.creator = member
 					answerToEdit.character = entry.character
 					answerToEdit.draft = entry.draft
 					answerToEdit.inBatchEntryBuffer = entry.inBatchEntryBuffer
 					answerToEdit.collected = entry.collected
-					if keepAnswer:
-						answerToEdit.put()
-						if not answerToEdit.draft:
-							answerToEdit.publish()
+					answerToEdit.put()
+					if not answerToEdit.draft:
+						answerToEdit.publish()
+				else:
+					db.delete(answerToEdit)
 			foundAttachments = Attachment.all().filter("entry = ", entry.key()).fetch(FETCH_NUMBER)
 			attachmentsToRemove = []
 			for attachment in foundAttachments:
@@ -490,35 +490,33 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 						answerToEdit.liaison = liaison
 						answerToEdit.collected = collected
 					answerToEdit.character = character
-					keepAnswer = False
-					queryText = "%s" % question.key()
-					if question.type == "text":
-						keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
-						if keepAnswer:
-							answerToEdit.answerIfText = htmlEscape(self.request.get(queryText))
-					elif question.type == "value":
-						keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
-						if keepAnswer:
-							oldValue = answerToEdit.answerIfValue
-							try:
-								answerToEdit.answerIfValue = int(self.request.get(queryText))
-							except:
-								answerToEdit.answerIfValue = oldValue
-					elif question.type == "boolean":
-						keepAnswer = queryText in self.request.params.keys()
-						if keepAnswer:
-							answerToEdit.answerIfBoolean = self.request.get(queryText) == "yes"
-					elif question.type == "nominal" or question.type == "ordinal":
-						if question.multiple:
-							answerToEdit.answerIfMultiple = []
-							for choice in question.choices:
-								if self.request.get("%s|%s" % (question.key(), choice)) == "yes":
-									answerToEdit.answerIfMultiple.append(choice)
-									keepAnswer = True
+					if (question.type == "nominal" or question.type == "ordinal") and question.multiple:
+						keepAnswer = False
+						answerToEdit.answerIfMultiple = []
+						for choice in question.choices:
+							if self.request.get("%s|%s" % (question.key(), choice)) == "yes":
+								answerToEdit.answerIfMultiple.append(choice)
+								keepAnswer = True
+					else:		
+						queryText = "%s" % question.key()	
+						response = self.request.get(queryText)
+						if question.type == "boolean":
+							keepAnswer = queryText in self.request.params.keys()
 						else:
-							keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
-							if keepAnswer:
-								answerToEdit.answerIfText = self.request.get(queryText)
+							keepAnswer = len(response) > 0 and response != "None"
+						if keepAnswer:
+							if question.type == "text":
+								answerToEdit.answerIfText = htmlEscape(response)
+							elif question.type == "value":
+								oldValue = answerToEdit.answerIfValue
+								try:
+									answerToEdit.answerIfValue = int(response)
+								except:
+									answerToEdit.answerIfValue = oldValue
+							elif question.type == "boolean":
+								answerToEdit.answerIfBoolean = response == "yes"
+							elif (question.type == "nominal" or question.type == "ordinal") and not question.multiple:
+								answerToEdit.answerIfText = response
 					answerToEdit.draft = setAsDraft
 					if keepAnswer:
 						if setAsDraft:
@@ -526,6 +524,8 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 							answerToEdit.put()
 						else:
 							answerToEdit.publish()
+					else:
+						db.delete(answerToEdit)
 				if preview:
 					self.redirect(BuildURL("dir_visit", "url_preview_answers", entry.urlQuery()))
 				elif setAsDraft:
@@ -656,9 +656,9 @@ class EnterAnnotationPage(webapp.RequestHandler):
 										entry=entry)
 					newAnnotation = True
 				preview = False
+				annotation.edited = datetime.now(tz=pytz.utc)
 				if "save|%s" % type in self.request.arguments():
 					annotation.draft = True
-					annotation.edited = datetime.now(tz=pytz.utc)
 				elif "preview|%s" % type in self.request.arguments():
 					annotation.draft = True
 					preview = True

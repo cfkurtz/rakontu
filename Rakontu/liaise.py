@@ -42,7 +42,11 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 				memberNicknamesToAdd = htmlEscape(self.request.get("newMemberNicknames")).split('\n')
 				for nickname in memberNicknamesToAdd:
 					if nickname.strip():
-						if not rakontu.hasMemberWithNickname(nickname.strip()):
+						existingMember = rakontu.memberWithNickname(nickname.strip())
+						if existingMember:
+							existingMember.active = True
+							existingMember.put()
+						else:
 							newMember = Member(
 											key_name=KeyName("member"), 
 											rakontu=rakontu, 
@@ -60,7 +64,7 @@ class PrintSearchPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isLiaison():
-				if member.viewSearchResultList:
+				if member.viewEntriesList:
 					export = rakontu.createOrRefreshExport("liaisonPrint_simple", itemList=None, member=member, fileFormat="txt")
 					self.redirect(BuildURL(None, "url_export", export.urlQuery()))
 				else:
@@ -189,7 +193,7 @@ class BatchEntryPage(webapp.RequestHandler):
 							if memberToAttribute:
 								title = self.request.get("title|%s" % i)
 								text = self.request.get("text|%s" % i)
-								textFormat = self.request.get("textFormat|%s" % i)
+								format = self.request.get("textFormat|%s" % i)
 								yearString = self.request.get("year|%s" % i)
 								monthString = self.request.get("month|%s" % i)
 								dayString = self.request.get("day|%s" % i)
@@ -202,7 +206,7 @@ class BatchEntryPage(webapp.RequestHandler):
 										date = datetime(year, month, day, tzinfo=pytz.utc)
 									except:
 										pass
-								entry = Entry(key_name=KeyName("entry"), rakontu=rakontu, type="story", title=title, text=text, text_format=textFormat)
+								entry = Entry(key_name=KeyName("entry"), rakontu=rakontu, type="story", title=title, text=text, text_format=format)
 								entry.creator = memberToAttribute
 								entry.collected = date
 								entry.text_formatted = db.Text(InterpretEnteredText(text, format))

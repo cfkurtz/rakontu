@@ -6,41 +6,40 @@
 	{% if current_member.isCuratorOrManagerOrOwner %}
 		<div id="stylized" class="rakontu_form">
 		<form action="/{{dir_liaise}}/{{url_review}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
-			<h3>Batch entered stories</h3>
-			<p>These stories have been entered but are not yet in the main set of stories. You can review them
-			and make changes here, then click Import to add them to the main data set.</p>
+			<h3>{{template_batch_entered_stories}} {{"reviewing_batch_entered_stories"|tip}}</h3>
+			<p></p>
 			{% if batch_entries %}
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
-		      	<tr><th>Import?</th><th>Title</th><th>Collected from</th>
+		      	<tr><th>{{template_import}}?</th><th>{{template_title}}</th><th>{{template_collected_from}}</th>
 		      	{% if character_allowed %}
-		      		<th>Attribution</th>
+		      		<th>{{template_attributed_to}}</th>
 		      	{% endif %}
-		      	<th>Date</th>
+		      	<th>{{template_collected}}</th>
 		      	{% if rakontu.allowsAttachments %}
-		      		<th>Attachments</th>
+		      		<th>{{template_attachments}}</th>
 		      	{% endif %}
-		      	<th>Comment</th><th>Tag set</th><th>Remove?</th></tr>
+		      	<th>{{template_comment}}</th><th>{{template_tag_set}}</th><th>{{template_remove}}?</th></tr>
 	      		{% for entry in batch_entries %}
 	      			<tr>
 	      			 <td valign="top" align="center"><input type="checkbox" name="import|{{entry.key}}" value="yes" id="import|{{entry.key}}"/>
-	      			 <label for="import|{{entry.key}}">Import</label></td>
-	      			 <td>{{entry.title}}<br/>(<a href="/{{dir_visit}}/{{url_preview}}?{{entry.urlQuery}}">Preview</a>) 
-	      			 (<a href="/{{dir_visit}}/{{entry.typeAsURL}}?{{entry.urlQuery}}">Change</a>)</td>
+	      			 <label for="import|{{entry.key}}">{{template_import}}</label></td>
+	      			 <td>{{entry.title}}<br/>(<a href="/{{dir_visit}}/{{url_preview}}?{{entry.urlQuery}}">{{template_preview}}</a>) <br/>
+	      			 (<a href="/{{dir_visit}}/{{entry.typeAsURL}}?{{entry.urlQuery}}">{{template_change}}</a>)</td>
 	      			 <td>{{entry.creator.nickname}}</td>
 	      			 {% if character_allowed %}
 	      			 	<td>
 	      			 	{% if entry.character %}
 	      			 		{{entry.character.linkString}}
 	      			 	{% else %}
-	      			 		member
+	      			 		{{template_member}}
 	      			 	{% endif %}
 	      			 	</td>
 	      			 {% endif %}
 	      			 <td>
-	      			 Year <input type="text" name="year|{{entry.key}}" size="4" value="{{entry.collected|date:"Y"}}" maxlength="4"/>
-	      			 Month <input type="text" name="month|{{entry.key}}" size="2" value="{{entry.collected|date:"m"}}" maxlength="2"/>
-	      			 Day <input type="text" name="day|{{entry.key}}" size="2" value="{{entry.collected|date:"d"}}" maxlength="2"/>
+	      			 {{template_year}} <input type="text" name="year|{{entry.key}}" size="4" value="{{entry.collected|date:"Y"}}" maxlength="4"/><br/>
+	      			 {{template_month}} <input type="text" name="month|{{entry.key}}" size="2" value="{{entry.collected|date:"m"}}" maxlength="2"/><br/>
+	      			 {{template_day}} <input type="text" name="day|{{entry.key}}" size="2" value="{{entry.collected|date:"d"}}" maxlength="2"/>
 	      			 </td>
 	      			 {% if rakontu.allowsAttachments %}
 	      			 <td>
@@ -64,24 +63,23 @@
 	      			 	{% endfor %}
 	      			 </td>
 	      			 <td valign="top" align="center"><input type="checkbox" name="remove|{{entry.key}}" value="yes" id="remove|{{entry.key}}"/>
-	      			 <label for="remove|{{entry.key}}">Remove</label></td>
+	      			 <label for="remove|{{entry.key}}">{{template_remove}}</label></td>
 	      			</tr>
 	      		{% endfor %}
 		      	</table>
 		      	</fieldset>
 		      	<p>
-			    <center><input type="submit" name="finalizeBatchEntry" value="Save changes" class="button">
-			    <input type="submit" name="addMore" value="Add more stories" class="button"></center>
+			    <center><input type="submit" name="finalizeBatchEntry" value="{{button_save_changes}}" class="button">
+			    <input type="submit" name="addMore" value="{{button_add_more_stories}}" class="button"></center>
 			{% else %}
-				<p><i>No stories have yet been entered.</i></p>
+				<p><i>{{template_no_stories_entered}}</i></p>
 		      	<p>
-			    <center><input type="submit" name="addMore" value="Add stories" class="button"></center>
+			    <center><input type="submit" name="addMore" value="{{button_add_stories}}" class="button"></center>
 			{% endif %}
 		</form>	
 		</div>
 	{% else %}
-		<p>You are not a liaison of this Rakontu and cannot import data collected offline.
-		Either become a liaison, or ask a liaison to import any items you would like to see added.</p>
+		<p>{{no_access|dictLookup:"batch_review"}}</p>
 	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}

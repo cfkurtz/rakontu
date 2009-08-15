@@ -9,36 +9,14 @@
 	
 	{% if answers %}
 		{% if rakontu_has_questions_for_this_entry_type %}
-			<h4>Answers</h4>
+			<h4>{{template_answers}}</h4>
 			<ul>
 			{% for question in questions %}
 				<li class="nobullet"><b>{{question.text}}</b></li>
 				<ul>
 				{% for answer in answers %}
 					{% ifequal question.key answer.question.key %}
-						{% ifequal answer.question.type "text" %}
-							<li class="nobullet">{{answer.answerIfText}}
-						{% endifequal %}
-						{% ifequal answer.question.type "boolean" %}
-							<li class="nobullet">{{answer.answerIfBoolean|yesno:"Yes, No, Maybe"}}
-						{% endifequal %}
-						{% ifequal answer.question.type "ordinal" %}
-							{% if answer.question.multiple %}
-								<li class="nobullet">{{answer.answerIfMultiple|join:", "}}
-							{% else %}
-								<li class="nobullet">{{answer.answerIfText}}
-							{% endif %}
-						{% endifequal %}
-						{% ifequal answer.question.type "nominal" %}
-							{% if answer.question.multiple %}
-								<li class="nobullet">{{answer.answerIfMultiple|join:", "}}
-							{% else %}
-								<li class="nobullet">{{answer.answerIfText}}
-							{% endif %}
-						{% endifequal %}
-						{% ifequal answer.question.type "value" %}
-							<li class="nobullet">{{answer.answerIfValue}}
-						{% endifequal %}
+						{{answer.displayStringShort}}
 					{% endifequal %}
 				{% endfor %}
 				</ul>
@@ -51,9 +29,9 @@
 		<form action="/{{dir_visit}}/{{url_previewAnswers}}?{{entry.urlQuery}}" method="post" enctype="multipart/form-data">
 		<p>
 		<center>
-			<input type="submit" name="edit" value="Edit draft" class="button">
-			<input type="submit" name="profile" value="View all drafts" class="button">
-			<input type="submit" name="publish" value="Publish" class="button">
+			<input type="submit" name="edit" value="{{button_edit_draft}}" class="button">
+			<input type="submit" name="profile" value="{{button_view_all_drafts}}" class="button">
+			<input type="submit" name="publish" value="{{button_publish}}" class="button">
 		</center>
 	</form>
 	</div>

@@ -7,27 +7,27 @@
 		{% if current_member.isManagerOrOwner %}
 			<div id="stylized" class="rakontu_form">
 			<form action="/{{dir_manage}}/{{url_characters}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
-			<h3>Add new characters{{"adding_new_characters"|tip}}</h3>
+			<h3>{{template_add_new_characters}} {{"adding_new_characters"|tip}}</h3>
 			<fieldset>
 			<div><textarea name="newCharacterNames" rows="6" cols="40"></textarea></div>
 			</fieldset>
 			
 			{% if characters %}
-				<h3>Change Characters</h3>
+				<h3>{{template_change_characters}}</h3>
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
-		      		<th>Name</th>
-		      		<th>Picture</th>
-		      		<th>Description</th>
-		      		<th>Inactivate?</th>
+		      		<th>{{template_name}}</th>
+		      		<th>{{template_picture}}</th>
+		      		<th>{{template_description}}</th>
+		      		<th>{{template_inactivate}}?</th>
 		      		</tr>
 		      		{% for character in characters %}
 		  				<tr>
 		  				<td>
-		  					{{ character.name }}<br/>
-		  					<a href="/{{dir_visit}}/{{url_character}}?{{character.urlQuery}}">(View character page)</a>
-		  					<br/><a href="/{{dir_manage}}/{{url_character}}?{{character.urlQuery}}">(Change character)</a>
+		  					{{character.name}}<br/>
+		  					<a href="/{{dir_visit}}/{{url_character}}?{{character.urlQuery}}">({{template_view_character_page}})</a>
+		  					<br/><a href="/{{dir_manage}}/{{url_character}}?{{character.urlQuery}}">({{template_change_character}})</a>
 		  				</td>
 		  				<td width="80" valign="top">
 				 		{% if character.image %}
@@ -38,8 +38,8 @@
 						</td>
 						<td>{{character.description_formatted}}</td>
 		  				<td>
-		  					<input type="checkbox" name="remove|{{ character.key }}" value="yes" id="remove|{{ character.key }}"/>
-							<label for="remove|{{ character.key }}">Inactivate</label>
+		  					<input type="checkbox" name="remove|{{ character.key }}" value="yes" id="remove|{{character.key}}"/>
+							<label for="remove|{{ character.key }}">{{template_inactivate}}</label>
 		  					</td>
 		  				</tr>
 		      		{% endfor %}
@@ -48,7 +48,7 @@
 			{% endif %}
 			
 			{% if inactive_characters %}
-				<h3>Inactive characters{{"inactive_characters"|caution}}</h3>
+				<h3>{{template_inactive_characters}} {{"inactive_characters"|caution}}</h3>
 				<fieldset>
 				<ul>
 				{% for character in inactive_characters %}
@@ -59,12 +59,11 @@
 			{% endif %}
 			
 		<p>
-	    <center><input type="submit" name="submitChanges" value="Submit Changes" class="button"></center>
+	    <center><input type="submit" name="submitChanges" value="{{button_save_changes}}" class="button"></center>
 		</form>
 		</div>	
 	{% else %}
-		<p>You are not a manager of this Rakontu and cannot change its characters.
-		Please ask a manager to make changes to the characters for you.</p>
+		<p>{{no_access|dictLookup:"characters"}}</p>
 	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}

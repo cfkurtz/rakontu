@@ -6,11 +6,8 @@
 	
 	<h3>{{annotation.shortString}}</h3>
 	<div class="blurb">{{annotation.longString_formatted}}</div>
-
-	<p>This {{annotation.typeForDisplay}} refers to the {{annotation.entry.typeForDisplay}} {{annotation.entry.linkString}}.
 	
-	It was entered by 
-	
+	{{template_contributed_by}}
 	{% if annotation.attributedToMember %}
 			{% if annotation.creator.active %}
 				{{annotation.creator.linkString}}
@@ -18,34 +15,47 @@
 					 ({{template_you}})
 				{% endifequal %}
 			{% else %}
-				the former member "{{annotation.creator.nickname}}"
+				{{template_the_former_member}} "{{annotation.creator.nickname}}"
 			{% endif %}
 	{% else %}
-		{{annotation.character.linkString}}
-	{% endif %}
-	
-	on {{annotation.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-	at {{annotation.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}</p>
-
-	{% if annotation.collectedOffline %}
-		{% if annotation.liaison %}
-			<p>It was collected off-line and entered by {{annotation.liaison.nickname}}.</p>
+		{% if annotation.character.active %}
+			{{annotation.character.linkString}}
+		{% else %}
+			{{template_the_former_character}} "{{annotation.character.name}}"
 		{% endif %}
 	{% endif %}
-	
+	{% if annotation.collectedOffline %}
+		{{annotation.collected|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+		{{annotation.collected|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+		{% if annotation.liaison %}
+			({{template_entered_by}} {{annotation.liaison.linkString}}
+			{{annotation.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+			{{annotation.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}})
+		{% endif %}
+	{% else %}
+		{{annotation.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+		{{annotation.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+	{% endif %}
+
+
+	{{template_with_reference_to_the}} {{annotation.entry.typeForDisplay}} {{annotation.entry.linkString}}.</p>
+		
 	{% if annotation.isRequest %}
 		<div id="stylized" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_read_annotation}}?{{annotation.urlQuery}}" method="post" enctype="multipart/form-data">
-		<div class="blurb">
-		<p>This is a request of the type <i><b>{{annotation.typeIfRequest}}</b></i>. 
-		It has {% if not annotation.completedIfRequest %} <i><b>not</b></i> {% endif %} been marked as completed.
-		{% if not annotation.completedIfRequest %}
-			<input type="submit" name="toggleRequestCompleted" value="Mark it as completed now" class="button_small">
+		<p>{{template_request_type}}: {{annotation.typeIfRequest}}. 
+		{% if annotation.completedIfRequest %} 
+			{{template_completed}}.
 		{% else %}
-			<input type="submit" name="toggleRequestCompleted" value="Un-Mark it as completed" class="button_small">
+			{{template_not_completed}}.
 		{% endif %}
-	</form>
-	</div>
+		{% if not annotation.completedIfRequest %}
+			<input type="submit" name="toggleRequestCompleted" value="{{button_mark_as_completed}}" class="button_small">
+		{% else %}
+			<input type="submit" name="toggleRequestCompleted" value="{{button_mark_as_not_completed}}" class="button_small">
+		{% endif %}
+		</form>
+		</div>
 	{% endif %}
 	
 	</div>

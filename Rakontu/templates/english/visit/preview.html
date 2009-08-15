@@ -4,15 +4,39 @@
 	{% include "../common_menus.html" %}
 	<div id="content">
 	
-	{% if entry %}
-		{% if annotation %}
-			<h2>For the {{entry.typeForDisplay}} "{{entry.title}}"</h2>
-		{% else %}
-			<h2>{{entry.typeForDisplay|capfirst}} {{entry.title}}</h2>
-		{% endif %}
+	{% if annotation %}
+		<p><b>{{annotation.typeForDisplay|capfirst}} {{template_with_reference_to_the}} {{entry.typeForDisplay}} {{entry.linkString}}</b></p>
+		{% ifequal annotation.type "comment" %}
+			<p><b>{{annotation.shortString}}</b></p>
+			<div class="blurb">{{annotation.longString_formatted}}</div>
+		{% endifequal %}
+		{% ifequal annotation.type "request" %}
+			<p><b>{{annotation.shortString}}</b></p>
+			<div class="blurb">{{annotation.longString_formatted}}</div>
+		{% endifequal %}
+		{% ifequal annotation.type "tag set" %}
+			<div class="blurb">>{{annotation.tagsIfTagSet|join:", "}}</div>
+		{% endifequal %}
+		{% ifequal annotation.type "nudge" %}
+			<ul>
+			{% for i in num_nudge_categories|makeRange %}
+				{% if rakontu.nudgeCategories|listLookup:i %}
+					{% if annotation.valuesIfNudge|listLookup:i %}
+						<li class="nobullet">{{rakontu.nudgeCategoryQuestions|listLookup:i}} ({{rakontu.nudgeCategories|listLookup:i}}): <b>{{annotation.valuesIfNudge|listLookup:i}}</b> </li>
+					{% endif %}
+				{% endif %}
+			{% endfor %}
+			</ul>			
+			{% if annotation.shortString %}
+				<p>{{template_comment}}: </p><ul><li class="nobullet">{{annotation.shortString}}</li></ul>
+			{% endif %}
+		{% endifequal %}
+	{% endif %}
+	
+	{% if entry and not annotation %}
+		<h2>{{entry.typeForDisplay|capfirst}} {{entry.title}}</h2>
 		{% if entry.isCollage %}
-			<div class="blurb">
-			{{entry.text_formatted}}
+			<div class="blurb">{{entry.text_formatted}}
 			{% if included_links_outgoing %}
 				<ul>
 				{% for link in included_links_outgoing %}
@@ -37,72 +61,22 @@
 		{% endif %}
 		{% if answers_with_entry %}
 			{% if rakontu_has_questions_for_this_entry_type %}
-				<h4>Answers</h4>
+				<h4>{{template_answers}}</h4>
 				<ul>
 				{% for question in questions %}
-					<li class="nobullet"><b>{{question.text}}</b></li>
-					<ul>
 					{% for answer in answers_with_entry %}
 						{% ifequal question.key answer.question.key %}
-							{% ifequal answer.question.type "text" %}
-								<li class="nobullet">{{answer.answerIfText}}
-							{% endifequal %}
-							{% ifequal answer.question.type "boolean" %}
-								<li class="nobullet">{{answer.answerIfBoolean|yesno:"Yes, No, Maybe"}}
-							{% endifequal %}
-							{% ifequal answer.question.type "ordinal" %}
-								{% if answer.question.multiple %}
-									<li class="nobullet">{{answer.answerIfMultiple|join:", "}}
-								{% else %}
-									<li class="nobullet">{{answer.answerIfText}}
-								{% endif %}
-							{% endifequal %}
-							{% ifequal answer.question.type "nominal" %}
-								{% if answer.question.multiple %}
-									<li class="nobullet">{{answer.answerIfMultiple|join:", "}}
-								{% else %}
-									<li class="nobullet">{{answer.answerIfText}}
-								{% endif %}
-							{% endifequal %}
-							{% ifequal answer.question.type "value" %}
-								<li class="nobullet">{{answer.answerIfValue}}
-							{% endifequal %}
+							<li class="nobullet"><i>{{question.text}}</i>
+							<ul><li class="nobullet">{{answer.displayStringShort}}</li></ul>
+							</li>
 						{% endifequal %}
 					{% endfor %}
-					</ul>
 				{% endfor %}
 				</ul>
 			{% endif %}
 		{% endif %}
 	{% endif %}
 	</div>
-	
-	{% if annotation %}
-		<p><b>Your {{annotation.typeForDisplay|capfirst}}:</b></p>
-		{% ifequal annotation.type "comment" %}
-			<p><b>{{annotation.shortString}}</b></p>
-			<ul><li class="nobullet">{{annotation.longString_formatted}}</li></ul>
-		{% endifequal %}
-		{% ifequal annotation.type "request" %}
-			<p><b>{{annotation.shortString}}</b></p>
-			<ul><li class="nobullet">{{annotation.longString_formatted}}</li></ul>
-		{% endifequal %}
-		{% ifequal annotation.type "tag set" %}
-			<ul><li class="nobullet">{{annotation.tagsIfTagSet|join:", "}}</li></ul>
-		{% endifequal %}
-		{% ifequal annotation.type "nudge" %}
-			<ul>
-			{% for i in num_nudge_categories|makeRange %}
-				{% if annotation.valuesIfNudge|listLookup:i %}
-					<li class="nobullet">{{rakontu.nudgeCategories|listLookup:i}}: <b>{{annotation.valuesIfNudge|listLookup:i}}</b> </li>
-				{% endif %}
-			{% endfor %}
-			</ul>			
-			{% if annotation.shortString %}
-				<p>Your comment:</p><ul><li class="nobullet">{{annotation.shortString}}</li></ul>
-			{% endif %}
-		{% endifequal %}
-	{% endif %}
 	
 	<div id="stylized" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_preview}}
@@ -118,21 +92,21 @@
 		<center>
 			{% if annotation %}
 				{% if entry.inBatchEntryBuffer %}
-					<input type="submit" name="edit" value="Change" class="button">
-					<input type="submit" name="batch" value="Return to list" class="button">
+					<input type="submit" name="edit" value="{{button_change}}" class="button">
+					<input type="submit" name="batch" value="{{button_return_to_list}}" class="button">
 				{% else %}
-					<input type="submit" name="edit" value="Edit draft" class="button">
-					<input type="submit" name="profile" value="View all drafts" class="button">
-					<input type="submit" name="publish" value="Publish" class="button">
+					<input type="submit" name="edit" value="{{button_edit_draft}}" class="button">
+					<input type="submit" name="profile" value="{{button_view_all_drafts}}" class="button">
+					<input type="submit" name="publish" value="{{button_publish}}" class="button">
 				{% endif %}
 			{% else %}
 				{% if entry.inBatchEntryBuffer %}
-					<input type="submit" name="edit" value="Change entry" class="button">
-					<input type="submit" name="batch" value="Return to list" class="button">
+					<input type="submit" name="edit" value="{{button_change_entry}}" class="button">
+					<input type="submit" name="batch" value="{{button_return_to_list}}" class="button">
 				{% else %}
-					<input type="submit" name="edit" value="Edit draft" class="button">
-					<input type="submit" name="profile" value="View all drafts" class="button">
-					<input type="submit" name="publish" value="Publish" class="button">
+					<input type="submit" name="edit" value="{{button_edit_draft}}" class="button">
+					<input type="submit" name="profile" value="{{button_view_all_drafts}}" class="button">
+					<input type="submit" name="publish" value="{{button_publish}}" class="button">
 				{% endif %}
 			{% endif %}
 		</center>

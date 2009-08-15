@@ -6,50 +6,57 @@
 	
 	{% if current_member.isGuide %}
 		<div id="stylized" class="rakontu_form">
-		<form action="/{{dir_guide}}/{{url_requests}}" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_guide}}/{{url_requests}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
-		{% if showing_all_requests %}
-			<h3>Requests</h3>
-			&nbsp; &nbsp; <input type="submit" name="showOnlyUncompletedRequests" value="Show only uncompleted requests" class="button_small">
+ 		{% if showing_all_requests %}
+			<h3>{{template_requests}}</h3>
 		{% else %}
-			<h3>Uncompleted requests</h3>
-			&nbsp; &nbsp; <input type="submit" name="showAllRequests" value="Show all requests" class="button_small">
+			<h3>{{template_uncompleted_requests}}</h3>
 		{% endif %}
-		
+
 		{% for i in num_types|makeRange %}
-			<p><b>{{request_types|listLookup:i}}
+			<p>{{request_types|listLookup:i|capitalize}}
       		{% if requests|listLookup:i %}
-      			</b></p>
-      			<table style="margin-left:20px;"><tr><th>Completed</th><th>Entry</th><th>Name</th><th>Text</th></tr>
+      			</p>
+      			<table style="margin-left:20px;">
+      			<tr>
+      				<th>{{template_entry}}</th>
+      				<th>{{template_name}}</th>
+      				<th>{{template_content}}</th>
+      				<th>{{template_completed}}?</th>
+      				</tr>
 	      		{% for request in requests|listLookup:i %}
 	      			<tr>
-	      			<td>
-	  					<input type="checkbox" name="toggleComplete|{{request.key}}" 
-	  					{% if request.completedIfRequest %}
-	  						checked
-	  					{% endif %}
-	  					value="yes" id="toggleComplete|{{request.key}}"/>
-						<label for="toggleComplete|{{request.key}}">Completed</label>
-      				</td>
 	      			<td>{{request.entry.linkString}}</td>
 	      			<td>{{request.linkString}}</td>
 	      			<td>{{request.longString_formatted|upTo:400}}</a></td>
+	      			<td align="center">
+	  					{% if request.completedIfRequest %}
+	  						{{template_yes}}<br/>
+	  						<input type="submit" name="setUncompleted|{{request.key}}" value="{{button_set_request_uncompleted}}" class="button_small">
+	  					{% else %}
+	  						{{template_no}}<br/>
+	  						<input type="submit" name="setCompleted|{{request.key}}" value="{{button_set_request_completed}}" class="button_small">
+	  					{% endif %}
+      				</td>
 	      			</tr>
 	      		{% endfor %}
 	      		</table>
 	      	{% else %}
-	      		</b> - {{term_none}}</p>
+	      		 <ul><li class="nobullet">{{term_none}}</li></ul>
 	      	{% endif %}
       	{% endfor %}
       	
-    {% if have_requests %}
-    	<center><input type="submit" name="submitChanges" value="Make selected changes" class="button"></center>
-    {% endif %}
+ 		{% if showing_all_requests %}
+			<p><input type="submit" name="showOnlyUncompletedRequests" value="{{button_show_uncompleted_requests}}" class="button_small"></p>
+		{% else %}
+			<p><input type="submit" name="showAllRequests" value="{{button_show_all_requests}}" class="button_small"></p>
+		{% endif %}
+		
 	</form>
 	</div>
 	{% else %}
-		<p>You are not a guide of this Rakontu and cannot review requests.
-		Please ask a guide to make any changes you would like to see made.</p>
+		<p>{{no_access|dictLookup:"requests"}}</p>
 	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}

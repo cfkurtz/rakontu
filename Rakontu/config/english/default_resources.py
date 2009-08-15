@@ -10,7 +10,10 @@
 # when they are created. (If some Rakontus don't want the resources, they can flag and delete them after creation.)
 # Warning: This file uses Python syntax. You should be comfortable editing Python code before you edit this file.
 
-SYSTEM_INTRO_RESOURCE = [u"About Rakontu", u"Wiki markup", False, # boolean is whether it is for managers/owners only
+# There is an informal convention here of placing a category at the start of each resource name
+# and keeping them sorted by category (most simple to most advanced).
+
+SYSTEM_INTRO_RESOURCE = [u"Introduction: About Rakontu", u"Wiki markup", False, # boolean is whether it is for managers/owners only
 u"""
 = About Rakontu
 
@@ -45,96 +48,7 @@ If you like, you can take on a *helping role* in your Rakontu.
 To get started, click on a story title and start reading!
 """]
 
-SYSTEM_WIKI_MARKUP_RESOURCE = [u"Wiki markup in Rakontu", u"simple HTML", False, # boolean is whether it is for managers/owners only
-u"""
-<h1>Wiki markup in Rakontu</h1>
-
-<p>You can use wiki-style markup in almost all the large text boxes in Rakontu (all those that have an "interpret as" choice).</p>
-
-<p>Separate paragraphs with blank lines.</p>
-
-<p>To write bold text, put asterisks around it: *bold text* becomes <b>bold text</b>.</p>
-
-<p>To write italic text, put underscores around it: _italic text_ becomes <i>italic text</i>.</p>
-
-<p>To write fixed-width text, put those little hat characters around it: ^code text^ becomes <code>text</code>.</p>
-
-<p>To write struck-out text, put tildes around it: ~strikeout text~ becomes <del>text</del>.</p>
-
-<p>To write a heading, put one equals sign at the start of the line, followed by a space: </p><p>= header 1 text</p><p>
-becomes <h1>&nbsp; &nbsp; header 1 text</h1><p>
-
-<p>To write a sub-heading, put two equals signs: </p><p>== header 2 text</p><p>becomes <h2>&nbsp; &nbsp; header 2 text</h2></p>
-
-<p>To write a third-level heading, put three equals signs: </p><p>=== header 3 text</p><p>becomes <h3>&nbsp; &nbsp; header 3 text</h3></p>
-
-<p>To write an unordered (bullet) list item, put an asterisk with two spaces before it. Keep two spaces in front of every line
-in each list item (if they spill over), thus:</p><p>&nbsp; * unordered list item</p><p>&nbsp; continuation of line</p><p>
-becomes <ul><li>unordered list item continuation of line</li></ul> </p>
-
-<p>To write an ordered (numbered) list item, put a pound sign with two spaces before it. Keep two spaces in front of every line
-in each list item (if they spill over), thus:</p><p>&nbsp; # ordered list item</p><p>&nbsp; continuation of  line</p><p>
-becomes <ol><li>ordered list item continuation of line</li></ol> </p>
-
-<p>To write a horizontal line (hr), put four or more dashes on a line by themselves:</p><p>----</p><p>becomes</p><p><hr></p>
-
-<p>To write a link, put square brackets around it: [http://www.rakontu.org] 
-becomes <a href="http://www.rakontu.org">http://www.rakontu.org</a></p>
-
-<p>To write a named link, put the name in parentheses after the link but inside the 
-square brackets: [http://www.rakontu.org(Rakontu)] becomes <a href="http://www.rakontu.org">Rakontu</a></p>
-
-<p>To include an URL-based inline picture link, place the link in curly brackets, and include an alt tag in 
-parentheses: {http://www.rakontu.org/Rakontu.jpg(Rakontu picture)} 
-becomes <img src="http://www.rakontu.org/Rakontu.jpg" alt="Rakontu picture"/>
-
-<p>To refer to an attachment within the text of an entry, put pound signs around the number of the attachment, like this: #1# or #2#. 
-If the attachment is an image it will be shown in the document where you put the pound signs. If the attachment is another
-kind of file (pdf, etc) a link will appear there that people can click on to download the file.</p>
-
-<p>&nbsp; </p>
-<p>Tables and nested lists are not supported.
-"""]
-
-SYSTEM_SIMPLE_HTML_RESOURCE = [u"Simple HTML in Rakontu", u"Wiki markup", False, # boolean is whether it is for managers/owners only
-u"""
-You can enter these simple HTML elements into any Rakontu text box:
-
-<p>paragraph</p>
-
-<b>bold</b>
-
-<i>italic</i>
-
-<del>strikeout</del>
-
-<code>code</code>
-
-<ul> <li>...<li> </ul>
-
-<ol> <li>...<li> </ol>
-
-<h1>header 1</h1>
-
-<h2>header 2</h2>
-
-<h3>header 3</h3>
-
-line ending <br/>
-
-<hr>
-
-non-breaking space &nbsp; 
-
-links <a href=""></a>
-
-image tags <img src="" alt=""/> (these MUST include alt tags)
-
-Tables and nested lists are not supported.
-
-"""]
-
-SYSTEM_TERMS_RESOURCE = [u"Terms in Rakontu", u"Wiki markup", False, # boolean is whether it is for managers/owners only
+SYSTEM_TERMS_RESOURCE = [u"Introduction: Terms in Rakontu", u"Wiki markup", False, # boolean is whether it is for managers/owners only
 u"""
 = Terms in Rakontu
 
@@ -190,7 +104,7 @@ interesting queries, like "Show me stories told by members under 20 in which peo
 
 """]
 
-SYSTEM_PEOPLE_RESOURCE = [u"People in Rakontu", u"Wiki markup", False, # boolean is whether it is for managers/owners only
+SYSTEM_PEOPLE_RESOURCE = [u"Introduction: People in Rakontu", u"Wiki markup", False, # boolean is whether it is for managers/owners only
 u"""
 = People in Rakontu
 
@@ -241,7 +155,7 @@ character attribution.
 
 """]
 
-SYSTEM_CURATOR_RESOURCE = [u"How to be a curator", u"Wiki markup", False, # boolean is whether it is for managers/owners only
+SYSTEM_CURATOR_RESOURCE = [u"Helping: How to be a curator", u"Wiki markup", False, # boolean is whether it is for managers/owners only
 u"""
 Curating a Rakontu means helping to tend the museum of stories (and things that surround them). Are the stories
 and other information in good order? Is it all as useful as it could be? Can people find what they need when they need it?
@@ -299,7 +213,7 @@ particularly large or widespread your managers may have decided not to allow thi
 to see if there is a Tags option there. If there isn't and you want one, ask a manager about it. 
 """]
 
-SYSTEM_GUIDE_RESOURCE = [u"How to be a guide", u"Wiki markup", False, # boolean is whether it is for managers/owners only
+SYSTEM_GUIDE_RESOURCE = [u"Helping: How to be a guide", u"Wiki markup", False, # boolean is whether it is for managers/owners only
 u"""
 Being a Rakontu guide means paying attention to the people side of things. Are people getting what they want out of it?
 Are they confused? Are they interested? Motivated? Contributing? People who are "people people" are good guides.
@@ -340,25 +254,121 @@ at invitations or requests with no reponses or all of them. For requests, you ca
 if you see that they have been satisfied.
 """]
 
-SYSTEM_LIAISON_RESOURCE = [u"How to be a liaison", u"Wiki markup", False, # boolean is whether it is for managers/owners only
+SYSTEM_LIAISON_RESOURCE = [u"Helping: How to be a liaison", u"Wiki markup", False, # boolean is whether it is for managers/owners only
 u"""
 Being a liaison CFK FINISH
 """]
 
-SYSTEM_MANAGING_RESOURCE = [u"How to manage a Rakontu", u"Wiki markup", True, # boolean is whether it is for managers/owners only
+SYSTEM_WIKI_MARKUP_RESOURCE = [u"Texts: Wiki markup in Rakontu", u"simple HTML", False, # boolean is whether it is for managers/owners only
+u"""
+<h1>Wiki markup in Rakontu</h1>
+
+<p>You can use wiki-style markup in almost all the large text boxes in Rakontu (all those that have an "interpret as" choice).</p>
+
+<p>Separate paragraphs with blank lines.</p>
+
+<p>To write bold text, put asterisks around it: *bold text* becomes <b>bold text</b>.</p>
+
+<p>To write italic text, put underscores around it: _italic text_ becomes <i>italic text</i>.</p>
+
+<p>To write fixed-width text, put those little hat characters around it: ^code text^ becomes <code>text</code>.</p>
+
+<p>To write struck-out text, put tildes around it: ~strikeout text~ becomes <del>text</del>.</p>
+
+<p>To write a heading, put one equals sign at the start of the line, followed by a space: </p><p>= header 1 text</p><p>
+becomes <h1>&nbsp; &nbsp; header 1 text</h1><p>
+
+<p>To write a sub-heading, put two equals signs: </p><p>== header 2 text</p><p>becomes <h2>&nbsp; &nbsp; header 2 text</h2></p>
+
+<p>To write a third-level heading, put three equals signs: </p><p>=== header 3 text</p><p>becomes <h3>&nbsp; &nbsp; header 3 text</h3></p>
+
+<p>To write an unordered (bullet) list item, put an asterisk with two spaces before it. Keep two spaces in front of every line
+in each list item (if they spill over), thus:</p><p>&nbsp; * unordered list item</p><p>&nbsp; continuation of line</p><p>
+becomes <ul><li>unordered list item continuation of line</li></ul> </p>
+
+<p>To write an ordered (numbered) list item, put a pound sign with two spaces before it. Keep two spaces in front of every line
+in each list item (if they spill over), thus:</p><p>&nbsp; # ordered list item</p><p>&nbsp; continuation of  line</p><p>
+becomes <ol><li>ordered list item continuation of line</li></ol> </p>
+
+<p>To write a horizontal line (hr), put four or more dashes on a line by themselves:</p><p>----</p><p>becomes</p><p><hr></p>
+
+<p>To write a link, put square brackets around it: [http://www.rakontu.org] 
+becomes <a href="http://www.rakontu.org">http://www.rakontu.org</a></p>
+
+<p>To write a named link, put the name in parentheses after the link but inside the 
+square brackets: [http://www.rakontu.org(Rakontu)] becomes <a href="http://www.rakontu.org">Rakontu</a></p>
+
+<p>To include an URL-based inline picture link, place the link in curly brackets, and include an alt tag in 
+parentheses: {http://www.rakontu.org/Rakontu.jpg(Rakontu picture)} 
+becomes <img src="http://www.rakontu.org/Rakontu.jpg" alt="Rakontu picture"/>
+
+<p>To refer to an attachment within the text of an entry, put pound signs around the number of the attachment, like this: #1# or #2#. 
+If the attachment is an image it will be shown in the document where you put the pound signs. If the attachment is another
+kind of file (pdf, etc) a link will appear there that people can click on to download the file.</p>
+
+<p>&nbsp; </p>
+<p>Tables and nested lists are not supported.
+"""]
+
+SYSTEM_SIMPLE_HTML_RESOURCE = [u"Texts: Simple HTML in Rakontu", u"Wiki markup", False, # boolean is whether it is for managers/owners only
+u"""
+You can enter these simple HTML elements into any Rakontu text box:
+
+<p>paragraph</p>
+
+<b>bold</b>
+
+<i>italic</i>
+
+<del>strikeout</del>
+
+<code>code</code>
+
+<ul> <li>...<li> </ul>
+
+<ol> <li>...<li> </ol>
+
+<h1>header 1</h1>
+
+<h2>header 2</h2>
+
+<h3>header 3</h3>
+
+line ending <br/>
+
+<hr>
+
+non-breaking space &nbsp; 
+
+links <a href=""></a>
+
+image tags <img src="" alt=""/> (these MUST include alt tags)
+
+Tables and nested lists are not supported.
+
+"""]
+
+SYSTEM_MANAGING_RESOURCE = [u"For managers only: How to manage a Rakontu", u"Wiki markup", True, # boolean is whether it is for managers/owners only
 u"""
 Here is how you do it. CFK FINISH
 """]
 
 SYSTEM_RESOURCES = [
+				# intro
 				SYSTEM_INTRO_RESOURCE, 
 				SYSTEM_TERMS_RESOURCE, 
 				SYSTEM_PEOPLE_RESOURCE,
-				SYSTEM_WIKI_MARKUP_RESOURCE, 
-				SYSTEM_SIMPLE_HTML_RESOURCE,
+
+				# helping
 				SYSTEM_CURATOR_RESOURCE, 
 				SYSTEM_GUIDE_RESOURCE, 
 				SYSTEM_LIAISON_RESOURCE,
+
+				# text
+				SYSTEM_WIKI_MARKUP_RESOURCE, 
+				SYSTEM_SIMPLE_HTML_RESOURCE,
+
+				# managing
 				SYSTEM_MANAGING_RESOURCE,
 				]
 

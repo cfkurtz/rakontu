@@ -8,29 +8,40 @@
 		<form action="/{{dir_visit}}/{{url_answers}}?{{url_query_entry}}={{entry.getKeyName}}
 		" method="post" enctype="multipart/form-data">
 		
-			<h2>{{entry.title}} ({{entry.typeForDisplay}})</h2>
-	
-			<div class="blurb">{{entry.text_formatted}}</div
-			
-			{% if questions %}
-				{% include "../common_questions.html" %}
-			{% endif %}
-			
+			{% include "../common_questions.html" %}
+			<p></p>
 			{% include "../common_attribution.html" %}
-
 			<p>
 			<center>
 			{% if answers %}
-				<input type="submit" name="save" value="Save draft" class="button">
-				<input type="submit" name="preview" value="Preview" class="button">
-				<input type="submit" name="publish" value="Publish" class="button">
+				<input type="submit" name="save" value="{{button_save_draft}}" class="button">
+				<input type="submit" name="preview" value="{{button_preview}}" class="button">
+				<input type="submit" name="publish" value="{{button_publish}}" class="button">
 			{% else %}
-				<input type="submit" name="save" value="Save as draft" class="button">
-				<input type="submit" name="preview" value="Preview" class="button">
-				<input type="submit" name="publish" value="Publish" class="button">
+				<input type="submit" name="save" value="{{button_save_as_draft}}" class="button">
+				<input type="submit" name="preview" value="{{button_preview}}" class="button">
+				<input type="submit" name="publish" value="{{button_publish}}" class="button">
 			{% endif %}
 			</center>
 			
+		<p>{{entry.linkString}} ({{entry.typeForDisplay}})</p>
+		{% if entry.isCollage %}
+			<div class="blurb">
+			{{entry.text_formatted}}
+			{% if included_links_outgoing %}
+				<ul>
+				{% for link in included_links_outgoing %}
+					<li class="nobullet">{{link.itemTo.linkString}}</a>
+					{% if link.comment %} ({{link.comment}}) {% endif %}
+					</li>
+				{% endfor %}
+				</ul>
+			{% endif %}
+			</div>
+		{% else %}
+			<div class="blurb">{{entry.text_formatted}}</div>
+		{% endif %}
+
 		</form>
 		</div>
 		</div>

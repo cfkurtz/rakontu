@@ -7,19 +7,19 @@
 		<div id="stylized" class="rakontu_form">
 		<form action="/{{dir_liaise}}/{{url_batch}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
-		<h2>Batch Story Entry{{"batch_story_entry"|caution}}</h2>
+		<h2>{{template_batch_story_entry}} {{"batch_story_entry"|caution}}</h2>
 
-	    <p>Choose a CSV file to import entries from:
+	    <p>{{template_choose_csv_file_for_batch}}:
 	    <input type="file" name="import" size="40" accept="csv"/> 
 	    {{"entry_CSV_import"|info}}
-	    <input type="submit" name="importEntriesFromCSV" value="Add stories" class="button"></p>
-	    <p>or enter items in the boxes below and click any of the "Add stories" buttons.</p>
+	    <input type="submit" name="importEntriesFromCSV" value="{{button_add_stories}}" class="button"></p>
+	    <p>{{template_or_enter_stories}}</p>
 
 		{% for i in num_entries|makeRange %}
-			<h3>Story {{i|add:1}}</h3>
+			<h3>{{template_story}} {{i|add:1}}</h3>
 			<fieldset>
 			<table style="width:100%;">
-			<tr><th>Collected from</th><td>
+			<tr><th>{{template_collected_from}}</th><td>
 				<select name="source|{{i}}">
 					<option value="none">({{term_choose}})</option>
 					{% if current_member.isManagerOrOwner %}
@@ -32,10 +32,10 @@
 					{% endfor %}
 				</select>
 			{% if character_allowed %}
-				<tr><th>Attributed to</th><td>
+				<tr><th>{{template_attributed_to}}</th><td>
 					<select name="attribution|{{i}}">
 						<option value="member"
-							>The selected member</option>
+							>{{template_selected_member}}</option>
 						{% if rakontu.getActiveCharacters %}
 							{% for character in rakontu.getActiveCharacters %}
 								<option value="{{character.key}}"
@@ -45,20 +45,22 @@
 					</select></p>
 				</td></tr>
 			{% endif %}
-			<tr><th>Date collected<br/></th>
+			<tr><th>{{template_date_collected}}<br/></th>
 			<td>
-	  			 Year <input type="text" name="year|{{i}}" size="4" value="" maxlength="4"/>
-	  			 Month <input type="text" name="month|{{i}}" size="4" value="" maxlength="2"/>
-	  			 Day <input type="text" name="day|{{i}}" size="4" value="" maxlength="2"/>
+	  			 {{template_year}} <input type="text" name="year|{{i}}" size="4" value="" maxlength="4"/>
+	  			 {{template_month}} <input type="text" name="month|{{i}}" size="4" value="" maxlength="2"/>
+	  			 {{template_day}} <input type="text" name="day|{{i}}" size="4" value="" maxlength="2"/>
 	  			 {{"offline_collection_dates"|tip}}
 			</td><tr>
-			<tr><th>Title</th><td><input type="text" name="title|{{i}}" size="60" value=""/></td><tr>
-			<th>Text</th><td>
+			<tr>
+				<th>{{template_title}}</th>
+				<td><input type="text" name="title|{{i}}" size="60" value=""/></td><tr>
+			<th>{{template_content}}</th><td>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
 				<textarea name="text|{{i}}" rows="5" cols="60"></textarea>
 				</td><td class="noborder" width="80">
-				<p>Interpret as{{"interpreting_texts"|tip}}</p>
+				<p>{{template_interpret_as}} {{"interpreting_texts"|tip}}</p>
 					<select name="textFormat|{{i}}">
 					{% for i in text_formats|makeRangeFromListLength %}
 						<option value="{{text_formats|listLookup:i}}">
@@ -68,7 +70,7 @@
 				</td></tr></table>
 			</td></tr>
 			{% if rakontu.allowsAttachments %}
-				<tr><th>Attachment(s)</th><td>
+				<tr><th>{{template_attachments}}</th><td>
 					{% for a in rakontu.maxNumAttachments|makeRange %}
 						<input type="text" name="attachmentName|{{i}}|{{a}}" size="40" maxlength="{{maxlength_name}}"/>
 						<input type="file" name="attachment|{{i}}|{{a}}" size="30"/><br/>
@@ -76,7 +78,7 @@
 				</td></tr>
 			{% endif %}
 			{% if questions %}
-				<tr><th>Questions</th><td>
+				<tr><th>{{template_questions}}</th><td>
 					<table style="border:none;width:100%">
 					{% for question in questions %}
 						<tr><td class="noborder" align="right">
@@ -117,20 +119,20 @@
 							{% endifequal %}
 							{% ifequal question.type "value" %}
 								<input type="text" size="60" name="{{i}}|{{question.key}}" value="" maxlength="{{maxlength_number}}"/>
-								<p><i>Please enter a number between {{question.minIfValue}} and {{question.maxIfValue}}.</i></p>
+								<p><i>{{template_enter_number}} {{question.minIfValue}} {{template_and}} {{question.maxIfValue}}.</i></p>
 							{% endifequal %}
 						</td></tr>
 					{% endfor %}
 					</table>
 				</td></tr>
 			{% endif %}
-			<tr><th>Comment</br></th><td>
-				<p>Subject <input type="text" size="60" name="commentSubject|{{i}}" value="" maxlength="{{maxlength_subject_or_comment}}"/></p>
+			<tr><th>{{template_comment}}</br></th><td>
+				<p>{{template_subject}} <input type="text" size="60" name="commentSubject|{{i}}" value="" maxlength="{{maxlength_subject_or_comment}}"/></p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
 				<textarea name="comment|{{i}}" rows="3" cols="60"></textarea>
 				</td><td class="noborder" width="80">
-				<p>Interpret as</p>
+				<p>{{template_interpret_as}}</p>
 					<select name="commentFormat|{{i}}">
 					{% for i in text_formats|makeRangeFromListLength %}
 						<option value="{{text_formats|listLookup:i}}">
@@ -139,7 +141,7 @@
 					</select>
 				</td></tr></table>
 			</td></tr>
-			<tr><th>Tags</br></th><td>
+			<tr><th>{{template_tags}}</br></th><td>
 				{% for j in num_tags_in_tag_set|makeRange %}
 					<input type="text" size="12" name="tag|{{i}}|{{j}}" value="" maxlength="{{maxlength_tag_or_choice}}"/>
 				{% endfor %}
@@ -147,15 +149,14 @@
 			</table>
 			</fieldset>
 			<p></p>
-			<center><input type="submit" name="acceptBatchEntry" value="Add stories" class="button"></center>
+			<center><input type="submit" name="acceptBatchEntry" value="{{button_add_stories}}" class="button"></center>
 		{% endfor %}
 		
 		
 		</form>	
 		</div>
 	{% else %}
-		<p>You are not a liaison of this Rakontu and cannot import data collected offline.
-		Either become a liaison, or ask a liaison to import any items you would like to see added.</p>
+		<p>{{no_access|dictLookup:"batch"}}</p>
 	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}
