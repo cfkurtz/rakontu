@@ -31,7 +31,7 @@ import pytz
 # ============================================================================================
 
 def FindTemplate(template):
-	return "templates/%s/%s" % (SITE_LANGUAGE, template)
+	return "templates/%s" % template
 	
 def RequireLogin(func):
 	def check_login(request): 
