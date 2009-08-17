@@ -874,35 +874,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 			character = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_character")
 			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
 			if character:
-				allItems = character.getAllItemsAttributedToCharacter()
-				if allItems:
-					maxTime = datetime.now(tz=pytz.utc)
-					minTime = character.created
-					numRows = 1
-					numCols = 6
-					timeStep = (maxTime - minTime) // numCols
-					textsForGrid = []
-					colHeaders = []
-					for row in range(numRows):
-						textsInThisRow = []
-						for col in range(numCols):
-							textsInThisCell = []
-							startTime = minTime + timeStep * col
-							endTime = minTime + timeStep * (col+1)
-							if row == numRows - 1:
-								colHeaders.append(RelativeTimeDisplayString(startTime, member))
-							for item in allItems:
-								shouldBeInRow = True
-								shouldBeInCol = item.published >= startTime and item.published < endTime
-								if shouldBeInRow and shouldBeInCol:
-									text = ItemDisplayStringForGrid(item, member, curating, showingMember=True, showDetails=member.viewDetails)
-									textsInThisCell.append(text)
-							textsInThisRow.append(textsInThisCell)
-						textsForGrid.append(textsInThisRow)
-					textsForGrid.reverse()
-				else:
-					textsForGrid = None
-					colHeaders = None
+				textsForGrid, colHeaders = self.buildGrid(member, character, rakontu, curating)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["CHARACTER"], 
 					   		   	   'title_extra': character.name, 
@@ -915,6 +887,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 					   		   	   'text_to_display_before_grid': "%s's entries" % character.name,
 					   		   	   'grid_form_url': self.request.uri,
 					   		   	   'col_headers': colHeaders,
+					   		   	   'curating': curating,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/character.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -922,15 +895,60 @@ class SeeCharacterPage(webapp.RequestHandler):
 				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
+			
+	def buildGrid(self, member, character, rakontu, curating):
+		allItems = character.getAllItemsAttributedToCharacter()
+		if allItems:
+			maxTime = datetime.now(tz=pytz.utc)
+			minTime = character.created
+			numRows = 1
+			numCols = 6
+			timeStep = (maxTime - minTime) // numCols
+			textsForGrid = []
+			colHeaders = []
+			for row in range(numRows):
+				textsInThisRow = []
+				for col in range(numCols):
+					textsInThisCell = []
+					startTime = minTime + timeStep * col
+					endTime = minTime + timeStep * (col+1)
+					if row == numRows - 1:
+						colHeaders.append(RelativeTimeDisplayString(startTime, member))
+					for item in allItems:
+						shouldBeInRow = True
+						shouldBeInCol = item.published >= startTime and item.published < endTime
+						if shouldBeInRow and shouldBeInCol:
+							text = ItemDisplayStringForGrid(item, member, curating, showingMember=True, showDetails=member.viewDetails)
+							textsInThisCell.append(text)
+					textsInThisRow.append(textsInThisCell)
+				textsForGrid.append(textsInThisRow)
+			textsForGrid.reverse()
+		else:
+			textsForGrid = None
+			colHeaders = None
+		return textsForGrid, colHeaders
 
 	@RequireLogin 
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			if "toggleShowDetails" in self.request.arguments():
-				member.viewDetails = not member.viewDetails
-				member.put()
-			self.redirect(self.request.uri)
+			character = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_character")
+			if character:
+				if "toggleShowDetails" in self.request.arguments():
+					member.viewDetails = not member.viewDetails
+					member.put()
+					self.redirect(self.request.uri)
+				else:
+					for item in character.getAllItemsAttributedToCharacter():
+						if "flag|%s" % item.key() in self.request.arguments():
+							item.flaggedForRemoval = True
+							item.put()
+						elif "unflag|%s" % item.key() in self.request.arguments():
+							item.flaggedForRemoval = False
+							item.put()
+					self.redirect(self.request.uri)
+			else:
+				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
    

@@ -3,6 +3,12 @@
 	<body>
 	{% include "../common_menus.html" %}
 		<div id="content">
+		<div id="stylized" class="rakontu_form">
+		<form action="/{{dir_visit}}/{{url_character}}?{{character.urlQuery}}
+		{% if curating %}
+			&{{url_query_curate}}={{url_query_curate}}
+		{% endif %}
+		" method="post">
 	
 		<h3>{{character.name}}</h3>
 		
@@ -45,9 +51,15 @@
   	{% endif %}
   	{% if current_member.isCurator %}
   		<div class="rightalign"><p>
-  		<a href="/{{dir_visit}}/{{url_character}}?{{character.urlQuery}}&{{url_query_curate}}={{url_query_curate}}">{{template_curate_this_characters_entries}}</a></p></div>
+  		{% if curating %}
+ 	 		<a href="/{{dir_visit}}/{{url_character}}?{{character.urlQuery}}">{{template_stop_curating}}</a></p></div>
+		{% else %}
+ 	 		<a href="/{{dir_visit}}/{{url_character}}?{{character.urlQuery}}&{{url_query_curate}}={{url_query_curate}}">{{template_curate_this_characters_entries}}</a></p></div>
+		{% endif %}
   	{% endif %}
   	
+  	</form>
+  	</div>
 	</div>
 	{% include "../common_footer.html" %}
 	</body>
