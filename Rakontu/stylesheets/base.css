@@ -285,5 +285,29 @@ ul li.nobullet {
 	background: #999999;
 	}
 	
+#stylized input.flag_red {
+	background: transparent;
+	background-image: url(../images/flag_red.png);
+	height:16px;
+	width:16px;
+	border:none;
+	}
+	
+#stylized input.flag_red:hover {
+	border:none;
+	}
+	
+#stylized input.flag_green {
+	background: transparent;
+	background-image: url(../images/flag_green.png);
+	height:16px;
+	width:16px;
+	border:none;
+	}
+
+#stylized input.flag_green:hover {
+	border:none;
+	}
+	
 /* ----------- margin: top right bottom left ----------- */
 

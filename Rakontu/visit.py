@@ -378,116 +378,8 @@ class ReadEntryPage(webapp.RequestHandler):
 			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 			if entry:
 				curating = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
-				allItems = []
-				allItems.extend(entry.getNonDraftAnnotations())
-				allItems.extend(entry.getNonDraftAnswers())
-				allItems.extend(entry.getAllLinks())
-				haveContent = False
-				if allItems:
-					maxTime = entry.lastAnnotatedOrAnsweredOrLinked
-					minTime = entry.published
-					maxNudgePoints = -9999999
-					minNudgePoints = -9999999
-					minActivityPoints = -9999999
-					maxActivityPoints = -9999999
-					for item in allItems:
-						nudgePoints = 0
-						for i in range(NUM_NUDGE_CATEGORIES):
-							if member.viewNudgeCategories[i]:
-								nudgePoints += item.entryNudgePointsWhenPublished[i]
-						if minNudgePoints == -9999999:
-							minNudgePoints = nudgePoints
-						elif nudgePoints < minNudgePoints:
-							minNudgePoints = nudgePoints
-						if maxNudgePoints == -9999999:
-							maxNudgePoints = nudgePoints
-						elif nudgePoints > maxNudgePoints:
-							maxNudgePoints = nudgePoints
-						activityPoints = item.entryActivityPointsWhenPublished
-						if minActivityPoints == -9999999:
-							minActivityPoints = activityPoints
-						elif activityPoints < minActivityPoints:
-							minActivityPoints = activityPoints
-						if maxActivityPoints == -9999999:
-							maxActivityPoints = activityPoints
-						elif activityPoints > maxActivityPoints:
-							maxActivityPoints = activityPoints
-					numRows = BROWSE_NUM_ROWS
-					numCols = BROWSE_NUM_COLS
-					nudgeStep = max(1, (maxNudgePoints - minNudgePoints) // numRows)
-					timeStep = (maxTime - minTime) // numCols
-					
-					textsForGrid = []
-					colHeaders = []
-					rowColors = []
-					haveContent = False
-					rowIndex = 0
-					for row in range(numRows):
-						rowColors.append(HexColorStringForRowIndex(rowIndex, rakontu.getSkinDictionary()))
-						textsInThisRow = []
-						startNudgePoints = minNudgePoints + nudgeStep * row
-						if row == numRows - 1:
-							endNudgePoints = 100000000
-						else:
-							endNudgePoints = minNudgePoints + nudgeStep * (row+1)
-						for col in range(numCols):
-							textsInThisCell = []
-							startTime = minTime + timeStep * col
-							endTime = minTime + timeStep * (col+1)
-							if row == numRows - 1:
-								colHeaders.append(RelativeTimeDisplayString(startTime, member))
-							for item in allItems:
-								nudgePoints = 0
-								for i in range(NUM_NUDGE_CATEGORIES):
-									if member.viewNudgeCategories[i]:
-										nudgePoints += item.entryNudgePointsWhenPublished[i]
-								shouldBeInRow = nudgePoints >= startNudgePoints and nudgePoints < endNudgePoints
-								shouldBeInCol = item.published >= startTime and item.published < endTime
-								if shouldBeInRow and shouldBeInCol:
-									text = ItemDisplayStringForGrid(item, member, curating, showingMember=False, showDetails=member.viewDetails)
-									textsInThisCell.append(text)
-							haveContent = haveContent or len(textsInThisCell) > 0
-							textsInThisRow.append(textsInThisCell)
-						textsForGrid.append(textsInThisRow)
-						rowIndex += 1
-					textsForGrid.reverse()
-				else:
-					textsForGrid = None
-					colHeaders = None
-					rowColors = []
-				if not haveContent:
-					textsForGrid = None
-				if not entry.memberCanNudge(member):
-					nudgePointsMemberCanAssign = 0
-				else:
-					nudgePointsMemberCanAssign = max(0, rakontu.maxNudgePointsPerEntry - entry.getTotalNudgePointsForMember(member))
-				rakontuHasQuestionsForThisEntryType = len(rakontu.getActiveQuestionsOfType(entry.type)) > 0
-				memberCanAnswerQuestionsAboutThisEntry = len(entry.getAnswersForMember(member)) == 0
-				memberCanAddNudgeToThisEntry = nudgePointsMemberCanAssign > 0
-				thingsUserCanDo = {}
-				displayType = DisplayTypeForEntryType(entry.type)
-				if entry.isStory():
-					thingsUserCanDo["Tell another version of what happened"] = BuildURL("dir_visit","url_retell", entry.urlQuery())
-				if entry.isStory() or entry.isResource():
-					thingsUserCanDo["Tell a story this %s reminds you of" % displayType] = BuildURL("dir_visit", "url_remind", entry.urlQuery())
-				if rakontuHasQuestionsForThisEntryType and memberCanAnswerQuestionsAboutThisEntry:
-					thingsUserCanDo["Answer questions about this %s" % displayType] = BuildURL("dir_visit", "url_answers", entry.urlQuery())
-				if rakontuHasQuestionsForThisEntryType and member.isLiaison():
-					thingsUserCanDo["Enter answers about this %s for an off-line member" % displayType] = BuildURL("dir_visit", "url_answers", entry.urlQuery())
-				if entry.isInvitation():
-					thingsUserCanDo["Respond to this invitation with a story"] = BuildURL("dir_visit", "url_respond", entry.urlQuery())
-				thingsUserCanDo["Comment on this %s" % displayType] = BuildURL("dir_visit", URLForAnnotationType("comment"), entry.urlQuery())
-				thingsUserCanDo["Tag this %s" % displayType] = BuildURL("dir_visit", URLForAnnotationType("tag set"), entry.urlQuery())
-				if memberCanAddNudgeToThisEntry:
-					thingsUserCanDo["Nudge this %s" % displayType] = BuildURL("dir_visit", URLForAnnotationType("nudge"), entry.urlQuery())
-				thingsUserCanDo["Request something about this %s" % displayType] = BuildURL("dir_visit", URLForAnnotationType("request"), entry.urlQuery())
-				thingsUserCanDo["Relate this entry to other entries"] = BuildURL("dir_visit", "url_relate", entry.urlQuery())
-				if member.isCurator():
-					thingsUserCanDo["Curate this %s" % displayType] = BuildURL("dir_visit", "url_read", "%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_curate"], URL_OPTIONS["url_query_curate"]))
-				if entry.creator.key() == member.key() and rakontu.allowsPostPublishEditOfEntryType(entry.type):
-					thingsUserCanDo["Change this %s" % displayType] = BuildURL("dir_visit", URLForEntryType(entry.type), entry.urlQuery())
-				if member.isLiaison():
-					thingsUserCanDo["Print this %s with its answers and annotations" % displayType] = BuildURL("dir_liaise", "url_print_entry", entry.urlQuery())
+				textsForGrid, colHeaders, rowColors = self.buildGrid(entry, member, rakontu, curating)
+				thingsUserCanDo = self.buildThingsUserCanDo(entry, member, rakontu, curating)
 				if entry.isCollage():
 					includedLinksOutgoing = entry.getOutgoingLinksOfType("included")
 				else:
@@ -532,11 +424,159 @@ class ReadEntryPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
+	def buildGrid(self, entry, member, rakontu, curating):
+		allItems = []
+		allItems.extend(entry.getNonDraftAnnotations())
+		allItems.extend(entry.getNonDraftAnswers())
+		allItems.extend(entry.getAllLinks())
+		haveContent = False
+		if allItems:
+			maxTime = entry.lastAnnotatedOrAnsweredOrLinked
+			minTime = entry.published
+			maxNudgePoints = -9999999
+			minNudgePoints = -9999999
+			minActivityPoints = -9999999
+			maxActivityPoints = -9999999
+			for item in allItems:
+				nudgePoints = 0
+				for i in range(NUM_NUDGE_CATEGORIES):
+					if member.viewNudgeCategories[i]:
+						nudgePoints += item.entryNudgePointsWhenPublished[i]
+				if minNudgePoints == -9999999:
+					minNudgePoints = nudgePoints
+				elif nudgePoints < minNudgePoints:
+					minNudgePoints = nudgePoints
+				if maxNudgePoints == -9999999:
+					maxNudgePoints = nudgePoints
+				elif nudgePoints > maxNudgePoints:
+					maxNudgePoints = nudgePoints
+				activityPoints = item.entryActivityPointsWhenPublished
+				if minActivityPoints == -9999999:
+					minActivityPoints = activityPoints
+				elif activityPoints < minActivityPoints:
+					minActivityPoints = activityPoints
+				if maxActivityPoints == -9999999:
+					maxActivityPoints = activityPoints
+				elif activityPoints > maxActivityPoints:
+					maxActivityPoints = activityPoints
+			numRows = BROWSE_NUM_ROWS
+			numCols = BROWSE_NUM_COLS
+			nudgeStep = max(1, (maxNudgePoints - minNudgePoints) // numRows)
+			timeStep = (maxTime - minTime) // numCols
+			
+			textsForGrid = []
+			colHeaders = []
+			rowColors = []
+			haveContent = False
+			rowIndex = 0
+			for row in range(numRows):
+				rowColors.append(HexColorStringForRowIndex(rowIndex, rakontu.getSkinDictionary()))
+				textsInThisRow = []
+				startNudgePoints = minNudgePoints + nudgeStep * row
+				if row == numRows - 1:
+					endNudgePoints = 100000000
+				else:
+					endNudgePoints = minNudgePoints + nudgeStep * (row+1)
+				for col in range(numCols):
+					textsInThisCell = []
+					startTime = minTime + timeStep * col
+					endTime = minTime + timeStep * (col+1)
+					if row == numRows - 1:
+						colHeaders.append(RelativeTimeDisplayString(startTime, member))
+					for item in allItems:
+						nudgePoints = 0
+						for i in range(NUM_NUDGE_CATEGORIES):
+							if member.viewNudgeCategories[i]:
+								nudgePoints += item.entryNudgePointsWhenPublished[i]
+						shouldBeInRow = nudgePoints >= startNudgePoints and nudgePoints < endNudgePoints
+						shouldBeInCol = item.published >= startTime and item.published < endTime
+						if shouldBeInRow and shouldBeInCol:
+							text = ItemDisplayStringForGrid(item, member, curating, showingMember=False, showDetails=member.viewDetails)
+							textsInThisCell.append(text)
+					haveContent = haveContent or len(textsInThisCell) > 0
+					textsInThisRow.append(textsInThisCell)
+				textsForGrid.append(textsInThisRow)
+				rowIndex += 1
+			textsForGrid.reverse()
+		else:
+			textsForGrid = None
+			colHeaders = None
+			rowColors = []
+		if not haveContent:
+			textsForGrid = None
+		return textsForGrid, colHeaders, rowColors
+			
+	def buildThingsUserCanDo(self, entry, member, rakontu, curating):
+		thingsUserCanDo = {}
+		if not entry.memberCanNudge(member):
+			nudgePointsMemberCanAssign = 0
+		else:
+			nudgePointsMemberCanAssign = max(0, rakontu.maxNudgePointsPerEntry - entry.getTotalNudgePointsForMember(member))
+		rakontuHasQuestionsForThisEntryType = len(rakontu.getActiveQuestionsOfType(entry.type)) > 0
+		memberCanAnswerQuestionsAboutThisEntry = len(entry.getAnswersForMember(member)) == 0
+		memberCanAddNudgeToThisEntry = nudgePointsMemberCanAssign > 0
+		displayType = DisplayTypeForEntryType(entry.type)
+		# retelling
+		if entry.isStory():
+			key = TERMS["term_tell_another_version_of_this_story"]
+			thingsUserCanDo[key] = BuildURL("dir_visit","url_retell", entry.urlQuery())
+		# reminding
+		if entry.isStory() or entry.isResource():
+			key = TERMS["term_tell_a_story_this_reminds_you_of"]
+			thingsUserCanDo[key] = BuildURL("dir_visit", "url_remind", entry.urlQuery())
+		# responding
+		if entry.isInvitation():
+			key = TERMS["term_respond_to_invitation"]
+			thingsUserCanDo[key] = BuildURL("dir_visit", "url_respond", entry.urlQuery())
+		# answering questions
+		if rakontuHasQuestionsForThisEntryType and memberCanAnswerQuestionsAboutThisEntry:
+			key = "%s %s" % (TERMS["term_answer_questions_about_this"], displayType)
+			thingsUserCanDo[key] = BuildURL("dir_visit", "url_answers", entry.urlQuery())
+		if rakontuHasQuestionsForThisEntryType and member.isLiaison():
+			key = TERMS["term_enter_answers_for_offline_member"]
+			thingsUserCanDo[key] = BuildURL("dir_visit", "url_answers", entry.urlQuery())
+		# comment
+		key = "%s %s" % (TERMS["term_make_a_comment"], displayType)
+		thingsUserCanDo[key] = BuildURL("dir_visit", URLForAnnotationType("comment"), entry.urlQuery())
+		# tag
+		key = "%s %s" % (TERMS["term_tag_this"], displayType)
+		thingsUserCanDo[key] = BuildURL("dir_visit", URLForAnnotationType("tag set"), entry.urlQuery())
+		# request
+		key = "%s %s" % (TERMS["term_request_something_about_this"], displayType)
+		thingsUserCanDo[key] = BuildURL("dir_visit", URLForAnnotationType("request"), entry.urlQuery())
+		# relate
+		key = TERMS["term_relate_entry_to_others"]
+		thingsUserCanDo[key] = BuildURL("dir_visit", "url_relate", entry.urlQuery())
+		# nudge
+		if memberCanAddNudgeToThisEntry:
+			key = "%s %s" % (TERMS["term_nudge_this"], displayType)
+			thingsUserCanDo[key] = BuildURL("dir_visit", URLForAnnotationType("nudge"), entry.urlQuery())
+		# curate
+		if member.isCurator():
+			if curating:
+				key = "%s %s" % (TERMS["term_stop_curating_this"], displayType)
+				thingsUserCanDo[key] = BuildURL("dir_visit", "url_read", "%s" % (entry.urlQuery()))
+			else:
+				key = "%s %s" % (TERMS["term_curate_this"], displayType)
+				thingsUserCanDo[key] = BuildURL("dir_visit", "url_read", "%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_curate"], URL_OPTIONS["url_query_curate"]))
+		# change
+		if entry.creator.key() == member.key() and rakontu.allowsPostPublishEditOfEntryType(entry.type):
+			key = "%s %s" % (TERMS["term_change_this"], displayType)
+			thingsUserCanDo[key] = BuildURL("dir_visit", URLForEntryType(entry.type), entry.urlQuery())
+		# print
+		if member.isLiaison():
+			key = "%s %s" % (TERMS["term_print_this"], displayType)
+			thingsUserCanDo[key] = BuildURL("dir_liaise", "url_print_entry", entry.urlQuery())
+		return thingsUserCanDo
+			
 	@RequireLogin 
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			if "changeNudgeCategoriesShowing" in self.request.arguments():
+			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
+			if "doSomething" in self.request.arguments():
+				self.redirect(self.request.get("nextAction"))
+			elif "changeNudgeCategoriesShowing" in self.request.arguments():
 				member.viewNudgeCategories = []
 				for i in range(NUM_NUDGE_CATEGORIES):
 					member.viewNudgeCategories.append(self.request.get("showCategory|%s" % i) == "yes")
@@ -546,8 +586,25 @@ class ReadEntryPage(webapp.RequestHandler):
 				member.viewDetails = not member.viewDetails
 				member.put()
 				self.redirect(self.request.uri)
+			elif "flag|%s" % entry.key() in self.request.arguments() or "unflag|%s" % entry.key() in self.request.arguments():
+				curating = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
+				if entry and curating:
+					if "flag|%s" % entry.key() in self.request.arguments():
+						entry.flaggedForRemoval = True
+						entry.put()
+					elif "unflag|%s" % entry.key() in self.request.arguments():
+						entry.flaggedForRemoval = False
+						entry.put()
+				self.redirect(self.request.uri)
 			else:
-				self.redirect(self.request.get("nextAction"))
+				for item in entry.getAllNonDraftDependents():
+					if "flag|%s" % item.key() in self.request.arguments():
+						item.flaggedForRemoval = True
+						item.put()
+					elif "unflag|%s" % item.key() in self.request.arguments():
+						item.flaggedForRemoval = False
+						item.put()
+				self.redirect(self.request.uri)
 		else:
 			self.redirect(START)
 			
@@ -635,48 +692,8 @@ class SeeMemberPage(webapp.RequestHandler):
 			memberToSee = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
 			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
 			if memberToSee:
-				allItems = memberToSee.getAllItemsAttributedToMember()
-				allItems.extend(memberToSee.getNonDraftLiaisonedEntries())
-				allItems.extend(memberToSee.getNonDraftLiaisonedAnnotations())
-				allItems.extend(memberToSee.getNonDraftLiaisonedAnswers())
-				statNames = []
-				stats = []
-				for type in ENTRY_TYPES:
-					stats.append(Entry.all().filter("creator = ", memberToSee.key()).filter("type = ", type).filter("draft = ", False).count())
-				statNames.extend(ENTRY_TYPES_PLURAL_DISPLAY)
-				for type in ANNOTATION_TYPES:
-					stats.append(Annotation.all().filter("creator = ", memberToSee.key()).filter("type = ", type).filter("draft = ", False).count())
-				statNames.extend(ANNOTATION_TYPES_PLURAL_DISPLAY)
-				stats.append(Answer.all().filter("creator = ", memberToSee.key()).filter("draft = ", False).count())
-				statNames.append(TERMS["term_answers"])
-				if allItems:
-					maxTime = datetime.now(tz=pytz.utc)
-					minTime = memberToSee.joined
-					numRows = 1
-					numCols = BROWSE_NUM_COLS
-					timeStep = (maxTime - minTime) // numCols
-					textsForGrid = []
-					colHeaders = []
-					for row in range(numRows):
-						textsInThisRow = []
-						for col in range(numCols):
-							textsInThisCell = []
-							startTime = minTime + timeStep * col
-							endTime = minTime + timeStep * (col+1)
-							if row == numRows - 1:
-								colHeaders.append(RelativeTimeDisplayString(startTime, member))
-							for item in allItems:
-								shouldBeInRow = True
-								shouldBeInCol = item.published >= startTime and item.published < endTime
-								if shouldBeInRow and shouldBeInCol:
-									text = ItemDisplayStringForGrid(item, member, curating, showingMember=not memberToSee.isLiaison(), showDetails=member.viewDetails)
-									textsInThisCell.append(text)
-							textsInThisRow.append(textsInThisCell)
-						textsForGrid.append(textsInThisRow)
-					textsForGrid.reverse()
-				else:
-					textsForGrid = None
-					colHeaders = None
+				textsForGrid, colHeaders = self.buildGrid(member, memberToSee, rakontu, curating)
+				statNames, stats = self.collectStats(memberToSee)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': TITLES["MEMBER"], 
 					   		   'title_extra': member.nickname, 
@@ -692,6 +709,7 @@ class SeeMemberPage(webapp.RequestHandler):
 					   		   'no_profile_text': NO_PROFILE_TEXT,
 					   		   'stat_names': statNames,
 					   		   'stats': stats,
+					   		   'curating': curating,
 					   		   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/member.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -699,48 +717,98 @@ class SeeMemberPage(webapp.RequestHandler):
 				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
+			
+	def buildGrid(self, member, memberToSee, rakontu, curating):
+		allItems = memberToSee.getAllItemsAttributedToMember()
+		allItems.extend(memberToSee.getNonDraftLiaisonedEntries())
+		allItems.extend(memberToSee.getNonDraftLiaisonedAnnotations())
+		allItems.extend(memberToSee.getNonDraftLiaisonedAnswers())
+		if allItems:
+			maxTime = datetime.now(tz=pytz.utc)
+			minTime = memberToSee.joined
+			numRows = 1
+			numCols = BROWSE_NUM_COLS
+			timeStep = (maxTime - minTime) // numCols
+			textsForGrid = []
+			colHeaders = []
+			for row in range(numRows):
+				textsInThisRow = []
+				for col in range(numCols):
+					textsInThisCell = []
+					startTime = minTime + timeStep * col
+					endTime = minTime + timeStep * (col+1)
+					if row == numRows - 1:
+						colHeaders.append(RelativeTimeDisplayString(startTime, member))
+					for item in allItems:
+						shouldBeInRow = True
+						shouldBeInCol = item.published >= startTime and item.published < endTime
+						if shouldBeInRow and shouldBeInCol:
+							text = ItemDisplayStringForGrid(item, member, curating, showingMember=not memberToSee.isLiaison(), showDetails=member.viewDetails)
+							textsInThisCell.append(text)
+					textsInThisRow.append(textsInThisCell)
+				textsForGrid.append(textsInThisRow)
+			textsForGrid.reverse()
+		else:
+			textsForGrid = None
+			colHeaders = None
+		return textsForGrid, colHeaders
+	
+	def collectStats(self, memberToSee):
+		statNames = []
+		stats = []
+		for type in ENTRY_TYPES:
+			stats.append(Entry.all().filter("creator = ", memberToSee.key()).filter("type = ", type).filter("draft = ", False).count())
+		statNames.extend(ENTRY_TYPES_PLURAL_DISPLAY)
+		for type in ANNOTATION_TYPES:
+			stats.append(Annotation.all().filter("creator = ", memberToSee.key()).filter("type = ", type).filter("draft = ", False).count())
+		statNames.extend(ANNOTATION_TYPES_PLURAL_DISPLAY)
+		stats.append(Answer.all().filter("creator = ", memberToSee.key()).filter("draft = ", False).count())
+		statNames.append(TERMS["term_answers"])
+		return statNames, stats
 
 	@RequireLogin 
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			messageMember = None
-			goAhead = True
-			if "toggleShowDetails" in self.request.arguments():
-				member.viewDetails = not member.viewDetails
-				member.put()
-				self.redirect(self.request.uri)
-			else:
-				for argument in self.request.arguments():
-					if argument.find("|") >= 0:
-						for aMember in rakontu.getActiveMembers():
-							if argument == "message|%s" % aMember.key():
-								try:
-									messageMember = aMember
-								except: 
-									messageMember = None
-									goAhead = False
-								break
-				if goAhead and messageMember:
-					if not messageMember.isOnlineMember:
-						if messageMember.liaison and  messageMember.liaison.active:
-							memberToSendMessageTo = messageMember.liaison
+			memberToSee = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
+			if memberToSee:
+				if "toggleShowDetails" in self.request.arguments():
+					member.viewDetails = not member.viewDetails
+					member.put()
+					self.redirect(self.request.uri)
+				elif "message|%s" % memberToSee.key() in self.request.arguments():
+						if not memberToSee.isOnlineMember:
+							if memberToSee.liaison and  memberToSee.liaison.active:
+								memberToSendMessageTo = memberToSee.liaison
+							else:
+								memberToSendMessageTo = None
 						else:
-							memberToSendMessageTo = None
-					else:
-						memberToSendMessageTo = messageMember
-					if memberToSendMessageTo:
-						message = mail.EmailMessage()
-						message.sender = rakontu.contactEmail
-						message.subject = htmlEscape(self.request.get("subject"))
-						message.to = memberToSendMessageTo.googleAccountEmail
-						message.body = htmlEscape(self.request.get("message"))
-						message.send()
-						self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
-					else:
-						self.redirect(BuildResultURL("memberNotFound", rakontu=rakontu))
+							memberToSendMessageTo = memberToSee
+						if memberToSendMessageTo:
+							message = mail.EmailMessage()
+							message.sender = rakontu.contactEmail
+							message.subject = htmlEscape(self.request.get("subject"))
+							message.to = memberToSendMessageTo.googleAccountEmail
+							message.body = htmlEscape(self.request.get("message"))
+							message.send()
+							self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
+						else:
+							self.redirect(BuildResultURL("memberNotFound", rakontu=rakontu))
 				else:
-					self.redirect(BuildResultURL("memberNotFound", rakontu=rakontu))
+					allItems = memberToSee.getAllItemsAttributedToMember()
+					allItems.extend(memberToSee.getNonDraftLiaisonedEntries())
+					allItems.extend(memberToSee.getNonDraftLiaisonedAnnotations())
+					allItems.extend(memberToSee.getNonDraftLiaisonedAnswers())
+					for item in allItems:
+						if "flag|%s" % item.key() in self.request.arguments():
+							item.flaggedForRemoval = True
+							item.put()
+						elif "unflag|%s" % item.key() in self.request.arguments():
+							item.flaggedForRemoval = False
+							item.put()
+					self.redirect(self.request.uri)
+			else:
+				self.redirect(BuildResultURL("memberNotFound", rakontu=rakontu))
 		else:
 			self.redirect(START)
    

@@ -72,7 +72,6 @@ application = webapp.WSGIApplication(
 									  
 									  # curating 
 									  (BuildURL("dir_visit", "url_curate"), ReadEntryPage),
-									  (BuildURL("dir_visit", "url_flag"), FlagOrUnflagItemPage),
 									  (BuildURL("dir_curate"), CurateFlagsPage),
 									  (BuildURL("dir_curate", extraSlash=True), CurateFlagsPage), 
 									  (BuildURL("dir_curate", "url_flags"), CurateFlagsPage),

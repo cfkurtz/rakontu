@@ -253,6 +253,22 @@ TERMS = {
 		"term_answer_set": "answer set",
 		"term_answer": "answer",
 		"term_answers": "answers",
+		# used to display list of things user can do while viewing story or other entry
+		"term_tell_another_version_of_this_story": "Tell another version of what happened",
+		"term_tell_a_story_this_reminds_you_of": "Tell a story this reminds you of",
+		"term_answer_questions_about_this": "Answer questions about this",  # story, invitation collage, pattern, or resource
+		"term_enter_answers_for_offline_member": "Enter answers for an off-line member",
+		"term_respond_to_invitation": "Respond to this invitation with a story",
+		"term_make_a_comment": "Comment on this",  # story, invitation collage, pattern, or resource
+		"term_tag_this": "Tag this", # story, invitation collage, pattern, or resource
+		"term_request_something_about_this": "Request something about this", # story, invitation collage, pattern, or resource
+		"term_relate_entry_to_others": "Relate this entry to other entries",
+		"term_nudge_this": "Nudge this", # story, invitation collage, pattern, or resource
+		"term_curate_this": "Curate this", # story, invitation collage, pattern, or resource
+		"term_stop_curating_this": "Stop curating this", # story, invitation collage, pattern, or resource
+		"term_change_this": "Change this", # story, invitation collage, pattern, or resource
+		"term_print_this": "Print (with its annotations) this", # story, invitation collage, pattern, or resource
+		
 		# used to send a reminder to manager about items flagged by curator
 		"term_dear_manager": "Dear manager",
 		"term_reminder": "Reminder about flagged items from", # person who is sending the reminder
@@ -522,11 +538,17 @@ TEMPLATE_TERMS = {
 		"template_flag_noun": "Flag",
 		"template_flag_verb": "Flag",
 		"template_unflag": "Unflag",
+		"template_flagged_for_removal": "Flagged for removal",
 		"template_comment_only": "comment only",
 		"template_entry_questions": "Entry questions",
 		"template_member_questions": "Member questions",
 		"template_remove_warning": "Please remove items carefully. Deleted items cannot be recovered.",
 		"template_flag_comment": "Flag comment",
+		"template_click_here_to_unflag": "Click here to unflag this item",
+		"template_click_here_to_flag": "Click here to flag this item for removal",
+		"template_click_here_to_flag_this_set_of_tags": "Click here to flag this set of tags for removal",
+		"template_click_here_to_flag_this_entry": "Click here to flag this entry for removal",
+		"template_click_here_to_flag_this_resource": "Click here to flag this resource for removal",
 		# curate/gaps
 		"template_gaps": "Gaps",
 		"template_sort_by": "Sort by",
@@ -743,6 +765,8 @@ TEMPLATE_TERMS = {
 		"template_send_a_message_to": "Send a message to",
 		"template_change_your_preferences": "Change your preferences",
 		"template_curate_this_members_entries": "Curate this member's contributions",
+		"template_curate_your_entries": "Curate your contributions",
+		"template_stop_curating": "Stop curating",
 		# visit/members
 		"template_make_changes_to_members": "Make changes to memberships",
 		# visit/new
@@ -963,7 +987,6 @@ NO_ACCESS = {
 		"members": "You are not a manager of this Rakontu and cannot change its memberships. Please ask a manager to make any changes you would like to see made.",
 		"questions": "You are not a manager of this Rakontu and cannot change its questions. Please ask a manager to make any changes you would like to see made.",
 		"settings": "You are not a manager of this Rakontu and cannot change its settings. Please ask a manager to make any changes you would like to see made.",
-		
 		}
 
 # ============================================================================================ 

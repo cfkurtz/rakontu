@@ -3,10 +3,14 @@
 	<body>
 	{% include "../common_menus.html" %}
 	<div id="content">
+	<div id="stylized" class="rakontu_form">
+	<form name="read" action="/{{dir_visit}}/{{url_read}}?{{entry.urlQuery}}
 	
 	{% if things_member_can_do %}
-		<div id="stylized" class="rakontu_form">
-		<form name="read" action="/{{dir_visit}}/{{url_read}}?{{entry.urlQuery}}" method="post">
+		{% if curating %}
+			&{{url_query_curate}}={{url_query_curate}}
+		{% endif %}
+		" method="post">
 		<table cellpadding="0" cellspacing="0" style="width:95%;border:none;">
 		<tr>
 		<td width="50" align="right" style="border:none;">
@@ -14,13 +18,11 @@
 	
 	<img src="/images/{{entry.type}}.png" alt="tags" align="left" border="0">
 	{% if curating %}
-		<a href="/{{dir_visit}}/{{url_flag}}?{{url_query_entry}}={{entry.getKeyName}}" class="imagelight"><img src="../images/
 		{% if entry.flaggedForRemoval %}
-			flag_red.png
+			<input type="submit" class="flag_red" value="" name="unflag|{{entry.key}}" title="{{template_click_here_to_unflag}}">
 		{% else %}
-			flag_green.png
+			<input type="submit" class="flag_green" value="" name="flag|{{entry.key}}" title="{{template_click_here_to_flag_this_entry}}">
 		{% endif %}
-		" alt="flag" border="0"></a>
 	{% endif %}
 	
 	{% if things_member_can_do %}
@@ -33,8 +35,6 @@
 		{% endfor %}
 		</select>
 		<input type="submit" name="doSomething" value="{{template_go|capfirst}}" class="button_small">
-		</form>
-		</div>
 		</td></tr></table>
 	{% else %}
 		<h2>{{entry.title}}</h2>
@@ -188,6 +188,8 @@
 		</div>
 	{% endif %}
 		
+	</form>
+	</div>
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

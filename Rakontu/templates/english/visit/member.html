@@ -3,6 +3,12 @@
 	<body>
 	{% include "../common_menus.html" %}
 		<div id="content">
+		<div id="stylized" class="rakontu_form">
+		<form action="/{{dir_visit}}/{{url_member}}?{{member.urlQuery}}
+		{% if curating %}
+			&{{url_query_curate}}={{url_query_curate}}
+		{% endif %}
+		" method="post">
 	
 		<h3>{{template_information_about}} {{member.nickname}}
 		{% ifequal member.key current_member.key %}<i>({{template_you}})</i> {% endifequal %} 
@@ -110,13 +116,9 @@
 			{% if member.isGuide or member.acceptsMessages %}
 				<h4>{{template_send_a_message_to}} {{member.nickname}} {% if not member.isOnlineMember %} {{"messages_to_offline_members"|info}} {% endif %}</h4>
 				<fieldset>
-				<div id="stylized" class="rakontu_form">
-				<form action="/{{dir_visit}}/{{url_member}}?{{member.urlQuery}}" method="post">
 				<p>{{template_subject}} <input type="text" name="subject" size="80" value="" maxlength="{{maxlength_subject_or_comment}}"/></p>
 				<textarea name="message" rows="8" cols="60"></textarea>
 				<center><input type="submit" name="message|{{member.key}}" value="{{button_send_message}}" class="button"></center>
-				</form>
-				</div>
 				</fieldset>
 			{% endif %}
 		{% endifnotequal %}
@@ -138,8 +140,18 @@
       		<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_preferences}}?{{member.urlQuery}}">{{template_change_your_preferences}}</a></p></div>
       	{% endifequal %}
       	{% if current_member.isCurator %}
-      		<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_member}}?{{member.urlQuery}}&{{url_query_curate}}={{url_query_curate}}">{{template_curate_this_members_entries}}</a></p></div>
+      		{% if curating %}
+      			<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_member}}?{{member.urlQuery}}">{{template_stop_curating}}</a></p></div>
+     		{% else %}
+	      		{% ifequal member.key current_member.key %}
+	      			<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_member}}?{{member.urlQuery}}&{{url_query_curate}}={{url_query_curate}}">{{template_curate_your_entries}}</a></p></div>
+	      		{% else %}
+	      			<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_member}}?{{member.urlQuery}}&{{url_query_curate}}={{url_query_curate}}">{{template_curate_this_members_entries}}</a></p></div>
+	      		{% endifequal %}
+	      	{% endif %}
       	{% endif %}
+    </form>
+    </div>
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

@@ -5,7 +5,9 @@
 		<div id="content">
 		
 		{% if current_member.isGuide %}
-	
+			<div id="stylized" class="rakontu_form">
+			<form action="/{{dir_guide}}/{{url_resources}}?{{rakontu.urlQuery}}" method="post">
+
 			{% if resources %}
 			<h3>{{template_resources}}</h3>
 	      	<table border="0" cellpadding="4" cellspacing="0">
@@ -25,10 +27,10 @@
 	      		{% for resource in resources %}
 	  				<tr>
 	  				<td>
-	  				{% if resource.flaggedForRemoval %}
-	  					<a href="/{{dir_visit}}/{{url_flag}}?{{resource.urlQuery}}" class="image"><img src="../images/flag_red.png" alt="flag" border="0"></a>
-	  				{% else %}
-	  					<a href="/{{dir_visit}}/{{url_flag}}?{{resource.urlQuery}}" class="image"><img src="../images/flag_green.png" alt="flag" border="0"></a>
+					{% if resource.flaggedForRemoval %}
+						<input type="submit" class="flag_red" value="" name="unflag|{{resource.key}}" title="{{template_click_here_to_unflag}}">
+					{% else %}
+						<input type="submit" class="flag_green" value="" name="flag|{{resource.key}}" title="{{template_click_here_to_flag_this_resource}}">
 					{% endif %}
 
 	  				{{resource.linkString}}</td>
@@ -77,6 +79,8 @@
 	  				</tr>
 	      		{% endfor %}
 	      	</table>
+		</form>	
+		</div>
 	      	{% else %}
 	      		<p>{{template_no_help_resources}}.<p>
 	      		<ul>

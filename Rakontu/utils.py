@@ -280,30 +280,30 @@ def ItemDisplayStringForGrid(item, member, curating=False, showingMember=False, 
 		linkString = item.linkStringWithEntryLink()
 	else:
 		linkString = item.linkString()
-	# name
+	# name 
 	if not showingMember:
-		if item.attributedToMember():
+		if item.attributedToMember(): 
 			if item.creator.active:
 				nameString = ' (%s' % (item.creator.linkString())
-			else:
+			else: 
 				nameString = ' (%s' % item.creator.nickname
 		else:
-			if item.character.active:
+			if item.character.active: 
 				nameString = ' (%s' % (item.character.linkString())
-			else:
+			else: 
 				nameString = ' (%s' % item.character.name
-		if showDetails:
-			nameString += ", "
+		if showDetails: 
+			nameString += ", " 
 		else:
 			nameString += ")"
-	else:
+	else: 
 		nameString = ""
 	# curating flag 
 	if curating: 
 		if item.flaggedForRemoval:
-			curateString = '<a href="flag?%s" class="imagelight"><img src="../images/flag_red.png" alt="flag" border="0"></a>' % item.urlQuery()
+			curateString = '<input type="submit" class="flag_red" value="" name="unflag|%s" title="%s">' % (item.key(), TEMPLATE_TERMS["template_click_here_to_unflag"])
 		else:
-			curateString = '<a href="flag?%s" class="imagelight"><img src="../images/flag_green.png" alt="flag" border="0"></a>' % item.urlQuery()
+			curateString = '<input type="submit" class="flag_green" value="" name="flag|%s" title="%s">' % (item.key(), TEMPLATE_TERMS["template_click_here_to_flag"])
 	else:
 		curateString = ""
 	# date string if showing details

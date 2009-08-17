@@ -1107,6 +1107,7 @@ class Member(db.Model):
 		allItems.extend(self.getNonDraftEntriesAttributedToMember())
 		allItems.extend(self.getNonDraftAnnotationsAttributedToMember())
 		allItems.extend(self.getNonDraftAnswersAboutEntriesAttributedToMember())
+		allItems.extend(self.getLinksCreatedByMember())
 		return allItems
 	
 	def getAnswers(self):
@@ -2025,6 +2026,13 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		for answer in answers:
 			answer.collected = self.collected
 			answer.put()
+			
+	def getAllNonDraftDependents(self):
+		result = []
+		result.extend(self.getNonDraftAnnotations())
+		result.extend(self.getNonDraftAnswers())
+		result.extend(self.getAllLinks())
+		return result
 	
 	# DISPLAY
 	

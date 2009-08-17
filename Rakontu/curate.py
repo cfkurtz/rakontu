@@ -8,21 +8,6 @@
 
 from utils import *
 
-class FlagOrUnflagItemPage(webapp.RequestHandler):
-	@RequireLogin 
-	def get(self):
-		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
-		if access:
-			item = GetObjectOfUnknownTypeFromURLQuery(self.request.query_string)
-			if item:
-				item.flaggedForRemoval = not item.flaggedForRemoval
-				item.put()
-				self.redirect(self.request.headers["Referer"])
-			else:
-				self.redirect(rakontu.linkURL())
-		else:
-			self.redirect(START)
-	
 class CurateFlagsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
@@ -135,9 +120,7 @@ class CurateFlagsPage(webapp.RequestHandler):
 						message.to = ownerOrManager.googleAccountEmail
 						message.body = messageBody
 						DebugPrint(messageBody)
-						# CFK FIX
-						# not putting this last line in until I can start testing it, either locally or on the real server
-						#message.send()
+						message.send()
 					self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
 			else:
 				self.redirect(rakontu.linkURL())
@@ -216,6 +199,24 @@ class CurateAttachmentsPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
+	@RequireLogin 
+	def post(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if member.isCurator():
+				for attachment in rakontu.getAttachmentsForAllNonDraftEntries():
+					if "flag|%s" % attachment.entry.key() in self.request.arguments():
+						attachment.entry.flaggedForRemoval = True
+						attachment.entry.put()
+					elif "unflag|%s" % attachment.entry.key() in self.request.arguments():
+						attachment.entry.flaggedForRemoval = False
+						attachment.entry.put()
+				self.redirect(BuildURL("dir_curate", "url_attachments", rakontu=rakontu))
+			else:
+				self.redirect(rakontu.linkURL())
+		else:
+			self.redirect(START)
+
 class CurateTagsPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
@@ -249,6 +250,10 @@ class CurateTagsPage(webapp.RequestHandler):
 							tagset.tagsIfTagSet.append(self.request.get("tag%s|%s" % (i, tagset.key())))
 						else:
 							tagset.tagsIfTagSet.append("")
+					if "flag|%s" % tagset.key() in self.request.arguments():
+						tagset.flaggedForRemoval = True
+					elif "unflag|%s" % tagset.key() in self.request.arguments():
+						tagset.flaggedForRemoval = False
 				db.put(tagsets)
 				self.redirect(BuildURL("dir_curate", "url_tags", rakontu=rakontu))
 

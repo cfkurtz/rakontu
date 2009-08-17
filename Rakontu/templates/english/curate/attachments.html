@@ -4,6 +4,9 @@
 	{% include "../common_menus.html" %}
 	<div id="content">
 	{% if current_member.isCurator %}
+		<div id="stylized" class="rakontu_form">
+		<form action="/{{dir_curate}}/{{url_attachments}}?{{rakontu.urlQuery}}" method="post">
+		
 			<h3>{{template_attachments}}</h3>
 			{% if attachments %}
 		      	<table border="0" cellpadding="4" cellspacing="0">
@@ -12,13 +15,11 @@
 	      			<tr>
 	      			 <td>{{attachment.linkString}}</td>
 	      			 <td>
-					<a href="/{{dir_visit}}/{{url_flag}}?{{attachment.entry.urlQuery}}" class="imagelight"><img src="../images/
 					{% if attachment.entry.flaggedForRemoval %}
-						flag_red.png
+						<input type="submit" class="flag_red" value="" name="unflag|{{attachment.entry.key}}" title="{{template_click_here_to_unflag}}">
 					{% else %}
-						flag_green.png
+						<input type="submit" class="flag_green" value="" name="flag|{{attachment.entry.key}}" title="{{template_click_here_to_flag_this_entry}}">
 					{% endif %}
-					" alt="flag" border="0"></a>
 	      			 {{attachment.entry.linkString}}</td>
 	      			 </tr>
 	      		{% endfor %}
@@ -26,6 +27,8 @@
 		    {% else %}
 		    	<p>{{template_no_attachments}}</p>
 			{% endif %}
+		</form>	
+		</div>
 	{% else %}
 		<p>{{no_access|dictLookup:"attachments"}}</p>
 	{% endif %}
@@ -33,3 +36,5 @@
 	{% include "../common_footer.html" %}
 	</body>
 </html>
+
+

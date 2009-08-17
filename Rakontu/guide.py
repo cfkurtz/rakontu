@@ -36,10 +36,13 @@ class ReviewResourcesPage(webapp.RequestHandler):
 			if member.isGuide():
 				resources = rakontu.getNonDraftEntriesOfType("resource")
 				for resource in resources:
-					 if self.request.get("flag|%s" % resource.key()) == "yes":
-					 	resource.flaggedForRemoval = not resource.flaggedForRemoval
-					 	resource.put()
-				self.redirect(BuildResultURL("changessaved", rakontu=rakontu))
+					if "flag|%s" % resource.key() in self.request.arguments():
+						resource.flaggedForRemoval = True
+						resource.put()
+					elif "unflag|%s" % resource.key() in self.request.arguments():
+						resource.flaggedForRemoval = False
+						resource.put()
+				self.redirect(BuildURL("dir_guide", "url_resources", rakontu=rakontu))
 			else:
 				self.redirect(rakontu.linkURL())
 		else:

@@ -2,18 +2,6 @@ Things to do before v0.9 is complete
 
 ===== RIGHT NOW:
 
-have removed all references to http header "referer" except the one for flags
-need way to return to previous page when flagging. may need to make it a form 
-and respond in each screen that does it :(
-
-
-search for use of "yesno" filter in templates - does not work with internationalization
-also search for javascript confirm strings, those might not be being pulled out
-
-still some blank answers to text questions causing answers to be kept when they shouldn't
-
-===== PUT OFF until a little later :)
-
 TESTING:
 
 test "send this member a note" thing
@@ -24,7 +12,6 @@ help resources
 
 SCALING UP:
 
-finish internationalization
 transactions
 custom indexes?
 more than 1000 in a query
@@ -34,7 +21,7 @@ look at all puts to see if they can be better lumped together
 
 PRETTIFYING:
 
-add cancel button on all pages that save things
+add cancel button on all pages that save things?
 javascript sliders for values?
 javascript in search creation?
 problem with CSS and font sizes...
