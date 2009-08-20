@@ -13,8 +13,10 @@ help resources
 SCALING UP:
 
 transactions
-custom indexes?
 more than 1000 in a query
+long-running processes
+
+custom indexes?
 get keys only when possible?
 more caching for speed
 look at all puts to see if they can be better lumped together

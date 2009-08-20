@@ -19,7 +19,6 @@ from google.appengine.ext import db
 def KeyName(type):
 	IncrementCount(type)
 	return "%s%s" % (type, GetShardCount(type))
-	#return "%s:%s" % (type, uuid.uuid4())
 
 def GetShardCount(type):
 	result = 0
@@ -348,25 +347,23 @@ class Rakontu(db.Model):
 	# ENTRIES
 	
 	def getNonDraftEntries(self):
-		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).fetch(BIG_FETCH_NUMBER)
 	
-	def getNonDraftEntriesInReverseTimeOrder(self):
-		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-published").fetch(FETCH_NUMBER)
-	
-	def getNonDraftEntriesOfTypesInListInReverseTimeOrder(self, typeList):
-		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type IN ", typeList).order("-published").fetch(FETCH_NUMBER)
+	def getNonDraftEntriesOfTypesInListBetweenDateTimesInReverseTimeOrder(self, typeList, minTime, maxTime):
+		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type IN ", typeList).\
+			filter("published >= ", minTime).filter("published < ", maxTime).order("-published").fetch(BIG_FETCH_NUMBER)
 	
 	def getNonDraftEntriesInAlphabeticalOrder(self):
-		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-title").fetch(FETCH_NUMBER)
+		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-title").fetch(BIG_FETCH_NUMBER)
 	
 	def getNonDraftStoriesInAlphabeticalOrder(self):
-		return Entry.all().filter("rakontu = ", self.key()).filter("type = ", "story").filter("draft = ", False).order("-title").fetch(FETCH_NUMBER)
+		return Entry.all().filter("rakontu = ", self.key()).filter("type = ", "story").filter("draft = ", False).order("-title").fetch(BIG_FETCH_NUMBER)
 	
 	def getNonDraftEntriesAnnotationsAndAnswersInReverseTimeOrder(self):
 		result = []
-		entries = Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-published").fetch(FETCH_NUMBER)
-		annotations = Annotation.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-published").fetch(FETCH_NUMBER)
-		answers = Answer.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-published").fetch(FETCH_NUMBER)
+		entries = Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-published").fetch(BIG_FETCH_NUMBER)
+		annotations = Annotation.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-published").fetch(BIG_FETCH_NUMBER)
+		answers = Answer.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-published").fetch(BIG_FETCH_NUMBER)
 		result.extend(entries)
 		result.extend(annotations)
 		result.extend(answers)
@@ -374,7 +371,7 @@ class Rakontu(db.Model):
 		return result
 	
 	def getNonDraftEntriesOfType(self, type):
-		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(FETCH_NUMBER)
+		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(BIG_FETCH_NUMBER)
 	
 	def getNonDraftEntriesWithMissingMetadata(self, sortBy):
 		entriesWithoutTags = []
@@ -462,11 +459,11 @@ class Rakontu(db.Model):
 	# ENTRIES, ANNOTATIONS, ANSWERS, LINKS - EVERYTHING
 	
 	def getAllFlaggedItems(self):
-		entries = Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
-		annotations = Annotation.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
-		answers = Answer.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
-		links = Link.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
-		searches = SavedSearch.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
+		entries = Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
+		annotations = Annotation.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
+		answers = Answer.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
+		links = Link.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
+		searches = SavedSearch.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
 		return (entries, annotations, answers, links, searches)
 	
 	def getAllFlaggedItemsAsOneList(self):
@@ -506,6 +503,17 @@ class Rakontu(db.Model):
 	def getTagsetsInImportBufferForLiaison(self, liaison):
 		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "tag set").filter("inBatchEntryBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
 		
+	def getAllNonDraftRequests(self):
+		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "request").filter("draft = ", False).fetch(FETCH_NUMBER)
+		
+	def getAllNonDraftRequestsOfType(self, type):
+		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "request").filter("draft = ", False).\
+			filter("typeIfRequest = ", type).fetch(FETCH_NUMBER)
+		
+	def getAllUncompletedNonDraftRequestsOfType(self, type):
+		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "request").filter("draft = ", False).\
+				filter("typeIfRequest = ", type).filter("completedIfRequest = ", False).fetch(FETCH_NUMBER)
+	
 	def moveImportedEntriesOutOfBuffer(self, items):
 		for item in items:
 			item.draft = False
@@ -549,6 +557,9 @@ class Rakontu(db.Model):
 	
 	def getAllQuestions(self):
 		return Question.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
+	
+	def getAllQuestionsOfReferType(self, type):
+		return Question.all().filter("rakontu = ", self.key()).filter("refersTo = ", type).fetch(FETCH_NUMBER)
 	
 	def getActiveQuestions(self):
 		return Question.all().filter("rakontu = ", self.key()).filter("active = ", True).fetch(FETCH_NUMBER)
@@ -653,7 +664,7 @@ class Rakontu(db.Model):
 	# REMOVAL
 	
 	def removeAllDependents(self):
-		entries = Entry.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
+		entries = Entry.all().filter("rakontu = ", self.key()).fetch(BIG_FETCH_NUMBER)
 		for entry in entries:
 			entry.removeAllDependents()
 		db.delete(entries)
@@ -916,6 +927,9 @@ class Question(db.Model):
 	def keyAsString(self):
 		return "%s" % self.key()
 	
+	def getAnswerCount(self):
+		return Answer.all().filter("question = ", self.key()).count()
+	
 # ============================================================================================
 # ============================================================================================
 class Member(db.Model):
@@ -1113,29 +1127,35 @@ class Member(db.Model):
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
 	
-	def getNonDraftEntriesAttributedToMember(self):
-		return Entry.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).fetch(FETCH_NUMBER)
-	
-	def getNonDraftAnnotationsAttributedToMember(self):
-		return Annotation.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).fetch(FETCH_NUMBER)
-	
-	def getNonDraftAnswersAboutEntriesAttributedToMember(self):
-		return Answer.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
-	
-	def getNonDraftLiaisonedEntries(self):
-		return Entry.all().filter("liaison = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
-	
-	def getNonDraftLiaisonedAnnotations(self):
-		return Annotation.all().filter("liaison = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
-	
-	def getNonDraftLiaisonedAnswers(self):
-		return Answer.all().filter("liaison = ", self.key()).filter("draft = ", False).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
-	
-	def getLinksCreatedByMember(self):
-		return Link.all().filter("creator = ", self.key()).fetch(FETCH_NUMBER)
-	
 	def getAnswerForQuestion(self, question):
 		return Answer.all().filter("referent = ", self.key()).filter("question = ", question.key()).get()
+	
+	def getAnswerForMemberQuestion(self, question):
+		return Answer.all().filter("question = ", question.key()).filter("referent =", self.key()).get()
+	
+	def getAnswersForQuestionAndMember(self, question, member):
+		return Answer.all().filter("question = ", question.key()).filter("referent =", self.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
+	
+	def getNonDraftEntriesAttributedToMember(self):
+		return Entry.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).fetch(BIG_FETCH_NUMBER)
+	
+	def getNonDraftAnnotationsAttributedToMember(self):
+		return Annotation.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).fetch(BIG_FETCH_NUMBER)
+	
+	def getNonDraftAnswersAboutEntriesAttributedToMember(self):
+		return Answer.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).filter("referentType = ", "entry").fetch(BIG_FETCH_NUMBER)
+	
+	def getNonDraftLiaisonedEntries(self):
+		return Entry.all().filter("liaison = ", self.key()).filter("draft = ", False).fetch(BIG_FETCH_NUMBER)
+	
+	def getNonDraftLiaisonedAnnotations(self):
+		return Annotation.all().filter("liaison = ", self.key()).filter("draft = ", False).fetch(BIG_FETCH_NUMBER)
+	
+	def getNonDraftLiaisonedAnswers(self):
+		return Answer.all().filter("liaison = ", self.key()).filter("draft = ", False).filter("referentType = ", "entry").fetch(BIG_FETCH_NUMBER)
+	
+	def getLinksCreatedByMember(self):
+		return Link.all().filter("creator = ", self.key()).fetch(BIG_FETCH_NUMBER)
 	
 	# DRAFTS
 	
@@ -1238,13 +1258,13 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 		return allItems
 	
 	def getNonDraftEntriesAttributedToCharacter(self):
-		return Entry.all().filter("character = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+		return Entry.all().filter("character = ", self.key()).filter("draft = ", False).fetch(BIG_FETCH_NUMBER)
 	
 	def getNonDraftAnnotationsAttributedToCharacter(self):
-		return Annotation.all().filter("character = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+		return Annotation.all().filter("character = ", self.key()).filter("draft = ", False).fetch(BIG_FETCH_NUMBER)
 	
 	def getNonDraftAnswersAboutEntriesAttributedToCharacter(self):
-		return Answer.all().filter("character = ", self.key()).filter("draft = ", False).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
+		return Answer.all().filter("character = ", self.key()).filter("draft = ", False).filter("referentType = ", "entry").fetch(BIG_FETCH_NUMBER)
 
 	def getKeyName(self):
 		return self.key().name()
@@ -2497,6 +2517,7 @@ class Skin(db.Model):		 # style sets to change look of each Rakontu
 	color_background_excerpt = db.StringProperty(indexed=False) # behind story texts and other "highlighted" boxes
 	color_background_entry = db.StringProperty(indexed=False) # to indicate the user is entering data
 	color_background_menus = db.StringProperty(indexed=False) # menu backgrounds
+	color_background_menus_hover =  db.StringProperty(indexed=False) # menu backgrounds when hovering over
 		
 	color_background_grid_top = db.StringProperty(indexed=False) # entry grid on home page, annotation grid on entry page
 	color_background_grid_bottom = db.StringProperty(indexed=False) # same but on bottom of grid (should be "faded" from top)
@@ -2515,6 +2536,7 @@ class Skin(db.Model):		 # style sets to change look of each Rakontu
 	color_text_plain = db.StringProperty(indexed=False) # plain text - usually black
 	color_text_excerpt = db.StringProperty(indexed=False) # text color in excerpts
 	color_text_menus = db.StringProperty(indexed=False) # text color in menus
+	color_text_menus_hover = db.StringProperty(indexed=False) # text color in menus when hovering over
 	color_text_buttons = db.StringProperty(indexed=False) # text color on buttons
 	color_text_h1 = db.StringProperty(indexed=False) # h1 text
 	color_text_h2 = db.StringProperty(indexed=False) # h2 text
@@ -2561,5 +2583,30 @@ class Export(db.Model):		 # data prepared for export, in XML or CSV or TXT forma
 			return "%s=%s" % (URL_IDS["url_query_export_txt"], self.getKeyName())
 		elif self.fileFormat == "xml":
 			return "%s=%s" % (URL_IDS["url_query_export_xml"], self.getKeyName())
+
+# ============================================================================================
+# ============================================================================================
+# SOME DB FETCHING METHODS - all get and fetch calls are in this file
+# ============================================================================================
+# ============================================================================================
+
+
+def AllRakontus():
+	return Rakontu.all().fetch(FETCH_NUMBER)
+
+def AllHelps():
+	return Help.all().fetch(FETCH_NUMBER)
+
+def AllSkins():
+	return Skin.all().fetch(FETCH_NUMBER)
+
+def AllSystemQuestions():
+	return Question.all().filter("rakontu = ", None).fetch(FETCH_NUMBER)
+
+def SystemQuestionsOfType(type):
+	return Question.all().filter("rakontu = ", None).filter("refersTo = ", type).fetch(FETCH_NUMBER)
+
+def SystemEntriesOfType(type):
+	Entry.all().filter("rakontu = ", None).filter("type = ", type).fetch(FETCH_NUMBER)
 
 

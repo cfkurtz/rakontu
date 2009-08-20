@@ -641,6 +641,9 @@ TEMPLATE_TERMS = {
 		# manage/questionsList
 		"template_questions_about": "Questions about",
 		# manage/settings
+		"template_appearance": "Appearance",
+		"template_display_options": "Display options",
+		"template_things_members_can_do": "Things members can do",
 		"template_rakontu_created_on": "This Rakontu was created on",
 		"template_tag_line": "Tag line",
 		"template_rakontu_outoing_email": "Outgoing email address",
@@ -952,10 +955,11 @@ TEMPLATE_MENUS = {
 		"menu_questions": "Questions",
 		"menu_characters": "Characters",
 		"menu_export": "Export",
-		# to right side of menus
-		"menu_preferences": "My preferences",
-		"menu_drafts": "My drafts",
-		"menu_filters": "My search filters",
+		# review
+		"menu_review": "Review",
+		"menu_preferences": "Preferences",
+		"menu_filters": "Filters",
+		"menu_drafts": "Drafts",
 		"menu_help": "Help",
 		# this appears when site admin is looking ABOVE the Rakontu level
 		"menu_site_administration": "Rakontu site administration",

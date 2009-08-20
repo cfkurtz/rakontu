@@ -286,9 +286,9 @@ class EnterEntryPage(webapp.RequestHandler):
 						link.put()
 						if not entry.draft:
 							link.publish()
-			questions = Question.all().filter("rakontu = ", rakontu).filter("refersTo = ", type).fetch(FETCH_NUMBER)
+			questions = rakontu.getAllQuestionsOfReferType(type)
 			for question in questions:
-				foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", entry.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
+				foundAnswers = entry.getAnswersForQuestionAndMember(question, member)
 				if foundAnswers:
 					answerToEdit = foundAnswers[0]
 				else:
@@ -337,7 +337,7 @@ class EnterEntryPage(webapp.RequestHandler):
 						answerToEdit.publish()
 				else:
 					db.delete(answerToEdit)
-			foundAttachments = Attachment.all().filter("entry = ", entry.key()).fetch(FETCH_NUMBER)
+			foundAttachments = entry.getAttachments()
 			attachmentsToRemove = []
 			for attachment in foundAttachments:
 				for name, value in self.request.params.items():
@@ -346,7 +346,7 @@ class EnterEntryPage(webapp.RequestHandler):
 			if attachmentsToRemove:
 				for attachment in attachmentsToRemove:
 					db.delete(attachment)
-			foundAttachments = Attachment.all().filter("entry = ", entry.key()).fetch(FETCH_NUMBER)
+			foundAttachments = entry.getAttachments()
 			for i in range(rakontu.maxNumAttachments):
 				for name, value in self.request.params.items():
 					if name == "attachment%s" % i:
@@ -472,9 +472,9 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 				if self.request.get(attributionQueryString) != "member":
 					characterKey = self.request.get(attributionQueryString)
 					character = Character.get(characterKey)
-				questions = Question.all().filter("rakontu = ", rakontu).filter("refersTo = ", entry.type).fetch(FETCH_NUMBER)
+				questions = rakontu.getAllQuestionsOfReferType(entry.type)
 				for question in questions:
-					foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", entry.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
+					foundAnswers = entry.getAnswersForQuestionAndMember(question, member)
 					if foundAnswers:
 						answerToEdit = foundAnswers[0]
 					else:
@@ -905,7 +905,7 @@ class RelateEntryPage(webapp.RequestHandler):
 								comment=comment)
 						link.put()
 						link.publish()
-				self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
+				self.redirect(BuildURL("dir_visit", "url_relate", entry.urlQuery()))
 			else:
 				self.redirect(rakontu.linkURL())
 		else:

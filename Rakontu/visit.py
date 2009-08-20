@@ -106,7 +106,8 @@ class BrowseEntriesPage(webapp.RequestHandler):
 				if member.viewEntryTypes[i]:
 					typeList.append(type)
 				i += 1
-			entries = rakontu.getNonDraftEntriesOfTypesInListInReverseTimeOrder(typeList)
+			entries = rakontu.getNonDraftEntriesOfTypesInListBetweenDateTimesInReverseTimeOrder(typeList, member.getViewStartTime(), member.viewTimeEnd)
+			skinDict = rakontu.getSkinDictionary()
 			if entries:
 				entriesThatMatchNewSearch = []
 				entriesToShow = []
@@ -128,11 +129,11 @@ class BrowseEntriesPage(webapp.RequestHandler):
 					for entry in entriesToShow:
 						member.viewEntriesList.append(entry.key())
 					member.put()
-					(textsForGrid, colHeaders, rowColors) = self.buildGrid(rakontu, member, entriesToShow, currentSearch)
+					(textsForGrid, colHeaders, rowColors) = self.buildGrid(rakontu, member, entriesToShow, currentSearch, skinDict)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': TITLES["HOME"],
 							'rakontu': rakontu, 
-							'skin': rakontu.getSkinDictionary(),
+							'skin': skinDict,
 							'current_member': member, 
 							'rows_cols': textsForGrid, 
 							'col_headers': colHeaders, 
@@ -150,7 +151,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-	def buildGrid(self, rakontu, member, entries, currentSearch):
+	def buildGrid(self, rakontu, member, entries, currentSearch, skinDict):
 		textsForGrid = []
 		colHeaders = []
 		rowColors = []
@@ -189,7 +190,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 		timeStep = (maxTime - minTime) // numCols
 		
 		for row in range(numRows):
-			rowColors.append(HexColorStringForRowIndex(row, rakontu.getSkinDictionary()))
+			rowColors.append(HexColorStringForRowIndex(row, skinDict))
 			textsInThisRow = []
 			startNudgePoints = minNudgePoints + nudgeStep * row
 			if row == numRows - 1:
@@ -219,12 +220,12 @@ class BrowseEntriesPage(webapp.RequestHandler):
 						if member.viewDetails:
 							if entry.attributedToMember():
 								if entry.creator.active:
-									nameString = ' (<a href="member?%s">%s</a>, ' % (entry.creator.key(), entry.creator.nickname)
+									nameString = ' (<a href="/%s/%s?%s">%s</a>, ' % (DIRS["dir_visit"], URLS["url_member"], entry.creator.urlQuery(), entry.creator.nickname)
 								else:
 									nameString = " (%s, " % entry.creator.nickname
 							else:
 								if entry.character.active:
-									nameString = ' (<a href="character?%s">%s</a>, ' % (entry.character.key(), entry.character.name)
+									nameString = ' (<a href="/%s/%s?%s">%s</a>, ' % (DIRS["dir_visit"], URLS["url_character"], entry.character.urlQuery(), entry.character.name)
 								else:
 									nameString = " (%s, " % entry.character.name
 							dateTimeString = " %s)" % RelativeTimeDisplayString(entry.published, member)
@@ -1034,11 +1035,11 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 					memberToEdit.guideIntro_format = format
 					memberToEdit.preferredTextFormat = self.request.get("preferredTextFormat")
 				memberToEdit.put()
-				questions = Question.all().filter("rakontu = ", rakontu).filter("refersTo = ", "member").fetch(FETCH_NUMBER)
+				questions = rakontu.getActiveQuestionsOfType("member")
 				for question in questions:
-					foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", memberToEdit.key()).fetch(FETCH_NUMBER)
+					foundAnswer = memberToEdit.getAnswerForMemberQuestion(question)
 					if foundAnswers:
-						answerToEdit = foundAnswers[0]
+						answerToEdit = foundAnswer
 					else:
 						answerToEdit = Answer(
 											key_name=KeyName("answer"), 

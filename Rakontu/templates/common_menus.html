@@ -26,9 +26,6 @@
 				<li><a href="{{rakontu.linkURL}}">{{menu_home_page}}</a></li>
 	 			<li><a href="/{{dir_visit}}/{{url_rakontu}}?{{rakontu.urlQuery}}">{{menu_about_this_rakontu}}</a></li>
 				<li><a href="/{{dir_visit}}/{{url_members}}?{{rakontu.urlQuery}}">{{menu_about_rakontu_members}}</a></li>
-			    <li><a href="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}">{{menu_preferences}}</a></li>
-			    <li><a href="/{{dir_visit}}/{{url_filters}}?{{rakontu.urlQuery}}">{{menu_filters}}</a></li>
-			    <li><a href="/{{dir_visit}}/{{url_drafts}}?{{rakontu.urlQuery}}">{{menu_drafts}}</a></li>
 				</ul>
 			</li>
 			<li><a href="/{{dir_visit}}/{{url_story}}?{{rakontu.urlQuery}}">{{menu_create}}</a>
@@ -41,6 +38,13 @@
 	  			{% endif %}
 	  			</ul>
 			</li>
+			<li><a href="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}">{{menu_review}}</a>
+				<ul>
+				<li<a href="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}">{{menu_preferences}}</a></li>
+			    <li><a href="/{{dir_visit}}/{{url_drafts}}?{{rakontu.urlQuery}}">{{menu_drafts}}</a></li>
+			    <li><a href="/{{dir_visit}}/{{url_filters}}?{{rakontu.urlQuery}}">{{menu_filters}}</a></li>
+	      		</ul>
+	      	</li>
 			{% if current_member.isCurator %}
 				<li><a href="/{{dir_curate}}/{{url_gaps}}?{{rakontu.urlQuery}}">{{menu_curate}}</a>
 				<ul>
@@ -85,10 +89,9 @@
 			      	<li><a href="/{{dir_manage}}/{{url_export}}?{{rakontu.urlQuery}}">{{menu_export}}</a></li>
 		      		</ul>
 		      	</li>
-		    {% endif %}
-			
+	    	{% endif %}
 	      	</ul>
-	    </td><td align="right" class="noborder">
+	    </td><td align="right" class="noborder" width="120">
     	<p>&nbsp; <b>{{ current_member.nickname }}</b></p>
 	    <a href="/{{dir_visit}}/{{url_help}}?{{rakontu.urlQuery}}">{{menu_help}}</a>
 		{% if current_member.profileImage %}

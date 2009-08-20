@@ -30,6 +30,7 @@ SKINS_FILE_NAME = "config/%s/skins.csv" % SITE_LANGUAGE
 
 DEVELOPMENT = False
 FETCH_NUMBER = 1000
+BIG_FETCH_NUMBER = 1000
 DATE_TIME_CSV_FORMAT = "%Y%m%dT%H%M%S"
 
 # ============================================================================================

@@ -94,7 +94,7 @@ class AdministerSitePage(webapp.RequestHandler):
 			numDefaultResources = Entry.all().filter("rakontu = ", None).filter("type = ", "resource").count()
 			numHelps = Help.all().count()
 			numSkins = Skin.all().count()
-			rakontus = Rakontu.all().fetch(FETCH_NUMBER)
+			rakontus = AllRakontus()
 			memberOfRakontus = {}
 			for rakontu in rakontus:
 				member = rakontu.memberWithGoogleUserID(users.get_current_user().user_id())
@@ -122,7 +122,7 @@ class AdministerSitePage(webapp.RequestHandler):
 	def post(self):
 		# this one method does not require a rakontu and member, since the admin has to look at multiple rakontus.
 		if users.is_current_user_admin():
-			rakontus = Rakontu.all().fetch(FETCH_NUMBER)
+			rakontus = AllRakontus()
 			user = users.get_current_user()
 			for aRakontu in rakontus:
 				if "joinOrLeave|%s" % aRakontu.key() in self.request.arguments():

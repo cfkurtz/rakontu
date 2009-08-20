@@ -10,13 +10,13 @@ import os
 import string       
 import cgi      
 import htmllib        
-      
+       
 from models import *     
   
 from google.appengine.api import users  
-from google.appengine.ext.webapp import template    
+from google.appengine.ext.webapp import template     
 from google.appengine.ext import webapp   
-from google.appengine.ext.webapp.util import run_wsgi_app  
+from google.appengine.ext.webapp.util import run_wsgi_app   
 from google.appengine.api import images 
 from google.appengine.api import mail
   
@@ -31,7 +31,7 @@ import pytz
 # ============================================================================================
 
 def FindTemplate(template):
-	return "templates/%s" % template
+	return "templates/%s" % template 
 	
 def RequireLogin(func):
 	def check_login(request): 
@@ -433,7 +433,7 @@ class ExportHandler(webapp.RequestHandler):
 # ============================================================================================
 
 def GenerateHelps():
-	db.delete(Help.all().fetch(FETCH_NUMBER))
+	db.delete(AllHelps())
 	helps = []
 	file = open(HELP_FILE_NAME)
 	try:
@@ -445,7 +445,7 @@ def GenerateHelps():
 	finally:
 		file.close()
 		
-def helpLookup(name, type):
+def helpLookup(name, type):  
 	return Help.all().filter("name = ", name).filter("type = ", type).get()
 
 def helpTextLookup(name, type):
@@ -456,23 +456,23 @@ def helpTextLookup(name, type):
 		return None
 	
 def GenerateSkins():
-	db.delete(Skin.all().fetch(FETCH_NUMBER))
+	db.delete(AllSkins())
 	skins = []
 	file = open(SKINS_FILE_NAME)
 	try:
 		rows = csv.reader(file)
 		for row in rows:
-			key = row[0]
+			key = row[0].strip()
 			if len(key) > 0 and key[0] != ";":
-				if key == "NAME":
+				if key == "ELEMENT":
 					for cell in row[2:]: # 2 because 1 is explanation of element
 						skins.append(Skin(name=cell.strip()))
 				else:
 					colIndex = 0
 					for cell in row[2:]: # 2 because 1 is explanation of element
-						# this is because for numerical hex entries there needs to be quotes around it
 						textToUse = cell.strip()
-						if textToUse[0] == '"' and textToUse[-1] == '"':
+						# this is because for numerical hex entries there needs to be quotes around it
+						if textToUse[0] == '"' and textToUse[-1] == '"': 
 							textToUse = textToUse[1:]
 							textToUse = textToUse[:-1]
 						setattr(skins[colIndex], key, textToUse)
@@ -480,9 +480,9 @@ def GenerateSkins():
 		db.put(skins)
 	finally:	
 		file.close()
-		
+				
 def GetSkinNames():
-	skins = Skin.all().fetch(FETCH_NUMBER)
+	skins = AllSkins()
 	result = []
 	for skin in skins:
 		result.append(skin.name)
@@ -491,7 +491,7 @@ def GetSkinNames():
 
 def ReadQuestionsFromFile(fileName, rakontu=None, rakontuType="ALL"):
 	if not rakontu:
-		db.delete(Question.all().filter("rakontu = ", None).fetch(FETCH_NUMBER))
+		db.delete(AllSystemQuestions())
 	file = open(fileName)
 	questionStrings = csv.reader(file)
 	questionsToPut = []
@@ -585,7 +585,7 @@ def GenerateDefaultCharactersForRakontu(rakontu):
 	file.close()
 	
 def GenerateSystemResources():
-	db.delete(Entry.all().filter("rakontu = ", None).filter("type = ", "resource").fetch(FETCH_NUMBER))
+	db.delete(SystemEntriesOfType("resource"))
 	for i in range(len(SYSTEM_RESOURCES)):
 		resourceArray = SYSTEM_RESOURCES[i]
 		title = resourceArray[0]
@@ -610,7 +610,7 @@ def GenerateSystemResources():
 	 	newResource.put()
 	
 def CopyDefaultResourcesForNewRakontu(rakontu, member):
-	systemResources = Entry.all().filter("rakontu = ", None).filter("type = ", "resource").fetch(FETCH_NUMBER)
+	systemResources = SystemEntriesOfType("resource")
 	for resource in systemResources:
 		newResource = Entry(key_name=KeyName("entry"), 
 						rakontu=rakontu, 
@@ -630,9 +630,6 @@ def CopyDefaultResourcesForNewRakontu(rakontu, member):
 						)
 	 	newResource.put()
 
-def GetSystemResources():
-	return Entry.all().filter("rakontu = ", None).filter("type = ", "resource").fetch(FETCH_NUMBER)
-	
 # ============================================================================================
 # ============================================================================================
 # COLORS

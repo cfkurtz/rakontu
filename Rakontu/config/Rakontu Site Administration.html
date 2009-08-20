@@ -16,39 +16,7 @@ xxx
 
 xxx
 
-<h3>Translating Rakontu</h3>
 
-<p>You can translate a Rakontu site to any language you like. The copy you have downloaded may already include
-multiple translations, so check the <code>config</code> directory to see what languages are available.</p>
-
-<p>To create a new Rakontu translation:</p>
-<ol>
-<li>Choose a language name that you will use across all files. It should be short and descriptive, like
-"francais" or "espanol." <i>Don't include any spaces or special characters in your language name.</i></li>
-<li>Make copies of all of the files in the <code>config</code> directory that start with <code>english_</code>.
-Substitute your language name for <code>english</code> in the copies. </li>
-<li>Edit each of these <code>yourlanguage_</code> files so that they work for your language. 
-Follow the instructions in each file and section. Always <i>make lots of backups</i> of all files you are changing!</li>
-<li>Open the file <code>config/site_configuration.py</code>.
-Change the line that reads <code>SITE_LANGUAGE = "english"</code> to your language name.
-</li>
-</ol>
-
-<p>Notes on translation:</p>
-<ul>
-<li>There can only be one language working on a Rakontu installation
-at any one time,
-but you can <i>store</i> more than one set of language files on a site and change which are being used by switching one
-constant. In this way you can <i>develop</i> a set of language files and implement them on several sites
-in nearly the same way (except for that one constant). Thus for example if you want to offer multiple
-languages to people whose Rakontus you are supporting, just set up multiple installations and
-direct people to whichever language installation they want to use.</li>
-<li>An important thing to understand about translating Rakontu is that <i>only the things the user sees
-are translated</i>. All <i>internal</i> references are in English. This means that question export and import 
-does not use translations, nor does backup and restore to MySQL.
-However, exports of entries to CSV (with answers) DOES use translations, as does XML export, because these are not "round trip"
-(import <i>and</i> export) functions.</li>
-</ul>
 
 <h3>Backup and restore using AppRocket</h3>
 

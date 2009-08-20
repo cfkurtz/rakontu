@@ -72,11 +72,9 @@ class ReviewRequestsPage(webapp.RequestHandler):
 				numRequests = 0
 				for type in REQUEST_TYPES:
 					if uncompletedOnly:
-						requests = Annotation.all().filter("rakontu = ", rakontu.key()).filter("draft = ", False).\
-							filter("typeIfRequest = ", type).filter("completedIfRequest = ", False).fetch(FETCH_NUMBER)
+						requests = rakontu.getAllUncompletedNonDraftRequestsOfType(type)
 					else:
-						requests = Annotation.all().filter("rakontu = ", rakontu.key()).filter("draft = ", False).\
-							filter("typeIfRequest = ", type).fetch(FETCH_NUMBER)
+						requests = rakontu.getAllNonDraftRequestsOfType(type)
 					requestsByType.append(requests)
 					numRequests += len(requests)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
@@ -108,8 +106,7 @@ class ReviewRequestsPage(webapp.RequestHandler):
 				elif "showAllRequests" in self.request.arguments():
 					self.redirect(BuildURL("dir_guide", "url_requests", rakontu=rakontu))
 				else:
-					requests = Annotation.all().filter("rakontu = ", rakontu.key()).filter("draft = ", False).filter("type = ", "request").fetch(FETCH_NUMBER)
-					DebugPrint(self.request.arguments())
+					requests = rakontu.getAllNonDraftRequests()
 					for request in requests:
 						if "setCompleted|%s" % request.key() in self.request.arguments():
 							request.completedIfRequest = True
@@ -133,8 +130,7 @@ class ReviewInvitationsPage(webapp.RequestHandler):
 			if member.isGuide():
 				noResponsesOnly = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_no_responses") == URL_OPTIONS["url_query_no_responses"]
 				invitations = []
-				allInvitations = Entry.all().filter("rakontu = ", rakontu.key()).filter("draft = ", False).\
-					filter("type = ", "invitation").fetch(FETCH_NUMBER)
+				allInvitations = rakontu.getNonDraftEntriesOfType("invitation")
 				if noResponsesOnly:
 					for invitation in allInvitations:
 						if not invitation.hasOutgoingLinksOfType("responded"):

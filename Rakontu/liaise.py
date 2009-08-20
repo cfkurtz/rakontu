@@ -238,7 +238,7 @@ class BatchEntryPage(webapp.RequestHandler):
 													attachment.name = htmlEscape(self.request.get("attachmentName|%s|%s" % (i, j)))
 													attachment.data = db.Blob(str(self.request.get("attachment|%s|%s" % (i, j))))
 													attachment.put()
-								questions = Question.all().filter("rakontu = ", rakontu).filter("refersTo = ", "story").fetch(FETCH_NUMBER)
+								questions = rakontu.getAllQuestionsOfReferType("story")
 								for question in questions:
 									answer = Answer(
 												key_name=KeyName("answer"), 

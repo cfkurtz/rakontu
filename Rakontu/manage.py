@@ -35,7 +35,6 @@ class ManageRakontuMembersPage(webapp.RequestHandler):
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			if member.isManagerOrOwner():
-				rakontuMembers = Member.all().filter("rakontu = ", rakontu).fetch(FETCH_NUMBER)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["MANAGE_MEMBERS"], 
 								   'rakontu': rakontu, 
@@ -210,11 +209,6 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 				rakontu.etiquetteStatement = text
 				rakontu.etiquetteStatement_formatted = db.Text(InterpretEnteredText(text, format))
 				rakontu.etiquetteStatement_format = format
-				
-				DebugPrint(text)
-				DebugPrint(format)
-				DebugPrint(rakontu.etiquetteStatement_formatted)
-				
 				rakontu.contactEmail = self.request.get("contactEmail")
 				rakontu.defaultTimeZoneName = self.request.get("defaultTimeZoneName")
 				rakontu.defaultDateFormat = self.request.get("defaultDateFormat")
@@ -284,8 +278,7 @@ class ManageRakontuQuestionsListPage(webapp.RequestHandler):
 					questions = rakontu.getActiveQuestionsOfType(type)
 					countsForThisType = []
 					for question in questions:
-						answerCount = Answer.all().filter("question = ", question.key()).count(FETCH_NUMBER)
-						countsForThisType.append((question.text, answerCount))
+						countsForThisType.append((question.text, question.getAnswerCount()))
 					counts.append(countsForThisType)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["MANAGE_QUESTIONS"], 
@@ -326,7 +319,7 @@ class ManageRakontuQuestionsPage(webapp.RequestHandler):
 					i += 1
 				rakontuQuestionsOfType = rakontu.getActiveQuestionsOfType(type)
 				inactiveQuestionsOfType = rakontu.getInactiveQuestionsOfType(type)
-				systemQuestionsOfType = Question.all().filter("rakontu = ", None).filter("refersTo = ", type).fetch(FETCH_NUMBER)
+				systemQuestionsOfType = SystemQuestionsOfType(type)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["MANAGE_QUESTIONS_ABOUT"], 
 							   	   'title_extra': DisplayTypePluralForQuestionRefersTo(type), 
@@ -363,7 +356,7 @@ class ManageRakontuQuestionsPage(webapp.RequestHandler):
 							type = aType
 							break
 				rakontuQuestionsOfType = rakontu.getActiveQuestionsOfType(type)
-				systemQuestionsOfType = Question.all().filter("rakontu = ", None).filter("refersTo = ", type).fetch(FETCH_NUMBER)
+				systemQuestionsOfType = SystemQuestionsOfType()
 				for question in rakontuQuestionsOfType:
 					question.name = htmlEscape(self.request.get("name|%s" % question.key()))
 					if not question.name:
@@ -548,11 +541,11 @@ class ManageCharacterPage(webapp.RequestHandler):
 					elif self.request.get("img"):
 						character.image = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
 					character.put()
-					questions = Question.all().filter("rakontu = ", rakontu).filter("refersTo = ", "character").fetch(FETCH_NUMBER)
+					questions = rakontu.getActiveQuestionsOfType("character")
 					for question in questions:
-						foundAnswers = Answer.all().filter("question = ", question.key()).filter("referent =", character.key()).fetch(FETCH_NUMBER)
+						foundAnswer = character.getAnswerForQuestion()
 						if foundAnswers:
-							answerToEdit = foundAnswers[0]
+							answerToEdit = foundAnswer
 						else:
 							answerToEdit = Answer(
 												key_name=KeyName("answer"), 
