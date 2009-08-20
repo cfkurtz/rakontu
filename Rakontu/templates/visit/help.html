@@ -31,17 +31,31 @@
 	
 	{% if non_manager_resources %}
 		<ul>
-		{% for resource in non_manager_resources %}
-			<li class="nobullet">{{resource.linkString}}</li>
+		{% for category in non_manager_resources|dictKeys %}
+			<li class="nobullet"><b>{{category}}</b>
+			<ul>
+			{% for resource in non_manager_resources|dictLookup:category %}
+				<li class="nobullet">{{resource.linkString}}</li>
+			{% endfor %}
+			</ul>
+			</li>
 		{% endfor %}
+		</ul>
 		{% if current_member.isManagerOrOwner %}
 			{% if manager_resources %}
-				{% for resource in manager_resources %}
-					<li class="nobullet">{{resource.linkString}}</li>
+				<ul>
+				{% for category in manager_resources|dictKeys %}
+					<li class="nobullet"><b>{{category}}</b>
+					<ul>
+					{% for resource in manager_resources|dictLookup:category %}
+						<li class="nobullet">{{resource.linkString}}</li>
+					{% endfor %}
+					</ul>
+					</li>
 				{% endfor %}
+				</ul>
 			{% endif %}
 		{% endif %}
-		</ul>
 	{% endif %}
 	
 	

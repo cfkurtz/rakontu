@@ -13,7 +13,7 @@ class ReviewResourcesPage(webapp.RequestHandler):
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			if member.isGuide():
+			if member.isGuideOrManagerOrOwner():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_RESOURCES"], 
 								   'rakontu': rakontu, 
@@ -33,7 +33,7 @@ class ReviewResourcesPage(webapp.RequestHandler):
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			if member.isGuide():
+			if member.isGuideOrManagerOrOwner():
 				resources = rakontu.getNonDraftEntriesOfType("resource")
 				for resource in resources:
 					if "flag|%s" % resource.key() in self.request.arguments():
@@ -53,7 +53,7 @@ class CopySystemResourcesPage(webapp.RequestHandler):
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			if member.isGuide():
+			if member.isGuideOrManagerOrOwner():
 				CopyDefaultResourcesForNewRakontu(rakontu, member)
 				self.redirect(BuildURL("dir_visit", "url_help", rakontu=rakontu))
 			else:

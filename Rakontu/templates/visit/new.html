@@ -11,8 +11,14 @@
 	{% if resources %}
 		<p>{{template_resources_for_new_members}}:</p>
 		<ul>
-		{% for resource in resources %}
-		<li class="nobullet">{{resource.linkString}}</li>
+		{% for category in resources|dictKeys %}
+			<li class="nobullet"><b>{{category}}</b>
+			<ul>
+			{% for resource in resources|dictLookup:category %}
+				<li class="nobullet">{{resource.linkString}}</li>
+			{% endfor %}
+			</ul>
+			</li>
 		{% endfor %}
 		</ul>
 	{% endif %}

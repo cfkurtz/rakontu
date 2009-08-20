@@ -68,7 +68,7 @@ class NewMemberPage(webapp.RequestHandler):
 							'rakontu': rakontu, 
 							'skin': rakontu.getSkinDictionary(),
 							'current_member': member,
-							'resources': rakontu.getNonDraftNewMemberResources(),
+							'resources': rakontu.getNonDraftNewMemberResourcesAsDictionaryByCategory(),
 							"blurbs": BLURBS,
 							'have_helps': Help.all().count() > 0,
 							})
@@ -1038,7 +1038,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 				questions = rakontu.getActiveQuestionsOfType("member")
 				for question in questions:
 					foundAnswer = memberToEdit.getAnswerForMemberQuestion(question)
-					if foundAnswers:
+					if foundAnswer:
 						answerToEdit = foundAnswer
 					else:
 						answerToEdit = Answer(
@@ -1474,17 +1474,15 @@ class GeneralHelpPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
-			systemResourceCount = Entry.all().filter("rakontu = ", None).filter("type = ", "resource").count()
-			haveSystemResources = systemResourceCount > 0
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': TITLES["HELP"],
 							'rakontu': rakontu, 
 							'skin': rakontu.getSkinDictionary(),
 							'current_member': member,
-							'non_manager_resources': rakontu.getNonDraftHelpResources(),
-							'manager_resources': rakontu.getNonDraftManagerOnlyHelpResources(),
+							'non_manager_resources': rakontu.getNonDraftHelpResourcesAsDictionaryByCategory(),
+							'manager_resources': rakontu.getNonDraftManagerOnlyHelpResourcesAsDictionaryByCategory(),
 							'guides': rakontu.getGuides(),
-							'have_system_resources': haveSystemResources,
+							'have_system_resources': HaveSystemResources(),
 							})
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/help.html'))
 			self.response.out.write(template.render(path, template_values))

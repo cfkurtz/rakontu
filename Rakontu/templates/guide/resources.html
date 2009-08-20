@@ -4,7 +4,7 @@
 	{% include "../common_menus.html" %}
 		<div id="content">
 		
-		{% if current_member.isGuide %}
+		{% if current_member.isGuideOrManagerOrOwner %}
 			<div id="stylized" class="rakontu_form">
 			<form action="/{{dir_guide}}/{{url_resources}}?{{rakontu.urlQuery}}" method="post">
 
@@ -12,6 +12,7 @@
 			<h3>{{template_resources}}</h3>
 	      	<table border="0" cellpadding="4" cellspacing="0">
 	      	<tr>
+	      		<th>{{template_category}}</th>
 	      		<th>{{template_name}} {{"flagging_and_unflagging_items"|tip}}</th>
 	      		<th>{{template_first_part_of_text}}</th>
 	      		<th>{{template_attachments}}</th>
@@ -26,6 +27,7 @@
 	      		</tr>
 	      		{% for resource in resources %}
 	  				<tr>
+	  				<td>{{resource.categoryIfResource}}</td>
 	  				<td>
 					{% if resource.flaggedForRemoval %}
 						<input type="submit" class="flag_red" value="" name="unflag|{{resource.key}}" title="{{template_click_here_to_unflag}}">
@@ -79,13 +81,14 @@
 	  				</tr>
 	      		{% endfor %}
 	      	</table>
+	      		<a href="/{{dir_guide}}/{{url_copy_resources}}?{{rakontu.urlQuery}}">{{template_generate_default_help_resources}}</a>
 		</form>	
 		</div>
 	      	{% else %}
-	      		<p>{{template_no_help_resources}}.<p>
+	      		<p>{{template_no_help_resources}}<p>
 	      		<ul>
 	      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_resource}}?{{rakontu.urlQuery}}">{{template_create_one}}</a></li>
-	      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_copy}}?{{rakontu.urlQuery}}">{{template_generate_default_help_resources}}</a></li>
+	      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_copy_resources}}?{{rakontu.urlQuery}}">{{template_generate_default_help_resources}}</a></li>
 	      		</ul>
 	      	{% endif %}
 			

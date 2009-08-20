@@ -571,6 +571,7 @@ TEMPLATE_TERMS = {
 		# guide/requests
 		"template_uncompleted_requests": "Requests that have not been marked as completed",
 		# guide/resources
+		"template_category": "Category",
 		"template_for_new_members": "For new members",
 		"template_for_managers_only": "For managers only",
 		"template_no_help_resources": "This Rakontu has no help resources.",

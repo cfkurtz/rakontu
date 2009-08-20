@@ -586,28 +586,35 @@ def GenerateDefaultCharactersForRakontu(rakontu):
 	
 def GenerateSystemResources():
 	db.delete(SystemEntriesOfType("resource"))
-	for i in range(len(SYSTEM_RESOURCES)):
-		resourceArray = SYSTEM_RESOURCES[i]
-		title = resourceArray[0]
-		format = resourceArray[1]
-		managersOnly = resourceArray[2]
-		text = resourceArray[3]
-		newResource = Entry(key_name=KeyName("entry"),
-						rakontu=None, 
-						type="resource",
-						title=title,
-						text=text,
-						text_format=format,
-						text_formatted=db.Text(InterpretEnteredText(text, format)),
-						creator=None,
-						draft=False,
-						inBatchEntryBuffer=False,
-						published=datetime.now(tz=pytz.utc),
-						resourceForHelpPage=True,
-						resourceForNewMemberPage=True,
-						resourceForManagersAndOwnersOnly=managersOnly,
-						)
-	 	newResource.put()
+	file = open(DEFAULT_RESOURCES_FILE_NAME)
+	rows = csv.reader(file) 
+	resources = []
+	for row in rows:
+		if len(row) >= 5 and row[0][0] != ";":
+			category = row[0]
+			title = row[1]
+			format = row[2]
+			managersOnly = row[3] == "yes"
+			text = row[4]
+			newResource = Entry(key_name=KeyName("entry"),
+							rakontu=None, 
+							type="resource",
+							title=title,
+							text=text,
+							text_format=format,
+							text_formatted=db.Text(InterpretEnteredText(text, format)),
+							creator=None,
+							draft=False,
+							inBatchEntryBuffer=False,
+							published=datetime.now(tz=pytz.utc),
+							resourceForHelpPage=True,
+							resourceForNewMemberPage=True,
+							resourceForManagersAndOwnersOnly=managersOnly,
+							categoryIfResource=category,
+							)
+			DebugPrint(newResource.categoryIfResource)
+			resources.append(newResource)
+	db.put(resources)
 	
 def CopyDefaultResourcesForNewRakontu(rakontu, member):
 	systemResources = SystemEntriesOfType("resource")
@@ -627,6 +634,7 @@ def CopyDefaultResourcesForNewRakontu(rakontu, member):
 						resourceForNewMemberPage=resource.resourceForNewMemberPage,
 						resourceForManagersAndOwnersOnly=resource.resourceForManagersAndOwnersOnly,
 						resourceForAllNewRakontus=False,
+						categoryIfResource=resource.categoryIfResource,
 						)
 	 	newResource.put()
 

@@ -31,6 +31,10 @@ def dictLookup(dict, key):
 	else:
 		return None
 register.filter(dictLookup)
+
+def dictKeys(dict):
+	return dict.keys()
+register.filter(dictKeys)
 	
 def listLookup(list, index):
 	if list:

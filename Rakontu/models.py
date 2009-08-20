@@ -433,28 +433,46 @@ class Rakontu(db.Model):
 			i += 1
 		return 0
 	
-	def getNonDraftNewMemberResources(self):
-		return Entry.all().filter("rakontu = ", self.key()). \
+	def getNonDraftNewMemberResourcesAsDictionaryByCategory(self):
+		result = {}
+		resources = Entry.all().filter("rakontu = ", self.key()). \
 			filter("draft = ", False). \
 			filter("type = ", "resource"). \
 			filter("resourceForNewMemberPage =", True). \
 			filter("resourceForManagersAndOwnersOnly = ", False). \
 			fetch(FETCH_NUMBER)
+		for resource in resources:
+			if not result.has_key(resource.categoryIfResource):
+				result[resource.categoryIfResource] = []
+			result[resource.categoryIfResource].append(resource)
+		return result
 	
-	def getNonDraftHelpResources(self):
-		return Entry.all().filter("rakontu = ", self.key()). \
+	def getNonDraftHelpResourcesAsDictionaryByCategory(self):
+		result = {}
+		resources = Entry.all().filter("rakontu = ", self.key()). \
 			filter("draft = ", False). \
 			filter("type = ", "resource"). \
 			filter("resourceForHelpPage = ", True). \
 			filter("resourceForManagersAndOwnersOnly = ", False). \
 			fetch(FETCH_NUMBER)
-			
-	def getNonDraftManagerOnlyHelpResources(self):
-		return Entry.all().filter("rakontu = ", self.key()). \
+		for resource in resources:
+			if not result.has_key(resource.categoryIfResource):
+				result[resource.categoryIfResource] = []
+			result[resource.categoryIfResource].append(resource)
+		return result
+	
+	def getNonDraftManagerOnlyHelpResourcesAsDictionaryByCategory(self):
+		result = {}
+		resources = Entry.all().filter("rakontu = ", self.key()). \
 			filter("draft = ", False). \
 			filter("type = ", "resource"). \
 			filter("resourceForManagersAndOwnersOnly = ", True). \
 			fetch(FETCH_NUMBER)
+		for resource in resources:
+			if not result.has_key(resource.categoryIfResource):
+				result[resource.categoryIfResource] = []
+			result[resource.categoryIfResource].append(resource)
+		return result
 	
 	# ENTRIES, ANNOTATIONS, ANSWERS, LINKS - EVERYTHING
 	
@@ -1133,9 +1151,6 @@ class Member(db.Model):
 	def getAnswerForMemberQuestion(self, question):
 		return Answer.all().filter("question = ", question.key()).filter("referent =", self.key()).get()
 	
-	def getAnswersForQuestionAndMember(self, question, member):
-		return Answer.all().filter("question = ", question.key()).filter("referent =", self.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
-	
 	def getNonDraftEntriesAttributedToMember(self):
 		return Entry.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).fetch(BIG_FETCH_NUMBER)
 	
@@ -1589,6 +1604,7 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	resourceForHelpPage = db.BooleanProperty(default=False)
 	resourceForNewMemberPage = db.BooleanProperty(default=False)
 	resourceForManagersAndOwnersOnly = db.BooleanProperty(default=False)
+	categoryIfResource = db.StringProperty(default="")
 
 	rakontu = db.ReferenceProperty(Rakontu, collection_name="entries_to_rakontu")
 	creator = db.ReferenceProperty(Member, collection_name="entries")
@@ -1947,6 +1963,9 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	
 	def getAnswersForQuestion(self, question):
 		return Answer.all().filter("referent = ", self.key()).filter("question = ", question.key()).fetch(FETCH_NUMBER)
+	
+	def getAnswersForQuestionAndMember(self, question, member):
+		return Answer.all().filter("question = ", question.key()).filter("referent =", self.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
 	
 	def getNonDraftAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
@@ -2607,6 +2626,9 @@ def SystemQuestionsOfType(type):
 	return Question.all().filter("rakontu = ", None).filter("refersTo = ", type).fetch(FETCH_NUMBER)
 
 def SystemEntriesOfType(type):
-	Entry.all().filter("rakontu = ", None).filter("type = ", type).fetch(FETCH_NUMBER)
+	return Entry.all().filter("rakontu = ", None).filter("type = ", type).fetch(FETCH_NUMBER)
+
+def HaveSystemResources():
+	return Entry.all().filter("rakontu = ", None).filter("type = ", "resource").count() > 0
 
 

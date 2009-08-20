@@ -16,10 +16,10 @@ from site_configuration import *
 # set in site_configuration.py.
 # ============================================================================================
 
-from default_resources import *
 DEFAULT_QUESTIONS_FILE_NAME = "config/%s/default_questions.csv" % SITE_LANGUAGE
 SAMPLE_QUESTIONS_FILE_NAME = "config/%s/sample_questions.csv" % SITE_LANGUAGE
 DEFAULT_CHARACTERS_FILE_NAME = "config/%s/default_characters.csv" % SITE_LANGUAGE
+DEFAULT_RESOURCES_FILE_NAME = "config/%s/default_resources.csv" % SITE_LANGUAGE
 HELP_FILE_NAME = "config/%s/help.csv" % SITE_LANGUAGE
 SKINS_FILE_NAME = "config/%s/skins.csv" % SITE_LANGUAGE
 
