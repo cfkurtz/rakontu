@@ -3,11 +3,13 @@
 	<body>
 	{% include "../common_menus.html" %}
 	<div id="content">
-	{% if current_member.isCuratorOrManagerOrOwner %}
+	{% if current_member.isLiaisonOrManagerOrOwner %}
 		<div id="stylized" class="rakontu_form">
 		<form action="/{{dir_liaise}}/{{url_batch}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
 		<h2>{{template_batch_story_entry}} {{"batch_story_entry"|caution}}</h2>
+		
+		{% if current_member.isManagerOrOwner or my_offline_members %}
 
 	    <p>{{template_choose_csv_file_for_batch}}:
 	    <input type="file" name="import" size="40" accept="csv"/> 
@@ -19,17 +21,25 @@
 			<h3>{{template_story}} {{i|add:1}}</h3>
 			<fieldset>
 			<table style="width:100%;">
-			<tr><th>{{template_collected_from}}</th><td>
+			<tr><th>{{template_collected_from}} 
+				{% ifequal i 0 %}
+					{{"entering_batch_stories_collected_from_members"|tip}}
+				{% endifequal %}
+				</th><td>
 				<select name="source|{{i}}">
 					<option value="none">({{term_choose}})</option>
 					{% if current_member.isManagerOrOwner %}
 						{% for member in online_members %}
 							<option value="{{member.key}}">{{member.nickname}}</option>
 						{% endfor %}
+						{% for member in offline_members %}
+							<option value="{{member.key}}">{{member.nickname}}</option>
+						{% endfor %}
+					{% else %}
+						{% for member in my_offline_members %}
+							<option value="{{member.key}}">{{member.nickname}}</option>
+						{% endfor %}
 					{% endif %}
-					{% for member in offline_members %}
-						<option value="{{member.key}}">{{member.nickname}}</option>
-					{% endfor %}
 				</select>
 			{% if character_allowed %}
 				<tr><th>{{template_attributed_to}}</th><td>
@@ -152,7 +162,10 @@
 			<center><input type="submit" name="acceptBatchEntry" value="{{button_add_stories}}" class="button"></center>
 		{% endfor %}
 		
-		
+		{% else %}
+			<p>{{template_you_have_no_offline_members}}</p>
+		{% endif %}
+
 		</form>	
 		</div>
 	{% else %}

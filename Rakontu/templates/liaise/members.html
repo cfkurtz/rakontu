@@ -18,19 +18,13 @@
 		      	<tr>
 		      		<th>{{template_nickname}}</th>
 		      		<th>{{template_picture}}</th>
-		      		<th>{{template_liaison}}</th>
+		      		<th>{{template_liaison}} {{"transferring_offline_members_among_liaisons"|tip}}</th>
+		      		<th>{{template_links}}</th>
 		      		<th>{{template_inactivate}}?</th>
 		      		</tr>
 		      		{% for aMember in active_members %}
 		  				<tr>
-		  				<td>
-		  					{{aMember.nickname}}<br/>
-		  					<a href="/{{dir_visit}}/{{url_member}}?{{url_query_member}}={{aMember.getKeyName}}">({{template_view_member_page}})</a>
-		  					{% ifequal aMember.liaisonIfOfflineMember.key current_member.key %}
-		  						<br/><a href="/{{dir_visit}}/{{url_preferences}}?{{aMember.urlQuery}}">({{template_change_preferences}})</a>
-		  						<br/><a href="/{{dir_visit}}/{{url_drafts}}?{{aMember.urlQuery}}">({{template_edit_drafts}})</a>
-		  					{% endifequal %}
-		  				</td>
+		  				<td>{{aMember.nickname}}</td>
 		  				<td width="80" valign="top">
 				 		{% if aMember.profileImage %}
 							{{aMember.imageEmbed}}
@@ -38,10 +32,37 @@
 							{{term_none}}
 						{% endif %}
 						</td>
-		  				<td>{{aMember.liaisonIfOfflineMember.linkString}}</td>
+		  				<td>{{aMember.liaisonIfOfflineMember.linkString}}
+		  					{% ifequal aMember.liaisonIfOfflineMember.key current_member.key %}
+		  						({{template_you}})
+		  						{% if other_liaisons %}
+			  						<br/>{{template_switch_offline_member_liaison_to}}:
+			  						<select name="reassign|{{aMember.key}}">
+			  							<option value="{{template_none}}">({{template_choose}})</option>
+			  							{% for liaison in other_liaisons %}
+			  								<option value="{{liaison.key}}">{{liaison.nickname}}</option>
+			  							{% endfor %}
+			  							</select>
+			  					{% endif %}
+		  					{% else %}
+		  						<br/><input type="checkbox" name="take|{{aMember.key}}" value="yes" id="take|{{aMember.key}}"/>
+								<label for="take|{{aMember.key}}">{{template_take_over_offline_member}}</label>
+		  					{% endifequal %}
+		  				</td>
 		  				<td>
-		  					<input type="checkbox" name="remove|{{ aMember.key }}" value="yes" id="remove|{{ aMember.key }}"/>
-							<label for="remove|{{ aMember.key }}">{{template_inactivate}}</label>
+		  					<a href="/{{dir_visit}}/{{url_member}}?{{url_query_member}}={{aMember.getKeyName}}">{{template_view_member_page}}</a>
+		  					{% ifequal aMember.liaisonIfOfflineMember.key current_member.key %}
+		  						<br/><a href="/{{dir_visit}}/{{url_preferences}}?{{aMember.urlQuery}}">{{template_change_preferences}}</a>
+		  						<br/><a href="/{{dir_visit}}/{{url_drafts}}?{{aMember.urlQuery}}">{{template_drafts}}</a>
+		  					{% endifequal %}
+		  				</td>
+		  				<td>
+		  					{% ifequal aMember.liaisonIfOfflineMember.key current_member.key %}
+		  						<input type="checkbox" name="remove|{{aMember.key}}" value="yes" id="remove|{{aMember.key}}"/>
+								<label for="remove|{{aMember.key}}">{{template_inactivate}}</label>
+							{% else %}
+								&nbsp;
+							{% endifequal %}
 		  					</td>
 		  				</tr>
 		      		{% endfor %}

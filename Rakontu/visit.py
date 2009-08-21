@@ -533,9 +533,6 @@ class ReadEntryPage(webapp.RequestHandler):
 		if rakontuHasQuestionsForThisEntryType and memberCanAnswerQuestionsAboutThisEntry:
 			key = "%s %s" % (TERMS["term_answer_questions_about_this"], displayType)
 			thingsUserCanDo[key] = BuildURL("dir_visit", "url_answers", entry.urlQuery())
-		if rakontuHasQuestionsForThisEntryType and member.isLiaison():
-			key = TERMS["term_enter_answers_for_offline_member"]
-			thingsUserCanDo[key] = BuildURL("dir_visit", "url_answers", entry.urlQuery())
 		# comment
 		key = "%s %s" % (TERMS["term_make_a_comment"], displayType)
 		thingsUserCanDo[key] = BuildURL("dir_visit", URLForAnnotationType("comment"), entry.urlQuery())

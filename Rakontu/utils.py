@@ -5,15 +5,15 @@
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # -------------------------------------------------------------------------- -------- ----------
-      
-import os  
-import string       
-import cgi      
+       
+import os   
+import string        
+import cgi       
 import htmllib        
        
 from models import *     
-  
-from google.appengine.api import users  
+   
+from google.appengine.api import users    
 from google.appengine.ext.webapp import template     
 from google.appengine.ext import webapp   
 from google.appengine.ext.webapp.util import run_wsgi_app   
@@ -31,7 +31,7 @@ import pytz
 # ============================================================================================
 
 def FindTemplate(template):
-	return "templates/%s" % template 
+	return "templates/%s" % template  
 	
 def RequireLogin(func):
 	def check_login(request): 
@@ -584,36 +584,43 @@ def GenerateDefaultCharactersForRakontu(rakontu):
 	db.put(characters)
 	file.close()
 	
-def GenerateSystemResources():
+def GenerateSystemResources(): 
 	db.delete(SystemEntriesOfType("resource"))
-	file = open(DEFAULT_RESOURCES_FILE_NAME)
-	rows = csv.reader(file) 
+	file = open(DEFAULT_RESOURCES_FILE_NAME) 
+	lines = file.readlines()
 	resources = []
-	for row in rows:
-		if len(row) >= 5 and row[0][0] != ";":
-			category = row[0]
-			title = row[1]
-			format = row[2]
-			managersOnly = row[3] == "yes"
-			text = row[4]
-			newResource = Entry(key_name=KeyName("entry"),
+	currentText = ""
+	currentResource = None
+	for line in lines:
+		if line[0] == ";":
+			continue
+		elif line[0] == "[":
+			name = stringBetween("[", "]", line)
+			if currentResource:
+				currentResource.text = currentText
+				currentResource.text_formatted = db.Text(InterpretEnteredText(currentText, currentResource.text_format))
+				resources.append(currentResource)
+			currentResource = Entry(key_name=KeyName("entry"),
 							rakontu=None, 
 							type="resource",
-							title=title,
-							text=text,
-							text_format=format,
-							text_formatted=db.Text(InterpretEnteredText(text, format)),
+							title=name,
 							creator=None,
 							draft=False,
 							inBatchEntryBuffer=False,
 							published=datetime.now(tz=pytz.utc),
 							resourceForHelpPage=True,
 							resourceForNewMemberPage=True,
-							resourceForManagersAndOwnersOnly=managersOnly,
-							categoryIfResource=category,
 							)
-			DebugPrint(newResource.categoryIfResource)
-			resources.append(newResource)
+			currentText = ""
+		elif stringUpTo(line, "=") == "Category":
+			currentResource.categoryIfResource = stringBeyond(line, "=").strip()
+		elif stringUpTo(line, "=") == "Interpret as":
+			currentResource.text_format = stringBeyond(line, "=").strip()
+		elif stringUpTo(line, "=") == "Managers only":
+			currentResource.resourceForManagersAndOwnersOnly = stringBeyond(line, "=").strip().lower() == "yes"
+		else:
+			currentText += line
+	resources.append(currentResource)	
 	db.put(resources)
 	
 def CopyDefaultResourcesForNewRakontu(rakontu, member):
@@ -748,7 +755,7 @@ def stripZeroOffStart(text):
 	
 # ============================================================================================
 # ============================================================================================
-# TEXT PROCESING
+# TEXT PROCESSING
 # ============================================================================================
 # ============================================================================================
 
@@ -929,6 +936,35 @@ def upToWithLink(value, number, link):
 	else:
 		result = value
 	return result
+
+def stringUpTo(aString, aDelimiter):
+    if len(aString) == 0:
+        return ""
+    delimiterPos = aString.find(aDelimiter)
+    if delimiterPos == -1:
+        result = aString
+    elif delimiterPos == 0:
+        result = ""
+    else:
+        result = aString[:delimiterPos]
+    return result
+
+def stringBeyond(aString, aDelimiter):
+    if len(aString) == 0:
+        result = ""
+        return result
+    delimiterPos = aString.find(aDelimiter)
+    if delimiterPos == -1:
+        result = aString
+    elif delimiterPos == len(aString) - 1:
+        result = ""
+    else:
+        result = aString[delimiterPos + 1:]
+    return result
+
+def stringBetween(startString, endString, wholeString):
+    result = stringUpTo(stringBeyond(wholeString.strip(), startString), endString)
+    return result
 
 # ============================================================================================
 # ============================================================================================

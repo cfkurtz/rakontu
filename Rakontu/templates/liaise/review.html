@@ -3,7 +3,7 @@
 	<body>
 	{% include "../common_menus.html" %}
 	<div id="content">
-	{% if current_member.isCuratorOrManagerOrOwner %}
+	{% if current_member.isLiaisonOrManagerOrOwner %}
 		<div id="stylized" class="rakontu_form">
 		<form action="/{{dir_liaise}}/{{url_review}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 			<h3>{{template_batch_entered_stories}} {{"reviewing_batch_entered_stories"|tip}}</h3>
@@ -11,21 +11,33 @@
 			{% if batch_entries %}
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
-		      	<tr><th>{{template_import}}?</th><th>{{template_title}}</th><th>{{template_collected_from}}</th>
-		      	{% if character_allowed %}
-		      		<th>{{template_attributed_to}}</th>
-		      	{% endif %}
-		      	<th>{{template_collected}}</th>
-		      	{% if rakontu.allowsAttachments %}
-		      		<th>{{template_attachments}}</th>
-		      	{% endif %}
-		      	<th>{{template_comment}}</th><th>{{template_tag_set}}</th><th>{{template_remove}}?</th></tr>
+		      	<tr>
+		      		<th>{{template_import}}?</th>
+		      		<th>{{template_title}}</th>
+		      		<th>{{template_links}}</th>
+		      		<th>{{template_collected_from}}</th>
+			      	{% if character_allowed %}
+			      		<th>{{template_attributed_to}}</th>
+			      	{% endif %}
+			      	<th>{{template_collected}}</th>
+			      	{% if rakontu.allowsAttachments %}
+			      		<th>{{template_attachments}}</th>
+			      	{% endif %}
+			      	<th>{{template_comment}}</th>
+			      	<th>{{template_tag_set}}</th>
+			      	<th>{{template_remove}}?</th>
+			      	</tr>
 	      		{% for entry in batch_entries %}
 	      			<tr>
-	      			 <td valign="top" align="center"><input type="checkbox" name="import|{{entry.key}}" value="yes" id="import|{{entry.key}}"/>
-	      			 <label for="import|{{entry.key}}">{{template_import}}</label></td>
-	      			 <td>{{entry.title}}<br/>(<a href="/{{dir_visit}}/{{url_preview}}?{{entry.urlQuery}}">{{template_preview}}</a>) <br/>
-	      			 (<a href="/{{dir_visit}}/{{entry.typeAsURL}}?{{entry.urlQuery}}">{{template_change}}</a>)</td>
+	      			 <td valign="top" align="center">
+	      			 <input type="checkbox" name="import|{{entry.key}}" value="yes" id="import|{{entry.key}}"/>
+	      			 <label for="import|{{entry.key}}">{{template_import}}</label>
+	      			 </td>
+	      			 <td>{{entry.title}}</td>
+	      			 <td>
+	      			 <a href="/{{dir_visit}}/{{url_preview}}?{{entry.urlQuery}}">{{template_preview}}</a>
+	      			 <br/><a href="/{{dir_visit}}/{{entry.typeAsURL}}?{{entry.urlQuery}}">{{template_change}}</a>
+	      			 </td>
 	      			 <td>{{entry.creator.nickname}}</td>
 	      			 {% if character_allowed %}
 	      			 	<td>

@@ -76,4 +76,5 @@
 "info","default_help_resources","Default help resources describe how to use Rakontu in general. These are normally created when your Rakontu is created. If your Rakontu has no help resources, it might be because the site administrator set up the site defaults only after your Rakontu was created. In that case, click 'Generate site-default help resources' to create them for your Rakontu."
 "info","asking_a_guide_a_question","Guides are Rakontu members who have agreed to answer questions about the Rakontu. Here they have described which sorts of questions they are most able and willing to answer. To ask a question, click on a guide's name or picture."
 "caution","changing_nicknames","Note that if you change your nickname, the new nickname will display on all of your previous entries as well as new ones."
-,,"  "
+"tip","transferring_offline_members_among_liaisons","Any liaison can transfer an off-line member to or from any other liaison. Rakontu assumes that liaisons will negotiate these transfers among themselves and not just transfer people without asking."
+"tip","entering_batch_stories_collected_from_members","If you are a liaison but not a manager, you can enter stories in batches for any of your assigned off-line members. If you are a manager, you can enter stories for any members, on-line or off-line."

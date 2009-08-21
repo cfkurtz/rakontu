@@ -90,10 +90,6 @@ class AdministerSitePage(webapp.RequestHandler):
 	def get(self):
 		# this one method does not require a rakontu and member, since the admin has to look at multiple rakontus.
 		if users.is_current_user_admin():
-			numSampleQuestions = Question.all().filter("rakontu = ", None).count()
-			numDefaultResources = Entry.all().filter("rakontu = ", None).filter("type = ", "resource").count()
-			numHelps = Help.all().count()
-			numSkins = Skin.all().count()
 			rakontus = AllRakontus()
 			memberOfRakontus = {}
 			for rakontu in rakontus:
@@ -102,13 +98,27 @@ class AdministerSitePage(webapp.RequestHandler):
 					memberOfRakontus[rakontu.key()] = member.governanceTypeForDisplay()
 				else:
 					memberOfRakontus[rakontu.key()] = None
+			siteResourceNames = []
+			resources = SystemEntriesOfType("resource")
+			numDefaultResources = len(resources)
+			for resource in resources:
+				siteResourceNames.append(resource.title)
+			siteResourceNamesString = ", ".join(siteResourceNames)
+			skinNames = []
+			skins = AllSkins()
+			numSkins = len(skins)
+			for skin in skins:
+				skinNames.append(skin.name)
+			skinNamesString = ", ".join(skinNames)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 						   	   'title': TITLES["REVIEW_RAKONTUS"], 
 							   'rakontus': rakontus, 
 							   'member_of': memberOfRakontus,
-						   	   'num_sample_questions': numSampleQuestions,
+						   	   'num_sample_questions': NumSystemQuestions(),
+						   	   'site_resource_names': siteResourceNamesString,
 						   	   'num_default_resources': numDefaultResources,
-						   	   "num_helps": numHelps,
+						   	   "num_helps": NumHelps(),
+						   	   'skin_names': skinNamesString,
 						   	   "num_skins": numSkins,
 						   	   'host': self.request.headers["Host"],
 							   # here we do NOT give the current_member or rakontu

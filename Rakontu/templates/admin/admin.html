@@ -12,27 +12,36 @@
 	<fieldset>
 	<p>&nbsp; &nbsp; <b>{{template_must_be_done_before_rakontus}}</b></p>
 	
-	<p>&nbsp; &nbsp; &nbsp; &nbsp; 
-	<a href="/{{dir_admin}}/{{url_default_resources}}">{{template_generate}}</a> {{template_default_help_resources}} -
-	<b>{{num_default_resources}}</b> {{template_have_been_created}}
-	(config/{{site_language}}/default_resources.csv)</p>
+	<ul>
+	<li class="nobullet"> 
+	<a href="/{{dir_admin}}/{{url_default_resources}}">{{template_generate}}</a> 
+	{{template_default_help_resources_from}} <code>config/{{site_language}}/default_resources.txt</code> -
+	<b>{{num_default_resources}}</b> {{template_have_been_created}} ({{site_resource_names}})
+	</li>
 	
-	<p>&nbsp; &nbsp; &nbsp; &nbsp; 
-	<a href="/{{dir_admin}}/{{url_skins}}">{{template_generate}}</a> {{template_skins|lower}} -
-	<b>{{num_skins}}</b> {{template_have_been_created}}
-	(config/{{site_language}}/skins.csv)</p>
+	<li class="nobullet"> 
+	<a href="/{{dir_admin}}/{{url_skins}}">{{template_generate}}</a> 
+	{{template_skins_from}} <code>config/{{site_language}}/skins.csv</code> -
+	<b>{{num_skins}}</b> {{template_have_been_created}} ({{skin_names}})
+	</li>
+	</ul>
 	
 	<p>&nbsp; &nbsp; <b>{{template_can_be_done_anytime}}</b></p>
 	
-	<p>&nbsp; &nbsp; &nbsp; &nbsp; 
-	<a href="/{{dir_admin}}/{{url_sample_questions}}">{{template_generate}}</a> {{template_sample_questions}} -
-	<b>{{num_sample_questions}}</b> {{template_have_been_created}}
-	(config/{{site_language}}/sample_questions.csv)</p>
+	<ul>
+	<li class="nobullet"> 
+	<a href="/{{dir_admin}}/{{url_sample_questions}}">{{template_generate}}</a> 
+	{{template_sample_questions_from}} <code>config/{{site_language}}/sample_questions.csv</code> -
+	<b>{{num_sample_questions}}</b> {{template_have_been_created}} 
 	
-	<p>&nbsp; &nbsp; &nbsp; &nbsp; <a href="/{{dir_admin}}/{{url_helps}}">{{template_generate}}</a> 
-	{{template_help_texts}} -
-	<b>{{num_helps}}</b> {{template_have_been_created}}
-	(config/{{site_language}}/help.csv)</p>
+	</li>
+	
+	<li class="nobullet"> 
+	<a href="/{{dir_admin}}/{{url_helps}}">{{template_generate}}</a> 
+	{{template_help_texts_from}} <code>config/{{site_language}}/help.csv</code> -
+	<b>{{num_helps}}</b> {{template_have_been_created}} 
+	</li>
+	</ul>
 	
 	</fieldset>
 	

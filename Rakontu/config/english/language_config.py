@@ -257,7 +257,6 @@ TERMS = {
 		"term_tell_another_version_of_this_story": "Tell another version of what happened",
 		"term_tell_a_story_this_reminds_you_of": "Tell a story this reminds you of",
 		"term_answer_questions_about_this": "Answer questions about this",  # story, invitation collage, pattern, or resource
-		"term_enter_answers_for_offline_member": "Enter answers for an off-line member",
 		"term_respond_to_invitation": "Respond to this invitation with a story",
 		"term_make_a_comment": "Comment on this",  # story, invitation collage, pattern, or resource
 		"term_tag_this": "Tag this", # story, invitation collage, pattern, or resource
@@ -267,7 +266,7 @@ TERMS = {
 		"term_curate_this": "Curate this", # story, invitation collage, pattern, or resource
 		"term_stop_curating_this": "Stop curating this", # story, invitation collage, pattern, or resource
 		"term_change_this": "Change this", # story, invitation collage, pattern, or resource
-		"term_print_this": "Print (with its annotations) this", # story, invitation collage, pattern, or resource
+		"term_print_this": "Print content and annotations for this", # story, invitation collage, pattern, or resource
 		
 		# used to send a reminder to manager about items flagged by curator
 		"term_dear_manager": "Dear manager",
@@ -334,6 +333,7 @@ TEMPLATE_TERMS = {
 		"template_welcome": "Welcome",
 		"template_never": "never",
 		"template_go": "go",
+		"template_choose": "choose",
 		
 		# types of people (singular and plural)
 		"template_member": "Member",
@@ -504,9 +504,10 @@ TEMPLATE_TERMS = {
 		"template_site_initialization_tasks": "Site initialization tasks",
 		"template_must_be_done_before_rakontus": "Must be done before any Rakontus are created",
 		"template_generate": "Generate",
-		"template_default_help_resources": "default help resources",
-		"template_sample_questions": "sample questions",
-		"template_help_texts": "short mouse-over help texts",
+		"template_default_help_resources_from": "default help resources from",
+		"template_skins_from": "skins from",
+		"template_sample_questions_from": "sample questions from",
+		"template_help_texts_from": "short mouse-over help texts from",
 		"template_have_been_created": "have been created",
 		"template_can_be_done_anytime": "Can be done anytime", 
 		"template_last_activity": "Last activity",
@@ -583,9 +584,13 @@ TEMPLATE_TERMS = {
 		"template_collected_from": "Collected from",
 		"template_attributed_to": "Attributed to",
 		# liaise/members
-		"template_view_member_page": "View member page",
-		"template_change_preferences": "Change preferences",
+		"template_links": "Links",
+		"template_view_member_page": "Member page",
+		"template_change_preferences": "Preferences",
+		"template_take_over_offline_member": "Become this member's liaison",
+		"template_switch_offline_member_liaison_to": "Transfer to",
 		"template_no_active_offline_members": "There are no active off-line members at this time.",
+		"template_you_have_no_offline_members": "There are no active off-line members assigned to you at this time.",
 		"template_add_offline_members": "Add off-line members",
 		"template_inactive_members": "Inactive members",
 		# liaise/review
@@ -823,7 +828,7 @@ TEMPLATE_TERMS = {
 		# visit/readAnnotation
 		"template_request_type": "Request type",
 		# visit/relate
-		"template_entries_related_to_this_one": "Entries related to this one",
+		"template_entries_related_to": "Entries related to",
 		"template_incoming_or_outgoing": "Incoming or outgoing",
 		"template_incoming": "incoming",
 		"template_outgoing": "outgoing",

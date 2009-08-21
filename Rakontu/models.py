@@ -280,6 +280,22 @@ class Rakontu(db.Model):
 				result.append(member)
 		return result
 	
+	def getActiveOfflineMembersForLiaison(self, liaison):
+		return Member.all().\
+			filter("rakontu = ", self.key()).\
+			filter("active = ", True).\
+			filter("isOnlineMember = ", False).\
+			filter("liaisonIfOfflineMember = ", liaison.key()).\
+			fetch(FETCH_NUMBER)
+	
+	def getLiaisonsOtherThanMember(self, member):
+		result = []
+		onlineMembers = Member.all().filter("rakontu = ", self.key()).filter("active = ", True).filter("isOnlineMember = ", True).fetch(FETCH_NUMBER)
+		for aMember in onlineMembers:
+			if aMember.isLiaison() and aMember.key() != member.key():
+				result.append(aMember)
+		return result
+	
 	def hasMemberWithGoogleEmail(self, email):
 		members = self.getActiveMembers()
 		for member in members:
@@ -701,50 +717,51 @@ class Rakontu(db.Model):
 				nickname = row[0].strip()
 				member = self.memberWithNickname(nickname)
 				if member:
-					if len(row) >= 1:
-						dateString = row[1].strip()
-					else:
-						dateString = None
-						dateOkay = False
-					if dateOkay:
-						try:
-							(year, month, day) = dateString.split("-")
-						except:
+					if liaison.isManagerOrOwner() or member.liaisonIfOfflineMember.key() == liaison.key():
+						if len(row) >= 1:
+							dateString = row[1].strip()
+						else:
+							dateString = None
 							dateOkay = False
 						if dateOkay:
 							try:
-								collected = datetime(int(year), int(month), int(day))
+								(year, month, day) = dateString.split("-")
 							except:
-								collected = None
 								dateOkay = False
 							if dateOkay:
-								if len(row) >= 3:
-									type = row[2].strip()
-								else:
-									type = None
-								typeOkay = type in ENTRY_TYPES # NOTE: does not allow translated name
-								if type and typeOkay:
-									if len(row) >= 4:
-										title = row[3].strip()
+								try:
+									collected = datetime(int(year), int(month), int(day))
+								except:
+									collected = None
+									dateOkay = False
+								if dateOkay:
+									if len(row) >= 3:
+										type = row[2].strip()
 									else:
-										title = None
-									if title:
-										foundEntry = self.getEntryInImportBufferWithTitle(title)
-										if not foundEntry:
-											if len(row) >= 5:
-												text = row[4].strip()
-											else:
-												text = "No text imported."
-											entry = Entry(key_name=KeyName("entry"), rakontu=self, type=type, title=title) 
-											entry.text = text
-											entry.rakontu = self
-											entry.creator = member
-											entry.collectedOffline = True
-											entry.collected = collected
-											entry.liaison = liaison
-											entry.inBatchEntryBuffer = True
-											entry.draft = True
-											entry.put()	
+										type = None
+									typeOkay = type in ENTRY_TYPES # NOTE: does not allow translated name
+									if type and typeOkay:
+										if len(row) >= 4:
+											title = row[3].strip()
+										else:
+											title = None
+										if title:
+											foundEntry = self.getEntryInImportBufferWithTitle(title)
+											if not foundEntry:
+												if len(row) >= 5:
+													text = row[4].strip()
+												else:
+													text = "No text imported."
+												entry = Entry(key_name=KeyName("entry"), rakontu=self, type=type, title=title) 
+												entry.text = text
+												entry.rakontu = self
+												entry.creator = member
+												entry.collectedOffline = True
+												entry.collected = collected
+												entry.liaison = liaison
+												entry.inBatchEntryBuffer = True
+												entry.draft = True
+												entry.put()	
 		
 	# EXPORT
 	
@@ -2516,6 +2533,9 @@ class Help(db.Model):		 # context-sensitive help string - appears as title hover
 	name = db.StringProperty() # links to name in template
 	text = db.StringProperty(indexed=False) # text to show user (plain text)
 	
+	def cleanedUpName(self):
+		return self.name.replace("_", " ").capitalize()
+	
 # ============================================================================================
 # ============================================================================================
 class Skin(db.Model):		 # style sets to change look of each Rakontu
@@ -2616,11 +2636,20 @@ def AllRakontus():
 def AllHelps():
 	return Help.all().fetch(FETCH_NUMBER)
 
+def NumHelps():
+	return Help.all().count()
+
 def AllSkins():
 	return Skin.all().fetch(FETCH_NUMBER)
 
+def NumSkins():
+	return Skin.all().count()
+
 def AllSystemQuestions():
 	return Question.all().filter("rakontu = ", None).fetch(FETCH_NUMBER)
+
+def NumSystemQuestions():
+	return Question.all().filter("rakontu = ", None).count()
 
 def SystemQuestionsOfType(type):
 	return Question.all().filter("rakontu = ", None).filter("refersTo = ", type).fetch(FETCH_NUMBER)

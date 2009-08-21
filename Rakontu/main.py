@@ -143,7 +143,7 @@ application = webapp.WSGIApplication(
 									  (BuildURL("dir_visit", "url_attachment"), AttachmentHandler),
 									  (BuildURL(None, "url_export"), ExportHandler),
 									  ],
-									 debug=True)
+									 debug=False)
 
 def real_main():
 	run_wsgi_app(application)

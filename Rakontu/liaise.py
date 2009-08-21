@@ -21,6 +21,7 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 								   'current_member': member,
 								   'active_members': rakontu.getActiveOfflineMembers(),
 								   'inactive_members': rakontu.getInactiveOfflineMembers(),
+								   'other_liaisons': rakontu.getLiaisonsOtherThanMember(member),
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('liaise/members.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -56,7 +57,18 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 											googleAccountID = None,
 											googleAccountEmail = None)
 							newMember.put()
-			self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
+				for aMember in offlineMembers:
+					if self.request.get("take|%s" % aMember.key()) == "yes":
+						aMember.liaisonIfOfflineMember = member
+						aMember.put()
+				otherLiaisons = rakontu.getLiaisonsOtherThanMember(member)
+				if otherLiaisons:
+					for liaison in otherLiaisons:
+						for aMember in offlineMembers:
+							if self.request.get("reassign|%s" % aMember.key()) == "%s" % liaison.key():
+								aMember.liaisonIfOfflineMember = liaison
+								aMember.put()
+				self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
 			
 class PrintSearchPage(webapp.RequestHandler):
 	@RequireLogin 
@@ -156,6 +168,7 @@ class BatchEntryPage(webapp.RequestHandler):
 								   'num_entries': NUM_ENTRIES_PER_BATCH_PAGE,
 								   'character_allowed': rakontu.allowCharacter[STORY_ENTRY_TYPE_INDEX],
 								   'questions': rakontu.getActiveQuestionsOfType("story"),
+								   'my_offline_members': rakontu.getActiveOfflineMembersForLiaison(member),
 								   'offline_members': rakontu.getActiveOfflineMembers(),
 								   'online_members': rakontu.getActiveOnlineMembers(),
 								   'current_member': member,
