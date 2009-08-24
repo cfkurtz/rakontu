@@ -49,6 +49,10 @@ def listLookup(list, index):
 	else:
 		return None
 register.filter(listLookup)
+
+def isLastInSeries(list, object):
+	return list.index(object) == len(list) - 1
+register.filter(isLastInSeries)
 	
 def get(object, fieldName):
 	if object:

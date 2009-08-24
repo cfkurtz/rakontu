@@ -188,6 +188,25 @@
 		</div>
 	{% endif %}
 		
+	{% if show_versions and versions %}
+		<h3>{{template_versions}} <input type="submit" value="{{template_hide_versions}}" name="hideVersions" class="button_small"></h3>
+		<div class="blurb">
+		{% for version in versions %}
+			<p><b>{{version.title}}</b> 
+			({{version.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+			{{version.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}})</p>
+			<p>{{version.text_formatted}}</p>
+			{% if not versions|isLastInSeries:version %}
+				<hr>
+			{% endif %}
+		{% endfor %}
+	{% else %}
+		{% if versions %}
+			<input type="submit" value="{{template_show_versions}}" name="showVersions" class="button_small">
+		{% endif %}
+		</div>
+	{% endif %}
+	
 	</form>
 	</div>
 	</div>

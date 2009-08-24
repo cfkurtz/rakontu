@@ -37,17 +37,36 @@
 				{% endifequal %}
 			{% endif %}
 			 
+			{% if entry and version %}
+				<p><b>{{template_restoring_version_from}} 
+				{{version.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}} 
+				{{version.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}</b></p>
+			{% endif %}
 			<table style="width:100%; border:none">
 			<tr><td class="noborder">
-			<textarea name="text" rows="10" cols="60">{% if entry %}{{entry.text}}{% endif %}</textarea>
+				{% if entry %}
+					{% if version_text %}
+						<textarea name="text" rows="20" cols="60">{{version_text}}</textarea>
+					{% else %}
+						<textarea name="text" rows="20" cols="60">{{entry.text}}</textarea>
+					{% endif %}
+				{% else %}
+					<textarea name="text" rows="20" cols="60"></textarea>
+				{% endif %}
 			</td><td class="noborder" width="80">
 			<p>{{template_interpret_as}} {{"interpreting_texts"|tip}}</p>
 				<select name="text_format">
 				{% for i in text_formats|makeRangeFromListLength %}
 					<option value="{{text_formats|listLookup:i}}" 
 					{% if entry %}
-						{% if text_formats|listLookup:i|equalTest:entry.text_format %}
-							selected="selected"
+						{% if version_format %}
+							{% if text_formats|listLookup:i|equalTest:version_format %}
+								selected="selected"
+							{% endif %}
+						{% else %}
+							{% if text_formats|listLookup:i|equalTest:entry.text_format %}
+								selected="selected"
+							{% endif %}
 						{% endif %}
 					{% else %}
 						{% if text_formats|listLookup:i|equalTest:current_member.preferredTextFormat %}
@@ -64,7 +83,15 @@
 			{% else %}
 				<p>{{template_please_give_name_to_your}} {{entry_type}}.</p><p>
 			{% endif %}
-			<input type="text" name="title" size="60" value="{% if entry %}{{entry.title}}{% endif %}" maxlength="{{maxlength_name}}"/></p>
+			<input type="text" name="title" size="60" value="
+				{% if entry %}
+					{% if version_title %}
+						{{version_title}}
+					{% else %}
+						{{entry.title}}
+					{% endif %}
+				{% endif %}
+				" maxlength="{{maxlength_name}}"/></p>
 			
 			{% include "../common_attribution.html" %}
 
@@ -135,6 +162,22 @@
 			{% endifequal %}
 				
 			</fieldset>
+			
+			{% if entry and versions %}
+				<p>{{template_load_version}}
+				<select name="versionToLoad">
+				<option value="none">({{template_choose}})</option>
+				{% for aVersion in versions %}
+					<option value="{{aVersion.getKeyName}}">{{aVersion.title}} - 
+						{{aVersion.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}} 
+						{{aVersion.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+						({{aVersion.text|upTo:80}})
+						</option>
+				{% endfor %}
+				</select>
+				<input type="submit" name="loadVersion" value="{{button_load_version}}" class="button_small">
+				{{"text_versions"|info}}</p>
+			{% endif %}
 			
 			<p>
 			{% if questions %}

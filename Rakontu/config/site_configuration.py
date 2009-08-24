@@ -161,12 +161,9 @@ ACCEPTED_ATTACHMENT_MIME_TYPES = ["image/jpeg", "image/png", "application/pdf", 
 
 # This is whether fictional character attribution is allowed, by default.
 # One setting for each of these entry types: story, pattern, collage, invitation, resource, answer, tag set, comment, request, nudge
-DEFAULT_ALLOW_CHARACTERS = [True,True,True,True,True,True,True,True,True,True]
-
-# This is whether members are allowed to "re-enter" entries of each type after they are published.
-# This can be great for things like resources, but it is usually NOT good for things like stories.
-# One setting for each of these entry types: story, invitation, collage, pattern, resource
-DEFAULT_ALLOW_EDITING_AFTER_PUBLISHING = [False, False, True, True, True]
+# The basic recommendation is to allow stories, invitations, answers, comments, and nudges to be anonymous
+# since these are most likely to be sensitive.
+DEFAULT_ALLOW_CHARACTERS = [True, False, False, True, False, True, False, True, False, True]
 
 # This is the number of stories that can be entered on a batch page (by a liaison or manager/owner)
 # at any one time. Batch entry is mainly for entering the results of off-line story collections

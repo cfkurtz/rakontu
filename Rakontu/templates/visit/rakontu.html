@@ -7,6 +7,7 @@
 		<h3>{{template_information_about}} "{{rakontu.name}}"</h3>
 		
 		<p>{{template_rakontu_created_on}} {{rakontu.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.</p>
+		
 		<p>{{template_description}}:</p>
 		<div class="blurb">{{rakontu.description_formatted}}</div>
 		{% if rakontu.etiquetteStatement_formatted %}
@@ -37,7 +38,21 @@
 	      		{% endfor %}
 	      	</table>
 	     {% endif %}
-		
+	     
+	    <h3>{{template_nudge_categories}}</h3>
+	    <ul>{% for aString in nudge_category_and_question_strings %}
+	    		<li class="nobullet">{{aString}}</li>
+	    	{% endfor %}
+	    </ul>
+	     
+        <h3>{{template_nudge_point_accumulations}} {{"nudge_point_accumulations"|info}}</h3>
+	    <ul><li class="nobullet">{{nudge_point_string}}</li></ul>
+        <h3>{{template_activity_point_accumulations}} {{"activity_point_accumulations"|info}}</h3>
+	    <ul><li class="nobullet">{{activity_point_string}}</li></ul>
+	    <h3>{{template_other_options}}</h3>
+	    <p>{{template_rakontu_allows_characters_for}}:</p>
+	    <ul><li class="nobullet">{{chars_allowed_string}}</li></ul>
+ 
       	{% if current_member.isManagerOrOwner %}
       		<div class="rightalign">
       		<p><a href="/{{dir_manage}}/{{url_settings}}?{{rakontu.urlQuery}}">{{template_make_changes_to_settings}}</a></p>
@@ -46,6 +61,7 @@
       		{% endif %}
       		</div>
       	{% endif %}
+
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

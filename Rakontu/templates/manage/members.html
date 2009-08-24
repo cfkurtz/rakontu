@@ -133,7 +133,9 @@
 		      		{% for pending_member in pending_members %}
 		  				<tr>
 		  				<td><input type="text" name="email|{{pending_member.key}}" size="20" value="{{pending_member.email}}" maxlength="{{maxlength_name}}"/></td>
-		  				<td>{{pending_member.invited.date}}</td>
+		  				<td>{{pending_member.invited.date}}<br/>
+		  				<a href="mailto:{{pending_member.email}}?subject={{template_invitation_to_join}} {{rakontu.name}}&body=/{{dir_visit}}/{{url_home}}?{{rakontu.urlQuery}}">{{template_send_invitation_email}}</a>
+		  				</td>
 		  				<td><input type="checkbox" name="removePendingMember|{{pending_member.key}}" id="removePendingMember|{{pending_member.key}}"/>
 		  				<label for="removePendingMember|{{pending_member.key}}">{{template_remove}}</label></td>
 		  				</tr>

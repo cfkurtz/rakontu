@@ -379,6 +379,7 @@ class ReadEntryPage(webapp.RequestHandler):
 			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 			if entry:
 				curating = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
+				showVersions = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_versions") == URL_OPTIONS["url_query_versions"]
 				textsForGrid, colHeaders, rowColors = self.buildGrid(entry, member, rakontu, curating)
 				thingsUserCanDo = self.buildThingsUserCanDo(entry, member, rakontu, curating)
 				if entry.isCollage():
@@ -414,6 +415,9 @@ class ReadEntryPage(webapp.RequestHandler):
 								   'grid_form_url': self.request.uri, 
 								   # actions
 								   'things_member_can_do': thingsUserCanDo,
+								   # versions
+								   'show_versions': showVersions,
+								   'versions': entry.getTextVersionsInReverseTimeOrder(),
 								   })
 				member.lastReadAnything = datetime.now(tz=pytz.utc)
 				member.nudgePoints += rakontu.getMemberNudgePointsForEvent("reading")
@@ -558,7 +562,7 @@ class ReadEntryPage(webapp.RequestHandler):
 				key = "%s %s" % (TERMS["term_curate_this"], displayType)
 				thingsUserCanDo[key] = BuildURL("dir_visit", "url_read", "%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_curate"], URL_OPTIONS["url_query_curate"]))
 		# change
-		if entry.creator.key() == member.key() and rakontu.allowsPostPublishEditOfEntryType(entry.type):
+		if entry.creator.key() == member.key():
 			key = "%s %s" % (TERMS["term_change_this"], displayType)
 			thingsUserCanDo[key] = BuildURL("dir_visit", URLForEntryType(entry.type), entry.urlQuery())
 		# print
@@ -584,6 +588,12 @@ class ReadEntryPage(webapp.RequestHandler):
 				member.viewDetails = not member.viewDetails
 				member.put()
 				self.redirect(self.request.uri)
+			elif "showVersions" in self.request.arguments():
+				url = BuildURL("dir_visit", "url_read", "%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_versions"], URL_OPTIONS["url_query_versions"]))
+				self.redirect(url)
+			elif "hideVersions" in self.request.arguments():
+				url = BuildURL("dir_visit", "url_read", "%s" % (entry.urlQuery()))
+				self.redirect(url)
 			elif "flag|%s" % entry.key() in self.request.arguments() or "unflag|%s" % entry.key() in self.request.arguments():
 				curating = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
 				if entry and curating:
@@ -650,6 +660,32 @@ class SeeRakontuPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
+			nudgeCategoryAndQuestionStrings = []
+			i = 0
+			for category in rakontu.nudgeCategories:
+				if category:
+					nudgeCategoryAndQuestionStrings.append("%s (%s)" % (category, rakontu.nudgeCategoryQuestions[i]))
+				i += 1
+			nudgePointStrings = []
+			i = 0
+			for eventType in EVENT_TYPES:
+				if i > 0: # skip zero for nudges
+					nudgePointStrings.append("%s: %s %s" % (EVENT_TYPES_DISPLAY[i].capitalize(), rakontu.memberNudgePointsPerEvent[i], TERMS["term_points"]))
+				i += 1
+			nudgePointString = ", ".join(nudgePointStrings) + "."
+			activityPointStrings = []
+			i = 0
+			for eventType in EVENT_TYPES:
+				activityPointStrings.append("%s: %s %s" % (EVENT_TYPES_DISPLAY[i].capitalize(), rakontu.entryActivityPointsPerEvent[i], TERMS["term_points"]))
+				i += 1
+			activityPointString = ", ".join(activityPointStrings) + "."
+			charactersAllowedFor = []
+			i = 0
+			for entryType in ENTRY_AND_ANNOTATION_TYPES:
+				if rakontu.allowCharacter[i]:
+					charactersAllowedFor.append(ENTRY_AND_ANNOTATION_TYPES_PLURAL_DISPLAY[i].capitalize())
+				i += 1
+			charactersAllowedForString = ", ".join(charactersAllowedFor) + "."
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': TITLES["ABOUT"], 
 							   'rakontu': rakontu, 
@@ -657,6 +693,10 @@ class SeeRakontuPage(webapp.RequestHandler):
 							   'current_member': member,
 							   'rakontu_members': rakontu.getActiveMembers(),
 							   'characters': rakontu.getActiveCharacters(),
+							   'nudge_category_and_question_strings': nudgeCategoryAndQuestionStrings,
+							   'nudge_point_string': nudgePointString,
+							   'activity_point_string': activityPointString,
+							   'chars_allowed_string': charactersAllowedForString,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/rakontu.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -975,6 +1015,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 							   'show_leave_link': not rakontu.memberIsOnlyOwner(member),
 							   'search_locations': SEARCH_LOCATIONS,
 							   'search_locations_display': SEARCH_LOCATIONS_DISPLAY,
+							   'my_offline_members': rakontu.getActiveOfflineMembersForLiaison(member),
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/profile.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -1023,8 +1064,14 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 				memberToEdit.timeFormat = self.request.get("timeFormat")
 				memberToEdit.showAttachedImagesInline = self.request.get("showAttachedImagesInline") == "yes"
 				if memberToEdit.isOnlineMember:
+					wasLiaison = memberToEdit.isLiaison()
 					for i in range(3):
 						memberToEdit.helpingRoles[i] = self.request.get("helpingRole%s" % i) == "helpingRole%s" % i
+					if not memberToEdit.isLiaison() and wasLiaison:
+						offlineMembers = rakontu.getActiveOfflineMembersForLiaison(memberToEdit)
+						if len(offlineMembers):
+							self.redirect(BuildResultURL("cannotGiveUpLiaisonWithMembers", rakontu=rakontu))
+							return
 					text = self.request.get("guideIntro")
 					format = self.request.get("guideIntro_format").strip()
 					memberToEdit.guideIntro = text

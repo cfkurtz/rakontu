@@ -121,3 +121,31 @@ def DisplayTypePluralForQuestionRefersTo(type):
 		i += 1
 	raise "No translation for %s" % type
 
+def stringUpTo(aString, aDelimiter):
+    if len(aString) == 0:
+        return ""
+    delimiterPos = aString.find(aDelimiter)
+    if delimiterPos == -1:
+        result = aString
+    elif delimiterPos == 0:
+        result = ""
+    else:
+        result = aString[:delimiterPos]
+    return result
+
+def stringBeyond(aString, aDelimiter):
+    if len(aString) == 0:
+        result = ""
+        return result
+    delimiterPos = aString.find(aDelimiter)
+    if delimiterPos == -1:
+        result = aString
+    elif delimiterPos == len(aString) - 1:
+        result = ""
+    else:
+        result = aString[delimiterPos + 1:]
+    return result
+
+def stringBetween(startString, endString, wholeString):
+    result = stringUpTo(stringBeyond(wholeString.strip(), startString), endString)
+    return result

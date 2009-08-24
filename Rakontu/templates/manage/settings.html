@@ -16,21 +16,11 @@
 			<input type="text" name="name" value="{{ rakontu.name }}" size="30" maxlength="{{maxlength_name}}"/>
 			<p>{{template_tag_line}} {{"tag_line"|tip}}</p>
 			<input type="text" name="tagline" value="{{ rakontu.tagline }}" size="80" maxlength="{{maxlength_subject_or_comment}}"/>
-			<p>{{template_skin}} {{"skins"|tip}}</p>
-			<select name="skinName">
-				{% for name in skin_names %}
-					<option value="{{name}}"
-					{% ifequal name rakontu.skinName %}
-						selected="selected"
-					{% endifequal %}
-					>{{name}}</option>
-				{% endfor %}
-				</select>
-			<p>{{template_description}} {{"rakontu_description"|tip}}</p>
 
+			<p>{{template_description}} {{"rakontu_description"|tip}}</p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
-				<textarea name="description" rows="5" cols="60">{{rakontu.description}}</textarea>
+				<textarea name="description" rows="8" cols="60">{{rakontu.description}}</textarea>
 				</td><td class="noborder" width="80">
 				<p>{{template_interpret_as}} {{"interpreting_texts"|tip}}</p>
 					<select name="description_format">
@@ -47,7 +37,7 @@
 			<p>{{template_welcome_message_for_new_members}} {{"welcome_message"|tip}}</p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
-				<textarea name="welcomeMessage" rows="5" cols="60">{{rakontu.welcomeMessage}}</textarea>
+				<textarea name="welcomeMessage" rows="8" cols="60">{{rakontu.welcomeMessage}}</textarea>
 				</td><td class="noborder" width="80">
 				<p>{{template_interpret_as}}</p>
 					<select name="welcomeMessage_format">
@@ -64,7 +54,7 @@
 			<p>{{template_etiquette_statement}} {{"rakontu_etiquette_statement"|tip}}</p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
-				<textarea name="etiquetteStatement" rows="5" cols="60">{{rakontu.etiquetteStatement}}</textarea>
+				<textarea name="etiquetteStatement" rows="8" cols="60">{{rakontu.etiquetteStatement}}</textarea>
 				</td><td class="noborder" width="80">
 				<p>{{template_interpret_as}}</p>
 					<select name="etiquetteStatement_format">
@@ -85,7 +75,30 @@
 			{% endif %}
 			<p><input type="file" name="img" accept="jpg/png"/></p>
 			
+			<p>{{template_skin}} {{"skins"|tip}}</p>
+			<p><select name="skinName">
+				{% for name in skin_names %}
+					<option value="{{name}}"
+					{% ifequal name rakontu.skinName %}
+						selected="selected">
+					{% else %}
+						>
+					{% endifequal %}
+					{{name}}</option>
+				{% endfor %}
+				<option value="{{template_custom}}"
+				{% ifequal rakontu.skinName template_custom %}
+					selected="selected">
+				{% else %}
+					>
+				{% endifequal %}
+				{{template_custom}}</option>
+				</select></p>
+			<p>{{template_custom_skin}} {{"custom_skins"|tip}}</p>
+				<textarea name="customSkin" rows="5" cols="60">{{rakontu.customSkin}}</textarea>
 			</fieldset>
+			
+			
 	    <p><center><input type="submit" name="changeSettings" value="{{button_save_changes}}" class="button"></center></p>
 			
 			<h3>{{template_halping_roles}}</h3>
@@ -146,16 +159,16 @@
 			<h3>{{template_things_members_can_do}}</h3>
 			<fieldset>
 			{% if site_allows_attachments %}
-				<p>{{template_how_many_attachments}}
+				<p>{{template_how_many_attachments}} 
 					<select name="maxNumAttachments" style="width: 60px;">
-					{% for i in max_possible_attachments|makeRangeStartingAtOne %}
+					{% for i in num_attachment_choices %}
 						<option value="{{i}}"
 							{% ifequal i rakontu.maxNumAttachments %}
 								selected="selected"
 							{% endifequal %}
 							>{{i}}</option>
 					{% endfor %}
-					</select>
+					</select> {{"allowing_attachments"|tip}}
 			{% endif %}
 	
 			<p>{{template_is_entry_by_character_allowed}} {{"fictional_entry"|caution}}</p>
@@ -164,10 +177,6 @@
 			{% endfor %}
 			</table>
 			
-			<p>{{template_editing_after_publishing_for_types}} {{"editing_after_publishing"|info}}{{"editing_after_publishing"|caution}}</p>
-			{% for text in editing_includes %}
-				{{ text }}
-			{% endfor %}
 			<p>{{template_non_managers_editing_tags}} {{"allowing_non_manager_curators_to_change_tags"|caution}}</p>
 				<input type="checkbox" name="allowNonManagerCuratorsToEditTags" value="yes" id="allowNonManagerCuratorsToEditTags"
 				{% if rakontu.allowNonManagerCuratorsToEditTags %}

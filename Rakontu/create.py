@@ -15,6 +15,7 @@ class EnterEntryPage(webapp.RequestHandler):
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			queryEntry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
+			queryVersion = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_version")
 			# if this is a retelling, reminding or responding, the query entry is the item to link FROM, not the current entry
 			if self.request.uri.find(URLS["url_retell"]) >= 0:
 				type = "story"
@@ -120,6 +121,18 @@ class EnterEntryPage(webapp.RequestHandler):
 			else:
 				pageTitleExtra = ""
 			typeDisplay = DisplayTypeForQuestionReferType(type)
+			if queryVersion:
+				versionTitle = queryVersion.title
+				versionText = queryVersion.text
+				versionFormat = queryVersion.text_format
+			else:
+				versionTitle = None
+				versionText = None
+				versionFormat = None
+			if entry:
+				versions = entry.getTextVersionsInReverseTimeOrder()
+			else:
+				versions = None
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': typeDisplay.capitalize(), 
 						   	   'title_extra': pageTitleExtra, 
@@ -130,6 +143,12 @@ class EnterEntryPage(webapp.RequestHandler):
 							   'entry': entry,
 							   'attachments': attachments,
 							   'attachment_file_types': ACCEPTED_ATTACHMENT_FILE_TYPES,
+							   # if loading old version, texts to fill in
+							   'version': queryVersion,
+							   'version_title': versionTitle,
+							   'version_text': versionText,
+							   'version_format': versionFormat,
+							   'versions': versions,
 							   # used by common_attribution
 							   'attribution_referent_type': type,
 							   'attribution_referent': entry,
@@ -168,227 +187,236 @@ class EnterEntryPage(webapp.RequestHandler):
 						type = aType
 						break
 			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
-			newEntry = False
-			if not entry:
-				entry=Entry(key_name=KeyName("entry"), rakontu=rakontu, type=type, title=DEFAULT_UNTITLED_ENTRY_TITLE)
-				newEntry = True
-			entry.edited = datetime.now(tz=pytz.utc)
-			preview = False
-			if "save|%s" % type in self.request.arguments():
-				entry.draft = True
-			elif "preview|%s" % type in self.request.arguments():
-				entry.draft = True
-				preview = True
-			elif "publish|%s" % type in self.request.arguments():
-				entry.draft = False
-				entry.inBatchEntryBuffer = False
-				entry.published = datetime.now(tz=pytz.utc)
-			if self.request.get("title"):
-				entry.title = htmlEscape(self.request.get("title"))
-			text = self.request.get("text")
-			format = self.request.get("text_format").strip()
-			entry.text = text
-			entry.text_formatted = db.Text(InterpretEnteredText(text, format))
-			entry.text_format = format
-			entry.collectedOffline = self.request.get("collectedOffline") == "yes"
-			if entry.collectedOffline and member.isLiaison():
-				foundMember = False
-				for aMember in rakontu.getActiveOfflineMembers():
-					if self.request.get("offlineSource") == str(aMember.key()):
-						entry.creator = aMember
-						foundMember = True
-						break
-				if not foundMember:
-					self.redirect(BuildResultURL("offlineMemberNotFound", rakontu=rakontu)) 
-					return
-				entry.liaison = member
-				entry.collected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
+			if entry and "loadVersion" in self.request.arguments():
+				versionKeyName = self.request.get("versionToLoad")
+				version = TextVersion.get_by_key_name(versionKeyName)
+				if version:
+					url = BuildURL("dir_visit", "%s?%s&%s" % (entry.typeAsURL(), entry.urlQuery(), version.urlQuery()))
+					self.redirect(url)
 			else:
-				entry.creator = member
-			if entry.collectedOffline:
-				attributionQueryString = "offlineAttribution"
-			else:
-				attributionQueryString = "attribution"
-			if self.request.get(attributionQueryString) != "member":
-				entry.character = Character.get(self.request.get(attributionQueryString))
-			else:
-				entry.character = None
-			if type == "resource":
-				entry.resourceForHelpPage = self.request.get("resourceForHelpPage") == "yes"
-				entry.resourceForNewMemberPage = self.request.get("resourceForNewMemberPage") == "yes"
-				entry.resourceForManagersAndOwnersOnly = self.request.get("resourceForManagersAndOwnersOnly") == "yes"
-			entry.put()
-			if not entry.draft:
-				entry.publish()
-			linkType = None
-			if self.request.get("link_item_from"):
-				itemFrom = db.get(self.request.get("link_item_from"))
-				if itemFrom:
-					if self.request.get("link_type") == "retell":
-						linkType = "retold"
-					elif self.request.get("link_type") == "remind":
-						linkType = "reminded"
-					elif self.request.get("link_type") == "respond":
-						linkType = "responded"
-					elif self.request.get("link_type") == "relate":
-						linkType = "related"
-					elif self.request.get("link_type") == "include":
-						linkType = "included"
-					elif self.request.get("link_type") == "reference":
-						linkType = "referenced"
-					comment = htmlEscape(self.request.get("link_comment"))
-					link = Link(key_name=KeyName("link"), 
-							rakontu=rakontu,
-							itemFrom=itemFrom, 
-							itemTo=entry, 
-							type=linkType, 
-							creator=member,
-							comment=comment)
-					link.put()
-					link.publish()
-			if entry.isCollage():
-				linksToRemove = []
-				for link in entry.getOutgoingLinksOfType("included"):
-					link.comment = self.request.get("linkComment|%s" % link.key())
-					link.put()
-					if self.request.get("removeLink|%s" % link.key()) == "yes":
-						linksToRemove.append(link)
-				for link in linksToRemove:
-					db.delete(link)
-				for anEntry in rakontu.getNonDraftEntriesOfType("story"):
-					if self.request.get("addLink|%s" % anEntry.key()) == "yes":
-						link = Link(key_name=KeyName("link"), 
-							rakontu=rakontu,
-							itemFrom=entry, 
-							itemTo=anEntry, 
-							type="included", 
-							creator=member)
-						link.put()
-						if not entry.draft:
-							link.publish()
-			if entry.isPattern():
-				linksToRemove = []
-				for link in entry.getOutgoingLinksOfType("referenced"):
-					link.comment = self.request.get("linkComment|%s" % link.key())
-					link.put()
-					if self.request.get("removeLink|%s" % link.key()) == "yes":
-						linksToRemove.append(link)
-				for link in linksToRemove:
-					db.delete(link)
-				for aSearch in rakontu.getNonPrivateSavedSearches():
-					if self.request.get("addLink|%s" % aSearch.key()) == "yes":
-						link = Link(key_name=KeyName("link"), 
-							rakontu=rakontu,
-							itemFrom=entry, 
-							itemTo=aSearch, 
-							type="referenced", 
-							creator=member)
-						link.put()
-						if not entry.draft:
-							link.publish()
-			questions = rakontu.getAllQuestionsOfReferType(type)
-			for question in questions:
-				foundAnswers = entry.getAnswersForQuestionAndMember(question, member)
-				if foundAnswers:
-					answerToEdit = foundAnswers[0]
+				newEntry = False
+				if not entry:
+					entry=Entry(key_name=KeyName("entry"), rakontu=rakontu, type=type, title=DEFAULT_UNTITLED_ENTRY_TITLE)
+					newEntry = True
+				entry.edited = datetime.now(tz=pytz.utc)
+				preview = False
+				if "save|%s" % type in self.request.arguments():
+					entry.draft = True
+				elif "preview|%s" % type in self.request.arguments():
+					entry.draft = True
+					preview = True
+				elif "publish|%s" % type in self.request.arguments():
+					entry.draft = False
+					entry.inBatchEntryBuffer = False
+					entry.published = datetime.now(tz=pytz.utc)
+				if (entry.text and entry.text != NO_TEXT_IN_ENTRY):
+					entry.addCurrentTextToPreviousVersions()
+				if self.request.get("title"):
+					entry.title = htmlEscape(self.request.get("title"))
+				text = self.request.get("text")
+				format = self.request.get("text_format").strip()
+				entry.text = text
+				entry.text_formatted = db.Text(InterpretEnteredText(text, format))
+				entry.text_format = format
+				entry.collectedOffline = self.request.get("collectedOffline") == "yes"
+				if entry.collectedOffline and member.isLiaison():
+					foundMember = False
+					for aMember in rakontu.getActiveOfflineMembers():
+						if self.request.get("offlineSource") == str(aMember.key()):
+							entry.creator = aMember
+							foundMember = True
+							break
+					if not foundMember:
+						self.redirect(BuildResultURL("offlineMemberNotFound", rakontu=rakontu)) 
+						return
+					entry.liaison = member
+					entry.collected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
 				else:
-					answerToEdit = Answer(
-										key_name=KeyName("answer"),
-										rakontu=rakontu, 
-										question=question, 
-										creator=member,
-										referent=entry, 
-										referentType="entry")
-				if (question.type == "nominal" or question.type == "ordinal") and question.multiple:
-					keepAnswer = False
-					answerToEdit.answerIfMultiple = []
-					for choice in question.choices:
-						if self.request.get("%s|%s" % (question.key(), choice)) == "yes":
-							answerToEdit.answerIfMultiple.append(choice)
-							keepAnswer = True
-				else:
-					queryText = "%s" % question.key()
-					response = self.request.get(queryText).strip()
-					if question.type == "boolean":
-						keepAnswer = queryText in self.request.params.keys()
-					else:
-						keepAnswer = len(response) > 0 and response != "None"
-					if keepAnswer:
-						if question.type == "text":
-							answerToEdit.answerIfText = htmlEscape(response)
-						elif question.type == "value":
-							oldValue = answerToEdit.answerIfValue
-							try:
-								answerToEdit.answerIfValue = int(response)
-							except:
-								answerToEdit.answerIfValue = oldValue
-						elif question.type == "boolean":
-							answerToEdit.answerIfBoolean = response == "yes"
-						elif (question.type == "nominal" or question.type == "ordinal") and not question.multiple:
-							answerToEdit.answerIfText = response
-				if keepAnswer:
-					answerToEdit.creator = member
-					answerToEdit.character = entry.character
-					answerToEdit.draft = entry.draft
-					answerToEdit.inBatchEntryBuffer = entry.inBatchEntryBuffer
-					answerToEdit.collected = entry.collected
-					answerToEdit.put()
-					if not answerToEdit.draft:
-						answerToEdit.publish()
-				else:
-					db.delete(answerToEdit)
-			foundAttachments = entry.getAttachments()
-			attachmentsToRemove = []
-			for attachment in foundAttachments:
-				for name, value in self.request.params.items():
-					if value == "removeAttachment|%s" % attachment.key():
-						attachmentsToRemove.append(attachment)
-			if attachmentsToRemove:
-				for attachment in attachmentsToRemove:
-					db.delete(attachment)
-			foundAttachments = entry.getAttachments()
-			for i in range(rakontu.maxNumAttachments):
-				for name, value in self.request.params.items():
-					if name == "attachment%s" % i:
-						if value != None and value != "":
-							filename = value.filename
-							if len(foundAttachments) > i:
-								attachmentToEdit = foundAttachments[i]
-							else:
-								attachmentToEdit = Attachment(key_name=KeyName("attachment"), entry=entry, rakontu=rakontu)
-							j = 0
-							mimeType = None
-							for type in ACCEPTED_ATTACHMENT_FILE_TYPES:
-								if filename.lower().find(".%s" % type.lower()) >= 0:
-									mimeType = ACCEPTED_ATTACHMENT_MIME_TYPES[j]
-								j += 1
-							if mimeType:
-								attachmentToEdit.mimeType = mimeType
-								attachmentToEdit.fileName = filename
-								attachmentToEdit.name = htmlEscape(self.request.get("attachmentName%s" % i))
-								blob = db.Blob(str(self.request.get("attachment%s" % i)))
-								attachmentToEdit.data = blob
-								try:
-									attachmentToEdit.put()
-								except:
-									self.redirect(BuildResultURL("attachmentsTooLarge", rakontu=rakontu))
-									return
-			if preview:
-				self.redirect(BuildURL("dir_visit", "url_preview", entry.urlQuery()))
-			elif entry.draft:
+					entry.creator = member
 				if entry.collectedOffline:
-					if entry.inBatchEntryBuffer:
-						self.redirect(BuildURL("dir_liaise", "url_review", rakontu=rakontu))
-					else: # not in batch entry buffer
-						self.redirect(BuildURL("dir_visit", "url_drafts", entry.creator.urlQuery()))
-				else: # not collected offline 
-					self.redirect(BuildURL("dir_visit", "url_drafts", member.urlQuery()))
-			else: # new entry
-				# this is the one time when I'll manipulate the member's time view
-				# they want to see the story they made
-				member.viewTimeEnd = entry.published + timedelta(seconds=1)
-				member.put()
-				self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
+					attributionQueryString = "offlineAttribution"
+				else:
+					attributionQueryString = "attribution"
+				if self.request.get(attributionQueryString) != "member":
+					entry.character = Character.get(self.request.get(attributionQueryString))
+				else:
+					entry.character = None
+				if type == "resource":
+					entry.resourceForHelpPage = self.request.get("resourceForHelpPage") == "yes"
+					entry.resourceForNewMemberPage = self.request.get("resourceForNewMemberPage") == "yes"
+					entry.resourceForManagersAndOwnersOnly = self.request.get("resourceForManagersAndOwnersOnly") == "yes"
+				entry.put()
+				if not entry.draft:
+					entry.publish()
+				linkType = None
+				if self.request.get("link_item_from"):
+					itemFrom = db.get(self.request.get("link_item_from"))
+					if itemFrom:
+						if self.request.get("link_type") == "retell":
+							linkType = "retold"
+						elif self.request.get("link_type") == "remind":
+							linkType = "reminded"
+						elif self.request.get("link_type") == "respond":
+							linkType = "responded"
+						elif self.request.get("link_type") == "relate":
+							linkType = "related"
+						elif self.request.get("link_type") == "include":
+							linkType = "included"
+						elif self.request.get("link_type") == "reference":
+							linkType = "referenced"
+						comment = htmlEscape(self.request.get("link_comment"))
+						link = Link(key_name=KeyName("link"), 
+								rakontu=rakontu,
+								itemFrom=itemFrom, 
+								itemTo=entry, 
+								type=linkType, 
+								creator=member,
+								comment=comment)
+						link.put()
+						link.publish()
+				if entry.isCollage():
+					linksToRemove = []
+					for link in entry.getOutgoingLinksOfType("included"):
+						link.comment = self.request.get("linkComment|%s" % link.key())
+						link.put()
+						if self.request.get("removeLink|%s" % link.key()) == "yes":
+							linksToRemove.append(link)
+					for link in linksToRemove:
+						db.delete(link)
+					for anEntry in rakontu.getNonDraftEntriesOfType("story"):
+						if self.request.get("addLink|%s" % anEntry.key()) == "yes":
+							link = Link(key_name=KeyName("link"), 
+								rakontu=rakontu,
+								itemFrom=entry, 
+								itemTo=anEntry, 
+								type="included", 
+								creator=member)
+							link.put()
+							if not entry.draft:
+								link.publish()
+				if entry.isPattern():
+					linksToRemove = []
+					for link in entry.getOutgoingLinksOfType("referenced"):
+						link.comment = self.request.get("linkComment|%s" % link.key())
+						link.put()
+						if self.request.get("removeLink|%s" % link.key()) == "yes":
+							linksToRemove.append(link)
+					for link in linksToRemove:
+						db.delete(link)
+					for aSearch in rakontu.getNonPrivateSavedSearches():
+						if self.request.get("addLink|%s" % aSearch.key()) == "yes":
+							link = Link(key_name=KeyName("link"), 
+								rakontu=rakontu,
+								itemFrom=entry, 
+								itemTo=aSearch, 
+								type="referenced", 
+								creator=member)
+							link.put()
+							if not entry.draft:
+								link.publish()
+				questions = rakontu.getAllQuestionsOfReferType(type)
+				for question in questions:
+					foundAnswers = entry.getAnswersForQuestionAndMember(question, member)
+					if foundAnswers:
+						answerToEdit = foundAnswers[0]
+					else:
+						answerToEdit = Answer(
+											key_name=KeyName("answer"),
+											rakontu=rakontu, 
+											question=question, 
+											creator=member,
+											referent=entry, 
+											referentType="entry")
+					if (question.type == "nominal" or question.type == "ordinal") and question.multiple:
+						keepAnswer = False
+						answerToEdit.answerIfMultiple = []
+						for choice in question.choices:
+							if self.request.get("%s|%s" % (question.key(), choice)) == "yes":
+								answerToEdit.answerIfMultiple.append(choice)
+								keepAnswer = True
+					else:
+						queryText = "%s" % question.key()
+						response = self.request.get(queryText).strip()
+						if question.type == "boolean":
+							keepAnswer = queryText in self.request.params.keys()
+						else:
+							keepAnswer = len(response) > 0 and response != "None"
+						if keepAnswer:
+							if question.type == "text":
+								answerToEdit.answerIfText = htmlEscape(response)
+							elif question.type == "value":
+								oldValue = answerToEdit.answerIfValue
+								try:
+									answerToEdit.answerIfValue = int(response)
+								except:
+									answerToEdit.answerIfValue = oldValue
+							elif question.type == "boolean":
+								answerToEdit.answerIfBoolean = response == "yes"
+							elif (question.type == "nominal" or question.type == "ordinal") and not question.multiple:
+								answerToEdit.answerIfText = response
+					if keepAnswer:
+						answerToEdit.creator = member
+						answerToEdit.character = entry.character
+						answerToEdit.draft = entry.draft
+						answerToEdit.inBatchEntryBuffer = entry.inBatchEntryBuffer
+						answerToEdit.collected = entry.collected
+						answerToEdit.put()
+						if not answerToEdit.draft:
+							answerToEdit.publish()
+					else:
+						db.delete(answerToEdit)
+				foundAttachments = entry.getAttachments()
+				attachmentsToRemove = []
+				for attachment in foundAttachments:
+					for name, value in self.request.params.items():
+						if value == "removeAttachment|%s" % attachment.key():
+							attachmentsToRemove.append(attachment)
+				if attachmentsToRemove:
+					for attachment in attachmentsToRemove:
+						db.delete(attachment)
+				foundAttachments = entry.getAttachments()
+				for i in range(rakontu.maxNumAttachments):
+					for name, value in self.request.params.items():
+						if name == "attachment%s" % i:
+							if value != None and value != "":
+								filename = value.filename
+								if len(foundAttachments) > i:
+									attachmentToEdit = foundAttachments[i]
+								else:
+									attachmentToEdit = Attachment(key_name=KeyName("attachment"), entry=entry, rakontu=rakontu)
+								j = 0
+								mimeType = None
+								for type in ACCEPTED_ATTACHMENT_FILE_TYPES:
+									if filename.lower().find(".%s" % type.lower()) >= 0:
+										mimeType = ACCEPTED_ATTACHMENT_MIME_TYPES[j]
+									j += 1
+								if mimeType:
+									attachmentToEdit.mimeType = mimeType
+									attachmentToEdit.fileName = filename
+									attachmentToEdit.name = htmlEscape(self.request.get("attachmentName%s" % i))
+									blob = db.Blob(str(self.request.get("attachment%s" % i)))
+									attachmentToEdit.data = blob
+									try:
+										attachmentToEdit.put()
+									except:
+										self.redirect(BuildResultURL("attachmentsTooLarge", rakontu=rakontu))
+										return
+				if preview:
+					self.redirect(BuildURL("dir_visit", "url_preview", entry.urlQuery()))
+				elif entry.draft:
+					if entry.collectedOffline:
+						if entry.inBatchEntryBuffer:
+							self.redirect(BuildURL("dir_liaise", "url_review", rakontu=rakontu))
+						else: # not in batch entry buffer
+							self.redirect(BuildURL("dir_visit", "url_drafts", entry.creator.urlQuery()))
+					else: # not collected offline 
+						self.redirect(BuildURL("dir_visit", "url_drafts", member.urlQuery()))
+				else: # new entry
+					# this is the one time when I'll manipulate the member's time view
+					# they want to see the story they made
+					member.viewTimeEnd = entry.published + timedelta(seconds=1)
+					member.put()
+					self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
 		else: # no rakontu or member
 			self.redirect(START)
 			

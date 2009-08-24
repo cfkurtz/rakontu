@@ -67,6 +67,7 @@ who is mentioned in the story.
 # This is which skin is used by default (before a manager picks one).
 # It MUST match one of the names in the skins.csv file.
 DEFAULT_SKIN_NAME = "sunset"
+START_CUSTOM_SKIN_NAME = "grayscale"
 
 # ============================================================================================ 
 # MEMBERS
@@ -147,6 +148,8 @@ ANNOTATION_TYPES_URLS = ["tagset", "comment", "request", "nudge"]
 # Used in manage/settings where they are choosing which items can have character attribution.
 # These MUST match the order (story, pattern, collage, invitation, resource, answer, tagset, comment, request, nudge).
 ENTRY_AND_ANNOTATION_TYPES_DISPLAY = ["story", "pattern", "collage", "invitation", "resource", "answer", "tag set", "comment", "request", "nudge"]
+# Same thing but plural
+ENTRY_AND_ANNOTATION_TYPES_PLURAL_DISPLAY = ["stories", "patterns", "collages", "invitations", "resources", "answers", "tag sets", "comments", "requests", "nudges"]
 # URLs for entry and annotation types. 
 # These MUST match the order (story, pattern, collage, invitation, resource, answer, tagset, comment, request, nudge).
 # Since they will be used for URLs they CANNOT contain special characters or spaces.
@@ -267,7 +270,6 @@ TERMS = {
 		"term_stop_curating_this": "Stop curating this", # story, invitation collage, pattern, or resource
 		"term_change_this": "Change this", # story, invitation collage, pattern, or resource
 		"term_print_this": "Print content and annotations for this", # story, invitation collage, pattern, or resource
-		
 		# used to send a reminder to manager about items flagged by curator
 		"term_dear_manager": "Dear manager",
 		"term_reminder": "Reminder about flagged items from", # person who is sending the reminder
@@ -306,6 +308,9 @@ TERMS = {
 		"term_entries_contributed_by": "Entries contributed by",
 		"term_yes": "yes",
 		"term_no": "no",
+		"term_points": "points",
+		"term_accumulations_for": "Accumulations for",
+		"term_custom": "custom",
 		}
 
 # ============================================================================================ 
@@ -622,6 +627,8 @@ TEMPLATE_TERMS = {
 		"template_helping_roles_taken_on": "Helping roles taken on",
 		"template_helping_roles_available": "Helping roles available",
 		"template_add_new_members": "Add new members",
+		"template_send_invitation_email": "Send invitation email",
+		"template_invitation_to_join": "Invitation to join",
 		# manage/questions
 		"template_add_new_questions_about": "Add new questions about",
 		"template_change_questions_about": "Change questions about",
@@ -652,6 +659,8 @@ TEMPLATE_TERMS = {
 		"template_things_members_can_do": "Things members can do",
 		"template_rakontu_created_on": "This Rakontu was created on",
 		"template_tag_line": "Tag line",
+		"template_custom_skin": "Custom skin",
+		"template_custom": "custom",
 		"template_rakontu_outoing_email": "Outgoing email address",
 		"template_welcome_message_for_new_members": "Welcome message for new members",
 		"template_time_zones_and_time_reporting": "Time zones and time reporting",
@@ -662,7 +671,6 @@ TEMPLATE_TERMS = {
 		"template_fictional_characters": "Fictional characters",
 		"template_is_entry_by_character_allowed": "Is entry via fictional character allowed for each of these entry types?",
 		"template_editing": "Editing",
-		"template_editing_after_publishing_for_types": "For which of these types of entry should editing be allowed after publishing?",
 		"template_non_managers_editing_tags": "Should curators who are not managers be able to edit existing tags?",
 		"template_yes_non_manager_curators_can_edit_tags": "Yes, curators who are not managers can edit all tags",
 		"template_activity_system": "Activity system",
@@ -695,9 +703,13 @@ TEMPLATE_TERMS = {
 		"template_no_character_description": "no character description",
 		"template_no_character_how_to": "no how-to statement",
 		# visit/drafts
+		"template_name_click_to_edit": "Name (click to edit)",
+		"template_versions_click_to_use": "Versions (click to recall)",
 		"template_your_saved_drafts": "Your saved drafts",
 		"template_saved_drafts_for": "Saved drafts for",
+		"template_versions": "History",
 		# visit/entry
+		"template_restoring_version_from": "Recalling version from",
 		"template_tell_new_story": "Please tell your story here.",
 		"template_describe_new_pattern": "Please describe the pattern of stories you want to make note of here.",
 		"template_describe_new_collage": "Please describe your collage here.",
@@ -715,6 +727,7 @@ TEMPLATE_TERMS = {
 		"template_yes_is_help_resource": "This is a help resource. Link to it from the general help page.",
 		"template_yes_is_new_member_resource":"This resource will be helpful to new members. Link to it from the page new members see.",
 		"template_yes_manager_only_resource": "This resource is only appropriate for managers. Hide it from other members.",
+		"template_load_version": "Recall version",
 		"template_stories_included_in_collage": "Stories included in this collage",
 		"template_link_comment": "Link comment",
 		"template_add_stories_to_the_collage": "Add stories to the collage",
@@ -817,6 +830,10 @@ TEMPLATE_TERMS = {
 		# visit/rakontu
 		"template_make_changes_to_settings": "Make changes to Rakontu-level settings",
 		"template_make_changes_to_characters": "Make changes to characters",
+		"template_nudge_categories": "Nudge categories",
+		"template_nudge_point_accumulations": "Nudge point accumulations",
+		"template_activity_point_accumulations": "Activity point accumulations",
+		"template_rakontu_allows_characters_for": "This Rakontu allows fictional character attribution for",
 		# visit/read
 		"template_contributed_by": "Contributed by",
 		"template_entered_by": "entered by",
@@ -825,6 +842,8 @@ TEMPLATE_TERMS = {
 		"template_in_response_to_invitation": "Told in response to",
 		"template_included_in_collages": "Included in the collages",
 		"template_what_would_you_like_to_do_next": "What would you like to do next?",
+		"template_hide_versions": "Hide", # right next to button that says History no need for longer name
+		"template_show_versions": "Show history",
 		# visit/readAnnotation
 		"template_request_type": "Request type",
 		# visit/relate
@@ -834,8 +853,6 @@ TEMPLATE_TERMS = {
 		"template_outgoing": "outgoing",
 		"template_add_relations": "Add relations",
 		"template_related": "Related",
-		
-		
 		}
 
 # ============================================================================================ 
@@ -915,6 +932,7 @@ TEMPLATE_BUTTONS = {
 		"button_mark_as_completed": "Mark as completed",
 		"button_mark_as_not_completed": "Mark as not completed",
 		"button_save_new_relations": "Save new relations",
+		"button_load_version": "Recall",
 		}
 
 # ============================================================================================ 
@@ -962,7 +980,7 @@ TEMPLATE_MENUS = {
 		"menu_characters": "Characters",
 		"menu_export": "Export",
 		# review
-		"menu_review": "Review",
+		"menu_my_stuff": "My stuff",
 		"menu_preferences": "Preferences",
 		"menu_filters": "Filters",
 		"menu_drafts": "Drafts",
@@ -1028,6 +1046,7 @@ RESULTS = {
 		"offlineMemberAlreadyAnsweredQuestions": ("offlineMemberAlreadyAnsweredQuestions", "That off-line member has already answered questions about this entry."),
 		"nicknameAlreadyInUse": ("nicknameAlreadyInUse", "That nickname is already in use. Please choose another."),
 		"ownerCannotLeave": ("ownerCannotLeave", "You are the only owner of this Rakontu. You can't leave it until you designate at least one other member as an owner."),
+		"cannotGiveUpLiaisonWithMembers": ("cannotGiveUpLiaisonWithMembers", "You cannot stop being a liaison with off-line members assigned to you. Visit the Manage off-line members page and assign your off-line members to other liaisons first."),
 		}
 
 # ============================================================================================ 
@@ -1255,6 +1274,7 @@ URL_IDS = {
 	"url_query_attachment": "attachment",
 	"url_query_annotation": "annotation",
 	"url_query_answer": "answer",
+	"url_query_version": "version",
 	"url_query_member": "member",
 	"url_query_character": "character",
 	"url_query_search_filter": "filter",
@@ -1281,6 +1301,7 @@ URL_OPTIONS = {
 	"url_query_uncompleted": "uncompleted",
 	"url_query_no_responses": "noresponses",
 	"url_query_curate": "curate",
+	"url_query_versions": "versions",
 	"url_query_result": "message",
 	"url_query_help": "help",
 	}

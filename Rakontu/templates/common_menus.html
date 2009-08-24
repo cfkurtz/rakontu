@@ -38,13 +38,6 @@
 	  			{% endif %}
 	  			</ul>
 			</li>
-			<li><a href="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}">{{menu_review}}</a>
-				<ul>
-				<li<a href="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}">{{menu_preferences}}</a></li>
-			    <li><a href="/{{dir_visit}}/{{url_drafts}}?{{rakontu.urlQuery}}">{{menu_drafts}}</a></li>
-			    <li><a href="/{{dir_visit}}/{{url_filters}}?{{rakontu.urlQuery}}">{{menu_filters}}</a></li>
-	      		</ul>
-	      	</li>
 			{% if current_member.isCurator %}
 				<li><a href="/{{dir_curate}}/{{url_gaps}}?{{rakontu.urlQuery}}">{{menu_curate}}</a>
 				<ul>
@@ -91,6 +84,13 @@
 		      		</ul>
 		      	</li>
 	    	{% endif %}
+			<li><a href="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}">{{menu_my_stuff}}</a>
+				<ul>
+				<li<a href="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}">{{menu_preferences}}</a></li>
+			    <li><a href="/{{dir_visit}}/{{url_drafts}}?{{rakontu.urlQuery}}">{{menu_drafts}}</a></li>
+			    <li><a href="/{{dir_visit}}/{{url_filters}}?{{rakontu.urlQuery}}">{{menu_filters}}</a></li>
+	      		</ul>
+	      	</li>
 	      	</ul>
 	    </td><td align="right" class="noborder" width="120">
     	<p>&nbsp; <b>{{ current_member.nickname }}</b></p>

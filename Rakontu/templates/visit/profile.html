@@ -94,6 +94,7 @@
 			{% endif %}
 		{% endif %}
 		</fieldset>
+    	<center><input type="submit" name="changeSettings|{{member.key}}" value="{{button_save_changes}}" class="button"></center>
 		
 		{% if member.isOnlineMember %}
 			{% if member.canTakeOnAnyHelpingRole %}
@@ -127,14 +128,30 @@
 								</select>
 							</td></tr></table>
 						{% endifequal %}
+						{% ifequal i 2 %}
+							{% if member.isLiaison %}
+								{% if my_offline_members %}
+									<p>&nbsp; &nbsp; &nbsp; <i>{{template_offline_members}}</i></p>
+									<ul>
+									{% for aMember in my_offline_members %}
+										<li class="nobullet">{{aMember.linkString}}</li>
+									{% endfor %}
+									</ul>
+								{% else %}
+									<p>&nbsp; &nbsp; &nbsp; <i>{{template_you_have_no_offline_members}}</i></p>
+								{% endif %}
+							{% endif %}
+						{% endifequal %}
 					{% endif %}
 				{% endfor %}
 				</fieldset>
+    			<center><input type="submit" name="changeSettings|{{member.key}}" value="{{button_save_changes}}" class="button"></center>
 			{% endif %}
 		{% endif %}
 		
  		{% if questions %}
 			{% include "../common_questions.html" %}
+    		<center><input type="submit" name="changeSettings|{{member.key}}" value="{{button_save_changes}}" class="button"></center>
 		{% endif %}
 
  		<h3>{{template_other_options}}</h3>

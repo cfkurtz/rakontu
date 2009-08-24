@@ -10,6 +10,9 @@ FLESHING OUT:
 
 help resources 
 
+must do a "check availability" on nickname thing
+cannot be on that page
+
 SCALING UP:
 
 transactions

@@ -6,12 +6,12 @@
 # Google Code Project: http://code.google.com/p/rakontu/
 # -------------------------------------------------------------------------- -------- ----------
        
-import os   
+import os    
 import string        
-import cgi       
-import htmllib        
+import cgi        
+import htmllib          
        
-from models import *     
+from models import *       
    
 from google.appengine.api import users    
 from google.appengine.ext.webapp import template     
@@ -21,7 +21,7 @@ from google.appengine.api import images
 from google.appengine.api import mail
   
 webapp.template.register_template_library('djangoTemplateExtras')
-import csv
+import csv 
 import pytz
  
 # ============================================================================================
@@ -30,12 +30,12 @@ import pytz
 # ============================================================================================
 # ============================================================================================
 
-def FindTemplate(template):
+def FindTemplate(template): 
 	return "templates/%s" % template  
 	
 def RequireLogin(func):
 	def check_login(request): 
-		if not users.get_current_user(): 
+		if not users.get_current_user():  
 			loginURL = users.create_login_url("/") 
 			request.redirect(loginURL)
 			return
@@ -113,15 +113,17 @@ def GetRakontuFromURLQuery(query):
 	else:
 		for lookup, url in URL_IDS.items():
 			if queryAsDictionary.has_key(url):
-				entityKeyName = queryAsDictionary[url]
-				if lookup == "url_query_entry":
-					entity = Entry.get_by_key_name(entityKeyName)
+				entityKeyName = queryAsDictionary[url] 
+				if lookup == "url_query_entry": 
+					entity = Entry.get_by_key_name(entityKeyName) 
 				elif lookup == "url_query_attachment": 
-					entity = Attachment.get_by_key_name(entityKeyName)
+					entity = Attachment.get_by_key_name(entityKeyName) 
 				elif lookup == "url_query_annotation":
-					entity = Annotation.get_by_key_name(entityKeyName)
-				elif lookup == "url_query_answer":
+					entity = Annotation.get_by_key_name(entityKeyName)   
+				elif lookup == "url_query_answer": 
 					entity = Answer.get_by_key_name(entityKeyName)
+				elif lookup == "url_query_version": 
+					entity = TextVersion.get_by_key_name(entityKeyName)
 				elif lookup == "url_query_member":
 					entity = Member.get_by_key_name(entityKeyName)
 				elif lookup == "url_query_character":
@@ -138,7 +140,7 @@ def GetRakontuFromURLQuery(query):
 					return entity.rakontu 
 				else: 
 					return None 
-				
+				 
 def GetStringOfTypeFromURLQuery(query, type):
 	dictionary = GetDictionaryFromURLQuery(query) 
 	lookupKey = URL_OPTIONS[type]
@@ -162,6 +164,8 @@ def GetObjectOfTypeFromURLQuery(query, type):
 			return Annotation.get_by_key_name(keyName)
 		elif type == "url_query_answer":
 			return Answer.get_by_key_name(keyName)
+		elif type == "url_query_version": 
+			return TextVersion.get_by_key_name(keyName)
 		elif type == "url_query_member":
 			return Member.get_by_key_name(keyName)
 		elif type == "url_query_character": 
@@ -923,48 +927,19 @@ def upTo(value, number):
 	if value:
 		result = value[:number]
 		if len(value) > number:
-			result += "..."
+			result += "..."  
 	else:
 		result = value
 	return result
-
+ 
 def upToWithLink(value, number, link):
-	if value:
+	if value: 
 		result = value[:number]
 		if len(value) > number:
 			result += ' <a href="%s">...</a>' % link
 	else:
 		result = value
 	return result
-
-def stringUpTo(aString, aDelimiter):
-    if len(aString) == 0:
-        return ""
-    delimiterPos = aString.find(aDelimiter)
-    if delimiterPos == -1:
-        result = aString
-    elif delimiterPos == 0:
-        result = ""
-    else:
-        result = aString[:delimiterPos]
-    return result
-
-def stringBeyond(aString, aDelimiter):
-    if len(aString) == 0:
-        result = ""
-        return result
-    delimiterPos = aString.find(aDelimiter)
-    if delimiterPos == -1:
-        result = aString
-    elif delimiterPos == len(aString) - 1:
-        result = ""
-    else:
-        result = aString[delimiterPos + 1:]
-    return result
-
-def stringBetween(startString, endString, wholeString):
-    result = stringUpTo(stringBeyond(wholeString.strip(), startString), endString)
-    return result
 
 # ============================================================================================
 # ============================================================================================

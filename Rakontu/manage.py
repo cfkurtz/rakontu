@@ -161,11 +161,6 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 					i += 1
 					
 				editingIncludes = []
-				i = 0
-				for entryType in ENTRY_TYPES:
-					editingIncludes.append('<input type="checkbox" name="editing|%s" value="yes" %s id="editing|%s"/><label for="editing|%s">%s</label>' \
-							% (entryType, checkedBlank(rakontu.allowEditingAfterPublishing[i]), entryType, entryType, ENTRY_TYPES_DISPLAY[i]))
-					i += 1
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["MANAGE_SETTINGS"], 
 								   'rakontu': rakontu, 
@@ -173,10 +168,10 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 								   'current_member': member,
 								   'current_date': datetime.now(tz=pytz.utc),
 								   'character_includes': characterIncludes,
-								   'editing_includes': editingIncludes,
 								   'nudge_point_includes': nudgePointIncludes,
 								   'activity_point_includes': activityPointIncludes,
 								   'site_allows_attachments': DEFAULT_MAX_NUM_ATTACHMENTS > 0,
+								   'num_attachment_choices': NUM_ATTACHMENT_CHOICES,
 								   'skin_names': GetSkinNames(),
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/settings.html'))
@@ -194,6 +189,8 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 				rakontu.name = htmlEscape(self.request.get("name"))
 				rakontu.tagline = htmlEscape(self.request.get("tagline"))
 				rakontu.skinName = self.request.get("skinName")
+				if rakontu.skinName == TERMS["term_custom"]:
+					rakontu.customSkin = db.Text(self.request.get("customSkin"))
 				text = self.request.get("description")
 				format = self.request.get("description_format").strip()
 				rakontu.description = text
@@ -221,10 +218,6 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 				i = 0
 				for entryType in ENTRY_AND_ANNOTATION_TYPES:
 					rakontu.allowCharacter[i] = self.request.get("character|%s" % entryType) == "yes"
-					i += 1
-				i = 0
-				for entryType in ENTRY_TYPES:
-					rakontu.allowEditingAfterPublishing[i] = self.request.get("editing|%s" % entryType) == "yes"
 					i += 1
 				oldValue = rakontu.maxNudgePointsPerEntry
 				try:

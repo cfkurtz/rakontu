@@ -21,6 +21,7 @@ ROCKET_ENTITIES = {
 	"Link":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
 	"Attachment":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
 	"Annotation":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
+	"TextVersion": {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
 	# Helps are not synchonized
 	# Exports are not synchronized
 	}
@@ -35,7 +36,6 @@ ROCKET_ENTITIES = {
 				"nudgeCategoryQuestions",
 				"entryActivityPointsPerEvent", 
 				"allowCharacter",
-				"allowEditingAfterPublishing",
 				"roleReadmes_formats",
 				]},
 	"Question": {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp",

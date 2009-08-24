@@ -141,7 +141,6 @@ class Rakontu(db.Model):
 	nudgeCategoryQuestions = db.StringListProperty(default=DEFAULT_NUDGE_CATEGORY_QUESTIONS, indexed=False)
 	entryActivityPointsPerEvent = db.ListProperty(int, default=DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS, indexed=False)
 	allowCharacter = db.ListProperty(bool, default=DEFAULT_ALLOW_CHARACTERS, indexed=False)
-	allowEditingAfterPublishing = db.ListProperty(bool, default=DEFAULT_ALLOW_EDITING_AFTER_PUBLISHING, indexed=False)
 	allowNonManagerCuratorsToEditTags = db.BooleanProperty(default=False, indexed=False)
 	
 	# descriptive options
@@ -172,6 +171,7 @@ class Rakontu(db.Model):
 	defaultDateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT, indexed=False) # appears on member preferences page
 	
 	skinName = db.StringProperty(default=DEFAULT_SKIN_NAME)
+	customSkin = db.TextProperty()
 	
 	def initializeFormattedTexts(self):
 		self.description_formatted = db.Text("<p>%s</p>" % self.description)
@@ -179,16 +179,11 @@ class Rakontu(db.Model):
 		self.welcomeMessage_formatted = db.Text("<p>%s</p>" % self.welcomeMessage)
 		for i in range(3):
 			self.roleReadmes_formatted[i] = db.Text(self.roleReadmes[i])
+		skin = GetSkinByName(START_CUSTOM_SKIN_NAME)
+		if skin:
+			self.customSkin = db.Text(skin.asText())
 	
 	# OPTIONS
-	
-	def allowsPostPublishEditOfEntryType(self, type):
-		i = 0
-		for entryType in ENTRY_TYPES:
-			if type == entryType:
-				return self.allowEditingAfterPublishing[i]
-			i += 1
-		return False
 	
 	def allowsAttachments(self):
 		return self.maxNumAttachments > 0
@@ -206,11 +201,23 @@ class Rakontu(db.Model):
 		return self.maxNumAttachments == 5
 	
 	def getSkinDictionary(self):
-		skin = Skin.all().filter("name = ", self.skinName).get()
-		if skin:
-			return skin.getPropertiesAsDictionary()
+		if self.skinName == TERMS["term_custom"] and self.customSkin:
+			return self.customSkinAsDictionary()
 		else:
-			return {}
+			skin = Skin.all().filter("name = ", self.skinName).get()
+			if skin:
+				return skin.getPropertiesAsDictionary()
+			else:
+				return {}
+			
+	def customSkinAsDictionary(self):
+		result = {}
+		rows = self.customSkin.split("\n")
+		for row in rows:
+			key = stringUpTo(row, "=")
+			value = stringBeyond(row, "=")
+			result[key] = value
+		return result
 		
 	# DISPLAY
 	
@@ -1688,6 +1695,27 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		self.activityPoints += self.rakontu.getEntryActivityPointsForEvent(eventType)
 		self.put()
 		
+	def addCurrentTextToPreviousVersions(self):
+		version = TextVersion(
+							key_name=KeyName("version"), 
+							entry=self.key(), 
+							rakontu=self.rakontu.key(),
+							title=self.title,
+							text=self.text,
+							text_format=self.text_format,
+							text_formatted=self.text_formatted,
+							)
+		version.put()
+		
+	def getTextVersions(self):
+		return TextVersion.all().filter("entry = ", self.key()).fetch(FETCH_NUMBER)
+	
+	def getTextVersionsInTimeOrder(self):
+		return TextVersion.all().filter("entry = ", self.key()).order("created").fetch(FETCH_NUMBER)
+	
+	def getTextVersionsInReverseTimeOrder(self):
+		return TextVersion.all().filter("entry = ", self.key()).order("-created").fetch(FETCH_NUMBER)
+	
 	def lastTouched(self):
 		if self.lastRead and self.lastAnnotatedOrAnsweredOrLinked and self.published:
 			return max(self.lastRead, max(self.lastAnnotatedOrAnsweredOrLinked, self.published))
@@ -1711,6 +1739,7 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		db.delete(self.getAllLinks())
 		db.delete(self.getAnswers())
 		db.delete(self.getAnnotations())
+		db.delete(self.getTextVersions())
 		
 	def satisfiesSearchCriteria(self, search, entryRefs, creatorRefs):
 		if not search.words and not search.tags and not entryRefs and not creatorRefs: # empty search
@@ -2210,7 +2239,28 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	
 	def satisfiesSearch(self, search, refs):
 		pass
+	
+# ============================================================================================
+# ============================================================================================
+class TextVersion(db.Model):
+# ============================================================================================
+# ============================================================================================
+	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
+	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="versions_to_rakontu")
+	entry = db.ReferenceProperty(Entry, required=True, collection_name="versions_to_entries")
+	created = TzDateTimeProperty(auto_now_add=True)
 
+	title = db.StringProperty()
+	text = db.TextProperty(default=NO_TEXT_IN_ENTRY)
+	text_formatted = db.TextProperty()
+	text_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
+
+	def urlQuery(self):
+		return "%s=%s" % (URL_IDS["url_query_version"], self.key().name())
+
+	def getKeyName(self):
+		return self.key().name()
+	
 # ============================================================================================
 # ============================================================================================
 class Link(db.Model):						 # related, retold, reminded, responded, included
@@ -2589,6 +2639,14 @@ class Skin(db.Model):		 # style sets to change look of each Rakontu
 		for key in properties.keys():
 			result[key] = getattr(self, key)
 		return result
+	
+	def asText(self):
+		lines = []
+		properties = Skin.properties()
+		for key in properties.keys():
+			if key.find("font_") >= 0 or key.find("color_") >= 0:
+				lines.append("%s=%s" % (key, getattr(self, key)))
+		return "\n".join(lines)
 
 # ============================================================================================
 # ============================================================================================
@@ -2644,6 +2702,9 @@ def AllSkins():
 
 def NumSkins():
 	return Skin.all().count()
+
+def GetSkinByName(name):
+	return Skin.all().filter("name = ", name).get()
 
 def AllSystemQuestions():
 	return Question.all().filter("rakontu = ", None).fetch(FETCH_NUMBER)

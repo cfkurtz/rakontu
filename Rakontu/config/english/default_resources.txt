@@ -1,6 +1,8 @@
 ; Default resources file for Rakontu site
 ; For the first four lines of each resource, don't change what is on the left of the equals sign (but DO set up what is on the right!)
 ; All lines following the "Managers only" line up to the next [Name] line are part of the resource.
+; All lines that start with a semicolon are comments and are ignored.
+; Resources will be created (and shown) in the order they appear here.
 
 [About Rakontu]
 Category=Introduction
@@ -35,6 +37,55 @@ If you like, you can take on a *helping role* in your Rakontu.
     and off-line members (people who tell and hear stories but don't use the web site).
 
 To get started, click on a story title and start reading!
+
+[People in Rakontu]
+Category=Introduction
+Interpret as=Wiki markup
+Managers only=no
+== Members
+
+Everyone who has access to a Rakontu site is a *member* of the Rakontu. All members can tell stories, ask other people 
+to tell stories, build collages and note patterns. All members can tag, comment on, add a request to, 
+
+=== Managers
+
+Some of the people in the Rakontu are managers. These are the people who can change all of the governance-type 
+settings in the Rakontu, such as what questions are asked about entries and members. Managers must be made managers 
+by other managers.
+
+=== Owners
+
+At least one manager is called an owner. The only additional thing an owner can do is delete the Rakontu 
+(so this person has to be trustworthy!). Usually the owner will be the person who started the Rakontu.
+
+=== Helpers
+
+There are three "helping roles" in any Rakontu. These are always volunteer roles, and any member can take them 
+on simply by checking a box that says they want to do this. (However, managers can ban a member from doing this if 
+they need to, for example if someone abuses the privileges of the role.)
+
+  * *Curators* are the herders of the stories and other information. They have the right to roam over the web site flagging 
+  inappropriate items for deletion. They have several summary screens they can use to review missing links and other gaps 
+  in the data set.
+
+  * *Guides* are the people-helpers of the system. They alone can create resources, and they can review requests attached
+  to entries, such as those needing transcription. When people need help, they can ask a guide.
+
+  * *Liaisons* are bridges between on-line and off-line members of a Rakontu. Off-line members can tell stories,
+  read and hear stories, and make comments and other annotations. Liaisons enter all of this information for them
+  and output things for them to read and hear. 
+
+=== Characters
+
+Sometimes it's hard to tell a story that needs to be told. Rakontus can optionally set up characters, which are 
+sort of like masks people can put on to tell a story they would rather not have labeled as theirs. Information about who 
+told the story is still in the system, but nobody in the Rakontu (including its managers) can see it. Only a site 
+administrator can see identifying information, and only with some effort. Characters have answers to questions as well, 
+so you can search on things like "Show me stories told by characters that describe themselves as 'strong' where the 
+storyteller said the story made them feel 'weak'."
+
+Rakontus may vary on whether they have characters and which types of entries and annotations are allowed to use 
+character attribution.
 
 [Terms in Rakontu]
 Category=Introduction
@@ -90,54 +141,30 @@ you are interested in reading.
 Members can also have questions they answer. These answers can be combined with questions about stories to produce 
 interesting queries, like "Show me stories told by members under 20 in which people said they felt sad."
 
-[People in Rakontu]
+[The Rakontu Nudge System]
 Category=Introduction
 Interpret as=Wiki markup
 Managers only=no
-== Members
+Rakontu uses a ratings system similar to SlashDot's karma system (with a few elaborations) called the *nudge* system. The idea is that Rakontu members nudge stories and other entries up and down in a sort of matrix or grid of meaning, where things nearer the surface are more important _for one reason or another_. Nudging in Rakontu has more to do with utility for particular purposes than with simple popularity.
 
-Everyone who has access to a Rakontu site is a *member* of the Rakontu. All members can tell stories, ask other people 
-to tell stories, build collages and note patterns. All members can tag, comment on, add a request to, 
+The people who set up your Rakontu also set up from one to five nudge *categories*, or axes of meaning. Anyone can nudge an item up or down in any of the Rakontu categories, and you can shift your view of the grid depending on what you care about at the time. These are similar to moderation categories on SlashDot, except that every small group can set their own meanings. 
 
-=== Managers
+You gain "nudge points" by participating in the Rakontu -- telling stories, adding comments, answering questions, and so on -- which you can use to nudge stories up and down. Exactly how many nudge points you accumulate may have been customized by your Rakontu managers. Some Rakontus might be more interested in having people tell stories while others are more interested in comments and question answering. You can find out what influences nudge point accumulation in your Rakontu by looking at the Visit - About this Rakontu page.
 
-Some of the people in the Rakontu are managers. These are the people who can change all of the governance-type 
-settings in the Rakontu, such as what questions are asked about entries and members. Managers must be made managers 
-by other managers.
+[How Rakontu Search Filters Work]
+Category=Introduction
+Interpret as=Wiki markup
+Managers only=no
 
-=== Owners
+[Building a Story Collage]
+Category=Introduction
+Interpret as=Wiki markup
+Managers only=no
 
-At least one manager is called an owner. The only additional thing an owner can do is delete the Rakontu 
-(so this person has to be trustworthy!). Usually the owner will be the person who started the Rakontu.
-
-=== Helpers
-
-There are three "helping roles" in any Rakontu. These are always volunteer roles, and any member can take them 
-on simply by checking a box that says they want to do this. (However, managers can ban a member from doing this if 
-they need to, for example if someone abuses the privileges of the role.)
-
-  * *Curators* are the herders of the stories and other information. They have the right to roam over the web site flagging 
-  inappropriate items for deletion. They have several summary screens they can use to review missing links and other gaps 
-  in the data set.
-
-  * *Guides* are the people-helpers of the system. They alone can create resources, and they can review requests attached
-  to entries, such as those needing transcription. When people need help, they can ask a guide.
-
-  * *Liaisons* are bridges between on-line and off-line members of a Rakontu. Off-line members can tell stories,
-  read and hear stories, and make comments and other annotations. Liaisons enter all of this information for them
-  and output things for them to read and hear. 
-
-=== Characters
-
-Sometimes it's hard to tell a story that needs to be told. Rakontus can optionally set up characters, which are 
-sort of like masks people can put on to tell a story they would rather not have labeled as theirs. Information about who 
-told the story is still in the system, but nobody in the Rakontu (including its managers) can see it. Only a site 
-administrator can see identifying information, and only with some effort. Characters have answers to questions as well, 
-so you can search on things like "Show me stories told by characters that describe themselves as 'strong' where the 
-storyteller said the story made them feel 'weak'."
-
-Rakontus may vary on whether they have characters and which types of entries and annotations are allowed to use 
-character attribution.
+[Describing a Pattern]
+Category=Introduction
+Interpret as=Wiki markup
+Managers only=no
 
 [How to Be a Curator]
 Category= Helping
@@ -182,7 +209,7 @@ To view all of the flags you have marked, choose Flags from the Curate menu at t
   Notification is mainly to let managers know if something is particularly in need of removal (obscene or hate speech, for example). 
   It's best not to over use notification if you want the managers to pay attention when you _do_ need to get their attention.
   
-=== Flagging items through attachments
+= Flagging items through attachments
 
 Because entries can have attachments (like email) it can sometimes be hard to see if someone has added something
 offensive or just huge and not helpful. (Many large attachments can slow down access to the Rakontu.) It's a good
@@ -292,9 +319,9 @@ Managers only=no
 
 <p>To write italic text, put underscores around it: _italic text_ becomes <i>italic text</i>.</p>
 
-<p>To write fixed-width text, put those little hat characters around it: ^code text^ becomes <code>text</code>.</p>
+<p>To write fixed-width text, put those little hat characters around it: ^code text^ becomes <code>code text</code>.</p>
 
-<p>To write struck-out text, put tildes around it: ~strikeout text~ becomes <del>text</del>.</p>
+<p>To write struck-out text, put tildes around it: ~strikeout text~ becomes <del> strikeout text</del>.</p>
 
 <p>To write a heading, put one equals sign at the start of the line, followed by a space: </p><p>= header 1 text</p><p>
 becomes <h1>&nbsp; &nbsp; header 1 text</h1><p>
@@ -368,8 +395,112 @@ image tags <img src="" alt=""/> (these MUST include alt tags)
 
 Tables and nested lists are not supported."
 
-[Managing a Rakontu]
+[Managing Rakontu Members]
 Category=Managing
 Interpret as=Wiki markup
 Managers only=yes
-NOTHING YET
+Managers in a Rakontu are responsible for the Rakontu -- for who belongs to it, what is (and isn't) allowed into it, and how it appears to members. Usually two or three people will share the management for a Rakontu, though sometimes this will be only one person. If you are the only manager of your Rakontu, you are also the owner, which means that you are the only person (other than the site administrator) who can inactivate it.
+
+To review and control memberships in your Rakontu, choose "Members" from the Manage menu.
+
+People cannot join Rakontus by clicking on a link; a manager must invite them. To invite new members, type their emails into the "Add new members" area. Each added email *must* be a valid email with a Google account connected to it. When you add a new member, their email will appear in the "Pending members" area until they first visit the group. You can send them a link to the Rakontu which they can click on, at which time they will become a full member.
+
+Each member can optionally be a manager or an owner. Any manager can make any other member a manager or owner of the Rakontu. You should only ask people to be managers if you trust them not to abuse the privilege. You can make someone a manager or owner (or remove the role) by changing the "Membership role" area next to their name, then clicking Save changes.
+
+When a member no longer wants to participate in the Rakontu, you can inactivate them (usually at their request). Simply check the "Inactivate" box next to the member and click Save changes. Inactivated members don't disappear completely, but go into an inactivated list. This is so that the stories they told will not have "dead links" to a non-existent member (instead the stories will say they were told by "the former member so-and-so"). Inactivated members can be reinstated simply by copying their (Google-account-related) email and pasting it back into the "Add new members" area. When the email matches (exactly) the former member will regain all of their old preferences.
+
+[Managing Helping Roles in Your Rakontu]
+Category=Managing
+Interpret as=Wiki markup
+Managers only=yes
+Any Rakontu has three helping roles: curator, guide and liaison. Curators and guides are meant to address the dichotomy of how people get involved in online groups: some are drawn to taking care of "things" (posts, metadata, wiki pages) and some are drawn to taking care of people (by leading discussions, answering questions, writing FAQs). So, why not create two contrapositioned roles and let people gravitate to using them?
+
+The liaison role exists purely to serve one of Rakontu's main goals, which is to create a bridge between the on-line and off-line social worlds. To quote a sentence from Rakontu's design document: "The physical-digital split means that older people tell stories at the community center while younger people tell them on Facebook." If your Rakontu doesn't bridge on-line and off-line worlds, you can ignore the liaison role.
+
+Why have helping roles at all? Because there are often people in a group who don't want to take on the _responsibility_ of making important decisions for the group (managing it) but _are_ willing to put some time and energy into helping out. In essence Rakontu allows a wider spread of responsibility throughout the group -- even extending to the point where everyone in the whole group can be doing _something_ extra.
+
+=== Banning members from roles
+
+All the helping roles are purely voluntary. Any member can take them on or relinquish them at any time. Usually this is fine; but if anyone in the group abuses these roles (for example becoming a curator to bother a person by flagging all of their entries) you can bar them from the role. Simply change what is checked in the "Helping roles available" area in the "Active members" table. (Note that you cannot bar managers from taking on any of the helping roles. The assumption is that if they are a manager they are trustworthy enough to take on the lesser helping roles.)
+
+=== Role read-before messages
+
+To help people understand the helping roles and their importance in your own particular Rakontu, you can set your own "read-before" messages about each role (find these in the "Helping roles" section of the Settings page). These will appear in each member's Preferences page as they decide whether to take on the roles. If there are special things you want people to do, you can put them here.
+
+=== The curators and tags decision
+
+Member-contributed tags can help to organize stories for quick finding. However, people sometimes misspell words in tags, or they type "cats" when "cat" is already available, and as a result tag lists tend to get cluttered. Keeping the tag list clean and easy to use is a great way to maintain order in your story museum. For this reason, Rakontu has a screen under the Curate menu in which you can see and edit every single tag in the system in one place. By default, only curators _who are also managers_ can access this screen. If you trust everyone in your group, you can make it so that any curator (meaning, any member, since anyone can become a curator instantly) can change every tag. 
+
+[Managing Your Rakontu's Appearance]
+Category=Managing
+Interpret as=Wiki markup
+Managers only=yes
+To review and control your Rakontu's appearance, choose "Settings" from the Manage menu.
+
+There are three main areas of your Rakontu's appearance, any or all of which you may want to customize: its identity, text details, and look. The identity of the Rakontu is in its name, picture and tag line (short descriptive text). All of these appear at the top of each page in the Rakontu.
+
+The text details of a Rakontu are its description, welcome message, and etiquette statement. Using either the Wiki format or simple HTML, you can include links and images in these texts and make them as short or long as you like. You can use these to tell people what the Rakontu is for, where they should look for other info (web site? discussion group?), and how they should behave while using it.
+
+The look of the Rakontu is set by its skin. You can choose from available skins or build your own. To build your own skin, simply replace the entries in the "Custom skin" box (on the Settings page) with other fonts and colors. (You can find lists of hex colors on many web sites; type "hex colors" to find them.)
+
+[Managing Your Rakontu's Nudge System]
+Category=Managing
+Interpret as=Wiki markup
+Managers only=yes
+What's a nudge system? It's a way for people in a Rakontu to collectively sort through their stories and decide what's important and what's not. It's sort of like the popularity/rating systems on many social web sites, with one major difference. When people are telling stories, abstract measures of "quality" -- like what is a "good story" -- are not as important as measures of utility -- like what story is useful for what. In fact, setting up quality ratings is a sure way to kill storytelling, because when you do that two things happen: some people don't tell stories because they are afraid theirs won't be "good enough," and other people take over the storytelling because they believe themselves to be exceptionally entertaining. For most groups, Rakontu won't be about out-telling each other; it will be about building something useful together. 
+
+Probably the one most important thing you can do as a manager (or you all as managers) is to set up good nudge categories that suit your group. What is your collective goal? Do you want to resolve conflicts? Get to know each other better? Remember old times? Help new people feel more comfortable? Pursue a common goal, like building (or fighting) a planned development? Or just have some fun? You should use some of your nudge categories for marking stories (and other entries) that help with these goals.
+
+Two nudge categories that are almost always useful are *appropriateness* and *importance*. An appropriateness measure will push off-topic and rude/offensive stories to the bottom of the viewing grid (though offensive stories can also be flagged by curators). An importance measure separates "telling" stories that have a big impact, like "The day I found out where my cancer came from" from trivial ones like "The cat did a funny trick today." How important the importance measure is will depend on your group. If your Rakontu is just about being silly together, maybe you don't need an importance measure, and maybe a "silliness" measure will be more useful. You decide what matters.
+
+Writing good nudge category questions is also important, so that people know what they are rating. Make sure the categories and questions are not confusing!
+
+People gain points for nudging entries by doing things in the Rakontu. The result is that those who participate more get a louder voice when it comes to saying what matters and what doesn't. This is a spur to participation, but more importantly it means that people can't get a disproportionate voice based on any other characteristics (powerful position, for example). Depending on what you want people to do, you can weight different activities high or low in nudge point accumulation. For example, if you really want people to answer questions about stories, you can set the "answering question" nudge point accumulation number high -- say 10 points per question. Or maybe you really want people to tell stories more than anything else -- just set the "adding story" number high. 
+
+By the way, if you don't like the nudge point accumulations (too "game-y"?) and you want people to get points just for existing, set a ridiculously high rate on any category you expect people to use often -- say set "reading" to 500. Then everyone will have far more nudge points than they could ever use, and you will have effectively disabled the system.
+
+[Managing Your Rakontu's Activity System]
+Category=Managing
+Interpret as=Wiki markup
+Managers only=yes
+The activity system of a Rakontu is just a device that makes some titles appear larger than others in the Rakontu home page "grid" of entries. The purpose of this is to show people which entries have more "buzz" around them and provide social awareness.
+
+You can decide what sorts of activities should produce the most "buzz" by changing the numbers in the section under "Activity system" in the Settings page. For example, if you want people to particularly notice invitations, you might put a high number under "adding invitation." This will influence the starting size of every invitation created. Or, if you want people to particularly notice the building of links between entries, you could increase the numbers under each of the link-related items in the list. 
+
+If you don't want any entry titles to appear larger than others, set all of the activity numbers to zero. This will effectively disable the activity system.
+
+[Characters in Your Rakontu]
+Category=Managing
+Interpret as=Wiki markup
+Managers only=yes
+People often find it easier to tell stories, especially sensitive but important ones, when they don't have to admit openly who is telling them. This is especially true if the story makes the teller look silly or stupid, or makes the teller vulnerable to any kind of discriminatory attention. Using characters is a way to help people tell the stories that need to be told in a safe way. For example, if I just broke something and want to warn others not to do the same thing I did, I might be more willing to tell my cautionary tale if I can say that "All-Thumbs Fred" did it than if I have to admit my offense. Mistake and regret stories are often even more useful than brag-worthy stories, if you want to learn something from each other.
+
+If you want to use characters, think about what characters are particularly useful for your community or group. What sorts of stories do you want to bring out? For example, if you want to help each other learn how to do something, having characters at the extremes of knowledge -- the know-it-all and the newbie, for example -- can bring out useful voices. Or say you want to unite people on both sides of a contentious issue; you might create characters who have extreme views on the issues. The "little bird" character can be useful if you want people to be able to talk about rumors without having to say where they heard them.
+
+Of course some things about designing characters hold for all groups. The best characters are *extreme* -- encyclopedically smart, ridiculously stupid, monstrously irritating, saintly perfect. Extremes make it clear that people are "putting on" a role for the purpose of saying something they would normally hide, and that the role is artificial, temporary, and purposeful. Good characters are also *funny* (unless it is inappropriate, of course). Humor makes it obvious that the whole character thing is a useful device for bringing up sensitive topics, not a way to cloak obnoxious or offensive speech. Pretend you are listening to a stand-up comedian taking on the persona of a character you'd like to hear from, and write what you hear.
+
+You can set whether to allow character attribution for each type of entry and annotation. For example, it makes sense that people should be able to tell _stories_ as though a character were speaking. Invitations, comments and nudges are also things that people might be afraid to speak out in their own voice on. However, you might want to extend anonymity to collages and patterns, or even tags, if you think those things might also be sensitive. Or you might want to allow anonymity for stories only. If characters will not be useful to your group, the best thing to do is to remove any default characters you see; the whole character system will disappear.
+
+=== On anonymity and characters
+
+You as a manager should be clear (in case people ask) that nothing in Rakontu is fully anonymous, since a Rakontu system administrator can always query the database and find out which member actually added the material. However, for the most part and without extra effort character attribution is anonymous. 
+
+[Your Rakontu's Questions]
+Category=Managing
+Interpret as=Wiki markup
+Managers only=yes
+Questions can be an important part of your Rakontu. Asking people to answer questions about the stories they tell, and about other elements of the system, can help people explain things to each other. Also, looking at patterns across stories and members can help your group find out some amazing things about patterns of collective meaning in the group. For example, say you find out that only members over 50 told stories in which the tag "health care" co-occurred with a positive outcome, or that only members with dogs told stories about nasty cats, or so on. Finding useful patterns together can be a great way to achieve common goals.
+
+
+
+
+
+
+
+
+
+
+
+
+
+

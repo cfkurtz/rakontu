@@ -15,10 +15,11 @@
 	      	<table border="0" cellpadding="4" cellspacing="0">
 	      	<tr>
 	      		<th>{{template_type}}</th>
-	      		<th>{{template_name}}</th>
+	      		<th>{{template_name_click_to_edit}}</th>
 	      		<th>{{template_created}}</th>
 	      		<th>{{template_last_changed}}</th>
-	      		<th>{{template_remove}}?</th>
+	      		<th>{{template_versions_click_to_use}} {{"text_versions"|info}} {{"text_versions"|tip}}</th>
+	      		<th width="80"a>{{template_remove}}?</th>
 	      		</tr>
 	      	{% for entry in draft_entries %}
 		      	<tr>
@@ -26,6 +27,16 @@
 				<td><a href="{{entry.typeAsURL}}?{{entry.urlQuery}}">{{entry.title}}</a></td>
 				<td>{{entry.created|timeZone:member.timeZoneName|time:member.timeFormat}}<br/>{{entry.created|timeZone:member.timeZoneName|date:member.dateFormat}}</td>
 				<td>{{entry.edited|timeZone:member.timeZoneName|time:member.timeFormat}}<br/>{{entry.edited|timeZone:member.timeZoneName|date:member.dateFormat}}</td>
+				<td>
+					{% for version in entry.getTextVersionsInTimeOrder %}
+						<p><a href="{{entry.typeAsURL}}?{{entry.urlQuery}}&{{version.urlQuery}}">{{version.title}}</a>
+						{{version.created|timeZone:member.timeZoneName|time:member.timeFormat}}
+						{{version.created|timeZone:member.timeZoneName|date:member.dateFormat}}
+						({{version.text|upTo:100}})
+						</p>
+					{% endfor %}
+					&nbsp;
+					</td>
 				<td><input type="checkbox" name="remove|{{entry.key}}" value="yes" id="remove|{{ entry.key }}"/>
 					<label for="remove|{{ entry.key }}">{{template_remove}}</label></td>
 				</tr>
