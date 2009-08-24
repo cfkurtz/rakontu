@@ -146,12 +146,10 @@
 					<input type="submit" name="save|{{annotation_type}}" value="{{button_save_changes_and_return}}" class="button">
 					<input type="submit" name="preview|{{annotation_type}}" value="{{button_preview}}" class="button">
 				{% else %}
-					<input type="submit" name="save|{{annotation_type}}" value="{{button_save_draft}}" class="button">
 					<input type="submit" name="preview|{{annotation_type}}" value="{{button_preview}}" class="button">
 					<input type="submit" name="publish|{{annotation_type}}" value="{{button_publish}}" class="button">
 				{% endif %}
 			{% else %}
-				<input type="submit" name="save|{{annotation_type}}" value="{{button_save_as_draft}}" class="button">
 				<input type="submit" name="preview|{{annotation_type}}" value="{{button_preview}}" class="button">
 				<input type="submit" name="publish|{{annotation_type}}" value="{{button_publish}}" class="button">
 			{% endif %}

@@ -495,9 +495,9 @@ def GetSkinNames():
 
 def ReadQuestionsFromFile(fileName, rakontu=None, rakontuType="ALL"):
 	if not rakontu:
-		db.delete(AllSystemQuestions())
+		db.delete(AllSystemQuestions()) 
 	file = open(fileName)
-	questionStrings = csv.reader(file)
+	questionStrings = csv.reader(file) 
 	questionsToPut = []
 	for row in questionStrings:
 		if row[0] and row[1] and row[0][0] != ";":

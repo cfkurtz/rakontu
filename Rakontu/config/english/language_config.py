@@ -268,7 +268,7 @@ TERMS = {
 		"term_nudge_this": "Nudge this", # story, invitation collage, pattern, or resource
 		"term_curate_this": "Curate this", # story, invitation collage, pattern, or resource
 		"term_stop_curating_this": "Stop curating this", # story, invitation collage, pattern, or resource
-		"term_change_this": "Change this", # story, invitation collage, pattern, or resource
+		"term_change_this": "Change your", # story, invitation collage, pattern, or resource # YOUR because only the creator can do this
 		"term_print_this": "Print content and annotations for this", # story, invitation collage, pattern, or resource
 		# used to send a reminder to manager about items flagged by curator
 		"term_dear_manager": "Dear manager",
@@ -704,7 +704,7 @@ TEMPLATE_TERMS = {
 		"template_no_character_how_to": "no how-to statement",
 		# visit/drafts
 		"template_name_click_to_edit": "Name (click to edit)",
-		"template_versions_click_to_use": "Versions (click to recall)",
+		"template_versions_click_to_use": "Previous versions (click to recall)",
 		"template_your_saved_drafts": "Your saved drafts",
 		"template_saved_drafts_for": "Saved drafts for",
 		"template_versions": "History",

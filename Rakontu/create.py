@@ -466,9 +466,7 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 				newAnswers = False
 				preview = False
 				setAsDraft = False
-				if "save" in self.request.arguments():
-					setAsDraft = True
-				elif "preview" in self.request.arguments():
+				if "preview" in self.request.arguments():
 					setAsDraft = True
 					preview = True
 				elif "publish" in self.request.arguments():
@@ -685,9 +683,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					newAnnotation = True
 				preview = False
 				annotation.edited = datetime.now(tz=pytz.utc)
-				if "save|%s" % type in self.request.arguments():
-					annotation.draft = True
-				elif "preview|%s" % type in self.request.arguments():
+				if "preview|%s" % type in self.request.arguments():
 					annotation.draft = True
 					preview = True
 				elif "publish|%s" % type in self.request.arguments():

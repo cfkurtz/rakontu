@@ -142,7 +142,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 							'rows_cols': textsForGrid, 
 							'col_headers': colHeaders, 
 							'row_colors': rowColors,
-							'has_entries': len(entriesToShowConsideringNudgeFloor) > 0,
+							'has_entries': len(textsForGrid) > 0,
 							'shared_searches': rakontu.getNonPrivateSavedSearches(),
 							'member_searches': member.getPrivateSavedSearches(),
 							'current_search': currentSearch,
@@ -1166,8 +1166,6 @@ class ChangeMemberDraftsPage(webapp.RequestHandler):
 							   'member': memberToEdit,
 							   'current_member': member,
 							   'draft_entries': memberToEdit.getDraftEntries(),
-							   'draft_annotations': memberToEdit.getDraftAnnotations(),
-							   'first_draft_answer_per_entry': firstDraftAnswerForEachEntry,
 							   'refer_type': "member",
 							   'refer_type_display': DisplayTypeForQuestionReferType("member"),
 							   })
