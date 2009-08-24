@@ -124,12 +124,16 @@ class BrowseEntriesPage(webapp.RequestHandler):
 								entriesToShow.append(entry)
 					else:
 						entriesToShow.append(entry)
-				if entriesToShow:
+				entriesToShowConsideringNudgeFloor = []
+				for entry in entriesToShow:
+					if entry.nudgePointsForMemberViewOptions(member.viewNudgeCategories) >= member.viewNudgeFloor:
+						entriesToShowConsideringNudgeFloor.append(entry)
+				if entriesToShowConsideringNudgeFloor:
 					member.viewEntriesList = []
 					for entry in entriesToShow:
 						member.viewEntriesList.append(entry.key())
 					member.put()
-					(textsForGrid, colHeaders, rowColors) = self.buildGrid(rakontu, member, entriesToShow, currentSearch, skinDict)
+					(textsForGrid, colHeaders, rowColors) = self.buildGrid(rakontu, member, entriesToShowConsideringNudgeFloor, currentSearch, skinDict)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': TITLES["HOME"],
 							'rakontu': rakontu, 
@@ -138,7 +142,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 							'rows_cols': textsForGrid, 
 							'col_headers': colHeaders, 
 							'row_colors': rowColors,
-							'has_entries': len(entries) > 0,
+							'has_entries': len(entriesToShowConsideringNudgeFloor) > 0,
 							'shared_searches': rakontu.getNonPrivateSavedSearches(),
 							'member_searches': member.getPrivateSavedSearches(),
 							'current_search': currentSearch,
@@ -309,6 +313,11 @@ class BrowseEntriesPage(webapp.RequestHandler):
 				for i in range(NUM_NUDGE_CATEGORIES):
 					member.viewNudgeCategories.append(self.request.get("showCategory|%s" % i) == "yes")
 				member.viewEntriesList = []
+				oldValue = member.viewNudgeFloor
+				try:
+					member.viewNudgeFloor = int(self.request.get("nudgeFloor"))
+				except:
+					member.viewNudgeFloor = oldValue
 				member.put()
 				self.redirect(rakontu.linkURL())
 				

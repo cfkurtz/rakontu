@@ -77,6 +77,7 @@
 				<label for="{{rakontu.nudgeCategories|listLookup:i}}">{{rakontu.nudgeCategories|listLookup:i}}</label></p>
 			{% endif %}
 		{% endfor %}
+		<p>{{template_nudge_floor}}: <input type="text" size="4" value="{{current_member.viewNudgeFloor}}" name="nudgeFloor"></p>
 		<p><center><input type="submit" name="changeNudgeCategoriesShowing" value="{{button_change}}" class="button_small"></center></p>
 		
 		</td><td align="center" valign="top">

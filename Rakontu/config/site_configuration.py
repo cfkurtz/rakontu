@@ -135,6 +135,9 @@ BROWSE_NUM_ROWS = 10
 # This is how many columns there are (time slices) in the main and entry browse tables.
 BROWSE_NUM_COLS = 7
 
+# This is the default value for what causes an entry to disappear because it has been nudged too low.
+DEFAULT_NUDGE_FLOOR = -10
+
 # This is how many of things you can search for of each type (texts, tags, answers)
 NUM_SEARCH_FIELDS = 3 
 

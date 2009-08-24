@@ -375,7 +375,7 @@ class Rakontu(db.Model):
 	def getNonDraftEntriesOfTypesInListBetweenDateTimesInReverseTimeOrder(self, typeList, minTime, maxTime):
 		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type IN ", typeList).\
 			filter("published >= ", minTime).filter("published < ", maxTime).order("-published").fetch(BIG_FETCH_NUMBER)
-	
+			
 	def getNonDraftEntriesInAlphabeticalOrder(self):
 		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-title").fetch(BIG_FETCH_NUMBER)
 	
@@ -1024,6 +1024,7 @@ class Member(db.Model):
 	viewTimeEnd = TzDateTimeProperty(auto_now_add=True)
 	viewTimeFrameInSeconds = db.IntegerProperty(default=WEEK_SECONDS, indexed=False)
 	viewNudgeCategories = db.ListProperty(bool, default=[True] * NUM_NUDGE_CATEGORIES, indexed=False)
+	viewNudgeFloor = db.IntegerProperty(default=DEFAULT_NUDGE_FLOOR)
 	viewSearch = db.ReferenceProperty(None, collection_name="member_to_search", indexed=False)
 	viewDetails = db.BooleanProperty(default=False, indexed=False)
 	viewEntryTypes = db.ListProperty(bool, default=[True, True, False, False, False]) # stories and invitations on by default

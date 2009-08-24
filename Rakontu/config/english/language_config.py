@@ -772,6 +772,7 @@ TEMPLATE_TERMS = {
 		"template_my_filters": "My filters",
 		"template_shared_filters": "Shared filters",
 		"template_other_options": "Other options",
+		"template_nudge_floor": "Hide entries below",
 		# visit/home_grid
 		"template_no_search_results_header": "No search results",
 		"template_no_search_results_message": "The applied search filter resulted in no entries being shown. To see entries in this space, either stop applying the search or change it so that some entries meet the search criteria.",

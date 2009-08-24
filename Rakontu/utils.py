@@ -117,7 +117,7 @@ def GetRakontuFromURLQuery(query):
 				if lookup == "url_query_entry": 
 					entity = Entry.get_by_key_name(entityKeyName) 
 				elif lookup == "url_query_attachment": 
-					entity = Attachment.get_by_key_name(entityKeyName) 
+					entity = Attachment.get_by_key_name(entityKeyName)  
 				elif lookup == "url_query_annotation":
 					entity = Annotation.get_by_key_name(entityKeyName)   
 				elif lookup == "url_query_answer": 
