@@ -18,6 +18,7 @@
 "color_background_general","on all pages","FFFFFF","FAEBD7","FFE1FF","F0FFF0","00688B","FEE8D6"
 "color_background_excerpt","behind story text and other highlighted items","FFFFFF","FFEECC","FFF0F5","F0FFF0","00FA9A","FAF0E6"
 "color_background_entry","to indicate the user is entering data","BBBBBB","EECBAD","FF92BB","D2B48C","00B2EE","CDB38B"
+"color_background_table_header","to make table headers stand out a bit","CCCCCC","FFEECC","FFB6C1","A6D785","00FF66","EDC393"
 "color_background_menus","on menus","DDDDDD","FFEECC","FFB6C1","A6D785","00FF66","EDC393"
 "color_background_menus_hover","on menus when hovered over","""999999""","FF7F00","""9E0508""","3EA055","7FFF00","""603311"""
 "color_background_grid_top","entry grid on home page, annotation grid on entry page","FFFFFF","FAEBD7","EEAEEE","CCFFCC","7CFC00","FEE8D6"
