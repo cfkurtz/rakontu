@@ -13,141 +13,19 @@
 		?{{rakontu.urlQuery}}"
 	{% endif %}
 	method="post">
-	
-	{% if not current_member.viewHomeOptionsOnTop %}
-		{% include "home_grid.html" %}
+		
+	{% if current_member.viewGridOptionsOnTop %}
+		{% include "../common_grid_options.html" %}
 		<p></p>
-	{% endif %}
-		
-	{% if has_entries %}
-		<table class="grid" width="100%" cellpadding="0" cellspacing="0">
-		<tr>
-			<th>{{template_time_range}}</th>
-			<th>{{template_entry_types}}</th>
-			<th>{{template_nudges}}</th>
-			<th>{{template_search_filter}}</th>
-			<th>{{template_other_options}}</th>
-			</tr>
-		
-		<tr>
-
-		</td><td align="center" valign="top">
-		<p>{{min_time}}<br/>{{template_to_time}}<br/>{{max_time}}</p>
-		{% ifnotequal member_time_frame_string time_frame_everything %}
-			<input type="submit" name="setToFirst" value=" |&lt; " class="button_small">
-			<input type="submit" name="moveTimeBack" value=" &lt; " class="button_small">
-			<input type="submit" name="moveTimeForward" value=" &gt; " class="button_small">
-			<input type="submit" name="setToLast" value=" &gt;| " class="button_small">
-		{% else %}
-			<input type="submit" name="refreshView" value="{{button_refresh}}" class="button_small">
-		{% endifnotequal %}
-		</p>
-		<p></p>
-		<p>{{template_show}}
-		<select name="timeFrame" width="200">
-			{% for time_frame in time_frames %}
-				<option value="{{time_frame|listLookup:0}}"
-				{% if time_frame|listLookup:0|equalTest:member_time_frame_string %}
-					selected="selected"
-				{% endif %}
-				>{{time_frame|listLookup:0}}</option>
-			{% endfor %} 
-			</select>
-		<input type="submit" name="changeTimeFrame" value="{{button_change}}" class="button_small"></p>
-
-		</td><td align="left" valign="top">
-		{% for i in entry_types|makeRangeFromListLength %}
-			<p><input type="checkbox" name="showEntryType|{{i}}" value="yes" id="{{entry_types|listLookup:i}}"
-			{% if current_member.viewEntryTypes|listLookup:i %}
-				checked
-			{% endif %}
-			>
-			<label for="{{entry_types|listLookup:i}}">{{entry_types_plural|listLookup:i}}</label></p>
-		{% endfor %}
-		<p><center><input type="submit" name="changeEntryTypesShowing" value="{{button_change}}" class="button_small"></center></p>
-
-		<td align="left" valign="top">
-		{% for i in rakontu.nudgeCategories|makeRangeFromListLength %}
-			{% if rakontu.nudgeCategories|listLookup:i %}
-				<p><input type="checkbox" name="showCategory|{{i}}" value="yes" id="{{rakontu.nudgeCategories|listLookup:i}}"
-				{% if current_member.viewNudgeCategories|listLookup:i %}
-					checked
-				{% endif %}
-				>
-				<label for="{{rakontu.nudgeCategories|listLookup:i}}">{{rakontu.nudgeCategories|listLookup:i}}</label></p>
-			{% endif %}
-		{% endfor %}
-		<p>{{template_nudge_floor}}: <input type="text" size="4" value="{{current_member.viewNudgeFloor}}" name="nudgeFloor"></p>
-		<p><center><input type="submit" name="changeNudgeCategoriesShowing" value="{{button_change}}" class="button_small"></center></p>
-		
-		</td><td align="center" valign="top">
-		{% if shared_searches or member_searches %}
-				{% if current_search %}
-					<p>{{current_search.displayString}}</p>
-				{% else %}
-					<p><select name="savedSearch"><option>({{term_choose}})</option>
-					{% if member_searches %}
-						<option value="">-- {{template_my_filters}} --</option>
-						{% for search in member_searches %}
-							<option value="{{search.key}}">{{search.displayString}}</option>
-						{% endfor %}
-					{% endif %}
-					{% if shared_searches %}
-						<option value="">-- {{template_shared_filters}} --</option>
-						{% for search in shared_searches %}
-							<option value="{{search.key}}">{{search.displayString}}</option>
-						{% endfor %}
-					{% endif %}
-					</select></p>
-				{% endif %}
-			{% if current_search %}
-				<p><input type="submit" name="stopApplyingSearch" value="{{button_stop_applying}}" class="button_small"></p>
-				{% ifnotequal current_member.key current_search.creator.key %}
-					<p><input type="submit" name="copySearch" value="{{button_make_copy}}" class="button_small"></p>
-				{% else %}
-					<p><input type="submit" name="changeSearch" value="{{button_change}}" class="button_small"></p>
-				{% endifnotequal %}
-				<p><input type="submit" name="makeNewSavedSearch" value="{{button_create_another}}" class="button_small"></p>
-			{% else %}
-				<p><input type="submit" name="loadAndApplySavedSearch" value="{{button_apply}}" class="button_small"></p>
-				<p><input type="submit" name="makeNewSavedSearch" value="{{button_create_another}}" class="button_small"></p>
-			{% endif %}	
-		{% else %}
-			<p>{{template_search_filters}} - {{template_none}}</p>
-			<p><input type="submit" name="makeNewSavedSearch" value="{{button_make_new}}" class="button_small"></p>
-		{% endif %}
-		</td>
-		
-		</td><td align="center" valign="top">
-		{% if current_member.viewHomeOptionsOnTop %}
-			<p><input type="submit" name="toggleViewHomeOptionsOnTop" value="{{button_move_choices_to_bottom}}" class="button_small"></p>
-		{% else %}
-			<p><input type="submit" name="toggleViewHomeOptionsOnTop" value="{{button_move_choices_to_top}}" class="button_small"></p>
-		{% endif %}
-		
-		{% if current_member.viewDetails %}
-			<p><input type="submit" name="toggleShowDetails" value="{{button_hide_details}}" class="button_small"></p>
-		{% else %}
-			<p><input type="submit" name="toggleShowDetails" value="{{button_show_details}}" class="button_small"></p>
-		{% endif %}
-
-		{% if current_member.isLiaison %}
-			<p><input type="submit" name="printSearchResults" value="{{button_print}}" class="button_small"></p>
-		{% endif %}
-		
-		{% if current_member.isManagerOrOwner %}
-			<p><input type="submit" name="exportSearchResults" value="{{button_export}}" class="button_small"></p>
-		{% endif %}
-		
-		</td></tr></table>
-
 	{% endif %}
 	
-	{% if current_member.viewHomeOptionsOnTop %}
+	{% include "home_grid.html" %}
+	
+	{% if not current_member.viewGridOptionsOnTop %}
 		<p></p>
-		{% include "home_grid.html" %}
+		{% include "../common_grid_options.html" %}
 	{% endif %}
-		
+
 	</form>	
 	</div>
 		

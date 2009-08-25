@@ -100,6 +100,18 @@
 		</tr>
 		</table>
 
+		<p></p>
+    	<table border="0" cellpadding="4" cellspacing="0">
+ 			{% for name in stat_names %}
+				<th>{{name|capfirst}}</th>
+			{% endfor %}
+      	</tr>
+		{% for stat in stats %}
+			<td>{{stat}}</td>
+		{% endfor %}
+		</tr>
+		</table>
+
 		{% if answers %}
 			<p>{{template_member_answers_to_questions}}:</p>
 			<ul>
@@ -122,19 +134,25 @@
 				</fieldset>
 			{% endif %}
 		{% endifnotequal %}
-				
-  		{% include "../common_grid.html" %}
-  		
- 		<p>
-  		{% for i in stat_names|makeRangeFromListLength %}
-  			{% if stats|listLookup:i %}
-	  			{% ifnotequal i 0 %}
-	  				|
-	  			{% endifnotequal %}
-  				{{stats|listLookup:i}} {{stat_names|listLookup:i}} 
-  			{% endif %}
-  		{% endfor %}
-  		</p>
+		
+		<h3>{{term_entries_contributed_by}} {{member.nickname}}</h3>
+		
+		{% if current_member.viewGridOptionsOnTop %}
+			{% include "../common_grid_options.html" %}
+			<p></p>
+		{% endif %}
+		
+		{% if rows_cols %}
+			{% include "../common_grid.html" %}
+			<p></p>
+		{% else %}
+			<p>{{template_no_entries_or_annotations_for_member}}</p>
+		{% endif %}
+		
+		{% if not current_member.viewGridOptionsOnTop %}
+			<p></p>
+			{% include "../common_grid_options.html" %}
+		{% endif %}
 
       	{% ifequal member.key current_member.key %}
       		<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_preferences}}?{{member.urlQuery}}">{{template_change_your_preferences}}</a></p></div>

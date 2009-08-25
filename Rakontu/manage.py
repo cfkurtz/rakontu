@@ -415,7 +415,7 @@ class WriteQuestionsToCSVPage(webapp.RequestHandler):
 			if member.isManagerOrOwner():
 				type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_export_type")
 				if type in QUESTION_REFERS_TO:
-					export = rakontu.createOrRefreshExport("exportQuestions", itemList=None, member=None, questionType=type, fileFormat="csv")
+					export = rakontu.createOrRefreshExport("exportQuestions", "questions", member=member, questionType=type, fileFormat="csv")
 					self.redirect(BuildURL(None, "url_export", export.urlQuery()))
 				else:
 					self.redirect(BuildResultURL("noQuestionsToExport", rakontu=rakontu))
@@ -602,9 +602,9 @@ class ExportRakontuDataPage(webapp.RequestHandler):
 		if access:
 			if member.isManagerOrOwner():
 				if "csv_export" in self.request.arguments():
-					rakontu.createOrRefreshExport(type="csv_export_all", fileFormat="csv")
+					rakontu.createOrRefreshExport(type="csv_export_all", subtype="all", fileFormat="csv")
 				elif "xml_export" in self.request.arguments():
-					rakontu.createOrRefreshExport(type="xml_export", fileFormat="xml")
+					rakontu.createOrRefreshExport(type="xml_export", subtype="all", fileFormat="xml")
 				self.redirect(self.request.uri)
 			else:
 				self.redirect(rakontu.linkURL())
@@ -618,7 +618,7 @@ class ExportSearchPage(webapp.RequestHandler):
 		if access:
 			if member.isManagerOrOwner():
 				if member.viewEntriesList:
-					export = rakontu.createOrRefreshExport("csv_export_search", itemList=None, member=member, fileFormat="csv")
+					export = rakontu.createOrRefreshExport("csv_export_search", subtype="search", member=member, fileFormat="csv")
 					self.redirect(BuildURL(None, "url_export", export.urlQuery()))
 				else:
 					self.redirect(BuildResultURL("noSearchResultForExport", rakontu=rakontu))

@@ -70,7 +70,7 @@ class NewMemberPage(webapp.RequestHandler):
 							'current_member': member,
 							'resources': rakontu.getNonDraftNewMemberResourcesAsDictionaryByCategory(),
 							"blurbs": BLURBS,
-							'have_helps': Help.all().count() > 0,
+							'have_helps': HaveHelps(),
 							})
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/new.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -87,7 +87,6 @@ class BrowseEntriesPage(webapp.RequestHandler):
 			colHeaders = []
 			rowColors = []
 			currentSearch = GetCurrentSearchForMember(member)
-			querySearch = None
 			querySearch = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_search_filter")
 			if querySearch:
 				currentSearch = querySearch
@@ -100,55 +99,78 @@ class BrowseEntriesPage(webapp.RequestHandler):
 			else:
 				entryRefs = None
 				creatorRefs = None
-			typeList = []
-			i = 0
-			for type in ENTRY_TYPES:
-				if member.viewEntryTypes[i]:
-					typeList.append(type)
-				i += 1
-			entries = rakontu.getNonDraftEntriesOfTypesInListBetweenDateTimesInReverseTimeOrder(typeList, member.getViewStartTime(), member.viewTimeEnd)
 			skinDict = rakontu.getSkinDictionary()
-			if entries:
-				entriesThatMatchNewSearch = []
-				entriesToShow = []
-				for entry in entries:
-					if currentSearch:
-						if member.viewEntriesList:
-							goAhead = entry.key() in member.viewEntriesList
-							if goAhead:
-								entriesToShow.append(entry)
-						else:
-							goAhead = entry.satisfiesSearchCriteria(currentSearch, entryRefs, creatorRefs)
-							if goAhead:
-								entriesThatMatchNewSearch.append(entry)
-								entriesToShow.append(entry)
+			# time frame
+			entriesConsideringTimeFrame = rakontu.getNonDraftEntriesBetweenDateTimesInReverseTimeOrder(member.getViewStartTime(), member.viewTimeEnd)
+			# entry types
+			entriesConsideringEntryTypes = []
+			for entry in entriesConsideringTimeFrame:
+				if entry.MemberWantsToSeeMyType(member):
+					entriesConsideringEntryTypes.append(entry)
+			# nudge floor
+			entriesToShowConsideringNudgeFloor = []
+			for entry in entriesConsideringEntryTypes:
+				if entry.nudgePointsForMemberViewOptions(member.viewNudgeCategories) >= member.viewNudgeFloor:
+					entriesToShowConsideringNudgeFloor.append(entry)
+			# search
+			entriesThatMatchNewSearch = []
+			entriesToShowConsideringSearch = []
+			for entry in entriesToShowConsideringNudgeFloor:
+				if currentSearch:
+					if member.viewEntriesList:
+						goAhead = entry.key() in member.viewEntriesList
+						if goAhead:
+							entriesToShowConsideringSearch.append(entry)
 					else:
-						entriesToShow.append(entry)
-				entriesToShowConsideringNudgeFloor = []
-				for entry in entriesToShow:
-					if entry.nudgePointsForMemberViewOptions(member.viewNudgeCategories) >= member.viewNudgeFloor:
-						entriesToShowConsideringNudgeFloor.append(entry)
-				if entriesToShowConsideringNudgeFloor:
-					member.viewEntriesList = []
-					for entry in entriesToShow:
-						member.viewEntriesList.append(entry.key())
-					member.put()
-					(textsForGrid, colHeaders, rowColors) = self.buildGrid(rakontu, member, entriesToShowConsideringNudgeFloor, currentSearch, skinDict)
+						goAhead = entry.satisfiesSearchCriteria(currentSearch, entryRefs, creatorRefs)
+						if goAhead:
+							entriesThatMatchNewSearch.append(entry)
+							entriesToShowConsideringSearch.append(entry)
+				else:
+					entriesToShowConsideringSearch.append(entry)
+			# limit on how many entries can show on one page
+			entriesToShowConsideringLimit = []
+			if len(entriesToShowConsideringNudgeFloor) > MAX_ITEMS_PER_PAGE:
+				for i in range(MAX_ITEMS_PER_PAGE):
+					entriesToShowConsideringLimit.append(entriesToShowConsideringNudgeFloor[i])
+				tooManyItemsWarning = TERMS["term_too_many_items_warning"]
+			else:
+				entriesToShowConsideringLimit.extend(entriesToShowConsideringNudgeFloor)
+				tooManyItemsWarning = None
+			if member.isLiaisonOrManagerOrOwner(): # no need keeping this if not printing or exporting
+				member.viewEntriesList = []
+				for entry in entriesToShowConsideringLimit:
+					member.viewEntriesList.append(entry.key())
+				member.put()
+			(textsForGrid, colHeaders, rowColors) = self.buildGrid(rakontu, member, entriesToShowConsideringLimit, currentSearch, skinDict)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': TITLES["HOME"],
 							'rakontu': rakontu, 
 							'skin': skinDict,
 							'current_member': member, 
+							# grid
 							'rows_cols': textsForGrid, 
 							'col_headers': colHeaders, 
 							'row_colors': rowColors,
 							'has_entries': len(textsForGrid) > 0,
+							'num_items_before_truncation': len(entriesToShowConsideringNudgeFloor),
+							'max_num_items': MAX_ITEMS_PER_PAGE,
+							'too_many_items_warning': tooManyItemsWarning,
+							# grid options
 							'shared_searches': rakontu.getNonPrivateSavedSearches(),
 							'member_searches': member.getPrivateSavedSearches(),
 							'current_search': currentSearch,
 							'member_time_frame_string': member.getFrameStringForViewTimeFrame(),
 							'min_time': RelativeTimeDisplayString(member.getViewStartTime(), member),
 							'max_time': RelativeTimeDisplayString(member.viewTimeEnd, member),
+							'include_time_range': True,
+							'include_entry_types': True,
+							'include_annotation_types': False,
+						    'include_nudges': True,
+						    'include_search': True,
+						    'include_nudge_floor': True,
+						    'include_print': True,
+						    'include_export': True,
 							})
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/home.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -254,128 +276,8 @@ class BrowseEntriesPage(webapp.RequestHandler):
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			search = GetCurrentSearchForMember(member)
-			# time frame
-			if "changeTimeFrame" in self.request.arguments():
-				member.viewEntriesList = []
-				member.setViewTimeFrameFromTimeFrameString(self.request.get("timeFrame"))
-				member.put()
-				self.redirect(rakontu.linkURL())
-			elif "setToLast" in self.request.arguments():
-				if rakontu.lastPublish:
-					member.viewTimeEnd = rakontu.lastPublish + timedelta(seconds=10)
-				else:
-					member.viewTimeEnd = datetime.now(tz=pytz.utc)
-				member.viewEntriesList = []
-				member.put()
-				self.redirect(rakontu.linkURL())
-			elif "setToFirst" in self.request.arguments():
-				if rakontu.firstPublish:
-					member.setTimeFrameToStartAtFirstPublish()
-				else:
-					member.viewTimeEnd = datetime.now(tz=pytz.utc)
-				member.viewEntriesList = []
-				member.put()
-				self.redirect(rakontu.linkURL())
-			elif "moveTimeBack" in self.request.arguments() or "moveTimeForward" in self.request.arguments():
-				if "moveTimeBack" in self.request.arguments():
-					member.viewTimeEnd = member.viewTimeEnd - timedelta(seconds=member.viewTimeFrameInSeconds)
-				else:
-					member.viewTimeEnd = member.viewTimeEnd + timedelta(seconds=member.viewTimeFrameInSeconds)
-				if rakontu.firstPublish and member.getViewStartTime() < rakontu.firstPublish:
-				 	member.setTimeFrameToStartAtFirstPublish()
-				if member.viewTimeEnd > datetime.now(tz=pytz.utc):
-					member.viewTimeEnd = datetime.now(tz=pytz.utc)
-				member.viewEntriesList = []
-				member.put()
-				self.redirect(rakontu.linkURL())
-			elif "refreshView" in self.request.arguments():
-				if rakontu.lastPublish:
-					member.viewTimeEnd = rakontu.lastPublish + timedelta(seconds=10)
-				else:
-					member.viewTimeEnd = datetime.now(tz=pytz.utc)
-				member.viewEntriesList = []
-				member.put()
-				self.redirect(rakontu.linkURL())
-				
-			# entry types
-			elif "changeEntryTypesShowing" in self.request.arguments():
-				member.viewEntryTypes = []
-				for i in range(len(ENTRY_TYPES)):
-					member.viewEntryTypes.append(self.request.get("showEntryType|%s" % i) == "yes")
-				member.viewEntriesList = []
-				member.put()
-				self.redirect(rakontu.linkURL())
-
-			# nudges
-			elif "changeNudgeCategoriesShowing" in self.request.arguments():
-				member.viewNudgeCategories = []
-				for i in range(NUM_NUDGE_CATEGORIES):
-					member.viewNudgeCategories.append(self.request.get("showCategory|%s" % i) == "yes")
-				member.viewEntriesList = []
-				oldValue = member.viewNudgeFloor
-				try:
-					member.viewNudgeFloor = int(self.request.get("nudgeFloor"))
-				except:
-					member.viewNudgeFloor = oldValue
-				member.put()
-				self.redirect(rakontu.linkURL())
-				
-			# search filter
-			elif "loadAndApplySavedSearch" in self.request.arguments():
-				if self.request.get("savedSearch") != "(%s)" % TERMS["term_choose"]:
-					searchKey = self.request.get("savedSearch")
-					if searchKey:
-						search = SavedSearch.get(searchKey)
-						if search:
-							member.viewSearch = search
-							member.viewEntriesList = []
-							member.put()
-							self.redirect(rakontu.linkURL())
-							return
-					else:
-						self.redirect(rakontu.linkURL())
-				else:
-					self.redirect(rakontu.linkURL())
-			elif "stopApplyingSearch" in self.request.arguments():
-					member.viewSearch = None
-					member.viewEntriesList = []
-					member.put()
-					self.redirect(rakontu.linkURL())
-			elif "makeNewSavedSearch" in self.request.arguments():
-					member.viewSearch = None
-					member.viewEntriesList = []
-					member.put()
-					self.redirect(BuildURL("dir_visit", "url_search_filter", rakontu=rakontu))
-			elif "changeSearch"  in self.request.arguments():
-				if search:
-					self.redirect(BuildURL("dir_visit", "url_search_filter", rakontu=rakontu))
-				else:
-					member.viewSearch = None
-					member.viewEntriesList = []
-					member.put()
-					self.redirect(BuildURL("dir_visit", "url_search_filter", rakontu=rakontu))
-			elif "copySearch"  in self.request.arguments():
-				newSearch = SavedSearch(key_name=KeyName("filter"), rakontu=rakontu, creator=member)
-				newSearch.copyDataFromOtherSearchAndPut(search)
-				member.viewSearch = newSearch
-				member.viewEntriesList = []
-				member.put()
-				self.redirect(BuildURL("dir_visit", "url_search_filter", rakontu=rakontu))
-
-			# other options
-			elif "toggleViewHomeOptionsOnTop" in self.request.arguments():
-				member.viewHomeOptionsOnTop = not member.viewHomeOptionsOnTop
-				member.put()
-				self.redirect(rakontu.linkURL())
-			elif "toggleShowDetails" in self.request.arguments():
-				member.viewDetails = not member.viewDetails
-				member.put()
-				self.redirect(rakontu.linkURL())
-			elif "printSearchResults"  in self.request.arguments():
-				self.redirect(BuildURL("dir_liaise", "url_print_search", rakontu=rakontu))
-			elif "exportSearchResults"  in self.request.arguments():
-				self.redirect(BuildURL("dir_manage", "url_export_search", rakontu=rakontu))
+			url = ProcessGridOptionsCommand(rakontu, member, self.request, location="home")
+			self.redirect(url)
 		else:
 			self.redirect(START)
 			
@@ -389,7 +291,26 @@ class ReadEntryPage(webapp.RequestHandler):
 			if entry:
 				curating = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
 				showVersions = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_versions") == URL_OPTIONS["url_query_versions"]
-				textsForGrid, colHeaders, rowColors = self.buildGrid(entry, member, rakontu, curating)
+				allItemsBeforeExclusions = []
+				allItemsBeforeExclusions.extend(entry.getNonDraftAnnotations())
+				allItemsBeforeExclusions.extend(entry.getNonDraftAnswers())
+				allItemsBeforeExclusions.extend(entry.getAllLinks())
+				allItemsBeforeExclusions.sort(lambda a,b: cmp(b.published, a.published))
+				allItemsBeforeLimit = []
+				# limit by type
+				for item in allItemsBeforeExclusions:
+					if item.MemberWantsToSeeMyType(member):
+						allItemsBeforeLimit.append(item)
+				# limit on how many entries can show on one page
+				allItems = []
+				if len(allItemsBeforeLimit) > MAX_ITEMS_PER_PAGE:
+					for i in range(MAX_ITEMS_PER_PAGE):
+						allItems.append(allItemsBeforeLimit[i])
+					tooManyItemsWarning = TERMS["term_too_many_items_warning"]
+				else:
+					allItems.extend(allItemsBeforeLimit)
+					tooManyItemsWarning = None
+				textsForGrid, colHeaders, rowColors = self.buildGrid(allItems, entry, member, rakontu, curating)
 				thingsUserCanDo = self.buildThingsUserCanDo(entry, member, rakontu, curating)
 				if entry.isCollage():
 					includedLinksOutgoing = entry.getOutgoingLinksOfType("included")
@@ -399,6 +320,7 @@ class ReadEntryPage(webapp.RequestHandler):
 					referencedLinksOutgoing = entry.getOutgoingLinksOfType("referenced")
 				else:
 					referencedLinksOutgoing = None
+				currentSearch = GetCurrentSearchForMember(member)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': entry.title, 
 								   'rakontu': rakontu, 
@@ -422,6 +344,18 @@ class ReadEntryPage(webapp.RequestHandler):
 								   'text_to_display_before_grid': TEMPLATE_TERMS["template_annotations"],
 								   'row_colors': rowColors,
 								   'grid_form_url': self.request.uri, 
+									'num_items_before_truncation': len(allItemsBeforeLimit),
+									'max_num_items': MAX_ITEMS_PER_PAGE,
+									'too_many_items_warning': tooManyItemsWarning,
+								   # grid options
+									'include_time_range': False,
+								    'include_entry_types': False,
+								    'include_annotation_types': True,
+								    'include_nudges': True,
+								    'include_search': False,
+								    'include_nudge_floor': False,
+						    	    'include_print': True,
+						            'include_export': False,
 								   # actions
 								   'things_member_can_do': thingsUserCanDo,
 								   # versions
@@ -438,11 +372,7 @@ class ReadEntryPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-	def buildGrid(self, entry, member, rakontu, curating):
-		allItems = []
-		allItems.extend(entry.getNonDraftAnnotations())
-		allItems.extend(entry.getNonDraftAnswers())
-		allItems.extend(entry.getAllLinks())
+	def buildGrid(self, allItems, entry, member, rakontu, curating):
 		haveContent = False
 		if allItems:
 			maxTime = entry.lastAnnotatedOrAnsweredOrLinked
@@ -574,10 +504,6 @@ class ReadEntryPage(webapp.RequestHandler):
 		if entry.creator.key() == member.key():
 			key = "%s %s" % (TERMS["term_change_this"], displayType)
 			thingsUserCanDo[key] = BuildURL("dir_visit", URLForEntryType(entry.type), entry.urlQuery())
-		# print
-		if member.isLiaison():
-			key = "%s %s" % (TERMS["term_print_this"], displayType)
-			thingsUserCanDo[key] = BuildURL("dir_liaise", "url_print_entry", entry.urlQuery())
 		return thingsUserCanDo
 			
 	@RequireLogin 
@@ -587,41 +513,36 @@ class ReadEntryPage(webapp.RequestHandler):
 			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 			if "doSomething" in self.request.arguments():
 				self.redirect(self.request.get("nextAction"))
-			elif "changeNudgeCategoriesShowing" in self.request.arguments():
-				member.viewNudgeCategories = []
-				for i in range(NUM_NUDGE_CATEGORIES):
-					member.viewNudgeCategories.append(self.request.get("showCategory|%s" % i) == "yes")
-				member.put()
-				self.redirect(self.request.uri)
-			elif "toggleShowDetails" in self.request.arguments():
-				member.viewDetails = not member.viewDetails
-				member.put()
-				self.redirect(self.request.uri)
 			elif "showVersions" in self.request.arguments():
 				url = BuildURL("dir_visit", "url_read", "%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_versions"], URL_OPTIONS["url_query_versions"]))
 				self.redirect(url)
 			elif "hideVersions" in self.request.arguments():
 				url = BuildURL("dir_visit", "url_read", "%s" % (entry.urlQuery()))
 				self.redirect(url)
-			elif "flag|%s" % entry.key() in self.request.arguments() or "unflag|%s" % entry.key() in self.request.arguments():
-				curating = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
-				if entry and curating:
-					if "flag|%s" % entry.key() in self.request.arguments():
-						entry.flaggedForRemoval = True
-						entry.put()
-					elif "unflag|%s" % entry.key() in self.request.arguments():
-						entry.flaggedForRemoval = False
-						entry.put()
-				self.redirect(self.request.uri)
 			else:
-				for item in entry.getAllNonDraftDependents():
-					if "flag|%s" % item.key() in self.request.arguments():
-						item.flaggedForRemoval = True
-						item.put()
-					elif "unflag|%s" % item.key() in self.request.arguments():
-						item.flaggedForRemoval = False
-						item.put()
-				self.redirect(self.request.uri)
+				url = ProcessGridOptionsCommand(rakontu, member, self.request, location="entry", entry=entry)
+				if url:
+					self.redirect(url)
+				else:
+					if "flag|%s" % entry.key() in self.request.arguments() or "unflag|%s" % entry.key() in self.request.arguments():
+						curating = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
+						if entry and curating:
+							if "flag|%s" % entry.key() in self.request.arguments():
+								entry.flaggedForRemoval = True
+								entry.put()
+							elif "unflag|%s" % entry.key() in self.request.arguments():
+								entry.flaggedForRemoval = False
+								entry.put()
+						self.redirect(self.request.uri)
+					else:
+						for item in entry.getAllNonDraftDependents():
+							if "flag|%s" % item.key() in self.request.arguments():
+								item.flaggedForRemoval = True
+								item.put()
+							elif "unflag|%s" % item.key() in self.request.arguments():
+								item.flaggedForRemoval = False
+								item.put()
+						self.redirect(self.request.uri)
 		else:
 			self.redirect(START)
 			
@@ -739,8 +660,26 @@ class SeeMemberPage(webapp.RequestHandler):
 			memberToSee = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
 			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
 			if memberToSee:
-				textsForGrid, colHeaders = self.buildGrid(member, memberToSee, rakontu, curating)
-				statNames, stats = self.collectStats(memberToSee)
+				allItemsBeforeExclusions = memberToSee.getAllItemsAttributedToMember()
+				allItemsBeforeExclusions.extend(memberToSee.getNonDraftLiaisonedEntries())
+				allItemsBeforeExclusions.extend(memberToSee.getNonDraftLiaisonedAnnotations())
+				allItemsBeforeExclusions.extend(memberToSee.getNonDraftLiaisonedAnswers())
+				allItemsBeforeExclusions.sort(lambda a,b: cmp(b.published, a.published))
+				allItemsBeforeLimit = []
+				for item in allItemsBeforeExclusions:
+					if item.MemberWantsToSeeMyType(member):
+						allItemsBeforeLimit.append(item)
+				# limit on how many entries can show on one page
+				allItems = []
+				if len(allItemsBeforeLimit) > MAX_ITEMS_PER_PAGE:
+					for i in range(MAX_ITEMS_PER_PAGE):
+						allItems.append(allItemsBeforeLimit[i])
+					tooManyItemsWarning = TERMS["term_too_many_items_warning"]
+				else:
+					allItems.extend(allItemsBeforeLimit)
+					tooManyItemsWarning = None
+				textsForGrid, colHeaders = self.buildGrid(allItems, member, memberToSee, rakontu, curating)
+				statNames, stats = memberToSee.collectStats()
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': TITLES["MEMBER"], 
 					   		   'title_extra': member.nickname, 
@@ -749,14 +688,27 @@ class SeeMemberPage(webapp.RequestHandler):
 					   		   'current_member': member,
 					   		   'member': memberToSee,
 					   		   'answers': memberToSee.getAnswers(),
+					   		   # grid
 					   		   'rows_cols': textsForGrid,
 					   		   'col_headers': colHeaders,
 					   		   'text_to_display_before_grid': "%s %s" % (TERMS["term_entries_contributed_by"], memberToSee.nickname),
 					   		   'grid_form_url': self.request.uri, 
+								'num_items_before_truncation': len(allItemsBeforeLimit),
+								'max_num_items': MAX_ITEMS_PER_PAGE,
+								'too_many_items_warning': tooManyItemsWarning,
 					   		   'no_profile_text': NO_PROFILE_TEXT,
 					   		   'stat_names': statNames,
 					   		   'stats': stats,
 					   		   'curating': curating,
+							   # grid options
+								'include_time_range': False,
+							    'include_entry_types': True,
+							    'include_annotation_types': True,
+							    'include_nudges': False,
+							    'include_search': False,
+							    'include_nudge_floor': False,
+					    	    'include_print': True,
+					            'include_export': False,
 					   		   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/member.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -765,11 +717,7 @@ class SeeMemberPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-	def buildGrid(self, member, memberToSee, rakontu, curating):
-		allItems = memberToSee.getAllItemsAttributedToMember()
-		allItems.extend(memberToSee.getNonDraftLiaisonedEntries())
-		allItems.extend(memberToSee.getNonDraftLiaisonedAnnotations())
-		allItems.extend(memberToSee.getNonDraftLiaisonedAnswers())
+	def buildGrid(self, allItems, member, memberToSee, rakontu, curating):
 		if allItems:
 			maxTime = datetime.now(tz=pytz.utc)
 			minTime = memberToSee.joined
@@ -800,60 +748,47 @@ class SeeMemberPage(webapp.RequestHandler):
 			colHeaders = None
 		return textsForGrid, colHeaders
 	
-	def collectStats(self, memberToSee):
-		statNames = []
-		stats = []
-		for type in ENTRY_TYPES:
-			stats.append(Entry.all().filter("creator = ", memberToSee.key()).filter("type = ", type).filter("draft = ", False).count())
-		statNames.extend(ENTRY_TYPES_PLURAL_DISPLAY)
-		for type in ANNOTATION_TYPES:
-			stats.append(Annotation.all().filter("creator = ", memberToSee.key()).filter("type = ", type).filter("draft = ", False).count())
-		statNames.extend(ANNOTATION_TYPES_PLURAL_DISPLAY)
-		stats.append(Answer.all().filter("creator = ", memberToSee.key()).filter("draft = ", False).count())
-		statNames.append(TERMS["term_answers"])
-		return statNames, stats
-
 	@RequireLogin 
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			memberToSee = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
 			if memberToSee:
-				if "toggleShowDetails" in self.request.arguments():
-					member.viewDetails = not member.viewDetails
-					member.put()
-					self.redirect(self.request.uri)
-				elif "message|%s" % memberToSee.key() in self.request.arguments():
-						if not memberToSee.isOnlineMember:
-							if memberToSee.liaison and  memberToSee.liaison.active:
-								memberToSendMessageTo = memberToSee.liaison
-							else:
-								memberToSendMessageTo = None
-						else:
-							memberToSendMessageTo = memberToSee
-						if memberToSendMessageTo:
-							message = mail.EmailMessage()
-							message.sender = rakontu.contactEmail
-							message.subject = htmlEscape(self.request.get("subject"))
-							message.to = memberToSendMessageTo.googleAccountEmail
-							message.body = htmlEscape(self.request.get("message"))
-							message.send()
-							self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
-						else:
-							self.redirect(BuildResultURL("memberNotFound", rakontu=rakontu))
+				url = ProcessGridOptionsCommand(rakontu, member, self.request, location="member", memberToSee=memberToSee)
+				if url:
+					self.redirect(url)
 				else:
-					allItems = memberToSee.getAllItemsAttributedToMember()
-					allItems.extend(memberToSee.getNonDraftLiaisonedEntries())
-					allItems.extend(memberToSee.getNonDraftLiaisonedAnnotations())
-					allItems.extend(memberToSee.getNonDraftLiaisonedAnswers())
-					for item in allItems:
-						if "flag|%s" % item.key() in self.request.arguments():
-							item.flaggedForRemoval = True
-							item.put()
-						elif "unflag|%s" % item.key() in self.request.arguments():
-							item.flaggedForRemoval = False
-							item.put()
-					self.redirect(self.request.uri)
+					if "message|%s" % memberToSee.key() in self.request.arguments():
+							if not memberToSee.isOnlineMember:
+								if memberToSee.liaison and  memberToSee.liaison.active:
+									memberToSendMessageTo = memberToSee.liaison
+								else:
+									memberToSendMessageTo = None
+							else:
+								memberToSendMessageTo = memberToSee
+							if memberToSendMessageTo:
+								message = mail.EmailMessage()
+								message.sender = rakontu.contactEmail
+								message.subject = htmlEscape(self.request.get("subject"))
+								message.to = memberToSendMessageTo.googleAccountEmail
+								message.body = htmlEscape(self.request.get("message"))
+								message.send()
+								self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
+							else:
+								self.redirect(BuildResultURL("memberNotFound", rakontu=rakontu))
+					else:
+						allItems = memberToSee.getAllItemsAttributedToMember()
+						allItems.extend(memberToSee.getNonDraftLiaisonedEntries())
+						allItems.extend(memberToSee.getNonDraftLiaisonedAnnotations())
+						allItems.extend(memberToSee.getNonDraftLiaisonedAnswers())
+						for item in allItems:
+							if "flag|%s" % item.key() in self.request.arguments():
+								item.flaggedForRemoval = True
+								item.put()
+							elif "unflag|%s" % item.key() in self.request.arguments():
+								item.flaggedForRemoval = False
+								item.put()
+						self.redirect(self.request.uri)
 			else:
 				self.redirect(BuildResultURL("memberNotFound", rakontu=rakontu))
 		else:
@@ -921,7 +856,22 @@ class SeeCharacterPage(webapp.RequestHandler):
 			character = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_character")
 			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
 			if character:
-				textsForGrid, colHeaders = self.buildGrid(member, character, rakontu, curating)
+				allItemsBeforeExclusions = character.getAllItemsAttributedToCharacter()
+				allItemsBeforeExclusions.sort(lambda a,b: cmp(b.published, a.published))
+				allItemsBeforeLimit = []
+				for item in allItemsBeforeExclusions:
+					if item.MemberWantsToSeeMyType(member):
+						allItemsBeforeLimit.append(item)
+				# limit on how many entries can show on one page
+				allItems = []
+				if len(allItemsBeforeLimit) > MAX_ITEMS_PER_PAGE:
+					for i in range(MAX_ITEMS_PER_PAGE):
+						allItems.append(allItemsBeforeLimit[i])
+					tooManyItemsWarning = TERMS["term_too_many_items_warning"]
+				else:
+					allItems.extend(allItemsBeforeLimit)
+					tooManyItemsWarning = None
+				textsForGrid, colHeaders = self.buildGrid(allItems, member, character, rakontu, curating)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["CHARACTER"], 
 					   		   	   'title_extra': character.name, 
@@ -935,6 +885,18 @@ class SeeCharacterPage(webapp.RequestHandler):
 					   		   	   'grid_form_url': self.request.uri,
 					   		   	   'col_headers': colHeaders,
 					   		   	   'curating': curating,
+								'num_items_before_truncation': len(allItemsBeforeLimit),
+								'max_num_items': MAX_ITEMS_PER_PAGE,
+								'too_many_items_warning': tooManyItemsWarning,
+								   # grid options
+									'include_time_range': False,
+								    'include_entry_types': True,
+								    'include_annotation_types': True,
+								    'include_nudges': False,
+								    'include_search': False,
+								    'include_nudge_floor': False,
+						    	    'include_print': True,
+						            'include_export': False,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/character.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -944,7 +906,11 @@ class SeeCharacterPage(webapp.RequestHandler):
 			self.redirect(START)
 			
 	def buildGrid(self, member, character, rakontu, curating):
-		allItems = character.getAllItemsAttributedToCharacter()
+		allItemsBeforeExclusions = character.getAllItemsAttributedToCharacter()
+		allItems = []
+		for item in allItemsBeforeExclusions:
+			if item.MemberWantsToSeeMyType(member):
+				allItems.append(item)
 		if allItems:
 			maxTime = datetime.now(tz=pytz.utc)
 			minTime = character.created
@@ -981,10 +947,9 @@ class SeeCharacterPage(webapp.RequestHandler):
 		if access:
 			character = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_character")
 			if character:
-				if "toggleShowDetails" in self.request.arguments():
-					member.viewDetails = not member.viewDetails
-					member.put()
-					self.redirect(self.request.uri)
+				url = ProcessGridOptionsCommand(rakontu, member, self.request, location="character", character=character)
+				if url:
+					self.redirect(url)
 				else:
 					for item in character.getAllItemsAttributedToCharacter():
 						if "flag|%s" % item.key() in self.request.arguments():
@@ -1464,8 +1429,7 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 										foundQuestion = True
 										answer = choice
 							if foundQuestion and answer:
-								ref = SavedSearchQuestionReference.all().filter("search = ", search).\
-									filter("question = ", question).filter("order = ", i).get()
+								ref = search.getQuestionReferenceForQuestionAndOrder(question, i)
 								if not ref:
 									ref = SavedSearchQuestionReference(key_name=KeyName("searchref"), rakontu=rakontu, search=search, question=question)
 								ref.answer = answer
@@ -1505,7 +1469,7 @@ class ContextualHelpPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		# don't require access to rakontu, since administrator may be calling this from the admin or create pages
 		lookup = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_help")
-		help = Help.all().filter('name = ', lookup).get()
+		help = helpLookupWithoutType()
 		if help:
 			helpShortName = help.name.replace("_", " ").capitalize()
 			template_values = GetStandardTemplateDictionaryAndAddMore({

@@ -19,6 +19,9 @@
 			</tr>
 		{% endfor %}
 		</table>
+			{% if too_many_items_warning %}
+				<div class="blurb">{{max_num_items}} / {{num_items_before_truncation}} {{too_many_items_warning}}</div>
+			{% endif %}
 	{% else %}
 		{% if current_search %}
 			<h4>{{template_no_search_results_header}}</h4>

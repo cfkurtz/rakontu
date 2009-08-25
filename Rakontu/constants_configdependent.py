@@ -54,6 +54,9 @@ ENTRY_TYPES_PLURAL = ["stories", "invitations", "collages", "patterns", "resourc
 
 # annotations
 ANNOTATION_TYPES = ["tag set", "comment", "request", "nudge"]
+ANNOTATION_ANSWER_LINK_TYPES = ["tag set", "comment", "request", "nudge", "answer", "link"]
+ANNOTATION_ANSWER_LINK_TYPES_ANSWER_INDEX = 4
+ANNOTATION_ANSWER_LINK_TYPES_LINK_INDEX = 5
 
 # entries and annotations
 ENTRY_AND_ANNOTATION_TYPES = ["story", "pattern", "collage", "invitation", "resource", "answer", "tag set", "comment", "request", "nudge"]

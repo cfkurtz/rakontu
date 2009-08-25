@@ -8,7 +8,7 @@ test "send this member a note" thing
 
 FLESHING OUT:
 
-help resources 
+finish help resources 
 
 must do a "check availability" on nickname thing
 cannot be on that page
@@ -16,7 +16,7 @@ cannot be on that page
 SCALING UP:
 
 transactions
-more than 1000 in a query
+more than 1000 in a query - WORKING ON 
 long-running processes
 
 custom indexes?

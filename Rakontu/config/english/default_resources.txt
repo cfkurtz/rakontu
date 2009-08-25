@@ -113,6 +113,8 @@ Most entries will be stories; but there are also four other kinds of entry.
   stories or to provide useful information. Resources might include getting started guides as well as information about 
   a geographical community or pictures related to a subject.
 
+Entries, because they are more like documents (things people create) than utterances (things people say), can be saved as drafts (kept private) or published to the group. All entries can be changed (forever) by their creators, and their histories can be seen by everyone.
+
 == Annotations
 
 Annotations are things that surround entries for the purpose of discussion and collective awareness.
@@ -131,6 +133,8 @@ Annotations are things that surround entries for the purpose of discussion and c
 
   * *Tags* on entries can be used to build an open-ended and changing set of descriptors for finding helpful things.
 
+Annotations, because they are more like utterances (things people say) than documents (things people create), can never be saved as drafts or changed, and they have no histories.
+
 == Answers
 
 Each type of entry (story, invitation, collage, pattern, resource) has a set of questions you can answer about them. 
@@ -140,6 +144,8 @@ you are interested in reading.
 
 Members can also have questions they answer. These answers can be combined with questions about stories to produce 
 interesting queries, like "Show me stories told by members under 20 in which people said they felt sad."
+
+Answers, like annotations, are utterances that cannot be saved as drafts or changed and have no histories.
 
 [The Rakontu Nudge System]
 Category=Introduction
@@ -151,20 +157,23 @@ The people who set up your Rakontu also set up from one to five nudge *categorie
 
 You gain "nudge points" by participating in the Rakontu -- telling stories, adding comments, answering questions, and so on -- which you can use to nudge stories up and down. Exactly how many nudge points you accumulate may have been customized by your Rakontu managers. Some Rakontus might be more interested in having people tell stories while others are more interested in comments and question answering. You can find out what influences nudge point accumulation in your Rakontu by looking at the Visit - About this Rakontu page.
 
-[How Rakontu Search Filters Work]
+[Searching in Your Rakontu]
 Category=Introduction
 Interpret as=Wiki markup
 Managers only=no
+CFK FINISH
 
 [Building a Story Collage]
 Category=Introduction
 Interpret as=Wiki markup
 Managers only=no
+CFK FINISH
 
 [Describing a Pattern]
 Category=Introduction
 Interpret as=Wiki markup
 Managers only=no
+CFK FINISH
 
 [How to Be a Curator]
 Category= Helping
@@ -491,8 +500,9 @@ Interpret as=Wiki markup
 Managers only=yes
 Questions can be an important part of your Rakontu. Asking people to answer questions about the stories they tell, and about other elements of the system, can help people explain things to each other. Also, looking at patterns across stories and members can help your group find out some amazing things about patterns of collective meaning in the group. For example, say you find out that only members over 50 told stories in which the tag "health care" co-occurred with a positive outcome, or that only members with dogs told stories about nasty cats, or so on. Finding useful patterns together can be a great way to achieve common goals.
 
+You can set up lists of questions about each type of entry -- stories, invitations, collages, patterns and resources -- and you can ask people questions about themselves. Combining these questions in search filters is useful, so you should make sure you have at least a few questions about each entry type and about members. Your Rakontu will most likely start out with some default questions (depending on your site installation) as well as some sample questions. You can also trade questions with other Rakontu managers using CSV import and export.  
 
-
+CFK FINISH
 
 
 

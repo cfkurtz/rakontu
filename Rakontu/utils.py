@@ -87,12 +87,6 @@ def SetFirstThingsAndReturnWhetherMemberIsNew(rakontu, member):
 			member.put()
 	return isFirstVisit
 
-def activeMemberForUserIDAndRakontu(userID, rakontu):
-	return Member.all().filter("googleAccountID = ", userID).filter("rakontu = ", rakontu).filter("active = ", True).get()
-
-def pendingMemberForEmailAndRakontu(email, rakontu):
-	return PendingMember.all().filter("email = ", email).filter("rakontu = ", rakontu).get()
-
 def GetDictionaryFromURLQuery(query):
 	result = {}
 	pairs = query.split("&")
@@ -212,13 +206,15 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'num_tags_in_tag_set': NUM_TAGS_IN_TAG_SET, 
 	   'time_zone_names': pytz.all_timezones,   
 	   'date_formats': DateFormatStrings(), 
-	   'time_formats': TimeFormatStrings(), 
+	   'time_formats': TimeFormatStrings(),  
 	   'time_frames': TIME_FRAMES,  
 	   'time_frame_everything': TIMEFRAME_EVERYTHING,
 	   'entry_types': ENTRY_TYPES,
 	   'entry_types_display': ENTRY_TYPES_DISPLAY,
 	   'entry_types_plural': ENTRY_TYPES_PLURAL,  
 	   'entry_types_plural_display': ENTRY_TYPES_PLURAL_DISPLAY,
+	   'annotation_answer_link_types': ANNOTATION_ANSWER_LINK_TYPES,
+	   'annotation_answer_link_types_plural_display': ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY,
 	   'request_types': REQUEST_TYPES,
 	   'helping_role_names': HELPING_ROLE_TYPES_DISPLAY,
 	   'maxlength_subject_or_comment': MAXLENGTH_SUBJECT_OR_COMMENT, 
@@ -266,11 +262,11 @@ def GetKeyFromQueryString(queryString, keyname):
 			return None
 	else:
 		return None
-
+ 
 def ItemDisplayStringForGrid(item, member, curating=False, showingMember=False, showDetails=False):
 	# link 
 	if item.__class__.__name__ == "Answer":
-		if showDetails:
+		if showDetails: 
 			if not showingMember:
 				linkString = item.linkStringWithQuestionText()
 			else:
@@ -340,8 +336,156 @@ def ItemDisplayStringForGrid(item, member, curating=False, showingMember=False, 
 def checkedBlank(value):
 	if value:
 		return "checked"
-	return ""
+	return "" 
 
+def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=None, memberToSee=None, character=None):
+		search = GetCurrentSearchForMember(member)
+		if location == "home":
+			defaultURL = rakontu.linkURL()
+		elif location == "entry":
+			defaultURL = entry.linkURL()
+		elif location == "member": 
+			defaultURL = memberToSee.linkURL()
+		elif location == "character":
+			defaultURL = character.linkURL()
+		# time frame - home only
+		if "changeTimeFrame" in request.arguments():
+			member.viewEntriesList = []
+			member.setViewTimeFrameFromTimeFrameString(request.get("timeFrame"))
+			member.put()
+			return defaultURL
+		elif "setToLast" in request.arguments():
+			if rakontu.lastPublish:
+				member.viewTimeEnd = rakontu.lastPublish + timedelta(seconds=10)
+			else:
+				member.viewTimeEnd = datetime.now(tz=pytz.utc)
+			member.viewEntriesList = []
+			member.put()
+			return defaultURL
+		elif "setToFirst" in request.arguments():
+			if rakontu.firstPublish:
+				member.member.setTimeFrameToStartAtFirstPublish()()
+			else:
+				member.viewTimeEnd = datetime.now(tz=pytz.utc)
+			member.viewEntriesList = []
+			member.put()
+			return defaultURL
+		elif "moveTimeBack" in request.arguments() or "moveTimeForward" in request.arguments():
+			if "moveTimeBack" in request.arguments():
+				member.viewTimeEnd = member.viewTimeEnd - timedelta(seconds=member.viewTimeFrameInSeconds)
+			else:
+				member.viewTimeEnd = member.viewTimeEnd + timedelta(seconds=member.viewTimeFrameInSeconds)
+			if rakontu.firstPublish and member.getViewStartTime() < rakontu.firstPublish:
+			 	member.setTimeFrameToStartAtFirstPublish()
+			if member.viewTimeEnd > datetime.now(tz=pytz.utc):
+				member.viewTimeEnd = datetime.now(tz=pytz.utc)
+			member.viewEntriesList = []
+			member.put()
+			return defaultURL
+		elif "refreshView" in request.arguments():
+			if rakontu.lastPublish:
+				member.viewTimeEnd = rakontu.lastPublish + timedelta(seconds=10)
+			else:
+				member.viewTimeEnd = datetime.now(tz=pytz.utc)
+			member.viewEntriesList = []
+			member.put()
+			return defaultURL
+		# entry types - home, member, character only
+		elif "changeEntryTypesShowing" in request.arguments():
+			member.viewEntryTypes = []
+			for i in range(len(ENTRY_TYPES)):
+				member.viewEntryTypes.append(request.get("showEntryType|%s" % i) == "yes")
+			member.viewEntriesList = []
+			member.put()
+			return defaultURL
+		# annotation types - entry, member, character only
+		elif "changeAnnotationTypesShowing" in request.arguments():
+			member.viewAnnotationAnswerLinkTypes = []
+			for i in range(len(ANNOTATION_ANSWER_LINK_TYPES)):
+				member.viewAnnotationAnswerLinkTypes.append(request.get("showAnnotationAnswerLinkType|%s" % i) == "yes")
+			member.viewEntriesList = []
+			member.put()
+			return defaultURL
+		# nudges - home, entry only
+		elif "changeNudgeCategoriesShowing" in request.arguments():
+			member.viewNudgeCategories = []
+			for i in range(NUM_NUDGE_CATEGORIES):
+				member.viewNudgeCategories.append(request.get("showCategory|%s" % i) == "yes")
+			member.viewEntriesList = []
+			oldValue = member.viewNudgeFloor
+			try:
+				member.viewNudgeFloor = int(request.get("nudgeFloor"))
+			except:
+				member.viewNudgeFloor = oldValue
+			member.put()
+			return defaultURL
+		# search filter - home only
+		elif "loadAndApplySavedSearch" in request.arguments():
+			if request.get("savedSearch") != "(%s)" % TERMS["term_choose"]:
+				searchKey = request.get("savedSearch")
+				if searchKey:
+					search = SavedSearch.get(searchKey)
+					if search:
+						member.viewSearch = search
+						member.viewEntriesList = []
+						member.put()
+						return defaultURL
+				else:
+					return defaultURL
+			else:
+				return defaultURL
+		elif "stopApplyingSearch" in request.arguments():
+				member.viewSearch = None
+				member.viewEntriesList = []
+				member.put()
+				return defaultURL
+		elif "makeNewSavedSearch" in request.arguments():
+				member.viewSearch = None
+				member.viewEntriesList = []
+				member.put()
+				return BuildURL("dir_visit", "url_search_filter", rakontu=rakontu)
+		elif "changeSearch"  in request.arguments():
+			if search:
+				return BuildURL("dir_visit", "url_search_filter", rakontu=rakontu)
+			else:
+				member.viewSearch = None
+				member.viewEntriesList = []
+				member.put()
+				return BuildURL("dir_visit", "url_search_filter", rakontu=rakontu)
+		elif "copySearch"  in request.arguments():
+			newSearch = SavedSearch(key_name=KeyName("filter"), rakontu=rakontu, creator=member)
+			newSearch.copyDataFromOtherSearchAndPut(search)
+			member.viewSearch = newSearch
+			member.viewEntriesList = [] 
+			member.put()
+			return BuildURL("dir_visit", "url_search_filter", rakontu=rakontu)
+		# other options - all
+		elif "toggleViewHomeOptionsOnTop" in request.arguments():
+			member.viewGridOptionsOnTop = not member.viewGridOptionsOnTop
+			member.put()
+			return defaultURL
+		elif "toggleShowDetails" in request.arguments():
+			member.viewDetails = not member.viewDetails
+			member.put()
+			return defaultURL
+		elif "printSearchResults"  in request.arguments():
+			if location == "home":
+				return BuildURL("dir_liaise", "url_print_search", rakontu=rakontu)
+			elif location == "entry":
+				return BuildURL("dir_liaise", "url_print_entry", entry.urlQuery())
+			elif location == "member":
+				return BuildURL("dir_liaise", "url_print_member", memberToSee.urlQuery())
+			elif location == "character":
+				return BuildURL("dir_liaise", "url_print_character", character.urlQuery())
+		elif "exportSearchResults"  in request.arguments():
+			if location == "home":
+				return BuildURL("dir_manage", "url_export_search", rakontu=rakontu)
+			else:
+				# no reaction yet for entry or member or character - should add export for that?
+				return defaultURL
+		else:
+			return None
+			
 # ============================================================================================
 # ============================================================================================
 # HANDLERS
@@ -445,25 +589,15 @@ def GenerateHelps():
 		for row in helpStrings:
 			if len(row[0]) > 0 and row[0][0] != ";":
 				helps.append(Help(key_name=KeyName("help"), type=row[0].strip(), name=row[1].strip(), text=row[2].strip()))
-		db.put(helps)
+		db.put(helps) 
 	finally:
-		file.close()
+		file.close() 
 		
-def helpLookup(name, type):  
-	return Help.all().filter("name = ", name).filter("type = ", type).get()
-
-def helpTextLookup(name, type):
-	match = Help.all().filter("name = ", name).filter("type = ", type).get()
-	if match:
-		return match.text
-	else: 
-		return None
-	
 def GenerateSkins():
 	db.delete(AllSkins())
 	skins = []
 	file = open(SKINS_FILE_NAME)
-	try:
+	try: 
 		rows = csv.reader(file)
 		for row in rows:
 			key = row[0].strip()

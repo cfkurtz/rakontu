@@ -70,7 +70,7 @@ DEFAULT_TEXT_FORMAT = FORMAT_PLAIN_TEXT
 # This appears as the default in the Rakontu settings.
 # It MUST be a valid email address.
 DEFAULT_CONTACT_EMAIL = "support@rakontu.org"
-
+ 
 # How many nudge points members should get when they join.
 # Giving people something to start with is encouraging.
 DEFAULT_START_NUDGE_POINTS = 50
@@ -78,6 +78,10 @@ DEFAULT_START_NUDGE_POINTS = 50
 # ============================================================================================ 
 # BROWSING
 # ============================================================================================ 
+
+# This is how many items (entries or annotations) can be shown on any one web page.
+# Set it lower if people have slow connection speeds (or little patience).
+MAX_ITEMS_PER_PAGE = 200
 
 # These are the time frames shown in the Rakontu home page.
 # The names can be anything you like, but the number of seconds must match the time frame stated.

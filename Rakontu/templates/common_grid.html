@@ -1,15 +1,4 @@
 	  	{% if rows_cols %}
-		 	<div id="stylized" class="rakontu_form">
-			<form name="form" action="{{grid_form_url}}" method="post">
-			<h3>{{text_to_display_before_grid}}
-		  	{% if current_member.viewDetails %}
-				<input type="submit" name="toggleShowDetails" value="{{button_hide_details}}" class="button_small">
-			{% else %}
-				<input type="submit" name="toggleShowDetails" value="{{button_show_details}}" class="button_small">
-			{% endif %}
-			</h3> 
-			</form>
-			</div>
 			<table 
 				cellpadding="4" 
 				cellspacing="0" 
@@ -43,4 +32,7 @@
 				</tr>
 			{% endfor %}
 			</table>
+			{% if too_many_items_warning %}
+				<div class="blurb">{{max_num_items}} / {{num_items_before_truncation}} {{too_many_items_warning}}</div>
+			{% endif %}
 		{% endif %}

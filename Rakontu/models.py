@@ -372,8 +372,8 @@ class Rakontu(db.Model):
 	def getNonDraftEntries(self):
 		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).fetch(BIG_FETCH_NUMBER)
 	
-	def getNonDraftEntriesOfTypesInListBetweenDateTimesInReverseTimeOrder(self, typeList, minTime, maxTime):
-		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type IN ", typeList).\
+	def getNonDraftEntriesBetweenDateTimesInReverseTimeOrder(self, minTime, maxTime):
+		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).\
 			filter("published >= ", minTime).filter("published < ", maxTime).order("-published").fetch(BIG_FETCH_NUMBER)
 			
 	def getNonDraftEntriesInAlphabeticalOrder(self):
@@ -775,7 +775,7 @@ class Rakontu(db.Model):
 	def getExportOfType(self, type):
 		return Export.all().filter("rakontu = ", self.key()).filter("type = ", type).get()
 
-	def createOrRefreshExport(self, type, itemList=None, member=None, questionType=None, fileFormat="csv"):
+	def createOrRefreshExport(self, type, subtype, member=None, entry=None, memberToSee=None, character=None, questionType=None, fileFormat="csv"):
 		exportAlreadyThereForType = self.getExportOfType(type)
 		if exportAlreadyThereForType:
 			db.delete(exportAlreadyThereForType)
@@ -866,13 +866,9 @@ class Rakontu(db.Model):
 		elif type == "liaisonPrint_simple":
 			exportText += '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
 			exportText += '<title>Printed from Rakontu</title></head><body>'
-			if itemList:
-				for item in itemList:
-					try:
-						exportText += item.PrintText()
-					except: 
-						pass
-			elif member:
+			if subtype == "search":
+				if member.viewSearch:
+					exportText += "<h3>Results of search %s</h3>" % member.viewSearch.name
 				if member.viewEntriesList:
 					for entry in self.getNonDraftEntries():
 						if entry.key() in member.viewEntriesList:
@@ -880,6 +876,33 @@ class Rakontu(db.Model):
 								exportText += entry.PrintText()
 							except:
 								pass
+			elif subtype == "entry":
+				entryAndItems = []
+				entryAndItems.extend(entry.getNonDraftAnswers())
+				entryAndItems.extend(entry.getNonDraftAnnotations())
+				entryAndItems.insert(0, entry)
+				for item in entryAndItems:
+					if item.MemberWantsToSeeMyType(member):
+						try:
+							exportText += item.PrintText()
+						except: 
+							pass
+			elif subtype == "member":
+				exportText += "<h3>Entries and annotations contributed by member %s</h3>" % member.nickname
+				for item in memberToSee.getAllItemsAttributedToMember():
+					if item.MemberWantsToSeeMyType(member):
+						try:
+							exportText += item.PrintText()
+						except: 
+							pass
+			elif subtype == "character":
+				exportText += "<h3>Entries and annotations contributed by character %s</h3>" % character.name
+				for item in character.getAllItemsAttributedToCharacter():
+					if item.MemberWantsToSeeMyType(member):
+						try:
+							exportText += item.PrintText()
+						except: 
+							pass
 			exportText += "</body></html>"
 		elif type == "exportQuestions":
 			exportText += '; refersTo,name,text,type,choices or min-max or boolean "yes" text,multiple,help,help for using\n'
@@ -1028,7 +1051,8 @@ class Member(db.Model):
 	viewSearch = db.ReferenceProperty(None, collection_name="member_to_search", indexed=False)
 	viewDetails = db.BooleanProperty(default=False, indexed=False)
 	viewEntryTypes = db.ListProperty(bool, default=[True, True, False, False, False]) # stories and invitations on by default
-	viewHomeOptionsOnTop = db.BooleanProperty(default=False)
+	viewAnnotationAnswerLinkTypes = db.ListProperty(bool, default=[False, True, True, False, False, False]) # "tag set", "comment", "request", "nudge", "answer", "link"
+	viewGridOptionsOnTop = db.BooleanProperty(default=False)
 	viewEntriesList = db.ListProperty(db.Key, indexed=False)
 	
 	# CREATION
@@ -1196,7 +1220,22 @@ class Member(db.Model):
 	
 	def getLinksCreatedByMember(self):
 		return Link.all().filter("creator = ", self.key()).fetch(BIG_FETCH_NUMBER)
-	
+
+	def collectStats(self):
+		statNames = []
+		stats = []
+		for type in ENTRY_TYPES:
+			stats.append(Entry.all().filter("creator = ", self.key()).filter("character = ", None).filter("type = ", type).filter("draft = ", False).count())
+		statNames.extend(ENTRY_TYPES_PLURAL_DISPLAY)
+		for type in ANNOTATION_TYPES:
+			stats.append(Annotation.all().filter("creator = ", self.key()).filter("character = ", None).filter("type = ", type).filter("draft = ", False).count())
+		statNames.extend(ANNOTATION_TYPES_PLURAL_DISPLAY)
+		stats.append(Answer.all().filter("creator = ", self.key()).filter("character = ", None).filter("draft = ", False).count())
+		statNames.append(TERMS["term_answers"])
+		stats.append(Link.all().filter("creator = ", self.key()).count())
+		statNames.append(TERMS["term_links"])
+		return statNames, stats
+
 	# DRAFTS
 	
 	def getDraftEntries(self):
@@ -1400,6 +1439,9 @@ class SavedSearch(db.Model):
 	def getQuestionReferencesOfType(self, type):
 		return SavedSearchQuestionReference.all().filter("search = ", self.key()).filter("type = ", type).fetch(FETCH_NUMBER)
 	
+	def getQuestionReferenceForQuestionAndOrder(self, question, order):
+		return SavedSearchQuestionReference.all().filter("search = ", self.key()).filter("question = ", question).filter("order = ", order).get()
+	
 	def getEntryQuestionRefs(self):
 		return self.getQuestionReferencesOfType("entry")
 	
@@ -1534,7 +1576,8 @@ class Answer(db.Model):
 				self.entryActivityPointsWhenPublished = self.referent.activityPoints
 				self.put()
 			self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("answering question")
-			self.creator.lastAnsweredQuestion = datetime.now(pytz.utc)
+			if not self.character:
+				self.creator.lastAnsweredQuestion = datetime.now(pytz.utc)
 			self.creator.put()
 			self.rakontu.lastPublish = self.published
 			self.rakontu.put()
@@ -1597,6 +1640,9 @@ class Answer(db.Model):
 	def PrintText(self):
 		return '<p>%s %s (%s)</p><hr>' \
 			% (self.question.text, self.displayStringShort(), self.memberNickNameOrCharacterName())
+			
+	def MemberWantsToSeeMyType(self, member):
+		return member.viewAnnotationAnswerLinkTypes[ANNOTATION_ANSWER_LINK_TYPES_ANSWER_INDEX]
 		
 	# ATTRIBUTION
 	
@@ -2236,6 +2282,18 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	def PrintText(self):
 		return "<p><b>%s</b> (%s)</p><p>%s</p><hr>" % (self.title, self.type, self.text_formatted)
 		
+	def MemberWantsToSeeMyType(self, member):
+		i = 0
+		for type in ENTRY_TYPES:
+			if type == self.type: 
+				if member.viewEntryTypes[i]:
+					return True
+				else:
+					return False
+				break
+			i += 1
+		return False
+	
 	# SEARCH
 	
 	def satisfiesSearch(self, search, refs):
@@ -2344,6 +2402,12 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 		if self.comment:
 			result += ", (%s)" % self.comment
 		return result
+	
+	def PrintText(self):
+		return "<p>%s - %s</p><p>%s (%s)</p><hr>" % (self.linkFrom.title, self.linkTo.title, self.type, self.comment)
+
+	def MemberWantsToSeeMyType(self, member):
+		return member.viewAnnotationAnswerLinkTypes[ANNOTATION_ANSWER_LINK_TYPES_LINK_INDEX]
 	
 # ============================================================================================
 # ============================================================================================
@@ -2572,6 +2636,16 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 			imageText = '<img src="/images/nudges.png" alt="nudge" border="0">'
 		return imageText
 	
+	def MemberWantsToSeeMyType(self, member):
+		i = 0
+		for type in ANNOTATION_ANSWER_LINK_TYPES:
+			if type == self.type: 
+				if member.viewAnnotationAnswerLinkTypes[i]:
+					return True
+				break
+			i += 1
+		return False
+	
 # ============================================================================================
 # ============================================================================================
 class Help(db.Model):		 # context-sensitive help string - appears as title hover on icon 
@@ -2606,6 +2680,7 @@ class Skin(db.Model):		 # style sets to change look of each Rakontu
 	color_background_general = db.StringProperty(indexed=False) # on all pages
 	color_background_excerpt = db.StringProperty(indexed=False) # behind story texts and other "highlighted" boxes
 	color_background_entry = db.StringProperty(indexed=False) # to indicate the user is entering data
+	color_background_table_header = db.StringProperty(indexed=False) # to make table headers stand out a bit
 	color_background_menus = db.StringProperty(indexed=False) # menu backgrounds
 	color_background_menus_hover =  db.StringProperty(indexed=False) # menu backgrounds when hovering over
 		
@@ -2698,6 +2773,9 @@ def AllHelps():
 def NumHelps():
 	return Help.all().count()
 
+def HaveHelps():
+	return Help.all().count() > 0
+
 def AllSkins():
 	return Skin.all().fetch(FETCH_NUMBER)
 
@@ -2722,4 +2800,22 @@ def SystemEntriesOfType(type):
 def HaveSystemResources():
 	return Entry.all().filter("rakontu = ", None).filter("type = ", "resource").count() > 0
 
+def activeMemberForUserIDAndRakontu(userID, rakontu):
+	return Member.all().filter("googleAccountID = ", userID).filter("rakontu = ", rakontu).filter("active = ", True).get()
 
+def pendingMemberForEmailAndRakontu(email, rakontu):
+	return PendingMember.all().filter("email = ", email).filter("rakontu = ", rakontu).get()
+
+def helpLookup(name, type):  
+	return Help.all().filter("name = ", name).filter("type = ", type).get()
+
+def helpLookupWithoutType(name):  
+	return Help.all().filter("name = ", name).get()
+
+def helpTextLookup(name, type):
+	match = Help.all().filter("name = ", name).filter("type = ", type).get()
+	if match:
+		return match.text
+	else: 
+		return None
+	

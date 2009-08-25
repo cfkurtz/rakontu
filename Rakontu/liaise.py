@@ -77,7 +77,7 @@ class PrintSearchPage(webapp.RequestHandler):
 		if access:
 			if member.isLiaison():
 				if member.viewEntriesList:
-					export = rakontu.createOrRefreshExport("liaisonPrint_simple", itemList=None, member=member, fileFormat="txt")
+					export = rakontu.createOrRefreshExport("liaisonPrint_simple", "search", member=member, fileFormat="txt")
 					self.redirect(BuildURL(None, "url_export", export.urlQuery()))
 				else:
 					self.redirect(BuildResultURL("noSearchResultForPrinting", rakontu=rakontu))
@@ -94,11 +94,43 @@ class PrintEntryAnnotationsPage(webapp.RequestHandler):
 			if member.isLiaison():
 				entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 				if entry:
-					entryAndItems = []
-					entryAndItems.extend(entry.getNonDraftAnswers())
-					entryAndItems.extend(entry.getNonDraftAnnotations())
-					entryAndItems.insert(0, entry)
-					export = rakontu.createOrRefreshExport("liaisonPrint_simple", itemList=entryAndItems, member=None, fileFormat="txt")
+					export = rakontu.createOrRefreshExport("liaisonPrint_simple", "entry", member=member, entry=entry, fileFormat="txt")
+					url = BuildURL(None, "url_export", export.urlQuery())
+					self.redirect(url)
+				else:
+					self.redirect(rakontu.linkURL())
+			else:
+				self.redirect(rakontu.linkURL())
+		else:
+			self.redirect(START)
+			
+class PrintMemberEntriesAndAnnotationsPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if member.isLiaison():
+				memberToSee = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
+				if memberToSee:
+					export = rakontu.createOrRefreshExport("liaisonPrint_simple", "member", member=member, memberToSee=memberToSee, fileFormat="txt")
+					url = BuildURL(None, "url_export", export.urlQuery())
+					self.redirect(url)
+				else:
+					self.redirect(rakontu.linkURL())
+			else:
+				self.redirect(rakontu.linkURL())
+		else:
+			self.redirect(START)
+			
+class PrintCharacterEntriesAndAnnotationsPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if member.isLiaison():
+				character = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_character")
+				if character:
+					export = rakontu.createOrRefreshExport("liaisonPrint_simple", "character", member=member, character=character, fileFormat="txt")
 					url = BuildURL(None, "url_export", export.urlQuery())
 					self.redirect(url)
 				else:

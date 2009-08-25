@@ -144,6 +144,9 @@ ANNOTATION_TYPES_PLURAL_DISPLAY = ["tag sets", "comments", "requests", "nudges"]
 # Since they will be used for URLs they CANNOT contain special characters or spaces.
 ANNOTATION_TYPES_URLS = ["tagset", "comment", "request", "nudge"]
 
+ANNOTATION_ANSWER_LINK_TYPES_DISPLAY = ["tag set", "comment", "request", "nudge", "answer", "link"]
+ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY = ["tag sets", "comments", "requests", "nudges", "answers", "links"]
+
 # List of entry AND annotation types. 
 # Used in manage/settings where they are choosing which items can have character attribution.
 # These MUST match the order (story, pattern, collage, invitation, resource, answer, tagset, comment, request, nudge).
@@ -305,12 +308,14 @@ TERMS = {
 		"term_none": "none",
 		"term_result": "A message from Rakontu",
 		"term_help": "Help",
-		"term_entries_contributed_by": "Entries contributed by",
+		"term_entries_contributed_by": "Entries, annotations, answers and links contributed by",
 		"term_yes": "yes",
 		"term_no": "no",
 		"term_points": "points",
 		"term_accumulations_for": "Accumulations for",
 		"term_custom": "custom",
+		"term_links": "links",
+		"term_too_many_items_warning": "most recent items shown. To show older items, use selections to reduce the number of items showing.", # preceded by number/number
 		}
 
 # ============================================================================================ 
@@ -702,6 +707,7 @@ TEMPLATE_TERMS = {
 		"template_curate_this_characters_entries": "Curate this character's contributions",
 		"template_no_character_description": "no character description",
 		"template_no_character_how_to": "no how-to statement",
+		"template_no_entries_or_annotations_for_character": "There are no entries or annotations that match the current selections for this character.",
 		# visit/drafts
 		"template_name_click_to_edit": "Name (click to edit)",
 		"template_versions_click_to_use": "Previous versions (click to recall)",
@@ -766,6 +772,7 @@ TEMPLATE_TERMS = {
 		"template_to_time": "to", # between two parts of time range
 		"template_show": "Show",
 		"template_entry_types": "Entry types",
+		"template_annotation_types": "Annotation types",
 		"template_nudges": "Nudges",
 		"template_filtered_by": "Filtered by",
 		"template_choose_one": "choose one",
@@ -790,6 +797,7 @@ TEMPLATE_TERMS = {
 		"template_curate_this_members_entries": "Curate this member's contributions",
 		"template_curate_your_entries": "Curate your contributions",
 		"template_stop_curating": "Stop curating",
+		"template_no_entries_or_annotations_for_member": "There are no entries or annotations that match the current selections for this member.",
 		# visit/members
 		"template_make_changes_to_members": "Make changes to memberships",
 		# visit/new
@@ -845,6 +853,7 @@ TEMPLATE_TERMS = {
 		"template_what_would_you_like_to_do_next": "What would you like to do next?",
 		"template_hide_versions": "Hide", # right next to button that says History no need for longer name
 		"template_show_versions": "Show history",
+		"template_no_annotations_for_entry": "This entry has no annotations that match the current selections.",
 		# visit/readAnnotation
 		"template_request_type": "Request type",
 		# visit/relate
@@ -1222,6 +1231,8 @@ URLS = {
 	# liaise
     "url_print_search": "printSearch",
     "url_print_entry": "printEntryAndAnnotations",
+    "url_print_member": "printMemberContributions",
+    "url_print_character": "printCharacterContributions",
     "url_review": "review",
 	# curate
     "url_curate": "curate",

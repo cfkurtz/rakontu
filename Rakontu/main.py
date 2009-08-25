@@ -96,6 +96,8 @@ application = webapp.WSGIApplication(
 									  (BuildURL("dir_liaise", "url_members"), ReviewOfflineMembersPage),
 									  (BuildURL("dir_liaise", "url_print_search"), PrintSearchPage),
 									  (BuildURL("dir_liaise", "url_print_entry"), PrintEntryAnnotationsPage),
+									  (BuildURL("dir_liaise", "url_print_member"), PrintMemberEntriesAndAnnotationsPage),
+									  (BuildURL("dir_liaise", "url_print_character"), PrintCharacterEntriesAndAnnotationsPage),
 									   
 									  # managing
 									  (BuildURL("dir_manage", "url_first"), FirstOwnerVisitPage),

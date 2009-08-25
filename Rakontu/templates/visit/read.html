@@ -168,25 +168,24 @@
 		</p>
 	{% endif %}
 
-	{% include "../common_grid.html" %}
+	<h3>{{template_annotations}}</h3>
+	
+	{% if current_member.viewGridOptionsOnTop %}
+		{% include "../common_grid_options.html" %}
+	{% endif %}
 	
 	{% if rows_cols %}
-		<div id="stylized" class="rakontu_form">
-		<form name="read" action="/{{dir_visit}}/{{url_read}}?{{entry.urlQuery}}" method="post">
-		{{template_nudges}}
-		{% for i in rakontu.nudgeCategories|makeRangeFromListLength %}
-			{% if rakontu.nudgeCategories|listLookup:i %}
-				<input type="checkbox" name="showCategory|{{i}}" value="yes" id="{{rakontu.nudgeCategories|listLookup:i}}"
-				{% if current_member.viewNudgeCategories|listLookup:i %}
-					checked
-				{% endif %}
-				><label for="{{rakontu.nudgeCategories|listLookup:i}}">{{rakontu.nudgeCategories|listLookup:i}}</label>
-			{% endif %}
-		{% endfor %}
-		<input type="submit" name="changeNudgeCategoriesShowing" value="{{button_change}}" class="button_small"></p>
-		</form>
-		</div>
+		{% include "../common_grid.html" %}
+		<p></p>
+	{% else %}
+		<p>{{template_no_annotations_for_entry}}</p>
 	{% endif %}
+	
+	{% if not current_member.viewGridOptionsOnTop %}
+		<p></p>
+		{% include "../common_grid_options.html" %}
+	{% endif %}
+
 		
 	{% if show_versions and versions %}
 		<h3>{{template_versions}} <input type="submit" value="{{template_hide_versions}}" name="hideVersions" class="button_small"></h3>

@@ -43,7 +43,25 @@
 			<ul><li class="nobullet">({{template_none}})</li></ul>
 		{% endif %}
 		
-		{% include "../common_grid.html" %}
+		<h3>{{term_entries_contributed_by}} {{character.name}}</h3>
+		
+		{% if current_member.viewGridOptionsOnTop %}
+			{% include "../common_grid_options.html" %}
+			<p></p>
+		{% endif %}
+		
+		{% if rows_cols %}
+			{% include "../common_grid.html" %}
+			<p></p>
+		{% else %}
+			<p>{{template_no_entries_or_annotations_for_character}}</p>
+		{% endif %}
+		
+		{% if not current_member.viewGridOptionsOnTop %}
+			<p></p>
+			{% include "../common_grid_options.html" %}
+		{% endif %}
+
 		
 	<div class="rightalign"><a href="/{{dir_visit}}/{{url_rakontu}}?{{rakontu.urlQuery}}">{{template_see_all_characters}}</a></div>
   	{% if current_member.isManagerOrOwner %}
