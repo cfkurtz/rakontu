@@ -14,19 +14,21 @@ class CurateFlagsPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isCuratorOrManagerOrOwner():
-				(entries, annotations, answers, links, searches) = rakontu.getAllFlaggedItems()
+				type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_type")
+				if not type:
+					type = "story"
+				items = rakontu.getAllFlaggedItemsOfType(type)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_FLAGS"], 
 						   	   	   'rakontu': rakontu, 
 						   	   	   'skin': rakontu.getSkinDictionary(),
+						   	   	   'type': type,
 						   	   	   'current_member': member,
-								   'entries': entries,
-								   'annotations': annotations,
-								   'answers': answers,
-								   'links': links,
-								   'searches': searches,
+						   	   	   'items': items,
 								   'search_locations': SEARCH_LOCATIONS,
 								   'search_locations_display': SEARCH_LOCATIONS_DISPLAY,
+								   'flagged_item_types': FLAGGED_ITEM_TYPES,
+								   'flagged_item_types_plural_display': FLAGGED_ITEM_TYPES_PLURAL_DISPLAY,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/flags.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -39,91 +41,93 @@ class CurateFlagsPage(webapp.RequestHandler):
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			if "cancel" in self.request.arguments():
-				self.redirect(rakontu.linkURL())
-				return
-			items = rakontu.getAllFlaggedItemsAsOneList()
-			for item in items:
-				if self.request.get("flagComment|%s" % item.key()):
-					item.flagComment = self.request.get("flagComment|%s" % item.key())
-					item.put()
-				if self.request.get("unflag|%s" % item.key()) == "yes":
-				 	item.flaggedForRemoval = False
-				 	item.put()
-			if member.isManagerOrOwner():
-				for item in items:
-					if self.request.get("removeComment|%s" % item.key()) == "yes":
-						if item.__class__.__name__ == "Annotation": # nudge
-							item.shortString = ""
-						elif item.__class__.__name__ == "Link":
-							item.comment = ""
-						item.put()
-					elif self.request.get("remove|%s" % item.key()) == "yes":
-						if item.__class__.__name__ == "Entry":
-							item.removeAllDependents()
-						elif item.__class__.__name__ == "SavedSearch":
-							item.deleteAllDependents()
-						db.delete(item)
-				self.redirect(BuildURL("dir_curate", "url_flags", rakontu=rakontu))
-			elif member.isCurator():
-				itemsToSendMessageAbout = []
-				for item in items:
-					if self.request.get("notify|%s" % item.key()) == "yes":
-						itemsToSendMessageAbout.append(item)
-				if itemsToSendMessageAbout:
-					subject = "%s %s" % (TERMS["term_reminder"], member.nickname)
-					URL = self.request.headers["Host"]
-					messageLines = []
-					messageLines.append("%s\n" % TERMS["term_wanted_you_to_know"])
-					itemsToSendMessageAbout.reverse()
-					for item in itemsToSendMessageAbout:
-						if item.__class__.__name__ == "Entry":
-							linkKey = item.key()
-							displayString = '%s (%s)' % (item.title, item.typeForDisplay())
-						elif item.__class__.__name__ == "Annotation":
-							linkKey = item.entry.key()
-							if item.shortString:
-								shortString = " (%s)" % item.shortString
-							else:
-								shortString = ""
-							displayString = '%s (%s) - "%s" (%s)' % (item.typeForDisplay(), shortString, item.entry.title, item.entry.typeForDisplay())
- 						elif item.__class__.__name__ == "Answer":
-							linkKey = item.referent.key()
-							displayString = '%s %s - "%s" (%s)' % (item.question.text, item.displayString(), item.referent.title, item.referent.typeForDisplay())
-						elif item.__class__.__name__ == "Link":
-							linkKey = item.itemFrom.key()
-							if item.comment:
-								commentString = " (%s)" % item.comment
-							else:
-								commentString = ""
-							displayString = '%s %s%s "%s" (%s) --> "%s" (%s)' % \
-								(item.itemFrom.type, TERMS["term_link"], commentString, item.itemFrom.displayString(), \
-								item.itemTo.typeForDisplay(), item.itemTo.displayString(), item.itemTo.typeForDisplay())
-						elif item.__class__.__name__ == "SavedSearch":
-							linkKey = item.key()
-							displayString = item.name
-						if item.__class__.__name__ == "SavedSearch":
-							messageLines.append('* %s\n\n	http://%s/%s/%s?%s (%s)\n' % (displayString, URL, DIRS["dir_visit"], URLS["url_home"], linkKey, item.flagComment))
-						else:
-							messageLines.append('* %s\n\n	http://%s/%s/%s?%s (%s)\n' % (displayString, URL, DIRS["dir_visit"], URLS["url_curate"], linkKey, item.flagComment))
-					messageLines.append("%s\n" % TERMS["term_thank_you"])
-					messageLines.append("%s," % TERMS["term_sincerely"])
-					messageLines.append("	%s" % TERMS["term_your_site"])
-					message = "\n".join(messageLines)
-					ownersAndManagers = rakontu.getManagersAndOwners()
-					for ownerOrManager in ownersAndManagers:
-						messageLines.insert(0, "% %s:\n" % TERMS["term_dear_manager"], ownerOrManager.nickname)
-						messageBody = "\n".join(messageLines)
-						message = mail.EmailMessage()
-						message.sender = rakontu.contactEmail
-						message.subject = subject
-						message.to = ownerOrManager.googleAccountEmail
-						message.body = messageBody
-						DebugPrint(messageBody)
-						message.send()
-					self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
+			if "changeSelections" in self.request.arguments():
+				query = "%s=%s" % (URL_OPTIONS["url_query_type"], self.request.get("type"))
+				url = BuildURL("dir_curate", "url_flags", query, rakontu=rakontu)
+				self.redirect(url)
 			else:
-				self.redirect(rakontu.linkURL())
+				items = rakontu.getAllFlaggedItemsOfType(self.request.get("type"))
+				for item in items:
+					if self.request.get("flagComment|%s" % item.key()):
+						item.flagComment = self.request.get("flagComment|%s" % item.key())
+						item.put()
+					if self.request.get("unflag|%s" % item.key()) == "yes":
+					 	item.flaggedForRemoval = False
+					 	item.put()
+				if member.isManagerOrOwner():
+					for item in items:
+						if self.request.get("removeComment|%s" % item.key()) == "yes":
+							if item.__class__.__name__ == "Annotation": # nudge
+								item.shortString = ""
+							elif item.__class__.__name__ == "Link":
+								item.comment = ""
+							item.put()
+						elif self.request.get("remove|%s" % item.key()) == "yes":
+							if item.__class__.__name__ == "Entry":
+								item.removeAllDependents()
+							elif item.__class__.__name__ == "SavedSearch":
+								item.deleteAllDependents()
+							db.delete(item)
+					self.redirect(BuildURL("dir_curate", "url_flags", rakontu=rakontu))
+				elif member.isCurator():
+					itemsToSendMessageAbout = []
+					for item in items:
+						if self.request.get("notify|%s" % item.key()) == "yes":
+							itemsToSendMessageAbout.append(item)
+					if itemsToSendMessageAbout:
+						subject = "%s %s" % (TERMS["term_reminder"], member.nickname)
+						URL = self.request.headers["Host"]
+						messageLines = []
+						messageLines.append("%s\n" % TERMS["term_wanted_you_to_know"])
+						itemsToSendMessageAbout.reverse()
+						for item in itemsToSendMessageAbout:
+							if item.__class__.__name__ == "Entry":
+								linkKey = item.key()
+								displayString = '%s (%s)' % (item.title, item.typeForDisplay())
+							elif item.__class__.__name__ == "Annotation":
+								linkKey = item.entry.key()
+								if item.shortString:
+									shortString = " (%s)" % item.shortString
+								else:
+									shortString = ""
+								displayString = '%s (%s) - "%s" (%s)' % (item.typeForDisplay(), shortString, item.entry.title, item.entry.typeForDisplay())
+	 						elif item.__class__.__name__ == "Answer":
+								linkKey = item.referent.key()
+								displayString = '%s %s - "%s" (%s)' % (item.question.text, item.displayString(), item.referent.title, item.referent.typeForDisplay())
+							elif item.__class__.__name__ == "Link":
+								linkKey = item.itemFrom.key()
+								if item.comment:
+									commentString = " (%s)" % item.comment
+								else:
+									commentString = ""
+								displayString = '%s %s%s "%s" (%s) --> "%s" (%s)' % \
+									(item.itemFrom.type, TERMS["term_link"], commentString, item.itemFrom.displayString(), \
+									item.itemTo.typeForDisplay(), item.itemTo.displayString(), item.itemTo.typeForDisplay())
+							elif item.__class__.__name__ == "SavedSearch":
+								linkKey = item.key()
+								displayString = item.name
+							if item.__class__.__name__ == "SavedSearch":
+								messageLines.append('* %s\n\n	http://%s/%s/%s?%s (%s)\n' % (displayString, URL, DIRS["dir_visit"], URLS["url_home"], linkKey, item.flagComment))
+							else:
+								messageLines.append('* %s\n\n	http://%s/%s/%s?%s (%s)\n' % (displayString, URL, DIRS["dir_visit"], URLS["url_curate"], linkKey, item.flagComment))
+						messageLines.append("%s\n" % TERMS["term_thank_you"])
+						messageLines.append("%s," % TERMS["term_sincerely"])
+						messageLines.append("	%s" % TERMS["term_your_site"])
+						message = "\n".join(messageLines)
+						ownersAndManagers = rakontu.getManagersAndOwners()
+						for ownerOrManager in ownersAndManagers:
+							messageLines.insert(0, "% %s:\n" % TERMS["term_dear_manager"], ownerOrManager.nickname)
+							messageBody = "\n".join(messageLines)
+							message = mail.EmailMessage()
+							message.sender = rakontu.contactEmail
+							message.subject = subject
+							message.to = ownerOrManager.googleAccountEmail
+							message.body = messageBody
+							DebugPrint(messageBody)
+							message.send()
+						self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
+				else:
+					self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 			
@@ -133,26 +137,24 @@ class CurateGapsPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isCurator():
+				show = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_show")
+				if not show:
+					show = "entries_no_tags"
+				type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_type")
+				if not type:
+					type = "story"
 				sortBy = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_sort_by")
 				if not sortBy:
 					sortBy = "date"
-				(entriesWithoutTags, \
-				entriesWithoutLinks, \
-				entriesWithoutAnswers, \
-				entriesWithoutComments, \
-				invitationsWithoutResponses,
-				collagesWithoutInclusions) = rakontu.getNonDraftEntriesWithMissingMetadata(sortBy)
+				entries = rakontu.getNonDraftEntriesLackingMetadata(show, type, sortBy)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_GAPS"], 
 								   'rakontu': rakontu, 
 								   'skin': rakontu.getSkinDictionary(),
+								   'show': show,
 								   'sort_by': sortBy,
-								   'entries_without_tags': entriesWithoutTags,
-								   'entries_without_links': entriesWithoutLinks,
-								   'entries_without_answers': entriesWithoutAnswers,
-								   'entries_without_comments': entriesWithoutComments,
-								   'invitations_without_responses': invitationsWithoutResponses,
-								   'collages_without_inclusions': collagesWithoutInclusions,
+								   'type': type,
+								   'entries': entries,
 								   'current_member': member,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/gaps.html'))
@@ -167,8 +169,11 @@ class CurateGapsPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isCurator():
-				if "sortBy" in self.request.arguments():
-					query = "%s=%s" % (URL_OPTIONS["url_query_sort_by"], self.request.get("sortBy"))
+				if "changeSelections" in self.request.arguments():
+					query = "%s=%s&%s=%s&%s=%s" % (
+							URL_OPTIONS["url_query_sort_by"], self.request.get("sortBy"), 
+							URL_OPTIONS["url_query_type"], self.request.get("type"),
+							URL_OPTIONS["url_query_show"], self.request.get("show"))
 					url = BuildURL("dir_curate", "url_gaps", query, rakontu=rakontu)
 					self.redirect(url)
 				else:

@@ -43,11 +43,6 @@ table.noborder {
 	border: 0;
 	}
 	
-table.fullborder {
-	width: auto;
-	border: 1px solid #000000;
-	}
-	
 table.grid {
 	width: 100%; 
 	border-top: 1px solid #000000; 
@@ -66,11 +61,6 @@ td {
 td.noborder {
 	font-size: 80%;
 	border: 0;
-	}
-	
-td.fullborder {
-	font-size: 80%;
-	border: 1px solid #000000;
 	}
 	
 th {

@@ -144,8 +144,13 @@ ANNOTATION_TYPES_PLURAL_DISPLAY = ["tag sets", "comments", "requests", "nudges"]
 # Since they will be used for URLs they CANNOT contain special characters or spaces.
 ANNOTATION_TYPES_URLS = ["tagset", "comment", "request", "nudge"]
 
+# These need translation because they appear in selections to view in  member/character pages.
 ANNOTATION_ANSWER_LINK_TYPES_DISPLAY = ["tag set", "comment", "request", "nudge", "answer", "link"]
 ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY = ["tag sets", "comments", "requests", "nudges", "answers", "links"]
+
+# These need translation because they appear in the curator flags page.
+FLAGGED_ITEM_TYPES_DISPLAY = ["story", "pattern", "collage", "invitation", "resource", "answer", "tag set", "comment", "request", "nudge", "link", "filter"]
+FLAGGED_ITEM_TYPES_PLURAL_DISPLAY = ["stories", "patterns", "collages", "invitations", "resources", "answers", "tag sets", "comments", "requests", "nudges", "links", "filters"]
 
 # List of entry AND annotation types. 
 # Used in manage/settings where they are choosing which items can have character attribution.
@@ -335,6 +340,7 @@ TEMPLATE_TERMS = {
 		"template_or": "or",
 		"template_you": "you",
 		"template_none": "none",
+		"template_none_found": "None found",
 		"template_from": "from",
 		"template_to": "to",
 		"template_information": "information",
@@ -544,12 +550,11 @@ TEMPLATE_TERMS = {
 		# curate/attachments
 		"template_no_attachments": "There are no attachments in the data set.",
 		# curate/flags
-		"template_with_flags": "with flags",
 		"template_notify": "Notify",
 		"template_flag_noun": "Flag",
 		"template_flag_verb": "Flag",
 		"template_unflag": "Unflag",
-		"template_flagged_for_removal": "Flagged for removal",
+		"template_items_flagged_for_removal": "Items flagged for removal",
 		"template_comment_only": "comment only",
 		"template_entry_questions": "Entry questions",
 		"template_member_questions": "Member questions",
@@ -560,17 +565,19 @@ TEMPLATE_TERMS = {
 		"template_click_here_to_flag_this_set_of_tags": "Click here to flag this set of tags for removal",
 		"template_click_here_to_flag_this_entry": "Click here to flag this entry for removal",
 		"template_click_here_to_flag_this_resource": "Click here to flag this resource for removal",
+		"template_no_flagged_items_of_this_type": "There are no flagged items of this type.",
 		# curate/gaps
 		"template_gaps": "Gaps",
-		"template_sort_by": "Sort by",
+		"template_sort_by": "sorted by",
 		"template_most_recent": "most recent",
 		"template_most_annotated": "most annotated",
 		"template_highest_activity": "highest activity",
 		"template_highest_nudged": "highest nudged",
-		"template_entries_with_no_tags": "Entries with no tags",
-		"template_entries_with_no_links": "Entries with no links",
-		"template_entries_with_no_answers_to_questions": "Entries with no answers to questions",
-		"template_collages_with_no_story_links": "Collages with no story links",
+		"template_entries_with_no_tags": "with no tags",
+		"template_entries_with_no_links": "with no links",
+		"template_entries_with_no_comments": "with no comments",
+		"template_entries_with_no_answers_to_questions": "with no answers to questions",
+		"template_collages_with_no_story_links": "with no story links (collages only)",
 		# curate/tags
 		"template_change_entry_tags": "Change entry tags",
 		"template_no_tags": "There are no tags to review.",
@@ -812,7 +819,7 @@ TEMPLATE_TERMS = {
 		"template_last_answer": "Last answer",
 		"template_last_link": "Last link",
 		"template_last_reading": "Last reading",
-		"template_nudge_points_accumulated": "Nudge points accumulated",
+		"template_nudge_points_accumulated": "Nudge points",
 		"template_nickname_and_description": "Nickname and description",
 		"template_what_nickname_do_you_want": "What nickname do you want to use in the Rakontu?",
 		"template_what_nickname_for_offline_member": "What nickname do you want to use to represent this off-line member in the Rakontu?",
@@ -1310,6 +1317,8 @@ URL_OPTIONS = {
 	"url_query_export_type": "exporttype",
 	"url_query_link_type": "linktype",
 	"url_query_sort_by": "sortby",
+	"url_query_show": "show",
+	'url_query_type': "type",
 	"url_query_uncompleted": "uncompleted",
 	"url_query_no_responses": "noresponses",
 	"url_query_curate": "curate",

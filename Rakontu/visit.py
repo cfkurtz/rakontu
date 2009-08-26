@@ -1362,8 +1362,6 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 					member.viewEntriesList = []
 					member.put()
 				self.redirect(rakontu.linkURL())
-			elif "cancel" in self.request.arguments():
-				self.redirect(rakontu.linkURL())
 			elif "saveAs" in self.request.arguments() or "save" in self.request.arguments():
 				if not search or "saveAs" in self.request.arguments():
 					search = SavedSearch(key_name=KeyName("filter"), rakontu=rakontu, creator=member)

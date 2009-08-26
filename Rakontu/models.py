@@ -396,57 +396,34 @@ class Rakontu(db.Model):
 	def getNonDraftEntriesOfType(self, type):
 		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(BIG_FETCH_NUMBER)
 	
-	def getNonDraftEntriesWithMissingMetadata(self, sortBy):
-		entriesWithoutTags = []
-		entriesWithoutLinks = []
-		entriesWithoutAnswers = []
-		entriesWithoutComments = []
-		invitationsWithoutResponses = []
-		collagesWithoutInclusions = []
-		for entry in self.getNonDraftEntries():
-			if not Annotation.all().filter("entry = ", entry.key()).filter("type = ", "tag set").filter("draft = ", False).get():
-				entriesWithoutTags.append(entry)
-			if not Link.all().filter("itemFrom = ", entry.key()).get() and not Link.all().filter("itemTo = ", entry.key()).get():
-				entriesWithoutLinks.append(entry)
-			if not Answer.all().filter("referent = ", entry.key()).filter("draft = ", False).get():
-				entriesWithoutAnswers.append(entry)
-			if not Annotation.all().filter("entry = ", entry.key()).filter("type = ", "comment").filter("draft = ", False).get():
-				entriesWithoutComments.append(entry)
-		for invitation in self.getNonDraftEntriesOfType("invitation"):
-			if not Link.all().filter("itemFrom = ", invitation.key()).filter("type = ", "responded").get():
-				invitationsWithoutResponses.append(invitation)
-		for collage in self.getNonDraftEntriesOfType("collage"):
-			if not Link.all().filter("itemFrom = ", collage.key()).filter("type = ", "included").get():
-				collagesWithoutInclusions.append(collage)
+	def getNonDraftEntriesLackingMetadata(self, show, type, sortBy):
+		result = []
+		DebugPrint(show)
+		for entry in self.getNonDraftEntriesOfType(type):
+			doNotAdd = True
+			if show == "entries_no_tags":
+				doNotAdd = entry.hasTagSets()
+			elif show == "entries_no_links":
+				doNotAdd =  entry.hasLinks()
+			elif show == "entries_no_comments":
+				doNotAdd =  entry.hasComments()
+			elif show == "entries_no_answers":
+				doNotAdd =  entry.hasAnswers()
+			elif show == "collages_no_links":
+				doNotAdd =  (not entry.isCollage()) or entry.hasOutgoingLinksOfType("included")
+			elif show == "invitations_no_resopnses":
+				doNotAdd = (not entry.isInvitation()) or entry.hasOutgoingLinksOfType("responded")
+			if not doNotAdd:
+				result.append(entry)
 		if sortBy == "activity":
-			entriesWithoutTags.sort(lambda a,b: cmp(b.activityPoints, a.activityPoints))
-			entriesWithoutLinks.sort(lambda a,b: cmp(b.activityPoints, a.activityPoints))
-			entriesWithoutAnswers.sort(lambda a,b: cmp(b.activityPoints, a.activityPoints))
-			entriesWithoutComments.sort(lambda a,b: cmp(b.activityPoints, a.activityPoints))
-			invitationsWithoutResponses.sort(lambda a,b: cmp(b.activityPoints, a.activityPoints))
-			collagesWithoutInclusions.sort(lambda a,b: cmp(b.activityPoints, a.activityPoints))
+			result.sort(lambda a,b: cmp(b.activityPoints, a.activityPoints))
 		elif sortBy == "nudges":
-			entriesWithoutTags.sort(lambda a,b: cmp(b.nudgePointsCombined(), a.nudgePointsCombined()))
-			entriesWithoutLinks.sort(lambda a,b: cmp(b.nudgePointsCombined(), a.nudgePointsCombined()))
-			entriesWithoutAnswers.sort(lambda a,b: cmp(b.nudgePointsCombined(), a.nudgePointsCombined()))
-			entriesWithoutComments.sort(lambda a,b: cmp(b.nudgePointsCombined(), a.nudgePointsCombined()))
-			invitationsWithoutResponses.sort(lambda a,b: cmp(b.nudgePointsCombined(), a.nudgePointsCombined()))
-			collagesWithoutInclusions.sort(lambda a,b: cmp(b.nudgePointsCombined(), a.nudgePointsCombined()))
+			result.sort(lambda a,b: cmp(b.nudgePointsCombined(), a.nudgePointsCombined()))
 		elif sortBy == "date":
-			entriesWithoutTags.sort(lambda a,b: cmp(b.published, a.published))
-			entriesWithoutLinks.sort(lambda a,b: cmp(b.published, a.published))
-			entriesWithoutAnswers.sort(lambda a,b: cmp(b.published, a.published))
-			entriesWithoutComments.sort(lambda a,b: cmp(b.published, a.published))
-			invitationsWithoutResponses.sort(lambda a,b: cmp(b.published, a.published))
-			collagesWithoutInclusions.sort(lambda a,b: cmp(b.published, a.published))
+			result.sort(lambda a,b: cmp(b.published, a.published))
 		elif sortBy == "annotations":
-			entriesWithoutTags.sort(lambda a,b: cmp(b.getNonDraftAnnotationCount(), a.getNonDraftAnnotationCount()))
-			entriesWithoutLinks.sort(lambda a,b: cmp(b.getNonDraftAnnotationCount(), a.getNonDraftAnnotationCount()))
-			entriesWithoutAnswers.sort(lambda a,b: cmp(b.getNonDraftAnnotationCount(), a.getNonDraftAnnotationCount()))
-			entriesWithoutComments.sort(lambda a,b: cmp(b.getNonDraftAnnotationCount(), a.getNonDraftAnnotationCount()))
-			invitationsWithoutResponses.sort(lambda a,b: cmp(b.getNonDraftAnnotationCount(), a.getNonDraftAnnotationCount()))
-			collagesWithoutInclusions.sort(lambda a,b: cmp(b.getNonDraftAnnotationCount(), a.getNonDraftAnnotationCount()))
-		return (entriesWithoutTags, entriesWithoutLinks, entriesWithoutAnswers, entriesWithoutComments, invitationsWithoutResponses, collagesWithoutInclusions)
+			result.sort(lambda a,b: cmp(b.getNonDraftAnnotationCount(), a.getNonDraftAnnotationCount()))
+		return result
 	
 	def getEntryActivityPointsForEvent(self, event):
 		i = 0
@@ -507,16 +484,20 @@ class Rakontu(db.Model):
 		searches = SavedSearch.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
 		return (entries, annotations, answers, links, searches)
 	
-	def getAllFlaggedItemsAsOneList(self):
-		result = []
-		(entries, annotations, answers, links, searches) = self.getAllFlaggedItems()
-		result.extend(links)
-		result.extend(answers)
-		result.extend(annotations)
-		result.extend(entries)
-		result.extend(searches)
-		return result
-
+	def getAllFlaggedItemsOfType(self, type):
+		if type == "tagset": # coming from URL, needs space added
+			type = "tag set"
+		if type in ENTRY_TYPES:
+			return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
+		elif type in ANNOTATION_TYPES:
+			return Annotation.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type =", type).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
+		elif type == "answer": 
+			return Answer.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
+		elif type == "link":
+			return Link.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
+		elif type == "filter":
+			return SavedSearch.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
+	
 	def getAllItems(self):
 		entries = Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 		annotations = Annotation.all().filter("rakontu = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
@@ -2042,6 +2023,9 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	def getNonDraftAnnotationsOfType(self, type):
 		return Annotation.all().filter("entry =", self.key()).filter("type = ", type).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
+	def hasTagSets(self):
+		return Annotation.all().filter("entry =", self.key()).filter("type = ", "tag set").filter("draft = ", False).count() > 0
+		
 	def hasComments(self):
 		return Annotation.all().filter("entry =", self.key()).filter("type = ", "comment").filter("draft = ", False).count() > 0
 		
@@ -2053,6 +2037,9 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
+	
+	def hasNonDraftAnswers(self):
+		return Answer.all().filter("referent = ", self.key()).filter("draft = ", False).count() > 0
 	
 	def getAnswersForQuestion(self, question):
 		return Answer.all().filter("referent = ", self.key()).filter("question = ", question.key()).fetch(FETCH_NUMBER)
@@ -2110,6 +2097,9 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		result.extend(outgoingLinks)
 		result.extend(incomingLinks)
 		return result
+	
+	def hasLinks(self):
+		return Link.all().filter("itemFrom = ", self.key()).count() + Link.all().filter("itemTo = ", self.key()).count() > 0
 	
 	def getLinksOfType(self, type):
 		result = []

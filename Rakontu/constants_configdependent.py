@@ -54,9 +54,14 @@ ENTRY_TYPES_PLURAL = ["stories", "invitations", "collages", "patterns", "resourc
 
 # annotations
 ANNOTATION_TYPES = ["tag set", "comment", "request", "nudge"]
+
+# things that can be shown on member pages
 ANNOTATION_ANSWER_LINK_TYPES = ["tag set", "comment", "request", "nudge", "answer", "link"]
 ANNOTATION_ANSWER_LINK_TYPES_ANSWER_INDEX = 4
 ANNOTATION_ANSWER_LINK_TYPES_LINK_INDEX = 5
+
+# things that can be flagged
+FLAGGED_ITEM_TYPES = ["story", "pattern", "collage", "invitation", "resource", "answer", "tagset", "comment", "request", "nudge", "link", "filter"]
 
 # entries and annotations
 ENTRY_AND_ANNOTATION_TYPES = ["story", "pattern", "collage", "invitation", "resource", "answer", "tag set", "comment", "request", "nudge"]

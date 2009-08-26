@@ -237,7 +237,7 @@ class EnterEntryPage(webapp.RequestHandler):
 					attributionQueryString = "offlineAttribution"
 				else:
 					attributionQueryString = "attribution"
-				if self.request.get(attributionQueryString) != "member":
+				if self.request.get(attributionQueryString) and self.request.get(attributionQueryString) != "member":
 					entry.character = Character.get(self.request.get(attributionQueryString))
 				else:
 					entry.character = None
@@ -709,7 +709,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					attributionQueryString = "offlineAttribution"
 				else:
 					attributionQueryString = "attribution"
-				if self.request.get(attributionQueryString) != "member":
+				if self.request.get(attributionQueryString) and self.request.get(attributionQueryString) != "member":
 					characterKey = self.request.get(attributionQueryString)
 					character = Character.get(characterKey)
 					annotation.character = character

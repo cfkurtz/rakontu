@@ -349,7 +349,7 @@ class ManageRakontuQuestionsPage(webapp.RequestHandler):
 							type = aType
 							break
 				rakontuQuestionsOfType = rakontu.getActiveQuestionsOfType(type)
-				systemQuestionsOfType = SystemQuestionsOfType()
+				systemQuestionsOfType = SystemQuestionsOfType(type)
 				for question in rakontuQuestionsOfType:
 					question.name = htmlEscape(self.request.get("name|%s" % question.key()))
 					if not question.name:

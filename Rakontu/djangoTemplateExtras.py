@@ -53,7 +53,14 @@ register.filter(listLookup)
 def isLastInSeries(list, object):
 	return list.index(object) == len(list) - 1
 register.filter(isLastInSeries)
-	
+
+def isInList(object, list):
+	if list and object:
+		return object in list
+	else:
+		return False
+register.filter(isInList)
+
 def get(object, fieldName):
 	if object:
 		if callable(getattr(object, fieldName)):

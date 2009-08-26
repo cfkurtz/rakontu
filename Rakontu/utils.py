@@ -2,17 +2,17 @@
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
 # Version: pre-0.1
-# License: GPL 3.0
+# License: GPL 3.0 
 # Google Code Project: http://code.google.com/p/rakontu/
 # -------------------------------------------------------------------------- -------- ----------
        
 import os    
-import string        
+import string          
 import cgi        
 import htmllib          
        
-from models import *       
-   
+from models import *        
+    
 from google.appengine.api import users    
 from google.appengine.ext.webapp import template     
 from google.appengine.ext import webapp   
@@ -194,17 +194,17 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	user = users.get_current_user()  
 	if user != None:  
 		email = user.email()   
-	else:
+	else: 
 		email = None  
 	items = { 
 	   'version_number': VERSION_NUMBER, 
-	   'text_formats': TEXT_FORMATS,  
+	   'text_formats': TEXT_FORMATS,   
 	   'text_formats_display': TEXT_FORMATS_DISPLAY,  
 	   'governance_roles_display': GOVERNANCE_ROLE_TYPES_DISPLAY, 
 	   'no_access': NO_ACCESS,
 	   'num_nudge_categories': NUM_NUDGE_CATEGORIES, 
-	   'num_tags_in_tag_set': NUM_TAGS_IN_TAG_SET, 
-	   'time_zone_names': pytz.all_timezones,   
+	   'num_tags_in_tag_set': NUM_TAGS_IN_TAG_SET,  
+	   'time_zone_names': pytz.all_timezones,    
 	   'date_formats': DateFormatStrings(), 
 	   'time_formats': TimeFormatStrings(),  
 	   'time_frames': TIME_FRAMES,  
@@ -213,6 +213,7 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'entry_types_display': ENTRY_TYPES_DISPLAY,
 	   'entry_types_plural': ENTRY_TYPES_PLURAL,  
 	   'entry_types_plural_display': ENTRY_TYPES_PLURAL_DISPLAY,
+	   'annotation_types': ANNOTATION_TYPES,
 	   'annotation_answer_link_types': ANNOTATION_ANSWER_LINK_TYPES,
 	   'annotation_answer_link_types_plural_display': ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY,
 	   'request_types': REQUEST_TYPES,
@@ -591,7 +592,7 @@ def GenerateHelps():
 				helps.append(Help(key_name=KeyName("help"), type=row[0].strip(), name=row[1].strip(), text=row[2].strip()))
 		db.put(helps) 
 	finally:
-		file.close() 
+		file.close()  
 		
 def GenerateSkins():
 	db.delete(AllSkins())

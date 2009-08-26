@@ -13,59 +13,50 @@
 			&{{url_query_sort_by}}={{sort_by}}
 		{% endif %}
 		" method="post" enctype="multipart/form-data">
-		<p>{{template_sort_by}}
+		
+		<p>{{template_show}}
+		<select name="type">
+			{% for i in entry_types|makeRangeFromListLength %}
+				<option value="{{entry_types|listLookup:i}}" 
+				{% if entry_types|listLookup:i|equalTest:type %} 
+					selected="selected" 
+				{% endif %}
+				>{{entry_types_plural_display|listLookup:i}}</option>
+			{% endfor %}
+			</select>
+				
+		<select name="show">
+			<option value="entries_no_tags" {% ifequal show "entries_no_tags" %} selected="selected" {% endifequal %}>{{template_entries_with_no_tags}}</option>
+			<option value="entries_no_links" {% ifequal show "entries_no_links" %} selected="selected" {% endifequal %}>{{template_entries_with_no_links}}</option>
+			<option value="entries_no_comments" {% ifequal show "entries_no_comments" %} selected="selected" {% endifequal %}>{{template_entries_with_no_comments}}</option>
+			{% if rakontu.hasActiveNonMemberQuestions %} 
+				<option value="entries_no_answers" {% ifequal show "entries_no_answers" %} selected="selected" {% endifequal %}>{{template_entries_with_no_answers_to_questions}}</option>
+			{% endif %}
+			<option value="collages_no_links" {% ifequal show "collages_no_links" %} selected="selected" {% endifequal %}>{{template_collages_with_no_story_links}}</option>
+			</select>
+
+		{{template_sort_by}}
 		<select name="sortBy">
 			<option value="date" {% ifequal sort_by "date" %} selected="selected" {% endifequal %}>{{template_most_recent}}</option>
 			<option value="annotations" {% ifequal sort_by "annotations" %} selected="selected" {% endifequal %}>{{template_most_annotated}}</option>
 			<option value="activity" {% ifequal sort_by "activity" %} selected="selected" {% endifequal %}>{{template_highest_activity}}</option>
 			<option value="nudges" {% ifequal sort_by "nudges" %} selected="selected" {% endifequal %}>{{template_highest_nudged}}</option>
 			</select>
-		<input type="submit" name="sortBy" value="{{button_change}}" class="button_small">
+		<input type="submit" name="changeSelections" value="{{button_change}}" class="button_small">
+		
 		</form>
 		</div>
-
-		<table border="0" cellpadding="4" cellspacing="0">
-	      	<tr>
-	      		<th>{{template_entries_with_no_tags}}</th>
-	      		<th>{{template_entries_with_no_links}}</th>
-	      		{% if rakontu.hasActiveNonMemberQuestions %} 
-	      			<th>{{template_entries_with_no_answers_to_questions}}</th> 
-	      		{% endif %}
-	      		<th>{{template_collages_with_no_story_links}}</b></th>
-	      	</tr>
-	      	<tr>
-	      	<td valign="top">
-	      	{% if entries_without_tags %}
-				{% for entry in entries_without_tags %}
-					<p>{{entry.linkString}} ({{entry.typeForDisplay}})</p>
-				{% endfor %}
-			{% else %}
-				{{term_none}}
-			{% endif %}</td>
-	      	<td valign="top">{% if entries_without_links %}
-				{% for entry in entries_without_links %}
-					<p>{{entry.linkString}} ({{entry.typeForDisplay}})</p>
-				{% endfor %}
-			{% else %}
-				{{term_none}}
-			{% endif %}</td>
-			{% if rakontu.hasActiveNonMemberQuestions %} 
-		      	<td valign="top">{% if entries_without_answers %}
-					{% for entry in entries_without_answers %}
-						<p>{{entry.linkString}} ({{entry.typeForDisplay}})</p>
-					{% endfor %}
-				{% else %}
-					{{term_none}}
-				{% endif %}</td>
-			{% endif %}
-	      	<td valign="top">{% if collages_without_inclusions %}
-				{% for entry in collages_without_inclusions %}
-					<p>{{entry.linkString}} ({{entry.typeForDisplay}})</p>
-				{% endfor %}
-			{% else %}
-				{{term_none}}
-			{% endif %}</td>
-		</tr></table>
+		
+      	{% if entries %}
+			<table cellspacing=0 cellpadding=4>
+			<tr><th>{{template_type}}</th><th>{{template_name}}</th></tr>
+			{% for entry in entries %}
+				<tr><td>{{entry.typeForDisplay}}</td><td>{{entry.linkString}}</td></tr>
+			{% endfor %}
+			</table>
+		{% else %}
+			<ul><li class="nobullet">{{template_none_found}}.</li></ul>
+		{% endif %}
 			
 	{% else %}
 		<p>{{no_access|dictLookup:"gaps"}}</p>
