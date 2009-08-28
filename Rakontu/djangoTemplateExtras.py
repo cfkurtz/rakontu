@@ -98,6 +98,15 @@ def add(numberString, addString):
 		return numberString
 register.filter(add)
 	
+def subtract(numberString, subtractString):
+	try:
+		number = int(numberString)
+		subtractNumber = int(subtractString)
+		return str(number - subtractNumber)
+	except:
+		return numberString
+register.filter(subtract)
+	
 def dividesBy(value, divideBy):
 	return value != 0 and value % divideBy == 0
 register.filter(dividesBy)
@@ -227,8 +236,8 @@ register.filter(strip)
 def infoTipCaution(value, type):
 	helpText = utils.helpTextLookup(value, type)
 	if helpText:
-		return '<a href="/%s?%s=%s"><img src="../images/%s.png" alt="help" border="0" valign="center" title="%s"/></a>' % \
-			(URLS["url_help"], URL_OPTIONS["url_query_help"], value, type, helpText)
+		return '<a href="/%s?%s=%s&%s=%s"><img src="../images/%s.png" alt="help" border="0" valign="center" title="%s"/></a>' % \
+			(URLS["url_help"], URL_OPTIONS["url_query_help"], value, URL_OPTIONS["url_query_help_type"], type, type, helpText)
 	else:
 		return ""
 

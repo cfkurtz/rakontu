@@ -12,9 +12,8 @@
 			<h3>{{template_resources}}</h3>
 	      	<table border="0" cellpadding="4" cellspacing="0">
 	      	<tr>
-	      		<th>{{template_category}}</th>
+	      		<th>{{template_category}} {{"resource_categories"|info}}</th>
 	      		<th>{{template_name}} {{"flagging_and_unflagging_items"|tip}}</th>
-	      		<th>{{template_first_part_of_text}}</th>
 	      		<th>{{template_attachments}}</th>
 	      		<th>{{template_help}}?</th>
 	      		<th>{{template_for_new_members}}?</th>
@@ -22,7 +21,6 @@
 	      			<th>{{template_for_managers_only}}?</th>
 	      		{% endif %}
 	      		<th>{{template_created}}</th>
-	      		<th>{{template_last_changed}}</th>
 	      		<th>{{template_last_published}}</th>
 	      		</tr>
 	      		{% for resource in resources %}
@@ -36,7 +34,6 @@
 					{% endif %}
 
 	  				{{resource.linkString}}</td>
-	  				<td>{{resource.text_formatted|upTo:100}}</td>
 	  				<td>
 	  				{% if resource.getAttachments %}
 	  					{% for attachment in resource.getAttachments %}
@@ -48,14 +45,14 @@
 					</td>
 					<td>
 						{% if resource.resourceForHelpPage %}
-							{{template_yes}}
+							{{template_yes|upper}}
 						{% else %}
 							{{template_no}}
 						{% endif %}
 					</td>
 					<td>
 						{% if resource.resourceForNewMemberPage %}
-							{{template_yes}}
+							{{template_yes|upper}}
 						{% else %}
 							{{template_no}}
 						{% endif %}
@@ -63,25 +60,21 @@
 					{% if current_member.isManagerOrOwner %}
 						<td>
 							{% if resource.resourceForManagersAndOwnersOnly %}
-								{{template_yes}}
+								{{template_yes|upper}}
 							{% else %}
 								{{template_no}}
 							{% endif %}
 						</td>
 					{% endif %}
-					<td>{{resource.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					<td>
 					{{resource.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 					</td>
-					<td>{{resource.edited|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
-					{{resource.edited|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-					</td>
-					<td>{{resource.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					<td>
 					{{resource.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 					</td>
 	  				</tr>
 	      		{% endfor %}
 	      	</table>
-	      		<a href="/{{dir_guide}}/{{url_copy_resources}}?{{rakontu.urlQuery}}">{{template_generate_default_help_resources}}</a>
 		</form>	
 		</div>
 	      	{% else %}

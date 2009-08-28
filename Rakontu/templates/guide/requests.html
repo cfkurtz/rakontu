@@ -6,52 +6,66 @@
 	
 	{% if current_member.isGuide %}
 		<div id="stylized" class="rakontu_form">
-		<form action="/{{dir_guide}}/{{url_requests}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_guide}}/{{url_requests}}?{{rakontu.urlQuery}}{% if request_type %}&{{url_query_type}}={{request_type}}{% endif %}{% if not showing_all_requests %}&{{url_query_uncompleted}}={{url_query_uncompleted}}{% endif %}" method="post" enctype="multipart/form-data">
 		
- 		{% if showing_all_requests %}
-			<h3>{{template_requests}}</h3>
-		{% else %}
-			<h3>{{template_uncompleted_requests}}</h3>
-		{% endif %}
-
-		{% for i in num_types|makeRange %}
-			<p>{{request_types|listLookup:i|capitalize}}
-      		{% if requests|listLookup:i %}
-      			</p>
-      			<table style="margin-left:20px;">
+		<p>{{template_show}}
+		<select name="all_or_uncompleted">
+			<option value="showAllRequests"
+			{% if showing_all_requests %}
+				selected="selected"
+			{% endif %}
+			>{{template_all_requests}}</option>
+			<option value="showOnlyUncompledRequests"
+			{% if not showing_all_requests %}
+				selected="selected"
+			{% endif %}
+			>{{template_only_uncompleted_requests}}</option>
+			</select>
+		{{template_requests_of_the_type}}
+		<select name="request_type">
+			{% for i in request_types|makeRangeFromListLength %}
+				<option value="{{request_types_urls|listLookup:i}}"
+				{% if request_types_urls|listLookup:i|equalTest:request_type %}
+					selected="selected"
+				{% endif %}
+				>{{request_types|listLookup:i}}</option>
+			{% endfor %}
+			</select> 
+		<input type="submit" name="changeSelections" value="{{button_change}}" class="button_small">
+		</p>
+		
+   		{% if requests %}
+  			<table cellspacing=0 cellpadding=4 style="margin-left:20px;">
+  			<tr>
+  				<th>{{template_entry}}</th>
+  				<th>{{template_name}}</th>
+  				<th>{{template_first_part_of_text}}</th>
+  				<th>{{template_completed}}?</th>
+  				</tr>
+      		{% for request in requests %}
       			<tr>
-      				<th>{{template_entry}}</th>
-      				<th>{{template_name}}</th>
-      				<th>{{template_content}}</th>
-      				<th>{{template_completed}}?</th>
-      				</tr>
-	      		{% for request in requests|listLookup:i %}
-	      			<tr>
-	      			<td>{{request.entry.linkString}}</td>
-	      			<td>{{request.linkString}}</td>
-	      			<td>{{request.longString_formatted|upTo:400}}</a></td>
-	      			<td align="center">
-	  					{% if request.completedIfRequest %}
-	  						{{template_yes}}<br/>
-	  						<input type="submit" name="setUncompleted|{{request.key}}" value="{{button_set_request_uncompleted}}" class="button_small">
-	  					{% else %}
-	  						{{template_no}}<br/>
-	  						<input type="submit" name="setCompleted|{{request.key}}" value="{{button_set_request_completed}}" class="button_small">
-	  					{% endif %}
-      				</td>
-	      			</tr>
-	      		{% endfor %}
-	      		</table>
-	      	{% else %}
-	      		 <ul><li class="nobullet">{{term_none}}</li></ul>
-	      	{% endif %}
-      	{% endfor %}
-      	
- 		{% if showing_all_requests %}
-			<p><input type="submit" name="showOnlyUncompletedRequests" value="{{button_show_uncompleted_requests}}" class="button_small"></p>
-		{% else %}
-			<p><input type="submit" name="showAllRequests" value="{{button_show_all_requests}}" class="button_small"></p>
-		{% endif %}
+      			<td>{{request.entry.linkString}}</td>
+      			<td>{{request.linkString}}</td>
+      			<td>{{request.longString_formatted|upTo:200}}</a></td>
+      			<td align="center">
+  					{% if request.completedIfRequest %}
+  						{{template_yes|upper}}
+  						<input type="submit" name="setUncompleted|{{request.key}}" value="{{button_set_request_uncompleted}}" class="button_small">
+  					{% else %}
+  						{{template_no}}
+  						<input type="submit" name="setCompleted|{{request.key}}" value="{{button_set_request_completed}}" class="button_small">
+  					{% endif %}
+  				</td>
+      			</tr>
+      		{% endfor %}
+      		</table>
+      	{% else %}
+			{% if showing_all_requests %}
+				<p>{{template_no_requests}}</p>
+			{% else %}
+				<p>{{template_no_uncompleted_requests}}</p>
+			{% endif %}
+      	{% endif %}
 		
 	</form>
 	</div>

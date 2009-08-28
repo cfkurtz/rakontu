@@ -79,9 +79,14 @@ DEFAULT_START_NUDGE_POINTS = 50
 # BROWSING
 # ============================================================================================ 
 
-# This is how many items (entries or annotations) can be shown on any one web page.
-# Set it lower if people have slow connection speeds (or little patience).
-MAX_ITEMS_PER_PAGE = 200
+# This is how many items (entries or annotations) can be shown on any one web page
+# when there is no paging going on (ie when people are looking at things by choosing subsets).
+DEFAULT_MAX_ITEMS_PER_GRID_PAGE = 200
+MAX_ITEMS_PER_GRID_PAGE_CHOICES = [20, 50, 100, 150, 200, 250, 300, 400, 500]
+
+# This is how many items are normally shown on a page when paging is going on.
+DEFAULT_PAGING_ITEMS_PER_PAGE = 20
+NUM_ITEMS_PER_PAGE_CHOICES = [2, 5, 10, 20, 30, 40, 50, 75, 100, 150, 200]
 
 # These are the time frames shown in the Rakontu home page.
 # The names can be anything you like, but the number of seconds must match the time frame stated.
@@ -156,6 +161,7 @@ NUM_SEARCH_FIELDS = 3
 NUM_ATTACHMENT_CHOICES = [0, 1, 2, 3, 4, 5]
 DEFAULT_MAX_NUM_ATTACHMENTS = 3
 MAX_POSSIBLE_ATTACHMENTS = 5
+UNTITLED_ATTACHMENT_NAME = "Untitled"
 
 # These are the accepted attachment file types. You can add or remove any types here.
 # However, these two lists MUST match up exactly (by order).
@@ -163,8 +169,8 @@ MAX_POSSIBLE_ATTACHMENTS = 5
 # http://www.iana.org/assignments/media-types/
 # http://www.w3schools.com/media/media_mimeref.asp
 # You should make sure your entry in the help.csv file (which tells the user which types are accepted) matches this list.
-ACCEPTED_ATTACHMENT_FILE_TYPES = ["jpg", "png", "pdf", "doc", "txt", "mpg", "mp3", "html", "zip"]
-ACCEPTED_ATTACHMENT_MIME_TYPES = ["image/jpeg", "image/png", "application/pdf", "application/msword", "text/plain", "video/mpeg", "audio/mpeg", "text/html", "application/zip"]
+ACCEPTED_ATTACHMENT_FILE_TYPES = ["jpg", "png", "pdf", "doc", "txt", "mpg", "mp3", "html", "zip", "py"]
+ACCEPTED_ATTACHMENT_MIME_TYPES = ["image/jpeg", "image/png", "application/pdf", "application/msword", "text/plain", "video/mpeg", "audio/mpeg", "text/html", "application/zip", "text/plain"]
 
 # This is whether fictional character attribution is allowed, by default.
 # One setting for each of these entry types: story, pattern, collage, invitation, resource, answer, tag set, comment, request, nudge

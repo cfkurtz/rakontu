@@ -504,10 +504,17 @@ You can set up lists of questions about each type of entry -- stories, invitatio
 
 CFK FINISH
 
+[Limitations in Rakontu]
+Category=Technical
+Interpret as=Wiki markup
+Managers only=yes
+Rakontu has some built-in limitations (as of this writing) that have mainly to do with it running on the Google App Engine. These will affect how people can use the software in their groups. If you are a manager or site administrator and are interested in the technical details, you might want to read over this information.
 
+=== Limits to the number of items displayed
 
+Google App Engine has a hard and fast limit of 1000 records that can be returned from the database at any time. Their recommendation for dealing with this limit is to use paging (you are now viewing records 25-50 of 2649) on every display of information. For a few reasons paging has been implemented only minimally in Rakontu. 
 
-
+For most small groups the likelihood of most of the Rakontu screens needing to show more than 1000 items is very small. For example, it is very unlikely that a group of 30 people will _ever_ have more than 1000 invitations in their Rakontu, or flagged items, or resources, or off-line members. Some pages do show only a limited number of items: Curate-Gaps, Curate-Attachements, Curate-Flags, and the pages relating entries to other entries. However, some pages assume that such limits are not required: Curate-Flags, Guide-Invitations, Guide-Resources, and so on. If your Rakontu for some reason grows beyond these limits, the only result 
 
 
 

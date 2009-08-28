@@ -5,30 +5,15 @@
 	<div id="content">
 	{% if current_member.isCuratorOrManagerOrOwner %}
 		<div id="stylized" class="rakontu_form">
-		<form action="/{{dir_curate}}/{{url_flags}}?{{rakontu.urlQuery}}" method="post">	
-		
-		<div id="stylized" class="rakontu_form">
-		<form action="/{{dir_curate}}/{{url_gaps}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
-		
-		<h3>{{template_items_flagged_for_removal}} {{"flagging_items_for_removal"|info}}</h3>
-		<p>{{template_show}}
-		<select name="type">
-			{% for i in flagged_item_types|makeRangeFromListLength %}
-				<option value="{{flagged_item_types|listLookup:i}}" 
-				{% if flagged_item_types|listLookup:i|equalTest:type %} 
-					selected="selected" 
-				{% endif %}
-				>{{flagged_item_types_plural_display|listLookup:i}}</option>
-			{% endfor %}
-			</select> 
-		<input type="submit" name="changeSelections" value="{{button_change}}" class="button_small">
-		
-			{% if type|isInList:entry_types and items %}
+		<form action="/{{dir_curate}}/{{url_flags}}?{{rakontu.urlQuery}}" method="post">			
+			<h3>{{template_flagged}} {{template_entries|lower}} {{"flagging_items_for_removal"|info}}</h3>
+			{% if entries %}
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
 		      		<th>{{template_unflag}}? {{"unflag_item"|tip}}</th>
 		      		<th>{{template_entry}}</th>
+		      		<th>{{template_type}}</th>
 		      		<th>{{template_linked_to}}</th>
 		      		<th>{{template_first_part_of_text}}</th>
 		      		<th>{{template_contributor}}</th>
@@ -39,124 +24,131 @@
 		      			<th>{{template_notify}}? {{"flag_notifications"|caution}}</th> 
 		      		{% endif %}
 	      		</tr>
-	      		{% for item in items %}
+	      		{% for entry in entries %}
 	  				<tr>
 	  				<td width="80">
-	  					<input type="checkbox" name="unflag|{{item.key}}" value="yes" id="unflag|{{item.key}}"/>
-						<label for="unflag|{{item.key}}">{{template_unflag}}</label>
+	  					<input type="checkbox" name="unflag|{{entry.key}}" value="yes" id="unflag|{{entry.key}}"/>
+						<label for="unflag|{{entry.key}}">{{template_unflag}}</label>
 	  				</td>	  				
-	  				<td>{{item.linkString}}</td>
+	  				<td>{{entry.linkString}}</td>
+	  				<td>{{entry.typeForDisplay}}</td>
 	  				<td>
-	  				{% for link in item.getIncomingLinks %}
+	  				{% for link in entry.getIncomingLinks %}
 	  					<p>{{link.linkStringWithFromItem}}</p>
 	  				{% endfor %}&nbsp;
 	  				</td>
-	  				<td>{{item.text_formatted|upTo:100|orNbsp}}</td>
+	  				<td>{{entry.text_formatted|upTo:100|orNbsp}}</td>
 	  				<td>
-						{% if item.attributedToMember %}
-								{% if item.creator.active %}
-									{{item.creator.linkString}}
-									{% ifequal item.creator.key current_member.key %}
+						{% if entry.attributedToMember %}
+								{% if entry.creator.active %}
+									{{entry.creator.linkString}}
+									{% ifequal entry.creator.key current_member.key %}
 										 ({{template_you}})
 									{% endifequal %}
 								{% else %}
-									{{template_the_former_member}} "{{item.creator.nickname}}"
+									{{template_the_former_member}} "{{entry.creator.nickname}}"
 								{% endif %}
 						{% else %}
-							{% if item.character.active %}
-								{{item.character.linkString}}
+							{% if entry.character.active %}
+								{{entry.character.linkString}}
 							{% else %}
-								{{template_the_former_character}} "{{item.character.name}}"
+								{{template_the_former_character}} "{{entry.character.name}}"
 							{% endif %}
 						{% endif %}
 	  				</td>
-	  				<td><input type="text" name="flagComment|{{item.key}}" value="{{item.flagComment|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></td>
+	  				<td><input type="text" name="flagComment|{{entry.key}}" value="{{entry.flagComment|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></td>
 	  				<td width="80">
 	  				{% if current_member.isManagerOrOwner %}
-	  						<input type="checkbox" name="remove|{{item.key}}" value="yes" id="remove|{{item.key}}"/>
-							<label for="remove|{{item.key}}">{{template_remove}}</label>
+	  						<input type="checkbox" name="remove|{{entry.key}}" value="yes" id="remove|{{entry.key}}"/>
+							<label for="remove|{{entry.key}}">{{template_remove}}</label>
 	  				{% else %}
-	  						<input type="checkbox" name="notify|{{item.key}}" value="yes" id="notify|{{item.key}}"/>
-							<label for="notify|{{item.key}}">{{template_notify}}</label>
+	  						<input type="checkbox" name="notify|{{entry.key}}" value="yes" id="notify|{{entry.key}}"/>
+							<label for="notify|{{entry.key}}">{{template_notify}}</label>
 	  				{% endif %}	
 	  				</td>	  				
 	  				</tr>
 	      		{% endfor %}
 		      	</table>
 	      		</fieldset>
+	      	{% else %}
+	      		<ul><li class="nobullet">{{term_none}}</li></ul>
 	      	{% endif %}
 	      	
-	      	{% if items %}
-				{% if type|isInList:annotation_types or type|equalTest:"tagset" %}
-					<fieldset>
-			      	<table border="0" cellpadding="4" cellspacing="0">
-			      	<tr>
-			      		<th>{{template_unflag}}?</th>
-			      		<th>{{template_entry}}</th>
-			      		<th>{{template_content}}</th>
-			      		<th>{{template_contributor}}</th>
-			      		<th>{{template_flag_comment}}</th>
-			      		{% if current_member.isManagerOrOwner %} 
-			      			<th>{{template_remove}}?</th> 
-			      		{% else %}  
-			      			<th>{{template_notify}}?</th> 
-			      		{% endif %}
-		      		</tr>
-		      		{% for item in items %}
-		  				<tr>
-		  				<td>
-		  					<input type="checkbox" name="unflag|{{item.key}}" value="yes" id="unflag|{{item.key}}"/>
-							<label for="unflag|{{item.key}}">{{template_unflag}}</label>
-		  				</td>	  				
-		  				<td>{{item.entry.linkString}}</td>
-		  				<td>
-		  				{% if item.isComment or item.isRequest %}
-		  					{{item.linkString|orNbsp}}
-		  				{% else %}
-		  					{{item.displayString|orNbsp}}
-		  				{% endif %}
-		  				{% if item.isNudge %}
-		  					{% if nudge.shortString and current_member.isManagerOrOwner %}
-			  						<p><input type="checkbox" name="removeComment|{{item.key}}" value="yes" id="removeComment|{{item.key}}"/>
-									<label for="removeComment|{{item.key}}">{{template_remove}} {{template_comment_only}}</label></p>
-							{% endif %}
-		  				{% endif %}
-		  				</td>
-		  				<td>
-							{% if item.attributedToMember %}
-									{% if item.creator.active %}
-										{{item.creator.linkString}}
-										{% ifequal item.creator.key current_member.key %}
-											 ({{template_you}})
-										{% endifequal %}
-									{% else %}
-										{{template_the_former_member}} "{{item.creator.nickname}}"
-									{% endif %}
-							{% else %}
-								{% if item.character.active %}
-									{{item.character.linkString}}
+			<h3>{{template_flagged}} {{template_annotations|lower}}</h3>
+			{% if annotations %}
+				<fieldset>
+		      	<table border="0" cellpadding="4" cellspacing="0">
+		      	<tr>
+		      		<th>{{template_unflag}}?</th>
+		      		<th>{{template_entry}}</th>
+		      		<th>{{template_type}}</th>
+		      		<th>{{template_content}}</th>
+		      		<th>{{template_contributor}}</th>
+		      		<th>{{template_flag_comment}}</th>
+		      		{% if current_member.isManagerOrOwner %} 
+		      			<th>{{template_remove}}?</th> 
+		      		{% else %}  
+		      			<th>{{template_notify}}?</th> 
+		      		{% endif %}
+	      		</tr>
+	      		{% for annotation in annotations %}
+	  				<tr>
+	  				<td>
+	  					<input type="checkbox" name="unflag|{{annotation.key}}" value="yes" id="unflag|{{annotation.key}}"/>
+						<label for="unflag|{{annotation.key}}">{{template_unflag}}</label>
+	  				</td>	  				
+	  				<td>{{annotation.entry.linkString}}</td>
+	  				<td>{{annotation.typeForDisplay}}</td>
+	  				<td>
+	  				{% if annotation.isComment or annotation.isRequest %}
+	  					{{annotation.linkString|orNbsp}}
+	  				{% else %}
+	  					{{annotation.displayString|orNbsp}}
+	  				{% endif %}
+	  				{% if annotation.isNudge %}
+	  					{% if nudge.shortString and current_member.isManagerOrOwner %}
+		  						<p><input type="checkbox" name="removeComment|{{annotation.key}}" value="yes" id="removeComment|{{annotation.key}}"/>
+								<label for="removeComment|{{annotation.key}}">{{template_remove}} {{template_comment_only}}</label></p>
+						{% endif %}
+	  				{% endif %}
+	  				</td>
+	  				<td>
+						{% if annotation.attributedToMember %}
+								{% if annotation.creator.active %}
+									{{annotation.creator.linkString}}
+									{% ifequal annotation.creator.key current_member.key %}
+										 ({{template_you}})
+									{% endifequal %}
 								{% else %}
-									{{template_the_former_character}} "{{item.character.name}}"
+									{{template_the_former_member}} "{{annotation.creator.nickname}}"
 								{% endif %}
+						{% else %}
+							{% if annotation.character.active %}
+								{{annotation.character.linkString}}
+							{% else %}
+								{{template_the_former_character}} "{{annotation.character.name}}"
 							{% endif %}
-		  				</td>
-		  				<td><input type="text" name="flagComment|{{item.key}}" value="{{item.flagComment|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></td>
-		  				<td>
-		  				{% if current_member.isManagerOrOwner %}
-		  						<input type="checkbox" name="remove|{{item.key}}" value="yes" id="remove|{{item.key}}"/>
-								<label for="remove|{{item.key}}">{{template_remove}}</label>
-		  				{% else %}
-		  						<input type="checkbox" name="notify|{{item.key}}" value="yes" id="notify|{{item.key}}"/>
-								<label for="notify|{{item.key}}">{{template_notify}}</label>
-		  				{% endif %}	
-		  				</tr>
-		      		{% endfor %}
-			      	</table>
-			      	</fieldset>
-		      	{% endif %}
-		    {% endif %}
+						{% endif %}
+	  				</td>
+	  				<td><input type="text" name="flagComment|{{annotation.key}}" value="{{annotation.flagComment|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></td>
+	  				<td>
+	  				{% if current_member.isManagerOrOwner %}
+	  						<input type="checkbox" name="remove|{{annotation.key}}" value="yes" id="remove|{{annotation.key}}"/>
+							<label for="remove|{{annotation.key}}">{{template_remove}}</label>
+	  				{% else %}
+	  						<input type="checkbox" name="notify|{{annotation.key}}" value="yes" id="notify|{{annotation.key}}"/>
+							<label for="notify|{{annotation.key}}">{{template_notify}}</label>
+	  				{% endif %}	
+	  				</tr>
+	      		{% endfor %}
+		      	</table>
+		      	</fieldset>
+	      	{% else %}
+	      		<ul><li class="nobullet">{{term_none}}</li></ul>
+	      	{% endif %}
       	
-			{% if type|equalTest:"answer" and items %}
+			<h3>{{template_flagged}} {{template_answers|lower}}</h3>
+			{% if answers %}
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
@@ -172,49 +164,52 @@
 		      			<th>{{template_notify}}?</th> 
 		      		{% endif %}
 	      		</tr>
-	      		{% for item in items %}
+	      		{% for answer in answers %}
 	  				<tr>
 	  				<td>
-	  					<input type="checkbox" name="unflag|{{item.key}}" value="yes" id="unflag|{{item.key}}"/>
-						<label for="unflag|{{item.key}}">{{template_unflag}}</label>
+	  					<input type="checkbox" name="unflag|{{answer.key}}" value="yes" id="unflag|{{answer.key}}"/>
+						<label for="unflag|{{answer.key}}">{{template_unflag}}</label>
 	  				</td>	  				
-	  				<td>{{item.referent.linkString}}</td>
-	  				<td>{{item.question.text}}</td>
-	  				<td>{{item.displayStringShort}}</td>
+	  				<td>{{answer.referent.linkString}}</td>
+	  				<td>{{answer.question.text}}</td>
+	  				<td>{{answer.displayStringShort}}</td>
 	  				<td>
-						{% if item.attributedToMember %}
-								{% if item.creator.active %}
-									{{item.creator.linkString}}
-									{% ifequal item.creator.key current_member.key %}
+						{% if answer.attributedToMember %}
+								{% if answer.creator.active %}
+									{{answer.creator.linkString}}
+									{% ifequal answer.creator.key current_member.key %}
 										 ({{template_you}})
 									{% endifequal %}
 								{% else %}
-									{{template_the_former_member}} "{{item.creator.nickname}}"
+									{{template_the_former_member}} "{{answer.creator.nickname}}"
 								{% endif %}
 						{% else %}
-							{% if item.character.active %}
-								{{item.character.linkString}}
+							{% if answer.character.active %}
+								{{answer.character.linkString}}
 							{% else %}
-								{{template_the_former_character}} "{{item.character.name}}"
+								{{template_the_former_character}} "{{answer.character.name}}"
 							{% endif %}
 						{% endif %}
 	  				</td>
-	  				<td><input type="text" name="flagComment|{{item.key}}" value="{{item.flagComment|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></td>
+	  				<td><input type="text" name="flagComment|{{answer.key}}" value="{{answer.flagComment|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></td>
 	  				<td>
 	  				{% if current_member.isManagerOrOwner %}
-	  						<input type="checkbox" name="remove|{{item.key}}" value="yes" id="remove|{{item.key}}"/>
-							<label for="remove|{{item.key}}">{{template_remove}}</label>
+	  						<input type="checkbox" name="remove|{{answer.key}}" value="yes" id="remove|{{answer.key}}"/>
+							<label for="remove|{{answer.key}}">{{template_remove}}</label>
 	  				{% else %}
-	  						<input type="checkbox" name="notify|{{item.key}}" value="yes" id="notify|{{item.key}}"/>
-							<label for="notify|{{item.key}}">{{template_notify}}</label>
+	  						<input type="checkbox" name="notify|{{answer.key}}" value="yes" id="notify|{{answer.key}}"/>
+							<label for="notify|{{answer.key}}">{{template_notify}}</label>
 	  				{% endif %}	
 	  				</tr>
 	      		{% endfor %}
 		      	</table>
 		      	</fieldset>
+	      	{% else %}
+	      		<ul><li class="nobullet">{{term_none}}</li></ul>
 	      	{% endif %}
       	
-			{% if type|equalTest:"link" and items %}
+			<h3>{{template_flagged}} {{template_links|lower}}</h3>
+			{% if links %}
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
@@ -229,36 +224,39 @@
 		      			<th>{{template_notify}}?</th> 
 		      		{% endif %}
 	      		</tr>
-	      		{% for item in items %}
+	      		{% for link in links %}
 	  				<tr>
 	  				<td>
-	  					<input type="checkbox" name="unflag|{{item.key}}" value="yes" id="unflag|{{item.key}}"/>
-						<label for="unflag|{{item.key}}">{{template_unflag}}</label>
+	  					<input type="checkbox" name="unflag|{{link.key}}" value="yes" id="unflag|{{link.key}}"/>
+						<label for="unflag|{{link.key}}">{{template_unflag}}</label>
 	  				</td>	  				
-	  				<td>{{item.itemFrom.linkString}}</td>
-	  				<td>{{item.itemTo.linkString}}</td>
-	  				<td>{{item.comment|orNbsp}}
-	  					{% if item.comment and current_member.isManagerOrOwner %}
-		  						<p><input type="checkbox" name="removeComment|{{item.key}}" value="yes" id="removeComment|{{item.key}}"/>
-								<label for="removeComment|{{item.key}}">{{template_remove}} {{template_comment_only}}</label></p>
+	  				<td>{{link.itemFrom.linkString}}</td>
+	  				<td>{{link.itemTo.linkString}}</td>
+	  				<td>{{link.comment|orNbsp}}
+	  					{% if link.comment and current_member.isManagerOrOwner %}
+		  						<p><input type="checkbox" name="removeComment|{{link.key}}" value="yes" id="removeComment|{{link.key}}"/>
+								<label for="removeComment|{{link.key}}">{{template_remove}} {{template_comment_only}}</label></p>
 						{% endif %}
 	  				</td>
-	  				<td><input type="text" name="flagComment|{{item.key}}" value="{{item.flagComment|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></td>
+	  				<td><input type="text" name="flagComment|{{link.key}}" value="{{link.flagComment|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></td>
 	  				<td>
 	  				{% if current_member.isManagerOrOwner %}
-	  						<input type="checkbox" name="remove|{{item.key}}" value="yes" id="remove|{{item.key}}"/>
-							<label for="remove|{{item.key}}">{{template_remove}}</label>
+	  						<input type="checkbox" name="remove|{{link.key}}" value="yes" id="remove|{{link.key}}"/>
+							<label for="remove|{{link.key}}">{{template_remove}}</label>
 	  				{% else %}
-	  						<input type="checkbox" name="notify|{{item.key}}" value="yes" id="notify|{{item.key}}"/>
-							<label for="notify|{{item.key}}">{{template_notify}}</label>
+	  						<input type="checkbox" name="notify|{{link.key}}" value="yes" id="notify|{{link.key}}"/>
+							<label for="notify|{{link.key}}">{{template_notify}}</label>
 	  				{% endif %}	
 	  				</tr>
 	      		{% endfor %}
 		      	</table>
 		      	</fieldset>
+	      	{% else %}
+	      		<ul><li class="nobullet">{{term_none}}</li></ul>
 	      	{% endif %}
       	
-			{% if type|equalTest:"filter" and items %}
+			<h3>{{template_flagged}} {{template_filters|lower}}</h3>
+			{% if searches %}
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr><th>{{template_unflag}}? {{"unflagging_items"|tip}}</th>
@@ -276,23 +274,23 @@
 		      			<th>{{template_notify}}?</th> 
 		      		{% endif %}
 	      		</tr>
-	      		{% for item in items %}
+	      		{% for search in searches %}
 	  				<tr>
 	  				<td width="80">
-	  					<input type="checkbox" name="unflag|{{item.key}}" value="yes" id="unflag|{{item.key}}"/>
-						<label for="unflag|{{item.key}}">{{template_unflag}}</label>
+	  					<input type="checkbox" name="unflag|{{search.key}}" value="yes" id="unflag|{{search.key}}"/>
+						<label for="unflag|{{search.key}}">{{template_unflag}}</label>
 	  				</td>	  				
-	  				<td>{{item.linkString}}</td>
+	  				<td>{{search.linkString}}</td>
 	  				<td>
-	  				{% for link in item.getIncomingLinks %}
+	  				{% for link in search.getIncomingLinks %}
 	  					<p>{{link.linkStringWithFromItem}}</p>
 	  				{% endfor %}&nbsp;
 	  				</td>
 			      	<td>
-			      		{% if item.words %}
-			      			{{item.words_anyOrAll}}: {{item.words|join:", "}} <br/>
+			      		{% if search.words %}
+			      			{{search.words_anyOrAll}}: {{search.words|join:", "}} <br/>
 				      		{% for i in search_locations|makeRangeFromListLength %}
-				      			{% if item.words_locations|listLookup:i %}
+				      			{% if search.words_locations|listLookup:i %}
 				      				{{search_locations_display|listLookup:i}}<br/>
 				      			{% endif %}
 				      		{% endfor %}
@@ -300,42 +298,44 @@
 			      			&nbsp;
 			      		{% endif %}
 			      		</td>
-			      	<td>{% if item.tags %}
-			      			{{item.tags_anyOrAll}}: {{item.tags|join:", "}}
+			      	<td>{% if search.tags %}
+			      			{{search.tags_anyOrAll}}: {{search.tags|join:", "}}
 			      		{% endif %}&nbsp;
 			      		</td>
 			      	<td>
-			      		{% for ref in item.getEntryQuestionRefs %}
+			      		{% for ref in search.getEntryQuestionRefs %}
 			      			{{ref.question.text}} {{ref.answer}}<br/>
 			      		{% endfor %}
 			      		&nbsp;
 			      		</td>
 			      	<td>
-			      		{% for ref in item.getCreatorQuestionRefs %}
+			      		{% for ref in search.getCreatorQuestionRefs %}
 			      			{{ref.question.text}} {{ref.answer}}<br/>
 			      		{% endfor %}
 			      		&nbsp;
 			      		</td>
-					<td>{{item.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
-					    {{item.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}<br/>
+					<td>{{search.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					    {{search.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}<br/>
 					 </td>
-	  				<td><input type="text" name="flagComment|{{item.key}}" value="{{item.flagComment|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></td>
+	  				<td><input type="text" name="flagComment|{{search.key}}" value="{{search.flagComment|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></td>
 	  				<td width="80">
 	  				{% if current_member.isManagerOrOwner %}
-	  						<input type="checkbox" name="remove|{{item.key}}" value="yes" id="remove|{{item.key}}"/>
-							<label for="remove|{{item.key}}">{{template_remove}}</label>
+	  						<input type="checkbox" name="remove|{{search.key}}" value="yes" id="remove|{{search.key}}"/>
+							<label for="remove|{{search.key}}">{{template_remove}}</label>
 	  				{% else %}
-	  						<input type="checkbox" name="notify|{{item.key}}" value="yes" id="notify|{{item.key}}"/>
-							<label for="notify|{{item.key}}">{{template_notify}}</label>
+	  						<input type="checkbox" name="notify|{{search.key}}" value="yes" id="notify|{{search.key}}"/>
+							<label for="notify|{{search.key}}">{{template_notify}}</label>
 	  				{% endif %}	
 	  				</td>	  				
 	  				</tr>
 	      		{% endfor %}
 		      	</table>
 	      		</fieldset>
+	      	{% else %}
+	      		<ul><li class="nobullet">{{term_none}}</li></ul>
 	      	{% endif %}
 	      	
-      	{% if items %}
+      	{% if entries or annotations or answers or links or searches %}
 			<p>&nbsp; </p>
 		    <center>
 		    {% if current_member.isManagerOrOwner %}
@@ -344,8 +344,7 @@
 		    {% else %}
 		    	<input type="submit" name="submitChanges" value="{{button_send_selected_notifications}}" class="button">&nbsp; 
 		    {% endif %}
-		{% else %}
-			<p>{{template_no_flagged_items_of_this_type}}</p>
+		    <input type="submit" name="cancel" value="{{button_cancel}}" class="button">
 		{% endif %}
 		</form>	
 		</div>

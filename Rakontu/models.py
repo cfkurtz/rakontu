@@ -15,6 +15,7 @@ VERSION_NUMBER = "0.9"
 from translationLookup import *
 
 from google.appengine.ext import db
+import pager
 
 def KeyName(type):
 	IncrementCount(type)
@@ -370,60 +371,14 @@ class Rakontu(db.Model):
 	# ENTRIES
 	
 	def getNonDraftEntries(self):
-		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).fetch(BIG_FETCH_NUMBER)
+		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
 	def getNonDraftEntriesBetweenDateTimesInReverseTimeOrder(self, minTime, maxTime):
 		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).\
-			filter("published >= ", minTime).filter("published < ", maxTime).order("-published").fetch(BIG_FETCH_NUMBER)
+			filter("published >= ", minTime).filter("published < ", maxTime).order("-published").fetch(FETCH_NUMBER)
 			
-	def getNonDraftEntriesInAlphabeticalOrder(self):
-		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-title").fetch(BIG_FETCH_NUMBER)
-	
-	def getNonDraftStoriesInAlphabeticalOrder(self):
-		return Entry.all().filter("rakontu = ", self.key()).filter("type = ", "story").filter("draft = ", False).order("-title").fetch(BIG_FETCH_NUMBER)
-	
-	def getNonDraftEntriesAnnotationsAndAnswersInReverseTimeOrder(self):
-		result = []
-		entries = Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-published").fetch(BIG_FETCH_NUMBER)
-		annotations = Annotation.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-published").fetch(BIG_FETCH_NUMBER)
-		answers = Answer.all().filter("rakontu = ", self.key()).filter("draft = ", False).order("-published").fetch(BIG_FETCH_NUMBER)
-		result.extend(entries)
-		result.extend(annotations)
-		result.extend(answers)
-		result.sort(lambda a,b: cmp(b.published, a.published))
-		return result
-	
 	def getNonDraftEntriesOfType(self, type):
-		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(BIG_FETCH_NUMBER)
-	
-	def getNonDraftEntriesLackingMetadata(self, show, type, sortBy):
-		result = []
-		DebugPrint(show)
-		for entry in self.getNonDraftEntriesOfType(type):
-			doNotAdd = True
-			if show == "entries_no_tags":
-				doNotAdd = entry.hasTagSets()
-			elif show == "entries_no_links":
-				doNotAdd =  entry.hasLinks()
-			elif show == "entries_no_comments":
-				doNotAdd =  entry.hasComments()
-			elif show == "entries_no_answers":
-				doNotAdd =  entry.hasAnswers()
-			elif show == "collages_no_links":
-				doNotAdd =  (not entry.isCollage()) or entry.hasOutgoingLinksOfType("included")
-			elif show == "invitations_no_resopnses":
-				doNotAdd = (not entry.isInvitation()) or entry.hasOutgoingLinksOfType("responded")
-			if not doNotAdd:
-				result.append(entry)
-		if sortBy == "activity":
-			result.sort(lambda a,b: cmp(b.activityPoints, a.activityPoints))
-		elif sortBy == "nudges":
-			result.sort(lambda a,b: cmp(b.nudgePointsCombined(), a.nudgePointsCombined()))
-		elif sortBy == "date":
-			result.sort(lambda a,b: cmp(b.published, a.published))
-		elif sortBy == "annotations":
-			result.sort(lambda a,b: cmp(b.getNonDraftAnnotationCount(), a.getNonDraftAnnotationCount()))
-		return result
+		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(FETCH_NUMBER)
 	
 	def getEntryActivityPointsForEvent(self, event):
 		i = 0
@@ -477,27 +432,23 @@ class Rakontu(db.Model):
 	# ENTRIES, ANNOTATIONS, ANSWERS, LINKS - EVERYTHING
 	
 	def getAllFlaggedItems(self):
-		entries = Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
-		annotations = Annotation.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
-		answers = Answer.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
-		links = Link.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
-		searches = SavedSearch.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
+		entries = Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
+		annotations = Annotation.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
+		answers = Answer.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
+		links = Link.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
+		searches = SavedSearch.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
 		return (entries, annotations, answers, links, searches)
 	
-	def getAllFlaggedItemsOfType(self, type):
-		if type == "tagset": # coming from URL, needs space added
-			type = "tag set"
-		if type in ENTRY_TYPES:
-			return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
-		elif type in ANNOTATION_TYPES:
-			return Annotation.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type =", type).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
-		elif type == "answer": 
-			return Answer.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
-		elif type == "link":
-			return Link.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
-		elif type == "filter":
-			return SavedSearch.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(BIG_FETCH_NUMBER)
-	
+	def getAllFlaggedItemsAsOneList(self):
+		result = []
+		(entries, annotations, answers, links, searches) = self.getAllFlaggedItems()
+		result.extend(links)
+		result.extend(answers)
+		result.extend(annotations)
+		result.extend(entries)
+		result.extend(searches)
+		return result
+
 	def getAllItems(self):
 		entries = Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 		annotations = Annotation.all().filter("rakontu = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
@@ -543,14 +494,6 @@ class Rakontu(db.Model):
 			item.put()
 			item.publish()
 			
-	def getAttachmentsForAllNonDraftEntries(self):
-		result = []
-		entries = self.getNonDraftEntries()
-		for entry in entries:
-			attachments =  Attachment.all().filter('entry = ', entry.key())
-			result.extend(attachments)
-		return result
-	
 	def getNonDraftTagSets(self):
 		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "tag set").filter("draft = ", False).fetch(FETCH_NUMBER)
 	
@@ -574,6 +517,56 @@ class Rakontu(db.Model):
 			return self.firstPublish - timedelta(seconds=1)
 		else:
 			return self.created
+		
+	# QUERIES WITH PAGING
+	
+	def getNonDraftEntriesLackingMetadata_WithPaging(self, show, type, sortBy, bookmark, numToFetch):
+		query = pager.PagerQuery(Entry).filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).order("-__key__")
+		prev, entries, next = query.fetch(numToFetch, bookmark)
+		result = []
+		for entry in entries:
+			doNotAdd = True
+			if show == "entries_no_tags":
+				doNotAdd = entry.hasTagSets()
+			elif show == "entries_no_links":
+				doNotAdd =  entry.hasLinks()
+			elif show == "entries_no_comments":
+				doNotAdd =  entry.hasComments()
+			elif show == "entries_no_answers":
+				doNotAdd =  entry.hasAnswers()
+			elif show == "collages_no_links":
+				doNotAdd =  (not entry.isCollage()) or entry.hasOutgoingLinksOfType("included")
+			elif show == "invitations_no_resopnses":
+				doNotAdd = (not entry.isInvitation()) or entry.hasOutgoingLinksOfType("responded")
+			if not doNotAdd:
+				result.append(entry)
+		if sortBy == "activity":
+			result.sort(lambda a,b: cmp(b.activityPoints, a.activityPoints))
+		elif sortBy == "nudges":
+			result.sort(lambda a,b: cmp(b.nudgePointsCombined(), a.nudgePointsCombined()))
+		elif sortBy == "date":
+			result.sort(lambda a,b: cmp(b.published, a.published))
+		elif sortBy == "annotations":
+			result.sort(lambda a,b: cmp(b.getNonDraftAnnotationCount(), a.getNonDraftAnnotationCount()))
+		return prev, result, next
+	
+	def getAttachments_WithPaging(self, numToFetch, bookmark):
+		# note, cannot get this to work with date order, using key order instead
+		# wants FixedOffset class, which is here
+		# http://docs.python.org/library/datetime.html#datetime-tzinfo
+		# but can't load it ??
+		query = pager.PagerQuery(Attachment).filter("rakontu = ", self.key()).order("-__key__")
+		prev, results, next = query.fetch(numToFetch, bookmark)
+		return prev, results, next
+	
+	def getTagSets_WithPaging(self, numToFetch, bookmark):
+		query = pager.PagerQuery(Annotation).filter("rakontu = ", self.key()).filter("type = ", "tag set").filter("draft = ", False).order("-__key__")
+		prev, results, next = query.fetch(numToFetch, bookmark)
+		return prev, results, next
+	
+	def getNonDraftEntriesOfType_WithPaging(self, type, numToFetch, bookmark):
+		query = pager.PagerQuery(Entry).filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).order("-__key__")
+		return query.fetch(numToFetch, bookmark)
 	
 	# QUESTIONS
 	
@@ -686,10 +679,15 @@ class Rakontu(db.Model):
 	# REMOVAL
 	
 	def removeAllDependents(self):
-		entries = Entry.all().filter("rakontu = ", self.key()).fetch(BIG_FETCH_NUMBER)
-		for entry in entries:
-			entry.removeAllDependents()
-		db.delete(entries)
+		# kludgy, but keep removing entries until there aren't any more
+		while 1:
+			entries = Entry.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
+			if not entries:
+				break
+			else:
+				for entry in entries:
+					entry.removeAllDependents()
+				db.delete(entries)
 		db.delete(Member.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
 		db.delete(PendingMember.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
 		db.delete(Character.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
@@ -1014,6 +1012,8 @@ class Member(db.Model):
 	timeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT, indexed=False) # how they want to see dates
 	dateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT, indexed=False) # how they want to see times
 	showAttachedImagesInline = db.BooleanProperty(default=False)
+	numItemsToShowPerPage = db.IntegerProperty(default=DEFAULT_PAGING_ITEMS_PER_PAGE)
+	maxItemsOnGridPage = db.IntegerProperty(default=DEFAULT_MAX_ITEMS_PER_GRID_PAGE)
 	
 	joined = TzDateTimeProperty(auto_now_add=True)
 	firstVisited = db.DateTimeProperty()
@@ -1182,25 +1182,25 @@ class Member(db.Model):
 		return Answer.all().filter("question = ", question.key()).filter("referent =", self.key()).get()
 	
 	def getNonDraftEntriesAttributedToMember(self):
-		return Entry.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).fetch(BIG_FETCH_NUMBER)
+		return Entry.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).fetch(FETCH_NUMBER)
 	
 	def getNonDraftAnnotationsAttributedToMember(self):
-		return Annotation.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).fetch(BIG_FETCH_NUMBER)
+		return Annotation.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).fetch(FETCH_NUMBER)
 	
 	def getNonDraftAnswersAboutEntriesAttributedToMember(self):
-		return Answer.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).filter("referentType = ", "entry").fetch(BIG_FETCH_NUMBER)
+		return Answer.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
 	
 	def getNonDraftLiaisonedEntries(self):
-		return Entry.all().filter("liaison = ", self.key()).filter("draft = ", False).fetch(BIG_FETCH_NUMBER)
+		return Entry.all().filter("liaison = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
 	def getNonDraftLiaisonedAnnotations(self):
-		return Annotation.all().filter("liaison = ", self.key()).filter("draft = ", False).fetch(BIG_FETCH_NUMBER)
+		return Annotation.all().filter("liaison = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
 	def getNonDraftLiaisonedAnswers(self):
-		return Answer.all().filter("liaison = ", self.key()).filter("draft = ", False).filter("referentType = ", "entry").fetch(BIG_FETCH_NUMBER)
+		return Answer.all().filter("liaison = ", self.key()).filter("draft = ", False).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
 	
 	def getLinksCreatedByMember(self):
-		return Link.all().filter("creator = ", self.key()).fetch(BIG_FETCH_NUMBER)
+		return Link.all().filter("creator = ", self.key()).fetch(FETCH_NUMBER)
 
 	def collectStats(self):
 		statNames = []
@@ -1318,13 +1318,13 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 		return allItems
 	
 	def getNonDraftEntriesAttributedToCharacter(self):
-		return Entry.all().filter("character = ", self.key()).filter("draft = ", False).fetch(BIG_FETCH_NUMBER)
+		return Entry.all().filter("character = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
 	def getNonDraftAnnotationsAttributedToCharacter(self):
-		return Annotation.all().filter("character = ", self.key()).filter("draft = ", False).fetch(BIG_FETCH_NUMBER)
+		return Annotation.all().filter("character = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
 	def getNonDraftAnswersAboutEntriesAttributedToCharacter(self):
-		return Answer.all().filter("character = ", self.key()).filter("draft = ", False).filter("referentType = ", "entry").fetch(BIG_FETCH_NUMBER)
+		return Answer.all().filter("character = ", self.key()).filter("draft = ", False).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
 
 	def getKeyName(self):
 		return self.key().name()
@@ -1697,6 +1697,8 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		self.creator.put()
 		for answer in self.getAnswersForMember(self.creator):
 			answer.publish()
+		for link in self.getOutgoingLinks():
+			link.publish()
 		self.rakontu.lastPublish = self.published
 		if not self.rakontu.firstPublish:
 			self.rakontu.firstPublish = self.published
@@ -2373,7 +2375,7 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 		return'<img src="/images/link.png" alt="link" border="0">'
 	
 	def displayString(self):
-		result = '%s, %s' % (self.itemTo.linkString(), DisplayTypeForLinkType(self.type))
+		result = '%s &gt; %s &gt; %s' % (self.itemFrom.linkString(), DisplayTypeForLinkType(self.type), self.itemTo.linkString())
 		if self.comment:
 			result += ", (%s)" % self.comment
 		return result
@@ -2407,12 +2409,13 @@ class Attachment(db.Model):								   # binary attachments to entries
 
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	created = TzDateTimeProperty(auto_now_add=True)
-	name = db.StringProperty()
+	entry = db.ReferenceProperty(Entry, collection_name="attachments")
+	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="attachments_to_rakontu")
+
+	name = db.StringProperty(default=UNTITLED_ATTACHMENT_NAME)
 	mimeType = db.StringProperty() # from ACCEPTED_ATTACHMENT_MIME_TYPES
 	fileName = db.StringProperty() # as uploaded
 	data = db.BlobProperty() # there is a practical limit on this size - cfk look at
-	entry = db.ReferenceProperty(Entry, collection_name="attachments")
-	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="attachments_to_rakontu")
 	
 	def getKeyName(self):
 		return self.key().name()
@@ -2798,9 +2801,6 @@ def pendingMemberForEmailAndRakontu(email, rakontu):
 
 def helpLookup(name, type):  
 	return Help.all().filter("name = ", name).filter("type = ", type).get()
-
-def helpLookupWithoutType(name):  
-	return Help.all().filter("name = ", name).get()
 
 def helpTextLookup(name, type):
 	match = Help.all().filter("name = ", name).filter("type = ", type).get()

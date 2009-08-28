@@ -48,7 +48,7 @@
 	<h2>Rakontus</h2>
 	{% if rakontus %}
 		<fieldset>
-		<table>
+		<table cellpadding=4 cellspacing=0>
 		<tr>
 			<th>URL</th>
 			<th>{{template_name}}</th>
@@ -60,6 +60,9 @@
 			<th>{{template_inactive_members}}</th>
 			<th>{{template_member}}?</th>
 			<th>{{template_active}}? {{"activating_rakontus"|caution}}</th>
+			{% if development %}
+				<th>Add fake data?</th> 
+			{% endif %}
 			<th>{{template_remove}} {{"removing_rakontus"|caution}}</th>
 			</tr>
 		
@@ -87,7 +90,7 @@
 	    	<td align="center">{{rakontu.getInactiveMembers|length}}</td>
 	    	<td align="center">
 	    		{% if member_of|dictLookup:rakontu.key %}
-	    			{{template_yes}}, {{member_of|dictLookup:rakontu.key}}
+	    			{{template_yes|upper}}, {{member_of|dictLookup:rakontu.key}}
 	    		{% else %}
 	    			{{template_no}}
 	    		{% endif %}
@@ -114,6 +117,14 @@
 						onClick="javascript:return confirm('{{template_confirm_activate}} {{rakontu.name}}?')">
   					{% endif %}
   			</td>
+			{% if development %}
+				<td>
+				<input type="text" size="4" name="numMembers|{{rakontu.key}}" value="2"> members<br/>
+				<input type="text" size="4" name="numEntries|{{rakontu.key}}" value="20"> entries<br/>
+				<input type="text" size="4" name="numAnnotations|{{rakontu.key}}" value="20"> annotations<br/>
+				<input type="submit" name="addFakeDataTo|{{rakontu.key}}" value="Add" class="button">
+				</td>
+			{% endif %}
 			<td>
 			<input type="submit" name="remove|{{rakontu.key}}" value="{{button_remove|allcaps}}" class="button" 
 			onClick="javascript:return confirm('{{template_confirm_remove}} {{rakontu.name}}?')">
@@ -123,6 +134,9 @@
     	</table>
     	</fieldset>
 		<p><a href="/{{dir_admin}}/{{url_create1}}">{{template_create_another}} Rakontu</a></p>
+		{% if development %}
+			<p><a href="/{{dir_admin}}/{{url_make_fake_data}}">Generate fake testing Rakontu</a></p>
+		{% endif %}
 		<p></p>
 		<center><p><i><b>{{template_admin_warning}}</b></i></p>
 		</form>
@@ -130,12 +144,6 @@
     {% else %}
     	<p>&nbsp; &nbsp; {{template_none}} - <a href="/{{dir_admin}}/{{url_create1}}">{{template_create_one}}</a></p>
     {% endif %}	
-    
-    <fieldset>
-    <p><b>For developers only</b></p>
-    <p>&nbsp; &nbsp; <a href="/{{dir_admin}}/{{url_make_fake_data}}">Generate fake testing Rakontu</a></p>
-    <p>&nbsp; &nbsp; <a href="/{{dir_admin}}/{{url_stress_test}}">Generate stress-test Rakontu with large amount of data</a></p>
-    </fieldset>
 	    
 	</div>
 	{% include "../common_footer.html" %}

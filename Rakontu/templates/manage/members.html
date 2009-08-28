@@ -54,21 +54,21 @@
 	  				<td>
 	  					<p>{{template_curator}}: 
 	  					{% if aMember.helpingRoles.0 %}
-	  						{{template_yes}}
+	  						{{template_yes|upper}}
 	  					{% else %}
 	  						{{template_no}}
 	  					{% endif %}
 	  					</p>
 	  					<p>{{template_guide}}: 
 	  					{% if aMember.helpingRoles.1 %}
-	  						{{template_yes}}
+	  						{{template_yes|upper}}
 	  					{% else %}
 	  						{{template_no}}
 	  					{% endif %}
 	  					</p>
 	  					<p>{{template_liaison}}: 
 	  					{% if aMember.helpingRoles.2 %}
-	  						{{template_yes}}
+	  						{{template_yes|upper}}
 	  					{% else %}
 	  						{{template_no}}
 	  					{% endif %}

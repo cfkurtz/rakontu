@@ -14,7 +14,7 @@ import htmllib
 from models import *        
     
 from google.appengine.api import users    
-from google.appengine.ext.webapp import template     
+from google.appengine.ext.webapp import template      
 from google.appengine.ext import webapp   
 from google.appengine.ext.webapp.util import run_wsgi_app   
 from google.appengine.api import images 
@@ -70,9 +70,9 @@ def GetCurrentMemberFromRakontuAndUser(rakontu, user):
 						governanceType=pendingMember.governanceType) 
 					member.initialize()
 					member.put()
-					db.delete(pendingMember)
+					db.delete(pendingMember) 
 	return member
-
+ 
 def SetFirstThingsAndReturnWhetherMemberIsNew(rakontu, member):
 	isFirstVisit = False
 	if rakontu and member:
@@ -230,6 +230,7 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'site_language': SITE_LANGUAGE,
 	   'site_support_email': SITE_SUPPORT_EMAIL,
 	   'max_possible_attachments': MAX_POSSIBLE_ATTACHMENTS,
+	   'development': DEVELOPMENT,
 	   }
 	for key in DIRS.keys():				items[key] = DIRS[key]
 	for key in URLS.keys():				items[key] = URLS[key] 
@@ -252,7 +253,7 @@ def GetCurrentSearchForMember(member):
 	if member.viewSearch:
 		return member.viewSearch
 	else:
-		return None
+		return None  
 
 def GetKeyFromQueryString(queryString, keyname):
 	if queryString:
@@ -265,7 +266,7 @@ def GetKeyFromQueryString(queryString, keyname):
 		return None
  
 def ItemDisplayStringForGrid(item, member, curating=False, showingMember=False, showDetails=False):
-	# link 
+	# link string
 	if item.__class__.__name__ == "Answer":
 		if showDetails: 
 			if not showingMember:
@@ -464,15 +465,15 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 		elif "toggleViewHomeOptionsOnTop" in request.arguments():
 			member.viewGridOptionsOnTop = not member.viewGridOptionsOnTop
 			member.put()
-			return defaultURL
-		elif "toggleShowDetails" in request.arguments():
-			member.viewDetails = not member.viewDetails
-			member.put()
-			return defaultURL
-		elif "printSearchResults"  in request.arguments():
-			if location == "home":
+			return defaultURL  
+		elif "toggleShowDetails" in request.arguments():  
+			member.viewDetails = not member.viewDetails   
+			member.put()      
+			return defaultURL   
+		elif "printSearchResults"  in request.arguments(): 
+			if location == "home": 
 				return BuildURL("dir_liaise", "url_print_search", rakontu=rakontu)
-			elif location == "entry":
+			elif location == "entry": 
 				return BuildURL("dir_liaise", "url_print_entry", entry.urlQuery())
 			elif location == "member":
 				return BuildURL("dir_liaise", "url_print_member", memberToSee.urlQuery())
@@ -486,7 +487,25 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 				return defaultURL
 		else:
 			return None
-			
+		
+def GetBookmarkQueryWithCleanup(queryString):
+	# for some reason PagerQuery SOMEtimes puts one or two equals signs on the end of the bookmark, which
+	# messes up the url parsing since it separates on equals signs
+	if queryString[-2:] == "==":
+		queryStringToUse = queryString[:-2]
+		equalsSigns = 2
+	elif queryString[-1] == "=":
+		queryStringToUse = queryString[:-1]
+		equalsSigns = 1
+	else:
+		queryStringToUse = queryString
+		equalsSigns = 0
+	bookmark = GetStringOfTypeFromURLQuery(queryStringToUse, "url_query_bookmark") 
+	# put them back on again for PagerQuery
+	if bookmark:
+		bookmark += "=" * equalsSigns
+	return bookmark
+
 # ============================================================================================
 # ============================================================================================
 # HANDLERS
@@ -620,10 +639,10 @@ def GenerateSkins():
 	finally:	
 		file.close()
 				
-def GetSkinNames():
+def GetSkinNames():  
 	skins = AllSkins()
 	result = []
-	for skin in skins:
+	for skin in skins: 
 		result.append(skin.name)
 	result.sort()
 	return result
@@ -1125,59 +1144,34 @@ def GenerateRandomDate(start, end):
     randomSeconds = random.randrange(deltaSeconds)
     return start + timedelta(seconds=randomSeconds)
 	
-def GenerateStressTestData():
-	if os.environ.get('SERVER_SOFTWARE','').startswith('Devel'):
-		STRESS_NUM_MEMBERS = 100
-		STRESS_NUM_ENTRIES = 300 
-		STRESS_NUM_ANNOTATIONS = 500
-	else:
-		STRESS_NUM_MEMBERS = 3
-		STRESS_NUM_ENTRIES = 20
-		STRESS_NUM_ANNOTATIONS = 10
+def AddFakeDataToRakontu(rakontu, numMembers, numEntries, numAnnotations):
 	user = users.get_current_user()
 	startDate = datetime.strptime('1/1/2008 1:30 PM', '%m/%d/%Y %I:%M %p')
 	startDate = startDate.replace(tzinfo=pytz.utc)
 	endDate = datetime.now()
 	endDate = endDate.replace(tzinfo=pytz.utc)
-	rakontu = Rakontu(
-					key_name=KeyName("rakontu"), 
-					type="neighborhood", 
-					name="Stress test Rakontu", 
-					description="Test description")
-	rakontu.initializeFormattedTexts()
-	rakontu.created = startDate
-	rakontu.firstPublish = startDate
-	rakontu.put()
-	GenerateDefaultQuestionsForRakontu(rakontu, rakontu.type)
-	GenerateDefaultCharactersForRakontu(rakontu)
 	
 	memberKeyNames = []
-	member = Member(
-				key_name=KeyName("member"), 
-				googleAccountID=user.user_id(), 
-				googleAccountEmail=user.email(), 
-				nickname="Tester", 
-				rakontu=rakontu, 
-				governanceType="owner")
-	member.initialize()
-	member.put()
-	memberKeyNames.append(member.getKeyName())
-	for i in range(STRESS_NUM_MEMBERS):
+	for member in rakontu.getActiveMembers():
+		memberKeyNames.append(member.getKeyName())
+	for i in range(numMembers):
 		member = Member(
 					key_name=KeyName("member"), 
 					nickname="Member %s" % i, 
 					rakontu=rakontu, 
-					governanceType="member")
+					governanceType="member") 
 		member.joined = startDate
 		member.initialize()
-		member.put()
+		member.put() 
 		memberKeyNames.append(member.getKeyName())
 		if i % 10 == 0:
 			DebugPrint("member %s" % i)
-	DebugPrint("%s members generated" % STRESS_NUM_MEMBERS)
+	DebugPrint("%s members generated" % numMembers)
 	
 	entryKeyNames = []
-	for i in range(STRESS_NUM_ENTRIES):
+	for entry in rakontu.getNonDraftEntries():
+		entryKeyNames.append(entry.getKeyName())
+	for i in range(numEntries):
 		type = random.choice(ENTRY_TYPES)
 		member = Member.get_by_key_name(random.choice(memberKeyNames))
 		text = random.choice(LOREM_IPSUM)
@@ -1198,9 +1192,9 @@ def GenerateStressTestData():
 		entryKeyNames.append(entry.getKeyName())
 		if i % 10 == 0:
 			DebugPrint("entry %s" % i)
-	DebugPrint("%s entries generated" % STRESS_NUM_ENTRIES)
+	DebugPrint("%s entries generated" % numEntries)
 	
-	for i in range(STRESS_NUM_ANNOTATIONS):
+	for i in range(numAnnotations):
 		type = random.choice(ANNOTATION_TYPES)
 		member = Member.get_by_key_name(random.choice(memberKeyNames))
 		entry = Entry.get_by_key_name(random.choice(entryKeyNames))
@@ -1232,5 +1226,5 @@ def GenerateStressTestData():
 		entry.put()
 		if i % 10 == 0:
 			DebugPrint("annotation %s" % i)
-	DebugPrint("%s annotations generated" % STRESS_NUM_ANNOTATIONS)
+	DebugPrint("%s annotations generated" % numAnnotations)
 

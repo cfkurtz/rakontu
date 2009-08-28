@@ -16,7 +16,24 @@
 		
 		<p></p>
 		{% if invitations %}
-			<table style="margin-left:20px;">
+		
+			<p>{{template_show}}
+			<select name="all_or_unresponded">
+				<option value="showAllInvitations"
+				{% if showing_all_invitations %}
+					selected="selected"
+				{% endif %}
+				>{{template_all_invitations}}</option>
+				<option value="showOnlyUnrespondedInvitations"
+				{% if not showing_all_invitations %}
+					selected="selected"
+				{% endif %}
+				>{{template_only_invitations_with_no_responses}}</option>
+				</select>
+				<input type="submit" name="changeSelections" value="{{button_change}}" class="button_small">
+				</p>
+		
+			<table cellspacing=0 cellpadding=4 style="margin-left:20px;">
 			<tr>
 				<th>{{template_name}}</th>
 				<th>{{template_published}}</th>
@@ -44,14 +61,7 @@
 				<p>{{template_no_invitations_without_responses}}</p>
 			{% endif %}
         {% endif %}
-      	
 
-		{% if showing_all_invitations %}
-			<p><input type="submit" name="showOnlyUnrespondedInvitations" value="{{button_show_only_invitations_with_no_responses}}" class="button_small"></p>
-		{% else %}
-			<p><input type="submit" name="showAllInvitations" value="{{button_show_all_invitations}}" class="button_small"></p>
-		{% endif %}
-		
 	</form>
 	</div>
 	{% else %}

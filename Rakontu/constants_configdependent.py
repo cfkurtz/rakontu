@@ -28,9 +28,8 @@ SKINS_FILE_NAME = "config/%s/skins.csv" % SITE_LANGUAGE
 # These are never displayed to the user so don't need to be translated and only appear here.
 # ============================================================================================
 
-DEVELOPMENT = False
+DEVELOPMENT = True
 FETCH_NUMBER = 1000
-BIG_FETCH_NUMBER = 1000
 DATE_TIME_CSV_FORMAT = "%Y%m%dT%H%M%S"
 
 # ============================================================================================
@@ -59,9 +58,6 @@ ANNOTATION_TYPES = ["tag set", "comment", "request", "nudge"]
 ANNOTATION_ANSWER_LINK_TYPES = ["tag set", "comment", "request", "nudge", "answer", "link"]
 ANNOTATION_ANSWER_LINK_TYPES_ANSWER_INDEX = 4
 ANNOTATION_ANSWER_LINK_TYPES_LINK_INDEX = 5
-
-# things that can be flagged
-FLAGGED_ITEM_TYPES = ["story", "pattern", "collage", "invitation", "resource", "answer", "tagset", "comment", "request", "nudge", "link", "filter"]
 
 # entries and annotations
 ENTRY_AND_ANNOTATION_TYPES = ["story", "pattern", "collage", "invitation", "resource", "answer", "tag set", "comment", "request", "nudge"]

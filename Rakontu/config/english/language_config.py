@@ -130,7 +130,7 @@ DEFAULT_UNTITLED_ENTRY_TITLE = u"Untitled"
 NO_TEXT_IN_ENTRY = u"No text."
 
 # Types of link. These MUST match the order (retold, reminded, responded, related, included, referenced).
-LINK_TYPES_DISPLAY = ["retold", "reminded", "responded", "related", "included", "referenced"]
+LINK_TYPES_DISPLAY = ["retold from", "reminded by", "responded to", "related to", "included in", "referenced by"]
 
 # ============================================================================================ 
 # ANNOTATIONS
@@ -148,10 +148,6 @@ ANNOTATION_TYPES_URLS = ["tagset", "comment", "request", "nudge"]
 ANNOTATION_ANSWER_LINK_TYPES_DISPLAY = ["tag set", "comment", "request", "nudge", "answer", "link"]
 ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY = ["tag sets", "comments", "requests", "nudges", "answers", "links"]
 
-# These need translation because they appear in the curator flags page.
-FLAGGED_ITEM_TYPES_DISPLAY = ["story", "pattern", "collage", "invitation", "resource", "answer", "tag set", "comment", "request", "nudge", "link", "filter"]
-FLAGGED_ITEM_TYPES_PLURAL_DISPLAY = ["stories", "patterns", "collages", "invitations", "resources", "answers", "tag sets", "comments", "requests", "nudges", "links", "filters"]
-
 # List of entry AND annotation types. 
 # Used in manage/settings where they are choosing which items can have character attribution.
 # These MUST match the order (story, pattern, collage, invitation, resource, answer, tagset, comment, request, nudge).
@@ -163,12 +159,12 @@ ENTRY_AND_ANNOTATION_TYPES_PLURAL_DISPLAY = ["stories", "patterns", "collages", 
 # Since they will be used for URLs they CANNOT contain special characters or spaces.
 ENTRY_AND_ANNOTATION_TYPES_URLS = ["story", "pattern", "collage", "invitation", "resource", "answer", "tagset", "comment", "request", "nudge"]
 
-# These are types of request people can set. They can be anything you like. 
+# These are types of request people can set. They can be set to anything you like (and translated).
 # Everyone can see them, and guides have a "review requests" page where they see all requests by type.
-# They should be worded in reference to an entry, like "transcribe it"
 # CAUTION: The last type in this list should always be "other" or some other no-category name.
-# NOTE: Since these are not used for URLs or internal matchup, they don't need separate regular and "display" types.
-REQUEST_TYPES = ["transcribe", "read aloud", "translate", "comment on", "tag", "answer questions about", "other"]
+REQUEST_TYPES = ["comment on", "tag", "answer questions about", "curate", "link", "tell your version", "transcribe", "read aloud", "translate", "other"]
+# The same as above but without spaces or special characters (to be used in URLs). MUST match above list in order.
+REQUEST_TYPES_URLS = ["comment", "tag", "answer", "curate", "link", "tellversion", "transcribe", "readaloud", "translate", "other"]
 
 # ============================================================================================ 
 # QUESTIONS
@@ -312,7 +308,10 @@ TERMS = {
 		"term_copy_of": "Copy of",
 		"term_none": "none",
 		"term_result": "A message from Rakontu",
-		"term_help": "Help",
+		"term_help": "Rakontu help",
+		"term_help_info": "Information about",
+		"term_help_tip": "A tip about",
+		"term_help_caution": "A caution about",
 		"term_entries_contributed_by": "Entries, annotations, answers and links contributed by",
 		"term_yes": "yes",
 		"term_no": "no",
@@ -426,7 +425,7 @@ TEMPLATE_TERMS = {
 		# things lots of objects have
 		"template_linked_to": "Linked to",
 		"template_name": "Name",
-		"template_file_name": "File name",
+		"template_file": "File",
 		"template_nickname": "Nickname",
 		"template_description": "Description",
 		"template_picture": "Picture",
@@ -462,6 +461,8 @@ TEMPLATE_TERMS = {
 		"template_day": "day",
 		"template_log_out": "Log out",
 		"template_help": "Help",
+		"template_newer": "Newer",
+		"template_older": "Older",
 		
 		# things the user can do (but not buttons - usually links)
 		"template_create_one": "Create one",
@@ -475,6 +476,8 @@ TEMPLATE_TERMS = {
 		"template_replace": "Replace",
 		"template_attach_or_replace": "Attach or replace",
 		"template_copy": "Copy",
+		"template_previous": "Previous",
+		"template_next": "Next",
 		
 		# things used in specific template files
 		
@@ -548,8 +551,10 @@ TEMPLATE_TERMS = {
 		"template_rakontu_owner_email": "Please enter an email address for the new Rakontu's owner. ",
 		"template_back_to_first_page": "Go back to the first page",
 		# curate/attachments
+		"template_file_name": "File name",
 		"template_no_attachments": "There are no attachments in the data set.",
 		# curate/flags
+		"template_flagged": "Flagged",
 		"template_notify": "Notify",
 		"template_flag_noun": "Flag",
 		"template_flag_verb": "Flag",
@@ -583,11 +588,18 @@ TEMPLATE_TERMS = {
 		"template_no_tags": "There are no tags to review.",
 		"template_tags_warning": "Please make changes carefully. Deleted or changed tags cannot be recovered.",
 		# guide/invitations
+		"template_all_invitations": "all invitations",
+		"template_only_invitations_with_no_responses": "only invitations with no responses",
 		"template_invitations_with_no_responses": "Invitations with no responses",
 		"template_no_invitations": "There are no invitations in the Rakontu.",
 		"template_no_invitations_without_responses": "There are not invitations without responses.",
 		# guide/requests
+		"template_all_requests": "all",
+		"template_only_uncompleted_requests": "uncompleted",
+		"template_requests_of_the_type": "requests of the type",
 		"template_uncompleted_requests": "Requests that have not been marked as completed",
+		"template_no_requests": "There are no requests of the selected type.",
+		"template_no_uncompleted_requests": "There are no uncompleted requests of the selected type.",
 		# guide/resources
 		"template_category": "Category",
 		"template_for_new_members": "For new members",
@@ -740,10 +752,11 @@ TEMPLATE_TERMS = {
 		"template_yes_is_help_resource": "This is a help resource. Link to it from the general help page.",
 		"template_yes_is_new_member_resource":"This resource will be helpful to new members. Link to it from the page new members see.",
 		"template_yes_manager_only_resource": "This resource is only appropriate for managers. Hide it from other members.",
-		"template_load_version": "Recall version",
+		"template_load_version": "Recall text version",
 		"template_stories_included_in_collage": "Stories included in this collage",
 		"template_link_comment": "Link comment",
 		"template_add_stories_to_the_collage": "Add stories to the collage",
+		"template_no_stories_to_add_to_collage": "No stories are available to add to this collage.",
 		"template_search_filters_referred_to_by_this_pattern": "Search filters referred to by this pattern",
 		"template_add_search_filters_to_the_pattern": "Add search filters to the pattern",
 		"template_no_shared_searches_available": "There are no shared searches available.",
@@ -841,6 +854,8 @@ TEMPLATE_TERMS = {
 		"template_time_zone_choice": "What time zone should be displayed?",
 		"template_date_display_choice": "How should dates be displayed",
 		"template_time_display_choice": "How should times be displayed?",
+		"template_items_per_page_display_choice": "How many items do you want to see at one time when items are in a list?",
+		"template_max_items_per_grid_page_display_choice": "How many items do you want to see at one time when items are in a time-based grid?",
 		"template_rakontu_created_on": "This Rakontu was created on",
 		"template_inline_image_display_choice": "Do you want to see attached images on the same page as the entries they are attached to?",
 		# visit/rakontu
@@ -870,6 +885,9 @@ TEMPLATE_TERMS = {
 		"template_outgoing": "outgoing",
 		"template_add_relations": "Add relations",
 		"template_related": "Related",
+		"template_add_link": "Add link",
+		"template_entry_has_no_related_links": "This entry has not yet been marked as related to other entries.",
+		"template_no_entries_of_this_type_to_relate_to": "There are no entries of the selected type available for this entry to relate to.",
 		}
 
 # ============================================================================================ 
@@ -902,8 +920,6 @@ TEMPLATE_BUTTONS = {
 		"button_send_selected_notifications": "Send selected notifications",
 		"button_change_tags": "Change tags",
 		# guide
-		"button_show_only_invitations_with_no_responses": "Show only invitations with no responses",
-		"button_show_all_invitations": "Show all invitations",
 		"button_show_uncompleted_requests": "Show only uncompleted requests",
 		"button_show_all_requests": "Show all requests",
 		"button_set_request_uncompleted": "Set to NOT completed",
@@ -1325,5 +1341,7 @@ URL_OPTIONS = {
 	"url_query_versions": "versions",
 	"url_query_result": "message",
 	"url_query_help": "help",
+	"url_query_help_type": "type",
+	"url_query_bookmark": "bookmark",
 	}
 

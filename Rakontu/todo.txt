@@ -13,6 +13,10 @@ finish help resources
 must do a "check availability" on nickname thing
 cannot be on that page
 
+left to do with limits:
+	export
+	create fake data
+
 SCALING UP:
 
 transactions

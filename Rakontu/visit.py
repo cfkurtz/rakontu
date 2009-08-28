@@ -130,8 +130,8 @@ class BrowseEntriesPage(webapp.RequestHandler):
 					entriesToShowConsideringSearch.append(entry)
 			# limit on how many entries can show on one page
 			entriesToShowConsideringLimit = []
-			if len(entriesToShowConsideringNudgeFloor) > MAX_ITEMS_PER_PAGE:
-				for i in range(MAX_ITEMS_PER_PAGE):
+			if len(entriesToShowConsideringNudgeFloor) > member.maxItemsOnGridPage:
+				for i in range(member.maxItemsOnGridPage):
 					entriesToShowConsideringLimit.append(entriesToShowConsideringNudgeFloor[i])
 				tooManyItemsWarning = TERMS["term_too_many_items_warning"]
 			else:
@@ -154,7 +154,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 							'row_colors': rowColors,
 							'has_entries': len(textsForGrid) > 0,
 							'num_items_before_truncation': len(entriesToShowConsideringNudgeFloor),
-							'max_num_items': MAX_ITEMS_PER_PAGE,
+							'max_num_items': member.maxItemsOnGridPage,
 							'too_many_items_warning': tooManyItemsWarning,
 							# grid options
 							'shared_searches': rakontu.getNonPrivateSavedSearches(),
@@ -303,8 +303,8 @@ class ReadEntryPage(webapp.RequestHandler):
 						allItemsBeforeLimit.append(item)
 				# limit on how many entries can show on one page
 				allItems = []
-				if len(allItemsBeforeLimit) > MAX_ITEMS_PER_PAGE:
-					for i in range(MAX_ITEMS_PER_PAGE):
+				if len(allItemsBeforeLimit) > member.maxItemsOnGridPage:
+					for i in range(member.maxItemsOnGridPage):
 						allItems.append(allItemsBeforeLimit[i])
 					tooManyItemsWarning = TERMS["term_too_many_items_warning"]
 				else:
@@ -345,7 +345,7 @@ class ReadEntryPage(webapp.RequestHandler):
 								   'row_colors': rowColors,
 								   'grid_form_url': self.request.uri, 
 									'num_items_before_truncation': len(allItemsBeforeLimit),
-									'max_num_items': MAX_ITEMS_PER_PAGE,
+									'max_num_items': member.maxItemsOnGridPage,
 									'too_many_items_warning': tooManyItemsWarning,
 								   # grid options
 									'include_time_range': False,
@@ -671,8 +671,8 @@ class SeeMemberPage(webapp.RequestHandler):
 						allItemsBeforeLimit.append(item)
 				# limit on how many entries can show on one page
 				allItems = []
-				if len(allItemsBeforeLimit) > MAX_ITEMS_PER_PAGE:
-					for i in range(MAX_ITEMS_PER_PAGE):
+				if len(allItemsBeforeLimit) > member.maxItemsOnGridPage:
+					for i in range(member.maxItemsOnGridPage):
 						allItems.append(allItemsBeforeLimit[i])
 					tooManyItemsWarning = TERMS["term_too_many_items_warning"]
 				else:
@@ -694,7 +694,7 @@ class SeeMemberPage(webapp.RequestHandler):
 					   		   'text_to_display_before_grid': "%s %s" % (TERMS["term_entries_contributed_by"], memberToSee.nickname),
 					   		   'grid_form_url': self.request.uri, 
 								'num_items_before_truncation': len(allItemsBeforeLimit),
-								'max_num_items': MAX_ITEMS_PER_PAGE,
+								'max_num_items': member.maxItemsOnGridPage,
 								'too_many_items_warning': tooManyItemsWarning,
 					   		   'no_profile_text': NO_PROFILE_TEXT,
 					   		   'stat_names': statNames,
@@ -864,8 +864,8 @@ class SeeCharacterPage(webapp.RequestHandler):
 						allItemsBeforeLimit.append(item)
 				# limit on how many entries can show on one page
 				allItems = []
-				if len(allItemsBeforeLimit) > MAX_ITEMS_PER_PAGE:
-					for i in range(MAX_ITEMS_PER_PAGE):
+				if len(allItemsBeforeLimit) > member.maxItemsOnGridPage:
+					for i in range(member.maxItemsOnGridPage):
 						allItems.append(allItemsBeforeLimit[i])
 					tooManyItemsWarning = TERMS["term_too_many_items_warning"]
 				else:
@@ -886,7 +886,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 					   		   	   'col_headers': colHeaders,
 					   		   	   'curating': curating,
 								'num_items_before_truncation': len(allItemsBeforeLimit),
-								'max_num_items': MAX_ITEMS_PER_PAGE,
+								'max_num_items': member.maxItemsOnGridPage,
 								'too_many_items_warning': tooManyItemsWarning,
 								   # grid options
 									'include_time_range': False,
@@ -990,6 +990,8 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 							   'search_locations': SEARCH_LOCATIONS,
 							   'search_locations_display': SEARCH_LOCATIONS_DISPLAY,
 							   'my_offline_members': rakontu.getActiveOfflineMembersForLiaison(member),
+							   'page_items_choices': NUM_ITEMS_PER_PAGE_CHOICES,
+							   'max_grid_items_choices': MAX_ITEMS_PER_GRID_PAGE_CHOICES,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/profile.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -1036,7 +1038,6 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 				memberToEdit.timeZoneName = self.request.get("timeZoneName")
 				memberToEdit.dateFormat = self.request.get("dateFormat")
 				memberToEdit.timeFormat = self.request.get("timeFormat")
-				memberToEdit.showAttachedImagesInline = self.request.get("showAttachedImagesInline") == "yes"
 				if memberToEdit.isOnlineMember:
 					wasLiaison = memberToEdit.isLiaison()
 					for i in range(3):
@@ -1052,6 +1053,17 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 					memberToEdit.guideIntro_formatted = db.Text(InterpretEnteredText(text, format))
 					memberToEdit.guideIntro_format = format
 					memberToEdit.preferredTextFormat = self.request.get("preferredTextFormat")
+					memberToEdit.showAttachedImagesInline = self.request.get("showAttachedImagesInline") == "yes"
+					oldValue = memberToEdit.numItemsToShowPerPage
+					try:
+						memberToEdit.numItemsToShowPerPage = int(self.request.get("numItemsToShowPerPage"))
+					except:
+						memberToEdit.numItemsToShowPerPage = oldValue
+					oldValue = memberToEdit.maxItemsOnGridPage
+					try:
+						memberToEdit.maxItemsOnGridPage = int(self.request.get("maxItemsOnGridPage"))
+					except:
+						memberToEdit.maxItemsOnGridPage = oldValue
 				memberToEdit.put()
 				questions = rakontu.getActiveQuestionsOfType("member")
 				for question in questions:
@@ -1466,15 +1478,24 @@ class ContextualHelpPage(webapp.RequestHandler):
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		# don't require access to rakontu, since administrator may be calling this from the admin or create pages
-		lookup = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_help")
-		help = helpLookupWithoutType()
+		name = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_help")
+		type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_help_type")
+		help = helpLookup(name, type)
+		if type == "info":
+			message = TERMS["term_help_info"]
+		elif type == "tip": 
+			message = TERMS["term_help_tip"]
+		elif type == "caution": 
+			message = TERMS["term_help_caution"]
 		if help:
 			helpShortName = help.name.replace("_", " ").capitalize()
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 						   	   'title': TITLES["HELP_ON"], 
-					   	   	   'title_extra': helpShortName, 
-							   'system_message': TERMS["term_help"],
+					   	   	   'title_extra': helpShortName,
+					   	   	   'system_message': TERMS["term_help"], 
+							   'top_message': message,
 							   'help': help,
+							   'type': type,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('help.html'))
 			self.response.out.write(template.render(path, template_values))

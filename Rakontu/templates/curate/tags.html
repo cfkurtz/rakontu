@@ -5,7 +5,7 @@
 	<div id="content">
 	{% if current_member.canEditTags %}
 		<div id="stylized" class="rakontu_form">
-		<form action="/{{dir_curate}}/{{url_tags}}?{{rakontu.urlQuery}}" method="post">
+		<form action="/{{dir_curate}}/{{url_tags}}?{{rakontu.urlQuery}}{% if bookmark %}&{{url_query_bookmark}}={{bookmark}}{% endif %}" method="post">
 			
 			<h3>{{template_change_entry_tags}} {{"changing_tags_on_entries"|caution}}</h3>
 			{% if tag_sets %}
@@ -29,6 +29,16 @@
 				<p>{{template_no_tags}}</p>
 			{% endif %}
       	
+ 			<p>
+			{% if previous %}
+				 <a href="/{{dir_curate}}/{{url_tags}}?{{rakontu.urlQuery}}&{{url_query_bookmark}}={{previous}}">{{template_newer}} {{template_tags|lower}}</a>
+			{% endif %}	
+			{% if previous and next %} ... {% endif %}
+			{% if next %}
+				 <a href="/{{dir_curate}}/{{url_tags}}?{{rakontu.urlQuery}}&{{url_query_bookmark}}={{next}}">{{template_older}} {{template_tags|lower}}</a>
+			{% endif %}	
+			</p>
+ 
       	{% if tag_sets %}
 			<p>&nbsp; </p>
 		    <center>

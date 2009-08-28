@@ -16,6 +16,9 @@ class EnterEntryPage(webapp.RequestHandler):
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			queryEntry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 			queryVersion = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_version")
+			bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
+			prev = None
+			next = None
 			# if this is a retelling, reminding or responding, the query entry is the item to link FROM, not the current entry
 			if self.request.uri.find(URLS["url_retell"]) >= 0:
 				type = "story"
@@ -70,7 +73,7 @@ class EnterEntryPage(webapp.RequestHandler):
 					includedLinksOutgoing = entry.getOutgoingLinksOfType("included")
 				else:
 					includedLinksOutgoing = []
-				entries = rakontu.getNonDraftStoriesInAlphabeticalOrder()
+				prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging("story", member.numItemsToShowPerPage, bookmark)
 				entriesThatCanBeIncluded = []
 				for anEntry in entries:
 					found = False
@@ -80,18 +83,6 @@ class EnterEntryPage(webapp.RequestHandler):
 							break
 					if not found:
 						entriesThatCanBeIncluded.append(anEntry)
-				firstColumn = []
-				secondColumn = []
-				thirdColumn = []
-				if entriesThatCanBeIncluded:
-					numEntries = len(entriesThatCanBeIncluded)
-					for i in range(numEntries):
-						if i < numEntries // 3:
-							firstColumn.append(entriesThatCanBeIncluded[i])
-						elif i < 2 * numEntries // 3:
-							secondColumn.append(entriesThatCanBeIncluded[i])
-						else:
-							thirdColumn.append(entriesThatCanBeIncluded[i])
 			else:
 				entriesThatCanBeIncluded = None
 				firstColumn = []
@@ -163,11 +154,12 @@ class EnterEntryPage(webapp.RequestHandler):
 							   'link_type': linkType,
 							   'link_item_from': itemFrom,
 							   # for a collage
-							    'collage_first_column': firstColumn, 
-								'collage_second_column': secondColumn, 
-								'collage_third_column': thirdColumn, 
-								'num_collage_rows': max(len(firstColumn), max(len(secondColumn), len(thirdColumn))),							   
+							    'collage_entries': entriesThatCanBeIncluded, 
 								'included_links_outgoing': includedLinksOutgoing,
+								   'bookmark': bookmark,
+								   'previous': prev,
+								   'next': next,
+								   'num_per_page': member.numItemsToShowPerPage,
 								# for a pattern
 								'referenced_links_outgoing': referencedLinksOutgoing,
 							    'searches_that_can_be_added_to_pattern': searchesThatCanBeIncluded,
@@ -187,6 +179,7 @@ class EnterEntryPage(webapp.RequestHandler):
 						type = aType
 						break
 			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
+			bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
 			if entry and "loadVersion" in self.request.arguments():
 				versionKeyName = self.request.get("versionToLoad")
 				version = TextVersion.get_by_key_name(versionKeyName)
@@ -283,13 +276,16 @@ class EnterEntryPage(webapp.RequestHandler):
 							linksToRemove.append(link)
 					for link in linksToRemove:
 						db.delete(link)
-					for anEntry in rakontu.getNonDraftEntriesOfType("story"):
+					prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging("story", member.numItemsToShowPerPage, bookmark)
+					for anEntry in entries:
 						if self.request.get("addLink|%s" % anEntry.key()) == "yes":
+							comment = htmlEscape(self.request.get("linkComment|%s" % anEntry.key()))
 							link = Link(key_name=KeyName("link"), 
 								rakontu=rakontu,
 								itemFrom=entry, 
 								itemTo=anEntry, 
 								type="included", 
+								comment=comment,
 								creator=member)
 							link.put()
 							if not entry.draft:
@@ -304,12 +300,14 @@ class EnterEntryPage(webapp.RequestHandler):
 					for link in linksToRemove:
 						db.delete(link)
 					for aSearch in rakontu.getNonPrivateSavedSearches():
+						comment = htmlEscape(self.request.get("linkComment|%s" % aSearch.key()))
 						if self.request.get("addLink|%s" % aSearch.key()) == "yes":
 							link = Link(key_name=KeyName("link"), 
 								rakontu=rakontu,
 								itemFrom=entry, 
 								itemTo=aSearch, 
 								type="referenced", 
+								comment=comment,
 								creator=member)
 							link.put()
 							if not entry.draft:
@@ -859,9 +857,13 @@ class RelateEntryPage(webapp.RequestHandler):
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
+			bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
+			type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_type")
+			if not type:
+				type = "story"
 			if entry:
 				links = entry.getLinksOfType("related")
-				entries = rakontu.getNonDraftEntriesInAlphabeticalOrder()
+				prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging(type, member.numItemsToShowPerPage, bookmark)
 				entriesThatCanBeRelated = []
 				for anEntry in entries:
 					found = False
@@ -870,66 +872,73 @@ class RelateEntryPage(webapp.RequestHandler):
 							found = True
 					if not found and anEntry.key() != entry.key():
 						entriesThatCanBeRelated.append(anEntry)
-				if entriesThatCanBeRelated:
-					firstColumn = []
-					secondColumn = []
-					thirdColumn = []
-					numEntries = len(entriesThatCanBeRelated)
-					for i in range(numEntries):
-						if i < numEntries // 3:
-							firstColumn.append(entriesThatCanBeRelated[i])
-						elif i < 2 * numEntries // 3:
-							secondColumn.append(entriesThatCanBeRelated[i])
-						else:
-							thirdColumn.append(entriesThatCanBeRelated[i])
-					template_values = GetStandardTemplateDictionaryAndAddMore({
-									'title': TITLES["RELATE_TO"],
-								   	'title_extra': entry.title,
-									'rakontu': rakontu, 
-									'skin': rakontu.getSkinDictionary(),
-									'current_member': member, 
-									'entry': entry,
-									'entries_first_column': firstColumn, 
-									'entries_second_column': secondColumn, 
-									'entries_third_column': thirdColumn, 
-									'num_rows': max(len(firstColumn), max(len(secondColumn), len(thirdColumn))),
-									'related_links': links,
-									})
-					path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/relate.html'))
-					self.response.out.write(template.render(path, template_values))
-				else:
-					self.redirect(BuildResultURL("noEntriesToRelate", rakontu=rakontu))
+				template_values = GetStandardTemplateDictionaryAndAddMore({
+								'title': TITLES["RELATE_TO"],
+							   	'title_extra': entry.title,
+								'rakontu': rakontu, 
+								'skin': rakontu.getSkinDictionary(),
+								'current_member': member, 
+								'entry': entry,
+								'entries': entriesThatCanBeRelated, 
+								'related_links': links,
+							   'bookmark': bookmark,
+							   'previous': prev,
+							   'next': next,
+							   'num_per_page': member.numItemsToShowPerPage,
+							   'type': type,
+								})
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/relate.html'))
+				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(START)
+				self.redirect(BuildResultURL("noEntriesToRelate", rakontu=rakontu))
+		else:
+			self.redirect(START)
 					
 	@RequireLogin 
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
+			bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
+			type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_type")
+			DebugPrint(type)
 			if entry:
-				linksToRemove = []
-				for link in entry.getLinksOfType("related"):
-					if self.request.get("linkComment|%s" % link.key()):
-						link.comment = self.request.get("linkComment|%s" % link.key())
-						link.put()
-					if self.request.get("removeLink|%s" % link.key()) == "yes":
-						linksToRemove.append(link)
-				for link in linksToRemove:
-					db.delete(link)
-				for anEntry in rakontu.getNonDraftEntries():
-					if self.request.get("addLink|%s" % anEntry.key()) == "yes":
-						comment = htmlEscape(self.request.get("linkComment|%s" % anEntry.key()))
-						link = Link(key_name=KeyName("link"), 
-								rakontu=rakontu,
-								itemFrom=entry, 
-								itemTo=anEntry, 
-								type="related", 
-								creator=member, 
-								comment=comment)
-						link.put()
-						link.publish()
-				self.redirect(BuildURL("dir_visit", "url_relate", entry.urlQuery()))
+				if "changeSelections" in self.request.arguments():
+					type = self.request.get("entry_type")
+					bookmark = None
+				else:
+					linksToRemove = []
+					for link in entry.getLinksOfType("related"):
+						if self.request.get("linkComment|%s" % link.key()):
+							link.comment = self.request.get("linkComment|%s" % link.key())
+							link.put()
+						if self.request.get("removeLink|%s" % link.key()) == "yes":
+							linksToRemove.append(link)
+					for link in linksToRemove:
+						db.delete(link)
+					prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging(type, member.numItemsToShowPerPage, bookmark)
+					atLeastOneLinkCreated = False
+					for anEntry in entries:
+						if self.request.get("addLink|%s" % anEntry.key()) == "yes":
+							comment = htmlEscape(self.request.get("linkComment|%s" % anEntry.key()))
+							link = Link(key_name=KeyName("link"), 
+									rakontu=rakontu,
+									itemFrom=entry, 
+									itemTo=anEntry, 
+									type="related", 
+									creator=member, 
+									comment=comment)
+							link.put()
+							link.publish()
+							atLeastOneLinkCreated = True
+					if atLeastOneLinkCreated:
+						bookmark = None
+				if bookmark:
+					# bookmark must be last, because of the extra == the PageQuery puts on it
+					query = "%s&%s=%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_type"], type, URL_OPTIONS["url_query_bookmark"], bookmark)
+				else:
+					query = "%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_type"], type)
+				self.redirect(BuildURL("dir_visit", "url_relate", query))
 			else:
 				self.redirect(rakontu.linkURL())
 		else:

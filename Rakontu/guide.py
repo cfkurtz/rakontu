@@ -68,25 +68,28 @@ class ReviewRequestsPage(webapp.RequestHandler):
 		if access:
 			if member.isGuide():
 				uncompletedOnly = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_uncompleted") == URL_OPTIONS["url_query_uncompleted"]
-				requestsByType = []
-				numRequests = 0
-				for type in REQUEST_TYPES:
-					if uncompletedOnly:
-						requests = rakontu.getAllUncompletedNonDraftRequestsOfType(type)
-					else:
-						requests = rakontu.getAllNonDraftRequestsOfType(type)
-					requestsByType.append(requests)
-					numRequests += len(requests)
+				type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_type")
+				if not type:
+					type = REQUEST_TYPES_URLS[-1]
+				typeForLookup = None
+				for i in range(len(REQUEST_TYPES_URLS)):
+					if type == REQUEST_TYPES_URLS[i]:
+						typeForLookup = REQUEST_TYPES[i]
+						break
+				if uncompletedOnly:
+					requests = rakontu.getAllUncompletedNonDraftRequestsOfType(typeForLookup)
+				else:
+					requests = rakontu.getAllNonDraftRequestsOfType(typeForLookup)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_REQUESTS"], 
 								   'rakontu': rakontu, 
 								   'skin': rakontu.getSkinDictionary(),
 								   'current_member': member,
-								   'requests': requestsByType,
-								   'num_types': len(REQUEST_TYPES),
+								   'requests': requests,
 								   'request_types': REQUEST_TYPES,
+								   'request_types_urls': REQUEST_TYPES_URLS,
 								   'showing_all_requests': not uncompletedOnly,
-								   'have_requests': numRequests > 0,
+								   'request_type': type,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/requests.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -100,11 +103,14 @@ class ReviewRequestsPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isGuide():
-				if "showOnlyUncompletedRequests" in self.request.arguments():
-					query = "%s=%s" % (URL_OPTIONS["url_query_uncompleted"], URL_OPTIONS["url_query_uncompleted"])
+				if "changeSelections" in self.request.arguments():
+					uncompletedOnly = self.request.get("all_or_uncompleted") == "showOnlyUncompledRequests"
+					type = self.request.get("request_type")
+					if uncompletedOnly:
+						query = "%s=%s&%s=%s" % (URL_OPTIONS["url_query_type"], type, URL_OPTIONS["url_query_uncompleted"], URL_OPTIONS["url_query_uncompleted"])
+					else:
+						query = "%s=%s" % (URL_OPTIONS["url_query_type"], type)
 					self.redirect(BuildURL("dir_guide", "url_requests", query, rakontu=rakontu))
-				elif "showAllRequests" in self.request.arguments():
-					self.redirect(BuildURL("dir_guide", "url_requests", rakontu=rakontu))
 				else:
 					requests = rakontu.getAllNonDraftRequests()
 					for request in requests:
@@ -157,11 +163,12 @@ class ReviewInvitationsPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isGuide():
-				if "showOnlyUnrespondedInvitations" in self.request.arguments():
-					query = "%s=%s" % (URL_OPTIONS["url_query_no_responses"], URL_OPTIONS["url_query_no_responses"])
-					self.redirect(BuildURL("dir_guide", "url_invitations", query, rakontu=rakontu))
-				elif "showAllInvitations" in self.request.arguments():
-					self.redirect(BuildURL("dir_guide", "url_invitations", rakontu=rakontu))
+				if "changeSelections" in self.request.arguments():
+					if self.request.get("all_or_unresponded") == "showOnlyUnrespondedInvitations":
+						query = "%s=%s" % (URL_OPTIONS["url_query_no_responses"], URL_OPTIONS["url_query_no_responses"])
+						self.redirect(BuildURL("dir_guide", "url_invitations", query, rakontu=rakontu))
+					else:
+						self.redirect(BuildURL("dir_guide", "url_invitations", rakontu=rakontu))
 			else:
 				self.redirect(rakontu.linkURL())
 		else:
