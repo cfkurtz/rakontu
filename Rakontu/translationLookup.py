@@ -7,9 +7,9 @@
 # --------------------------------------------------------------------------------------------
 
 import sys
-
+ 
 from constants_base import *
-sys.path.insert(0,'config')
+sys.path.insert(0,'config') 
 from site_configuration import *
 from constants_configdependent import *
 
@@ -26,7 +26,7 @@ def BuildURL(dir=None, page=None, query=None, extraSlash=False, rakontu=None):
 			pageString = URLS[page]
 		else:
 			pageString = page # same here
-	else:
+	else: 
 		pageString = None
 	if dirString and pageString and query:
 		result = "/%s/%s?%s" % (dirString, pageString, query)
@@ -49,7 +49,7 @@ def BuildURL(dir=None, page=None, query=None, extraSlash=False, rakontu=None):
 		else:
 			result += "?"
 		result += rakontu.urlQuery()
-	return result
+	return result 
 	
 def BuildResultURL(query, rakontu=None):
 	result = "/%s?%s=%s" % (URLS["url_result"], URL_OPTIONS["url_query_result"], RESULTS[query][0])
@@ -58,7 +58,7 @@ def BuildResultURL(query, rakontu=None):
 	return result
 	
 def DisplayTypeForEntryType(type):
-	i = 0
+	i = 0 
 	for aType in ENTRY_TYPES:
 		if aType == type:
 			return ENTRY_TYPES_DISPLAY[i]

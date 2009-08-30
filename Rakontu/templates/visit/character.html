@@ -45,7 +45,7 @@
 		
 		<h3>{{term_entries_contributed_by}} {{character.name}}</h3>
 		
-		{% if current_member.viewGridOptionsOnTop %}
+		{% if grid_options_on_top %}
 			{% include "../common_grid_options.html" %}
 			<p></p>
 		{% endif %}
@@ -57,7 +57,7 @@
 			<p>{{template_no_entries_or_annotations_for_character}}</p>
 		{% endif %}
 		
-		{% if not current_member.viewGridOptionsOnTop %}
+		{% if not grid_options_on_top %}
 			<p></p>
 			{% include "../common_grid_options.html" %}
 		{% endif %}

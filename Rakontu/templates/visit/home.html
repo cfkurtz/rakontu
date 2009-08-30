@@ -14,14 +14,14 @@
 	{% endif %}
 	method="post">
 		
-	{% if current_member.viewGridOptionsOnTop %}
+	{% if grid_options_on_top %}
 		{% include "../common_grid_options.html" %}
 		<p></p>
 	{% endif %}
 	
 	{% include "home_grid.html" %}
 	
-	{% if not current_member.viewGridOptionsOnTop %}
+	{% if not grid_options_on_top %}
 		<p></p>
 		{% include "../common_grid_options.html" %}
 	{% endif %}

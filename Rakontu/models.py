@@ -105,7 +105,7 @@ class CounterShard(db.Model):
 # ============================================================================================
 
 	type = db.StringProperty(required=True)
-	count = db.IntegerProperty(required=True, default=0)
+	count = db.IntegerProperty(required=True, default=0, indexed=False)
 	
 # ============================================================================================
 # ============================================================================================
@@ -113,8 +113,8 @@ class CounterShardConfiguration(db.Model):
 # ============================================================================================
 # ============================================================================================
 
-	type = db.StringProperty(required=True)
-	numShards = db.IntegerProperty(required=True, default=20)
+	type = db.StringProperty(required=True, indexed=False)
+	numShards = db.IntegerProperty(required=True, default=20, indexed=False)
 	
 # ============================================================================================
 # ============================================================================================
@@ -129,10 +129,10 @@ class Rakontu(db.Model):
 	
 	# state
 	active = db.BooleanProperty(default=True)
-	created = TzDateTimeProperty(auto_now_add=True) 
-	firstVisit = TzDateTimeProperty(default=None)
-	lastPublish = TzDateTimeProperty(default=None)
-	firstPublish = TzDateTimeProperty(default=None)
+	created = TzDateTimeProperty(auto_now_add=True, indexed=False) 
+	firstVisit = TzDateTimeProperty(default=None, indexed=False)
+	lastPublish = TzDateTimeProperty(default=None, indexed=False)
+	firstPublish = TzDateTimeProperty(default=None, indexed=False)
 
 	# governance options
 	maxNumAttachments = db.IntegerProperty(choices=NUM_ATTACHMENT_CHOICES, default=DEFAULT_MAX_NUM_ATTACHMENTS, indexed=False)
@@ -145,10 +145,10 @@ class Rakontu(db.Model):
 	allowNonManagerCuratorsToEditTags = db.BooleanProperty(default=False, indexed=False)
 	
 	# descriptive options
-	type = db.StringProperty(choices=RAKONTU_TYPES, default=RAKONTU_TYPES[-1]) # only used to determine questions at front, but may be useful later so saving
+	type = db.StringProperty(choices=RAKONTU_TYPES, default=RAKONTU_TYPES[-1], indexed=False) # only used to determine questions at front, but may be useful later so saving
 	tagline = db.StringProperty(default="", indexed=False) # appears under name, optional
 	image = db.BlobProperty(default=None) # appears on all pages, should be small (100x60 is best)
-	contactEmail = db.StringProperty(default=DEFAULT_CONTACT_EMAIL) # sender address for emails sent from site
+	contactEmail = db.StringProperty(default=DEFAULT_CONTACT_EMAIL, indexed=False) # sender address for emails sent from site
 	
 	description = db.TextProperty(default=DEFAULT_RAKONTU_DESCRIPTION) # appears on "about rakontu" page
 	description_formatted = db.TextProperty() # formatted texts kept separate for re-editing original
@@ -171,7 +171,7 @@ class Rakontu(db.Model):
 	defaultTimeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT, indexed=False) # appears on member preferences page
 	defaultDateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT, indexed=False) # appears on member preferences page
 	
-	skinName = db.StringProperty(default=DEFAULT_SKIN_NAME)
+	skinName = db.StringProperty(default=DEFAULT_SKIN_NAME, indexed=False)
 	customSkin = db.TextProperty()
 	
 	def initializeFormattedTexts(self):
@@ -373,10 +373,13 @@ class Rakontu(db.Model):
 	def getNonDraftEntries(self):
 		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
-	def getNonDraftEntriesBetweenDateTimesInReverseTimeOrder(self, minTime, maxTime):
-		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).\
-			filter("published >= ", minTime).filter("published < ", maxTime).order("-published").fetch(FETCH_NUMBER)
-			
+	def browseEntries(self, minTime, maxTime, entryTypes):
+		return Entry.all().filter("rakontu = ", self.key()).\
+			filter("draft = ", False).\
+			filter("type IN ", entryTypes).\
+			filter("published >= ", minTime).filter("published < ", maxTime).\
+			fetch(FETCH_NUMBER)
+	
 	def getNonDraftEntriesOfType(self, type):
 		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(FETCH_NUMBER)
 	
@@ -463,6 +466,14 @@ class Rakontu(db.Model):
 		result.extend(answers)
 		result.extend(annotations)
 		return result
+	
+	def hasTheMaximumNumberOfEntries(self):
+		numEntriesIncludingDrafts = Entry.all().filter("rakontu = ", self.key()).count()
+		return numEntriesIncludingDrafts >= MAX_ENTRIES_PER_RAKONTU
+	
+	def hasWithinTenOfTheMaximumNumberOfEntries(self):
+		numEntriesIncludingDrafts = Entry.all().filter("rakontu = ", self.key()).count()
+		return numEntriesIncludingDrafts >= MAX_ENTRIES_PER_RAKONTU - 10
 
 	def getEntryInImportBufferWithTitle(self, title):	
 		return Entry.all().filter("rakontu = ", self.key()).filter("inBatchEntryBuffer = ", True).filter("title = ", title).get()
@@ -520,7 +531,7 @@ class Rakontu(db.Model):
 		
 	# QUERIES WITH PAGING
 	
-	def getNonDraftEntriesLackingMetadata_WithPaging(self, show, type, sortBy, bookmark, numToFetch):
+	def getNonDraftEntriesLackingMetadata_WithPaging(self, show, type, sortBy, bookmark, numToFetch=MAX_ITEMS_PER_LIST_PAGE):
 		query = pager.PagerQuery(Entry).filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).order("-__key__")
 		prev, entries, next = query.fetch(numToFetch, bookmark)
 		result = []
@@ -550,7 +561,7 @@ class Rakontu(db.Model):
 			result.sort(lambda a,b: cmp(b.getNonDraftAnnotationCount(), a.getNonDraftAnnotationCount()))
 		return prev, result, next
 	
-	def getAttachments_WithPaging(self, numToFetch, bookmark):
+	def getAttachments_WithPaging(self, bookmark, numToFetch=MAX_ITEMS_PER_LIST_PAGE):
 		# note, cannot get this to work with date order, using key order instead
 		# wants FixedOffset class, which is here
 		# http://docs.python.org/library/datetime.html#datetime-tzinfo
@@ -559,12 +570,12 @@ class Rakontu(db.Model):
 		prev, results, next = query.fetch(numToFetch, bookmark)
 		return prev, results, next
 	
-	def getTagSets_WithPaging(self, numToFetch, bookmark):
+	def getTagSets_WithPaging(self, bookmark, numToFetch=MAX_ITEMS_PER_LIST_PAGE):
 		query = pager.PagerQuery(Annotation).filter("rakontu = ", self.key()).filter("type = ", "tag set").filter("draft = ", False).order("-__key__")
 		prev, results, next = query.fetch(numToFetch, bookmark)
 		return prev, results, next
 	
-	def getNonDraftEntriesOfType_WithPaging(self, type, numToFetch, bookmark):
+	def getNonDraftEntriesOfType_WithPaging(self, type, bookmark, numToFetch=MAX_ITEMS_PER_LIST_PAGE):
 		query = pager.PagerQuery(Entry).filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).order("-__key__")
 		return query.fetch(numToFetch, bookmark)
 	
@@ -761,23 +772,20 @@ class Rakontu(db.Model):
 		export = Export(key_name=KeyName("export"), rakontu=self, type=type, fileFormat=fileFormat)
 		exportText = ""
 		if type == "csv_export_search":
-			if member and member.viewEntriesList:
-				if member.viewSearch:
-					exportText += '"Export of search result ""%s"" for Rakontu %s"\n' % (member.viewSearch.name, self.name)
-				else:
-					exportText += '"Export of entries for Rakontu %s"\n' % self.name
+			if member:
+				exportText += '"Export of viewed items for member "%s" in Rakontu %s"\n' % (member.nickname, self.name)
+				entries = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
 				members = self.getActiveMembers()
 				characters = self.getActiveCharacters()
 				memberQuestions = self.getActiveQuestionsOfType("member")
 				characterQuestions = self.getActiveQuestionsOfType("character")
 				typeCount = 0
 				for type in ENTRY_TYPES:
-					entries = self.getNonDraftEntriesOfType(type)
-					entriesToInclude = []
+					entriesOfThisType = []
 					for entry in entries:
-						if entry.key() in member.viewEntriesList:
-							entriesToInclude.append(entry)
-					if entriesToInclude:
+						if entry.type == type:
+							entriesOfThisType.append(entry)
+					if entriesOfThisType:
 						questions = self.getActiveQuestionsOfType(type)
 						exportText += '\n%s\nNumber,Title,Contributor,' % ENTRY_TYPES_PLURAL_DISPLAY[typeCount].upper()
 						for question in questions:
@@ -788,11 +796,8 @@ class Rakontu(db.Model):
 							exportText += question.name + ","
 						exportText += '\n'
 						i = 0
-						for entry in entriesToInclude:
-							try:
-								exportText += entry.csvLineWithAnswers(i+1, members, characters, questions, memberQuestions, characterQuestions) 
-							except:
-								pass # if it doesn't exist, move on
+						for entry in entriesOfThisType:
+							exportText += entry.csvLineWithAnswers(i+1, members, characters, questions, memberQuestions, characterQuestions) 
 							i += 1
 					typeCount += 1
 		elif type == "csv_export_all":
@@ -846,42 +851,26 @@ class Rakontu(db.Model):
 			exportText += '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
 			exportText += '<title>Printed from Rakontu</title></head><body>'
 			if subtype == "search":
-				if member.viewSearch:
-					exportText += "<h3>Results of search %s</h3>" % member.viewSearch.name
-				if member.viewEntriesList:
-					for entry in self.getNonDraftEntries():
-						if entry.key() in member.viewEntriesList:
-							try:
-								exportText += entry.PrintText()
-							except:
-								pass
+				exportText += "<h3>Printing selections from Rakontu %s</h3>" % self.name
+				entries = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
+				for entry in entries:
+					exportText += entry.PrintText()
 			elif subtype == "entry":
-				entryAndItems = []
-				entryAndItems.extend(entry.getNonDraftAnswers())
-				entryAndItems.extend(entry.getNonDraftAnnotations())
-				entryAndItems.insert(0, entry)
-				for item in entryAndItems:
-					if item.MemberWantsToSeeMyType(member):
-						try:
-							exportText += item.PrintText()
-						except: 
-							pass
+				exportText += "<h3>Printing selections for entry %s</h3>" % entry.name
+				items = ItemsMatchingViewOptionsForMemberAndLocation(member, "entry", entry=entry)
+				items.insert(0, entry)
+				for item in items:
+					exportText += item.PrintText()
 			elif subtype == "member":
-				exportText += "<h3>Entries and annotations contributed by member %s</h3>" % member.nickname
-				for item in memberToSee.getAllItemsAttributedToMember():
-					if item.MemberWantsToSeeMyType(member):
-						try:
-							exportText += item.PrintText()
-						except: 
-							pass
+				exportText += "<h3>Printing selections for member %s</h3>" % memberToSee.nickname
+				items = ItemsMatchingViewOptionsForMemberAndLocation(member, "member", memberToSee=memberToSee)
+				for item in items:
+					exportText += item.PrintText()
 			elif subtype == "character":
-				exportText += "<h3>Entries and annotations contributed by character %s</h3>" % character.name
-				for item in character.getAllItemsAttributedToCharacter():
-					if item.MemberWantsToSeeMyType(member):
-						try:
-							exportText += item.PrintText()
-						except: 
-							pass
+				exportText += "<h3>Printing selections for character %s</h3>" % character.name
+				items = ItemsMatchingViewOptionsForMemberAndLocation(member, "character", character=character)
+				for item in items:
+					exportText += item.PrintText()
 			exportText += "</body></html>"
 		elif type == "exportQuestions":
 			exportText += '; refersTo,name,text,type,choices or min-max or boolean "yes" text,multiple,help,help for using\n'
@@ -923,10 +912,10 @@ class Question(db.Model):
 
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, collection_name="questions_to_rakontu")
-	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO, required=True) 
+	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO, required=True)
 	
 	name = db.StringProperty(required=True, default=DEFAULT_QUESTION_NAME)
-	text = db.StringProperty(required=True)
+	text = db.StringProperty(required=True, indexed=False)
 	type = db.StringProperty(choices=QUESTION_TYPES, default="text") # text, boolean, ordinal, nominal, value
 	
 	active = db.BooleanProperty(default=True) # used to hide questions no longer being used, same as members
@@ -994,7 +983,7 @@ class Member(db.Model):
 	active = db.BooleanProperty(default=True) 
 	
 	governanceType = db.StringProperty(choices=GOVERNANCE_ROLE_TYPES, default="member") # can only be set by managers
-	helpingRoles = db.ListProperty(bool, default=[False, False, False]) # members can choose
+	helpingRoles = db.ListProperty(bool, default=[False, False, False], indexed=False) # members can choose
 	helpingRolesAvailable = db.ListProperty(bool, default=[True, True, True], indexed=False) # managers can ban members from roles
 	
 	guideIntro = db.TextProperty(default=DEFAULT_GUIDE_INTRO) # appears on the welcome and get help pages if the member is a guide
@@ -1008,33 +997,20 @@ class Member(db.Model):
 	acceptsMessages = db.BooleanProperty(default=True, indexed=False) # other members can send emails to their google email (without seeing it)
 	preferredTextFormat = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
-	timeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE) # members choose these in their prefs page
+	timeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE, indexed=False) # members choose these in their prefs page
 	timeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT, indexed=False) # how they want to see dates
 	dateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT, indexed=False) # how they want to see times
-	showAttachedImagesInline = db.BooleanProperty(default=False)
-	numItemsToShowPerPage = db.IntegerProperty(default=DEFAULT_PAGING_ITEMS_PER_PAGE)
-	maxItemsOnGridPage = db.IntegerProperty(default=DEFAULT_MAX_ITEMS_PER_GRID_PAGE)
+	showAttachedImagesInline = db.BooleanProperty(default=False, indexed=False)
 	
 	joined = TzDateTimeProperty(auto_now_add=True)
-	firstVisited = db.DateTimeProperty()
-	lastEnteredEntry = db.DateTimeProperty()
-	lastEnteredAnnotation = db.DateTimeProperty()
-	lastEnteredLink = db.DateTimeProperty()
-	lastAnsweredQuestion = db.DateTimeProperty()
-	lastReadAnything = db.DateTimeProperty()
+	firstVisited = db.DateTimeProperty(indexed=False)
+	lastEnteredEntry = db.DateTimeProperty(indexed=False)
+	lastEnteredAnnotation = db.DateTimeProperty(indexed=False)
+	lastEnteredLink = db.DateTimeProperty(indexed=False)
+	lastAnsweredQuestion = db.DateTimeProperty(indexed=False)
+	lastReadAnything = db.DateTimeProperty(indexed=False)
 	
-	nudgePoints = db.IntegerProperty(default=DEFAULT_START_NUDGE_POINTS) # accumulated through participation
-	
-	viewTimeEnd = TzDateTimeProperty(auto_now_add=True)
-	viewTimeFrameInSeconds = db.IntegerProperty(default=WEEK_SECONDS, indexed=False)
-	viewNudgeCategories = db.ListProperty(bool, default=[True] * NUM_NUDGE_CATEGORIES, indexed=False)
-	viewNudgeFloor = db.IntegerProperty(default=DEFAULT_NUDGE_FLOOR)
-	viewSearch = db.ReferenceProperty(None, collection_name="member_to_search", indexed=False)
-	viewDetails = db.BooleanProperty(default=False, indexed=False)
-	viewEntryTypes = db.ListProperty(bool, default=[True, True, False, False, False]) # stories and invitations on by default
-	viewAnnotationAnswerLinkTypes = db.ListProperty(bool, default=[False, True, True, False, False, False]) # "tag set", "comment", "request", "nudge", "answer", "link"
-	viewGridOptionsOnTop = db.BooleanProperty(default=False)
-	viewEntriesList = db.ListProperty(db.Key, indexed=False)
+	nudgePoints = db.IntegerProperty(default=DEFAULT_START_NUDGE_POINTS, indexed=False) # accumulated through participation
 	
 	# CREATION
 	
@@ -1042,11 +1018,18 @@ class Member(db.Model):
 		self.timeZoneName = self.rakontu.defaultTimeZoneName
 		self.timeFormat = self.rakontu.defaultTimeFormat
 		self.dateFormat = self.rakontu.defaultDateFormat
-		if self.viewTimeEnd.tzinfo is None:
-			self.viewTimeEnd = self.viewTimeEnd.replace(tzinfo=pytz.utc)
 		self.profileText_formatted = db.Text("<p>%s</p>" % self.profileText)
 		self.guideIntro_formatted = db.Text("<p>%s</p>" % self.guideIntro)
 		# caller does put
+		
+	def createViewOptions(self):
+		newObjects = []
+		for location in VIEW_OPTION_LOCATIONS:
+			viewOptions = ViewOptions(member=self,location=location)
+			if viewOptions.endTime.tzinfo is None:
+				viewOptions.endTime = viewOptions.endTime.replace(tzinfo=pytz.utc)
+			newObjects.append(viewOptions)
+		db.put(newObjects)
 		
 	# INFO
 	
@@ -1129,33 +1112,138 @@ class Member(db.Model):
 	def canEditTags(self):
 		return (NUM_TAGS_IN_TAG_SET) and (self.isCurator() and self.isManagerOrOwner()) or (self.isCurator() and self.rakontu.allowNonManagerCuratorsToEditTags)
 	
-	# BROWSING
+	# BROWSING - VIEW OPTIONS - GET
 	
-	def getViewStartTime(self):
-		return self.viewTimeEnd - timedelta(seconds=self.viewTimeFrameInSeconds)
+	def getViewStartTime(self, location):
+		viewOptions = self.getViewOptionsForLocation(location)
+		return viewOptions.endTime - timedelta(seconds=viewOptions.timeFrameInSeconds)
+	
+	def getViewEndTime(self, location):
+		viewOptions = self.getViewOptionsForLocation(location)
+		return viewOptions.endTime
+	
+	def getViewTimeFrameForLocation(self, location):
+		viewOptions = self.getViewOptionsForLocation(location)
+		return viewOptions.timeFrameInSeconds
+	
+	def getTimeDeltaForLocation(self, location):
+		viewOptions = self.getViewOptionsForLocation(location)
+		return timedelta(seconds=viewOptions.timeFrameInSeconds)
 			
-	def setViewTimeFrameFromTimeFrameString(self, frame):
+	def getFrameStringForViewTimeFrame(self, location):
+		viewOptions = self.getViewOptionsForLocation(location)
+		for aFrame, seconds in TIME_FRAMES:
+			if viewOptions.timeFrameInSeconds == seconds:
+				return aFrame
+		return None
+	
+	def getNudgeCategoriesToShowForLocation(self, location):
+		viewOptions = self.getViewOptionsForLocation(location)
+		return viewOptions.nudgeCategories
+	
+	def getNudgeFloorForLocation(self, location):
+		viewOptions = self.getViewOptionsForLocation(location)
+		return viewOptions.nudgeFloor
+	
+	def getAnnotationAnswerLinkTypesForLocation(self, location):
+		viewOptions = self.getViewOptionsForLocation(location)
+		return viewOptions.annotationAnswerLinkTypes
+			
+	def getAnnotationAnswerLinkTypeForLocationAndIndex(self, location, index):
+		viewOptions = self.getViewOptionsForLocation(location)
+		return viewOptions.annotationAnswerLinkTypes[index]
+			
+	def getEntryTypesForLocation(self, location):
+		viewOptions = self.getViewOptionsForLocation(location)
+		return viewOptions.entryTypes
+	
+	def getEntryTypeForLocationAndIndex(self, location, index):
+		viewOptions = self.getViewOptionsForLocation(location)
+		return viewOptions.entryTypes[index]
+	
+	def getSearchForLocation(self, location):
+		viewOptions = self.getViewOptionsForLocation(location)
+		return viewOptions.search
+	
+	def getViewDetailsForLocation(self, location):
+		viewOptions = self.getViewOptionsForLocation(location)
+		return viewOptions.showDetails
+	
+	def getGridOptionsOnTopForLocation(self, location):
+		viewOptions = self.getViewOptionsForLocation(location)
+		return viewOptions.showOptionsOnTop
+	
+	def getLimitForLocation(self, location):
+		viewOptions = self.getViewOptionsForLocation(location)
+		return viewOptions.limit
+	
+	def getStickyEndTimeForLocation(self, location):
+		viewOptions = self.getViewOptionsForLocation(location)
+		return viewOptions.keepEndTimeAtNow
+	
+	# BROWSING - VIEW OPTIONS - SET
+	
+	def setEndTimeForLocation(self, location, endTime):
+		viewOptions = self.getViewOptionsForLocation(location)
+		viewOptions.endTime = endTime
+		viewOptions.put()
+			
+	def setViewTimeFrameFromTimeFrameString(self, frame, location):
+		viewOptions = self.getViewOptionsForLocation(location)
 		for aFrame, seconds in TIME_FRAMES:
 			if frame == aFrame:
-				if aFrame == TIMEFRAME_EVERYTHING:
-					self.viewTimeEnd = datetime.now(tz=pytz.utc)
-					self.viewTimeFrameInSeconds = (self.viewTimeEnd - self.rakontu.firstPublishOrCreatedWhicheverExists()).seconds \
-						+ (self.viewTimeEnd - self.rakontu.firstPublishOrCreatedWhicheverExists()).days * DAY_SECONDS
-				else:
-					self.viewTimeFrameInSeconds = seconds
-				# caller should do the put
+				viewOptions.timeFrameInSeconds = seconds
+				viewOptions.put()
 				break
 			
-	def getFrameStringForViewTimeFrame(self):
-		for aFrame, seconds in TIME_FRAMES:
-			if self.viewTimeFrameInSeconds == seconds:
-				return aFrame
-		return TIMEFRAME_EVERYTHING
-			
-	def setTimeFrameToStartAtFirstPublish(self):
-		self.viewTimeEnd = self.rakontu.firstPublish + timedelta(seconds=self.viewTimeFrameInSeconds)
-		# caller should do the put
+	def setTimeFrameToStartAtFirstPublish(self, location):
+		viewOptions = self.getViewOptionsForLocation(location)
+		viewOptions.endTime = self.rakontu.firstPublish + timedelta(seconds=viewOptions.timeFrameInSeconds)
+		viewOptions.put()
 		
+	def setNewNudgeCategoriesForLocation(self, location, newNudgeCategories):
+		viewOptions = self.getViewOptionsForLocation(location)
+		viewOptions.nudgeCategories = []
+		viewOptions.nudgeCategories.extend(newNudgeCategories)
+		viewOptions.put()
+		
+	def setNewEntryTypesForLocation(self, location, newTypes):
+		viewOptions = self.getViewOptionsForLocation(location)
+		viewOptions.entryTypes = []
+		viewOptions.entryTypes.extend(newTypes)
+		viewOptions.put()
+		
+	def setNewAnnotationTypesForLocation(self, location, newTypes):
+		viewOptions = self.getViewOptionsForLocation(location)
+		viewOptions.annotationAnswerLinkTypes = []
+		viewOptions.annotationAnswerLinkTypes.extend(newTypes)
+		viewOptions.put()
+		
+	def setNudgeFloorForLocation(self, location, newNudgeFloor):
+		viewOptions = self.getViewOptionsForLocation(location)
+		viewOptions.nudgeFloor = newNudgeFloor
+		viewOptions.put()
+		
+	def setSearchForLocation(self, location, search):
+		viewOptions = self.getViewOptionsForLocation(location)
+		viewOptions.search = search
+		viewOptions.put()
+			
+	def setViewDetailsForLocation(self, location, showDetails):
+		viewOptions = self.getViewOptionsForLocation(location)
+		viewOptions.showDetails = showDetails
+		viewOptions.put()
+			
+	def setGridOptionsOnTopForLocation(self, location, option):
+		viewOptions = self.getViewOptionsForLocation(location)
+		viewOptions.showOptionsOnTop = option
+		viewOptions.put()
+			
+	def setStickyEndTimeForLocation(self, location, value):
+		viewOptions = self.getViewOptionsForLocation(location)
+		viewOptions.keepEndTimeAtNow = value
+		viewOptions.put()
+	
 	def firstVisitURL(self):
 		if self.isManagerOrOwner():
 			return BuildURL("dir_manage", "url_first", rakontu=self.rakontu)
@@ -1165,12 +1253,43 @@ class Member(db.Model):
 	# CONTRIBUTIONS
 	
 	def getAllItemsAttributedToMember(self):
-		allItems = []
-		allItems.extend(self.getNonDraftEntriesAttributedToMember())
-		allItems.extend(self.getNonDraftAnnotationsAttributedToMember())
-		allItems.extend(self.getNonDraftAnswersAboutEntriesAttributedToMember())
-		allItems.extend(self.getLinksCreatedByMember())
-		return allItems
+		result = []
+		result.extend(self.getNonDraftEntriesAttributedToMember())
+		result.extend(self.getNonDraftAnnotationsAttributedToMember())
+		result.extend(self.getNonDraftAnswersAboutEntriesAttributedToMember())
+		result.extend(self.getLinksCreatedByMember())
+		return result
+	
+	def browseItems(self, minTime, maxTime, entryTypes, annotationTypes):
+		result = []
+		entries = Entry.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).\
+			filter("type IN ", entryTypes).\
+			filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
+		result.extend(entries)
+		liaisonedEntries = Entry.all().filter("liaison = ", self.key()).filter("draft = ", False).\
+			filter("type IN ", entryTypes).\
+			filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
+		result.extend(liaisonedEntries)
+		annotations = Annotation.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).\
+			filter("type IN ", annotationTypes).\
+			filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
+		result.extend(annotations)
+		liaisonedAnnotations = Annotation.all().filter("liaison = ", self.key()).filter("draft = ", False).\
+			filter("type IN ", annotationTypes).\
+			filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
+		result.extend(liaisonedAnnotations)
+		if "answer" in annotationTypes:
+			answers = Answer.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).\
+				filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
+			result.extend(answers)
+			liaisonedAnswers = Answer.all().filter("liaison = ", self.key()).filter("draft = ", False).\
+				filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
+			result.extend(liaisonedAnswers)
+		if "link" in annotationTypes:
+			links = Answer.all().filter("creator = ", self.key()).\
+				filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
+			result.extend(links)
+		return result
 	
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
@@ -1273,6 +1392,36 @@ class Member(db.Model):
 	def getPrivateSavedSearches(self):
 		return SavedSearch.all().filter("creator = ", self.key()).filter("private = ", True).fetch(FETCH_NUMBER)
 	
+	def getViewOptionsForLocation(self, location):
+		return ViewOptions.all().filter("member = ", self.key()).filter("location = ", location).get()
+	
+# ============================================================================================
+# ============================================================================================
+class ViewOptions(db.Model): # options on what to show - four per member (home, entry, member, character)
+# ============================================================================================
+# ============================================================================================
+
+	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
+	member = db.ReferenceProperty(Member, required=True, collection_name="view_options_to_member")
+	location = db.StringProperty(choices=VIEW_OPTION_LOCATIONS, default="home") 
+	
+	endTime = TzDateTimeProperty(auto_now_add=True, indexed=False)
+	timeFrameInSeconds = db.IntegerProperty(default=WEEK_SECONDS, indexed=False)
+	keepEndTimeAtNow = db.BooleanProperty(default=True, indexed=False)
+
+	entryTypes = db.ListProperty(bool, default=[True, True, False, False, False], indexed=False) # stories and invitations on by default
+	annotationAnswerLinkTypes = db.ListProperty(bool, default=[False, True, True, False, False, False], indexed=False) # "tag set", "comment", "request", "nudge", "answer", "link"
+	
+	nudgeCategories = db.ListProperty(bool, default=[True] * NUM_NUDGE_CATEGORIES, indexed=False)
+	nudgeFloor = db.IntegerProperty(default=DEFAULT_NUDGE_FLOOR, indexed=False)
+	
+	search = db.ReferenceProperty(None, collection_name="view_options_to_search", indexed=False)
+	
+	limit = db.IntegerProperty(default=MAX_ITEMS_PER_GRID_PAGE, indexed=False) # may want to set this later, just constant for now
+	
+	showDetails = db.BooleanProperty(default=False, indexed=False)
+	showOptionsOnTop = db.BooleanProperty(default=False, indexed=False)
+	
 # ============================================================================================
 # ============================================================================================
 class PendingMember(db.Model): # person invited to join rakontu but not yet logged in
@@ -1311,11 +1460,27 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 		return False
 	
 	def getAllItemsAttributedToCharacter(self):
-		allItems = []
-		allItems.extend(self.getNonDraftEntriesAttributedToCharacter())
-		allItems.extend(self.getNonDraftAnnotationsAttributedToCharacter())
-		allItems.extend(self.getNonDraftAnswersAboutEntriesAttributedToCharacter())
-		return allItems
+		result = []
+		result.extend(self.getNonDraftEntriesAttributedToCharacter())
+		result.extend(self.getNonDraftAnnotationsAttributedToCharacter())
+		result.extend(self.getNonDraftAnswersAboutEntriesAttributedToCharacter())
+		return result
+
+	def browseItems(self, minTime, maxTime, entryTypes, annotationTypes):
+		result = []
+		entries = Entry.all().filter("character = ", self.key()).filter("draft = ", False).\
+			filter("type IN ", entryTypes).\
+			filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
+		result.extend(entries)
+		annotations = Annotation.all().filter("character = ", self.key()).filter("draft = ", False).\
+			filter("type IN ", annotationTypes).\
+			filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
+		result.extend(annotations)
+		if "answer" in annotationTypes:
+			answers = Answer.all().filter("character = ", self.key()).filter("draft = ", False).\
+				filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
+			result.extend(answers)
+		return result
 	
 	def getNonDraftEntriesAttributedToCharacter(self):
 		return Entry.all().filter("character = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
@@ -1363,21 +1528,21 @@ class SavedSearch(db.Model):
 	created = TzDateTimeProperty(auto_now_add=True)
 	name = db.StringProperty(default=DEFAULT_SEARCH_NAME)
 	# the type is mainly to make it display in a list of entries, but it may be useful later anyway
-	type = db.StringProperty(default="search filter") 
+	type = db.StringProperty(default="search filter", indexed=False) 
 	
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	flagComment = db.StringProperty(indexed=False)
 
-	words_anyOrAll = db.StringProperty(choices=ANY_ALL, default="any")
-	words_locations = db.ListProperty(bool, default=[True] * (len(ANNOTATION_TYPES) + 1))
-	words = db.StringListProperty()
+	words_anyOrAll = db.StringProperty(choices=ANY_ALL, default="any", indexed=False)
+	words_locations = db.ListProperty(bool, default=[True] * (len(ANNOTATION_TYPES) + 1), indexed=False)
+	words = db.StringListProperty(indexed=False)
 	
-	tags_anyOrAll = db.StringProperty(choices=ANY_ALL)
-	tags = db.StringListProperty()
+	tags_anyOrAll = db.StringProperty(choices=ANY_ALL, indexed=False)
+	tags = db.StringListProperty(indexed=False)
 	
-	overall_anyOrAll = db.StringProperty(choices=ANY_ALL, default="any")
-	answers_anyOrAll = db.StringProperty(choices=ANY_ALL, default="any")
-	creatorAnswers_anyOrAll = db.StringProperty(choices=ANY_ALL, default="any")
+	overall_anyOrAll = db.StringProperty(choices=ANY_ALL, default="any", indexed=False)
+	answers_anyOrAll = db.StringProperty(choices=ANY_ALL, default="any", indexed=False)
+	creatorAnswers_anyOrAll = db.StringProperty(choices=ANY_ALL, default="any", indexed=False)
 	
 	comment = db.TextProperty(default="")
 	comment_formatted = db.TextProperty()
@@ -1500,8 +1665,8 @@ class SavedSearchQuestionReference(db.Model):
 	
 	type = db.StringProperty() # entry or creator
 	order = db.IntegerProperty()
-	answer = db.StringProperty()
-	comparison = db.StringProperty()
+	answer = db.StringProperty(indexed=False)
+	comparison = db.StringProperty(indexed=False)
 	
 # ============================================================================================
 # ============================================================================================
@@ -1516,7 +1681,7 @@ class Answer(db.Model):
 	referentType = db.StringProperty(default="entry") # entry or member
 	creator = db.ReferenceProperty(Member, collection_name="answers_to_creators") 
 	
-	collectedOffline = db.BooleanProperty(default=False)
+	collectedOffline = db.BooleanProperty(default=False, indexed=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="answers_to_liaisons")
 	character = db.ReferenceProperty(Character, default=None, collection_name="answers_to_characters")
 	
@@ -1525,17 +1690,18 @@ class Answer(db.Model):
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	flagComment = db.StringProperty(indexed=False)
 	
-	answerIfBoolean = db.BooleanProperty(default=False)
-	answerIfText = db.StringProperty(default="")
-	answerIfMultiple = db.StringListProperty(default=[""] * MAX_NUM_CHOICES_PER_QUESTION)
-	answerIfValue = db.IntegerProperty(default=0)
+	answerIfBoolean = db.BooleanProperty(default=False, indexed=False)
+	answerIfText = db.StringProperty(default="", indexed=False)
+	answerIfMultiple = db.StringListProperty(default=[""] * MAX_NUM_CHOICES_PER_QUESTION, indexed=False)
+	answerIfValue = db.IntegerProperty(default=0, indexed=False)
 	
+	collected = TzDateTimeProperty(default=None, indexed=False)
 	created = TzDateTimeProperty(auto_now_add=True)
-	edited = TzDateTimeProperty(auto_now_add=True)
+	edited = TzDateTimeProperty(auto_now_add=True, indexed=False)
 	published = TzDateTimeProperty(auto_now_add=True)
 	
-	entryNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
-	entryActivityPointsWhenPublished = db.IntegerProperty(default=0)
+	entryNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES, indexed=False)
+	entryActivityPointsWhenPublished = db.IntegerProperty(default=0, indexed=False)
 	
 	def isAnswer(self):
 		return True
@@ -1622,8 +1788,16 @@ class Answer(db.Model):
 		return '<p>%s %s (%s)</p><hr>' \
 			% (self.question.text, self.displayStringShort(), self.memberNickNameOrCharacterName())
 			
-	def MemberWantsToSeeMyType(self, member):
-		return member.viewAnnotationAnswerLinkTypes[ANNOTATION_ANSWER_LINK_TYPES_ANSWER_INDEX]
+	def MemberWantsToSeeMyTypeInLocation(self, member, location):
+		return member.getAnnotationAnswerLinkTypeForLocationAndIndex(location, ANNOTATION_ANSWER_LINK_TYPES_ANSWER_INDEX)
+	
+	def getEntryNudgePointsWhenPublishedForMemberAndLocation(self, member, location):
+		viewOptions = member.getViewOptionsForLocation(location)
+		result = 0
+		for i in range(NUM_NUDGE_CATEGORIES):
+			if viewOptions.nudgeCategories[i]:
+				result += self.entryNudgePointsWhenPublished[i]
+		return result
 		
 	# ATTRIBUTION
 	
@@ -1660,7 +1834,7 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 
 	rakontu = db.ReferenceProperty(Rakontu, collection_name="entries_to_rakontu")
 	creator = db.ReferenceProperty(Member, collection_name="entries")
-	collectedOffline = db.BooleanProperty(default=False)
+	collectedOffline = db.BooleanProperty(default=False, indexed=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="entries_to_liaisons")
 	character = db.ReferenceProperty(Character, default=None, collection_name="entries_to_characters")
 	
@@ -1669,9 +1843,9 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	flagComment = db.StringProperty(indexed=False)
 	
-	collected = TzDateTimeProperty(default=None)
+	collected = TzDateTimeProperty(default=None, indexed=False)
 	created = TzDateTimeProperty(auto_now_add=True)
-	edited = TzDateTimeProperty(auto_now_add=True)
+	edited = TzDateTimeProperty(auto_now_add=True, indexed=False)
 	published = TzDateTimeProperty(auto_now_add=True)
 	
 	lastRead = TzDateTimeProperty(default=None)
@@ -2004,14 +2178,23 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	def nudgePointsCombined(self):
 		return self.nudgePoints[0] + self.nudgePoints[1] + self.nudgePoints[2] + self.nudgePoints[3] + self.nudgePoints[4]
 	
-	def nudgePointsForMemberViewOptions(self, options):
+	def nudgePointsForMemberAndLocation(self, member, location):
+		viewOptions = member.getViewOptionsForLocation(location)
 		result = 0
 		for i in range(NUM_NUDGE_CATEGORIES):
-			if options[i]:
+			if viewOptions.nudgeCategories[i]:
 				result += self.nudgePoints[i]
 		return result
 	
 	# ANNOTATIONS, ANSWERS, LINKS
+	
+	def getNonDraftAnnotationsAnswersAndLinksSortedInReverseTimeOrder(self):
+		result = []
+		result.extend(self.getNonDraftAnnotations())
+		result.extend(self.getNonDraftAnswers())
+		result.extend(self.getAllLinks())
+		result.sort(lambda a,b: cmp(b.published, a.published))
+		return result
 	
 	def getAnnotations(self):
 		return Annotation.all().filter("entry =", self.key()).fetch(FETCH_NUMBER)
@@ -2274,11 +2457,11 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	def PrintText(self):
 		return "<p><b>%s</b> (%s)</p><p>%s</p><hr>" % (self.title, self.type, self.text_formatted)
 		
-	def MemberWantsToSeeMyType(self, member):
+	def MemberWantsToSeeMyTypeInLocation(self, member, location):
 		i = 0
 		for type in ENTRY_TYPES:
 			if type == self.type: 
-				if member.viewEntryTypes[i]:
+				if member.getEntryTypeForLocationAndIndex(location, i):
 					return True
 				else:
 					return False
@@ -2301,7 +2484,7 @@ class TextVersion(db.Model):
 	entry = db.ReferenceProperty(Entry, required=True, collection_name="versions_to_entries")
 	created = TzDateTimeProperty(auto_now_add=True)
 
-	title = db.StringProperty()
+	title = db.StringProperty(indexed=False)
 	text = db.TextProperty(default=NO_TEXT_IN_ENTRY)
 	text_formatted = db.TextProperty()
 	text_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
@@ -2341,8 +2524,8 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 	
 	comment = db.StringProperty(default="", indexed=False)
 	
-	entryNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
-	entryActivityPointsWhenPublished = db.IntegerProperty(default=0)
+	entryNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES, indexed=False)
+	entryActivityPointsWhenPublished = db.IntegerProperty(default=0, indexed=False)
 	
 	# IMPORTANT METHODS
 	
@@ -2398,8 +2581,16 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 	def PrintText(self):
 		return "<p>%s - %s</p><p>%s (%s)</p><hr>" % (self.linkFrom.title, self.linkTo.title, self.type, self.comment)
 
-	def MemberWantsToSeeMyType(self, member):
-		return member.viewAnnotationAnswerLinkTypes[ANNOTATION_ANSWER_LINK_TYPES_LINK_INDEX]
+	def MemberWantsToSeeMyTypeInLocation(self, member, location):
+		return member.getAnnotationAnswerLinkTypeForLocationAndIndex(location, ANNOTATION_ANSWER_LINK_TYPES_LINK_INDEX)
+	
+	def getEntryNudgePointsWhenPublishedForMemberAndLocation(self, member, location):
+		viewOptions = member.getViewOptionsForLocation(location)
+		result = 0
+		for i in range(NUM_NUDGE_CATEGORIES):
+			if viewOptions.nudgeCategories[i]:
+				result += self.entryNudgePointsWhenPublished[i]
+		return result
 	
 # ============================================================================================
 # ============================================================================================
@@ -2412,9 +2603,9 @@ class Attachment(db.Model):								   # binary attachments to entries
 	entry = db.ReferenceProperty(Entry, collection_name="attachments")
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="attachments_to_rakontu")
 
-	name = db.StringProperty(default=UNTITLED_ATTACHMENT_NAME)
-	mimeType = db.StringProperty() # from ACCEPTED_ATTACHMENT_MIME_TYPES
-	fileName = db.StringProperty() # as uploaded
+	name = db.StringProperty(default=UNTITLED_ATTACHMENT_NAME, indexed=False)
+	mimeType = db.StringProperty(indexed=False) # from ACCEPTED_ATTACHMENT_MIME_TYPES
+	fileName = db.StringProperty(indexed=False) # as uploaded
 	data = db.BlobProperty() # there is a practical limit on this size - cfk look at
 	
 	def getKeyName(self):
@@ -2458,28 +2649,28 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	flagComment = db.StringProperty(indexed=False)
 	
-	shortString = db.StringProperty() # comment/request subject, nudge comment
+	shortString = db.StringProperty(indexed=False) # comment/request subject, nudge comment
 	
 	longString = db.TextProperty() # comment/request body
 	longString_formatted = db.TextProperty()
 	longString_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
-	tagsIfTagSet = db.StringListProperty(default=[""] * NUM_TAGS_IN_TAG_SET)
-	valuesIfNudge = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
+	tagsIfTagSet = db.StringListProperty(default=[""] * NUM_TAGS_IN_TAG_SET, indexed=False)
+	valuesIfNudge = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES, indexed=False)
 	typeIfRequest = db.StringProperty(choices=REQUEST_TYPES)
 	completedIfRequest = db.BooleanProperty(default=False)
 
-	collectedOffline = db.BooleanProperty(default=False)
+	collectedOffline = db.BooleanProperty(default=False, indexed=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="annotations_liaisoned")
 	character = db.ReferenceProperty(Character, default=None, collection_name="annotations_to_characters")
 
-	collected = TzDateTimeProperty(default=None)
+	collected = TzDateTimeProperty(default=None, indexed=False)
 	created = TzDateTimeProperty(auto_now_add=True)
-	edited = TzDateTimeProperty()
+	edited = TzDateTimeProperty(auto_now_add=True, indexed=False)
 	published = TzDateTimeProperty()
 	
-	entryNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
-	entryActivityPointsWhenPublished = db.IntegerProperty(default=0)
+	entryNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES, indexed=False)
+	entryActivityPointsWhenPublished = db.IntegerProperty(default=0, indexed=False)
 	
 	def isAnnotation(self):
 		return True
@@ -2629,16 +2820,24 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 			imageText = '<img src="/images/nudges.png" alt="nudge" border="0">'
 		return imageText
 	
-	def MemberWantsToSeeMyType(self, member):
+	def MemberWantsToSeeMyTypeInLocation(self, member, location):
 		i = 0
 		for type in ANNOTATION_ANSWER_LINK_TYPES:
 			if type == self.type: 
-				if member.viewAnnotationAnswerLinkTypes[i]:
+				if  member.getAnnotationAnswerLinkTypeForLocationAndIndex(location, i):
 					return True
 				break
 			i += 1
 		return False
-	
+
+	def getEntryNudgePointsWhenPublishedForMemberAndLocation(self, member, location):
+		viewOptions = member.getViewOptionsForLocation(location)
+		result = 0
+		for i in range(NUM_NUDGE_CATEGORIES):
+			if viewOptions.nudgeCategories[i]:
+				result += self.entryNudgePointsWhenPublished[i]
+		return result
+
 # ============================================================================================
 # ============================================================================================
 class Help(db.Model):		 # context-sensitive help string - appears as title hover on icon 
@@ -2646,7 +2845,6 @@ class Help(db.Model):		 # context-sensitive help string - appears as title hover
 # ============================================================================================
 
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
-	created = TzDateTimeProperty(auto_now_add=True)
 	type = db.StringProperty() # info, tip, caution
 	name = db.StringProperty() # links to name in template
 	text = db.StringProperty(indexed=False) # text to show user (plain text)
@@ -2661,7 +2859,6 @@ class Skin(db.Model):		 # style sets to change look of each Rakontu
 # ============================================================================================
 
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
-	created = TzDateTimeProperty(auto_now_add=True)
 	name = db.StringProperty(required=True) 
 	
 	font_general = db.StringProperty(indexed=False) # on everything except buttons and headers
@@ -2726,8 +2923,8 @@ class Export(db.Model):		 # data prepared for export, in XML or CSV or TXT forma
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="export_to_rakontu")
 	type = db.StringProperty()
-	fileFormat = db.StringProperty()
-	created = TzDateTimeProperty(auto_now_add=True)
+	fileFormat = db.StringProperty(indexed=False)
+	created = TzDateTimeProperty(auto_now_add=True, indexed=False)
 	data = db.TextProperty()
 	
 	def getKeyName(self):

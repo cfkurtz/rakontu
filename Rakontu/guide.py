@@ -14,13 +14,18 @@ class ReviewResourcesPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isGuideOrManagerOrOwner():
+				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
+				prev, resources, next = rakontu.getNonDraftEntriesOfType_WithPaging("resource", bookmark)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_RESOURCES"], 
 								   'rakontu': rakontu, 
 								   'skin': rakontu.getSkinDictionary(),
-								   'resources': rakontu.getNonDraftEntriesOfType("resource"),
+								   'resources': resources,
 								   'current_member': member,
 								   'url_resource': URLForEntryType("resource"),
+								   'bookmark': bookmark,
+								   'previous': prev,
+								   'next': next,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/resources.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -34,7 +39,8 @@ class ReviewResourcesPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isGuideOrManagerOrOwner():
-				resources = rakontu.getNonDraftEntriesOfType("resource")
+				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
+				prev, resources, next = rakontu.getNonDraftEntriesOfType_WithPaging("resource", bookmark)
 				for resource in resources:
 					if "flag|%s" % resource.key() in self.request.arguments():
 						resource.flaggedForRemoval = True
@@ -42,7 +48,11 @@ class ReviewResourcesPage(webapp.RequestHandler):
 					elif "unflag|%s" % resource.key() in self.request.arguments():
 						resource.flaggedForRemoval = False
 						resource.put()
-				self.redirect(BuildURL("dir_guide", "url_resources", rakontu=rakontu))
+				if bookmark:
+					query = "%s&%s=%s" % (rakontu.urlQuery(), URL_OPTIONS["url_query_bookmark"], bookmark)
+				else:
+					query = rakontu.urlQuery()
+				self.redirect(BuildURL("dir_guide", "url_resources", query))
 			else:
 				self.redirect(rakontu.linkURL())
 		else:
@@ -135,14 +145,16 @@ class ReviewInvitationsPage(webapp.RequestHandler):
 		if access:
 			if member.isGuide():
 				noResponsesOnly = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_no_responses") == URL_OPTIONS["url_query_no_responses"]
-				invitations = []
-				allInvitations = rakontu.getNonDraftEntriesOfType("invitation")
+				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
+				prev, invitations, next = rakontu.getNonDraftEntriesOfType_WithPaging("invitation", bookmark)
 				if noResponsesOnly:
-					for invitation in allInvitations:
-						if not invitation.hasOutgoingLinksOfType("responded"):
-							invitations.append(invitation)
-				else:
-					invitations.extend(allInvitations)
+					unrespondedInvitations = self.reduceInvitationsByOnlyUnresponded(invitations)
+					# if the list is reduced so far that there is nothing to show, make one attempt to add more entries
+					if len(invitations) > 0 and len(unrespondedInvitations) == 0:
+						prev, moreInvitations, next = rakontu.getNonDraftEntriesOfType_WithPaging("invitation", next)
+						moreUnrespondedInvitations = self.reduceInvitationsByOnlyUnresponded(moreInvitations)
+						unrespondedInvitations.extend(moreUnrespondedInvitations)
+					invitations = unrespondedInvitations
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_INVITATIONS"], 
 								   'rakontu': rakontu, 
@@ -150,6 +162,9 @@ class ReviewInvitationsPage(webapp.RequestHandler):
 								   'current_member': member,
 								   'invitations': invitations,
 								   'showing_all_invitations': not noResponsesOnly,
+								   'bookmark': bookmark,
+								   'previous': prev,
+								   'next': next,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/invitations.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -158,17 +173,35 @@ class ReviewInvitationsPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
+	def reduceInvitationsByOnlyUnresponded(self, invitations):
+		unrespondedInvitations = []
+		for invitation in invitations:
+			if not invitation.hasOutgoingLinksOfType("responded"):
+				unrespondedInvitations.append(invitation)
+		return unrespondedInvitations
+			
 	@RequireLogin 
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isGuide():
+				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
 				if "changeSelections" in self.request.arguments():
 					if self.request.get("all_or_unresponded") == "showOnlyUnrespondedInvitations":
-						query = "%s=%s" % (URL_OPTIONS["url_query_no_responses"], URL_OPTIONS["url_query_no_responses"])
-						self.redirect(BuildURL("dir_guide", "url_invitations", query, rakontu=rakontu))
+						if bookmark:
+							query = "%s&%s=%s&%s=%s" % (rakontu.urlQuery(), 
+													URL_OPTIONS["url_query_no_responses"], URL_OPTIONS["url_query_no_responses"],
+													URL_OPTIONS["url_query_bookmark"], bookmark)
+						else:
+							query = "%s&%s=%s" % (rakontu.urlQuery(), 
+													URL_OPTIONS["url_query_no_responses"], URL_OPTIONS["url_query_no_responses"])
+						self.redirect(BuildURL("dir_guide", "url_invitations", query))
 					else:
-						self.redirect(BuildURL("dir_guide", "url_invitations", rakontu=rakontu))
+						if bookmark:
+							query = "%s&%s=%s" % (rakontu.urlQuery(), URL_OPTIONS["url_query_bookmark"], bookmark)
+						else:
+							query = rakontu.urlQuery()
+						self.redirect(BuildURL("dir_guide", "url_invitations", query))
 			else:
 				self.redirect(rakontu.linkURL())
 		else:

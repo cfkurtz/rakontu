@@ -617,11 +617,8 @@ class ExportSearchPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
-				if member.viewEntriesList:
-					export = rakontu.createOrRefreshExport("csv_export_search", subtype="search", member=member, fileFormat="csv")
-					self.redirect(BuildURL(None, "url_export", export.urlQuery()))
-				else:
-					self.redirect(BuildResultURL("noSearchResultForExport", rakontu=rakontu))
+				export = rakontu.createOrRefreshExport("csv_export_search", subtype="search", member=member, fileFormat="csv")
+				self.redirect(BuildURL(None, "url_export", export.urlQuery()))
 			else:
 				self.redirect(rakontu.linkURL())
 		else:

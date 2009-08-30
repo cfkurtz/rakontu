@@ -170,7 +170,7 @@
 
 	<h3>{{template_annotations}}</h3>
 	
-	{% if current_member.viewGridOptionsOnTop %}
+	{% if grid_options_on_top %}
 		{% include "../common_grid_options.html" %}
 	{% endif %}
 	
@@ -181,7 +181,7 @@
 		<p>{{template_no_annotations_for_entry}}</p>
 	{% endif %}
 	
-	{% if not current_member.viewGridOptionsOnTop %}
+	{% if not grid_options_on_top %}
 		<p></p>
 		{% include "../common_grid_options.html" %}
 	{% endif %}

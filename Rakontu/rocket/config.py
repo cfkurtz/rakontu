@@ -13,6 +13,7 @@ ROCKET_ENTITIES = {
 	"Question": {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
 	"Member":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
 	"PendingMember":   {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
+	"ViewOptions": {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
 	"Character": {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp", TABLE_NAME:"RakontuCharacter"},
 	"SavedSearch": {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
 	"SavedSearchQuestionReference":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
@@ -26,63 +27,6 @@ ROCKET_ENTITIES = {
 	# Exports are not synchronized
 	}
 
-"""
-ROCKET_ENTITIES = {
-# Define entities that you want to be replicated here.
-	"Rakontu": {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp", 
-			EMBEDDED_LIST_FIELDS: [
-				"memberNudgePointsPerEvent", 
-				"nudgeCategories", 
-				"nudgeCategoryQuestions",
-				"entryActivityPointsPerEvent", 
-				"allowCharacter",
-				"roleReadmes_formats",
-				]},
-	"Question": {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp",
-			EMBEDDED_LIST_FIELDS: [
-				"choices", 
-				]},
-	"Member":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp",
-			EMBEDDED_LIST_FIELDS: [
-				"helpingRoles", 
-				"helpingRolesAvailable",
-				"viewNudgeCategories",
-				"viewSearchResultList",
-				]},
-	"PendingMember":   {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
-	"Character": {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp", TABLE_NAME:"RakontuCharacter"},
-	"SavedSearch": {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp",
-			EMBEDDED_LIST_FIELDS: [
-				"entryTypes", 
-				"words_locations",
-				"words",
-				"tags",
-				]},
-	"SavedSearchQuestionReference":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
-	"Answer":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp",
-			EMBEDDED_LIST_FIELDS: [
-				"answerIfMultiple", 
-				"entryNudgePointsWhenPublished",
-				]},
-	"Entry":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp",
-			EMBEDDED_LIST_FIELDS: [
-				"nudgePoints", 
-				]},
-	"Link":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp",
-			EMBEDDED_LIST_FIELDS: [
-				"entryNudgePointsWhenPublished", 
-				]},
-	"Attachment":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
-	"Annotation":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp",
-			EMBEDDED_LIST_FIELDS: [
-				"tagsIfTagSet",
-				"valuesIfNudge",
-				"entryNudgePointsWhenPublished", 
-				]},
-	# Helps are not synchonized
-	# Exports are not synchronized
-	}
-"""
 
 # Example:
 {"NotAComment": {},

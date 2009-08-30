@@ -153,6 +153,7 @@ class AdministerSitePage(webapp.RequestHandler):
 							governanceType=joinAs) 
 						member.initialize()
 						member.put()
+						member.createViewOptions()
 					self.redirect(BuildURL("dir_admin", "url_admin"))
 				elif "toggleActiveState|%s" % aRakontu.key() in self.request.arguments():
 					aRakontu.active = not aRakontu.active

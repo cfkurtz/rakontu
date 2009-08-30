@@ -70,6 +70,7 @@ def GetCurrentMemberFromRakontuAndUser(rakontu, user):
 						governanceType=pendingMember.governanceType) 
 					member.initialize()
 					member.put()
+					member.createViewOptions()
 					db.delete(pendingMember) 
 	return member
  
@@ -208,7 +209,6 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'date_formats': DateFormatStrings(), 
 	   'time_formats': TimeFormatStrings(),  
 	   'time_frames': TIME_FRAMES,  
-	   'time_frame_everything': TIMEFRAME_EVERYTHING,
 	   'entry_types': ENTRY_TYPES,
 	   'entry_types_display': ENTRY_TYPES_DISPLAY,
 	   'entry_types_plural': ENTRY_TYPES_PLURAL,  
@@ -249,12 +249,6 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 		items[key] = newItems[key]
 	return items
 
-def GetCurrentSearchForMember(member):
-	if member.viewSearch:
-		return member.viewSearch
-	else:
-		return None  
-
 def GetKeyFromQueryString(queryString, keyname):
 	if queryString:
 		nameAndKey = queryString.split("=")
@@ -265,228 +259,82 @@ def GetKeyFromQueryString(queryString, keyname):
 	else:
 		return None
  
-def ItemDisplayStringForGrid(item, member, curating=False, showingMember=False, showDetails=False):
-	# link string
-	if item.__class__.__name__ == "Answer":
-		if showDetails: 
-			if not showingMember:
-				linkString = item.linkStringWithQuestionText()
-			else:
-				linkString = item.linkStringWithQuestionTextAndReferentLink()
-		else:
-			if not showingMember:
-				linkString = item.linkStringWithQuestionName()
-			else:
-				linkString = item.linkStringWithQuestionNameAndReferentLink()
-	elif item.__class__.__name__ == "Annotation":
-		linkString = item.linkStringWithEntryLink()
+def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, memberToSee=None, character=None):
+	startTime = member.getViewStartTime(location)
+	endTime = member.getViewEndTime(location) 
+	entryTypeBooleans = member.getEntryTypesForLocation(location)
+	entryTypes = []
+	for i in range(len(ENTRY_TYPES)):
+		if entryTypeBooleans[i]:
+			entryTypes.append(ENTRY_TYPES[i])
+	annotationTypeBooleans = member.getAnnotationAnswerLinkTypesForLocation(location)
+	annotationTypes = []
+	for i in range(len(ANNOTATION_ANSWER_LINK_TYPES)):
+		if annotationTypeBooleans[i]:
+			annotationTypes.append(ANNOTATION_ANSWER_LINK_TYPES[i])
+	if location == "home":
+		itemsToStart = member.rakontu.browseEntries(startTime, endTime, entryTypes)
+		considerNudgeFloor = True
+		considerSearch = True
+	elif location == "entry":
+		itemsToStart = entry.getNonDraftAnnotationsAnswersAndLinksSortedInReverseTimeOrder()
+		considerNudgeFloor = False
+		considerSearch = False
+	elif location == "member":
+		startTime = member.getViewStartTime(location)
+		endTime = member.getViewEndTime(location) 
+		itemsToStart = memberToSee.browseItems(startTime, endTime, entryTypes, annotationTypes)
+		considerNudgeFloor = False
+		considerSearch = True
+	elif location == "character":
+		startTime = member.getViewStartTime(location)
+		endTime = member.getViewEndTime(location) 
+		itemsToStart = character.browseItems(startTime, endTime, entryTypes, annotationTypes)
+		considerNudgeFloor = False
+		considerSearch = True
+	# nudge floor
+	itemsWithNudgeFloor = []
+	if considerNudgeFloor:
+		for item in itemsToStart:
+			if item.nudgePointsForMemberAndLocation(member, location) >= member.getNudgeFloorForLocation(location):
+				itemsWithNudgeFloor.append(item)
 	else:
-		linkString = item.linkString()
-	# name 
-	if not showingMember:
-		if item.attributedToMember(): 
-			if item.creator.active:
-				nameString = ' (%s' % (item.creator.linkString())
-			else: 
-				nameString = ' (%s' % item.creator.nickname
+		itemsWithNudgeFloor.extend(itemsToStart)
+	# search
+	itemsWithSearch = []
+	if considerSearch:
+		search = member.getSearchForLocation(location)
+		if search:
+			entryRefs = search.getEntryQuestionRefs()
+			creatorRefs = search.getCreatorQuestionRefs()
+			for item in itemsWithNudgeFloor:
+				if item.__class__.__name__ == "Entry":
+					if item.satisfiesSearchCriteria(search, entryRefs, creatorRefs):
+						itemsWithSearch.append(item)
+				else: # if searching in member/character page, no annotations will show
+					pass
 		else:
-			if item.character.active: 
-				nameString = ' (%s' % (item.character.linkString())
-			else: 
-				nameString = ' (%s' % item.character.name
-		if showDetails: 
-			nameString += ", " 
-		else:
-			nameString += ")"
-	else: 
-		nameString = ""
-	# curating flag 
-	if curating: 
-		if item.flaggedForRemoval:
-			curateString = '<input type="submit" class="flag_red" value="" name="unflag|%s" title="%s">' % (item.key(), TEMPLATE_TERMS["template_click_here_to_unflag"])
-		else:
-			curateString = '<input type="submit" class="flag_green" value="" name="flag|%s" title="%s">' % (item.key(), TEMPLATE_TERMS["template_click_here_to_flag"])
+			itemsWithSearch.extend(itemsWithNudgeFloor)
 	else:
-		curateString = ""
-	# date string if showing details
-	if showDetails:
-		if showingMember:
-			dateTimeString = " ("
+		itemsWithSearch.extend(itemsWithNudgeFloor)
+	# limit
+	itemsWithLimit = []
+	overLimitWarning = None
+	numItemsBeforeLimitTruncation = None
+	considerLimit = True # in case of need later
+	if considerLimit:
+		limit = MAX_ITEMS_PER_GRID_PAGE #member.getLimitForLocation(location) # in case of need later
+		if len(itemsWithSearch) > limit:
+			for i in range(limit):
+				itemsWithLimit.append(itemsWithSearch[i])
+			overLimitWarning = TERMS["term_too_many_items_warning"]
+			numItemsBeforeLimitTruncation = len(itemsWithSearch)
 		else:
-			dateTimeString = " "
-		dateTimeString += "%s)" % RelativeTimeDisplayString(item.published, member)
+			itemsWithLimit.extend(itemsWithSearch)
 	else:
-		dateTimeString = ""
-	# longer text if showing details
-	if showDetails:
-		if item.__class__.__name__ == "Annotation":
-			if item.type == "comment" or item.type == "request":
-				if item.longString_formatted:
-					textString = ": %s" % upToWithLink(stripTags(item.longString_formatted), DEFAULT_DETAILS_TEXT_LENGTH, item.linkURL())
-				else:
-					textString = ""
-			else:
-				textString = ""
-		elif item.__class__.__name__ == "Entry":
-			textString = ": %s" % upToWithLink(stripTags(item.text_formatted), DEFAULT_DETAILS_TEXT_LENGTH, item.linkURL())
-		else:
-			textString = ""
-	else:
-		textString = ""
-	return '<p>%s %s %s%s%s%s</p>' % (item.getImageLinkForType(), curateString, linkString, nameString, dateTimeString, textString)
+		itemsWithLimit.extend(itemsWithSearch)
+	return (itemsWithLimit, overLimitWarning, numItemsBeforeLimitTruncation)
 
-def checkedBlank(value):
-	if value:
-		return "checked"
-	return "" 
-
-def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=None, memberToSee=None, character=None):
-		search = GetCurrentSearchForMember(member)
-		if location == "home":
-			defaultURL = rakontu.linkURL()
-		elif location == "entry":
-			defaultURL = entry.linkURL()
-		elif location == "member": 
-			defaultURL = memberToSee.linkURL()
-		elif location == "character":
-			defaultURL = character.linkURL()
-		# time frame - home only
-		if "changeTimeFrame" in request.arguments():
-			member.viewEntriesList = []
-			member.setViewTimeFrameFromTimeFrameString(request.get("timeFrame"))
-			member.put()
-			return defaultURL
-		elif "setToLast" in request.arguments():
-			if rakontu.lastPublish:
-				member.viewTimeEnd = rakontu.lastPublish + timedelta(seconds=10)
-			else:
-				member.viewTimeEnd = datetime.now(tz=pytz.utc)
-			member.viewEntriesList = []
-			member.put()
-			return defaultURL
-		elif "setToFirst" in request.arguments():
-			if rakontu.firstPublish:
-				member.member.setTimeFrameToStartAtFirstPublish()()
-			else:
-				member.viewTimeEnd = datetime.now(tz=pytz.utc)
-			member.viewEntriesList = []
-			member.put()
-			return defaultURL
-		elif "moveTimeBack" in request.arguments() or "moveTimeForward" in request.arguments():
-			if "moveTimeBack" in request.arguments():
-				member.viewTimeEnd = member.viewTimeEnd - timedelta(seconds=member.viewTimeFrameInSeconds)
-			else:
-				member.viewTimeEnd = member.viewTimeEnd + timedelta(seconds=member.viewTimeFrameInSeconds)
-			if rakontu.firstPublish and member.getViewStartTime() < rakontu.firstPublish:
-			 	member.setTimeFrameToStartAtFirstPublish()
-			if member.viewTimeEnd > datetime.now(tz=pytz.utc):
-				member.viewTimeEnd = datetime.now(tz=pytz.utc)
-			member.viewEntriesList = []
-			member.put()
-			return defaultURL
-		elif "refreshView" in request.arguments():
-			if rakontu.lastPublish:
-				member.viewTimeEnd = rakontu.lastPublish + timedelta(seconds=10)
-			else:
-				member.viewTimeEnd = datetime.now(tz=pytz.utc)
-			member.viewEntriesList = []
-			member.put()
-			return defaultURL
-		# entry types - home, member, character only
-		elif "changeEntryTypesShowing" in request.arguments():
-			member.viewEntryTypes = []
-			for i in range(len(ENTRY_TYPES)):
-				member.viewEntryTypes.append(request.get("showEntryType|%s" % i) == "yes")
-			member.viewEntriesList = []
-			member.put()
-			return defaultURL
-		# annotation types - entry, member, character only
-		elif "changeAnnotationTypesShowing" in request.arguments():
-			member.viewAnnotationAnswerLinkTypes = []
-			for i in range(len(ANNOTATION_ANSWER_LINK_TYPES)):
-				member.viewAnnotationAnswerLinkTypes.append(request.get("showAnnotationAnswerLinkType|%s" % i) == "yes")
-			member.viewEntriesList = []
-			member.put()
-			return defaultURL
-		# nudges - home, entry only
-		elif "changeNudgeCategoriesShowing" in request.arguments():
-			member.viewNudgeCategories = []
-			for i in range(NUM_NUDGE_CATEGORIES):
-				member.viewNudgeCategories.append(request.get("showCategory|%s" % i) == "yes")
-			member.viewEntriesList = []
-			oldValue = member.viewNudgeFloor
-			try:
-				member.viewNudgeFloor = int(request.get("nudgeFloor"))
-			except:
-				member.viewNudgeFloor = oldValue
-			member.put()
-			return defaultURL
-		# search filter - home only
-		elif "loadAndApplySavedSearch" in request.arguments():
-			if request.get("savedSearch") != "(%s)" % TERMS["term_choose"]:
-				searchKey = request.get("savedSearch")
-				if searchKey:
-					search = SavedSearch.get(searchKey)
-					if search:
-						member.viewSearch = search
-						member.viewEntriesList = []
-						member.put()
-						return defaultURL
-				else:
-					return defaultURL
-			else:
-				return defaultURL
-		elif "stopApplyingSearch" in request.arguments():
-				member.viewSearch = None
-				member.viewEntriesList = []
-				member.put()
-				return defaultURL
-		elif "makeNewSavedSearch" in request.arguments():
-				member.viewSearch = None
-				member.viewEntriesList = []
-				member.put()
-				return BuildURL("dir_visit", "url_search_filter", rakontu=rakontu)
-		elif "changeSearch"  in request.arguments():
-			if search:
-				return BuildURL("dir_visit", "url_search_filter", rakontu=rakontu)
-			else:
-				member.viewSearch = None
-				member.viewEntriesList = []
-				member.put()
-				return BuildURL("dir_visit", "url_search_filter", rakontu=rakontu)
-		elif "copySearch"  in request.arguments():
-			newSearch = SavedSearch(key_name=KeyName("filter"), rakontu=rakontu, creator=member)
-			newSearch.copyDataFromOtherSearchAndPut(search)
-			member.viewSearch = newSearch
-			member.viewEntriesList = [] 
-			member.put()
-			return BuildURL("dir_visit", "url_search_filter", rakontu=rakontu)
-		# other options - all
-		elif "toggleViewHomeOptionsOnTop" in request.arguments():
-			member.viewGridOptionsOnTop = not member.viewGridOptionsOnTop
-			member.put()
-			return defaultURL  
-		elif "toggleShowDetails" in request.arguments():  
-			member.viewDetails = not member.viewDetails   
-			member.put()      
-			return defaultURL   
-		elif "printSearchResults"  in request.arguments(): 
-			if location == "home": 
-				return BuildURL("dir_liaise", "url_print_search", rakontu=rakontu)
-			elif location == "entry": 
-				return BuildURL("dir_liaise", "url_print_entry", entry.urlQuery())
-			elif location == "member":
-				return BuildURL("dir_liaise", "url_print_member", memberToSee.urlQuery())
-			elif location == "character":
-				return BuildURL("dir_liaise", "url_print_character", character.urlQuery())
-		elif "exportSearchResults"  in request.arguments():
-			if location == "home":
-				return BuildURL("dir_manage", "url_export_search", rakontu=rakontu)
-			else:
-				# no reaction yet for entry or member or character - should add export for that?
-				return defaultURL
-		else:
-			return None
 		
 def GetBookmarkQueryWithCleanup(queryString):
 	# for some reason PagerQuery SOMEtimes puts one or two equals signs on the end of the bookmark, which
@@ -602,7 +450,7 @@ class ExportHandler(webapp.RequestHandler):
 
 def GenerateHelps():
 	db.delete(AllHelps())
-	helps = []
+	helps = [] 
 	file = open(HELP_FILE_NAME)
 	try:
 		helpStrings = csv.reader(file)
@@ -885,23 +733,6 @@ def RelativeTimeDisplayString(whenUTC, member):
 		when = whenUTC.astimezone(timezone(member.timeZoneName))
 		return "%s %s" % (stripZeroOffStart(when.strftime(DjangoToPythonTimeFormat(member.timeFormat))),
 						(when.strftime(DjangoToPythonDateFormat(member.dateFormat))))
-		"""
-		delta = datetime.now(tz=timezone(member.timeZoneName)) - when
-		if delta.days < 1 and delta.seconds < 1: 
-			result = TERMS["term_now"]
-		elif delta.days < 1 and delta.seconds < 60: # one minute
-			result = TERMS["term_moments_ago"]
-		elif delta.days < 1 and delta.seconds < 60*60: # one hour
-			result = "%s %s" % (delta.seconds // 60, TERMS["term_minutes_ago"])
-		elif delta.days < 1:
-			result = "%s %s" % (TERMS["term_today_at"], stripZeroOffStart(when.strftime(DjangoToPythonTimeFormat(member.timeFormat))))
-		elif delta.days < 2:
-			result = "%s %s" % (TERMS["term_yesterday_at"], stripZeroOffStart(when.strftime(DjangoToPythonTimeFormat(member.timeFormat))))
-		else:
-			result = when.strftime(DjangoToPythonDateFormat(member.dateFormat))
-		result = stripZeroOffStart(result)
-		return result
-		"""
 	else:
 		return None
 	
@@ -1095,9 +926,14 @@ def upToWithLink(value, number, link):
 		result = value
 	return result
 
+def checkedBlank(value):
+	if value:
+		return "checked"
+	return "" 
+
 # ============================================================================================
 # ============================================================================================
-# FOR TESTING
+# MAKING FAKE DATA FOR TESTING
 # ============================================================================================
 # ============================================================================================
 
@@ -1109,6 +945,7 @@ def GenerateFakeTestingData():
 	member = Member(key_name=KeyName("member"), googleAccountID=user.user_id(), googleAccountEmail=user.email(), nickname="Tester", rakontu=rakontu, governanceType="owner")
 	member.initialize()
 	member.put()
+	member.createViewOptions()
 	if user.email() != "test@example.com":
 		PendingMember(key_name=KeyName("pendingmember"), rakontu=rakontu, email="test@example.com").put()
 	else:
@@ -1159,12 +996,13 @@ def AddFakeDataToRakontu(rakontu, numMembers, numEntries, numAnnotations):
 					key_name=KeyName("member"), 
 					nickname="Member %s" % i, 
 					rakontu=rakontu, 
-					governanceType="member") 
+					governanceType="member")  
 		member.joined = startDate
 		member.initialize()
 		member.put() 
-		memberKeyNames.append(member.getKeyName())
-		if i % 10 == 0:
+		member.createViewOptions()
+		memberKeyNames.append(member.getKeyName()) 
+		if i % 10 == 0: 
 			DebugPrint("member %s" % i)
 	DebugPrint("%s members generated" % numMembers)
 	

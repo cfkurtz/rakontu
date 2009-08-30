@@ -233,10 +233,6 @@ TIMEFRAME_3DAYS = u"3 days"
 TIMEFRAME_WEEK = u"a week"
 TIMEFRAME_2WEEKS = u"2 weeks"
 TIMEFRAME_MONTH = u"a month"
-TIMEFRAME_3MONTHS = u"3 months"
-TIMEFRAME_6MONTHS = u"6 months"
-TIMEFRAME_YEAR = u"a year"
-TIMEFRAME_EVERYTHING = u"everything"
 
 # For search filters, whether any or all of selections are required for a match. These MUST match the order (any, all).
 ANY_ALL_DISPLAY = ["any", "all"]
@@ -790,6 +786,7 @@ TEMPLATE_TERMS = {
 		# visit/home
 		"template_time_range": "Time range",
 		"template_to_time": "to", # between two parts of time range
+		"template_keep_end_time_at_now": "Ending now",
 		"template_show": "Show",
 		"template_entry_types": "Entry types",
 		"template_annotation_types": "Annotation types",
@@ -854,8 +851,6 @@ TEMPLATE_TERMS = {
 		"template_time_zone_choice": "What time zone should be displayed?",
 		"template_date_display_choice": "How should dates be displayed",
 		"template_time_display_choice": "How should times be displayed?",
-		"template_items_per_page_display_choice": "How many items do you want to see at one time when items are in a list?",
-		"template_max_items_per_grid_page_display_choice": "How many items do you want to see at one time when items are in a time-based grid?",
 		"template_rakontu_created_on": "This Rakontu was created on",
 		"template_inline_image_display_choice": "Do you want to see attached images on the same page as the entries they are attached to?",
 		# visit/rakontu
@@ -1080,6 +1075,7 @@ RESULTS = {
 		"nicknameAlreadyInUse": ("nicknameAlreadyInUse", "That nickname is already in use. Please choose another."),
 		"ownerCannotLeave": ("ownerCannotLeave", "You are the only owner of this Rakontu. You can't leave it until you designate at least one other member as an owner."),
 		"cannotGiveUpLiaisonWithMembers": ("cannotGiveUpLiaisonWithMembers", "You cannot stop being a liaison with off-line members assigned to you. Visit the Manage off-line members page and assign your off-line members to other liaisons first."),
+		"reachedMaxEntriesPerRakontu": ("reachedMaxEntriesPerRakontu", "This Rakontu already has the maximum allowed number of entries in it, and no more can be added. To add new entries, ask a manager to remove some older entries and free up some room."),
 		}
 
 # ============================================================================================ 
@@ -1335,6 +1331,7 @@ URL_OPTIONS = {
 	"url_query_sort_by": "sortby",
 	"url_query_show": "show",
 	'url_query_type': "type",
+	"url_query_location": "location",
 	"url_query_uncompleted": "uncompleted",
 	"url_query_no_responses": "noresponses",
 	"url_query_curate": "curate",

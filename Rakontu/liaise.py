@@ -57,6 +57,7 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 											googleAccountID = None,
 											googleAccountEmail = None)
 							newMember.put()
+							member.createViewOptions()
 				for aMember in offlineMembers:
 					if self.request.get("take|%s" % aMember.key()) == "yes":
 						aMember.liaisonIfOfflineMember = member
@@ -76,11 +77,8 @@ class PrintSearchPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isLiaison():
-				if member.viewEntriesList:
-					export = rakontu.createOrRefreshExport("liaisonPrint_simple", "search", member=member, fileFormat="txt")
-					self.redirect(BuildURL(None, "url_export", export.urlQuery()))
-				else:
-					self.redirect(BuildResultURL("noSearchResultForPrinting", rakontu=rakontu))
+				export = rakontu.createOrRefreshExport("liaisonPrint_simple", "search", member=member, fileFormat="txt")
+				self.redirect(BuildURL(None, "url_export", export.urlQuery()))
 			else:
 				self.redirect(rakontu.linkURL())
 		else:
@@ -193,6 +191,9 @@ class BatchEntryPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isLiaison():
+				if rakontu.hasWithinTenOfTheMaximumNumberOfEntries():
+					self.redirect(BuildResultURL("reachedMaxEntriesPerRakontu", rakontu))
+					return
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["BATCH_ENTRY"], 
 								   'rakontu': rakontu, 

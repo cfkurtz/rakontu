@@ -143,7 +143,7 @@ class CurateGapsPage(webapp.RequestHandler):
 				if not sortBy:
 					sortBy = "date"
 				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
-				prev, entries, next = rakontu.getNonDraftEntriesLackingMetadata_WithPaging(show, type, sortBy, bookmark, member.numItemsToShowPerPage)
+				prev, entries, next = rakontu.getNonDraftEntriesLackingMetadata_WithPaging(show, type, sortBy, bookmark)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_GAPS"], 
 								   'rakontu': rakontu, 
@@ -156,7 +156,6 @@ class CurateGapsPage(webapp.RequestHandler):
 								   'bookmark': bookmark,
 								   'previous': prev,
 								   'next': next,
-								   'num_per_page': member.numItemsToShowPerPage,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/gaps.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -192,7 +191,7 @@ class CurateAttachmentsPage(webapp.RequestHandler):
 		if access:
 			if member.isCurator():
 				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
-				prev, attachments, next = rakontu.getAttachments_WithPaging(member.numItemsToShowPerPage, bookmark)
+				prev, attachments, next = rakontu.getAttachments_WithPaging(bookmark)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_ATTACHMENTS"], 
 								   'rakontu': rakontu, 
@@ -202,7 +201,6 @@ class CurateAttachmentsPage(webapp.RequestHandler):
 								   'bookmark': bookmark,
 								   'previous': prev,
 								   'next': next,
-								   'num_per_page': member.numItemsToShowPerPage,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/attachments.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -217,7 +215,7 @@ class CurateAttachmentsPage(webapp.RequestHandler):
 		if access:
 			if member.isCurator():
 				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
-				prev, attachments, next = rakontu.getAttachments_WithPaging(member.numItemsToShowPerPage, bookmark)
+				prev, attachments, next = rakontu.getAttachments_WithPaging(bookmark)
 				for attachment in attachments:
 					if "flag|%s" % attachment.entry.key() in self.request.arguments():
 						attachment.entry.flaggedForRemoval = True
@@ -243,7 +241,7 @@ class CurateTagsPage(webapp.RequestHandler):
 		if access:
 			if member.isCurator():
 				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
-				prev, tagSets, next = rakontu.getTagSets_WithPaging(member.numItemsToShowPerPage, bookmark)
+				prev, tagSets, next = rakontu.getTagSets_WithPaging(bookmark)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_TAGS"], 
 								   'rakontu': rakontu, 
@@ -253,7 +251,6 @@ class CurateTagsPage(webapp.RequestHandler):
 								   'bookmark': bookmark,
 								   'previous': prev,
 								   'next': next,
-								   'num_per_page': member.numItemsToShowPerPage,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/tags.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -268,7 +265,7 @@ class CurateTagsPage(webapp.RequestHandler):
 		if access:
 			if member.isCurator():
 				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
-				prev, tagSets, next = rakontu.getTagSets_WithPaging(member.numItemsToShowPerPage, bookmark)
+				prev, tagSets, next = rakontu.getTagSets_WithPaging(bookmark)
 				for tagset in tagSets:
 					tagset.tagsIfTagSet = []
 					for i in range(NUM_TAGS_IN_TAG_SET):

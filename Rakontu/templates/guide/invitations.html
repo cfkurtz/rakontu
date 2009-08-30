@@ -6,7 +6,9 @@
 	
 	{% if current_member.isGuide %}
 		<div id="stylized" class="rakontu_form">
-		<form action="/{{dir_guide}}/{{url_invitations}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_guide}}/{{url_invitations}}?{{rakontu.urlQuery}}
+		{% if bookmark %}&{{url_query_bookmark}}={{bookmark}}{% endif %}
+		" method="post" enctype="multipart/form-data">
 		
 		{% if showing_all_invitations %}
 			<h3>{{template_invitations}}</h3>
@@ -54,6 +56,15 @@
 	      		</tr>
 	        {% endfor %}
 	        </table>
+			<p>
+			{% if previous %}
+				 <a href="/{{dir_guide}}/{{url_invitations}}?{{rakontu.urlQuery}}&{{url_query_bookmark}}={{previous}}">{{template_newer}} {{template_invitations|lower}}</a>
+			{% endif %}	
+			{% if previous and next %} ... {% endif %}
+			{% if next %}
+				 <a href="/{{dir_guide}}/{{url_invitations}}?{{rakontu.urlQuery}}&{{url_query_bookmark}}={{next}}">{{template_older}} {{template_invitations|lower}}</a>
+			{% endif %}	
+			</p>
 	    {% else %}
 			{% if showing_all_invitations %}
 				<p>{{template_no_invitations}} <a href="/{{dir_visit}}/{{url_invitation}}?{{rakontu.urlQuery}}">{{template_create_one}}</a></p>

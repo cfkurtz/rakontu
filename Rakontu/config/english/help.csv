@@ -86,3 +86,4 @@
 "tip","list_page_items","Where things are displayed in simple lists, such on the curator pages listing attachments, this determines how many items show on each page."
 "tip","grid_page_items","Where things are displayed in a time-based grid (the home page, each entry page, each member page), this determines how many items can show."
 "info","resource_categories","Resource categories are used only for help resources. They determine the order in which resources are listed on the help and new-member pages. For other resources they are not used, but you may want to fill in your own categories for your own purposes."
+"tip","searching_for_entries_by_members_or_characters","When you apply a search filter in a member or character page, only entries (stories, invitations, patterns, collages, resources) appear. Search filters do not apply to annotations."

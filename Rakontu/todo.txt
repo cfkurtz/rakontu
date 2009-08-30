@@ -15,7 +15,9 @@ cannot be on that page
 
 left to do with limits:
 	export
-	create fake data
+	general testing of all affected areas - especially searching in member,character, and time range in member,char
+	test print and export especially related to search
+	implement "keependtimeatnow" thing
 
 SCALING UP:
 

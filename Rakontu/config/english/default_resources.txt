@@ -500,7 +500,9 @@ Interpret as=Wiki markup
 Managers only=yes
 Questions can be an important part of your Rakontu. Asking people to answer questions about the stories they tell, and about other elements of the system, can help people explain things to each other. Also, looking at patterns across stories and members can help your group find out some amazing things about patterns of collective meaning in the group. For example, say you find out that only members over 50 told stories in which the tag "health care" co-occurred with a positive outcome, or that only members with dogs told stories about nasty cats, or so on. Finding useful patterns together can be a great way to achieve common goals.
 
-You can set up lists of questions about each type of entry -- stories, invitations, collages, patterns and resources -- and you can ask people questions about themselves. Combining these questions in search filters is useful, so you should make sure you have at least a few questions about each entry type and about members. Your Rakontu will most likely start out with some default questions (depending on your site installation) as well as some sample questions. You can also trade questions with other Rakontu managers using CSV import and export.  
+You can set up questions about each type of entry (stories, invitations, collages, patterns and resources) and you can ask people questions about themselves. Combining these questions in search filters is useful, so you should make sure you have at least a few questions about each entry type and about members. Your Rakontu will most likely start out with some default questions (depending on your site installation) as well as some sample questions. You can also trade questions with other Rakontu managers using CSV import and export.  
+
+
 
 CFK FINISH
 
@@ -508,13 +510,11 @@ CFK FINISH
 Category=Technical
 Interpret as=Wiki markup
 Managers only=yes
-Rakontu has some built-in limitations (as of this writing) that have mainly to do with it running on the Google App Engine. These will affect how people can use the software in their groups. If you are a manager or site administrator and are interested in the technical details, you might want to read over this information.
+As of this writing, Rakontu resides on the Google App Engine, which sets some limitations on the volume of use and speed of operation. Because of this, Rakontu also has limitations. Two are important:
 
-=== Limits to the number of items displayed
+# No Rakontu can have more than 1000 entries (stories + invitations + patterns + collages + resources). For most small groups this limit will not be a problem. If you run up against this limit, you can remove older items to make room for more.
+# For pages with time-based grids (home, entry, member, character), if the number of items selected exceeds a constant (set at the site level, by default 200), the number of items shown will be truncated (and the page will say so). To reduce the number, make different selections in the time range or types of items.
 
-Google App Engine has a hard and fast limit of 1000 records that can be returned from the database at any time. Their recommendation for dealing with this limit is to use paging (you are now viewing records 25-50 of 2649) on every display of information. For a few reasons paging has been implemented only minimally in Rakontu. 
-
-For most small groups the likelihood of most of the Rakontu screens needing to show more than 1000 items is very small. For example, it is very unlikely that a group of 30 people will _ever_ have more than 1000 invitations in their Rakontu, or flagged items, or resources, or off-line members. Some pages do show only a limited number of items: Curate-Gaps, Curate-Attachements, Curate-Flags, and the pages relating entries to other entries. However, some pages assume that such limits are not required: Curate-Flags, Guide-Invitations, Guide-Resources, and so on. If your Rakontu for some reason grows beyond these limits, the only result 
 
 
 

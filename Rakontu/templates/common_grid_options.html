@@ -4,14 +4,14 @@
 		{% if include_time_range %}
 			<tr><th align="right">{{template_time_range}}</th><td>
 			{{min_time}} - {{max_time}}
-			{% ifnotequal member_time_frame_string time_frame_everything %}
+			{% if keep_end_time_at_now %}
+			|
+			{% else %}
 				<input type="submit" name="setToFirst" value=" |&lt; " class="button_small">
 				<input type="submit" name="moveTimeBack" value=" &lt; " class="button_small">
 				<input type="submit" name="moveTimeForward" value=" &gt; " class="button_small">
 				<input type="submit" name="setToLast" value=" &gt;| " class="button_small">
-			{% else %}
-				<input type="submit" name="refreshView" value="{{button_refresh}}" class="button_small">
-			{% endifnotequal %}
+			{% endif %}
 			{{template_show}}
 			<select name="timeFrame">
 				{% for time_frame in time_frames %}
@@ -22,6 +22,12 @@
 					>{{time_frame|listLookup:0}}</option>
 				{% endfor %} 
 				</select>
+			<input type="checkbox" name="keepEndTimeAtNow" value="yes" id="keepEndTimeAtNow"
+					{% if keep_end_time_at_now %}
+						checked
+					{% endif %}
+					>
+					<label for="keepEndTimeAtNow">{{template_keep_end_time_at_now}}</label>
 			<input type="submit" name="changeTimeFrame" value="{{button_change}}" class="button_small">
 			</td></tr>
 		{% endif %}
@@ -30,7 +36,7 @@
 			<tr><th align="right">{{template_entry_types}}</th><td>
 			{% for i in entry_types|makeRangeFromListLength %}
 				<input type="checkbox" name="showEntryType|{{i}}" value="yes" id="{{entry_types|listLookup:i}}"
-				{% if current_member.viewEntryTypes|listLookup:i %}
+				{% if entry_types_to_show|listLookup:i %}
 					checked
 				{% endif %}
 				>
@@ -44,7 +50,7 @@
 			<tr><th align="right">{{template_annotation_types}}</th><td>
 			{% for i in annotation_answer_link_types|makeRangeFromListLength %}
 				<input type="checkbox" name="showAnnotationAnswerLinkType|{{i}}" value="yes" id="{{annotation_answer_link_types|listLookup:i}}"
-				{% if current_member.viewAnnotationAnswerLinkTypes|listLookup:i %}
+				{% if annotation_types_to_show|listLookup:i %}
 					checked
 				{% endif %}
 				>
@@ -60,7 +66,7 @@
 			{% for i in rakontu.nudgeCategories|makeRangeFromListLength %}
 				{% if rakontu.nudgeCategories|listLookup:i %}
 					<input type="checkbox" name="showCategory|{{i}}" value="yes" id="{{rakontu.nudgeCategories|listLookup:i}}"
-					{% if current_member.viewNudgeCategories|listLookup:i %}
+					{% if nudge_categories_to_show|listLookup:i %}
 						checked
 					{% endif %}
 					>
@@ -68,7 +74,7 @@
 				{% endif %}
 			{% endfor %}
 			{% if include_nudge_floor %}
-				</p><p>{{template_nudge_floor}}: <input type="text" size="4" value="{{current_member.viewNudgeFloor}}" name="nudgeFloor">
+				</p><p>{{template_nudge_floor}}: <input type="text" size="4" value="{{nudge_floor}}" name="nudgeFloor">
 			{% endif %}
 			<input type="submit" name="changeNudgeCategoriesShowing" value="{{button_change}}" class="button_small"></p>
 			</td></tr>
@@ -111,11 +117,17 @@
 				{{template_search_filters}} - {{template_none}}
 				<input type="submit" name="makeNewSavedSearch" value="{{button_make_new}}" class="button_small">
 			{% endif %}
+			{% ifequal location "member" %}
+				{{"searching_for_entries_by_members_or_characters"|tip}}
+			{% endifequal %}
+			{% ifequal location "character" %}
+				{{"searching_for_entries_by_members_or_characters"|tip}}
+			{% endifequal %}
 			</td></tr>
 		{% endif %}
 		
 		<tr><th align="right">{{template_other_options}}</th><td>
-		{% if current_member.viewDetails %}
+		{% if show_details %}
 			<input type="submit" name="toggleShowDetails" value="{{button_hide_details}}" class="button_small">
 		{% else %}
 			<input type="submit" name="toggleShowDetails" value="{{button_show_details}}" class="button_small">
@@ -129,7 +141,7 @@
 			<input type="submit" name="exportSearchResults" value="{{button_export}}" class="button_small">
 		{% endif %}
 
-		{% if current_member.viewGridOptionsOnTop %}
+		{% if grid_options_on_top %}
 			<input type="submit" name="toggleViewHomeOptionsOnTop" value="{{button_move_choices_to_bottom}}" class="button_small">
 		{% else %}
 			<input type="submit" name="toggleViewHomeOptionsOnTop" value="{{button_move_choices_to_top}}" class="button_small">

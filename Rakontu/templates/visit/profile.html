@@ -212,26 +212,6 @@
 				{% endif %}
 				>{{template_no}}</option>
 			</select></p>
-			<p>{{template_items_per_page_display_choice}}
-			<select name="numItemsToShowPerPage">
-				{% for option in page_items_choices %}
-					<option value="{{option}}"
-					{% ifequal member.numItemsToShowPerPage option %}
-						selected="selected"
-					{% endifequal %}
-					>{{option}}</option>
-				{% endfor %}
-			</select> {{"list_page_items"|tip}}</p>
-			<p>{{template_max_items_per_grid_page_display_choice}}
-			<select name="maxItemsOnGridPage">
-				{% for option in max_grid_items_choices %}
-					<option value="{{option}}"
-					{% ifequal member.maxItemsOnGridPage option %}
-						selected="selected"
-					{% endifequal %}
-					>{{option}}</option>
-				{% endfor %}
-			</select>  {{"grid_page_items"|tip}}</p>
 		{% endif %}
 		{% if member.isOnlineMember %}
 			{% if show_leave_link %}

@@ -15,6 +15,10 @@ class EnterEntryPage(webapp.RequestHandler):
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			queryEntry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
+			if not queryEntry:
+				if rakontu.hasTheMaximumNumberOfEntries():
+					self.redirect(BuildResultURL("reachedMaxEntriesPerRakontu", rakontu))
+					return
 			queryVersion = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_version")
 			bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
 			prev = None
@@ -73,16 +77,13 @@ class EnterEntryPage(webapp.RequestHandler):
 					includedLinksOutgoing = entry.getOutgoingLinksOfType("included")
 				else:
 					includedLinksOutgoing = []
-				prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging("story", member.numItemsToShowPerPage, bookmark)
-				entriesThatCanBeIncluded = []
-				for anEntry in entries:
-					found = False
-					for link in includedLinksOutgoing:
-						if entry and link.itemTo.key() == anEntry.key():
-							found = True
-							break
-					if not found:
-						entriesThatCanBeIncluded.append(anEntry)
+				prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging("story", bookmark)
+				entriesThatCanBeIncluded = self.reduceStoriesThatCanBeIncludedInCollage(entry, includedLinksOutgoing, entries)
+				# if the list is reduced so far that there is nothing to show, make one attempt to add more entries
+				if len(entries) > 0 and len(entriesThatCanBeIncluded) == 0:
+					prev, moreEntries, next = entry.rakontu.getNonDraftEntriesOfType_WithPaging("story", next)
+					moreEntriesThatCanBeIncluded = self.reduceStoriesThatCanBeIncludedInCollage(entry, includedLinksOutgoing, moreEntries)
+					entriesThatCanBeIncluded.extend(moreEntriesThatCanBeIncluded)
 			else:
 				entriesThatCanBeIncluded = None
 				firstColumn = []
@@ -156,10 +157,9 @@ class EnterEntryPage(webapp.RequestHandler):
 							   # for a collage
 							    'collage_entries': entriesThatCanBeIncluded, 
 								'included_links_outgoing': includedLinksOutgoing,
-								   'bookmark': bookmark,
-								   'previous': prev,
-								   'next': next,
-								   'num_per_page': member.numItemsToShowPerPage,
+								'bookmark': bookmark,
+								'previous': prev,
+							    'next': next,
 								# for a pattern
 								'referenced_links_outgoing': referencedLinksOutgoing,
 							    'searches_that_can_be_added_to_pattern': searchesThatCanBeIncluded,
@@ -168,6 +168,18 @@ class EnterEntryPage(webapp.RequestHandler):
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect(START)
+			
+	def reduceStoriesThatCanBeIncludedInCollage(self, entry, includedLinksOutgoing, entries):
+		entriesThatCanBeIncluded = []
+		for anEntry in entries:
+			found = False
+			for link in includedLinksOutgoing:
+				if entry and link.itemTo.key() == anEntry.key():
+					found = True
+					break
+			if not found:
+				entriesThatCanBeIncluded.append(anEntry)
+		return entriesThatCanBeIncluded
 			
 	@RequireLogin 
 	def post(self):
@@ -276,7 +288,7 @@ class EnterEntryPage(webapp.RequestHandler):
 							linksToRemove.append(link)
 					for link in linksToRemove:
 						db.delete(link)
-					prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging("story", member.numItemsToShowPerPage, bookmark)
+					prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging("story", bookmark)
 					for anEntry in entries:
 						if self.request.get("addLink|%s" % anEntry.key()) == "yes":
 							comment = htmlEscape(self.request.get("linkComment|%s" % anEntry.key()))
@@ -410,10 +422,6 @@ class EnterEntryPage(webapp.RequestHandler):
 					else: # not collected offline 
 						self.redirect(BuildURL("dir_visit", "url_drafts", member.urlQuery()))
 				else: # new entry
-					# this is the one time when I'll manipulate the member's time view
-					# they want to see the story they made
-					member.viewTimeEnd = entry.published + timedelta(seconds=1)
-					member.put()
 					self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
 		else: # no rakontu or member
 			self.redirect(START)
@@ -862,16 +870,14 @@ class RelateEntryPage(webapp.RequestHandler):
 			if not type:
 				type = "story"
 			if entry:
+				prev, entries, next = entry.rakontu.getNonDraftEntriesOfType_WithPaging(type, bookmark)
 				links = entry.getLinksOfType("related")
-				prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging(type, member.numItemsToShowPerPage, bookmark)
-				entriesThatCanBeRelated = []
-				for anEntry in entries:
-					found = False
-					for link in links:
-						if link.itemTo.key() == anEntry.key() or link.itemFrom.key() == anEntry.key():
-							found = True
-					if not found and anEntry.key() != entry.key():
-						entriesThatCanBeRelated.append(anEntry)
+				entriesThatCanBeRelated = self.reduceEntriesForRelationsAlreadyThere(entry, links, entries)
+				# if the list is reduced so far that there is nothing to show, make one attempt to add more entries
+				if len(entries) > 0 and len(entriesThatCanBeRelated) == 0:
+					prev, moreEntries, next = entry.rakontu.getNonDraftEntriesOfType_WithPaging(type, next)
+					moreEntriesThatCanBeRelated = self.reduceEntriesForRelationsAlreadyThere(entry, links, moreEntries)
+					entriesThatCanBeRelated.extend(moreEntriesThatCanBeRelated)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								'title': TITLES["RELATE_TO"],
 							   	'title_extra': entry.title,
@@ -884,7 +890,6 @@ class RelateEntryPage(webapp.RequestHandler):
 							   'bookmark': bookmark,
 							   'previous': prev,
 							   'next': next,
-							   'num_per_page': member.numItemsToShowPerPage,
 							   'type': type,
 								})
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/relate.html'))
@@ -893,6 +898,17 @@ class RelateEntryPage(webapp.RequestHandler):
 				self.redirect(BuildResultURL("noEntriesToRelate", rakontu=rakontu))
 		else:
 			self.redirect(START)
+			
+	def reduceEntriesForRelationsAlreadyThere(self, entry, links, entries):
+		entriesThatCanBeRelated = []
+		for anEntry in entries:
+			found = False
+			for link in links:
+				if link.itemTo.key() == anEntry.key() or link.itemFrom.key() == anEntry.key():
+					found = True
+			if not found and anEntry.key() != entry.key():
+				entriesThatCanBeRelated.append(anEntry)
+		return entriesThatCanBeRelated
 					
 	@RequireLogin 
 	def post(self):
@@ -916,7 +932,7 @@ class RelateEntryPage(webapp.RequestHandler):
 							linksToRemove.append(link)
 					for link in linksToRemove:
 						db.delete(link)
-					prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging(type, member.numItemsToShowPerPage, bookmark)
+					prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging(type, bookmark)
 					atLeastOneLinkCreated = False
 					for anEntry in entries:
 						if self.request.get("addLink|%s" % anEntry.key()) == "yes":

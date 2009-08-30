@@ -6,11 +6,14 @@
 		<div id="stylized" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_search_filter}}
 		{% if current_search %}
-			?{{current_search.urlQuery}}"
+			?{{current_search.urlQuery}}
 		{% else %}
-			?{{rakontu.urlQuery}}"
+			?{{rakontu.urlQuery}}
 		{% endif %}
-		method="post">
+		{% if location %}
+			&{{url_query_location}}={{location}}
+		{% endif %}
+		" method="post">
 	
 		<h3>{{template_filter_name_and_comment}}</h3>
 		<fieldset>

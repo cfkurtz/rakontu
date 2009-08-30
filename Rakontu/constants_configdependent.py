@@ -5,16 +5,9 @@
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # ============================================================================================
-# NOTE: This file does NOT need to be changed for translation.
 
 from constants_base import *
 from site_configuration import *
-
-# ============================================================================================
-# FILE LINK-UP
-# This section connects to files in the correct directory based on the SITE_LANGUAGE constant
-# set in site_configuration.py.
-# ============================================================================================
 
 DEFAULT_QUESTIONS_FILE_NAME = "config/%s/default_questions.csv" % SITE_LANGUAGE
 SAMPLE_QUESTIONS_FILE_NAME = "config/%s/sample_questions.csv" % SITE_LANGUAGE
@@ -23,23 +16,10 @@ DEFAULT_RESOURCES_FILE_NAME = "config/%s/default_resources.txt" % SITE_LANGUAGE
 HELP_FILE_NAME = "config/%s/help.csv" % SITE_LANGUAGE
 SKINS_FILE_NAME = "config/%s/skins.csv" % SITE_LANGUAGE
 
-# ============================================================================================
-# NO LANGUAGE-SPECIFIC DEFINITION
-# These are never displayed to the user so don't need to be translated and only appear here.
-# ============================================================================================
-
-DEVELOPMENT = True
-FETCH_NUMBER = 1000
-DATE_TIME_CSV_FORMAT = "%Y%m%dT%H%M%S"
-
-# ============================================================================================
-# GROUP LANGUAGE-SPECIFIC DEFINITION
-# These are never referred to in the code single, so they have _DISPLAY counterparts in the language_config file.
-# ============================================================================================
-
 # members
 HELPING_ROLE_TYPES = ["curator", "guide", "liaison"]
 GOVERNANCE_ROLE_TYPES = ["member", "manager", "owner"]
+VIEW_OPTION_LOCATIONS = ["home", "entry", "member", "character"]
 
 # events
 EVENT_TYPES = ["downdrift", \

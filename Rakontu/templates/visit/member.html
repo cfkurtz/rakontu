@@ -122,20 +122,9 @@
 			</ul>
 		{% endif %}
 		
-		{% ifnotequal member.key current_member.key %}
-			{% if member.isGuide or member.acceptsMessages %}
-				<h4>{{template_send_a_message_to}} {{member.nickname}} {% if not member.isOnlineMember %} {{"messages_to_offline_members"|info}} {% endif %}</h4>
-				<fieldset>
-				<p>{{template_subject}} <input type="text" name="subject" size="80" value="" maxlength="{{maxlength_subject_or_comment}}"/></p>
-				<textarea name="message" rows="8" cols="60"></textarea>
-				<center><input type="submit" name="message|{{member.key}}" value="{{button_send_message}}" class="button"></center>
-				</fieldset>
-			{% endif %}
-		{% endifnotequal %}
-		
 		<h3>{{term_entries_contributed_by}} {{member.nickname}}</h3>
 		
-		{% if current_member.viewGridOptionsOnTop %}
+		{% if grid_options_on_top %}
 			{% include "../common_grid_options.html" %}
 			<p></p>
 		{% endif %}
@@ -147,11 +136,22 @@
 			<p>{{template_no_entries_or_annotations_for_member}}</p>
 		{% endif %}
 		
-		{% if not current_member.viewGridOptionsOnTop %}
+		{% if not grid_options_on_top %}
 			<p></p>
 			{% include "../common_grid_options.html" %}
 		{% endif %}
 
+  		{% ifnotequal member.key current_member.key %}
+			{% if member.isGuide or member.acceptsMessages %}
+				<h4>{{template_send_a_message_to}} {{member.nickname}} {% if not member.isOnlineMember %} {{"messages_to_offline_members"|info}} {% endif %}</h4>
+				<fieldset>
+				<p>{{template_subject}} <input type="text" name="subject" size="80" value="" maxlength="{{maxlength_subject_or_comment}}"/></p>
+				<textarea name="message" rows="8" cols="60"></textarea>
+				<center><input type="submit" name="message|{{member.key}}" value="{{button_send_message}}" class="button"></center>
+				</fieldset>
+			{% endif %}
+		{% endifnotequal %}
+		
       	{% ifequal member.key current_member.key %}
       		<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_preferences}}?{{member.urlQuery}}">{{template_change_your_preferences}}</a></p></div>
       	{% endifequal %}

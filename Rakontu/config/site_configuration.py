@@ -79,19 +79,10 @@ DEFAULT_START_NUDGE_POINTS = 50
 # BROWSING
 # ============================================================================================ 
 
-# This is how many items (entries or annotations) can be shown on any one web page
-# when there is no paging going on (ie when people are looking at things by choosing subsets).
-DEFAULT_MAX_ITEMS_PER_GRID_PAGE = 200
-MAX_ITEMS_PER_GRID_PAGE_CHOICES = [20, 50, 100, 150, 200, 250, 300, 400, 500]
-
-# This is how many items are normally shown on a page when paging is going on.
-DEFAULT_PAGING_ITEMS_PER_PAGE = 20
-NUM_ITEMS_PER_PAGE_CHOICES = [2, 5, 10, 20, 30, 40, 50, 75, 100, 150, 200]
-
 # These are the time frames shown in the Rakontu home page.
 # The names can be anything you like, but the number of seconds must match the time frame stated.
 # These must match constants in the language_config file.
-# The TIMEFRAME_EVERYTHING constant *MUST* stay as it is - it is referenced in the code.
+# These should not go beyond a month, to avoid excessive CPU limits on GAE.
 TIME_FRAMES = [(TIMEFRAME_HOUR, HOUR_SECONDS),
 			 (TIMEFRAME_12HOURS, HOUR_SECONDS * 12),
 			 (TIMEFRAME_DAY, DAY_SECONDS),
@@ -99,10 +90,6 @@ TIME_FRAMES = [(TIMEFRAME_HOUR, HOUR_SECONDS),
 			 (TIMEFRAME_WEEK, WEEK_SECONDS),
 			 (TIMEFRAME_2WEEKS, WEEK_SECONDS * 2),
 			 (TIMEFRAME_MONTH, MONTH_SECONDS),
-			 (TIMEFRAME_3MONTHS, MONTH_SECONDS * 3),
-			 (TIMEFRAME_6MONTHS, MONTH_SECONDS * 6),
-			 (TIMEFRAME_YEAR, YEAR_SECONDS),
-			 (TIMEFRAME_EVERYTHING, 0), 
 			 ]
 
 # This is how much of a text is shown when the "Show details" setting is in place,

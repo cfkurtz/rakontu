@@ -6,7 +6,9 @@
 		
 		{% if current_member.isGuideOrManagerOrOwner %}
 			<div id="stylized" class="rakontu_form">
-			<form action="/{{dir_guide}}/{{url_resources}}?{{rakontu.urlQuery}}" method="post">
+			<form action="/{{dir_guide}}/{{url_resources}}?{{rakontu.urlQuery}}
+			{% if bookmark %}&{{url_query_bookmark}}={{bookmark}}{% endif %}
+			" method="post">
 
 			{% if resources %}
 			<h3>{{template_resources}}</h3>
@@ -75,6 +77,15 @@
 	  				</tr>
 	      		{% endfor %}
 	      	</table>
+			<p>
+			{% if previous %}
+				 <a href="/{{dir_guide}}/{{url_resources}}?{{rakontu.urlQuery}}&{{url_query_bookmark}}={{previous}}">{{template_newer}} {{template_resources|lower}}</a>
+			{% endif %}	
+			{% if previous and next %} ... {% endif %}
+			{% if next %}
+				 <a href="/{{dir_guide}}/{{url_resources}}?{{rakontu.urlQuery}}&{{url_query_bookmark}}={{next}}">{{template_older}} {{template_resources|lower}}</a>
+			{% endif %}	
+			</p>
 		</form>	
 		</div>
 	      	{% else %}
