@@ -28,6 +28,104 @@ indexes:
   - name: type
   - name: published
     direction: desc
-  
+    
+- kind: Entry
+  properties:
+  - name: draft
+  - name: rakontu
+  - name: type
+  - name: __key__
+    direction: desc
+    
+- kind: TextVersion
+  properties:
+  - name: entry
+  - name: created
+    direction: desc
 
+- kind: Entry
+  properties:
+  - name: character
+  - name: creator
+  - name: draft
+  - name: type
+  - name: published
+  
+- kind: Entry
+  properties:
+  - name: draft
+  - name: liaison
+  - name: type
+  - name: published
+  
+- kind: Entry
+  properties:
+  - name: draft
+  - name: character
+  - name: type
+  - name: published
+  
+- kind: Annotation
+  properties:
+  - name: draft
+  - name: rakontu
+  - name: type
+  - name: __key__
+    direction: desc
+  
+- kind: Annotation
+  properties:
+  - name: character
+  - name: creator
+  - name: draft
+  - name: type
+  - name: published
+  
+- kind: Annotation
+  properties:
+  - name: character
+  - name: draft
+  - name: type
+  - name: published
+  
+- kind: Annotation
+  properties:
+  - name: draft
+  - name: liaison
+  - name: type
+  - name: published
+
+- kind: Answer
+  properties:
+  - name: creator
+  - name: draft
+  - name: character
+  - name: published
+
+- kind: Answer
+  properties:
+  - name: draft
+  - name: character
+  - name: published
  
+- kind: Answer
+  properties:
+  - name: liaison
+  - name: draft
+  - name: published
+ 
+- kind: Attachment
+  properties:
+  - name: rakontu
+  - name: __key__
+    direction: desc
+  
+- kind: Link
+  properties:
+  - name: creator
+  - name: published
+
+
+
+
+

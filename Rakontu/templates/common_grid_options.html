@@ -4,14 +4,10 @@
 		{% if include_time_range %}
 			<tr><th align="right">{{template_time_range}}</th><td>
 			{{min_time}} - {{max_time}}
-			{% if keep_end_time_at_now %}
-			|
-			{% else %}
-				<input type="submit" name="setToFirst" value=" |&lt; " class="button_small">
-				<input type="submit" name="moveTimeBack" value=" &lt; " class="button_small">
-				<input type="submit" name="moveTimeForward" value=" &gt; " class="button_small">
-				<input type="submit" name="setToLast" value=" &gt;| " class="button_small">
-			{% endif %}
+			<input type="submit" name="setToFirst" value=" |&lt; " class="button_small">
+			<input type="submit" name="moveTimeBack" value=" &lt; " class="button_small">
+			<input type="submit" name="moveTimeForward" value=" &gt; " class="button_small">
+			<input type="submit" name="setToLast" value=" &gt;| " class="button_small">
 			{{template_show}}
 			<select name="timeFrame">
 				{% for time_frame in time_frames %}
@@ -22,12 +18,6 @@
 					>{{time_frame|listLookup:0}}</option>
 				{% endfor %} 
 				</select>
-			<input type="checkbox" name="keepEndTimeAtNow" value="yes" id="keepEndTimeAtNow"
-					{% if keep_end_time_at_now %}
-						checked
-					{% endif %}
-					>
-					<label for="keepEndTimeAtNow">{{template_keep_end_time_at_now}}</label>
 			<input type="submit" name="changeTimeFrame" value="{{button_change}}" class="button_small">
 			</td></tr>
 		{% endif %}

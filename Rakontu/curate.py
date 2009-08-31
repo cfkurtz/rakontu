@@ -169,12 +169,16 @@ class CurateGapsPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isCurator():
+				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
 				if "changeSelections" in self.request.arguments():
-					query = "%s=%s&%s=%s&%s=%s" % (
+					query = "%s=%s&%s=%s&%s=%s&%s" % (
 							URL_OPTIONS["url_query_sort_by"], self.request.get("sortBy"), 
-							URL_OPTIONS["url_query_type"], self.request.get("type"),
-							URL_OPTIONS["url_query_show"], self.request.get("show"))
-					url = BuildURL("dir_curate", "url_gaps", query, rakontu=rakontu)
+							URL_OPTIONS["url_query_type"], self.request.get("show_type"),
+							URL_OPTIONS["url_query_show"], self.request.get("show"),
+							rakontu.urlQuery())
+					if bookmark:
+						query += "&%s=%s" % (URL_OPTIONS["url_query_bookmark"], bookmark)
+					url = BuildURL("dir_curate", "url_gaps", query)
 					self.redirect(url)
 				else:
 					url = BuildURL("dir_curate", "url_gaps", rakontu=rakontu)

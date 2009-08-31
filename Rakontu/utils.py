@@ -256,22 +256,23 @@ def GetKeyFromQueryString(queryString, keyname):
 			return nameAndKey[1]
 		else:
 			return None
-	else:
+	else: 
 		return None
  
 def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, memberToSee=None, character=None):
-	startTime = member.getViewStartTime(location)
-	endTime = member.getViewEndTime(location) 
-	entryTypeBooleans = member.getEntryTypesForLocation(location)
+	viewOptions = member.getViewOptionsForLocation(location)
+	startTime = viewOptions.getStartTime()
+	endTime = viewOptions.endTime
+	entryTypeBooleans = viewOptions.entryTypes
 	entryTypes = []
 	for i in range(len(ENTRY_TYPES)):
 		if entryTypeBooleans[i]:
 			entryTypes.append(ENTRY_TYPES[i])
-	annotationTypeBooleans = member.getAnnotationAnswerLinkTypesForLocation(location)
+	annotationTypeBooleans = viewOptions.annotationAnswerLinkTypes
 	annotationTypes = []
 	for i in range(len(ANNOTATION_ANSWER_LINK_TYPES)):
 		if annotationTypeBooleans[i]:
-			annotationTypes.append(ANNOTATION_ANSWER_LINK_TYPES[i])
+			annotationTypes.append(ANNOTATION_ANSWER_LINK_TYPES[i]) 
 	if location == "home":
 		itemsToStart = member.rakontu.browseEntries(startTime, endTime, entryTypes)
 		considerNudgeFloor = True
@@ -281,14 +282,10 @@ def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, m
 		considerNudgeFloor = False
 		considerSearch = False
 	elif location == "member":
-		startTime = member.getViewStartTime(location)
-		endTime = member.getViewEndTime(location) 
 		itemsToStart = memberToSee.browseItems(startTime, endTime, entryTypes, annotationTypes)
 		considerNudgeFloor = False
 		considerSearch = True
 	elif location == "character":
-		startTime = member.getViewStartTime(location)
-		endTime = member.getViewEndTime(location) 
 		itemsToStart = character.browseItems(startTime, endTime, entryTypes, annotationTypes)
 		considerNudgeFloor = False
 		considerSearch = True
@@ -296,7 +293,7 @@ def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, m
 	itemsWithNudgeFloor = []
 	if considerNudgeFloor:
 		for item in itemsToStart:
-			if item.nudgePointsForMemberAndLocation(member, location) >= member.getNudgeFloorForLocation(location):
+			if item.nudgePointsForMemberAndLocation(member, location) >= viewOptions.nudgeFloor:
 				itemsWithNudgeFloor.append(item)
 	else:
 		itemsWithNudgeFloor.extend(itemsToStart)
@@ -323,7 +320,7 @@ def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, m
 	numItemsBeforeLimitTruncation = None
 	considerLimit = True # in case of need later
 	if considerLimit:
-		limit = MAX_ITEMS_PER_GRID_PAGE #member.getLimitForLocation(location) # in case of need later
+		limit = MAX_ITEMS_PER_GRID_PAGE # viewOptions.limit # in case of need later
 		if len(itemsWithSearch) > limit:
 			for i in range(limit):
 				itemsWithLimit.append(itemsWithSearch[i])
@@ -983,7 +980,7 @@ def GenerateRandomDate(start, end):
 	
 def AddFakeDataToRakontu(rakontu, numMembers, numEntries, numAnnotations):
 	user = users.get_current_user()
-	startDate = datetime.strptime('1/1/2008 1:30 PM', '%m/%d/%Y %I:%M %p')
+	startDate = rakontu.created
 	startDate = startDate.replace(tzinfo=pytz.utc)
 	endDate = datetime.now()
 	endDate = endDate.replace(tzinfo=pytz.utc)

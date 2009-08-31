@@ -226,6 +226,7 @@ EVENT_TYPES_DISPLAY = [
 
 # These are the time frames shown in the Rakontu home page.
 # These names must match the time frames described in site_configuration.py.
+TIMEFRAME_10MINUTES = u"10 minutes" # used for testing only
 TIMEFRAME_HOUR = u"an hour"
 TIMEFRAME_12HOURS = u"12 hours"
 TIMEFRAME_DAY = u"a day"
@@ -768,7 +769,7 @@ TEMPLATE_TERMS = {
 		"template_of_these_tags": "of these tags",
 		# visit/filters
 		"template_saved_search_filters": "Saved search filters",
-		"template_click_to_apply": "click to apply",
+		"template_apply_to_home_page": "Apply to home page",
 		"template_questions_about_entries": "Questions about entries",
 		"template_questions_about_members_or_characters": "Questions about members or characters",
 		# visit/help

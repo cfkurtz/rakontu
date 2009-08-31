@@ -17,7 +17,20 @@ left to do with limits:
 	export
 	general testing of all affected areas - especially searching in member,character, and time range in member,char
 	test print and export especially related to search
-	implement "keependtimeatnow" thing
+	
+revisit that pytz zip thing !
+
+move "send member a message" to another screeen? - put checkmarks in member screen? send to multiple members at once?
+
+test menus in IE6 in parallels
+
+put caution thing next to all uploads warning about timeouts if large files are uploaded
+
+i wish the rakontu image wouldn't light up when you hover over it - why does it do that???
+
+test approcket on server!
+
+too many default questions - should be no more than 5 per type
 
 SCALING UP:
 

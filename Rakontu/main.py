@@ -179,9 +179,9 @@ def profile_html_main():
 	 # stats.print_callees()
 	 # stats.print_callers()
 	 print "</pre>"
-	  
-main = profile_html_main
-#main = real_main
+	 
+#main = profile_html_main
+main = real_main
 
 if __name__ == "__main__":
 	main()

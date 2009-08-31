@@ -83,14 +83,26 @@ DEFAULT_START_NUDGE_POINTS = 50
 # The names can be anything you like, but the number of seconds must match the time frame stated.
 # These must match constants in the language_config file.
 # These should not go beyond a month, to avoid excessive CPU limits on GAE.
-TIME_FRAMES = [(TIMEFRAME_HOUR, HOUR_SECONDS),
-			 (TIMEFRAME_12HOURS, HOUR_SECONDS * 12),
-			 (TIMEFRAME_DAY, DAY_SECONDS),
-			 (TIMEFRAME_3DAYS, DAY_SECONDS * 3),
-			 (TIMEFRAME_WEEK, WEEK_SECONDS),
-			 (TIMEFRAME_2WEEKS, WEEK_SECONDS * 2),
-			 (TIMEFRAME_MONTH, MONTH_SECONDS),
-			 ]
+
+if DEVELOPMENT:
+	TIME_FRAMES = [
+				 (TIMEFRAME_10MINUTES, MINUTE_SECONDS * 10),
+				 (TIMEFRAME_HOUR, HOUR_SECONDS),
+				 (TIMEFRAME_12HOURS, HOUR_SECONDS * 12),
+				 (TIMEFRAME_DAY, DAY_SECONDS),
+				 (TIMEFRAME_3DAYS, DAY_SECONDS * 3),
+				 (TIMEFRAME_WEEK, WEEK_SECONDS),
+				 (TIMEFRAME_2WEEKS, WEEK_SECONDS * 2),
+				 (TIMEFRAME_MONTH, MONTH_SECONDS),
+				 ]
+else:
+	TIME_FRAMES = [
+				 (TIMEFRAME_DAY, DAY_SECONDS),
+				 (TIMEFRAME_3DAYS, DAY_SECONDS * 3),
+				 (TIMEFRAME_WEEK, WEEK_SECONDS),
+				 (TIMEFRAME_2WEEKS, WEEK_SECONDS * 2),
+				 (TIMEFRAME_MONTH, MONTH_SECONDS),
+				 ]
 
 # This is how much of a text is shown when the "Show details" setting is in place,
 # on both the main screen and the per-entry screen.
@@ -109,7 +121,7 @@ DATE_FORMATS = {
 			"n/j/Y": "%m/%d/%Y", # 01/03/2000
 			}
 
-DEFAULT_DATE_FORMAT = "F j, Y"
+DEFAULT_DATE_FORMAT = "F j"
 
 TIME_FORMATS = {
 			"h:i a": "%I:%M %p", #"5:00 pm", 

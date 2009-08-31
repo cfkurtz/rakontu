@@ -1012,6 +1012,8 @@ class Member(db.Model):
 	
 	nudgePoints = db.IntegerProperty(default=DEFAULT_START_NUDGE_POINTS, indexed=False) # accumulated through participation
 	
+	viewOptions = db.ListProperty(db.Key)
+	
 	# CREATION
 	
 	def initialize(self):
@@ -1030,6 +1032,10 @@ class Member(db.Model):
 				viewOptions.endTime = viewOptions.endTime.replace(tzinfo=pytz.utc)
 			newObjects.append(viewOptions)
 		db.put(newObjects)
+		self.viewOptions = []
+		for option in newObjects:
+			self.viewOptions.append(option.key())
+		self.put()
 		
 	# INFO
 	
@@ -1114,6 +1120,16 @@ class Member(db.Model):
 	
 	# BROWSING - VIEW OPTIONS - GET
 	
+	def getViewOptionsForLocation(self, location):
+		if location == "home":
+			return ViewOptions.get(self.viewOptions[0])
+		elif location == "entry":
+			return ViewOptions.get(self.viewOptions[1])
+		elif location == "member":
+			return ViewOptions.get(self.viewOptions[2])
+		elif location == "character":
+			return ViewOptions.get(self.viewOptions[3])
+	
 	def getViewStartTime(self, location):
 		viewOptions = self.getViewOptionsForLocation(location)
 		return viewOptions.endTime - timedelta(seconds=viewOptions.timeFrameInSeconds)
@@ -1177,10 +1193,6 @@ class Member(db.Model):
 		viewOptions = self.getViewOptionsForLocation(location)
 		return viewOptions.limit
 	
-	def getStickyEndTimeForLocation(self, location):
-		viewOptions = self.getViewOptionsForLocation(location)
-		return viewOptions.keepEndTimeAtNow
-	
 	# BROWSING - VIEW OPTIONS - SET
 	
 	def setEndTimeForLocation(self, location, endTime):
@@ -1239,11 +1251,6 @@ class Member(db.Model):
 		viewOptions.showOptionsOnTop = option
 		viewOptions.put()
 			
-	def setStickyEndTimeForLocation(self, location, value):
-		viewOptions = self.getViewOptionsForLocation(location)
-		viewOptions.keepEndTimeAtNow = value
-		viewOptions.put()
-	
 	def firstVisitURL(self):
 		if self.isManagerOrOwner():
 			return BuildURL("dir_manage", "url_first", rakontu=self.rakontu)
@@ -1286,7 +1293,7 @@ class Member(db.Model):
 				filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
 			result.extend(liaisonedAnswers)
 		if "link" in annotationTypes:
-			links = Answer.all().filter("creator = ", self.key()).\
+			links = Link.all().filter("creator = ", self.key()).\
 				filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
 			result.extend(links)
 		return result
@@ -1392,9 +1399,6 @@ class Member(db.Model):
 	def getPrivateSavedSearches(self):
 		return SavedSearch.all().filter("creator = ", self.key()).filter("private = ", True).fetch(FETCH_NUMBER)
 	
-	def getViewOptionsForLocation(self, location):
-		return ViewOptions.all().filter("member = ", self.key()).filter("location = ", location).get()
-	
 # ============================================================================================
 # ============================================================================================
 class ViewOptions(db.Model): # options on what to show - four per member (home, entry, member, character)
@@ -1407,7 +1411,6 @@ class ViewOptions(db.Model): # options on what to show - four per member (home, 
 	
 	endTime = TzDateTimeProperty(auto_now_add=True, indexed=False)
 	timeFrameInSeconds = db.IntegerProperty(default=WEEK_SECONDS, indexed=False)
-	keepEndTimeAtNow = db.BooleanProperty(default=True, indexed=False)
 
 	entryTypes = db.ListProperty(bool, default=[True, True, False, False, False], indexed=False) # stories and invitations on by default
 	annotationAnswerLinkTypes = db.ListProperty(bool, default=[False, True, True, False, False, False], indexed=False) # "tag set", "comment", "request", "nudge", "answer", "link"
@@ -1421,6 +1424,15 @@ class ViewOptions(db.Model): # options on what to show - four per member (home, 
 	
 	showDetails = db.BooleanProperty(default=False, indexed=False)
 	showOptionsOnTop = db.BooleanProperty(default=False, indexed=False)
+	
+	def getStartTime(self):
+		return self.endTime - timedelta(seconds=self.timeFrameInSeconds)
+	
+	def getFrameStringForViewTimeFrame(self):
+		for aFrame, seconds in TIME_FRAMES:
+			if self.timeFrameInSeconds == seconds:
+				return aFrame
+		return None
 	
 # ============================================================================================
 # ============================================================================================
@@ -1620,6 +1632,9 @@ class SavedSearch(db.Model):
 		
 	def linkURL(self):
 		return '%s?%s' % (self.urlWithoutQuery(), self.urlQuery())
+		
+	def editURL(self):
+		return "/%s/%s?%s" % (DIRS["dir_visit"], URLS["url_search_filter"], self.urlQuery())
 		
 	def urlWithoutQuery(self):
 		return "/%s/%s" % (DIRS["dir_visit"], URLS["url_home"])

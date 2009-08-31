@@ -14,7 +14,7 @@
 		" method="post" enctype="multipart/form-data">
 		
 		<p>{{template_show}}
-		<select name="type">
+		<select name="show_type">
 			{% for i in entry_types|makeRangeFromListLength %}
 				<option value="{{entry_types|listLookup:i}}" 
 				{% if entry_types|listLookup:i|equalTest:type %} 

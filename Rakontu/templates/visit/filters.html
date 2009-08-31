@@ -13,7 +13,7 @@
 			<h4>{{template_saved_search_filters}}</h4>
 		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
-		      		<th>{{template_name}}<br/>({{template_click_to_apply}})</th>
+		      		<th>{{template_name}}<br/></th>
 		      		<th>{{template_words}}</th>
 		      		<th>{{template_tags}}</th>
 		      		<th>{{template_questions_about_entries}}</th>
@@ -23,7 +23,10 @@
 		      		<th>{{template_remove}}?</th>
 		      	{% for search in searches %}
 			      	<tr>
-			      	<td>{{search.linkString}}</td>
+			      	<td>{{search.name}}<br/>
+			      		<a href="{{search.linkURL}}">{{template_apply_to_home_page}}</a><br/>
+			      		<a href="{{search.editURL}}">{{template_change}}</a>
+			      		</td>
 			      	<td>
 			      		{% if search.words %}
 			      			{{search.words_anyOrAll}}: <b>{{search.words|join:", "}}</b> <br/>
