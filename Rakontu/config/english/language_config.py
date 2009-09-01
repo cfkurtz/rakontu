@@ -312,6 +312,7 @@ TERMS = {
 		"term_entries_contributed_by": "Entries, annotations, answers and links contributed by",
 		"term_yes": "yes",
 		"term_no": "no",
+		"term_for": "for", # annotation for entry
 		"term_points": "points",
 		"term_accumulations_for": "Accumulations for",
 		"term_custom": "custom",

@@ -18,6 +18,7 @@ left to do with limits:
 revisit that pytz zip thing !
 
 move "send member a message" to another screeen? - put checkmarks in member screen? send to multiple members at once?
+whether they want to use their email in messages as reply to, or use alternative email
 
 test menus in IE6 in parallels
 
@@ -30,10 +31,6 @@ test approcket on server!
 too many default questions - should be no more than 5 per type
 
 memcache and entries for rakontu
-
-count things for member as they add up, non indexed
-
-whether they want to use their email in messages as reply to, or use alternative email
 
 SCALING UP:
 

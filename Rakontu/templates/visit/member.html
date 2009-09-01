@@ -95,13 +95,13 @@
 
 		<p></p>
     	<table cellspacing=0 cellpadding=0 style="width:100%;">
- 			{% for name in stat_names %}
+ 			{% for name in count_names %}
 				<th>{{name|capfirst}}</th>
 			{% endfor %}
       	</tr>
-		{% for stat in stats %}
-			<td>{% if stat %}
-					{{stat}}
+		{% for count in counts %}
+			<td>{% if count %}
+					{{count}}
 				{% else %}
 					&nbsp;
 				{% endif %}

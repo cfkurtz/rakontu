@@ -41,7 +41,6 @@ ANNOTATION_ANSWER_LINK_TYPES_LINK_INDEX = 5
 
 # entries and annotations
 ENTRY_AND_ANNOTATION_TYPES = ["story", "pattern", "collage", "invitation", "resource", "answer", "tag set", "comment", "request", "nudge"]
-ENTRY_AND_ANNOTATION_TYPES_URLS = ["story", "pattern", "collage", "invitation", "resource", "answer", "tagset", "comment", "request", "nudge"]
 STORY_ENTRY_TYPE_INDEX = 0
 ANSWERS_ENTRY_TYPE_INDEX = 5
 

@@ -559,7 +559,7 @@ class SeeMemberPage(webapp.RequestHandler):
 			if memberToSee:
 				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "member", memberToSee=memberToSee)
 				textsForGrid, rowColors = self.buildGrid(items, member, memberToSee, rakontu, curating)
-				statNames, stats = memberToSee.collectStats()
+				countNames, counts = memberToSee.getCounts()
 				viewOptions = member.getViewOptionsForLocation("member")
 				currentSearch = viewOptions.search
 				template_values = GetStandardTemplateDictionaryAndAddMore({
@@ -579,8 +579,8 @@ class SeeMemberPage(webapp.RequestHandler):
 								'max_num_items': MAX_ITEMS_PER_GRID_PAGE,
 								'too_many_items_warning': overLimitWarning,
 					   		   'no_profile_text': NO_PROFILE_TEXT,
-					   		   'stat_names': statNames,
-					   		   'stats': stats,
+					   		   'count_names': countNames,
+					   		   'counts': counts,
 					   		   'curating': curating,
 					   		   'show_details': viewOptions.showDetails,
 								'grid_options_on_top': viewOptions.showOptionsOnTop,
@@ -720,6 +720,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 				textsForGrid, rowColors = self.buildGrid(items, member, character, rakontu, curating)
 				viewOptions = member.getViewOptionsForLocation("character")
 				currentSearch = viewOptions.search
+				countNames, counts = character.getCounts()
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["CHARACTER"], 
 					   		   	   'title_extra': character.name, 
@@ -733,6 +734,8 @@ class SeeCharacterPage(webapp.RequestHandler):
 					   		   	   'text_to_display_before_grid': "%s's entries" % character.name,
 					   		   	   'grid_form_url': self.request.uri,
 					   		   	   'curating': curating,
+					   		   'count_names': countNames,
+					   		   'counts': counts,
 								'num_items_before_truncation': numItemsBeforeLimitTruncation,
 								'max_num_items': MAX_ITEMS_PER_GRID_PAGE,
 								'too_many_items_warning': overLimitWarning,
@@ -1702,7 +1705,7 @@ def ItemDisplayStringForGrid(item, member, curating=False, showingMember=False, 
 			else:
 				linkString = item.linkStringWithQuestionNameAndReferentLink()
 	elif item.__class__.__name__ == "Annotation":
-		linkString = item.linkStringWithEntryLink()
+		linkString = item.linkStringWithEntryLink(showDetails=showDetails)
 	else:
 		linkString = item.linkString()
 	# name 

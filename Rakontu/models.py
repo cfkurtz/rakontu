@@ -1026,8 +1026,8 @@ class Member(db.Model):
 	lastAnsweredQuestion = db.DateTimeProperty(indexed=False)
 	lastReadAnything = db.DateTimeProperty(indexed=False)
 	
+	counts = db.ListProperty(int, default=[0] * (len(ENTRY_TYPES) + len(ANNOTATION_ANSWER_LINK_TYPES)), indexed=False) 
 	nudgePoints = db.IntegerProperty(default=DEFAULT_START_NUDGE_POINTS, indexed=False) # accumulated through participation
-	
 	viewOptions = db.ListProperty(db.Key)
 	
 	# CREATION
@@ -1344,21 +1344,6 @@ class Member(db.Model):
 	def getLinksCreatedByMember(self):
 		return Link.all().filter("creator = ", self.key()).fetch(FETCH_NUMBER)
 
-	def collectStats(self):
-		statNames = []
-		stats = []
-		for type in ENTRY_TYPES:
-			stats.append(Entry.all().filter("creator = ", self.key()).filter("character = ", None).filter("type = ", type).filter("draft = ", False).count())
-		statNames.extend(ENTRY_TYPES_PLURAL_DISPLAY)
-		for type in ANNOTATION_TYPES:
-			stats.append(Annotation.all().filter("creator = ", self.key()).filter("character = ", None).filter("type = ", type).filter("draft = ", False).count())
-		statNames.extend(ANNOTATION_TYPES_PLURAL_DISPLAY)
-		stats.append(Answer.all().filter("creator = ", self.key()).filter("character = ", None).filter("draft = ", False).count())
-		statNames.append(TERMS["term_answers"])
-		stats.append(Link.all().filter("creator = ", self.key()).count())
-		statNames.append(TERMS["term_links"])
-		return statNames, stats
-
 	# DRAFTS
 	
 	def getDraftEntries(self):
@@ -1378,6 +1363,46 @@ class Member(db.Model):
 				if not entries.has_key(answer.referent.getKeyName()):
 					entries[answer.referent.getKeyName()] = answer.referent
 		return entries.values()
+	
+	# COUNTS
+	
+	def incrementCount(self, type, value=1):
+		valueSet = False
+		i = 0
+		for aType in ENTRY_TYPES:
+			if aType == type:
+				self.counts[i] = self.counts[i] + value
+				valueSet = True
+				break
+			i += 1
+		i = len(ENTRY_TYPES)
+		if not valueSet:
+			for aType in ANNOTATION_ANSWER_LINK_TYPES:
+				if aType == type:
+					self.counts[i] = self.counts[i] + value
+					break
+				i += 1
+		# caller will put
+		
+	def decrementCount(self, type):
+		self.incrementCount(type, value=-1)
+		
+	def getCounts(self):
+		countNames = []
+		counts = []
+		i = 0
+		for aType in ENTRY_TYPES:
+			countNames.append(ENTRY_TYPES_PLURAL_DISPLAY[i])
+			counts.append(self.counts[i])
+			i += 1
+		i = len(ENTRY_TYPES)
+		j = 0
+		for aType in ANNOTATION_ANSWER_LINK_TYPES:
+			countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
+			counts.append(self.counts[i])
+			i += 1
+			j += 1
+		return countNames, counts
 	
 	# DISPLAY
 	
@@ -1484,6 +1509,11 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 	
 	image = db.BlobProperty(default=None) # optional
 	
+	lastEnteredEntry = db.DateTimeProperty(indexed=False)
+	lastEnteredAnnotation = db.DateTimeProperty(indexed=False)
+	lastAnsweredQuestion = db.DateTimeProperty(indexed=False)
+	counts = db.ListProperty(int, default=[0] * (len(ENTRY_TYPES) + len(ANNOTATION_ANSWER_LINK_TYPES)), indexed=False) 
+
 	def isMember(self):
 		return False
 	
@@ -1509,6 +1539,46 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 				filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
 			result.extend(answers)
 		return result
+	
+	# COUNTS
+	
+	def incrementCount(self, type, value=1):
+		valueSet = False
+		i = 0
+		for aType in ENTRY_TYPES:
+			if aType == type:
+				self.counts[i] = self.counts[i] + value
+				valueSet = True
+				break
+			i += 1
+		i = len(ENTRY_TYPES)
+		if not valueSet:
+			for aType in ANNOTATION_ANSWER_LINK_TYPES:
+				if aType == type:
+					self.counts[i] = self.counts[i] + value
+					break
+				i += 1
+		# caller will put
+		
+	def decrementCount(self, type):
+		self.incrementCount(type, value=-1)
+		
+	def getCounts(self):
+		countNames = []
+		counts = []
+		i = 0
+		for aType in ENTRY_TYPES:
+			countNames.append(ENTRY_TYPES_PLURAL_DISPLAY[i])
+			counts.append(self.counts[i])
+			i += 1
+		i = len(ENTRY_TYPES)
+		j = 0
+		for aType in ANNOTATION_ANSWER_LINK_TYPES:
+			countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
+			counts.append(self.counts[i])
+			i += 1
+			j += 1
+		return countNames, counts
 	
 	def getNonDraftEntriesAttributedToCharacter(self):
 		return Entry.all().filter("character = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
@@ -1753,12 +1823,27 @@ class Answer(db.Model):
 					self.entryNudgePointsWhenPublished[i] = self.referent.nudgePoints[i]
 				self.entryActivityPointsWhenPublished = self.referent.activityPoints
 				self.put()
+			# nudge points accrue even if using character
 			self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("answering question")
-			if not self.character:
+			if self.character:
+				self.character.lastAnsweredQuestion = datetime.now(pytz.utc)
+				self.character.incrementCount("answer")
+				self.character.put()
+			else:
 				self.creator.lastAnsweredQuestion = datetime.now(pytz.utc)
+				self.creator.incrementCount("answer")
 			self.creator.put()
 			self.rakontu.lastPublish = self.published
 			self.rakontu.put()
+			
+	def unPublish(self):
+		if self.referentType == "entry":
+			if self.character:
+				self.character.decrementCount("answer")
+				self.character.put()
+			else:
+				self.creator.decrementCount("answer")
+				self.creator.put()
 				
 	# DISPLAY
 		
@@ -1897,8 +1982,15 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		self.draft = False
 		self.published = datetime.now(pytz.utc)
 		self.recordAction("added", self) # does a put
+		# nudge points accrue even if using character
 		self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("adding %s" % self.type)
-		self.creator.lastEnteredEntry = datetime.now(pytz.utc)
+		if self.character:
+			self.character.lastEnteredEntry = datetime.now(pytz.utc)
+			self.character.incrementCount(self.type)
+			self.character.put()
+		else:
+			self.creator.lastEnteredEntry = datetime.now(pytz.utc)
+			self.creator.incrementCount(self.type)
 		self.creator.put()
 		for answer in self.getAnswersForMember(self.creator):
 			answer.publish()
@@ -1908,6 +2000,14 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		if not self.rakontu.firstPublish:
 			self.rakontu.firstPublish = self.published
 		self.rakontu.put()
+		
+	def unPublish(self):
+		if self.character:
+			self.character.decrementCount(self.type)
+			self.character.put()
+		else:
+			self.creator.decrementCount(self.type)
+			self.creator.put()
 		
 	def recordAction(self, action, referent):
 		if referent.__class__.__name__ == "Entry":
@@ -2587,12 +2687,17 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 		self.put()
 		self.creator.nudgePoints = self.itemFrom.rakontu.getMemberNudgePointsForEvent("adding %s link" % self.type)
 		self.creator.lastEnteredLink = datetime.now(pytz.utc)
+		self.creator.incrementCount("link")
 		self.creator.put()
 		self.itemFrom.rakontu.lastPublish = self.published
 		if not self.itemFrom.rakontu.firstPublish:
 			self.itemFrom.rakontu.firstPublish = self.published
 		self.itemFrom.rakontu.put()
 		
+	def unPublish(self):
+		self.creator.decrementCount("link")
+		self.creator.put()
+
 	# MEMBERS
 		
 	def attributedToMember(self):
@@ -2739,9 +2844,25 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 		self.entryActivityPointsWhenPublished = self.entry.activityPoints
 		self.put()
 		self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("adding %s" % self.type)
+		if self.character:
+			self.character.lastEnteredAnnotation = datetime.now(pytz.utc)
+			self.character.incrementCount(self.type)
+			self.character.put()
+		else:
+			self.creator.lastEnteredAnnotation = datetime.now(pytz.utc)
+			self.creator.incrementCount(self.type)
+			self.creator.put()
 		self.creator.put()
 		self.rakontu.lastPublish = self.published
 		self.rakontu.put()
+
+	def unPublish(self):
+		if self.character:
+			self.character.decrementCount(self.type)
+			self.character.put()
+		else:
+			self.creator.decrementCount(self.type)
+			self.creator.put()
 
 	# TYPE
 	
@@ -2787,7 +2908,7 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 	def typeForDisplay(self):
 		return DisplayTypeForAnnotationType(self.type)
 	
-	def displayString(self, includeType=True):
+	def displayString(self, includeType=True, showDetails=True):
 		if self.type == "comment":
 			if self.shortString:
 				return self.shortString
@@ -2818,9 +2939,12 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 			result = []
 			for i in range(NUM_NUDGE_CATEGORIES):
 				if self.valuesIfNudge[i] != 0:
-					result.append("%s %s" % (self.valuesIfNudge[i], self.rakontu.nudgeCategories[i]))
-			if self.shortString:
-				result.append("(%s)" % self.shortString)
+					if showDetails:
+						result.append("%s %s" % (self.valuesIfNudge[i], self.rakontu.nudgeCategories[i]))
+						if self.shortString:
+							result.append("(%s)" % self.shortString)
+					else:
+						result.append("%s" % (self.valuesIfNudge[i]))
 			return ", ".join(result)
 		
 	def displayStringShortAndWithoutTags(self):
@@ -2837,11 +2961,11 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 	def getKeyName(self):
 		return self.key().name()
 	
-	def linkString(self):
+	def linkString(self, showDetails=True):
 		if self.type == "comment" or self.type == "request":
 			return '<a href="%s?%s">%s</a>' % (self.urlWithoutQuery(), self.urlQuery(), self.shortString)
 		else:
-			return self.displayString()
+			return self.displayString(showDetails=showDetails)
 		
 	def linkURL(self):
 		return '%s?%s' % (self.urlWithoutQuery(), self.urlQuery())
@@ -2852,8 +2976,8 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 	def urlQuery(self):
 		return "%s=%s" % (URL_IDS["url_query_annotation"], self.key().name())
 		
-	def linkStringWithEntryLink(self):
-		return "%s for %s" % (self.linkString(), self.entry.linkString())
+	def linkStringWithEntryLink(self, showDetails=True):
+		return "%s %s %s" % (self.linkString(showDetails=showDetails), TERMS["term_for"], self.entry.linkString())
 		
 	def getImageLinkForType(self):
 		if self.type == "comment":
