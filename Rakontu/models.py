@@ -278,7 +278,23 @@ class Rakontu(db.Model):
 		return Member.all().filter("rakontu = ", self.key()).filter("active = ", False).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
 	
 	def getActiveAndInactiveOfflineMembers(self):
-		return Member.all().filter("rakontu = ", self.key()).filter("active = ", False).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
+		return Member.all().filter("rakontu = ", self.key()).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
+	
+	def numActiveMembers(self):
+		return Member.all().filter("rakontu = ", self.key()).filter("active = ", True).count()
+	
+	def numPendingMembers(self):
+		return PendingMember.all().filter("rakontu = ", self.key()).count()
+		
+	def numInactiveMembers(self):
+		return Member.all().filter("rakontu = ", self.key()).filter("active = ", False).count()
+		
+	def numEntries(self):
+		return Entry.all().filter("rakontu = ", self.key()).count()
+	
+	def numAnnotations(self):
+		# this is only used in the admin pages - if 1000 will say could be more
+		return Annotation.all().filter("rakontu = ", self.key()).count()
 	
 	def getGuides(self):
 		result = []

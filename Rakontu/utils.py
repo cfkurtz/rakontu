@@ -979,88 +979,114 @@ def GenerateRandomDate(start, end):
     randomSeconds = random.randrange(deltaSeconds)
     return start + timedelta(seconds=randomSeconds)
 	
-def AddFakeDataToRakontu(rakontu, numMembers, numEntries, numAnnotations):
+def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 	user = users.get_current_user()
 	startDate = rakontu.created
 	startDate = startDate.replace(tzinfo=pytz.utc)
 	endDate = datetime.now()
 	endDate = endDate.replace(tzinfo=pytz.utc)
 	
-	memberKeyNames = []
-	for member in rakontu.getActiveMembers():
-		memberKeyNames.append(member.getKeyName())
-	for i in range(numMembers):
-		member = Member(
-					key_name=KeyName("member"), 
-					nickname="Member %s" % i, 
-					rakontu=rakontu, 
-					governanceType="member")  
-		member.joined = startDate
-		member.initialize()
-		member.put() 
-		member.createViewOptions()
-		memberKeyNames.append(member.getKeyName()) 
-		if i % 10 == 0: 
-			DebugPrint("member %s" % i)
-	DebugPrint("%s members generated" % numMembers)
-	
-	entryKeyNames = []
-	for entry in rakontu.getNonDraftEntries():
-		entryKeyNames.append(entry.getKeyName())
-	for i in range(numEntries):
-		type = random.choice(ENTRY_TYPES)
-		member = Member.get_by_key_name(random.choice(memberKeyNames))
-		text = random.choice(LOREM_IPSUM)
-		entry = Entry( 
-					key_name=KeyName("entry"), 
-					rakontu=rakontu, 
-					type=type, 
-					creator=member, 
-					title=text[:random.randrange(5,40)], 
-					text=text, 
-					draft=False)
-		entry.text_formatted = db.Text(InterpretEnteredText(text, "plain text"))
-		entry.put()
-		entry.publish()
-		entry.published = GenerateRandomDate(startDate, endDate)
-		entry.created = entry.published
-		entry.put()
-		entryKeyNames.append(entry.getKeyName())
-		if i % 10 == 0:
-			DebugPrint("entry %s" % i)
-	DebugPrint("%s entries generated" % numEntries)
-	
-	for i in range(numAnnotations):
-		type = random.choice(ANNOTATION_TYPES)
-		member = Member.get_by_key_name(random.choice(memberKeyNames))
-		entry = Entry.get_by_key_name(random.choice(entryKeyNames))
-		text = random.choice(LOREM_IPSUM)
-		annotation = Annotation(
-							key_name=KeyName("annotation"), 
-							rakontu=rakontu, 
-							type=type, 
-							creator=member, 
-							entry=entry, 
-							shortString=text[:random.randrange(5,40)], 
-							longString=text, 
-							draft=False)
-		if type == "nudge":
+	if createWhat == "members":
+		numMembersNow = rakontu.numActiveMembers()
+		for i in range(numItems):
+			member = Member(
+						key_name=KeyName("member"), 
+						nickname="Member %s" % (numMembersNow + i + 1), 
+						rakontu=rakontu, 
+						governanceType="member")  
+			member.joined = startDate
+			member.initialize()
+			member.put() 
+			member.createViewOptions()
+		DebugPrint("%s members generated" % numItems)
+	elif createWhat == "entries":
+		memberKeyNames = []
+		for member in rakontu.getActiveMembers():
+			memberKeyNames.append(member.getKeyName())
+		for i in range(numItems):
+			type = random.choice(ENTRY_TYPES)
+			member = Member.get_by_key_name(random.choice(memberKeyNames))
+			text = random.choice(LOREM_IPSUM)
+			entry = Entry( 
+						key_name=KeyName("entry"), 
+						rakontu=rakontu, 
+						type=type, 
+						creator=member, 
+						title=text[:random.randrange(5,40)], 
+						text=text, 
+						draft=False)
+			entry.text_formatted = db.Text(InterpretEnteredText(text, "plain text"))
+			entry.put()
+			entry.publish()
+			entry.published = GenerateRandomDate(startDate, endDate)
+			entry.created = entry.published
+			entry.put()
+		DebugPrint("%s entries generated" % numItems)
+	elif createWhat == "annotations":
+		entryKeyNames = [] 
+		memberKeyNames = []
+		for member in rakontu.getActiveMembers():
+			memberKeyNames.append(member.getKeyName())  
+		for entry in rakontu.getNonDraftEntries():
+			entryKeyNames.append(entry.getKeyName())
+		for i in range(numItems):
+			type = random.choice(ANNOTATION_TYPES)
+			member = Member.get_by_key_name(random.choice(memberKeyNames))
+			entry = Entry.get_by_key_name(random.choice(entryKeyNames))
+			text = random.choice(LOREM_IPSUM)
+			annotation = Annotation(
+								key_name=KeyName("annotation"), 
+								rakontu=rakontu, 
+								type=type, 
+								creator=member, 
+								entry=entry, 
+								shortString=text[:random.randrange(5,40)], 
+								longString=text, 
+								draft=False)
+			if type == "nudge":
+				annotation.valuesIfNudge = []
+				for j in range(NUM_NUDGE_CATEGORIES):
+					annotation.valuesIfNudge.append(random.randint(-10, 10))
+			elif type == "tag set":
+				annotation.tagsIfTagSet = []
+				for i in range(4):
+					annotation.tagsIfTagSet.append(random.choice(LOREM_IPSUM)[:random.randrange(5,20)])
+			annotation.longString_formatted = db.Text(InterpretEnteredText(annotation.longString, "plain text"))
+			annotation.put()
+			annotation.publish()
+			annotation.published = GenerateRandomDate(entry.published, endDate)
+			annotation.created = annotation.published
+			annotation.put()
+			entry.lastAnnotatedOrAnsweredOrLinked = annotation.published
+			entry.put()
+	elif createWhat == "nudges":
+		entryKeyNames = []
+		memberKeyNames = []
+		for member in rakontu.getActiveMembers():
+			memberKeyNames.append(member.getKeyName())
+		for entry in rakontu.getNonDraftEntries():
+			entryKeyNames.append(entry.getKeyName())
+		for i in range(numItems):
+			member = Member.get_by_key_name(random.choice(memberKeyNames))
+			entry = Entry.get_by_key_name(random.choice(entryKeyNames))
+			text = random.choice(LOREM_IPSUM)
+			annotation = Annotation(
+								key_name=KeyName("annotation"), 
+								rakontu=rakontu, 
+								type="nudge", 
+								creator=member, 
+								entry=entry, 
+								shortString=text[:random.randrange(5,40)], 
+								draft=False)
 			annotation.valuesIfNudge = []
 			for j in range(NUM_NUDGE_CATEGORIES):
 				annotation.valuesIfNudge.append(random.randint(-10, 10))
-		elif type == "tag set":
-			annotation.tagsIfTagSet = []
-			for i in range(4):
-				annotation.tagsIfTagSet.append(random.choice(LOREM_IPSUM)[:random.randrange(5,20)])
-		annotation.longString_formatted = db.Text(InterpretEnteredText(annotation.longString, "plain text"))
-		annotation.put()
-		annotation.publish()
-		annotation.published = GenerateRandomDate(entry.published, endDate)
-		annotation.created = annotation.published
-		annotation.put()
-		entry.lastAnnotatedOrAnsweredOrLinked = annotation.published
-		entry.put()
-		if i % 10 == 0:
-			DebugPrint("annotation %s" % i)
-	DebugPrint("%s annotations generated" % numAnnotations)
+			annotation.put()
+			annotation.publish()
+			annotation.published = GenerateRandomDate(entry.published, endDate)
+			annotation.created = annotation.published
+			annotation.put()
+			entry.lastAnnotatedOrAnsweredOrLinked = annotation.published
+			entry.put()
+		DebugPrint("%s nudges generated" % numItems)
 

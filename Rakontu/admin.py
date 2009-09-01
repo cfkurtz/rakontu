@@ -161,10 +161,9 @@ class AdministerSitePage(webapp.RequestHandler):
 					self.redirect(BuildURL("dir_admin", "url_admin"))
 				elif "addFakeDataTo|%s" % aRakontu.key() in self.request.arguments():
 					# no error checking here
-					numMembers = int(self.request.get('numMembers|%s' % aRakontu.key()))
-					numEntries = int(self.request.get('numEntries|%s' % aRakontu.key()))
-					numAnnotations = int(self.request.get('numAnnotations|%s' % aRakontu.key()))
-					AddFakeDataToRakontu(aRakontu, numMembers, numEntries, numAnnotations)
+					numItems = int(self.request.get('numItems|%s' % aRakontu.key()))
+					createWhat = self.request.get("createWhat")
+					AddFakeDataToRakontu(aRakontu, numItems, createWhat)
 					self.redirect(BuildURL("dir_admin", "url_admin"))
 				elif "remove|%s" % aRakontu.key() in self.request.arguments():
 					aRakontu.removeAllDependents()

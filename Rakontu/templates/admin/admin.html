@@ -50,14 +50,9 @@
 		<fieldset>
 		<table cellpadding=4 cellspacing=0>
 		<tr>
-			<th>URL</th>
 			<th>{{template_name}}</th>
-			<th>{{template_created}}<br/>(UTC)</th>
-			<th>{{template_last_activity}}<br/>(UTC)</th>
-			<th>{{template_approcket_timestamp}}<br/>(UTC)</th>
-			<th>{{template_active_members}}</th>
-			<th>{{template_pending_members}}</th>
-			<th>{{template_inactive_members}}</th>
+			<th>{{template_dates}} (UTC)</th>
+			<th>{{template_counts}}</th>
 			<th>{{template_member}}?</th>
 			<th>{{template_active}}? {{"activating_rakontus"|caution}}</th>
 			{% if development %}
@@ -68,26 +63,41 @@
 		
     	{% for rakontu in rakontus %}
 	    	<tr>
-	    	<td><a href="http://{{host}}{{rakontu.linkURL}}">{{rakontu.getKeyName}}</a></td>
-	    	<td>{{rakontu.name}}</td>
-	    	<td>{{rakontu.created|timeZone:"UTC"|date:"F j, Y"}}<br/>{{rakontu.created|timeZone:"UTC"|time:"h:i a"}}</td>
 	    	<td>
-	    		{% if rakontu.lastPublish %}
-	    			{{rakontu.lastPublish|timeZone:"UTC"|date:"F j, Y"}}<br/>{{rakontu.lastPublish|timeZone:"UTC"|time:"h:i a"}}
-	    		{% else %}
-	    			{{term_none}}
-	    		{% endif %}
-	    	</td>
+	    		<p>{{rakontu.linkString}}</p>
+	    		<p>({{rakontu.getKeyName}})</p>
+	    		</td>
 	    	<td>
+	    		<p>{{template_created}}: {{rakontu.created|timeZone:"UTC"|time:"h:i a"}} {{rakontu.created|timeZone:"UTC"|date:"F j, Y"}}</p>
+	    		<p>{{template_first_publish}}: 
+				<p>{{template_last_activity}}: 
+		    		{% if rakontu.lastPublish %}
+		    			{{rakontu.firstPublish|timeZone:"UTC"|time:"h:i a"}} {{rakontu.firstPublish|timeZone:"UTC"|date:"F j, Y"}}
+		    		{% else %}
+		    			{{term_none}}
+		    		{% endif %}
+				<p>{{template_last_activity}}: 
+		    		{% if rakontu.lastPublish %}
+		    			{{rakontu.lastPublish|timeZone:"UTC"|time:"h:i a"}} {{rakontu.lastPublish|timeZone:"UTC"|date:"F j, Y"}}
+		    		{% else %}
+		    			{{term_none}}
+		    		{% endif %}
+				</p>
+				<p>{{template_approcket_timestamp}}: 
 	    		{% if rakontu.appRocketTimeStamp %}
-	    			{{rakontu.appRocketTimeStamp|date:"F j, Y"}}<br/>{{rakontu.appRocketTimeStamp|time:"h:i a"}}
+	    			{{rakontu.appRocketTimeStamp|time:"h:i a"}} {{rakontu.appRocketTimeStamp|date:"F j, Y"}}
 	    		{% else %}
 	    			{{term_none}}
 	    		{% endif %}
+	    		</p>
+	    		</td>
+		    <td>
+	    		<p>{{template_active_members}}: {{rakontu.numActiveMembers}}</p>
+				<p>{{template_pending_members}}: {{rakontu.numPendingMembers}}</p>
+				<p>{{template_inactive_members}}: {{rakontu.numInactiveMembers}}</p>
+				<p>{{template_entries}}: {{rakontu.numEntries}}</p>
+				<p>{{template_annotations}}: {{rakontu.numAnnotations}}</p>
 	    	</td>
-	    	<td align="center">{{rakontu.getActiveMembers|length}}</td>
-		    	<td align="center">{{rakontu.getPendingMembers|length}}</td>
-	    	<td align="center">{{rakontu.getInactiveMembers|length}}</td>
 	    	<td align="center">
 	    		{% if member_of|dictLookup:rakontu.key %}
 	    			{{template_yes|upper}}, {{member_of|dictLookup:rakontu.key}}
@@ -119,9 +129,13 @@
   			</td>
 			{% if development %}
 				<td>
-				<input type="text" size="4" name="numMembers|{{rakontu.key}}" value="1"> members<br/>
-				<input type="text" size="4" name="numEntries|{{rakontu.key}}" value="5"> entries<br/>
-				<input type="text" size="4" name="numAnnotations|{{rakontu.key}}" value="5"> annotations<br/>
+				<input type="text" size="4" name="numItems|{{rakontu.key}}" value="10"><br/>
+				<select name="createWhat">
+					<option value="members">members</option>
+					<option value="entries" selected="selected">entries</option>
+					<option value="annotations">annotations</option>
+					<option value="nudges">nudges</option>
+					</select>
 				<input type="submit" name="addFakeDataTo|{{rakontu.key}}" value="Add" class="button">
 				</td>
 			{% endif %}
@@ -134,16 +148,19 @@
     	</table>
     	</fieldset>
 		<p><a href="/{{dir_admin}}/{{url_create1}}">{{template_create_another}} Rakontu</a></p>
+		{% if development %}
+			<p><a href="/{{dir_admin}}/{{url_make_fake_data}}">Generate fake testing Rakontu</a></p>
+		{% endif %}
 		<p></p>
 		<center><p><i><b>{{template_admin_warning}}</b></i></p>
 		</form>
 		</div>
     {% else %}
     	<p>&nbsp; &nbsp; {{template_none}} - <a href="/{{dir_admin}}/{{url_create1}}">{{template_create_one}}</a></p>
+		{% if development %}
+			<p><a href="/{{dir_admin}}/{{url_make_fake_data}}">Generate fake testing Rakontu</a></p>
+		{% endif %}
     {% endif %}	
-	{% if development %}
-		<p><a href="/{{dir_admin}}/{{url_make_fake_data}}">Generate fake testing Rakontu</a></p>
-	{% endif %}
 	    
 	</div>
 	{% include "../common_footer.html" %}
