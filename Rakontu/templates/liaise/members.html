@@ -52,6 +52,7 @@
 		  				<td>
 		  					<a href="/{{dir_visit}}/{{url_member}}?{{url_query_member}}={{aMember.getKeyName}}">{{template_view_member_page}}</a>
 		  					{% ifequal aMember.liaisonIfOfflineMember.key current_member.key %}
+		  						<br/><a href="/{{dir_visit}}/{{url_profile}}?{{aMember.urlQuery}}">{{template_change_profile}}</a>
 		  						<br/><a href="/{{dir_visit}}/{{url_preferences}}?{{aMember.urlQuery}}">{{template_change_preferences}}</a>
 		  						<br/><a href="/{{dir_visit}}/{{url_drafts}}?{{aMember.urlQuery}}">{{template_drafts}}</a>
 		  					{% endifequal %}

@@ -405,6 +405,8 @@ TEMPLATE_TERMS = {
 		"template_questions": "Questions",
 		"template_answer": "Answer",
 		"template_answers": "Answers",
+		"template_message": "Message",
+		"template_messages": "Messages",
 		"template_link": "Link",
 		"template_links": "Links",
 		"template_filter": "Filter",
@@ -612,6 +614,7 @@ TEMPLATE_TERMS = {
 		# liaise/members
 		"template_links": "Links",
 		"template_view_member_page": "Member page",
+		"template_change_profile": "Profile",
 		"template_change_preferences": "Preferences",
 		"template_take_over_offline_member": "Become this member's liaison",
 		"template_switch_offline_member_liaison_to": "Transfer to",
@@ -674,20 +677,20 @@ TEMPLATE_TERMS = {
 		"template_inactive_questions": "Inactive questions",
 		# manage/questionsList
 		"template_questions_about": "Questions about",
-		# manage/settings
-		"template_appearance": "Appearance",
-		"template_display_options": "Display options",
-		"template_things_members_can_do": "Things members can do",
-		"template_rakontu_created_on": "This Rakontu was created on",
+		# manage/appearance
+		"template_visual_appearance": "Visual appearance",
 		"template_tag_line": "Tag line",
 		"template_custom_skin": "Custom skin",
 		"template_custom": "custom",
+		"template_halping_role_texts": "Helping role texts",
 		"template_rakontu_outoing_email": "Outgoing email address",
 		"template_welcome_message_for_new_members": "Welcome message for new members",
 		"template_time_zones_and_time_reporting": "Time zones and time reporting",
 		"template_what_time_zone_should_members_see": "What time zone should members see as the default?",
 		"template_how_should_dates_display": "How should dates be displayed by default?",
 		"template_how_should_times_display": "How should times be displayed by default?",
+		# manage/settings
+		"template_things_members_can_do": "Things members can do",
 		"template_how_many_attachments": "How many attachments are allowed per entry?",
 		"template_fictional_characters": "Fictional characters",
 		"template_is_entry_by_character_allowed": "Is entry via fictional character allowed for each of these entry types?",
@@ -700,7 +703,6 @@ TEMPLATE_TERMS = {
 		"template_nudge_points_per_entry": "How many nudge points can be asssigned (maximum) per entry?",
 		"template_nudge_category_names_and_questions": "What should the names and questions of nudge categories be?",
 		"template_how_many_nudge_points_do_member_get": "How many nudge points do members accumulate by participating in the Rakontu?",
-		"template_halping_roles": "Helping roles",
 		"template_read_before_text": "read-before text",
 		# visit/annotation
 		"template_enter_tags": "Please enter some tags that describe this entry.",
@@ -809,6 +811,12 @@ TEMPLATE_TERMS = {
 		# visit/member
 		"template_information_about": "Information about",
 		"template_information_about_this": "Information about this",
+		"template_last_entry": "Last entry",
+		"template_last_annotation": "Last annotation",
+		"template_last_answer": "Last answer",
+		"template_last_link": "Last link",
+		"template_last_reading": "Last reading",
+		"template_nudge_points_accumulated": "Nudge points",
 		"template_member_answers_to_questions": "Answers to member questions",
 		"template_send_a_message_to": "Send a message to",
 		"template_change_your_preferences": "Change your preferences",
@@ -824,18 +832,23 @@ TEMPLATE_TERMS = {
 		# visit/preview
 		"template_with_reference_to_the": "with reference to the",
 		# visit/profile
-		"template_general_information": "General information",
-		"template_last_entry": "Last entry",
-		"template_last_annotation": "Last annotation",
-		"template_last_answer": "Last answer",
-		"template_last_link": "Last link",
-		"template_last_reading": "Last reading",
-		"template_nudge_points_accumulated": "Nudge points",
+		"template_you_profile": "Your profile",
+		"template_offline_member_profile": "Off-line member profile",
 		"template_nickname_and_description": "Nickname and description",
-		"template_what_nickname_do_you_want": "What nickname do you want to use in the Rakontu?",
-		"template_what_nickname_for_offline_member": "What nickname do you want to use to represent this off-line member in the Rakontu?",
+		"template_your_nickname_is": "Your nickname is",
+		"template_offline_members_nickname_is": "This member's nickname is",
 		"template_describe_yourself": "Please describe yourself to other members.",
 		"template_describe_offline_member": "Please describe this off-line member to other members.",
+		# visit/nickname
+		"template_change_nickname": "Change nickname",
+		"template_what_nickname_do_you_want": "What nickname would you like to use in the Rakontu?",
+		"template_what_nickname_for_offline_member": "What nickname do you want to use to represent this off-line member in the Rakontu?",
+		"template_nickname_taken": "That nickname is already being used by someone in the Rakontu. Please choose another.",
+		"template_nickname_chosen_is": "The nickname you have chosen is",
+		"template_nickname_chosen_for_offline_member_is": "The nickname you have chosen for this member is",
+		"template_confirm_nickname": "Please confirm that you want to use this nickname. (This will effect the appearance of all of your contributions, in the past as well as the future.)",
+		"template_cancel_changing_nickname": "Cancel and return to profile page",
+		# visit/preferences
 		"template_do_you_want_messages": "Do you want other Rakontu members to be able to send you messages via email?",
 		"template_guides_must_accept_messages": "Since you are a guide you have to accept messages so you can answer questions.",
 		"template_offline_member_accept_messages": "Do you want other Rakontu members to be able to send this member messages via email? (You, as the member's liaison, will get the messages.)",
@@ -855,6 +868,7 @@ TEMPLATE_TERMS = {
 		"template_rakontu_created_on": "This Rakontu was created on",
 		"template_inline_image_display_choice": "Do you want to see attached images on the same page as the entries they are attached to?",
 		# visit/rakontu
+		"template_rakontu_created_on": "This Rakontu was created on",
 		"template_make_changes_to_settings": "Make changes to Rakontu-level settings",
 		"template_make_changes_to_characters": "Make changes to characters",
 		"template_nudge_categories": "Nudge categories",
@@ -962,6 +976,7 @@ TEMPLATE_BUTTONS = {
 		"button_mark_as_not_completed": "Mark as not completed",
 		"button_save_new_relations": "Save new relations",
 		"button_load_version": "Recall",
+		"button_enter_new_nickname": "Enter New Nickname",
 		}
 
 # ============================================================================================ 
@@ -1004,12 +1019,14 @@ TEMPLATE_MENUS = {
 		# manage
 		"menu_manage": "Manage",
 		"menu_members": "Members",
+		"menu_appearance": "Appearance",
 		"menu_settings": "Settings",
 		"menu_questions": "Questions",
 		"menu_characters": "Characters",
 		"menu_export": "Export",
 		# review
 		"menu_my_stuff": "My stuff",
+		"menu_profile": "Profile",
 		"menu_preferences": "Preferences",
 		"menu_filters": "Filters",
 		"menu_drafts": "Drafts",
@@ -1174,6 +1191,7 @@ TITLES = {
         "BATCH_ENTRY": "Batch entry",
         "WELCOME": "Welcome",
         "MANAGE_MEMBERS": "Manage members" ,
+        "MANAGE_APPEARANCE": "Manage appearance",
         "MANAGE_SETTINGS": "Manage settings" ,
         "MANAGE_QUESTIONS": "Manage questions" ,
         "MANAGE_QUESTIONS_ABOUT": "Manage questions about", # thing referred to
@@ -1189,6 +1207,8 @@ TITLES = {
         "GUIDE": "Guide", # member nickname
         "CHARACTER": "Character", # character name
         "PREFERENCES_FOR": "Preferences for", # member nickname
+        "PROFILE_FOR": "Profile for", # member nickname
+        "CHANGE_NICKNAME_FOR": "Change nickname for", # member nickname
         "DRAFTS_FOR": "Drafts for", # member nickname
         "LEAVE_RAKONTU": "Leave" ,
         "SEARCH_FILTER": "Search filter",
@@ -1230,6 +1250,7 @@ URLS = {
     "url_read_annotation": "readAnnotation",
     "url_preview_answers": "previewAnswers",
     "url_answers": "answers", 
+    "url_profile": "profile",
     "url_preferences": "preferences",
     "url_search_filter": "filter",
     "url_member": "member",
@@ -1237,6 +1258,7 @@ URLS = {
     "url_rakontu": "rakontu",
     "url_leave": "leave",
     "url_filters": "filters",
+    "url_nickname": "nickname",
 	# link creating 
     "url_retell": "retell",
     "url_remind": "remind",
@@ -1269,6 +1291,7 @@ URLS = {
     "url_questions_to_csv": "questionsToCSV",
     "url_characters": "characters",
     "url_character": "character",
+    "url_appearance": "appearance",
     "url_settings": "settings",
     "url_export_search": "exportSearch",
     "url_inactivate": "inactivate",
@@ -1341,5 +1364,6 @@ URL_OPTIONS = {
 	"url_query_help": "help",
 	"url_query_help_type": "type",
 	"url_query_bookmark": "bookmark",
+	"url_query_name_taken": "name_taken",
 	}
 

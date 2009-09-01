@@ -33,7 +33,9 @@ application = webapp.WSGIApplication(
 									  
 									  # membership
 									  (BuildURL("dir_visit", "url_new"), NewMemberPage),
-									  (BuildURL("dir_visit", "url_preferences"), ChangeMemberProfilePage),
+									  (BuildURL("dir_visit", "url_profile"), ChangeMemberProfilePage),
+									  (BuildURL("dir_visit", "url_nickname"), ChangeMemberNicknamePage),
+									  (BuildURL("dir_visit", "url_preferences"), ChangeMemberPreferencesPage),
 									  (BuildURL("dir_visit", "url_drafts"), ChangeMemberDraftsPage),
 									  (BuildURL("dir_visit", "url_filters"), ChangeMemberFiltersPage),
 									  (BuildURL("dir_visit", "url_leave"), LeaveRakontuPage),
@@ -104,6 +106,7 @@ application = webapp.WSGIApplication(
 									  (BuildURL("dir_manage"), ManageRakontuSettingsPage),
 									  (BuildURL("dir_manage", extraSlash=True), ManageRakontuSettingsPage),
 									  (BuildURL("dir_manage", "url_members"), ManageRakontuMembersPage),
+									  (BuildURL("dir_manage", "url_appearance"), ManageRakontuAppearancePage),
 									  (BuildURL("dir_manage", "url_settings"), ManageRakontuSettingsPage),
 									  (BuildURL("dir_manage", "url_questions_list"), ManageRakontuQuestionsListPage),
 									  # these are special and you can't use BuildURL for them

@@ -2211,6 +2211,21 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		result.sort(lambda a,b: cmp(b.published, a.published))
 		return result
 	
+	def browseItems(self, annotationTypes):
+		result = []
+		annotations = Annotation.all().filter("entry = ", self.key()).filter("draft = ", False).\
+			filter("type IN ", annotationTypes).fetch(FETCH_NUMBER)
+		result.extend(annotations)
+		if "answer" in annotationTypes:
+			answers = Answer.all().filter("referent = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+			result.extend(answers)
+		if "link" in annotationTypes:
+			linksTo = Link.all().filter("itemTo = ", self.key()).fetch(FETCH_NUMBER)
+			result.extend(linksTo)
+			linksFrom = Link.all().filter("itemFrom = ", self.key()).fetch(FETCH_NUMBER)
+			result.extend(linksFrom)
+		return result
+	
 	def getAnnotations(self):
 		return Annotation.all().filter("entry =", self.key()).fetch(FETCH_NUMBER)
 	

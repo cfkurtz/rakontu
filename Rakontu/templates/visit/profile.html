@@ -7,16 +7,23 @@
 	<div id="content">
 	
 		<div id="stylized" class="rakontu_form">
-		<form action="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_visit}}/{{url_profile}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
-		<h3>{{template_appearance}}</h3>
+		{% if member.isOnlineMember %}
+			<h3>{{template_your_profile}}</h3>
+		{% else %}
+			<h3>{{template_offline_member_profile}}</h3>
+		{% endif %}
 		<fieldset>
 		{% if member.isOnlineMember %}
-			<p>{{template_what_nickname_do_you_want}} {{"changing_nicknames"|caution}}</p>
+			<p>{{template_your_nickname_is}} <b>{{member.nickname}}</b> -
+			<a href="/{{dir_visit}}/{{url_nickname}}?{{rakontu.urlQuery}}">{{template_change}}</a>
+			{{"changing_nicknames"|caution}}</p>
 		{% else %}
-			<p>{{template_what_nickname_for_offline_member}} {{"changing_offline_member_nicknames"|caution}} </p>
+			<p>{{template_offline_members_nickname_is}} <b>{{member.nickname}}</b> -
+			<a href="/{{dir_visit}}/{{url_nickname}}?{{member.urlQuery}}">{{template_change}}</a>
+			{{"changing_offline_member_nicknames"|caution}} </p>
 		{% endif %}
-		<input type="text" name="nickname" value="{{member.nickname}}" maxlength="{{maxlength_name}}"/>
 		
 		{% if member.isOnlineMember %}
 			<p>{{template_describe_yourself}}</p>
@@ -64,164 +71,12 @@
 				{% endif %}</td>
 		</tr>
 		</table>
-		
-		{% if member.isOnlineMember %}
-			<p>{{template_do_you_want_messages}}
-			{% if member.isGuide %}
-				<i>({{template_guides_must_accept_messages}})</i>
-			{% endif %}
-			{{"getting_messages"|tip}} </p>
-		{% else %}
-			<p>{{template_offline_member_accept_messages}}</p>
-		{% endif %}
-		{% if not member.isOnlineMember %}
-			<p><input type="checkbox" name="acceptsMessages" value="yes" id="acceptsMessages"
-				{% if member.acceptsMessages %}
-					checked
-				{% endif %}
-			<label for="acceptsMessages">{{template_yes_people_can_send_messages_through_me}}</label></p>
-		{% else %}
-			{% if member.isGuide %}
-				<p><input type="checkbox" name="guideAlwaysAcceptsMessages" value="yes" id="guideAlwaysAcceptsMessages"
-					checked disabled>
-				<label for="guideAlwaysAcceptsMessages">{{template_yes_people_can_send_me_messages}}</label></p>
-			{% else %}
-				<p><input type="checkbox" name="acceptsMessages" value="yes" id="acceptsMessages"
-					{% if member.acceptsMessages %}
-						checked
-					{% endif %}
-					><label for="acceptsMessages">{{template_yes_people_can_send_me_messages}}</label></p>
-			{% endif %}
-		{% endif %}
 		</fieldset>
-    	<center><input type="submit" name="changeSettings|{{member.key}}" value="{{button_save_changes}}" class="button"></center>
 		
-		{% if member.isOnlineMember %}
-			{% if member.canTakeOnAnyHelpingRole %}
-				<h3>{{template_helping_roles}}</h3>
-				<fieldset>
-				{% for i in 3|makeRange %}
-					{% if member.helpingRolesAvailable|listLookup:i %}
-						<p><input type="checkbox" name="helpingRole{{i}}" value="helpingRole{{i}}" id="helpingRole{{i}}"
-							{% if member.helpingRoles|listLookup:i %}
-								checked="checked"
-							{% endif %}
-							/><label for="helpingRole{{i}}">{{template_i_am_a}} {{helping_role_names|listLookup:i}}</label></p>
-						{% if rakontu.roleReadmes_formatted|listLookup:i %}
-							<div class="indented">{{rakontu.roleReadmes_formatted|listLookup:i}}</div>
-						{% endif %}
-						{% ifequal i 1 %}
-							<table style="width:90%; border:none; margin-left:20px;">
-							<tr><td align="left" style="border:none; padding-left:6px;">{{template_guide_intro_question}}</td></tr>
-							<tr><td class="noborder">
-							<textarea name="guideIntro" rows="3" cols="60">{{member.guideIntro|orNothing}}</textarea>
-							</td><td class="noborder" width="80">
-							<p>{{template_interpret_as}}</p>
-								<select name="guideIntro_format">
-								{% for i in text_formats|makeRangeFromListLength %}
-									<option value="{{text_formats|listLookup:i}}" 
-										{% if text_formats|listLookup:i|equalTest:member.guideIntro_format %}
-											selected="selected"
-										{% endif %}
-									>{{text_formats_display|listLookup:i}}</option>
-								{% endfor %}
-								</select>
-							</td></tr></table>
-						{% endifequal %}
-						{% ifequal i 2 %}
-							{% if member.isLiaison %}
-								{% if my_offline_members %}
-									<p>&nbsp; &nbsp; &nbsp; <i>{{template_offline_members}}</i></p>
-									<ul>
-									{% for aMember in my_offline_members %}
-										<li class="nobullet">{{aMember.linkString}}</li>
-									{% endfor %}
-									</ul>
-								{% else %}
-									<p>&nbsp; &nbsp; &nbsp; <i>{{template_you_have_no_offline_members}}</i></p>
-								{% endif %}
-							{% endif %}
-						{% endifequal %}
-					{% endif %}
-				{% endfor %}
-				</fieldset>
-    			<center><input type="submit" name="changeSettings|{{member.key}}" value="{{button_save_changes}}" class="button"></center>
-			{% endif %}
-		{% endif %}
-		
- 		{% if questions %}
+  		{% if questions %}
 			{% include "../common_questions.html" %}
-    		<center><input type="submit" name="changeSettings|{{member.key}}" value="{{button_save_changes}}" class="button"></center>
 		{% endif %}
 
- 		<h3>{{template_other_options}}</h3>
-		<fieldset>
-		{% if member.isOnlineMember %}
-			<p>{{template_choose_member_default_text_format}}
-			<select name="preferredTextFormat">
-				{% for format in text_formats %}
-					<option value="{{format}}"
-					{% ifequal member.preferredTextFormat format %}
-						selected="selected"
-					{% endifequal %}
-					>{{format}}</option>
-				{% endfor %}
-			</select></p>
-		{% endif %}
-		<p>{{template_time_zone_choice}}
-			<select name="timeZoneName"">
-			{% for name in time_zone_names %}
-				<option value="{{name}}"
-				{% ifequal member.timeZoneName name %}
-					selected="selected"
-				{% endifequal %}
-				>{{name}}</option>
-			{% endfor %}
-			</select></p>
-		<p>{{template_date_display_choice}}
-			<select name="dateFormat">
-			{% for format in date_formats.keys %}
-				<option value="{{format}}"
-				{% ifequal member.dateFormat format %}
-					selected="selected"
-				{% endifequal %}
-				>{{date_formats|dictLookup:format}}</option>
-			{% endfor %}
-			</select></p>
-		<p>{{template_time_display_choice}}
-			<select name="timeFormat">
-			{% for format in time_formats.keys %}
-				<option value="{{format}}"
-				{% ifequal member.timeFormat format %}
-					selected="selected"
-				{% endifequal %}
-				>{{time_formats|dictLookup:format}}</option>
-			{% endfor %}
-			</select></p>
-		{% if member.isOnlineMember %}
-			<p>{{template_inline_image_display_choice}}
-			<select name="showAttachedImagesInline">
-				<option value="yes"
-				{% if member.showAttachedImagesInline %}
-					selected="selected"
-				{% endif %}
-				>{{template_yes}}</option>
-				<option value="no"
-				{% if not member.showAttachedImagesInline %}
-					selected="selected"
-				{% endif %}
-				>{{template_no}}</option>
-			</select></p>
-		{% endif %}
-		{% if member.isOnlineMember %}
-			{% if show_leave_link %}
-				<div class="rightalign"><a href="/{{dir_visit}}/{{url_leave}}?{{url_query_member}}={{member.getKeyName}}">{{template_leave_rakontu}}</a></div>
-			{% endif %}
-		{% endif %}
-		</fieldset>
-			
-		
-		
       	<p>
     <center><input type="submit" name="changeSettings|{{member.key}}" value="{{button_save_changes}}" class="button"></center>
 	</form>	

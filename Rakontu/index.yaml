@@ -95,6 +95,12 @@ indexes:
   - name: type
   - name: published
 
+- kind: Annotation
+  properties:
+  - name: entry
+  - name: draft
+  - name: type
+  
 - kind: Answer
   properties:
   - name: creator
@@ -113,6 +119,11 @@ indexes:
   - name: liaison
   - name: draft
   - name: published
+ 
+- kind: Answer
+  properties:
+  - name: referent
+  - name: draft
  
 - kind: Attachment
   properties:

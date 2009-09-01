@@ -913,10 +913,6 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 							   'answers': memberToEdit.getAnswers(),
 							   'refer_type': "member",
 							   'refer_type_display': DisplayTypeForQuestionReferType("member"),
-							   'show_leave_link': not rakontu.memberIsOnlyOwner(member),
-							   'search_locations': SEARCH_LOCATIONS,
-							   'search_locations_display': SEARCH_LOCATIONS_DISPLAY,
-							   'my_offline_members': rakontu.getActiveOfflineMembersForLiaison(member),
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/profile.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -944,13 +940,6 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 					memberToEdit = offlineMember
 				else:
 					memberToEdit = member
-				nicknameTheyWantToUse = htmlEscape(self.request.get("nickname")).strip()
-				memberUsingNickname = rakontu.memberWithNickname(nicknameTheyWantToUse)
-				if memberUsingNickname and memberUsingNickname.key() != memberToEdit.key():
-					self.redirect(BuildResultURL("nicknameAlreadyInUse", rakontu=rakontu))
-					return
-				memberToEdit.nickname = nicknameTheyWantToUse
-				memberToEdit.acceptsMessages = self.request.get("acceptsMessages") == "yes"
 				text = self.request.get("profileText")
 				format = self.request.get("profileText_format").strip()
 				memberToEdit.profileText = text
@@ -960,25 +949,6 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 					memberToEdit.profileImage = None
 				elif self.request.get("img"):
 					memberToEdit.profileImage = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
-				memberToEdit.timeZoneName = self.request.get("timeZoneName")
-				memberToEdit.dateFormat = self.request.get("dateFormat")
-				memberToEdit.timeFormat = self.request.get("timeFormat")
-				if memberToEdit.isOnlineMember:
-					wasLiaison = memberToEdit.isLiaison()
-					for i in range(3):
-						memberToEdit.helpingRoles[i] = self.request.get("helpingRole%s" % i) == "helpingRole%s" % i
-					if not memberToEdit.isLiaison() and wasLiaison:
-						offlineMembers = rakontu.getActiveOfflineMembersForLiaison(memberToEdit)
-						if len(offlineMembers):
-							self.redirect(BuildResultURL("cannotGiveUpLiaisonWithMembers", rakontu=rakontu))
-							return
-					text = self.request.get("guideIntro")
-					format = self.request.get("guideIntro_format").strip()
-					memberToEdit.guideIntro = text
-					memberToEdit.guideIntro_formatted = db.Text(InterpretEnteredText(text, format))
-					memberToEdit.guideIntro_format = format
-					memberToEdit.preferredTextFormat = self.request.get("preferredTextFormat")
-					memberToEdit.showAttachedImagesInline = self.request.get("showAttachedImagesInline") == "yes"
 				memberToEdit.put()
 				questions = rakontu.getActiveQuestionsOfType("member")
 				for question in questions:
@@ -1028,6 +998,151 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 					self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
 				else:
 					self.redirect(BuildURL("dir_visit", "url_member", memberToEdit.urlQuery()))
+			else:
+				self.redirect(rakontu.linkURL())
+		else:
+			self.redirect(START)
+			
+class ChangeMemberPreferencesPage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
+			offlineMember = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
+			if offlineMember:
+				memberToEdit = offlineMember
+			else:
+				memberToEdit = member
+			template_values = GetStandardTemplateDictionaryAndAddMore({
+							   'title': TITLES["PROFILE_FOR"], 
+						   	   'title_extra': memberToEdit.nickname, 
+							   'rakontu': rakontu, 
+							   'skin': rakontu.getSkinDictionary(),
+							   'member': memberToEdit,
+							   'current_member': member,
+							   'show_leave_link': not rakontu.memberIsOnlyOwner(member),
+							   'my_offline_members': rakontu.getActiveOfflineMembersForLiaison(member),
+							   })
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/preferences.html'))
+			self.response.out.write(template.render(path, template_values))
+		else:
+			self.redirect(START)
+							 
+	@RequireLogin  
+	def post(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			goAhead = True
+			offlineMember = None
+			for argument in self.request.arguments():
+				if argument.find("|") >= 0:
+					for aMember in rakontu.getActiveOfflineMembers():
+						if argument == "changeSettings|%s" % aMember.key():
+							try:
+								offlineMember = aMember
+							except: 
+								offlineMember = None
+								goAhead = False
+							break
+			if goAhead:
+				if offlineMember:
+					memberToEdit = offlineMember
+				else:
+					memberToEdit = member
+				memberToEdit.acceptsMessages = self.request.get("acceptsMessages") == "yes"
+				memberToEdit.timeZoneName = self.request.get("timeZoneName")
+				memberToEdit.dateFormat = self.request.get("dateFormat")
+				memberToEdit.timeFormat = self.request.get("timeFormat")
+				if memberToEdit.isOnlineMember:
+					wasLiaison = memberToEdit.isLiaison()
+					for i in range(3):
+						memberToEdit.helpingRoles[i] = self.request.get("helpingRole%s" % i) == "helpingRole%s" % i
+					if not memberToEdit.isLiaison() and wasLiaison:
+						offlineMembers = rakontu.getActiveOfflineMembersForLiaison(memberToEdit)
+						if len(offlineMembers):
+							self.redirect(BuildResultURL("cannotGiveUpLiaisonWithMembers", rakontu=rakontu))
+							return
+					text = self.request.get("guideIntro")
+					format = self.request.get("guideIntro_format").strip()
+					memberToEdit.guideIntro = text
+					memberToEdit.guideIntro_formatted = db.Text(InterpretEnteredText(text, format))
+					memberToEdit.guideIntro_format = format
+					memberToEdit.preferredTextFormat = self.request.get("preferredTextFormat")
+					memberToEdit.showAttachedImagesInline = self.request.get("showAttachedImagesInline") == "yes"
+				memberToEdit.put()
+				if offlineMember:
+					self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
+				else:
+					self.redirect(BuildURL("dir_visit", "url_member", memberToEdit.urlQuery()))
+			else:
+				self.redirect(rakontu.linkURL())
+		else:
+			self.redirect(START)
+			
+class ChangeMemberNicknamePage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
+			offlineMember = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
+			if offlineMember:
+				memberToEdit = offlineMember
+			else:
+				memberToEdit = member
+			nameTaken = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_name_taken") == URL_OPTIONS["url_query_name_taken"]
+			try:
+				nickname = memcache.get("nickname:%s" % memberToEdit.key())
+			except:
+				nickname = memberToEdit.nickname
+			if not nickname:
+				nickname = memberToEdit.nickname
+			template_values = GetStandardTemplateDictionaryAndAddMore({
+							   'title': TITLES["CHANGE_NICKNAME_FOR"], 
+						   	   'title_extra': memberToEdit.nickname, 
+							   'rakontu': rakontu, 
+							   'skin': rakontu.getSkinDictionary(),
+							   'member': memberToEdit,
+							   'current_member': member,
+							   'name_taken': nameTaken,
+							   'nickname': nickname,
+							   })
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/nickname.html'))
+			self.response.out.write(template.render(path, template_values))
+		else:
+			self.redirect(START)
+							 
+	@RequireLogin  
+	def post(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			goAhead = True
+			offlineMember = None
+			for aMember in rakontu.getActiveOfflineMembers():
+				if "%s" % aMember.key() in self.request.arguments():
+					try:
+						offlineMember = aMember
+					except: 
+						offlineMember = None
+						goAhead = False
+					break
+			if goAhead:
+				if offlineMember:
+					memberToEdit = offlineMember
+				else:
+					memberToEdit = member
+				nickname = htmlEscape(self.request.get("nickname")).strip()
+				memberUsingNickname = rakontu.memberWithNickname(nickname)
+				if memberUsingNickname and memberUsingNickname.key() != memberToEdit.key():
+					memcache.add("nickname:%s" % memberToEdit.key(), nickname, HOUR_SECONDS)
+					query = "%s&%s=%s" % (memberToEdit.urlQuery(), URL_OPTIONS["url_query_name_taken"], URL_OPTIONS["url_query_name_taken"])
+					self.redirect(BuildURL("dir_visit", "url_nickname", query))
+				else:
+					memberToEdit.nickname = nickname
+					memberToEdit.put()
+					memcache.delete("nickname:%s" % memberToEdit.key())
+					self.redirect(BuildURL("dir_visit", "url_profile", memberToEdit.urlQuery()))
 			else:
 				self.redirect(rakontu.linkURL())
 		else:

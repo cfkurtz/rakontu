@@ -10,9 +10,6 @@ FLESHING OUT:
 
 finish help resources 
 
-must do a "check availability" on nickname thing
-cannot be on that page
-
 left to do with limits:
 	export
 	general testing of all affected areas - especially searching in member,character, and time range in member,char
@@ -31,6 +28,16 @@ i wish the rakontu image wouldn't light up when you hover over it - why does it 
 test approcket on server!
 
 too many default questions - should be no more than 5 per type
+
+appearance vs settings 
+
+memcache and entries for rakontu
+
+count things for member as they add up, non indexed
+
+whether they want to use their email in messages as reply to, or use alternative email
+
+change admin page to make fake data of number and type, not three types at once
 
 SCALING UP:
 

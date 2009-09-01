@@ -7,155 +7,7 @@
 		{% if current_member.isManagerOrOwner %}
 			<div id="stylized" class="rakontu_form">
 			<form action="/{{dir_manage}}/{{url_settings}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
-			<p>{{template_rakontu_created_on}} 
-			{{rakontu.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.</p>
-
-			<h3>{{template_appearance}}</h3>
-			<fieldset>
-			<p>{{template_name}} {{"rakontu_name"|tip}}</p>
-			<input type="text" name="name" value="{{ rakontu.name }}" size="30" maxlength="{{maxlength_name}}"/>
-			<p>{{template_tag_line}} {{"tag_line"|tip}}</p>
-			<input type="text" name="tagline" value="{{ rakontu.tagline }}" size="80" maxlength="{{maxlength_subject_or_comment}}"/>
-
-			<p>{{template_description}} {{"rakontu_description"|tip}}</p>
-				<table style="width:100%; border:none">
-				<tr><td class="noborder">
-				<textarea name="description" rows="8" cols="60">{{rakontu.description}}</textarea>
-				</td><td class="noborder" width="80">
-				<p>{{template_interpret_as}} {{"interpreting_texts"|tip}}</p>
-					<select name="description_format">
-					{% for i in text_formats|makeRangeFromListLength %}
-						<option value="{{text_formats|listLookup:i}}" 
-							{% if text_formats|listLookup:i|equalTest:rakontu.description_format %}
-								selected="selected"
-							{% endif %}
-						>{{text_formats_display|listLookup:i}}</option>
-					{% endfor %}
-					</select>
-				</td></tr></table>
-				
-			<p>{{template_welcome_message_for_new_members}} {{"welcome_message"|tip}}</p>
-				<table style="width:100%; border:none">
-				<tr><td class="noborder">
-				<textarea name="welcomeMessage" rows="8" cols="60">{{rakontu.welcomeMessage}}</textarea>
-				</td><td class="noborder" width="80">
-				<p>{{template_interpret_as}}</p>
-					<select name="welcomeMessage_format">
-					{% for i in text_formats|makeRangeFromListLength %}
-						<option value="{{text_formats|listLookup:i}}" 
-							{% if text_formats|listLookup:i|equalTest:rakontu.welcomeMessage_format %}
-								selected="selected"
-							{% endif %}
-						>{{text_formats_display|listLookup:i}}</option>
-					{% endfor %}
-					</select>
-				</td></tr></table>
-
-			<p>{{template_etiquette_statement}} {{"rakontu_etiquette_statement"|tip}}</p>
-				<table style="width:100%; border:none">
-				<tr><td class="noborder">
-				<textarea name="etiquetteStatement" rows="8" cols="60">{{rakontu.etiquetteStatement}}</textarea>
-				</td><td class="noborder" width="80">
-				<p>{{template_interpret_as}}</p>
-					<select name="etiquetteStatement_format">
-					{% for i in text_formats|makeRangeFromListLength %}
-						<option value="{{text_formats|listLookup:i}}" 
-							{% if text_formats|listLookup:i|equalTest:rakontu.etiquetteStatement_format %}
-								selected="selected"
-							{% endif %}
-						>{{text_formats_display|listLookup:i}}</option>
-					{% endfor %}
-					</select>
-				</td></tr></table>
-
-			<p>{{template_picture}} {{"rakontu_image"|tip}}</p>
-			{% if rakontu.image %}
-				{{rakontu.imageEmbed}}
-				<input type="checkbox" name="removeImage" value="removeImage" id="removeImage"><label for="removeImage">{{template_remove}}</label>
-			{% endif %}
-			<p><input type="file" name="img" accept="jpg/png"/></p>
 			
-			<p>{{template_skin}} {{"skins"|tip}}</p>
-			<p><select name="skinName">
-				{% for name in skin_names %}
-					<option value="{{name}}"
-					{% ifequal name rakontu.skinName %}
-						selected="selected">
-					{% else %}
-						>
-					{% endifequal %}
-					{{name}}</option>
-				{% endfor %}
-				<option value="{{template_custom}}"
-				{% ifequal rakontu.skinName template_custom %}
-					selected="selected">
-				{% else %}
-					>
-				{% endifequal %}
-				{{template_custom}}</option>
-				</select></p>
-			<p>{{template_custom_skin}} {{"custom_skins"|tip}}</p>
-				<textarea name="customSkin" rows="5" cols="60">{{rakontu.customSkin}}</textarea>
-			</fieldset>
-			
-			
-	    <p><center><input type="submit" name="changeSettings" value="{{button_save_changes}}" class="button"></center></p>
-			
-			<h3>{{template_halping_roles}}</h3>
-			<fieldset>
-			<p><b>{{template_curator}} {{template_read_before_text}} {{"role_read_before_texts"|info}}</b></p>
-				<table style="width:100%; border:none">
-				<tr><td class="noborder">
-				<textarea name="readme0" rows="5" cols="60">{{rakontu.roleReadmes.0}}</textarea>
-				</td><td class="noborder" width="80">
-				<p>{{template_interpret_as}}</p>
-					<select name="roleReadmes_formats0">
-					{% for i in text_formats|makeRangeFromListLength %}
-						<option value="{{text_formats|listLookup:i}}" 
-							{% if text_formats|listLookup:i|equalTest:rakontu.roleReadmes_formats.0 %}
-								selected="selected"
-							{% endif %}
-						>{{text_formats_display|listLookup:i}}</option>
-					{% endfor %}
-					</select>
-				</td></tr></table>
-			<p></p>
-			<p><b>{{template_guide}} {{template_read_before_text}} </b></p>
-				<table style="width:100%; border:none">
-				<tr><td class="noborder">
-				<textarea name="readme1" rows="5" cols="60">{{rakontu.roleReadmes.1}}</textarea>
-				</td><td class="noborder" width="80">
-				<p>{{template_interpret_as}}</p>
-					<select name="roleReadmes_formats1">
-					{% for i in text_formats|makeRangeFromListLength %}
-						<option value="{{text_formats|listLookup:i}}" 
-							{% if text_formats|listLookup:i|equalTest:rakontu.roleReadmes_formats.1 %}
-								selected="selected"
-							{% endif %}
-						>{{text_formats_display|listLookup:i}}</option>
-					{% endfor %}
-					</select>
-				</td></tr></table>
-			<p></p>
-			<p><b>{{template_liaison}} {{template_read_before_text}} </b></p>
-				<table style="width:100%; border:none">
-				<tr><td class="noborder">
-				<textarea name="readme2" rows="5" cols="60">{{rakontu.roleReadmes.2}}</textarea>
-				</td><td class="noborder" width="80">
-				<p>{{template_interpret_as}}</p>
-					<select name="roleReadmes_formats2">
-					{% for i in text_formats|makeRangeFromListLength %}
-						<option value="{{text_formats|listLookup:i}}" 
-							{% if text_formats|listLookup:i|equalTest:rakontu.roleReadmes_formats.2 %}
-								selected="selected"
-							{% endif %}
-						>{{text_formats_display|listLookup:i}}</option>
-					{% endfor %}
-					</select>
-				</td></tr></table>
-			</fieldset>
-	    <p><center><input type="submit" name="changeSettings" value="{{button_save_changes}}" class="button"></center></p>
-
 			<h3>{{template_things_members_can_do}}</h3>
 			<fieldset>
 			{% if site_allows_attachments %}
@@ -184,8 +36,10 @@
 				{% endif %}
 				>
 				<label for="allowNonManagerCuratorsToEditTags">{{template_yes_non_manager_curators_can_edit_tags}}</label>
+			{% if current_member.isOwner %}
+				<div class="rightalign"><a href="/{{dir_manage}}/{{url_inactivate}}?{{rakontu.urlQuery}}">{{template_inactivate}}</a> Rakontu</div>
+			{% endif %}
 			</fieldset>
-	    <p><center><input type="submit" name="changeSettings" value="{{button_save_changes}}" class="button"></center></p>
 			
 			<h3>{{template_nudge_system}}</h3>
 			<fieldset>
@@ -211,7 +65,6 @@
 			{% endfor %}
 			</table>
 	      	</fieldset>
-	    <p><center><input type="submit" name="changeSettings" value="{{button_save_changes}}" class="button"></center></p>
 	      	
 			<h3>{{template_activity_system}}</h3>
 			<fieldset>
@@ -224,47 +77,6 @@
 	      	</fieldset>
 	    <p><center><input type="submit" name="changeSettings" value="{{button_save_changes}}" class="button"></center></p>
 	      	
-			<h3>{{template_other_options}}</h3>
-			<fieldset>
-			<p>{{template_rakontu_outoing_email}} {{"rakontu_contact_email"|caution}}</p>
-			<input type="text" name="contactEmail" value="{{ rakontu.contactEmail }}" size="80" maxlength="{{maxlength_name}}"/>
-
-			<p>{{template_what_time_zone_should_members_see}}
-				<select name="defaultTimeZoneName"">
-				{% for name in time_zone_names %}
-					<option value="{{name}}"
-					{% ifequal rakontu.defaultTimeZoneName name %}
-						selected="selected"
-					{% endifequal %}
-					>{{name}}</option>
-				{% endfor %}
-				</select>
-			<p>{{template_how_should_dates_display}}
-				<select name="defaultDateFormat">
-				{% for format in date_formats.keys|sorted %}
-					<option value="{{format}}"
-					{% ifequal rakontu.defaultDateFormat format %}
-						selected="selected"
-					{% endifequal %}
-					>{{date_formats|dictLookup:format}}</option>
-				{% endfor %}
-				</select>
-			<p>{{template_how_should_times_display}}
-				<select name="defaultTimeFormat">
-				{% for format in time_formats.keys %}
-					<option value="{{format}}"
-					{% ifequal rakontu.defaultTimeFormat format %}
-						selected="selected"
-					{% endifequal %}
-					>{{time_formats|dictLookup:format}}</option>
-				{% endfor %}
-				</select>
-			{% if current_member.isOwner %}
-				<div class="rightalign"><a href="/{{dir_manage}}/{{url_inactivate}}?{{rakontu.urlQuery}}">{{template_inactivate}}</a> Rakontu</div>
-			{% endif %}
-			</fieldset>
-
-	    <p><center><input type="submit" name="changeSettings" value="{{button_save_changes}}" class="button"></center></p>
 		</form>
 		</div>
 	{% else %}

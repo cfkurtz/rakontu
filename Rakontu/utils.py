@@ -6,8 +6,8 @@
 # Google Code Project: http://code.google.com/p/rakontu/
 # -------------------------------------------------------------------------- -------- ----------
        
-import os    
-import string          
+import os     
+import string             
 import cgi        
 import htmllib          
        
@@ -19,6 +19,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app   
 from google.appengine.api import images 
 from google.appengine.api import mail
+from google.appengine.api import memcache
   
 webapp.template.register_template_library('djangoTemplateExtras')
 import csv 
@@ -254,15 +255,15 @@ def GetKeyFromQueryString(queryString, keyname):
 		nameAndKey = queryString.split("=")
 		if len(nameAndKey) > 1:
 			return nameAndKey[1]
-		else:
-			return None
-	else: 
+		else:  
+			return None 
+	else:  
 		return None
  
 def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, memberToSee=None, character=None):
 	viewOptions = member.getViewOptionsForLocation(location)
 	startTime = viewOptions.getStartTime()
-	endTime = viewOptions.endTime
+	endTime = viewOptions.endTime 
 	entryTypeBooleans = viewOptions.entryTypes
 	entryTypes = []
 	for i in range(len(ENTRY_TYPES)):
@@ -278,7 +279,7 @@ def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, m
 		considerNudgeFloor = True
 		considerSearch = True
 	elif location == "entry":
-		itemsToStart = entry.getNonDraftAnnotationsAnswersAndLinksSortedInReverseTimeOrder()
+		itemsToStart = entry.browseItems(annotationTypes)
 		considerNudgeFloor = False
 		considerSearch = False
 	elif location == "member":

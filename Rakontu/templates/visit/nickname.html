@@ -1,0 +1,38 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+	
+	
+	<div id="content">
+	
+		<div id="stylized" class="rakontu_form">
+		<form action="/{{dir_visit}}/{{url_nickname}}?
+		{% if member.isOnlineMember %}
+			{{rakontu.urlQuery}}
+		{% else %}
+			{{member.urlQuery}}
+		{% endif %}
+		" method="post"> 
+		
+			<h3>{{template_change_nickname}}</h3>
+			<fieldset>
+			{% if member.isOnlineMember %}
+				<p>{{template_what_nickname_do_you_want}}</p>
+			{% else %}
+				<p>{{template_what_nickname_for_offline_member}} </p>
+			{% endif %}
+			<input type="text" name="nickname" value="{{nickname}}" size="20" maxlength="{{maxlength_tag_or_choice}}"/>
+			{% if name_taken %}
+				<p><font color="red">{{template_nickname_taken}}</font></p>
+			{% endif %}
+			</fieldset>
+			<p><center><input type="submit" name="{{member.key}}" value="{{button_enter_new_nickname}}" class="button"></center></p>
+		</form>
+		</div>
+		<p><center><a href="/{{dir_visit}}/{{url_profile}}?{{member.urlQuery}}">{{template_cancel_changing_nickname}}</a></center></p>
+
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>
