@@ -77,12 +77,12 @@
 				{% if member.acceptsMessages %}
 					checked
 				{% endif %}
-			<label for="acceptsMessages">{{template_yes_people_can_send_messages_through_me}}</label></p>
+			><label for="acceptsMessages">{{template_yes_people_can_send_messages_through_me}}</label></p>
 		{% else %}
 			{% if member.isGuide %}
 				<p><input type="checkbox" name="guideAlwaysAcceptsMessages" value="yes" id="guideAlwaysAcceptsMessages"
 					checked disabled>
-				<label for="guideAlwaysAcceptsMessages">{{template_yes_people_can_send_me_messages}}</label></p>
+				><label for="guideAlwaysAcceptsMessages">{{template_yes_people_can_send_me_messages}}</label></p>
 			{% else %}
 				<p><input type="checkbox" name="acceptsMessages" value="yes" id="acceptsMessages"
 					{% if member.acceptsMessages %}
@@ -90,7 +90,10 @@
 					{% endif %}
 					><label for="acceptsMessages">{{template_yes_people_can_send_me_messages}}</label></p>
 			{% endif %}
+			<p>{{template_email_for_reply_to_in_messages}} {{"reply_to_email"|tip}} </p>
+			<p><input type="text" name="messageReplyToEmail" value="{{member.messageReplyToEmail}}" size="20" maxlength="{{maxlength_tag_or_choice}}"/></p>
 		{% endif %}
+		
 		</fieldset>
 		
  		<h3>{{template_other_options}}</h3>

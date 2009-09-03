@@ -27,6 +27,7 @@ application = webapp.WSGIApplication(
 									  
 									  # looking at people
 									  (BuildURL("dir_visit", "url_members"), SeeRakontuMembersPage),
+									  (BuildURL("dir_visit", "url_message"), SendMessagePage),
 									  (BuildURL("dir_visit", "url_member"), SeeMemberPage),
 									  (BuildURL("dir_visit", "url_character"), SeeCharacterPage),
 									  (BuildURL("dir_visit", "url_rakontu"), SeeRakontuPage),

@@ -75,6 +75,10 @@ DEFAULT_CONTACT_EMAIL = "support@rakontu.org"
 # Giving people something to start with is encouraging.
 DEFAULT_START_NUDGE_POINTS = 50
 
+# This is the size to which uploaded thumbnail pictures are resized, for the rakontu and for member/character images.
+THUMBNAIL_WIDTH = 100
+THUMBNAIL_HEIGHT = 60
+
 # ============================================================================================ 
 # BROWSING
 # ============================================================================================ 
@@ -88,6 +92,7 @@ if DEVELOPMENT:
 	TIME_FRAMES = [
 				 (TIMEFRAME_10MINUTES, MINUTE_SECONDS * 10),
 				 (TIMEFRAME_HOUR, HOUR_SECONDS),
+				 (TIMEFRAME_6HOURS, HOUR_SECONDS * 6),
 				 (TIMEFRAME_12HOURS, HOUR_SECONDS * 12),
 				 (TIMEFRAME_DAY, DAY_SECONDS),
 				 (TIMEFRAME_3DAYS, DAY_SECONDS * 3),
@@ -97,12 +102,21 @@ if DEVELOPMENT:
 				 ]
 else:
 	TIME_FRAMES = [
+				 (TIMEFRAME_HOUR, HOUR_SECONDS),
+				 (TIMEFRAME_6HOURS, HOUR_SECONDS * 6),
+				 (TIMEFRAME_12HOURS, HOUR_SECONDS * 12),
 				 (TIMEFRAME_DAY, DAY_SECONDS),
 				 (TIMEFRAME_3DAYS, DAY_SECONDS * 3),
 				 (TIMEFRAME_WEEK, WEEK_SECONDS),
 				 (TIMEFRAME_2WEEKS, WEEK_SECONDS * 2),
 				 (TIMEFRAME_MONTH, MONTH_SECONDS),
 				 ]
+	
+# These are choices for how long the site should display cached state information before updating it.
+# The more activity on the site, the shorter the cache time should be (but the slower the response).
+# Text choices for these are in the lanugage_config.py file and MUST match these exactly.
+SAVE_STATE_MINUTES_CHOICES = [0, 1, 5, 10, 15, 20, 30, 45, 60, 60*2, 60*6, 60*12, 60*24]
+DEFAULT_SAVE_STATE_MINUTES = 15
 
 # This is how much of a text is shown when the "Show details" setting is in place,
 # on both the main screen and the per-entry screen.

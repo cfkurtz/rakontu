@@ -37,9 +37,6 @@
 			img.bordered {
 				border: 1px solid #{{skin|dictLookup:"color_border_image"}};
 				}
-			img.bordered:hover {
-				border: 1px solid #{{skin|dictLookup:"color_border_image"}};
-				}
 			table {
 				border: 1px solid #{{skin|dictLookup:"color_border_normal"}};
 				}
@@ -54,10 +51,12 @@
 				}
 			th {
 				background: #{{skin|dictLookup:"color_background_table_header"}};
+				color: #{{skin|dictLookup:"color_text_table_header"}};
 				border: 1px solid #{{skin|dictLookup:"color_border_normal"}};
 				}
 			fieldset {
 				background: #{{skin|dictLookup:"color_background_entry"}}; 
+				color: #{{skin|dictLookup:"color_text_entry"}};
 				border: 1px solid #{{skin|dictLookup:"color_border_normal"}};
 				}
 			.blurb {
@@ -100,19 +99,28 @@
 				color: #{{skin|dictLookup:"color_text_label_hover"}};
 				}
 			#stylized select {
+				font-family: {{skin|dictLookup:"font_buttons"}};
 				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
+				background: #{{skin|dictLookup:"color_background_inputs"}}; 
+				color: #{{skin|dictLookup:"color_text_inputs"}};
 				}
 			#stylized select:hover{
 				border: solid 1px #{{skin|dictLookup:"color_border_input_hover"}};
 				}
 			#stylized input{
+				font-family: {{skin|dictLookup:"font_general"}};
 				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
+				background: #{{skin|dictLookup:"color_background_inputs"}}; 
+				color: #{{skin|dictLookup:"color_text_inputs"}};
 				}
 			#stylized input:hover{
 				border: solid 1px #{{skin|dictLookup:"color_border_input_hover"}};
 				}
 			#stylized textarea{
+				font-family: {{skin|dictLookup:"font_inputs"}};
 				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
+				background: #{{skin|dictLookup:"color_background_inputs"}}; 
+				color: #{{skin|dictLookup:"color_text_inputs"}};
 				}
 			#stylized textarea:hover{
 				border: solid 1px #{{skin|dictLookup:"color_border_input_hover"}};
@@ -127,7 +135,7 @@
   				font-family: {{skin|dictLookup:"font_buttons"}};
 				background: #{{skin|dictLookup:"color_background_button_hover"}};
 				border: solid 2px #{{skin|dictLookup:"color_border_normal"}};
-				color: #{{skin|dictLookup:"color_text_buttons"}};
+				color: #{{skin|dictLookup:"color_text_buttons_hover"}};
 				}
 			#stylized input.button_small{
   				font-family: {{skin|dictLookup:"font_buttons"}};
@@ -139,7 +147,7 @@
   				font-family: {{skin|dictLookup:"font_buttons"}};
 				background: #{{skin|dictLookup:"color_background_button_hover"}};
 				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
-				color: #{{skin|dictLookup:"color_text_buttons"}};
+				color: #{{skin|dictLookup:"color_text_buttons_hover"}};
 				}
 				
 			</style>

@@ -24,7 +24,7 @@ from google.appengine.api import memcache
 webapp.template.register_template_library('djangoTemplateExtras')
 import csv 
 import pytz
- 
+  
 # ============================================================================================
 # ============================================================================================
 # PREPARING INFO FOR TEMPLATES
@@ -35,13 +35,23 @@ def FindTemplate(template):
 	return "templates/%s" % template  
 	
 def RequireLogin(func):
-	def check_login(request): 
+	def check_login(request):  
 		if not users.get_current_user():  
 			loginURL = users.create_login_url("/") 
 			request.redirect(loginURL)
 			return
 		func(request)
 	return check_login 
+
+def getTimeZone(timeZoneName):
+	try:
+		timeZone = memcache.get("tz:%s" % timeZoneName)
+	except:
+		timeZone = None
+	if timeZone is None:
+		timeZone = timezone(timeZoneName)
+		memcache.add("tz:%s" % timeZoneName, timeZone, DAY_SECONDS)
+	return timeZone
 
 def GetCurrentRakontuAndMemberFromRequest(request):
 	rakontu = GetRakontuFromURLQuery(request.query_string)
@@ -249,7 +259,7 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	for key in newItems.keys():
 		items[key] = newItems[key]
 	return items
-
+ 
 def GetKeyFromQueryString(queryString, keyname):
 	if queryString:
 		nameAndKey = queryString.split("=")
@@ -260,7 +270,13 @@ def GetKeyFromQueryString(queryString, keyname):
 	else:  
 		return None
  
-def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, memberToSee=None, character=None):
+def ItemsMatchingViewOptionsForMemberAndLocation(member, location, refresh=False, entry=None, memberToSee=None, character=None):
+	if refresh:
+		howLongToSetMemCache = 0
+	else:
+		howLongToSetMemCache = member.rakontu.howLongToSetMemCache * MINUTE_SECONDS
+	howLongToSetMemCache = 0
+	rakontu = member.rakontu
 	viewOptions = member.getViewOptionsForLocation(location)
 	startTime = viewOptions.getStartTime()
 	endTime = viewOptions.endTime 
@@ -275,19 +291,67 @@ def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, m
 		if annotationTypeBooleans[i]:
 			annotationTypes.append(ANNOTATION_ANSWER_LINK_TYPES[i]) 
 	if location == "home":
-		itemsToStart = member.rakontu.browseEntries(startTime, endTime, entryTypes)
+		if howLongToSetMemCache == 0:
+			itemsToStart = member.rakontu.browseEntries(startTime, endTime, entryTypes)
+		else:
+			try:
+				entries = memcache.get("entries:%s" % rakontu.key())
+			except:
+				entries = None
+			if entries is None:
+				entries = member.rakontu.getNonDraftEntries()
+				memcache.add("entries:%s" % rakontu.key(), entries, howLongToSetMemCache)
+				itemsToStart = member.rakontu.selectEntriesFromList(entries, startTime, endTime, entryTypes)
+			else:
+				itemsToStart = member.rakontu.selectEntriesFromList(entries, startTime, endTime, entryTypes)
 		considerNudgeFloor = True
 		considerSearch = True
 	elif location == "entry":
-		itemsToStart = entry.browseItems(annotationTypes)
+		if howLongToSetMemCache == 0:
+			itemsToStart = entry.browseItems(annotationTypes)
+		else:
+			try:
+				items = memcache.get("entry_items:%s" % entry.key())
+			except:
+				items = None
+			if items is None:
+				items = entry.getNonDraftAnnotationsAnswersAndLinks() # assume never > 1000
+				memcache.add("entry_items:%s" % entry.key(), items, howLongToSetMemCache)
+				itemsToStart = entry.selectItemsFromList(items, annotationTypes)
+			else:
+				itemsToStart = entry.selectItemsFromList(items, annotationTypes)
 		considerNudgeFloor = False
 		considerSearch = False
 	elif location == "member":
-		itemsToStart = memberToSee.browseItems(startTime, endTime, entryTypes, annotationTypes)
+		if howLongToSetMemCache == 0:
+			itemsToStart = memberToSee.browseItems(startTime, endTime, entryTypes, annotationTypes)
+		else:
+			try:
+				items = memcache.get("member_items:%s" % member.key())
+			except:
+				items = None
+			if items is None:
+				items = member.getAllItemsAttributedToMember() # assume never > 1000 ??
+				memcache.add("member_items:%s" % member.key(), items, howLongToSetMemCache)
+				itemsToStart = member.selectItemsFromList(items, startTime, endTime, entryTypes, annotationTypes)
+			else:
+				itemsToStart = member.selectItemsFromList(items, startTime, endTime, entryTypes, annotationTypes)
 		considerNudgeFloor = False
 		considerSearch = True
 	elif location == "character":
-		itemsToStart = character.browseItems(startTime, endTime, entryTypes, annotationTypes)
+		if howLongToSetMemCache == 0:
+			itemsToStart = character.browseItems(startTime, endTime, entryTypes, annotationTypes)
+		else:
+			try:
+				items = memcache.get("character_items:%s" % character.key())
+			except:
+				items = None
+			if items is None:
+				items = character.getAllItemsAttributedToCharacter() # assume never > 1000 ??
+				memcache.add("character_items:%s" % character.key(), items, howLongToSetMemCache)
+				itemsToStart = character.selectItemsFromList(items, startTime, endTime, entryTypes, annotationTypes)
+			else:
+				itemsToStart = character.selectItemsFromList(items, startTime, endTime, entryTypes, annotationTypes)
 		considerNudgeFloor = False
 		considerSearch = True
 	# nudge floor
@@ -368,26 +432,26 @@ class ImageHandler(webapp.RequestHandler):
 		if memberKeyName:
 			member = Member.get_by_key_name(memberKeyName)
 			if member and member.profileImage:
-				self.response.headers['Content-Type'] = "image/jpg"
+				self.response.headers['Content-Type'] = "image/jpeg"
 				self.response.out.write(member.profileImage)
 			else:
 				self.error(404)
 		elif rakontuKeyName:
 			rakontu = Rakontu.get_by_key_name(rakontuKeyName)
 			if rakontu and rakontu.image:
-				self.response.headers['Content-Type'] = "image/jpg"
+				self.response.headers['Content-Type'] = "image/jpeg"
 				self.response.out.write(rakontu.image)
 			else:
 				self.error(404)
 		elif entryKeyName:
 			entry = Entry.get_by_key_name(entryKeyName)
 			if entry and entry.type == "pattern" and entry.screenshotIfPattern:
-				self.response.headers['Content-Type'] = "image/jpg"
+				self.response.headers['Content-Type'] = "image/jpeg"
 				self.response.out.write(entry.screenshotIfPattern)
 		elif characterKeyName:
 			character = Character.get_by_key_name(characterKeyName)
 			if character:
-				self.response.headers['Content-Type'] = "image/jpg"
+				self.response.headers['Content-Type'] = "image/jpeg"
 				self.response.out.write(character.image)
 		elif attachmentKeyName:
 			attachment = Attachment.get_by_key_name(attachmentKeyName)
@@ -402,10 +466,10 @@ class AttachmentHandler(webapp.RequestHandler):
 			attachment = Attachment.get_by_key_name(attachmentKeyName)
 			if attachment and attachment.data:
 				if attachment.mimeType in ["image/jpeg", "image/png", "text/html", "text/plain"]:
-					self.response.headers.add_header('Content-Disposition', 'filename="%s"' % attachment.fileName)
+					self.response.headers['Content-Disposition'] = 'filename="%s"' % attachment.fileName
 				else:
-					self.response.headers.add_header('Content-Disposition', 'attachment; filename="%s"' % attachment.fileName)
-				self.response.headers.add_header('Content-Type', attachment.mimeType)
+					self.response.headers['Content-Disposition'] ='attachment; filename="%s"' % attachment.fileName
+				self.response.headers['Content-Type'] = attachment.mimeType
 				self.response.out.write(attachment.data)
 			else:
 				self.error(404)
@@ -418,24 +482,24 @@ class ExportHandler(webapp.RequestHandler):
 		if csvKeyName:
 			export = Export.get_by_key_name(csvKeyName)
 			if export and export.data:
-				self.response.headers.add_header('Content-Disposition', 'export; filename="%s.%s"' % (TERMS["term_export"], "csv"))
-				self.response.headers.add_header('Content-Type', "text/csv")
+				self.response.headers['Content-Disposition'] ='export; filename="%s.%s"' % (TERMS["term_export"], "csv")
+				self.response.headers['Content-Type'] ="text/csv"
 				self.response.out.write(export.data)
 			else:
 				self.error(404)
 		elif txtKeyName:
 			export = Export.get_by_key_name(txtKeyName)
 			if export and export.data:
-				self.response.headers.add_header('Content-Disposition', 'export; filename="%s.%s"' % (TERMS["term_print"], "html"))
-				self.response.headers.add_header('Content-Type', "text/html")
+				self.response.headers['Content-Disposition'] = 'export; filename="%s.%s"' % (TERMS["term_print"], "html")
+				self.response.headers['Content-Type'] ="text/html"
 				self.response.out.write(export.data)
 			else:
 				self.error(404)
 		elif xmlKeyName:
 			export = Export.get_by_key_name(xmlKeyName)
 			if export and export.data:
-				self.response.headers.add_header('Content-Disposition', 'export; filename="%s.%s"' % (TERMS["term_export"], "xml"))
-				self.response.headers.add_header('Content-Type', "text/xml")
+				self.response.headers['Content-Disposition'] ='export; filename="%s.%s"' % (TERMS["term_export"], "xml")
+				self.response.headers['Content-Type'] ="text/xml"
 				self.response.out.write(export.data)
 			else:
 				self.error(404)
@@ -447,7 +511,7 @@ class ExportHandler(webapp.RequestHandler):
 # ============================================================================================
 
 def GenerateHelps():
-	db.delete(AllHelps())
+	db.delete(AllHelps()) 
 	helps = [] 
 	file = open(HELP_FILE_NAME)
 	try:
@@ -475,8 +539,17 @@ def GenerateSkins():
 					colIndex = 0
 					for cell in row[2:]: # 2 because 1 is explanation of element
 						textToUse = cell.strip()
+						if textToUse == "":
+							if key.find("color_text") >= 0:
+								textToUse = "000000"
+							elif key.find("_hover") >= 0: # put after text, so hover texts stay black
+								textToUse = "CCCCCC"
+							elif key.find("color_border") >= 0:
+								textToUse = "666666"
+							elif key.find("color_background") >= 0:
+								textToUse = "FFFFFF"
 						# this is because for numerical hex entries there needs to be quotes around it
-						if textToUse[0] == '"' and textToUse[-1] == '"': 
+						if textToUse and textToUse[0] == '"' and textToUse[-1] == '"': 
 							textToUse = textToUse[1:]
 							textToUse = textToUse[:-1]
 						setattr(skins[colIndex], key, textToUse)
@@ -728,7 +801,8 @@ def TimeFormatStrings():
 
 def RelativeTimeDisplayString(whenUTC, member):
 	if member and member.timeZoneName:
-		when = whenUTC.astimezone(timezone(member.timeZoneName))
+		timeZone = getTimeZone(member.timeZoneName)
+		when = whenUTC.astimezone(timeZone)
 		return "%s %s" % (stripZeroOffStart(when.strftime(DjangoToPythonTimeFormat(member.timeFormat))),
 						(when.strftime(DjangoToPythonDateFormat(member.dateFormat))))
 	else:

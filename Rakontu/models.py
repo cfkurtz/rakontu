@@ -143,6 +143,7 @@ class Rakontu(db.Model):
 	entryActivityPointsPerEvent = db.ListProperty(int, default=DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS, indexed=False)
 	allowCharacter = db.ListProperty(bool, default=DEFAULT_ALLOW_CHARACTERS, indexed=False)
 	allowNonManagerCuratorsToEditTags = db.BooleanProperty(default=False, indexed=False)
+	howLongToSetMemCache = db.IntegerProperty(default=DEFAULT_SAVE_STATE_MINUTES, indexed=False)
 	
 	# descriptive options
 	type = db.StringProperty(choices=RAKONTU_TYPES, default=RAKONTU_TYPES[-1], indexed=False) # only used to determine questions at front, but may be useful later so saving
@@ -259,6 +260,9 @@ class Rakontu(db.Model):
 	def getMemberForGoogleAccountId(self, id):
 		return Member.all().filter("rakontu = ", self.key()).filter("googleAccountID = ", id).fetch(1)
 		
+	def getMembers(self):
+		return Member.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
+	
 	def getActiveAndInactiveMembers(self):
 		return Member.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
 	
@@ -291,6 +295,9 @@ class Rakontu(db.Model):
 		
 	def numEntries(self):
 		return Entry.all().filter("rakontu = ", self.key()).count()
+	
+	def hasNonDraftEntries(self):
+		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).count() > 0
 	
 	def numAnnotations(self):
 		# this is only used in the admin pages - if 1000 will say could be more
@@ -372,6 +379,9 @@ class Rakontu(db.Model):
 	
 	# CHARACTERS
 	
+	def getCharacters(self):
+		return Character.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
+	
 	def getActiveCharacters(self):
 		return Character.all().filter("rakontu = ", self.key()).filter("active = ", True).fetch(FETCH_NUMBER)
 	
@@ -395,6 +405,13 @@ class Rakontu(db.Model):
 			filter("type IN ", entryTypes).\
 			filter("published >= ", minTime).filter("published < ", maxTime).\
 			fetch(FETCH_NUMBER)
+			
+	def selectEntriesFromList(self, entries, minTime, maxTime, entryTypes):
+		result = []
+		for entry in entries:
+			if entry.published and entry.published >= minTime and entry.published < maxTime and entry.type in entryTypes:
+				result.append(entry)
+		return result
 	
 	def getNonDraftEntriesOfType(self, type):
 		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(FETCH_NUMBER)
@@ -715,8 +732,12 @@ class Rakontu(db.Model):
 				for entry in entries:
 					entry.removeAllDependents()
 				db.delete(entries)
+		for member in self.getMembers():
+			member.removeAllDependents()
 		db.delete(Member.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
 		db.delete(PendingMember.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
+		for character in self.getCharacters():
+			character.removeAllDependents()
 		db.delete(Character.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
 		db.delete(Question.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
 		
@@ -790,7 +811,7 @@ class Rakontu(db.Model):
 		if type == "csv_export_search":
 			if member:
 				exportText += '"Export of viewed items for member "%s" in Rakontu %s"\n' % (member.nickname, self.name)
-				entries = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
+				entries = ItemsMatchingViewOptionsForMemberAndLocation(member, "home", refresh=True)
 				members = self.getActiveMembers()
 				characters = self.getActiveCharacters()
 				memberQuestions = self.getActiveQuestionsOfType("member")
@@ -868,23 +889,23 @@ class Rakontu(db.Model):
 			exportText += '<title>Printed from Rakontu</title></head><body>'
 			if subtype == "search":
 				exportText += "<h3>Printing selections from Rakontu %s</h3>" % self.name
-				entries = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
+				entries = ItemsMatchingViewOptionsForMemberAndLocation(member, "home", refresh=True)
 				for entry in entries:
 					exportText += entry.PrintText()
 			elif subtype == "entry":
 				exportText += "<h3>Printing selections for entry %s</h3>" % entry.name
-				items = ItemsMatchingViewOptionsForMemberAndLocation(member, "entry", entry=entry)
+				items = ItemsMatchingViewOptionsForMemberAndLocation(member, "entry", refresh=True, entry=entry)
 				items.insert(0, entry)
 				for item in items:
 					exportText += item.PrintText()
 			elif subtype == "member":
 				exportText += "<h3>Printing selections for member %s</h3>" % memberToSee.nickname
-				items = ItemsMatchingViewOptionsForMemberAndLocation(member, "member", memberToSee=memberToSee)
+				items = ItemsMatchingViewOptionsForMemberAndLocation(member, "member", refresh=True, memberToSee=memberToSee)
 				for item in items:
 					exportText += item.PrintText()
 			elif subtype == "character":
 				exportText += "<h3>Printing selections for character %s</h3>" % character.name
-				items = ItemsMatchingViewOptionsForMemberAndLocation(member, "character", character=character)
+				items = ItemsMatchingViewOptionsForMemberAndLocation(member, "character", refresh=True, character=character)
 				for item in items:
 					exportText += item.PrintText()
 			exportText += "</body></html>"
@@ -1011,6 +1032,7 @@ class Member(db.Model):
 	profileText_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	profileImage = db.BlobProperty(default=None) # optional, resized to 100x60
 	acceptsMessages = db.BooleanProperty(default=True, indexed=False) # other members can send emails to their google email (without seeing it)
+	messageReplyToEmail = db.StringProperty(default="", indexed=False)
 	preferredTextFormat = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
 	timeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE, indexed=False) # members choose these in their prefs page
@@ -1041,6 +1063,9 @@ class Member(db.Model):
 		# caller does put
 		
 	def createViewOptions(self):
+		viewOptionsNow = ViewOptions.all().filter("member = ", self.key()).fetch(8) # probably only 4, but could be more
+		if viewOptionsNow:
+			db.delete(viewOptionsNow)
 		newObjects = []
 		for location in VIEW_OPTION_LOCATIONS:
 			viewOptions = ViewOptions(member=self,location=location)
@@ -1052,6 +1077,11 @@ class Member(db.Model):
 		for option in newObjects:
 			self.viewOptions.append(option.key())
 		self.put()
+		
+	def removeAllDependents(self):
+		db.delete(ViewOptions.all().filter("member = ", self.key()).fetch(8) )
+		db.delete(Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER))
+		db.delete(SavedSearch.all().filter("creator =", self.key()).filter("private = ", True).fetch(FETCH_NUMBER))
 		
 	# INFO
 	
@@ -1137,6 +1167,8 @@ class Member(db.Model):
 	# BROWSING - VIEW OPTIONS - GET
 	
 	def getViewOptionsForLocation(self, location):
+		if not self.viewOptions:
+			self.createViewOptions()
 		if location == "home":
 			return ViewOptions.get(self.viewOptions[0])
 		elif location == "entry":
@@ -1314,6 +1346,24 @@ class Member(db.Model):
 			result.extend(links)
 		return result
 	
+	def selectItemsFromList(self, items, minTime, maxTime, entryTypes, annotationTypes):
+		result = []
+		for item in items:
+			if item.published and item.published >= minTime and item.published <= maxTime:
+				if item.__class__.__name__ == "Entry":
+					if item.type in entryTypes:
+						result.append(item)
+				elif item.__class__.__name__ == "Annotation":
+					if item.type in annotationTypes:
+						result.append(item)
+				elif item.__class__.__name__ == "Answer":
+					if "answer" in annotationTypes:
+						result.append(item)
+				elif item.__class__.__name__ == "Link":
+					if "link" in annotationTypes:
+						result.append(item)
+		return result
+	
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
 	
@@ -1475,6 +1525,13 @@ class ViewOptions(db.Model): # options on what to show - four per member (home, 
 				return aFrame
 		return None
 	
+	def setViewTimeFrameFromTimeFrameString(self, frame):
+		for aFrame, seconds in TIME_FRAMES:
+			if frame == aFrame:
+				self.timeFrameInSeconds = seconds
+				self.put()
+				break
+			
 # ============================================================================================
 # ============================================================================================
 class PendingMember(db.Model): # person invited to join rakontu but not yet logged in
@@ -1514,6 +1571,9 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 	lastAnsweredQuestion = db.DateTimeProperty(indexed=False)
 	counts = db.ListProperty(int, default=[0] * (len(ENTRY_TYPES) + len(ANNOTATION_ANSWER_LINK_TYPES)), indexed=False) 
 
+	def removeAllDependents(self):
+		db.delete(Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER))
+
 	def isMember(self):
 		return False
 	
@@ -1538,6 +1598,24 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 			answers = Answer.all().filter("character = ", self.key()).filter("draft = ", False).\
 				filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
 			result.extend(answers)
+		return result
+	
+	def selectItemsFromList(self, items, minTime, maxTime, entryTypes, annotationTypes):
+		result = []
+		for item in items:
+			if item.published and item.published >= minTime and item.published <= maxTime:
+				if item.__class__.__name__ == "Entry":
+					if item.type in entryTypes:
+						result.append(item)
+				elif item.__class__.__name__ == "Annotation":
+					if item.type in annotationTypes:
+						result.append(item)
+				elif item.__class__.__name__ == "Answer":
+					if "answer" in annotationTypes:
+						result.append(item)
+				elif item.__class__.__name__ == "Link":
+					if "link" in annotationTypes:
+						result.append(item)
 		return result
 	
 	# COUNTS
@@ -1835,16 +1913,7 @@ class Answer(db.Model):
 			self.creator.put()
 			self.rakontu.lastPublish = self.published
 			self.rakontu.put()
-			
-	def unPublish(self):
-		if self.referentType == "entry":
-			if self.character:
-				self.character.decrementCount("answer")
-				self.character.put()
-			else:
-				self.creator.decrementCount("answer")
-				self.creator.put()
-				
+							
 	# DISPLAY
 		
 	def getImageLinkForType(self):
@@ -2319,12 +2388,11 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	
 	# ANNOTATIONS, ANSWERS, LINKS
 	
-	def getNonDraftAnnotationsAnswersAndLinksSortedInReverseTimeOrder(self):
+	def getNonDraftAnnotationsAnswersAndLinks(self):
 		result = []
 		result.extend(self.getNonDraftAnnotations())
 		result.extend(self.getNonDraftAnswers())
 		result.extend(self.getAllLinks())
-		result.sort(lambda a,b: cmp(b.published, a.published))
 		return result
 	
 	def browseItems(self, annotationTypes):
@@ -2340,6 +2408,20 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 			result.extend(linksTo)
 			linksFrom = Link.all().filter("itemFrom = ", self.key()).fetch(FETCH_NUMBER)
 			result.extend(linksFrom)
+		return result
+	
+	def selectItemsFromList(self, items, annotationTypes):
+		result = []
+		for item in items:
+			if item.__class__.__name__ == "Annotation":
+				if item.type in annotationTypes:
+					result.append(item)
+			elif item.__class__.__name__ == "Answer":
+				if "answer" in annotationTypes:
+					result.append(item)
+			elif item.__class__.__name__ == "Link":
+				if "link" in annotationTypes:
+					result.append(item)
 		return result
 	
 	def getAnnotations(self):
@@ -2694,10 +2776,6 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 			self.itemFrom.rakontu.firstPublish = self.published
 		self.itemFrom.rakontu.put()
 		
-	def unPublish(self):
-		self.creator.decrementCount("link")
-		self.creator.put()
-
 	# MEMBERS
 		
 	def attributedToMember(self):
@@ -2855,14 +2933,6 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 		self.creator.put()
 		self.rakontu.lastPublish = self.published
 		self.rakontu.put()
-
-	def unPublish(self):
-		if self.character:
-			self.character.decrementCount(self.type)
-			self.character.put()
-		else:
-			self.creator.decrementCount(self.type)
-			self.creator.put()
 
 	# TYPE
 	
@@ -3036,44 +3106,56 @@ class Skin(db.Model):		 # style sets to change look of each Rakontu
 	font_menus = db.StringProperty(indexed=False)
 	font_buttons = db.StringProperty(indexed=False)
 	font_headers = db.StringProperty(indexed=False)
+	font_inputs = db.StringProperty(indexed=False)
 	
 	color_background_general = db.StringProperty(indexed=False) # on all pages
+	color_text_plain = db.StringProperty(indexed=False) # plain text - usually black
+	
+	color_background_link_hover = db.StringProperty(indexed=False) # light-up effect for links
+	color_text_link = db.StringProperty(indexed=False) # links in text
+	color_text_link_hover = db.StringProperty(indexed=False) # link light-up on hover (usually white, constrasts with background_link_hover)
+
 	color_background_excerpt = db.StringProperty(indexed=False) # behind story texts and other "highlighted" boxes
+	color_text_excerpt = db.StringProperty(indexed=False) # text color in excerpts
+	
 	color_background_entry = db.StringProperty(indexed=False) # to indicate the user is entering data
+	color_text_entry = db.StringProperty(indexed=False) # text color on entry areas
+	
 	color_background_table_header = db.StringProperty(indexed=False) # to make table headers stand out a bit
+	color_text_table_header = db.StringProperty(indexed=False) # text color on table headers
+	
 	color_background_menus = db.StringProperty(indexed=False) # menu backgrounds
+	color_text_menus = db.StringProperty(indexed=False) # text color in menus
 	color_background_menus_hover =  db.StringProperty(indexed=False) # menu backgrounds when hovering over
+	color_text_menus_hover = db.StringProperty(indexed=False) # text color in menus when hovering over
 		
 	color_background_grid_top = db.StringProperty(indexed=False) # entry grid on home page, annotation grid on entry page
 	color_background_grid_bottom = db.StringProperty(indexed=False) # same but on bottom of grid (should be "faded" from top)
+	color_text_grid = db.StringProperty(indexed=False) # text in grid (not links, those are controlled by color_text_link)
+	
+	color_background_inputs = db.StringProperty(indexed=False) # text boxes, drop-down boxes
+	color_text_inputs = db.StringProperty(indexed=False)
 		
 	color_background_button = db.StringProperty(indexed=False) # button at bottom of pages
 	color_background_button_hover = db.StringProperty(indexed=False) # when button is hovered over
+	color_text_buttons = db.StringProperty(indexed=False) # text color on buttons
+	color_text_buttons_hover = db.StringProperty(indexed=False)
 		
 	color_border_normal = db.StringProperty(indexed=False) # around everything
 	color_border_input_hover = db.StringProperty(indexed=False) # lights up when mouse is over entries (text, drop-down box)
 	color_border_image = db.StringProperty(indexed=False) # border around images
 		
-	color_text_link = db.StringProperty(indexed=False) # links in text
-	color_text_link_hover = db.StringProperty(indexed=False) # link light-up on hover (usually white, constrasts with background_link_hover)
-	color_background_link_hover = db.StringProperty(indexed=False) # light-up effect for links
-
-	color_text_plain = db.StringProperty(indexed=False) # plain text - usually black
-	color_text_excerpt = db.StringProperty(indexed=False) # text color in excerpts
-	color_text_menus = db.StringProperty(indexed=False) # text color in menus
-	color_text_menus_hover = db.StringProperty(indexed=False) # text color in menus when hovering over
-	color_text_buttons = db.StringProperty(indexed=False) # text color on buttons
 	color_text_h1 = db.StringProperty(indexed=False) # h1 text
 	color_text_h2 = db.StringProperty(indexed=False) # h2 text
 	color_text_h3 = db.StringProperty(indexed=False) # h3 text
 	color_text_label_hover = db.StringProperty(indexed=False) # color of labels, like checkbox names
 	
-
 	def getPropertiesAsDictionary(self):
 		result = {}
 		properties = Skin.properties()
 		for key in properties.keys():
-			result[key] = getattr(self, key)
+			value = getattr(self, key)
+			result[key] = value
 		return result
 	
 	def asText(self):

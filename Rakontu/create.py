@@ -206,6 +206,8 @@ class EnterEntryPage(webapp.RequestHandler):
 				entry.edited = datetime.now(tz=pytz.utc)
 				preview = False
 				if "save|%s" % type in self.request.arguments():
+					if not newEntry and not entry.draft: # was published before
+						entry.unPublish()
 					entry.draft = True
 				elif "preview|%s" % type in self.request.arguments():
 					entry.draft = True
@@ -404,7 +406,8 @@ class EnterEntryPage(webapp.RequestHandler):
 									attachmentToEdit.mimeType = mimeType
 									attachmentToEdit.fileName = filename
 									attachmentToEdit.name = htmlEscape(self.request.get("attachmentName%s" % i))
-									blob = db.Blob(str(self.request.get("attachment%s" % i)))
+									#blob = db.Blob(str(self.request.get("attachment%s" % i)))
+									blob = db.Blob(self.request.POST.get("attachment%s" % i).file.read())
 									attachmentToEdit.data = blob
 									try:
 										attachmentToEdit.put()

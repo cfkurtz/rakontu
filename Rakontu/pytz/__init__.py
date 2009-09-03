@@ -68,8 +68,6 @@ def open_resource(name):
    	zoneinfo = zipfile.ZipFile(os.path.join(os.path.dirname(__file__), 'zoneinfo.zip'))
 	return StringIO(zoneinfo.read(os.path.join('zoneinfo', *name_parts)))
 
-
-
 def resource_exists(name):
 	"""Return true if the given resource exists"""
 	try:

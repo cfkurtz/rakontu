@@ -3,6 +3,9 @@
 	<body>
 	{% include "../common_menus.html" %}
 		<div id="content">
+
+		<div id="stylized" class="rakontu_form">
+		<form action="/{{dir_visit}}/{{url_members}}?{{rakontu.urlQuery}}" method="post">
 	
 		<h3>{{template_members}}</h3>
       		<hr>
@@ -11,7 +14,7 @@
   				<tr>
   				<td style="border:none; border-right:1px solid #{{skin|dictLookup:"color_border_normal"}};" width="100" valign="center" align="center">
 			 		{% if aMember.profileImage %}
-			 			{{aMember.imageEmbed}}
+			 			<a href="{{aMember.linkURL}}">{{aMember.imageEmbed}}</a>
 					{% else %}
 						&nbsp;
 					{% endif %}
@@ -25,19 +28,33 @@
 			  		{% else %}
 			  			{{template_offline}} ({{template_liaison}}: {{aMember.liaisonIfOfflineMember.linkString}});
 			  		{% endif %}
-					{{template_joined|lower}} {{aMember.joined|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}; 
+					{{template_joined|lower}} {{aMember.joined|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}{% if aMember.isManagerOrOwner %};{% else %}.{% endif %} 
 			  		{% if aMember.hasAnyHelpingRole %}
 			  			{{aMember.governanceTypeForDisplayNotShowingOwner}}, {{aMember.helpingRolesForDisplay|join:", "}}.
 			  		{% else %}
-			  			{{aMember.governanceTypeForDisplayNotShowingOwner}}.
+			  			{% if aMember.isManagerOrOwner %}
+			  				{{template_manager}}.
+			  			{% endif %}
 			  		{% endif %}
 			  		</p>
 	  				</td>
+	  			<td style="border:none;border-left:1px solid #{{skin|dictLookup:"color_border_normal"}};" padding-left:16px;">
+	  			{% ifnotequal aMember.key current_member.key %}
+					{% if aMember.isGuide or aMember.acceptsMessages %}
+						<p><input type="checkbox" name="sendMessage|{{aMember.key}}" value="yes" id="sendMessage|{{aMember.key}}">
+						<label for="sendMessage|{{aMember.key}}">{{template_send_message}}</label></p>
+					{% endif %}
+				{% endifnotequal %}
+	  			</td>
    				</tr>
   				</table>
   				<hr>
       		{% endfor %}
-      	
+ 
+ 		<p><center><input type="submit" name="sendMessage" value="{{button_send_messages}}" class="button"></center></p>
+ 		</form>
+ 		</div>
+ 		     	
       	{% if current_member.isManagerOrOwner %}
       		<div class="rightalign"><p><a href="/{{dir_manage}}/{{url_members}}?{{rakontu.urlQuery}}">{{template_make_changes_to_members}}</a></p></div>
       	{% endif %}

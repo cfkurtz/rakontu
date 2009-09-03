@@ -41,6 +41,11 @@ indexes:
   properties:
   - name: entry
   - name: created
+
+- kind: TextVersion
+  properties:
+  - name: entry
+  - name: created
     direction: desc
 
 - kind: Entry

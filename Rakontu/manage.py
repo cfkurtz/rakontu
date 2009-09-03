@@ -152,7 +152,7 @@ class ManageRakontuAppearancePage(webapp.RequestHandler):
 				rakontu.defaultDateFormat = self.request.get("defaultDateFormat")
 				rakontu.defaultTimeFormat = self.request.get("defaultTimeFormat")
 				if self.request.get("img"):
-					rakontu.image = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
+					rakontu.image = db.Blob(images.resize(str(self.request.get("img")), THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT))
 				if self.request.get("removeImage"):
 					rakontu.image = None
 				for i in range(3):
@@ -234,6 +234,8 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 								   'activity_point_includes': activityPointIncludes,
 								   'site_allows_attachments': DEFAULT_MAX_NUM_ATTACHMENTS > 0,
 								   'num_attachment_choices': NUM_ATTACHMENT_CHOICES,
+								   'save_state_choices': SAVE_STATE_MINUTES_CHOICES,
+								   'save_state_choices_names': SAVE_STATE_MINUTES_NAMES,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/settings.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -283,6 +285,11 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 					except:
 						rakontu.entryActivityPointsPerEvent[i] = oldValue
 					i += 1
+				oldValue = rakontu.howLongToSetMemCache
+				try:
+					rakontu.howLongToSetMemCache = int(self.request.get("howLongToSetMemCache"))
+				except:
+					rakontu.howLongToSetMemCache = oldValue
 				rakontu.put()
 			self.redirect(rakontu.linkURL())
 		else:
@@ -561,7 +568,7 @@ class ManageCharacterPage(webapp.RequestHandler):
 					if self.request.get("removeImage") == "yes":
 						character.image = None
 					elif self.request.get("img"):
-						character.image = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
+						character.image = db.Blob(images.resize(str(self.request.get("img")), THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT))
 					character.put()
 					questions = rakontu.getActiveQuestionsOfType("character")
 					for question in questions:

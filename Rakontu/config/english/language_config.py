@@ -228,12 +228,20 @@ EVENT_TYPES_DISPLAY = [
 # These names must match the time frames described in site_configuration.py.
 TIMEFRAME_10MINUTES = u"10 minutes" # used for testing only
 TIMEFRAME_HOUR = u"an hour"
+TIMEFRAME_6HOURS = u"6 hours"
 TIMEFRAME_12HOURS = u"12 hours"
 TIMEFRAME_DAY = u"a day"
 TIMEFRAME_3DAYS = u"3 days"
 TIMEFRAME_WEEK = u"a week"
 TIMEFRAME_2WEEKS = u"2 weeks"
 TIMEFRAME_MONTH = u"a month"
+
+# These are choices for how long the site should display cached state information before updating it.
+# The more activity on the site, the shorter the cache time should be (but the slower the response).
+# These MUST match the numerical choices in site_configuration.py - [0, 1, 5, 10, 15, 20, 30, 45, 60, 60*2, 60*6, 60*12, 60*24]
+SAVE_STATE_MINUTES_NAMES = ["don't cache anything", "once a minute", "every five minutes", 
+						"every 10 minutes", "every 15 minutes", "every 20 minutes", "every 30 minutes", 
+						"every 45 minutes", "once an hour", "every two hours", "every six hours", "every 12 hours", "once a day"]
 
 # For search filters, whether any or all of selections are required for a match. These MUST match the order (any, all).
 ANY_ALL_DISPLAY = ["any", "all"]
@@ -693,6 +701,7 @@ TEMPLATE_TERMS = {
 		"template_what_time_zone_should_members_see": "What time zone should members see as the default?",
 		"template_how_should_dates_display": "How should dates be displayed by default?",
 		"template_how_should_times_display": "How should times be displayed by default?",
+		"template_read_before_text": "read-before text",
 		# manage/settings
 		"template_things_members_can_do": "Things members can do",
 		"template_how_many_attachments": "How many attachments are allowed per entry?",
@@ -707,7 +716,7 @@ TEMPLATE_TERMS = {
 		"template_nudge_points_per_entry": "How many nudge points can be asssigned (maximum) per entry?",
 		"template_nudge_category_names_and_questions": "What should the names and questions of nudge categories be?",
 		"template_how_many_nudge_points_do_member_get": "How many nudge points do members accumulate by participating in the Rakontu?",
-		"template_read_before_text": "read-before text",
+		"template_how_long_to_save_state": "How often should the data cache be updated?",
 		# visit/annotation
 		"template_enter_tags": "Please enter some tags that describe this entry.",
 		"template_comment_on": "Comment on",
@@ -807,6 +816,8 @@ TEMPLATE_TERMS = {
 		# visit/home_grid
 		"template_no_search_results_header": "No search results",
 		"template_no_search_results_message": "The applied search filter resulted in no entries being shown. To see entries in this space, either stop applying the search or change it so that some entries meet the search criteria.",
+		"template_no_matches_header": "No matching entries",
+		"template_no_match_for_selections": "No entries match the current selections.",
 		"template_empty_rakontu_header": "Nothing here yet!",
 		"template_empty_rakontu_message": "This Rakontu has no entries in it. Use the Create menu to add the first story or invitation.",
 		# visit/leave
@@ -830,6 +841,9 @@ TEMPLATE_TERMS = {
 		"template_no_entries_or_annotations_for_member": "There are no entries or annotations that match the current selections for this member.",
 		# visit/members
 		"template_make_changes_to_members": "Make changes to memberships",
+		"template_send_message": "Send message",
+		# visit/message
+		"template_what_should_reply_to_be": "What email address should the email be sent from? (To use the Rakontu address, leave this blank.)",
 		# visit/new
 		"template_resources_for_new_members": "You may find these resources helpful for getting started",
 		"template_about_help_icons": "Around the site you will see little icons that provide help. Either hover over them with your mouse or click on them to read them.",
@@ -858,6 +872,7 @@ TEMPLATE_TERMS = {
 		"template_offline_member_accept_messages": "Do you want other Rakontu members to be able to send this member messages via email? (You, as the member's liaison, will get the messages.)",
 		"template_yes_people_can_send_me_messages": "Yes, people can send me messages",
 		"template_yes_people_can_send_messages_through_me": "Yes, people can send this off-line member messages through me",
+		"template_email_for_reply_to_in_messages": "What reply-to email address would you like to use by default for messages sent from you?",
 		"template_please_add_a_picture": "Please upload a picture of yourself.",
 		"template_please_add_a_picture_of_offline_member": "Please upload a picture of this off-line member.",
 		"template_leave_rakontu": "To stop being a member of this Rakontu, click here.",
@@ -917,6 +932,7 @@ TEMPLATE_BUTTONS = {
 		"button_save_changes": "Save changes",
 		"button_generate": "Generate",
 		"button_regenerate": "Regenerate",
+		"button_add": "Add",
 		
 		# start
 		"button_visit": "Visit",
@@ -963,6 +979,7 @@ TEMPLATE_BUTTONS = {
 		"button_remove_selected_searches": "Remove selected search filters",
 		"button_send_question": "Send question",
 		"button_send_message": "Send message",
+		"button_send_messages": "Send message to selected members",
 		"button_refresh": "Refresh",
 		"button_move_choices_to_bottom": "Move Choices to Bottom",
 		"button_move_choices_to_top": "Move Choices to Top",
@@ -1084,6 +1101,7 @@ RESULTS = {
 
 		"entryNotFound": ("entryNotFound", "That entry was not found."),
 		"memberNotFound": ("memberNotFound", "That member was not found."),
+		"membersNotFound": ("membersNotFound", "None of the specified members were found."),
 		"offlineMemberNotFound": ("offlineMemberNotFound", "That off-line member was not found."),
 		"helpNotFound": ("helpNotFound", "No help message was found for that item. You may want to let your site administrator know there is a problem."),
 
@@ -1214,6 +1232,7 @@ TITLES = {
         "PROFILE_FOR": "Profile for", # member nickname
         "CHANGE_NICKNAME_FOR": "Change nickname for", # member nickname
         "DRAFTS_FOR": "Drafts for", # member nickname
+        "SEND_MESSAGE": "Send message",
         "LEAVE_RAKONTU": "Leave" ,
         "SEARCH_FILTER": "Search filter",
         "MESSAGE_TO_USER": "Message", # (on page that tells user something is completed or something is wrong)
@@ -1263,6 +1282,7 @@ URLS = {
     "url_leave": "leave",
     "url_filters": "filters",
     "url_nickname": "nickname",
+    "url_message": "message",
 	# link creating 
     "url_retell": "retell",
     "url_remind": "remind",
@@ -1369,5 +1389,6 @@ URL_OPTIONS = {
 	"url_query_help_type": "type",
 	"url_query_bookmark": "bookmark",
 	"url_query_name_taken": "name_taken",
+	"url_query_refresh": "refresh",
 	}
 

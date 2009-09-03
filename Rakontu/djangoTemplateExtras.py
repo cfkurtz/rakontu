@@ -149,7 +149,8 @@ register.filter(makeRangeStartingAtOne)
 def timeZone(time, zoneName):
 	if time:
 		if time.tzinfo:
-			return time.astimezone(timezone(zoneName))
+			timeZone = utils.getTimeZone(zoneName)
+			return time.astimezone(timeZone)
 		else:
 			timeUTC = time.replace(tzinfo=pytz.utc)
 			return timeUTC.astimezone(timezone(zoneName))
@@ -228,6 +229,10 @@ register.filter(lower)
 def strip(value):
 	return value.strip()
 register.filter(strip)
+
+def isCommentOrRequest(value):
+	return value == "comment" or value == "request"
+register.filter(isCommentOrRequest)
 
 # --------------------------------------------------------------------------------------------
 # help

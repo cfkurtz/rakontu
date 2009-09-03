@@ -5,7 +5,7 @@
 		{% for i in rows_cols|makeRangeFromListLength %}
 			<tr>
 			{% for col_list in rows_cols|listLookup:i %}
-				<td style="background-color:#{{row_colors|listLookup:i}};border-left: 1px solid #{{skin|dictLookup:"color_border_normal"}}; 
+				<td style="background-color:#{{row_colors|listLookup:i}};color:#{{skin|dictLookup:"color_text_grid"}};border-left: 1px solid #{{skin|dictLookup:"color_border_normal"}}; 
 				border-top: none; border-bottom: none; border-right: none">
 				{% if col_list %}
 					{% for text in col_list %}
@@ -27,8 +27,13 @@
 			<h4>{{template_no_search_results_header}}</h4>
 			<div class="blurb">{{template_no_search_results_message}}</div>
 		{% else %}
-			<h4>{{template_empty_rakontu_header}}</h4>
-			<p>{{template_empty_rakontu_message}}</p>
+			{% if rakontu.hasNonDraftEntries %}
+				<h4>{{template_no_matches_header}}</h4>
+				<div class="blurb">{{template_no_match_for_selections}}</div>
+			{% else %}
+				<h4>{{template_empty_rakontu_header}}</h4>
+				<div class="blurb">{{template_empty_rakontu_message}}</div>
+			{% endif %}
 		{% endif %}
 	{% endif %}
 		

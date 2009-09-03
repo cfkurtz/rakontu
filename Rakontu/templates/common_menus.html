@@ -87,8 +87,8 @@
 	    	{% endif %}
 			<li><a href="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}">{{menu_my_stuff}}</a>
 				<ul>
-				<li<a href="/{{dir_visit}}/{{url_profile}}?{{rakontu.urlQuery}}">{{menu_profile}}</a></li>
-				<li<a href="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}">{{menu_preferences}}</a></li>
+				<li><a href="/{{dir_visit}}/{{url_profile}}?{{rakontu.urlQuery}}">{{menu_profile}}</a></li>
+				<li><a href="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}">{{menu_preferences}}</a></li>
 			    <li><a href="/{{dir_visit}}/{{url_drafts}}?{{rakontu.urlQuery}}">{{menu_drafts}}</a></li>
 			    <li><a href="/{{dir_visit}}/{{url_filters}}?{{rakontu.urlQuery}}">{{menu_filters}}</a></li>
 	      		</ul>
@@ -99,7 +99,7 @@
 	    <a href="/{{dir_visit}}/{{url_help}}?{{rakontu.urlQuery}}">{{menu_help}}</a>
 		{% if current_member.profileImage %}
 		</td><td align="center" width="20" class="noborder">
-			<a href="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}">{{current_member.imageEmbed}}</a>
+			<a href="/{{dir_visit}}/{{url_profile}}?{{rakontu.urlQuery}}">{{current_member.imageEmbed}}</a>
 		{% endif %}
 		</td><td valign="center" class="noborder">
 	

@@ -22,10 +22,8 @@ img {
 	
 img.bordered {
 	border: 1px solid #000000;
-	}
-	
-img.bordered:hover {
-	border: 1px solid #000000;
+	margin: 0;
+	padding: 0;
 	}
 	
 table {

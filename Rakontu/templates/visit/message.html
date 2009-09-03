@@ -1,0 +1,33 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+		<div id="content">
+		<div id="stylized" class="rakontu_form">
+		<form action="/{{dir_visit}}/{{url_message}}?{{current_member.urlQuery}}" method="post">
+	
+		<h3>{{template_send_a_message_to}}</h3>
+		
+		<ul>
+		{% for aMember in members_to_send_message_to %}
+			<li class="nobullet">{{aMember.nickname}} 
+			{% if not aMember.isOnlineMember %} {{"messages_to_offline_members"|info}} 
+			{% endif %}</li>
+		{% endfor %}
+		</ul>
+		
+		<fieldset>
+		<p>{{template_subject}} <input type="text" name="subject" size="80" value="" maxlength="{{maxlength_subject_or_comment}}"/></p>
+		<textarea name="message" rows="8" cols="60"></textarea>
+		<p>{{template_what_should_reply_to_be}}</p>
+		<p><input type="text" name="messageReplyToEmail" size="80" value="{{current_member.messageReplyToEmail}}" maxlength="{{maxlength_subject_or_comment}}"/></p>
+		</fieldset>
+		
+		<p><center><input type="submit" name="message" value="{{button_send_message}}" class="button"></center></p>
+
+      </form>
+    </div>
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

@@ -15,30 +15,13 @@ left to do with limits:
 	general testing of all affected areas - especially searching in member,character, and time range in member,char
 	test print and export especially related to search
 	
-revisit that pytz zip thing !
-
-move "send member a message" to another screeen? - put checkmarks in member screen? send to multiple members at once?
-whether they want to use their email in messages as reply to, or use alternative email
-
-test menus in IE6 in parallels
-
-put caution thing next to all uploads warning about timeouts if large files are uploaded
-
-i wish the rakontu image wouldn't light up when you hover over it - why does it do that???
-
 test approcket on server!
 
 too many default questions - should be no more than 5 per type
 
-memcache and entries for rakontu
-
 SCALING UP:
 
 transactions
-more than 1000 in a query - WORKING ON 
-long-running processes
-
-custom indexes?
 get keys only when possible?
 more caching for speed
 look at all puts to see if they can be better lumped together

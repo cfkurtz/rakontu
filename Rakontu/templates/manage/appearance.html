@@ -69,7 +69,7 @@
 	
 			<h3>{{template_visual_appearance}}</h3>
 			<fieldset>
-			<p>{{template_picture}} {{"rakontu_image"|tip}}</p>
+			<p>{{template_picture}} {{"rakontu_image"|tip}} {{"uploading_files"|caution}}</p>
 			{% if rakontu.image %}
 				{{rakontu.imageEmbed}}
 				<input type="checkbox" name="removeImage" value="removeImage" id="removeImage"><label for="removeImage">{{template_remove}}</label>

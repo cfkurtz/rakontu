@@ -89,8 +89,9 @@ class BrowseEntriesPage(webapp.RequestHandler):
 			if querySearch:
 				currentSearch = querySearch
 				member.setSearchForLocation("home", currentSearch)
+			refresh = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_refresh") == URL_OPTIONS["url_query_refresh"]
 			skinDict = rakontu.getSkinDictionary()
-			(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
+			(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home", refresh=refresh)
 			textsForGrid, rowColors = self.buildGrid(entries, member, skinDict)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': TITLES["HOME"],
@@ -229,7 +230,8 @@ class ReadEntryPage(webapp.RequestHandler):
 			if entry:
 				curating = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
 				showVersions = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_versions") == URL_OPTIONS["url_query_versions"]
-				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "entry", entry=entry)
+				refresh = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_refresh") == URL_OPTIONS["url_query_refresh"]
+				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "entry", refresh=refresh, entry=entry)
 				textsForGrid, rowColors = self.buildGrid(items, entry, member, rakontu, curating)
 				thingsUserCanDo = self.buildThingsUserCanDo(entry, member, rakontu, curating)
 				viewOptions = member.getViewOptionsForLocation("entry")
@@ -547,7 +549,88 @@ class SeeRakontuMembersPage(webapp.RequestHandler):
 			self.response.out.write(template.render(path, template_values))
 		else:
 			self.redirect(START)
-   
+			
+	@RequireLogin 
+	def post(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if "sendMessage" in self.request.arguments():
+				membersToSendMessagesTo = []
+				for aMember in rakontu.getActiveMembers():
+					for name, value in self.request.params.items():
+						if name == "sendMessage|%s" % aMember.key() and value == "yes":
+							membersToSendMessagesTo.append(aMember)
+				if membersToSendMessagesTo:
+					memcache.add("sendMessage:%s" % member.key(), membersToSendMessagesTo, HOUR_SECONDS)
+					self.redirect(BuildURL("dir_visit", "url_message", member.urlQuery()))
+				else:
+					self.redirect(BuildURL("dir_visit", "url_members", rakontu=rakontu))
+		else:
+			self.redirect(START)
+			
+class SendMessagePage(webapp.RequestHandler):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
+			try:
+				membersToSendMessagesTo = memcache.get("sendMessage:%s" % member.key())
+			except:
+				membersToSendMessagesTo = None
+			if membersToSendMessagesTo:
+				template_values = GetStandardTemplateDictionaryAndAddMore({
+							   'title': TITLES["SEND_MESSAGE"], 
+					   		   'rakontu': rakontu, 
+					   		   'skin': rakontu.getSkinDictionary(),
+					   		   'current_member': member,
+					   		   'members_to_send_message_to': membersToSendMessagesTo,
+					   		   })
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/message.html'))
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect(rakontu.linkURL())
+		else:
+			self.redirect(START)
+			
+	@RequireLogin 
+	def post(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			try:
+				membersToSendMessagesTo = memcache.get("sendMessage:%s" % member.key())
+			except:
+				membersToSendMessagesTo = None
+			if membersToSendMessagesTo:
+				emailAddresses = []
+				for aMember in membersToSendMessagesTo:
+					if aMember.isOnlineMember:
+						if aMember.googleAccountEmail:
+							emailAddresses.append(aMember.googleAccountEmail)
+					else:
+						if aMember.liaison and  aMember.liaison.active:
+							if aMember.liaison.aMember.googleAccountEmail:
+								emailAddresses.append(aMember.liaison.googleAccountEmail)
+				if self.request.get("messageReplyToEmail") != None and self.request.get("messageReplyToEmail") != "":
+					replyTo = self.request.get("messageReplyToEmail")
+				else:
+					replyTo = rakontu.contactEmail
+				if emailAddresses:
+					message = mail.EmailMessage()
+					message.sender = rakontu.contactEmail
+					message.reply_to = replyTo
+					message.subject = htmlEscape(self.request.get("subject"))
+					message.to = emailAddresses 
+					message.body = htmlEscape(self.request.get("message"))
+					message.send()
+					self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
+				else:
+					self.redirect(BuildResultURL("membersNotFound", rakontu=rakontu))
+			else:
+				self.redirect(BuildResultURL("membersNotFound", rakontu=rakontu))
+		else:
+			self.redirect(START)
+	
 class SeeMemberPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
@@ -556,15 +639,16 @@ class SeeMemberPage(webapp.RequestHandler):
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			memberToSee = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
 			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
+			refresh = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_refresh") == URL_OPTIONS["url_query_refresh"]
 			if memberToSee:
-				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "member", memberToSee=memberToSee)
+				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "member", refresh=refresh, memberToSee=memberToSee)
 				textsForGrid, rowColors = self.buildGrid(items, member, memberToSee, rakontu, curating)
 				countNames, counts = memberToSee.getCounts()
 				viewOptions = member.getViewOptionsForLocation("member")
 				currentSearch = viewOptions.search
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': TITLES["MEMBER"], 
-					   		   'title_extra': member.nickname, 
+					   		   'title_extra': memberToSee.nickname, 
 					   		   'rakontu': rakontu, 
 					   		   'skin': rakontu.getSkinDictionary(),
 					   		   'current_member': member,
@@ -671,37 +755,18 @@ class SeeMemberPage(webapp.RequestHandler):
 				if url:
 					self.redirect(url)
 				else:
-					if "message|%s" % memberToSee.key() in self.request.arguments():
-							if not memberToSee.isOnlineMember:
-								if memberToSee.liaison and  memberToSee.liaison.active:
-									memberToSendMessageTo = memberToSee.liaison
-								else:
-									memberToSendMessageTo = None
-							else:
-								memberToSendMessageTo = memberToSee
-							if memberToSendMessageTo:
-								message = mail.EmailMessage()
-								message.sender = rakontu.contactEmail
-								message.subject = htmlEscape(self.request.get("subject"))
-								message.to = memberToSendMessageTo.googleAccountEmail
-								message.body = htmlEscape(self.request.get("message"))
-								message.send()
-								self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
-							else:
-								self.redirect(BuildResultURL("memberNotFound", rakontu=rakontu))
-					else:
-						allItems = memberToSee.getAllItemsAttributedToMember()
-						allItems.extend(memberToSee.getNonDraftLiaisonedEntries())
-						allItems.extend(memberToSee.getNonDraftLiaisonedAnnotations())
-						allItems.extend(memberToSee.getNonDraftLiaisonedAnswers())
-						for item in allItems:
-							if "flag|%s" % item.key() in self.request.arguments():
-								item.flaggedForRemoval = True
-								item.put()
-							elif "unflag|%s" % item.key() in self.request.arguments():
-								item.flaggedForRemoval = False
-								item.put()
-						self.redirect(self.request.uri)
+					allItems = memberToSee.getAllItemsAttributedToMember()
+					allItems.extend(memberToSee.getNonDraftLiaisonedEntries())
+					allItems.extend(memberToSee.getNonDraftLiaisonedAnnotations())
+					allItems.extend(memberToSee.getNonDraftLiaisonedAnswers())
+					for item in allItems:
+						if "flag|%s" % item.key() in self.request.arguments():
+							item.flaggedForRemoval = True
+							item.put()
+						elif "unflag|%s" % item.key() in self.request.arguments():
+							item.flaggedForRemoval = False
+							item.put()
+					self.redirect(self.request.uri)
 			else:
 				self.redirect(BuildResultURL("memberNotFound", rakontu=rakontu))
 		else:
@@ -715,8 +780,9 @@ class SeeCharacterPage(webapp.RequestHandler):
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			character = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_character")
 			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
+			refresh = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_refresh") == URL_OPTIONS["url_query_refresh"]
 			if character:
-				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "character", character=character)
+				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "character", refresh=refresh, character=character)
 				textsForGrid, rowColors = self.buildGrid(items, member, character, rakontu, curating)
 				viewOptions = member.getViewOptionsForLocation("character")
 				currentSearch = viewOptions.search
@@ -906,7 +972,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 			else:
 				memberToEdit = member
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-							   'title': TITLES["PREFERENCES_FOR"], 
+							   'title': TITLES["PROFILE_FOR"], 
 						   	   'title_extra': memberToEdit.nickname, 
 							   'rakontu': rakontu, 
 							   'skin': rakontu.getSkinDictionary(),
@@ -951,7 +1017,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 				if self.request.get("removeProfileImage") == "yes":
 					memberToEdit.profileImage = None
 				elif self.request.get("img"):
-					memberToEdit.profileImage = db.Blob(images.resize(str(self.request.get("img")), 100, 60))
+					memberToEdit.profileImage = db.Blob(images.resize(str(self.request.get("img")), THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT))
 				memberToEdit.put()
 				questions = rakontu.getActiveQuestionsOfType("member")
 				for question in questions:
@@ -1018,7 +1084,7 @@ class ChangeMemberPreferencesPage(webapp.RequestHandler):
 			else:
 				memberToEdit = member
 			template_values = GetStandardTemplateDictionaryAndAddMore({
-							   'title': TITLES["PROFILE_FOR"], 
+							   'title': TITLES["PREFERENCES_FOR"], 
 						   	   'title_extra': memberToEdit.nickname, 
 							   'rakontu': rakontu, 
 							   'skin': rakontu.getSkinDictionary(),
@@ -1054,6 +1120,7 @@ class ChangeMemberPreferencesPage(webapp.RequestHandler):
 				else:
 					memberToEdit = member
 				memberToEdit.acceptsMessages = self.request.get("acceptsMessages") == "yes"
+				memberToEdit.messageReplyToEmail = self.request.get("messageReplyToEmail")
 				memberToEdit.timeZoneName = self.request.get("timeZoneName")
 				memberToEdit.dateFormat = self.request.get("dateFormat")
 				memberToEdit.timeFormat = self.request.get("timeFormat")
@@ -1557,18 +1624,6 @@ class GeneralHelpPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-def StartTimeForLocation(location, rakontu, member, entry=None, memberToSee=None, character=None):
-	if location == "home":
-		if rakontu.firstPublish:
-			startTime = rakontu.firstPublish + member.getTimeDeltaForLocation(location)
-		else:
-			startTime = datetime.now(tz=pytz.utc) - member.getTimeDeltaForLocation(location)
-	elif location == "member":
-		startTime = member.joined
-	elif location == "character":
-		startTime = character.created
-	return startTime
-
 def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=None, memberToSee=None, character=None):
 	viewOptions = member.getViewOptionsForLocation(location)
 	search = viewOptions.search
@@ -1581,55 +1636,74 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 	elif location == "character":
 		defaultURL = character.linkURL()
 	defaultURL += "&%s=%s" % (URL_OPTIONS["url_query_location"], location)
+	delta = timedelta(seconds=viewOptions.timeFrameInSeconds)
+	now = datetime.now(tz=pytz.utc)
 	# time frame - home, member, character
 	if "changeTimeFrame" in request.arguments():
-		member.setViewTimeFrameFromTimeFrameString(request.get("timeFrame"), location)
+		viewOptions.setViewTimeFrameFromTimeFrameString(request.get("timeFrame"))
+		viewOptions.put()
 		return defaultURL
 	elif "setToLast" in request.arguments():
-		member.setEndTimeForLocation(location, datetime.now(tz=pytz.utc))
-		return defaultURL
+		viewOptions.endTime = datetime.now(tz=pytz.utc)
+		viewOptions.put()
+		return defaultURL + "&%s=%s" % (URL_OPTIONS["url_query_refresh"], URL_OPTIONS["url_query_refresh"])
+	elif "refresh" in request.arguments():
+		viewOptions.endTime = datetime.now(tz=pytz.utc)
+		viewOptions.put()
+		return defaultURL + "&%s=%s" % (URL_OPTIONS["url_query_refresh"], URL_OPTIONS["url_query_refresh"])
 	elif "setToFirst" in request.arguments():
-		startTime = StartTimeForLocation(location, rakontu, member, entry, memberToSee, character)
-		endTime = startTime + member.getTimeDeltaForLocation(location)
-		member.setEndTimeForLocation(location, endTime)
+		if location == "home":
+			if rakontu.firstPublish:
+				startTime = rakontu.firstPublish 
+			else:
+				startTime = rakontu.created
+		elif location == "member":
+			startTime = member.joined
+		elif location == "character":
+			startTime = character.created
+		endTime = startTime + delta
+		viewOptions.endTime = endTime
+		viewOptions.put()
 		return defaultURL
 	elif "moveTimeBack" in request.arguments() or "moveTimeForward" in request.arguments():
 		if "moveTimeBack" in request.arguments():
-			endTime = member.getViewEndTime(location) - member.getTimeDeltaForLocation(location)
+			endTime = viewOptions.endTime - delta
 		else:
-			endTime = member.getViewEndTime(location) + member.getTimeDeltaForLocation(location)
-		startTime = StartTimeForLocation(location, rakontu, member, entry, memberToSee, character)
-		if endTime < startTime:
-			endTime = startTime + member.getTimeDeltaForLocation(location)
-		if endTime > datetime.now(tz=pytz.utc):
-			endTime = datetime.now(tz=pytz.utc)
-		member.setEndTimeForLocation(location, endTime)
+			endTime = viewOptions.endTime + delta
+		viewOptions.endTime = endTime
+		viewOptions.put()
 		return defaultURL
 	# entry types - home, member, character 
 	elif "changeEntryTypesShowing" in request.arguments():
 		newEntryTypes = []
 		for i in range(len(ENTRY_TYPES)):
 			newEntryTypes.append(request.get("showEntryType|%s" % i) == "yes")
-		member.setNewEntryTypesForLocation(location, newEntryTypes)
+		viewOptions.entryTypes = []
+		viewOptions.entryTypes.extend(newEntryTypes)
+		viewOptions.put()
 		return defaultURL
 	# annotation types - entry, member, character 
 	elif "changeAnnotationTypesShowing" in request.arguments():
 		newAnnotationAnswerLinkTypes = []
 		for i in range(len(ANNOTATION_ANSWER_LINK_TYPES)):
 			newAnnotationAnswerLinkTypes.append(request.get("showAnnotationAnswerLinkType|%s" % i) == "yes")
-		member.setNewAnnotationTypesForLocation(location, newAnnotationAnswerLinkTypes)
+		viewOptions.annotationAnswerLinkTypes = []
+		viewOptions.annotationAnswerLinkTypes.extend(newAnnotationAnswerLinkTypes)
+		viewOptions.put()
 		return defaultURL
 	# nudges - home, entry 
 	elif "changeNudgeCategoriesShowing" in request.arguments():
 		newNudgeCategories = []
 		for i in range(NUM_NUDGE_CATEGORIES):
 			newNudgeCategories.append(request.get("showCategory|%s" % i) == "yes")
-		member.setNewNudgeCategoriesForLocation(location, newNudgeCategories)
-		oldValue = member.getNudgeFloorForLocation(location)
+		viewOptions.nudgeCategories = []
+		viewOptions.nudgeCategories.extend(newNudgeCategories)
+		oldValue = viewOptions.nudgeFloor
 		try:
-			member.setNudgeFloorForLocation(location, int(request.get("nudgeFloor")))
+			viewOptions.nudgeFloor = int(request.get("nudgeFloor"))
 		except:
-			member.setNudgeFloorForLocation(location, oldValue)
+			viewOptions.nudgeFloor = oldValue
+		viewOptions.put()
 		return defaultURL
 	# search filter - home, member, character
 	elif "loadAndApplySavedSearch" in request.arguments():
@@ -1638,40 +1712,47 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 			if searchKey:
 				search = SavedSearch.get(searchKey)
 				if search:
-					member.setSearchForLocation(location, search)
+					viewOptions.search = search
+					viewOptions.put()
 					return defaultURL
 			else:
 				return defaultURL
 		else:
 			return defaultURL
 	elif "stopApplyingSearch" in request.arguments():
-			member.setSearchForLocation(location, None)
+			viewOptions.search = None
+			viewOptions.put()
 			return defaultURL
 	elif "makeNewSavedSearch" in request.arguments():
-			member.setSearchForLocation(location, None)
+			viewOptions.search = None
+			viewOptions.put()
 			query ="%s=%s" % (URL_OPTIONS["url_query_location"], location)
 			return BuildURL("dir_visit", "url_search_filter", query, rakontu=rakontu)
 	elif "changeSearch"  in request.arguments():
 		if search:
 			return BuildURL("dir_visit", "url_search_filter", search.urlQuery(), rakontu=rakontu)
 		else:
-			member.setSearchForLocation(location, None)
+			viewOptions.search = None
+			viewOptions.put()
 			query ="%s=%s" % (URL_OPTIONS["url_query_location"], location)
 			return BuildURL("dir_visit", "url_search_filter", query, rakontu=rakontu)
 	elif "copySearch"  in request.arguments():
 		if search:
 			newSearch = SavedSearch(key_name=KeyName("filter"), rakontu=rakontu, creator=member)
 			newSearch.copyDataFromOtherSearchAndPut(search)
-			member.setSearchForLocation(location, newSearch)
+			viewOptions.search = newSearch
+			viewOptions.put()
 			return BuildURL("dir_visit", "url_search_filter", newSearch.urlQuery(), rakontu=rakontu)
 		else:
 			return defaultURL
 	# other options - all
 	elif "toggleViewHomeOptionsOnTop" in request.arguments():
-		member.setGridOptionsOnTopForLocation(location, not viewOptions.showOptionsOnTop)  
+		viewOptions.showOptionsOnTop = not viewOptions.showOptionsOnTop
+		viewOptions.put()
 		return defaultURL  
 	elif "toggleShowDetails" in request.arguments():  
-		member.setViewDetailsForLocation(location, not viewOptions.showDetails)   
+		viewOptions.showDetails = not viewOptions.showDetails
+		viewOptions.put()
 		return defaultURL   
 	elif "printSearchResults"  in request.arguments(): 
 		if location == "home": 

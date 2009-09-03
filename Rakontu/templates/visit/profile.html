@@ -47,14 +47,15 @@
 				</td></tr></table>
 
 		{% if member.isOnlineMember %}
-			<p>{{template_please_add_a_picture}}</p>
+			<p>{{template_please_add_a_picture}} {{"member_image"|tip}}
 		{% else %}
-			<p>{{template_please_add_a_picture_of_offline_member}}</p>
+			<p>{{template_please_add_a_picture_of_offline_member}} {{"offline_member_image"|tip}}
 		{% endif %}
+		{{"uploading_files"|caution}}</p>
       	<table border="0" cellpadding="4" cellspacing="0">
       	<tr>
       		<th>{{template_picture}}</th>
-      		<th>{% if member.profileImage %} {{template_replace}} {% else %} {{template_attach}} {% endif %} {{"profile_images"|tip}}</th>
+      		<th>{% if member.profileImage %} {{template_replace}} {% else %} {{template_attach}} {% endif %}</th>
       		<th>{{template_remove}}?</th>
       	</tr>
       	<tr>

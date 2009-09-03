@@ -46,7 +46,6 @@
 	      	<th>{{template_last_answer}}</th>
 	      	<th>{{template_last_link}}</th>
 			{% if member.isOnlineMember %}
-				<th>{{template_last_reading}}</th>
 				<th>{{template_nudge_points_accumulated}}</th>
 			{% endif %}
       	</tr>
@@ -81,13 +80,6 @@
 			{% endif %}
 			</td>
 		{% if member.isOnlineMember %}
-			<td>
-				{% if member.lastReadAnything %} 
-					{{member.lastReadAnything|timeZone:member.timeZoneName|date:member.dateFormat}}
-				{% else %}
-					&nbsp;
-				{% endif %}
-				</td>
 			<td>{{member.nudgePoints}}</td>
 		{% endif %}
 		</tr>
@@ -141,18 +133,7 @@
 			{% include "../common_grid_options.html" %}
 		{% endif %}
 
-  		{% ifnotequal member.key current_member.key %}
-			{% if member.isGuide or member.acceptsMessages %}
-				<h4>{{template_send_a_message_to}} {{member.nickname}} {% if not member.isOnlineMember %} {{"messages_to_offline_members"|info}} {% endif %}</h4>
-				<fieldset>
-				<p>{{template_subject}} <input type="text" name="subject" size="80" value="" maxlength="{{maxlength_subject_or_comment}}"/></p>
-				<textarea name="message" rows="8" cols="60"></textarea>
-				<center><input type="submit" name="message|{{member.key}}" value="{{button_send_message}}" class="button"></center>
-				</fieldset>
-			{% endif %}
-		{% endifnotequal %}
-		
-      	{% ifequal member.key current_member.key %}
+       	{% ifequal member.key current_member.key %}
       		<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_preferences}}?{{member.urlQuery}}">{{template_change_your_preferences}}</a></p></div>
       	{% endifequal %}
       	{% if current_member.isCurator %}
