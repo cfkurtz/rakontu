@@ -283,6 +283,9 @@ class Rakontu(db.Model):
 	def getActiveAndInactiveOfflineMembers(self):
 		return Member.all().filter("rakontu = ", self.key()).filter("isOnlineMember = ", False).fetch(FETCH_NUMBER)
 	
+	def numMembers(self):
+		return Member.all().filter("rakontu = ", self.key()).count()
+	
 	def numActiveMembers(self):
 		return Member.all().filter("rakontu = ", self.key()).filter("active = ", True).count()
 	
@@ -294,6 +297,12 @@ class Rakontu(db.Model):
 		
 	def numEntries(self):
 		return Entry.all().filter("rakontu = ", self.key()).count()
+	
+	def numNonDraftEntries(self):
+		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).count()
+	
+	def numNonDraftEntriesOfType(self, type):
+		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).count()
 	
 	def hasNonDraftEntries(self):
 		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).count() > 0
@@ -397,6 +406,9 @@ class Rakontu(db.Model):
 	
 	def getNonDraftEntries(self):
 		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+	
+	def getNonDraftEntriesOfTypeInReverseTimeOrder(self, type):
+		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).order("-published").fetch(FETCH_NUMBER)
 	
 	def browseEntries(self, minTime, maxTime, entryTypes):
 		return Entry.all().filter("rakontu = ", self.key()).\
@@ -801,7 +813,7 @@ class Rakontu(db.Model):
 	def getExportOfType(self, type):
 		return Export.all().filter("rakontu = ", self.key()).filter("type = ", type).get()
 
-	def createOrRefreshExport(self, type, subtype, member=None, entry=None, memberToSee=None, character=None, questionType=None, fileFormat="csv"):
+	def createOrRefreshExport(self, type, subtype, member=None, entry=None, startNumber=None, endNumber=None, memberToSee=None, character=None, questionType=None, fileFormat="csv"):
 		exportAlreadyThereForType = self.getExportOfType(type)
 		if exportAlreadyThereForType:
 			db.delete(exportAlreadyThereForType)
@@ -811,8 +823,6 @@ class Rakontu(db.Model):
 			if member:
 				exportText += '"Export of viewed items for member "%s" in Rakontu %s"\n' % (member.nickname, self.name)
 				entries = ItemsMatchingViewOptionsForMemberAndLocation(member, "home", refresh=True)
-				members = self.getActiveMembers()
-				characters = self.getActiveCharacters()
 				memberQuestions = self.getActiveQuestionsOfType("member")
 				characterQuestions = self.getActiveQuestionsOfType("character")
 				typeCount = 0
@@ -833,56 +843,61 @@ class Rakontu(db.Model):
 						exportText += '\n'
 						i = 0
 						for entry in entriesOfThisType:
-							exportText += entry.csvLineWithAnswers(i+1, members, characters, questions, memberQuestions, characterQuestions) 
+							exportText += entry.csvLineWithAnswers(i+1, questions, memberQuestions, characterQuestions) 
 							i += 1
 					typeCount += 1
 		elif type == "csv_export_all":
-			exportText += '"Export of all entries for Rakontu %s"\n' % (self.name)
-			members = self.getActiveMembers()
-			characters = self.getActiveCharacters()
+			exportText += '"%s export for Rakontu %s"\n' % (subtype.capitalize(), self.name)
 			memberQuestions = self.getActiveQuestionsOfType("member")
 			characterQuestions = self.getActiveQuestionsOfType("character")
-			typeCount = 0
-			for type in ENTRY_TYPES:
-				entries = self.getNonDraftEntriesOfType(type)
-				if entries:
-					questions = self.getActiveQuestionsOfType(type)
-					exportText += '\n%s\nNumber,Title,Contributor,' % ENTRY_TYPES_PLURAL_DISPLAY[typeCount].upper()
-					for question in questions:
-						exportText += question.name + ","
-					for question in memberQuestions:
-						exportText += question.name + ","
-					for question in characterQuestions:
-						exportText += question.name + ","
-					exportText += '\n'
-					for i in range(len(entries)):
-						exportText += entries[i].csvLineWithAnswers(i+1, members, characters, questions, memberQuestions, characterQuestions) 
-				typeCount += 1
+			questions = self.getActiveQuestionsOfType(subtype)
+			entries = self.getNonDraftEntriesOfTypeInReverseTimeOrder(subtype)
+			exportText += '\n%s\nNumber,Title,Contributor,' % subtype.upper()
+			for question in questions:
+				exportText += question.name + ","
+			for question in memberQuestions:
+				exportText += question.name + ","
+			for question in characterQuestions:
+				exportText += question.name + ","
+			exportText += '\n'
+			for i in range(len(entries)):
+				if (not startNumber and not endNumber) or (i >= startNumber and i < endNumber):
+					exportText += entries[i].csvLineWithAnswers(i+1, questions, memberQuestions, characterQuestions) 
 		elif type == "xml_export":
-			exportText += self.to_xml()
-			for member in self.getActiveMembers():
-				exportText += member.to_xml() + "\n\n"
-			for pendingMember in self.getPendingMembers():
-				exportText += pendingMember.to_xml() + "\n\n"
-			for character in self.getActiveCharacters():
-				exportText += character.to_xml() + "\n\n"
-			for type in QUESTION_REFERS_TO:
-				for question in self.getActiveQuestionsOfType(type):
-					exportText += question.to_xml() + "\n\n"
-			for search in self.getNonPrivateSavedSearches():
-				exportText += search.to_xml() + "\n\n"
-				for searchRef in search.getQuestionReferences():
-					exportText += searchRef.to_xml() + "\n\n"
-			for entry in self.getNonDraftEntries():
-				exportText += entry.to_xml() + "\n\n"
-				for attachment in entry.getAttachments():
-					exportText += attachment.to_xml() + "\n\n"
-				for annotation in entry.getNonDraftAnnotations():
-					exportText += annotation.to_xml() + "\n\n"
-				for answer in entry.getAnswers():
-					exportText += answer.to_xml() + "\n\n"
-				for link in entry.getAllLinks():
-					exportText += link.to_xml() + "\n\n"
+			if subtype == "rakontu":
+				exportText += self.to_xml()
+				for character in self.getActiveCharacters():
+					exportText += character.to_xml() + "\n\n"
+				for type in QUESTION_REFERS_TO:
+					for question in self.getActiveQuestionsOfType(type):
+						exportText += question.to_xml() + "\n\n"
+				for search in self.getNonPrivateSavedSearches():
+					exportText += search.to_xml() + "\n\n"
+					for searchRef in search.getQuestionReferences():
+						exportText += searchRef.to_xml() + "\n\n"
+			elif subtype == "members":
+				i = 0
+				for member in self.getActiveMembers():
+					if (not startNumber and not endNumber) or (i >= startNumber and i < endNumber):
+						exportText += member.to_xml() + "\n\n"
+					i += 1
+				for pendingMember in self.getPendingMembers(): # these are tiny
+					exportText += pendingMember.to_xml() + "\n\n"
+			else:
+				i = 0
+				for entry in self.getNonDraftEntriesOfTypeInReverseTimeOrder(subtype):
+					if (not startNumber and not endNumber) or (i >= startNumber and i < endNumber):
+						exportText += entry.to_xml() + "\n\n"
+						for attachment in entry.getAttachments():
+							exportText += attachment.to_xml() + "\n\n"
+						for annotation in entry.getNonDraftAnnotations():
+							exportText += annotation.to_xml() + "\n\n"
+						for answer in entry.getAnswers():
+							exportText += answer.to_xml() + "\n\n"
+						for link in entry.getAllLinks():
+							exportText += link.to_xml() + "\n\n"
+							
+					i += 1
 		elif type == "liaisonPrint_simple":
 			exportText += '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
 			exportText += '<title>Printed from Rakontu</title></head><body>'
@@ -2632,8 +2647,8 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 					result = result.replace(findString, '<a href="/visit/attachment?attachment_id=%s">%s</a>' % (attachments[i].key(), attachments[i].fileName))
 		return result
 	
-	def csvLineWithAnswers(self, index, members, characters, questions, memberQuestions, characterQuestions):
-		parts = []
+	def csvLineWithAnswers(self, index, questions, memberQuestions, characterQuestions):
+		parts = [str(index), self.title, self.memberNickNameOrCharacterName()]
 		(members, characters) = self.getMembersAndCharactersWhoHaveAnsweredQuestionsAboutMe()
 		for member in members:
 			parts.append("\n%s" % index)
@@ -2677,8 +2692,7 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 					parts.append(answer.displayStringShort())
 				else:
 					parts.append("")
-		if not parts:
-			parts = [str(index), self.title, '\n']
+		parts.append("\n")
 		return CleanUpCSV(parts)
 	
 	def PrintText(self):

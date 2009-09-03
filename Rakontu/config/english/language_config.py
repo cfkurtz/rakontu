@@ -640,10 +640,10 @@ TEMPLATE_TERMS = {
 		"template_change_character": "Change character",
 		"template_inactive_characters": "Inactive characters",
 		# manage/export
-		"template_export_to_xml": "Export all Rakontu data to XML",
-		"template_xml_export_for": "XML export for",
-		"template_entries_with_answers_for": "Entries with answers for",
-		"template_export_entries_with_answers" : "Export entries with answers to CSV",
+		"template_export_to_xml": "Export to XML",
+		"template_what_to_export": "Export",
+		"template_if_exporting_entries_select_range": "in the range",
+		"template_export_entries_with_answers" : "Export to CSV",
 		# manage/first
 		"template_welcome_to_new": "Welcome to your new Rakontu",
 		"template_here_are_terms": "To get you started, here is a brief explanation of some important terms.",
@@ -951,6 +951,8 @@ TEMPLATE_BUTTONS = {
 		"button_add_more_stories": "Add more stories",
 		# manage
 		"button_inactivate": "Really And Truly Inactivate This Rakontu",
+		"button_export_xml": "Export to XML",
+		"button_export_csv": "Export to CSV",
 		# visit
 		"button_hide_details": "Hide details",
 		"button_show_details": "Show details",

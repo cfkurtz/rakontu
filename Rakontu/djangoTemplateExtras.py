@@ -89,6 +89,12 @@ def equalTest(value, otherValue):
 	return False
 register.filter(equalTest)
 
+def notEqualTest(value, otherValue):
+	if value != otherValue:
+		return True
+	return False
+register.filter(notEqualTest)
+
 def add(numberString, addString):
 	try:
 		number = int(numberString)

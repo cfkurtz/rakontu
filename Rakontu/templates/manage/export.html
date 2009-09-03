@@ -9,31 +9,29 @@
 		<div id="stylized" class="rakontu_form">
 		<form action="/{{dir_manage}}/{{url_export}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
-		<p><b>{{template_export_to_xml}}</b> {{"exporting_data_to_xml"|info}} </p>
-		<p></p>
-		{% if xml_export %}
-			<p>&nbsp; &nbsp; <a href="/{{url_export}}?{{xml_export.urlQuery}}">{{template_xml_export_for}} {{rakontu.name}}</a>
-			{{template_last_generated}}
-			{{xml_export.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
-			{{xml_export.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-			<input type="submit" name="xml_export" value="{{button_regenerate}}" class="button"></p>
-		{% else %}
-			<p>&nbsp; &nbsp; ({{term_none}})
-			<input type="submit" name="xml_export" value="{{button_generate}}" class="button"></p>
-		{% endif %}
+		<h3>{{template_export_to_xml}}</b> {{"exporting_data_to_xml"|info}} </h3>
+		<fieldset>
+		<p>{{template_what_to_export}}
+		<select name="exportWhatToXML">
+			{% for i in choices|makeRangeFromListLength %}
+				<option value="{{choices|listLookup:i}}">{{display_choices|listLookup:i}}</option>
+			{% endfor %}
+			</select>
+		</p>
+		</fieldset>
+		<p><center><input type="submit" name="xml_export" value="{{button_export_xml}}" class="button"></center></p>
 		
-		<p><b>{{template_export_entries_with_answers}}</b> {{"exporting_entries_with_answers_to_CSV"|info}} </p>
-		{% if csv_export %}
-			<p>&nbsp; &nbsp; <a href="/{{url_export}}?{{csv_export.urlQuery}}">{{template_entries_with_answers_for}} {{rakontu.name}}</a>
-			{{template_last_generated}}
-			{{csv_export.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
-			{{csv_export.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-			<input type="submit" name="csv_export" value="{{button_regenerate}}" class="button"></p>
-		{% else %}
-			<p>&nbsp; &nbsp; ({{term_none}})
-			<input type="submit" name="csv_export" value="{{button_generate}}" class="button"></p>
-		{% endif %}
-		
+		<h3>{{template_export_entries_with_answers}}</b> {{"exporting_entries_with_answers_to_CSV"|info}} </h3>
+		<fieldset>
+		{{template_what_to_export}}
+		<select name="exportWhatToCSV">
+			{% for i in csv_choices|makeRangeFromListLength %}
+				<option value="{{csv_choices|listLookup:i}}">{{display_csv_choices|listLookup:i}}</option>
+			{% endfor %}
+			</select>
+		</fieldset>
+		<p><center><input type="submit" name="csv_export" value="{{button_export_csv}}" class="button"></center></p>
+
       	<p>
 	</form>
 	</div>

@@ -610,6 +610,63 @@ class ExportRakontuDataPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
+				choices = ["rakontu"]
+				displayChoices = ["Rakontu"]
+				numMembers = rakontu.numActiveMembers()
+				if numMembers < EXPORT_RANGE_XML:
+					memberRanges = None
+				else:
+					memberRanges = []
+					numRanges = numMembers // EXPORT_RANGE_XML + 1
+					for i in range(numRanges):
+						rangeStart = i * EXPORT_RANGE_XML + 1
+						rangeEnd = (i+1) * EXPORT_RANGE_XML 
+						if rangeEnd > numMembers:
+							rangeEnd = numMembers
+						memberRanges.append("%s-%s" % (rangeStart, rangeEnd))
+				if memberRanges:
+					for aRange in memberRanges:
+						displayChoices.append("%s %s" % (TEMPLATE_TERMS["template_members"], aRange))
+						choices.append("%s|%s" % ("members", aRange))
+				else:
+					displayChoices.append("%s (%s)" % (TEMPLATE_TERMS["template_members"], numMembers))
+					choices.append("members")
+				typeCount = 0
+				for type in ENTRY_TYPES:
+					numEntries = rakontu.numNonDraftEntriesOfType(type)
+					if numEntries:
+						if numEntries <= EXPORT_RANGE_XML:
+							ranges = None
+						else:
+							ranges = []
+							if numEntries % EXPORT_RANGE_XML == 0:
+								numRanges = numEntries // EXPORT_RANGE_XML
+							else:
+								numRanges = numEntries // EXPORT_RANGE_XML + 1
+							for i in range(numRanges):
+								rangeStart = i * EXPORT_RANGE_XML + 1
+								rangeEnd = (i+1) * EXPORT_RANGE_XML 
+								if rangeEnd > numEntries:
+									rangeEnd = numEntries
+								ranges.append("%s-%s" % (rangeStart, rangeEnd))
+						displayName = ENTRY_TYPES_PLURAL_DISPLAY[typeCount].capitalize()
+						internalName = ENTRY_TYPES[typeCount]
+						if ranges:
+							for aRange in ranges:
+								displayChoices.append("%s %s" % (displayName, aRange))
+								choices.append("%s|%s" % (ENTRY_TYPES[typeCount], aRange))
+						else:
+							displayChoices.append("%s (%s)" % (displayName, numEntries))
+							choices.append(internalName)
+					typeCount += 1
+				csvChoices = []
+				for choice in choices:
+					if not choice.find("rakontu") >= 0 and not choice.find("members") >= 0:
+						csvChoices.append(choice)
+				csvDisplayChoices = []
+				for choice in displayChoices:
+					if not choice.find("Rakontu") >= 0 and not choice.find(TEMPLATE_TERMS["template_members"]) >= 0:
+						csvDisplayChoices.append(choice)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   	   'title': TITLES["EXPORT_DATA"], 
 									   'rakontu': rakontu,
@@ -617,6 +674,10 @@ class ExportRakontuDataPage(webapp.RequestHandler):
 									   'current_member': member,
 									   'xml_export': rakontu.getExportOfType("xml_export"),
 									   'csv_export': rakontu.getExportOfType("csv_export_all"),
+									   'choices': choices,
+									   'display_choices': displayChoices,
+									   'csv_choices': csvChoices,
+									   'display_csv_choices': csvDisplayChoices,
 									   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/export.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -631,10 +692,34 @@ class ExportRakontuDataPage(webapp.RequestHandler):
 		if access:
 			if member.isManagerOrOwner():
 				if "csv_export" in self.request.arguments():
-					rakontu.createOrRefreshExport(type="csv_export_all", subtype="all", fileFormat="csv")
+					subtypeAndRange = self.request.get("exportWhatToCSV")
+					subtypeAndRangeArray = subtypeAndRange.split("|")
+					subtype = subtypeAndRangeArray[0]
+					if len(subtypeAndRangeArray) > 1 and subtypeAndRangeArray[1]:
+						startNumberString, endNumberString = subtypeAndRangeArray[1].split("-")
+						startNumber = int(startNumberString) - 1
+						endNumber = int(endNumberString) - 1
+						if endNumber == startNumber:
+							endNumber += 1 
+					else:
+						startNumber = None
+						endNumber = None
+					export = rakontu.createOrRefreshExport(type="csv_export_all", subtype=subtype, startNumber=startNumber, endNumber=endNumber, fileFormat="csv")
+					self.redirect(BuildURL(None, "url_export", export.urlQuery()))
 				elif "xml_export" in self.request.arguments():
-					rakontu.createOrRefreshExport(type="xml_export", subtype="all", fileFormat="xml")
-				self.redirect(self.request.uri)
+					subtypeAndRange = self.request.get("exportWhatToXML")
+					subtypeAndRangeArray = subtypeAndRange.split("|")
+					subtype = subtypeAndRangeArray[0]
+					if len(subtypeAndRangeArray) > 1 and subtypeAndRangeArray[1]:
+						startNumberString, endNumberString = subtypeAndRangeArray[1].split("-")
+						startNumber = int(startNumberString) - 1
+						endNumber = int(endNumberString) - 1
+					else:
+						startNumber = None
+						endNumber = None
+					export = rakontu.createOrRefreshExport(type="xml_export", subtype=subtype, startNumber=startNumber, endNumber=endNumber, fileFormat="xml")
+					self.redirect(BuildURL(None, "url_export", export.urlQuery()))
+				#self.redirect(self.request.uri)
 			else:
 				self.redirect(rakontu.linkURL())
 		else:

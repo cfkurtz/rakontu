@@ -218,6 +218,9 @@ MAXLENGTH_NUMBER = 6
 # for printing entries
 PRINT_DELIMITER = "=======\n"
 
+# This is the number of entries to export to XML in one request.
+EXPORT_RANGE_XML = 50
+
 # ============================================================================================ 
 # QUESTIONS
 # ============================================================================================ 
