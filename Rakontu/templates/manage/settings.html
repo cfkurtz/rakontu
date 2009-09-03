@@ -76,20 +76,6 @@
 			</table>
 	      	</fieldset>
 	      	
-	      	<h3>{{template_other_options}}</h3>
-	      	<fieldset>
-	      	<p>{{template_how_long_to_save_state}} {{"rakontu_caches"|tip}}</p>
-	      	<p><select name="howLongToSetMemCache">
-	      		{% for i in save_state_choices|makeRangeFromListLength %}
-	      			<option value="{{save_state_choices|listLookup:i}}"
-	      			{% if save_state_choices|listLookup:i|equalTest:rakontu.howLongToSetMemCache %}
-	      				selected="selected"
-	      			{% endif %}
-	      			>{{save_state_choices_names|listLookup:i}}</option>
-	      		{% endfor %}
-	      	</select>
-	      	</fieldset>
-	      		
 	    <p><center><input type="submit" name="changeSettings" value="{{button_save_changes}}" class="button"></center></p>
 	      	
 		</form>

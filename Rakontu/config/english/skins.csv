@@ -1,42 +1,60 @@
-"; RAKONTU SKINS",,,,,,,
-"; To add a skin, add a column and fill it in.",,,,,,,
-"; Except for font names all others are hex color codes.",,,,,,,
-"; All numeric hex colors must have quotes around them.",,,,,,,
-"; Don't change the first column - these must match names in the source code!",,,,,,,
-"; The names of skins (which are displayed to the user) can be translated.",,,,,,,
-"; Skin names must be unique (no two the same).",,,,,,,
-"; In the file ""language_config.py"" there is a DEFAULT_SKIN_NAME setting. ",,,,,,,
-"; Its value MUST match one of these names.",,,,,,,
-"; It is what skin is used before the Rakontu's managers have selected a skin.",,,,,,,
-,,,,,,,
-"ELEMENT","EXPLANATION OF ELEMENT","grayscale","sunset","pinky purple","growing things","funky","toast"
-"font_general","on general content","""Courier New"", Courier, monospace","Garamond, Baskerville, Caslon, Georgia, ""Times New Roman"", Times, serif'","""Apple Chancery"", ""Zapf Chancery"", cursive","Verdana, Arial, Helvetica, sans-serif","Gadget, fantasy, sans-serif","Georgia, ""Times New Roman"", Times, serif'"
-"font_top","on top banner area","Verdana, Arial, Helvetica, sans-serif","Verdana, Arial, Helvetica, sans-serif","Trebuchet, Arial, Helvetica, sans-serif","Verdana, Arial, Helvetica, sans-serif","Gadget, fantasy, sans-serif","Verdana, Arial, Helvetica, sans-serif"
-"font_menus","on menus","Verdana, Arial, Helvetica, sans-serif","Verdana, Arial, Helvetica, sans-serif","Trebuchet, Arial, Helvetica, sans-serif","Verdana, Arial, Helvetica, sans-serif","Gadget, fantasy, sans-serif","Verdana, Arial, Helvetica, sans-serif"
-"font_buttons","on buttons","sans-serif","sans-serif","sans-serif","sans-serif","sans-serif","sans-serif"
-"font_headers","on h1, h2, h3 headers in text","sans-serif","sans-serif","sans-serif","sans-serif","sans-serif","sans-serif"
-"color_background_general","on all pages","FFFFFF","FAEBD7","FFE1FF","F0FFF0","00688B","FEE8D6"
-"color_background_excerpt","behind story text and other highlighted items","FFFFFF","FFEECC","FFF0F5","F0FFF0","00FA9A","FAF0E6"
-"color_background_entry","to indicate the user is entering data","BBBBBB","EECBAD","FF92BB","D2B48C","00B2EE","CDB38B"
-"color_background_table_header","to make table headers stand out a bit","CCCCCC","FFEECC","FFB6C1","A6D785","00FF66","EDC393"
-"color_background_menus","on menus","DDDDDD","FFEECC","FFB6C1","A6D785","00FF66","EDC393"
-"color_background_menus_hover","on menus when hovered over","""999999""","FF7F00","""9E0508""","3EA055","7FFF00","""603311"""
-"color_background_grid_top","entry grid on home page, annotation grid on entry page","FFFFFF","FAEBD7","EEAEEE","CCFFCC","7CFC00","FEE8D6"
-"color_background_grid_bottom","bottom of same grid (should be faded from top)","""444444""","CD853F","9C6B98","548B54","2F4F4F","B6AFA9"
-"color_background_button","all buttons","FFFFFF","FFD39B","DA70D6","CD8500","EE5C42","8B4513"
-"color_background_button_hover","mouse-over effect for buttons","DDDDDD","CD6839","FF00FF","0AC92B","FF3300","E3701A"
-"color_border_normal","around everything","""999999""","FF7F00","""9E0508""","3EA055","7FFF00","""603311"""
-"color_border_input_hover","mouse-over effect for input boxes","""000000""","""993300""","862A51","""003300""","FF2400","AA6600"
-"color_border_image","around images","""000000""","FF7F00","""000000""","""003300""","7FFF00","""603311"""
-"color_text_link","links in text","""000000""","8B4500","""9E0508""","2C5D3F","7FFF00","A68064"
-"color_text_link_hover","mouse-over effect for links","FFFFFF","FFFFFF","FFFFFF","FFFFFF","FFFFFF","FAF0E6"
-"color_background_link_hover","mouse-over effect for links","""666666""","EECBAD","FF00FF","2F4F2F","00B2EE","8B5A2B"
-"color_text_plain","plain text - usually black","""000000""","""000000""","""000000""","""000000""","DDDDDD","5C3317"
-"color_text_excerpt","in excerpts - goes with color_background_excerpt","""000000""","""000000""","""000000""","""000000""","""000000""","733D1A"
-"color_text_menus","in menus - goes with color_background_menus","""000000""","""000000""","""000000""","""000000""","007FFF","""000000"""
-"color_text_menus_hover","in menus - goes with color_background_menus_hover","FFFFFF","""000000""","""000000""","""000000""","104E8B","FFFFFF"
-"color_text_buttons","in buttons - goes with color_background_button and _hover","""000000""","""000000""","""000000""","""000000""","104E8B","FFFFFF"
-"color_text_h1","h1 text","""000000""","""000000""","""000000""","""215E21""","DDDDDD","B13E0F"
-"color_text_h2","h2 text","""000000""","""000000""","""000000""","""215E21""","DDDDDD","""993300"""
-"color_text_h3","h3 text","""000000""","""000000""","""000000""","""215E21""","DDDDDD","8A360F"
-"color_text_label_hover","labels like checkbox names","""666666""","""666666""","8B5F65","4D6B50","4D6B50","CDC5BF"
+"; RAKONTU SKINS",,,,,,,,,,,,
+"; To add a skin, add a column and fill it in.",,,,,,,,,,,,
+"; Except for font names all others are hex color codes.",,,,,,,,,,,,
+"; All numeric hex colors must have quotes around them.",,,,,,,,,,,,
+"; Don't change the first column - these must match names in the source code!",,,,,,,,,,,,
+"; The names of skins (which are displayed to the user) can be translated.",,,,,,,,,,,,
+"; Skin names must be unique (no two the same).",,,,,,,,,,,,
+"; In the file ""language_config.py"" there is a DEFAULT_SKIN_NAME setting. ",,,,,,,,,,,,
+"; Its value MUST match one of these names.",,,,,,,,,,,,
+"; It is what skin is used before the Rakontu's managers have selected a skin.",,,,,,,,,,,,
+"; Leave the cell blank to use white for backgrounds, black for texts, gray for hovers and borders.",,,,,,,,,,,,
+,,,,,,,,,,,,
+"ELEMENT","EXPLANATION OF ELEMENT","grayscale","sunset","pinky purple","growing things","funky","toast","terminal","fire truck","ocean views","serious business","sunflowers"
+"font_general","on general content","Georgia, serif","Verdana, Geneva, Arial, Helvetica, sans-serif","Garamond, Baskerville, Caslon, Georgia, ""Times New Roman"", Times, serif","""Trebuchet MS"", ""Palatino Linotype"", ""Book Antiqua"", Palatino6, serif","Gadget, fantasy, sans-serif","Verdana, Arial, Helvetica, sans-serif","""Andale Mono"", ""Lucida Console"", Monaco, monospace","""Arial Black"", Gadget, sans-serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif","Tahoma, Geneva, sans-serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif"
+"font_top","on top banner area","Verdana, Arial, Helvetica, sans-serif","Verdana, Geneva, Arial, Helvetica, sans-serif","Garamond, Baskerville, Caslon, Georgia, ""Times New Roman"", Times, serif","Verdana, Arial, Helvetica, sans-serif","Gadget, fantasy, sans-serif","Verdana, Arial, Helvetica, sans-serif","""Andale Mono"", ""Lucida Console"", Monaco, monospace","""Arial Black"", Gadget, sans-serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif","""MS Serif"", ""New York"", ""Arial"", serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif"
+"font_menus","on menus","Verdana, Arial, Helvetica, sans-serif","Verdana, Geneva, Arial, Helvetica, sans-serif","Garamond, Baskerville, Caslon, Georgia, ""Times New Roman"", Times, serif","Verdana, Arial, Helvetica, sans-serif","Gadget, fantasy, sans-serif","Verdana, Arial, Helvetica, sans-serif","""Andale Mono"", ""Lucida Console"", Monaco, monospace","""Arial Black"", Gadget, sans-serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif","""MS Serif"", ""New York"", ""Arial"", serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif"
+"font_buttons","on buttons","sans-serif","Verdana, Geneva, Arial, Helvetica, sans-serif","Garamond, Baskerville, Caslon, Georgia, ""Times New Roman"", Times, serif","Verdana, Arial, Helvetica, sans-serif","Gadget, fantasy, sans-serif","Verdana, Arial, Helvetica, sans-serif","""Andale Mono"", ""Lucida Console"", Monaco, monospace","""Arial Black"", Gadget, sans-serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif","""MS Serif"", ""New York"", ""Arial"", serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif"
+"font_headers","on h1, h2, h3 headers in text","sans-serif","Verdana, Geneva, Arial, Helvetica, sans-serif","Garamond, Baskerville, Caslon, Georgia, ""Times New Roman"", Times, serif","Verdana, Arial, Helvetica, sans-serif","Gadget, fantasy, sans-serif","Verdana, Arial, Helvetica, sans-serif","""Andale Mono"", ""Lucida Console"", Monaco, monospace","""Arial Black"", Gadget, sans-serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif","Tahoma, Geneva, sans-serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif"
+"font_inputs","on text input boxes (drop-downs use button font)",,"Verdana, Geneva, Arial, Helvetica, sans-serif","Garamond, Baskerville, Caslon, Georgia, ""Times New Roman"", Times, serif","Verdana, Arial, Helvetica, sans-serif","Gadget, fantasy, sans-serif","Verdana, Arial, Helvetica, sans-serif","""Andale Mono"", ""Lucida Console"", Monaco, monospace","""Arial Black"", Gadget, sans-serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif","Tahoma, Geneva, sans-serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif"
+,,,,,,,,,,,,
+"color_text_h1","h1 text",,,"9A32CD","""215E21""","DDDDDD","B13E0F","7CFC00",,"00688B","236B8E","8B6508"
+"color_text_h2","h2 text",,,"9A32CD","""215E21""","DDDDDD","""993300""","7CFC00",,"00688B","236B8E","8B6508"
+"color_text_h3","h3 text",,,"9A32CD","""215E21""","DDDDDD","8A360F","7CFC00",,"00688B","236B8E","8B6508"
+,,,,,,,,,,,,
+"color_background_general","on all pages",,"FAEBD7","FFE1FF","F0FFF0","00688B","FEE8D6","""111111""","CD0000","67E6EC","F8F8FF","FEF1B5"
+"color_text_link","links in text",,"8B4500","551A8B","2C5D3F",,"A68064","7CFC00",,"324F17","283A90",
+"color_text_link_hover","mouse-over effect for links","FFFFFF","FFFFFF","FFFFFF","FFFFFF","DDDDDD","FAF0E6",,,"FFFFFF","FFFFFF",
+"color_background_link_hover","mouse-over effect for links","""666666""","EECBAD","FF00FF","2F4F2F","00B2EE","8B5A2B","7CFC00",,"00688B","35586C","FFFF00"
+"color_text_plain","plain text - usually black",,,"551A8B","""000000""","DDDDDD","5C3317","7CFC00",,"324F17",,
+,,,,,,,,,,,,
+"color_background_excerpt","behind story text and other highlighted items",,"FFEECC","F6A4D5","DEB887","00FA9A","FAF0E6","""111111""","D98719","C6E2FF","F8F8FF","DFFFA5"
+"color_text_excerpt","in excerpts - goes with color_background_excerpt",,,"551A8B","""000000""",,"733D1A","7CFC00",,"00688B",,
+,,,,,,,,,,,,
+"color_background_entry","to indicate the user is entering data","CCCCCC","EECBAD","FF92BB","D2B48C","00B2EE","CD853F","""666666""","FF9912","7FFFD4","ADD8E6","8BA446"
+"color_text_entry","in entry areas - goes with color_background_entry",,,"551A8B",,,,"7CFC00",,"00688B",,
+,,,,,,,,,,,,
+"color_background_table_header","to make table headers stand out a bit","EEEEEE","FFEECC","F6A4D5","A6D785","00FF66","AA6600","""111111""","FFE600","0FDDAF","B0C4DE","BEE554"
+"color_text_table_header","in table headers - goes with color_background_table_header",,,"551A8B","""000000""",,"FFDEAD","7CFC00",,"00688B",,
+,,,,,,,,,,,,
+"color_background_menus","on menus","DDDDDD","FFEECC","F6A4D5","A6D785","00FF66","EDC393","""111111""","FFE600","62B1F6","F8F8FF","CD950C"
+"color_background_menus_hover","on menus when hovered over","""999999""","FF7F00","EE82EE","3EA055","FFCC99","8B5A00","""666666""","FF0000","548B54","B0C4DE","FCD116"
+"color_text_menus","in menus - goes with color_background_menus",,,"551A8B","""000000""","007FFF",,"7CFC00",,"00688B",,
+"color_text_menus_hover","in menus - goes with color_background_menus_hover","FFFFFF",,"FFFFFF","""000000""","104E8B","FFFFFF","7CFC00",,"FFFFFF",,
+,,,,,,,,,,,,
+"color_background_grid_top","entry grid on home page, annotation grid on entry page",,"FAEBD7","EEAEEE","CCFFCC","FFCC99","FFEFDB","""666666""","8B8989","90FEFB","CAE1FF","FFE303"
+"color_background_grid_bottom","bottom of same grid (should be faded from top)","""666666""","CD853F","9C6B98","548B54","7CFC00","EDC393","""111111""","EE7621","0FDDAF","88ACE0","CD950C"
+"color_text_grid","texts (not links) in main grid",,,"551A8B",,,,"7CFC00",,"00688B",,
+,,,,,,,,,,,,
+"color_background_inputs","background color in text boxes and drop-down boxes",,"FFFAF0","E6E6FA","CCFFCC","FFCC99","FAF0E6","CCCCCC","FFE600","FFF5EE",,"BEE554"
+"color_text_inputs","in text boxes - goes with color_background_inputs",,,"7D26CD",,,,,,"00688B",,
+"color_border_input_hover","mouse-over effect for input boxes",,"""993300""","862A51","""003300""","FF2400","AA6600","0000FF","1D7CF2","1E90FF","FF0000","83F52C"
+"color_text_label_hover","labels like checkbox names","""666666""","""666666""","0000CD","4D6B50",,"CDC5BF","FF0000",,"F08080",,"CD661D"
+,,,,,,,,,,,,
+"color_background_button","all buttons",,"FFD39B","DA70D6","CD8500","EE5C42","8B5A00","""666666""",,"62B1F6","9BC4E2","CD950C"
+"color_background_button_hover","mouse-over effect for buttons","DDDDDD","CD6839","FF00FF","0AC92B","E3170D","CDAA7D","""999999""","1D7CF2","548B54","5D92B1","FCD116"
+"color_text_buttons","in buttons - goes with color_background_button",,,"551A8B","""000000""","104E8B","FFFFFF","7CFC00",,"00688B",,
+"color_text_buttons_hover","in buttons - goes with color_background_button _hover",,,,,,,,"FFFFFF","FFFFFF","FFFFFF",
+,,,,,,,,,,,,
+"color_border_normal","around everything","""999999""","FF7F00","""9E0508""","3EA055","7FFF00","""603311""","FF0000","FFFFFF","00688B","003F87","8B6508"
+"color_border_image","around images",,"FF7F00","9A32CD","""003300""","7FFF00","""603311""","FF0000",,"00688B","003F87","8B6508"

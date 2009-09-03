@@ -112,12 +112,6 @@ else:
 				 (TIMEFRAME_MONTH, MONTH_SECONDS),
 				 ]
 	
-# These are choices for how long the site should display cached state information before updating it.
-# The more activity on the site, the shorter the cache time should be (but the slower the response).
-# Text choices for these are in the lanugage_config.py file and MUST match these exactly.
-SAVE_STATE_MINUTES_CHOICES = [0, 1, 5, 10, 15, 20, 30, 45, 60, 60*2, 60*6, 60*12, 60*24]
-DEFAULT_SAVE_STATE_MINUTES = 15
-
 # This is how much of a text is shown when the "Show details" setting is in place,
 # on both the main screen and the per-entry screen.
 DEFAULT_DETAILS_TEXT_LENGTH = 150

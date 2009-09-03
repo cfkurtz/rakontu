@@ -234,8 +234,6 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 								   'activity_point_includes': activityPointIncludes,
 								   'site_allows_attachments': DEFAULT_MAX_NUM_ATTACHMENTS > 0,
 								   'num_attachment_choices': NUM_ATTACHMENT_CHOICES,
-								   'save_state_choices': SAVE_STATE_MINUTES_CHOICES,
-								   'save_state_choices_names': SAVE_STATE_MINUTES_NAMES,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/settings.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -285,11 +283,6 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 					except:
 						rakontu.entryActivityPointsPerEvent[i] = oldValue
 					i += 1
-				oldValue = rakontu.howLongToSetMemCache
-				try:
-					rakontu.howLongToSetMemCache = int(self.request.get("howLongToSetMemCache"))
-				except:
-					rakontu.howLongToSetMemCache = oldValue
 				rakontu.put()
 			self.redirect(rakontu.linkURL())
 		else:

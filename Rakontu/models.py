@@ -143,7 +143,6 @@ class Rakontu(db.Model):
 	entryActivityPointsPerEvent = db.ListProperty(int, default=DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS, indexed=False)
 	allowCharacter = db.ListProperty(bool, default=DEFAULT_ALLOW_CHARACTERS, indexed=False)
 	allowNonManagerCuratorsToEditTags = db.BooleanProperty(default=False, indexed=False)
-	howLongToSetMemCache = db.IntegerProperty(default=DEFAULT_SAVE_STATE_MINUTES, indexed=False)
 	
 	# descriptive options
 	type = db.StringProperty(choices=RAKONTU_TYPES, default=RAKONTU_TYPES[-1], indexed=False) # only used to determine questions at front, but may be useful later so saving

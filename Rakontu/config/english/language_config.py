@@ -236,13 +236,6 @@ TIMEFRAME_WEEK = u"a week"
 TIMEFRAME_2WEEKS = u"2 weeks"
 TIMEFRAME_MONTH = u"a month"
 
-# These are choices for how long the site should display cached state information before updating it.
-# The more activity on the site, the shorter the cache time should be (but the slower the response).
-# These MUST match the numerical choices in site_configuration.py - [0, 1, 5, 10, 15, 20, 30, 45, 60, 60*2, 60*6, 60*12, 60*24]
-SAVE_STATE_MINUTES_NAMES = ["don't cache anything", "once a minute", "every five minutes", 
-						"every 10 minutes", "every 15 minutes", "every 20 minutes", "every 30 minutes", 
-						"every 45 minutes", "once an hour", "every two hours", "every six hours", "every 12 hours", "once a day"]
-
 # For search filters, whether any or all of selections are required for a match. These MUST match the order (any, all).
 ANY_ALL_DISPLAY = ["any", "all"]
 # Where to look for search words. These MUST match the order 
@@ -716,7 +709,6 @@ TEMPLATE_TERMS = {
 		"template_nudge_points_per_entry": "How many nudge points can be asssigned (maximum) per entry?",
 		"template_nudge_category_names_and_questions": "What should the names and questions of nudge categories be?",
 		"template_how_many_nudge_points_do_member_get": "How many nudge points do members accumulate by participating in the Rakontu?",
-		"template_how_long_to_save_state": "How often should the data cache be updated?",
 		# visit/annotation
 		"template_enter_tags": "Please enter some tags that describe this entry.",
 		"template_comment_on": "Comment on",

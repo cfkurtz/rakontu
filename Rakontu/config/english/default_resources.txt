@@ -515,6 +515,16 @@ As of this writing, Rakontu resides on the Google App Engine, which sets some li
 # No Rakontu can have more than 1000 entries (stories + invitations + patterns + collages + resources). For most small groups this limit will not be a problem. If you run up against this limit, you can remove older items to make room for more.
 # For pages with time-based grids (home, entry, member, character), if the number of items selected exceeds a constant (set at the site level, by default 200), the number of items shown will be truncated (and the page will say so). To reduce the number, make different selections in the time range or types of items.
 
+[Rakontu known issues]
+Category=Technical
+Interpret as=Wiki markup
+Managers only=no
+
+Bad Request
+Your client has issued a malformed or illegal request. 
+
+This happens in older browsers. Refreshing the page can help, as can removing cached (temporary) files.
+
 
 
 

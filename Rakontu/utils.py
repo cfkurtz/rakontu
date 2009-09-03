@@ -271,11 +271,6 @@ def GetKeyFromQueryString(queryString, keyname):
 		return None
  
 def ItemsMatchingViewOptionsForMemberAndLocation(member, location, refresh=False, entry=None, memberToSee=None, character=None):
-	if refresh:
-		howLongToSetMemCache = 0
-	else:
-		howLongToSetMemCache = member.rakontu.howLongToSetMemCache * MINUTE_SECONDS
-	howLongToSetMemCache = 0
 	rakontu = member.rakontu
 	viewOptions = member.getViewOptionsForLocation(location)
 	startTime = viewOptions.getStartTime()
@@ -291,67 +286,19 @@ def ItemsMatchingViewOptionsForMemberAndLocation(member, location, refresh=False
 		if annotationTypeBooleans[i]:
 			annotationTypes.append(ANNOTATION_ANSWER_LINK_TYPES[i]) 
 	if location == "home":
-		if howLongToSetMemCache == 0:
-			itemsToStart = member.rakontu.browseEntries(startTime, endTime, entryTypes)
-		else:
-			try:
-				entries = memcache.get("entries:%s" % rakontu.key())
-			except:
-				entries = None
-			if entries is None:
-				entries = member.rakontu.getNonDraftEntries()
-				memcache.add("entries:%s" % rakontu.key(), entries, howLongToSetMemCache)
-				itemsToStart = member.rakontu.selectEntriesFromList(entries, startTime, endTime, entryTypes)
-			else:
-				itemsToStart = member.rakontu.selectEntriesFromList(entries, startTime, endTime, entryTypes)
+		itemsToStart = member.rakontu.browseEntries(startTime, endTime, entryTypes)
 		considerNudgeFloor = True
 		considerSearch = True
 	elif location == "entry":
-		if howLongToSetMemCache == 0:
-			itemsToStart = entry.browseItems(annotationTypes)
-		else:
-			try:
-				items = memcache.get("entry_items:%s" % entry.key())
-			except:
-				items = None
-			if items is None:
-				items = entry.getNonDraftAnnotationsAnswersAndLinks() # assume never > 1000
-				memcache.add("entry_items:%s" % entry.key(), items, howLongToSetMemCache)
-				itemsToStart = entry.selectItemsFromList(items, annotationTypes)
-			else:
-				itemsToStart = entry.selectItemsFromList(items, annotationTypes)
+		itemsToStart = entry.browseItems(annotationTypes)
 		considerNudgeFloor = False
 		considerSearch = False
 	elif location == "member":
-		if howLongToSetMemCache == 0:
-			itemsToStart = memberToSee.browseItems(startTime, endTime, entryTypes, annotationTypes)
-		else:
-			try:
-				items = memcache.get("member_items:%s" % member.key())
-			except:
-				items = None
-			if items is None:
-				items = member.getAllItemsAttributedToMember() # assume never > 1000 ??
-				memcache.add("member_items:%s" % member.key(), items, howLongToSetMemCache)
-				itemsToStart = member.selectItemsFromList(items, startTime, endTime, entryTypes, annotationTypes)
-			else:
-				itemsToStart = member.selectItemsFromList(items, startTime, endTime, entryTypes, annotationTypes)
+		itemsToStart = memberToSee.browseItems(startTime, endTime, entryTypes, annotationTypes)
 		considerNudgeFloor = False
 		considerSearch = True
 	elif location == "character":
-		if howLongToSetMemCache == 0:
-			itemsToStart = character.browseItems(startTime, endTime, entryTypes, annotationTypes)
-		else:
-			try:
-				items = memcache.get("character_items:%s" % character.key())
-			except:
-				items = None
-			if items is None:
-				items = character.getAllItemsAttributedToCharacter() # assume never > 1000 ??
-				memcache.add("character_items:%s" % character.key(), items, howLongToSetMemCache)
-				itemsToStart = character.selectItemsFromList(items, startTime, endTime, entryTypes, annotationTypes)
-			else:
-				itemsToStart = character.selectItemsFromList(items, startTime, endTime, entryTypes, annotationTypes)
+		itemsToStart = character.browseItems(startTime, endTime, entryTypes, annotationTypes)
 		considerNudgeFloor = False
 		considerSearch = True
 	# nudge floor
