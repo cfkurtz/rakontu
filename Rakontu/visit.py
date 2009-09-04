@@ -89,10 +89,21 @@ class BrowseEntriesPage(webapp.RequestHandler):
 			if querySearch:
 				currentSearch = querySearch
 				member.setSearchForLocation("home", currentSearch)
-			refresh = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_refresh") == URL_OPTIONS["url_query_refresh"]
 			skinDict = rakontu.getSkinDictionary()
-			(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home", refresh=refresh)
-			textsForGrid, rowColors = self.buildGrid(entries, member, skinDict)
+			(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
+			textsForGrid, rowColors = self.buildGrid(entries, member, skinDict, viewOptions.showDetails)
+			
+			# CFK TEMP - for updating new fields in existing entries
+			"""
+			for entry in rakontu.getNonDraftEntries():
+				i = 0
+				for type in ANNOTATION_TYPES:
+					entry.numAnnotations[i] = entry.numNonDraftAnnotationsOfType(type)
+					i += 1
+				entry.numAnswers = entry.numNonDraftAnswers()
+				entry.numLinks = entry.getNumLinks()
+				entry.put()
+			"""
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': TITLES["HOME"],
 							'rakontu': rakontu, 
@@ -110,8 +121,8 @@ class BrowseEntriesPage(webapp.RequestHandler):
 							'location': "home",
 							'include_time_range': True,
 									'member_time_frame_string': viewOptions.getFrameStringForViewTimeFrame(),
-									'min_time': RelativeTimeDisplayString(viewOptions.getStartTime(), member),
-									'max_time': RelativeTimeDisplayString(viewOptions.endTime, member),
+									'min_time': TimeDisplay(viewOptions.getStartTime(), member),
+									'max_time': TimeDisplay(viewOptions.endTime, member),
 								'include_entry_types': True,
 											'entry_types_to_show': viewOptions.entryTypes,
 
@@ -135,7 +146,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-	def buildGrid(self, entries, member, skinDict):
+	def buildGrid(self, entries, member, skinDict, showDetails):
 		haveContent = False
 		textsForGrid = []
 		rowColors = []
@@ -170,7 +181,8 @@ class BrowseEntriesPage(webapp.RequestHandler):
 				if rowColEntries.has_key((row, col)):
 					entries = rowColEntries[(row, col)]
 					for entry in entries:
-						textsInThisCell.append(self.DisplayTextForEntry(entry, member, minActivityPoints))
+						text =  ItemDisplayStringForGrid(entry, member, "home", curating=False, showDetails=showDetails, adjustFontSize=True, minActivityPoints=minActivityPoints)
+						textsInThisCell.append(text)
 				haveContent = haveContent or len(textsInThisCell) > 0
 				textsInThisRow.append(textsInThisCell)
 			textsForGrid.append(textsInThisRow)
@@ -198,7 +210,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 					nameString = ' (<a href="/%s/%s?%s">%s</a>, ' % (DIRS["dir_visit"], URLS["url_character"], entry.character.urlQuery(), entry.character.name)
 				else:
 					nameString = " (%s, " % entry.character.name
-			dateTimeString = " %s)" % RelativeTimeDisplayString(entry.published, member)
+			dateTimeString = " %s)" % TimeDisplay(entry.published, member)
 			if entry.text_formatted:
 				textString = ": %s" % upToWithLink(stripTags(entry.text_formatted), DEFAULT_DETAILS_TEXT_LENGTH, entry.linkURL())
 			else:
@@ -230,8 +242,7 @@ class ReadEntryPage(webapp.RequestHandler):
 			if entry:
 				curating = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
 				showVersions = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_versions") == URL_OPTIONS["url_query_versions"]
-				refresh = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_refresh") == URL_OPTIONS["url_query_refresh"]
-				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "entry", refresh=refresh, entry=entry)
+				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "entry", entry=entry)
 				textsForGrid, rowColors = self.buildGrid(items, entry, member, rakontu, curating)
 				thingsUserCanDo = self.buildThingsUserCanDo(entry, member, rakontu, curating)
 				viewOptions = member.getViewOptionsForLocation("entry")
@@ -336,7 +347,7 @@ class ReadEntryPage(webapp.RequestHandler):
 					if rowColItems.has_key((row, col)):
 						items = rowColItems[(row, col)]
 						for item in items:
-							text = ItemDisplayStringForGrid(item, member, curating, showingMember=False, showDetails=showDetails)
+							text = ItemDisplayStringForGrid(item, member, "entry", curating, showDetails=showDetails)
 							textsInThisCell.append(text)
 					haveContent = haveContent or len(textsInThisCell) > 0
 					textsInThisRow.append(textsInThisCell)
@@ -639,9 +650,8 @@ class SeeMemberPage(webapp.RequestHandler):
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			memberToSee = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
 			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
-			refresh = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_refresh") == URL_OPTIONS["url_query_refresh"]
 			if memberToSee:
-				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "member", refresh=refresh, memberToSee=memberToSee)
+				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "member", memberToSee=memberToSee)
 				textsForGrid, rowColors = self.buildGrid(items, member, memberToSee, rakontu, curating)
 				countNames, counts = memberToSee.getCounts()
 				viewOptions = member.getViewOptionsForLocation("member")
@@ -672,8 +682,8 @@ class SeeMemberPage(webapp.RequestHandler):
 								'location': "member",
 								'include_time_range': True,
 									'member_time_frame_string': viewOptions.getFrameStringForViewTimeFrame(),
-									'min_time': RelativeTimeDisplayString(viewOptions.getStartTime(), member),
-									'max_time': RelativeTimeDisplayString(viewOptions.endTime, member),
+									'min_time': TimeDisplay(viewOptions.getStartTime(), member),
+									'max_time': TimeDisplay(viewOptions.endTime, member),
 								'include_entry_types': True,
 											'entry_types_to_show': viewOptions.entryTypes,
 								'include_annotation_types': True,
@@ -699,7 +709,6 @@ class SeeMemberPage(webapp.RequestHandler):
 			minTime = member.getViewStartTime("member")
 			maxTime = member.getViewEndTime("member")
 			minNudgePoints, maxNudgePoints, minActivityPoints, maxActivityPoints = GetMinMaxNudgeAndActivityPointsFromListOfItems(allItems, member, "member")
-			giveShowingMemberParamToDisplayString = not memberToSee.isLiaison()
 			numRows = BROWSE_NUM_ROWS
 			numCols = BROWSE_NUM_COLS
 			showDetails = member.getViewDetailsForLocation("member")
@@ -735,7 +744,7 @@ class SeeMemberPage(webapp.RequestHandler):
 					if rowColItems.has_key((row, col)):
 						items = rowColItems[(row, col)]
 						for item in items:
-							text = ItemDisplayStringForGrid(item, member, curating, showingMember=giveShowingMemberParamToDisplayString, showDetails=showDetails)
+							text = ItemDisplayStringForGrid(item, member, "member", curating, showDetails=showDetails)
 							textsInThisCell.append(text)
 					textsInThisRow.append(textsInThisCell)
 				textsForGrid.append(textsInThisRow)
@@ -780,9 +789,8 @@ class SeeCharacterPage(webapp.RequestHandler):
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			character = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_character")
 			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
-			refresh = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_refresh") == URL_OPTIONS["url_query_refresh"]
 			if character:
-				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "character", refresh=refresh, character=character)
+				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "character", character=character)
 				textsForGrid, rowColors = self.buildGrid(items, member, character, rakontu, curating)
 				viewOptions = member.getViewOptionsForLocation("character")
 				currentSearch = viewOptions.search
@@ -811,8 +819,8 @@ class SeeCharacterPage(webapp.RequestHandler):
 								'location': "member",
 								'include_time_range': True,
 									'member_time_frame_string': viewOptions.getFrameStringForViewTimeFrame(),
-									'min_time': RelativeTimeDisplayString(viewOptions.getStartTime(), member),
-									'max_time': RelativeTimeDisplayString(viewOptions.endTime, member),
+									'min_time': TimeDisplay(viewOptions.getStartTime(), member),
+									'max_time': TimeDisplay(viewOptions.endTime, member),
 								'include_entry_types': True,
 											'entry_types_to_show': viewOptions.entryTypes,
 								'include_annotation_types': True,
@@ -873,7 +881,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 					if rowColItems.has_key((row, col)):
 						items = rowColItems[(row, col)]
 						for item in items:
-							text = ItemDisplayStringForGrid(item, member, curating, showingMember=True, showDetails=showDetails)
+							text = ItemDisplayStringForGrid(item, member, "character", curating, showDetails=showDetails)
 							textsInThisCell.append(text)
 					textsInThisRow.append(textsInThisCell)
 				textsForGrid.append(textsInThisRow)
@@ -1455,15 +1463,21 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			location = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_location")
-			# CFK FIX - must get entry member and character to know where to return to,
-			# if location is not home
-			# which means the sender needs to put it in the URL
+			if location == "home":
+				defaultURL = rakontu.linkURL()
+			elif location == "entry":
+				defaultURL = entry.linkURL()
+			elif location == "member": 
+				defaultURL = memberToSee.linkURL()
+			elif location == "character":
+				defaultURL = character.linkURL()
+			defaultURL += "&%s=%s" % (URL_OPTIONS["url_query_location"], location)
 			search = member.getSearchForLocation(location)
 			if "deleteSearchByCreator" in self.request.arguments():
 				if search:
 					db.delete(search)
 					member.setSearchForLocation(location, None)
-				self.redirect(rakontu.linkURL())
+				self.redirect(defaultURL)
 			elif "flagSearchByCurator" in self.request.arguments():
 				if search:
 					search.flaggedForRemoval = not search.flaggedForRemoval
@@ -1471,12 +1485,12 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 					query = "%s=%s" % (URL_OPTIONS["url_query_location"], location)
 					self.redirect(BuildURL("dir_visit", "url_search_filter", query, rakontu=rakontu))
 				else:
-					self.redirect(rakontu.linkURL())
+					self.redirect(defaultURL)
 			elif "removeSearchByManager" in self.request.arguments():
 				if search:
 					db.delete(search)
 					member.setSearchForLocation(location, None)
-				self.redirect(rakontu.linkURL())
+				self.redirect(defaultURL)
 			elif "saveAs" in self.request.arguments() or "save" in self.request.arguments():
 				if not search or "saveAs" in self.request.arguments():
 					search = SavedSearch(key_name=KeyName("filter"), rakontu=rakontu, creator=member)
@@ -1551,7 +1565,7 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 								ref.type = preface
 								ref.put()
 				member.setSearchForLocation(location, search)
-				self.redirect(rakontu.linkURL())
+				self.redirect(defaultURL)
 			else:
 				self.redirect(rakontu.linkURL())
 		else:
@@ -1646,11 +1660,11 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 	elif "setToLast" in request.arguments():
 		viewOptions.endTime = datetime.now(tz=pytz.utc)
 		viewOptions.put()
-		return defaultURL + "&%s=%s" % (URL_OPTIONS["url_query_refresh"], URL_OPTIONS["url_query_refresh"])
+		return defaultURL 
 	elif "refresh" in request.arguments():
 		viewOptions.endTime = datetime.now(tz=pytz.utc)
 		viewOptions.put()
-		return defaultURL + "&%s=%s" % (URL_OPTIONS["url_query_refresh"], URL_OPTIONS["url_query_refresh"])
+		return defaultURL 
 	elif "setToFirst" in request.arguments():
 		if location == "home":
 			if rakontu.firstPublish:
@@ -1695,7 +1709,8 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 	elif "changeNudgeCategoriesShowing" in request.arguments():
 		newNudgeCategories = []
 		for i in range(NUM_NUDGE_CATEGORIES):
-			newNudgeCategories.append(request.get("showCategory|%s" % i) == "yes")
+			if rakontu.nudgeCategoryIndexHasContent(i):
+				newNudgeCategories.append(request.get("showCategory|%s" % i) == "yes")
 		viewOptions.nudgeCategories = []
 		viewOptions.nudgeCategories.extend(newNudgeCategories)
 		oldValue = viewOptions.nudgeFloor
@@ -1730,7 +1745,8 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 			return BuildURL("dir_visit", "url_search_filter", query, rakontu=rakontu)
 	elif "changeSearch"  in request.arguments():
 		if search:
-			return BuildURL("dir_visit", "url_search_filter", search.urlQuery(), rakontu=rakontu)
+			query = "%s&%s=%s" % (search.urlQuery(), URL_OPTIONS["url_query_location"], location)
+			return BuildURL("dir_visit", "url_search_filter", query, rakontu=rakontu)
 		else:
 			viewOptions.search = None
 			viewOptions.put()
@@ -1742,7 +1758,8 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 			newSearch.copyDataFromOtherSearchAndPut(search)
 			viewOptions.search = newSearch
 			viewOptions.put()
-			return BuildURL("dir_visit", "url_search_filter", newSearch.urlQuery(), rakontu=rakontu)
+			query = "%s&%s=%s" % (newSearch.urlQuery(), URL_OPTIONS["url_query_location"], location)
+			return BuildURL("dir_visit", "url_search_filter", query, rakontu=rakontu)
 		else:
 			return defaultURL
 	# other options - all
@@ -1772,25 +1789,41 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 	else:
 			return None
 		
-def ItemDisplayStringForGrid(item, member, curating=False, showingMember=False, showDetails=False):
+def ItemDisplayStringForGrid(item, member, location, curating=False, showDetails=False, adjustFontSize=False, minActivityPoints=0):
+	# font size string (home grid only)
+	fontSizeStartString = ""
+	fontSizeEndString = ""
+	if adjustFontSize and item.__class__.__name__ == "Entry":
+		fontSizePercent = min(200, 90 + item.activityPoints - minActivityPoints)
+		downdrift = member.rakontu.getEntryActivityPointsForEvent("downdrift")
+		if downdrift:
+			daysSinceTouched = 1.0 * (datetime.now(tz=pytz.utc) - item.lastTouched()).seconds / DAY_SECONDS
+			timeLoss = daysSinceTouched * downdrift
+			fontSizePercent += timeLoss
+			fontSizePercent = int(max(MIN_BROWSE_FONT_SIZE_PERCENT, min(fontSizePercent, MAX_BROWSE_FONT_SIZE_PERCENT)))
+		fontSizeStartString = '<span style="font-size:%s%%">' % fontSizePercent
+		fontSizeEndString = "</span>"
 	# link string
 	if item.__class__.__name__ == "Answer":
 		if showDetails: 
-			if not showingMember:
-				linkString = item.linkStringWithQuestionText()
-			else:
+			if location != "entry":
 				linkString = item.linkStringWithQuestionTextAndReferentLink()
-		else:
-			if not showingMember:
-				linkString = item.linkStringWithQuestionName()
 			else:
+				linkString = item.linkStringWithQuestionText()
+		else:
+			if location != "entry":
 				linkString = item.linkStringWithQuestionNameAndReferentLink()
+			else:
+				linkString = item.linkStringWithQuestionName()
 	elif item.__class__.__name__ == "Annotation":
-		linkString = item.linkStringWithEntryLink(showDetails=showDetails)
+		if location != "entry":
+			linkString = item.linkStringWithEntryLink(showDetails=showDetails)
+		else:
+			linkString = item.linkString(showDetails=showDetails)
 	else:
 		linkString = item.linkString()
 	# name 
-	if not showingMember:
+	if showDetails:
 		if item.attributedToMember(): 
 			if item.creator.active:
 				nameString = ' (%s' % (item.creator.linkString())
@@ -1801,11 +1834,8 @@ def ItemDisplayStringForGrid(item, member, curating=False, showingMember=False, 
 				nameString = ' (%s' % (item.character.linkString())
 			else: 
 				nameString = ' (%s' % item.character.name
-		if showDetails: 
-			nameString += ", " 
-		else:
-			nameString += ")"
-	else: 
+		nameString += ")"
+	else:
 		nameString = ""
 	# curating flag 
 	if curating: 
@@ -1817,13 +1847,22 @@ def ItemDisplayStringForGrid(item, member, curating=False, showingMember=False, 
 		curateString = ""
 	# date string if showing details
 	if showDetails:
-		if showingMember:
-			dateTimeString = " ("
-		else:
-			dateTimeString = " "
-		dateTimeString += "%s)" % RelativeTimeDisplayString(item.published, member)
+		dateTimeString = " %s)" % TimeDisplay(item.published, member)
 	else:
 		dateTimeString = ""
+	# annotations count string if entry and showing details
+	annotationsCountString = ""
+	if showDetails and item.__class__.__name__ == "Entry":
+		annotationsCountString += " "
+		i = 0
+		for type in ANNOTATION_TYPES:
+			if item.numAnnotations[i] > 0:
+				annotationsCountString += "%s%s" % (ImageLinkForAnnotationType(type), item.numAnnotations[i]) #ANNOTATION_TYPES_PLURAL_DISPLAY[i])
+			i += 1
+		if item.numAnswers > 0:
+			annotationsCountString += "%s%s" % (ImageLinkForAnswer(), item.numAnswers) # TERMS["term_answers"])
+		if item.numLinks > 0:
+			annotationsCountString += "%s%s" % (ImageLinkForLink(), item.numLinks) # TERMS["term_links"])
 	# longer text if showing details
 	if showDetails:
 		if item.__class__.__name__ == "Annotation":
@@ -1835,12 +1874,12 @@ def ItemDisplayStringForGrid(item, member, curating=False, showingMember=False, 
 			else:
 				textString = ""
 		elif item.__class__.__name__ == "Entry":
-			textString = ": %s" % upToWithLink(stripTags(item.text_formatted), DEFAULT_DETAILS_TEXT_LENGTH, item.linkURL())
+			textString = " %s" % upToWithLink(stripTags(item.text_formatted), DEFAULT_DETAILS_TEXT_LENGTH, item.linkURL())
 		else:
 			textString = ""
 	else:
 		textString = ""
-	return '<p>%s %s %s%s%s%s</p>' % (item.getImageLinkForType(), curateString, linkString, nameString, dateTimeString, textString)
+	return '<p>%s %s %s %s%s%s%s%s%s</p>' % (item.getImageLinkForType(), fontSizeStartString, curateString, linkString, fontSizeEndString, nameString, dateTimeString, annotationsCountString, textString)
 
 def GetMinMaxNudgeAndActivityPointsFromListOfItems(items, member, location):
 		maxNudgePoints = -9999999

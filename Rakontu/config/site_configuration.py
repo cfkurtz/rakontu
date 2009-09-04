@@ -83,11 +83,15 @@ THUMBNAIL_HEIGHT = 60
 # BROWSING
 # ============================================================================================ 
 
+# This is the number of items to show on grid (time vs nudge) and list pages.
+# It should not be changed unless you are fairly confident of your server processing capacity and speed.
+MAX_ITEMS_PER_GRID_PAGE = 100
+MAX_ITEMS_PER_LIST_PAGE = 100
+
 # These are the time frames shown in the Rakontu home page.
 # The names can be anything you like, but the number of seconds must match the time frame stated.
 # These must match constants in the language_config file.
 # These should not go beyond a month, to avoid excessive CPU limits on GAE.
-
 if DEVELOPMENT:
 	TIME_FRAMES = [
 				 (TIMEFRAME_10MINUTES, MINUTE_SECONDS * 10),
@@ -220,6 +224,9 @@ PRINT_DELIMITER = "=======\n"
 
 # This is the number of entries to export to XML in one request.
 EXPORT_RANGE_XML = 50
+
+# This is how much text to show where an entry (or comment or request) is being summarized
+SHORT_DISPLAY_LENGTH = 100
 
 # ============================================================================================ 
 # QUESTIONS

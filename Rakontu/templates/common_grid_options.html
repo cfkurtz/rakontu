@@ -128,12 +128,12 @@
 			<input type="submit" name="toggleShowDetails" value="{{button_show_details}}" class="button_small">
 		{% endif %}
 
-		{% if include_print and current_member.isLiaison %}
-			<input type="submit" name="printSearchResults" value="{{button_print}}" class="button_small">
+		{% if include_print %}
+			<input type="submit" name="printSearchResults" value="{{button_print_selection}}" class="button_small">
 		{% endif %}
 		
 		{% if include_export and current_member.isManagerOrOwner %}
-			<input type="submit" name="exportSearchResults" value="{{button_export}}" class="button_small">
+			<input type="submit" name="exportSearchResults" value="{{button_export_selection}}" class="button_small">
 		{% endif %}
 
 		{% if grid_options_on_top %}

@@ -46,7 +46,7 @@
       			<tr>
       			<td>{{request.entry.linkString}}</td>
       			<td>{{request.linkString}}</td>
-      			<td>{{request.longString_formatted|upTo:200}}</a></td>
+      			<td>{{request.longString_formatted|upTo:short_display_length}}</a></td>
       			<td align="center">
   					{% if request.completedIfRequest %}
   						{{template_yes|upper}}

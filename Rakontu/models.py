@@ -9,6 +9,7 @@
 import logging, pytz, re, csv, uuid, random
 from datetime import *
 from pytz import timezone
+from google.appengine.api import memcache
 
 VERSION_NUMBER = "0.9"
 
@@ -170,9 +171,9 @@ class Rakontu(db.Model):
 	defaultTimeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE, indexed=False) # appears on member preferences page
 	defaultTimeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT, indexed=False) # appears on member preferences page
 	defaultDateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT, indexed=False) # appears on member preferences page
-	
 	skinName = db.StringProperty(default=DEFAULT_SKIN_NAME, indexed=False)
-	customSkin = db.TextProperty()
+	customSkin = db.TextProperty(indexed=False)
+	externalStyleSheetURL = db.StringProperty(default=None, indexed=False)
 	
 	def initializeFormattedTexts(self):
 		self.description_formatted = db.Text("<p>%s</p>" % self.description)
@@ -204,6 +205,8 @@ class Rakontu(db.Model):
 	def getSkinDictionary(self):
 		if self.skinName == TERMS["term_custom"] and self.customSkin:
 			return self.customSkinAsDictionary()
+		elif self.skinName == TEMPLATE_TERMS["template_none"]:
+			return {}
 		else:
 			skin = Skin.all().filter("name = ", self.skinName).get()
 			if skin:
@@ -219,6 +222,9 @@ class Rakontu(db.Model):
 			value = stringBeyond(row, "=")
 			result[key] = value
 		return result
+	
+	def nudgeCategoryIndexHasContent(self, index):
+		return self.nudgeCategories[index] != None and self.nudgeCategories[index] != ""
 		
 	# DISPLAY
 	
@@ -822,7 +828,9 @@ class Rakontu(db.Model):
 		if type == "csv_export_search":
 			if member:
 				exportText += '"Export of viewed items for member "%s" in Rakontu %s"\n' % (member.nickname, self.name)
-				entries = ItemsMatchingViewOptionsForMemberAndLocation(member, "home", refresh=True)
+				(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
+				if overLimitWarning:
+					exportText += '\n"%s of %s %s\n"' % (MAX_ITEMS_PER_GRID_PAGE, numItemsBeforeLimitTruncation, overLimitWarning)
 				memberQuestions = self.getActiveQuestionsOfType("member")
 				characterQuestions = self.getActiveQuestionsOfType("character")
 				typeCount = 0
@@ -833,7 +841,7 @@ class Rakontu(db.Model):
 							entriesOfThisType.append(entry)
 					if entriesOfThisType:
 						questions = self.getActiveQuestionsOfType(type)
-						exportText += '\n%s\nNumber,Title,Contributor,' % ENTRY_TYPES_PLURAL_DISPLAY[typeCount].upper()
+						exportText += '\n%s\nTitle,Date,Contributor,' % ENTRY_TYPES_PLURAL_DISPLAY[typeCount].upper()
 						for question in questions:
 							exportText += question.name + ","
 						for question in memberQuestions:
@@ -843,7 +851,7 @@ class Rakontu(db.Model):
 						exportText += '\n'
 						i = 0
 						for entry in entriesOfThisType:
-							exportText += entry.csvLineWithAnswers(i+1, questions, memberQuestions, characterQuestions) 
+							exportText += entry.csvLineWithAnswers(member, questions, memberQuestions, characterQuestions) 
 							i += 1
 					typeCount += 1
 		elif type == "csv_export_all":
@@ -852,7 +860,7 @@ class Rakontu(db.Model):
 			characterQuestions = self.getActiveQuestionsOfType("character")
 			questions = self.getActiveQuestionsOfType(subtype)
 			entries = self.getNonDraftEntriesOfTypeInReverseTimeOrder(subtype)
-			exportText += '\n%s\nNumber,Title,Contributor,' % subtype.upper()
+			exportText += '\n%s\nTitle,Date,Contributor,' % subtype.upper()
 			for question in questions:
 				exportText += question.name + ","
 			for question in memberQuestions:
@@ -862,7 +870,7 @@ class Rakontu(db.Model):
 			exportText += '\n'
 			for i in range(len(entries)):
 				if (not startNumber and not endNumber) or (i >= startNumber and i < endNumber):
-					exportText += entries[i].csvLineWithAnswers(i+1, questions, memberQuestions, characterQuestions) 
+					exportText += entries[i].csvLineWithAnswers(member, questions, memberQuestions, characterQuestions) 
 		elif type == "xml_export":
 			if subtype == "rakontu":
 				exportText += self.to_xml()
@@ -900,28 +908,37 @@ class Rakontu(db.Model):
 					i += 1
 		elif type == "liaisonPrint_simple":
 			exportText += '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
-			exportText += '<title>Printed from Rakontu</title></head><body>'
+			exportText += '<title>%s</title></head><body>' % TERMS["term_printed_from_rakontu"]
 			if subtype == "search":
-				exportText += "<h3>Printing selections from Rakontu %s</h3>" % self.name
-				entries = ItemsMatchingViewOptionsForMemberAndLocation(member, "home", refresh=True)
+				exportText += "<h3>%s %s</h3>" % (TERMS["term_selections_for"], self.name)
+				(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
+				if overLimitWarning:
+					exportText += '\n%s of %s %s\n' % (MAX_ITEMS_PER_GRID_PAGE, numItemsBeforeLimitTruncation, overLimitWarning)
 				for entry in entries:
-					exportText += entry.PrintText()
+					exportText += entry.PrintText(member)
 			elif subtype == "entry":
-				exportText += "<h3>Printing selections for entry %s</h3>" % entry.name
-				items = ItemsMatchingViewOptionsForMemberAndLocation(member, "entry", refresh=True, entry=entry)
-				items.insert(0, entry)
+				exportText += "<h3>%s %s</h3>" % (TERMS["term_selections_for"], entry.title)
+				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "entry", entry=entry)
+				if overLimitWarning:
+					exportText += '\n%s of %s %s\n' % (MAX_ITEMS_PER_GRID_PAGE, numItemsBeforeLimitTruncation, overLimitWarning)
+				else:
+					items.insert(0, entry)
 				for item in items:
-					exportText += item.PrintText()
+					exportText += item.PrintText(member)
 			elif subtype == "member":
-				exportText += "<h3>Printing selections for member %s</h3>" % memberToSee.nickname
-				items = ItemsMatchingViewOptionsForMemberAndLocation(member, "member", refresh=True, memberToSee=memberToSee)
+				exportText += "<h3>%s %s</h3>" % (TERMS["term_selections_for"], memberToSee.nickname)
+				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "member", memberToSee=memberToSee)
+				if overLimitWarning:
+					exportText += '\n%s of %s %s\n' % (MAX_ITEMS_PER_GRID_PAGE, numItemsBeforeLimitTruncation, overLimitWarning)
 				for item in items:
-					exportText += item.PrintText()
+					exportText += item.PrintText(member)
 			elif subtype == "character":
-				exportText += "<h3>Printing selections for character %s</h3>" % character.name
-				items = ItemsMatchingViewOptionsForMemberAndLocation(member, "character", refresh=True, character=character)
+				exportText += "<h3>%s %s</h3>" % (TERMS["term_selections_for"], character.name)
+				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "character", character=character)
+				if overLimitWarning:
+					exportText += '\n%s of %s %s\n' % (MAX_ITEMS_PER_GRID_PAGE, numItemsBeforeLimitTruncation, overLimitWarning)
 				for item in items:
-					exportText += item.PrintText()
+					exportText += item.PrintText(member)
 			exportText += "</body></html>"
 		elif type == "exportQuestions":
 			exportText += '; refersTo,name,text,type,choices or min-max or boolean "yes" text,multiple,help,help for using\n'
@@ -1798,7 +1815,7 @@ class SavedSearch(db.Model):
 		if self.private:
 			return self.name
 		else:
-			return "%s (%s)" % (self.name, self.creator.nickname)
+			return "%s (%s)" % (self.name, self.creator.linkString())
 	
 	# LINKING TO PATTERNS
 		
@@ -1912,7 +1929,8 @@ class Answer(db.Model):
 			self.referent.recordAction("added", self)
 			if self.referentType == "entry":
 				for i in range(NUM_NUDGE_CATEGORIES):
-					self.entryNudgePointsWhenPublished[i] = self.referent.nudgePoints[i]
+					if self.rakontu.nudgeCategoryIndexHasContent(i):
+						self.entryNudgePointsWhenPublished[i] = self.referent.nudgePoints[i]
 				self.entryActivityPointsWhenPublished = self.referent.activityPoints
 				self.put()
 			# nudge points accrue even if using character
@@ -1931,7 +1949,7 @@ class Answer(db.Model):
 	# DISPLAY
 		
 	def getImageLinkForType(self):
-		return'<img src="/images/answers.png" alt="answer" border="0">'
+		return ImageLinkForAnswer()
 	
 	def displayStringShort(self):
 		return self.displayString(includeQuestionText=False, includeQuestionName=False)
@@ -1983,9 +2001,13 @@ class Answer(db.Model):
 	def linkStringWithQuestionTextAndReferentLink(self):
 		return "%s for %s" % (self.linkStringWithQuestionText(), self.referent.linkString())
 	
-	def PrintText(self):
-		return '<p>%s %s (%s)</p><hr>' \
-			% (self.question.text, self.displayStringShort(), self.memberNickNameOrCharacterName())
+	def PrintText(self, member):
+		answerString = TERMS["term_answer"].capitalize()
+		name = self.memberNickNameOrCharacterName()
+		time = TimeDisplay(self.published, member)
+		text = self.displayStringShort()
+		return '<p><b>%s</b>: %s [%s, %s]<div style="padding: 0px 16px 0px 16px;">%s</div></p><hr>\n\n' % \
+			(answerString, self.question.text, name, time, text)
 			
 	def MemberWantsToSeeMyTypeInLocation(self, member, location):
 		return member.getAnnotationAnswerLinkTypeForLocationAndIndex(location, ANNOTATION_ANSWER_LINK_TYPES_ANSWER_INDEX)
@@ -1994,7 +2016,7 @@ class Answer(db.Model):
 		viewOptions = member.getViewOptionsForLocation(location)
 		result = 0
 		for i in range(NUM_NUDGE_CATEGORIES):
-			if viewOptions.nudgeCategories[i]:
+			if self.rakontu.nudgeCategoryIndexHasContent(i) and viewOptions.nudgeCategories[i]:
 				result += self.entryNudgePointsWhenPublished[i]
 		return result
 		
@@ -2053,6 +2075,10 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	activityPoints = db.IntegerProperty(default=0)
 	nudgePoints = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
 	
+	numAnnotations = db.ListProperty(int, default=[0] * len(ANNOTATION_TYPES), indexed=False)
+	numAnswers = db.IntegerProperty(default=0, indexed=False)
+	numLinks = db.IntegerProperty(default=0, indexed=False)
+	
 	def isEntry(self):
 		return True
 	
@@ -2102,14 +2128,25 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		elif referent.__class__.__name__ == "Annotation":
 			eventType = "adding %s" % referent.type
 			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
+			typeIndex = -1
+			i = 0
+			for type in ANNOTATION_TYPES:
+				if type == referent.type:
+					typeIndex = i
+					break
+				i += 1
+			if typeIndex >= 0:
+				self.numAnnotations[typeIndex] = self.numAnnotations[typeIndex] + 1
 			if referent.type == "nudge":
 				self.nudgePoints = self.getCurrentTotalNudgePointsInAllCategories()
 		elif referent.__class__.__name__ == "Answer":
 			eventType = "answering question"
 			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
+			self.numAnswers += 1
 		elif referent.__class__.__name__ == "Link":
 			eventType = "adding %s link" % referent.type 
 			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
+			self.numLinks += 1
 		self.activityPoints += self.rakontu.getEntryActivityPointsForEvent(eventType)
 		self.put()
 		
@@ -2390,13 +2427,17 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		return result
 	
 	def nudgePointsCombined(self):
-		return self.nudgePoints[0] + self.nudgePoints[1] + self.nudgePoints[2] + self.nudgePoints[3] + self.nudgePoints[4]
+		result = 0
+		for i in range(NUM_NUDGE_CATEGORIES):
+			if self.rakontu.nudgeCategoryIndexHasContent(i):
+				result += self.nudgePoints[i]
+		return result
 	
 	def nudgePointsForMemberAndLocation(self, member, location):
 		viewOptions = member.getViewOptionsForLocation(location)
 		result = 0
 		for i in range(NUM_NUDGE_CATEGORIES):
-			if viewOptions.nudgeCategories[i]:
+			if self.rakontu.nudgeCategoryIndexHasContent(i) and viewOptions.nudgeCategories[i]:
 				result += self.nudgePoints[i]
 		return result
 	
@@ -2450,6 +2491,9 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	def getNonDraftAnnotationsOfType(self, type):
 		return Annotation.all().filter("entry =", self.key()).filter("type = ", type).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
+	def numNonDraftAnnotationsOfType(self, type):
+		return Annotation.all().filter("entry =", self.key()).filter("type = ", type).filter("draft = ", False).count()
+	
 	def hasTagSets(self):
 		return Annotation.all().filter("entry =", self.key()).filter("type = ", "tag set").filter("draft = ", False).count() > 0
 		
@@ -2464,6 +2508,9 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
+	
+	def numNonDraftAnswers(self):
+		return Answer.all().filter("referent = ", self.key()).filter("draft = ", False).count()
 	
 	def hasNonDraftAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).filter("draft = ", False).count() > 0
@@ -2527,6 +2574,9 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	
 	def hasLinks(self):
 		return Link.all().filter("itemFrom = ", self.key()).count() + Link.all().filter("itemTo = ", self.key()).count() > 0
+	
+	def getNumLinks(self):
+		return Link.all().filter("itemFrom = ", self.key()).count() + Link.all().filter("itemTo = ", self.key()).count() 
 	
 	def getLinksOfType(self, type):
 		result = []
@@ -2611,13 +2661,13 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	
 	def getTooltipText(self):
 		if self.text_formatted:
-			return'title="%s"' % stripTags(self.text_formatted[:100])
+			return'title="%s (%s)"' % (stripTags(self.text_formatted[:SHORT_DISPLAY_LENGTH]), self.memberNickNameOrCharacterName())
 		else:
 			return ""
 	
 	def shortFormattedText(self):
-		if len(self.text_formatted) > 100:
-			return "%s ..." % self.text_formatted[:98]
+		if len(self.text_formatted) > SHORT_DISPLAY_LENGTH:
+			return "%s ..." % self.text_formatted[:SHORT_DISPLAY_LENGTH-2]
 		else:
 			return self.text_formatted
 
@@ -2647,23 +2697,24 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 					result = result.replace(findString, '<a href="/visit/attachment?attachment_id=%s">%s</a>' % (attachments[i].key(), attachments[i].fileName))
 		return result
 	
-	def csvLineWithAnswers(self, index, questions, memberQuestions, characterQuestions):
-		parts = [str(index), self.title, self.memberNickNameOrCharacterName()]
+	def csvLineWithAnswers(self, member, questions, memberQuestions, characterQuestions):
+		timeString = TimeDisplay(self.published, member)
+		parts = [self.title, timeString, self.memberNickNameOrCharacterName()]
 		(members, characters) = self.getMembersAndCharactersWhoHaveAnsweredQuestionsAboutMe()
-		for member in members:
-			parts.append("\n%s" % index)
-			parts.append(self.title)
-			parts.append(member.nickname)
+		for aMember in members:
+			parts.append("\n%s" % self.title)
+			parts.append(timeString)
+			parts.append(aMember.nickname)
 			# questions about entry
 			for question in questions:
-				answer = self.getAnswerForMemberAndQuestion(member, question)
+				answer = self.getAnswerForMemberAndQuestion(aMember, question)
 				if answer: 
 					parts.append(answer.displayStringShort())
 				else:
 					parts.append("")
 			# about teller
 			for question in memberQuestions:
-				answer = member.getAnswerForQuestion(question)
+				answer = aMember.getAnswerForQuestion(question)
 				if answer:
 					parts.append(answer.displayStringShort())
 				else:
@@ -2695,8 +2746,11 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 		parts.append("\n")
 		return CleanUpCSV(parts)
 	
-	def PrintText(self):
-		return "<p><b>%s</b> (%s)</p><p>%s</p><hr>" % (self.title, self.type, self.text_formatted)
+	def PrintText(self, member):
+		typeToShow = DisplayTypeForEntryType(self.type).capitalize()
+		creator = self.memberNickNameOrCharacterName()
+		time = TimeDisplay(self.published, member)
+		return '<p><b>%s</b>: %s [%s, %s]</p><div style="padding: 0px 16px 0px 16px;">%s</div></p><hr>\n\n' % (typeToShow, self.title, creator, time, self.text_formatted)
 		
 	def MemberWantsToSeeMyTypeInLocation(self, member, location):
 		i = 0
@@ -2777,7 +2831,8 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 			self.itemTo.recordAction("added", self)
 		self.itemFrom.recordAction("added", self)
 		for i in range(NUM_NUDGE_CATEGORIES):
-			self.entryNudgePointsWhenPublished[i] = self.itemFrom.nudgePoints[i]
+			if self.rakontu.nudgeCategoryIndexHasContent(i):
+				self.entryNudgePointsWhenPublished[i] = self.itemFrom.nudgePoints[i]
 		self.entryActivityPointsWhenPublished = self.itemFrom.activityPoints
 		self.put()
 		self.creator.nudgePoints = self.itemFrom.rakontu.getMemberNudgePointsForEvent("adding %s link" % self.type)
@@ -2797,7 +2852,7 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 	# DISPLAY
 		
 	def getImageLinkForType(self):
-		return'<img src="/images/link.png" alt="link" border="0">'
+		return ImageLinkForLink()
 	
 	def displayString(self):
 		result = '%s &gt; %s &gt; %s' % (self.itemFrom.linkString(), DisplayTypeForLinkType(self.type), self.itemTo.linkString())
@@ -2820,8 +2875,13 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 			result += ", (%s)" % self.comment
 		return result
 	
-	def PrintText(self):
-		return "<p>%s - %s</p><p>%s (%s)</p><hr>" % (self.linkFrom.title, self.linkTo.title, self.type, self.comment)
+	def PrintText(self, member):
+		linkString = TERMS["term_link"].capitalize()
+		type = DisplayTypeForLinkType(self.type)
+		name = self.creator.nickname
+		time = TimeDisplay(self.published, member)
+		return '<p><b>%s</b>: %s &gt; %s &gt; %s [%s, %s]</p><div style="padding: 0px 16px 0px 16px;">%s</div></p><hr>\n\n' % \
+			(linkString, self.itemFrom.title, type, self.itemTo.title, name, time, self.comment)
 
 	def MemberWantsToSeeMyTypeInLocation(self, member, location):
 		return member.getAnnotationAnswerLinkTypeForLocationAndIndex(location, ANNOTATION_ANSWER_LINK_TYPES_LINK_INDEX)
@@ -2830,7 +2890,7 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 		viewOptions = member.getViewOptionsForLocation(location)
 		result = 0
 		for i in range(NUM_NUDGE_CATEGORIES):
-			if viewOptions.nudgeCategories[i]:
+			if self.rakontu.nudgeCategoryIndexHasContent(i) and viewOptions.nudgeCategories[i]:
 				result += self.entryNudgePointsWhenPublished[i]
 		return result
 	
@@ -2931,7 +2991,8 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 		self.put()
 		self.entry.recordAction("added", self)
 		for i in range(NUM_NUDGE_CATEGORIES):
-			self.entryNudgePointsWhenPublished[i] = self.entry.nudgePoints[i]
+			if self.rakontu.nudgeCategoryIndexHasContent(i):
+				self.entryNudgePointsWhenPublished[i] = self.entry.nudgePoints[i]
 		self.entryActivityPointsWhenPublished = self.entry.activityPoints
 		self.put()
 		self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("adding %s" % self.type)
@@ -3019,37 +3080,56 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 					tagsToReport.append(tag)
 			return  ", ".join(tagsToReport)
 		elif self.type == "nudge":
-			result = []
-			for i in range(NUM_NUDGE_CATEGORIES):
-				if self.valuesIfNudge[i] != 0:
-					if showDetails:
+			resultString = self.displayStringForNudgeWithoutComment(showDetails)
+			if showDetails and self.shortString:
+				resultString += " (%s)" % self.shortString
+			return resultString
+		
+	def displayStringForNudgeWithoutComment(self, showDetails):
+		result = []
+		for i in range(NUM_NUDGE_CATEGORIES):
+			if self.rakontu.nudgeCategoryIndexHasContent(i):
+				if showDetails:
+					if self.valuesIfNudge[i] != 0:
 						result.append("%s %s" % (self.valuesIfNudge[i], self.rakontu.nudgeCategories[i]))
-						if self.shortString:
-							result.append("(%s)" % self.shortString)
-					else:
-						result.append("%s" % (self.valuesIfNudge[i]))
-			return ", ".join(result)
+				else:
+					result.append("%s" % (self.valuesIfNudge[i]))
+		resultString = ", ".join(result)
+		return resultString
 		
 	def displayStringShortAndWithoutTags(self):
 		return self.displayString(includeType=False)
 	
-	def PrintText(self):
+	def PrintText(self, member):
+		name = self.memberNickNameOrCharacterName()
+		time = TimeDisplay(self.published, member)
+		type = DisplayTypeForAnnotationType(self.type).capitalize()
+		displayString = self.displayString(showDetails=True)
+		nudgeString = self.displayStringForNudgeWithoutComment(showDetails=True)
 		if self.isCommentOrRequest():
-			return '<p>%s "%s" (%s)<div style="padding: 0px 16px 0px 16px;">%s</div></p><hr>\n\n' % \
-				(DisplayTypeForAnnotationType(self.type), self.shortString, self.memberNickNameOrCharacterName(), self.longString_formatted)
+			return '<p><b>%s</b>: %s [%s, %s, %s]<div style="padding: 0px 16px 0px 16px;">%s</div></p><hr>\n\n' % \
+				(type, self.shortString, self.entry.title, name, time, self.longString_formatted)
+		elif self.type == "nudge":
+			return '<p><b>%s</b>: %s [%s, %s, %s]<div style="padding: 0px 16px 0px 16px;">%s</div></p><hr>\n\n' % \
+				(type, nudgeString, self.entry.title, name, time, self.shortString)
 		else:
-			return '<p>%s "%s" (%s)</p><hr>\n\n' % \
-				(self.type, self.displayString(), self.memberNickNameOrCharacterName())
+			return '<p><b>%s</b>: %s [%s, %s, %s]</p><hr>\n\n' % (type, displayString, self.entry.title, name, time)
 		
 	def getKeyName(self):
 		return self.key().name()
 	
 	def linkString(self, showDetails=True):
 		if self.type == "comment" or self.type == "request":
-			return '<a href="%s?%s">%s</a>' % (self.urlWithoutQuery(), self.urlQuery(), self.shortString)
+			return '<a href="%s?%s" %s>%s</a>' % (self.urlWithoutQuery(), self.urlQuery(), self.getTooltipText(), self.shortString)
 		else:
 			return self.displayString(showDetails=showDetails)
 		
+	def getTooltipText(self):
+		if self.longString_formatted:
+			return'title="%s (%s)"' % (stripTags(self.longString_formatted[:SHORT_DISPLAY_LENGTH]), self.memberNickNameOrCharacterName())
+		else:
+			return ""
+	
 	def linkURL(self):
 		return '%s?%s' % (self.urlWithoutQuery(), self.urlQuery())
 		
@@ -3063,15 +3143,7 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 		return "%s %s %s" % (self.linkString(showDetails=showDetails), TERMS["term_for"], self.entry.linkString())
 		
 	def getImageLinkForType(self):
-		if self.type == "comment":
-			imageText = '<img src="/images/comments.png" alt="comment" border="0">'
-		elif self.type == "request":
-			imageText = '<img src="/images/requests.png" alt="request" border="0">'
-		elif self.type == "tag set":
-			imageText = '<img src="/images/tags.png" alt="tag set" border="0">'
-		elif self.type == "nudge":
-			imageText = '<img src="/images/nudges.png" alt="nudge" border="0">'
-		return imageText
+		return ImageLinkForAnnotationType(self.type)
 	
 	def MemberWantsToSeeMyTypeInLocation(self, member, location):
 		i = 0
@@ -3087,7 +3159,7 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 		viewOptions = member.getViewOptionsForLocation(location)
 		result = 0
 		for i in range(NUM_NUDGE_CATEGORIES):
-			if viewOptions.nudgeCategories[i]:
+			if self.rakontu.nudgeCategoryIndexHasContent(i) and viewOptions.nudgeCategories[i]:
 				result += self.entryNudgePointsWhenPublished[i]
 		return result
 
@@ -3271,3 +3343,159 @@ def helpTextLookup(name, type):
 	else: 
 		return None
 	
+def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, memberToSee=None, character=None):
+	rakontu = member.rakontu
+	viewOptions = member.getViewOptionsForLocation(location)
+	startTime = viewOptions.getStartTime()
+	endTime = viewOptions.endTime 
+	entryTypeBooleans = viewOptions.entryTypes
+	entryTypes = []
+	for i in range(len(ENTRY_TYPES)):
+		if entryTypeBooleans[i]:
+			entryTypes.append(ENTRY_TYPES[i])
+	annotationTypeBooleans = viewOptions.annotationAnswerLinkTypes
+	annotationTypes = []
+	for i in range(len(ANNOTATION_ANSWER_LINK_TYPES)):
+		if annotationTypeBooleans[i]:
+			annotationTypes.append(ANNOTATION_ANSWER_LINK_TYPES[i]) 
+	if location == "home":
+		itemsToStart = member.rakontu.browseEntries(startTime, endTime, entryTypes)
+		considerNudgeFloor = True
+		considerSearch = True
+	elif location == "entry":
+		itemsToStart = entry.browseItems(annotationTypes)
+		considerNudgeFloor = False
+		considerSearch = False
+	elif location == "member":
+		itemsToStart = memberToSee.browseItems(startTime, endTime, entryTypes, annotationTypes)
+		considerNudgeFloor = False
+		considerSearch = True
+	elif location == "character":
+		itemsToStart = character.browseItems(startTime, endTime, entryTypes, annotationTypes)
+		considerNudgeFloor = False
+		considerSearch = True
+	# nudge floor
+	itemsWithNudgeFloor = []
+	if considerNudgeFloor:
+		for item in itemsToStart:
+			if item.nudgePointsForMemberAndLocation(member, location) >= viewOptions.nudgeFloor:
+				itemsWithNudgeFloor.append(item)
+	else:
+		itemsWithNudgeFloor.extend(itemsToStart)
+	# search
+	itemsWithSearch = []
+	if considerSearch:
+		search = member.getSearchForLocation(location)
+		if search:
+			entryRefs = search.getEntryQuestionRefs()
+			creatorRefs = search.getCreatorQuestionRefs()
+			for item in itemsWithNudgeFloor:
+				if item.__class__.__name__ == "Entry":
+					if item.satisfiesSearchCriteria(search, entryRefs, creatorRefs):
+						itemsWithSearch.append(item)
+				else: # if searching in member/character page, no annotations will show
+					pass
+		else:
+			itemsWithSearch.extend(itemsWithNudgeFloor)
+	else:
+		itemsWithSearch.extend(itemsWithNudgeFloor)
+	# limit
+	itemsWithLimit = []
+	overLimitWarning = None
+	numItemsBeforeLimitTruncation = None
+	considerLimit = True # in case of need later
+	if considerLimit:
+		limit = MAX_ITEMS_PER_GRID_PAGE # viewOptions.limit # in case of need later
+		if len(itemsWithSearch) > limit:
+			for i in range(limit):
+				itemsWithLimit.append(itemsWithSearch[i])
+			overLimitWarning = TERMS["term_too_many_items_warning"]
+			numItemsBeforeLimitTruncation = len(itemsWithSearch)
+		else:
+			itemsWithLimit.extend(itemsWithSearch)
+	else:
+		itemsWithLimit.extend(itemsWithSearch)
+	return (itemsWithLimit, overLimitWarning, numItemsBeforeLimitTruncation)
+		
+# ============================================================================================
+# ============================================================================================
+# DATE AND TIME
+# ============================================================================================
+# ============================================================================================
+
+def parseDate(yearString, monthString, dayString):
+	if yearString and monthString and dayString:
+		try:
+			year = int(yearString)
+			month = int(monthString) 
+			day = int(dayString)
+			date = datetime(year, month, day, tzinfo=pytz.utc)
+			return date
+		except:
+			return datetime.now(tz=pytz.utc)
+	return datetime.now(tz=pytz.utc)
+
+def DjangoToPythonDateFormat(format):
+	if DATE_FORMATS.has_key(format):
+		return DATE_FORMATS[format]
+	return "%B %d, %Y"
+
+def DjangoToPythonTimeFormat(format):
+	if TIME_FORMATS.has_key(format):
+		return TIME_FORMATS[format]
+	return "%I:%M %p"
+
+def DateFormatStrings():
+	result = {}
+	for format in DATE_FORMATS.keys():
+		result[format] = datetime.now().strftime(DATE_FORMATS[format])
+	return result
+
+def TimeFormatStrings():
+	result = {}
+	for format in TIME_FORMATS.keys():
+		result[format] = datetime.now().strftime(TIME_FORMATS[format])
+	return result
+
+def TimeDisplay(whenUTC, member):
+	if member and member.timeZoneName:
+		timeZone = getTimeZone(member.timeZoneName)
+		when = whenUTC.astimezone(timeZone)
+		return "%s %s" % (stripZeroOffStart(when.strftime(DjangoToPythonTimeFormat(member.timeFormat))),
+						(when.strftime(DjangoToPythonDateFormat(member.dateFormat))))
+	else:
+		return None
+	
+def stripZeroOffStart(text):
+	if text[0] == "0":
+		return text[1:]
+	else:
+		return text
+	
+def getTimeZone(timeZoneName):
+	try:
+		timeZone = memcache.get("tz:%s" % timeZoneName)
+	except:
+		timeZone = None
+	if timeZone is None:
+		timeZone = timezone(timeZoneName)
+		memcache.add("tz:%s" % timeZoneName, timeZone, DAY_SECONDS)
+	return timeZone
+
+def ImageLinkForAnnotationType(type):
+	if type == "comment":
+		imageText = '<img src="/images/comments.png" alt="comment" border="0">'
+	elif type == "request":
+		imageText = '<img src="/images/requests.png" alt="request" border="0">'
+	elif type == "tag set":
+		imageText = '<img src="/images/tags.png" alt="tag set" border="0">'
+	elif type == "nudge":
+		imageText = '<img src="/images/nudges.png" alt="nudge" border="0">'
+	return imageText
+
+def ImageLinkForAnswer():
+	return'<img src="/images/answers.png" alt="answer" border="0">'
+
+def ImageLinkForLink():
+	return'<img src="/images/link.png" alt="link" border="0">'
+

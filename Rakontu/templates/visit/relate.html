@@ -21,8 +21,7 @@
 	      	<table border="0" cellpadding="4" cellspacing="0">
 	      	<tr>
 	      		<th>{{template_incoming_or_outgoing}}?</th>
-	      		<th>{{template_name}} ({{template_type|lower}})</th>
-	      		<th>{{template_contributed_by}}</th>
+	      		<th>{{template_name}},<br/>{{template_type}},<br/>{{template_contributed_by}}</th>
 	      		<th>{{template_first_part_of_text}}</th>
 	      		<th>{{template_link_comment}}</th>
 	      		<th width="80">{{template_remove}}?</th>
@@ -37,13 +36,14 @@
 	  				{% endifequal %}
 	  				</td>
 	  				<td>
-	  				{% ifequal entry.key link.itemTo.key %}
-	  					{{link.itemFrom.linkString}}</a> ({{link.itemFrom.type}})
-	  				{% else %}
-	  					{{link.itemTo.linkString}} ({{link.itemTo.type}})
-	  				{% endifequal %}
-	  				</td>
-	  				<td>
+		  				{% ifequal entry.key link.itemTo.key %}
+		  					<p>{{link.itemFrom.linkString}}</a></p>
+		  					<p>{{link.itemFrom.typeForDisplay|capfirst}}</p>
+		  				{% else %}
+		  					<p>{{link.itemTo.linkString}}</p>
+		  					<p>{{link.itemTo.typeForDisplay|capfirst}}</p>
+		  				{% endifequal %}
+		  				<p>
 						{% if link.creator.active %}
 							{{link.creator.linkString}}
 							{% ifequal link.creator.key current_member.key %}
@@ -52,6 +52,7 @@
 						{% else %}
 							{{template_the_former_member}} "{{link.creator.nickname}}"
 						{% endif %}
+						</p>
 	  				</td>
 	  				<td>{{link.itemTo.shortFormattedText|orNone}}</td>
 	  				<td><input type="text" name="linkComment|{{link.key}}" value="{{link.comment}}" size="40"/></td>
@@ -85,17 +86,16 @@
 			<fieldset>
 	      	<table border="0" cellpadding="4" cellspacing="0">
 	      	<tr>
-	      		<th>{{template_name}}</th>
-	      		<th>{{template_contributed_by}}</th>
-	      		<th>{{template_first_part_of_text}}</th>
-				<th>{{template_published}}</th>
-	      		<th width="80">{{template_add_link}}?</th>
-	      		<th>{{template_link_comment}}</th>
+	      		<th>{{template_name}},<br/>{{template_contributed_by}},<br/>{{template_published}}</th>
+	      		<th width="160">{{template_first_part_of_text}}</th>
+	      		<th width="100">{{template_add_link}}?</th>
+	      		<th width="200">{{template_link_comment}}</th>
 				</tr>
       		{% for anEntry in entries %}
       			<tr>
-      			 <td>{{anEntry.linkString}}</td>
-	  				<td>
+      			 <td>
+      			 	<p>{{anEntry.linkString}}</p>
+	  				<p>
 						{% if anEntry.attributedToMember %}
 								{% if anEntry.creator.active %}
 									{{anEntry.creator.linkString}}
@@ -112,9 +112,10 @@
 								{{template_the_former_character}} "{{anEntry.character.name}}"
 							{% endif %}
 						{% endif %}
+	  				</p>
+	  				<p>{{anEntry.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}</p>
 	  				</td>
-      			 <td>{{anEntry.text_formatted|upTo:100|orNbsp}}</td>
-        		 <td>{{anEntry.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}</td>
+      			 <td>{{anEntry.text_formatted|upTo:short_display_length|orNbsp}}</td>
       			<td>
       			<input type="checkbox" name="addLink|{{anEntry.key}}" value="yes" id="addLink|{{anEntry.key}}"/>
 				<label for="addLink|{{anEntry.key}}">{{template_add_link}}</label>

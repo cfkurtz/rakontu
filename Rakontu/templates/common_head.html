@@ -1,5 +1,9 @@
 	<head>
-		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+		{% if rakontu and rakontu.externalStyleSheetURL %}
+			<link type="text/css" rel="stylesheet" href="{{rakontu.externalStyleSheetURL}}"/>
+		{% else %}
+			<link type="text/css" rel="stylesheet" href="/stylesheets/base.css"/>
+		{% endif %}
 		<script type="text/javascript" src="/javascript/menu.js"></script>
 		<title>
 			{% if title %}{{title}}{% endif %}

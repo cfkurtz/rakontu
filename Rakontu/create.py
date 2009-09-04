@@ -754,8 +754,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					nudgeValuesTheyWantToSet = []
 					totalNudgeValuesTheyWantToSet = 0
 					for i in range(NUM_NUDGE_CATEGORIES):
-						category = rakontu.nudgeCategories[i]
-						if category:
+						if rakontu.nudgeCategoryIndexHasContent(i):
 							oldValue = annotation.valuesIfNudge[i]
 							try:
 								nudgeValuesTheyWantToSet.append(int(self.request.get("nudge%s" % i)))
@@ -767,8 +766,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					if totalNudgeValuesTheyWantToSet > maximumAllowedInThisInstance:
 						totalNudgePointsAllocated = 0
 						for i in range(NUM_NUDGE_CATEGORIES):
-							category = rakontu.nudgeCategories[i]
-							if category:
+							if rakontu.nudgeCategoryIndexHasContent(i):
 								overLimit = totalNudgePointsAllocated + nudgeValuesTheyWantToSet[i] > maximumAllowedInThisInstance
 								if not overLimit:
 									adjustedValues.append(nudgeValuesTheyWantToSet[i])

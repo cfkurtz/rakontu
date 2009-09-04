@@ -37,7 +37,7 @@
 	  					<p>{{link.linkStringWithFromItem}}</p>
 	  				{% endfor %}&nbsp;
 	  				</td>
-	  				<td>{{entry.text_formatted|upTo:100|orNbsp}}</td>
+	  				<td>{{entry.text_formatted|upTo:short_display_length|orNbsp}}</td>
 	  				<td>
 						{% if entry.attributedToMember %}
 								{% if entry.creator.active %}

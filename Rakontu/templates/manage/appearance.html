@@ -94,9 +94,18 @@
 					>
 				{% endifequal %}
 				{{template_custom}}</option>
+				<option value="{{template_none}}"
+				{% ifequal rakontu.skinName template_none %}
+					selected="selected">
+				{% else %}
+					>
+				{% endifequal %}
+				{{template_none}}</option>
 				</select></p>
 			<p>{{template_custom_skin}} {{"custom_skins"|tip}}</p>
 				<textarea name="customSkin" rows="5" cols="60">{{rakontu.customSkin}}</textarea>
+			<p>{{template_external_style_sheet}} {{"using_an_external_style_sheet"|info}}
+			<input type="text" name="externalStyleSheetURL" value="{{rakontu.externalStyleSheetURL}}" size="80" maxlength="{{maxlength_name}}"/>
 			</fieldset>
 	      	
 			<h3>{{template_halping_role_texts}}</h3>

@@ -132,6 +132,7 @@ class ManageRakontuAppearancePage(webapp.RequestHandler):
 				rakontu.skinName = self.request.get("skinName")
 				if rakontu.skinName == TERMS["term_custom"]:
 					rakontu.customSkin = db.Text(self.request.get("customSkin"))
+				rakontu.externalStyleSheetURL = self.request.get("externalStyleSheetURL")
 				text = self.request.get("description")
 				format = self.request.get("description_format").strip()
 				rakontu.description = text

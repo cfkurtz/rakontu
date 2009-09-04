@@ -226,7 +226,7 @@
 	      		{% for anEntry in collage_entries %}
 	      			<tr>
 	      			 <td>{{anEntry.linkString}}</td>
-	      			 <td>{{anEntry.text_formatted|upTo:100|orNbsp}}</td>
+	      			 <td>{{anEntry.text_formatted|upTo:short_display_length|orNbsp}}</td>
 	        		 <td>{{anEntry.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}</td>
 	      			<td>
 	      			<input type="checkbox" name="addLink|{{anEntry.key}}" value="yes" id="addLink|{{anEntry.key}}"/>

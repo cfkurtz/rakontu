@@ -10,14 +10,7 @@ FLESHING OUT:
 
 finish help resources 
 
-left to do with limits:
-	export - working in general but not for search yet
-	general testing of all affected areas - especially searching in member,character, and time range in member,char
-	test print and export especially related to search
-	
 test approcket on server!
-
-too many default questions - should be no more than 5 per type
 
 SCALING UP:
 

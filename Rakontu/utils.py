@@ -43,16 +43,6 @@ def RequireLogin(func):
 		func(request)
 	return check_login 
 
-def getTimeZone(timeZoneName):
-	try:
-		timeZone = memcache.get("tz:%s" % timeZoneName)
-	except:
-		timeZone = None
-	if timeZone is None:
-		timeZone = timezone(timeZoneName)
-		memcache.add("tz:%s" % timeZoneName, timeZone, DAY_SECONDS)
-	return timeZone
-
 def GetCurrentRakontuAndMemberFromRequest(request):
 	rakontu = GetRakontuFromURLQuery(request.query_string)
 	member = GetCurrentMemberFromRakontuAndUser(rakontu, users.get_current_user())
@@ -233,6 +223,7 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'maxlength_name': MAXLENGTH_NAME,
 	   'maxlength_tag_or_choice': MAXLENGTH_TAG_OR_CHOICE, 
 	   'maxlength_number': MAXLENGTH_NUMBER,
+	   'short_display_length': SHORT_DISPLAY_LENGTH,
 	   'home': HOME,
 	   'current_user': user, 
 	   'user_is_admin': users.is_current_user_admin(),
@@ -270,81 +261,6 @@ def GetKeyFromQueryString(queryString, keyname):
 	else:  
 		return None
  
-def ItemsMatchingViewOptionsForMemberAndLocation(member, location, refresh=False, entry=None, memberToSee=None, character=None):
-	rakontu = member.rakontu
-	viewOptions = member.getViewOptionsForLocation(location)
-	startTime = viewOptions.getStartTime()
-	endTime = viewOptions.endTime 
-	entryTypeBooleans = viewOptions.entryTypes
-	entryTypes = []
-	for i in range(len(ENTRY_TYPES)):
-		if entryTypeBooleans[i]:
-			entryTypes.append(ENTRY_TYPES[i])
-	annotationTypeBooleans = viewOptions.annotationAnswerLinkTypes
-	annotationTypes = []
-	for i in range(len(ANNOTATION_ANSWER_LINK_TYPES)):
-		if annotationTypeBooleans[i]:
-			annotationTypes.append(ANNOTATION_ANSWER_LINK_TYPES[i]) 
-	if location == "home":
-		itemsToStart = member.rakontu.browseEntries(startTime, endTime, entryTypes)
-		considerNudgeFloor = True
-		considerSearch = True
-	elif location == "entry":
-		itemsToStart = entry.browseItems(annotationTypes)
-		considerNudgeFloor = False
-		considerSearch = False
-	elif location == "member":
-		itemsToStart = memberToSee.browseItems(startTime, endTime, entryTypes, annotationTypes)
-		considerNudgeFloor = False
-		considerSearch = True
-	elif location == "character":
-		itemsToStart = character.browseItems(startTime, endTime, entryTypes, annotationTypes)
-		considerNudgeFloor = False
-		considerSearch = True
-	# nudge floor
-	itemsWithNudgeFloor = []
-	if considerNudgeFloor:
-		for item in itemsToStart:
-			if item.nudgePointsForMemberAndLocation(member, location) >= viewOptions.nudgeFloor:
-				itemsWithNudgeFloor.append(item)
-	else:
-		itemsWithNudgeFloor.extend(itemsToStart)
-	# search
-	itemsWithSearch = []
-	if considerSearch:
-		search = member.getSearchForLocation(location)
-		if search:
-			entryRefs = search.getEntryQuestionRefs()
-			creatorRefs = search.getCreatorQuestionRefs()
-			for item in itemsWithNudgeFloor:
-				if item.__class__.__name__ == "Entry":
-					if item.satisfiesSearchCriteria(search, entryRefs, creatorRefs):
-						itemsWithSearch.append(item)
-				else: # if searching in member/character page, no annotations will show
-					pass
-		else:
-			itemsWithSearch.extend(itemsWithNudgeFloor)
-	else:
-		itemsWithSearch.extend(itemsWithNudgeFloor)
-	# limit
-	itemsWithLimit = []
-	overLimitWarning = None
-	numItemsBeforeLimitTruncation = None
-	considerLimit = True # in case of need later
-	if considerLimit:
-		limit = MAX_ITEMS_PER_GRID_PAGE # viewOptions.limit # in case of need later
-		if len(itemsWithSearch) > limit:
-			for i in range(limit):
-				itemsWithLimit.append(itemsWithSearch[i])
-			overLimitWarning = TERMS["term_too_many_items_warning"]
-			numItemsBeforeLimitTruncation = len(itemsWithSearch)
-		else:
-			itemsWithLimit.extend(itemsWithSearch)
-	else:
-		itemsWithLimit.extend(itemsWithSearch)
-	return (itemsWithLimit, overLimitWarning, numItemsBeforeLimitTruncation)
-
-		
 def GetBookmarkQueryWithCleanup(queryString):
 	# for some reason PagerQuery SOMEtimes puts one or two equals signs on the end of the bookmark, which
 	# messes up the url parsing since it separates on equals signs
@@ -358,7 +274,7 @@ def GetBookmarkQueryWithCleanup(queryString):
 		queryStringToUse = queryString
 		equalsSigns = 0
 	bookmark = GetStringOfTypeFromURLQuery(queryStringToUse, "url_query_bookmark") 
-	# put them back on again for PagerQuery
+	# put them back on again for PagerQuery 
 	if bookmark:
 		bookmark += "=" * equalsSigns
 	return bookmark
@@ -406,7 +322,7 @@ class ImageHandler(webapp.RequestHandler):
 				self.response.headers['Content-Type'] = attachment.mimeType
 				self.response.out.write(attachment.data)
 			   
-class AttachmentHandler(webapp.RequestHandler):
+class AttachmentHandler(webapp.RequestHandler): 
 	def get(self):
 		attachmentKeyName = self.request.get(URL_IDS["url_query_attachment"])
 		if attachmentKeyName:
@@ -437,7 +353,6 @@ class ExportHandler(webapp.RequestHandler):
 		elif txtKeyName:
 			export = Export.get_by_key_name(txtKeyName)
 			if export and export.data:
-				self.response.headers['Content-Disposition'] = 'export; filename="%s.%s"' % (TERMS["term_print"], "html")
 				self.response.headers['Content-Type'] ="text/html"
 				self.response.out.write(export.data)
 			else:
@@ -708,61 +623,6 @@ def HexColorStringForRowIndex(index, colorDict):
 	   
 # ============================================================================================
 # ============================================================================================
-# DATE AND TIME
-# ============================================================================================
-# ============================================================================================
-
-def parseDate(yearString, monthString, dayString):
-	if yearString and monthString and dayString:
-		try:
-			year = int(yearString)
-			month = int(monthString) 
-			day = int(dayString)
-			date = datetime(year, month, day, tzinfo=pytz.utc)
-			return date
-		except:
-			return datetime.now(tz=pytz.utc)
-	return datetime.now(tz=pytz.utc)
-
-def DjangoToPythonDateFormat(format):
-	if DATE_FORMATS.has_key(format):
-		return DATE_FORMATS[format]
-	return "%B %d, %Y"
-
-def DjangoToPythonTimeFormat(format):
-	if TIME_FORMATS.has_key(format):
-		return TIME_FORMATS[format]
-	return "%I:%M %p"
-
-def DateFormatStrings():
-	result = {}
-	for format in DATE_FORMATS.keys():
-		result[format] = datetime.now().strftime(DATE_FORMATS[format])
-	return result
-
-def TimeFormatStrings():
-	result = {}
-	for format in TIME_FORMATS.keys():
-		result[format] = datetime.now().strftime(TIME_FORMATS[format])
-	return result
-
-def RelativeTimeDisplayString(whenUTC, member):
-	if member and member.timeZoneName:
-		timeZone = getTimeZone(member.timeZoneName)
-		when = whenUTC.astimezone(timeZone)
-		return "%s %s" % (stripZeroOffStart(when.strftime(DjangoToPythonTimeFormat(member.timeFormat))),
-						(when.strftime(DjangoToPythonDateFormat(member.dateFormat))))
-	else:
-		return None
-	
-def stripZeroOffStart(text):
-	if text[0] == "0":
-		return text[1:]
-	else:
-		return text
-	
-# ============================================================================================
-# ============================================================================================
 # TEXT PROCESSING
 # ============================================================================================
 # ============================================================================================
@@ -960,6 +820,7 @@ def GenerateFakeTestingData():
 	user = users.get_current_user()
 	rakontu = Rakontu(key_name=KeyName("rakontu"), name="Test rakontu", description="Test description")
 	rakontu.initializeFormattedTexts()
+	GenerateDefaultQuestionsForRakontu(rakontu, "neighborhood")
 	rakontu.put()
 	member = Member(key_name=KeyName("member"), googleAccountID=user.user_id(), googleAccountEmail=user.email(), nickname="Tester", rakontu=rakontu, governanceType="owner")
 	member.initialize()
@@ -1046,7 +907,7 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 	elif createWhat == "annotations":
 		entryKeyNames = [] 
 		memberKeyNames = []
-		for member in rakontu.getActiveMembers():
+		for member in rakontu.getActiveMembers(): 
 			memberKeyNames.append(member.getKeyName())  
 		for entry in rakontu.getNonDraftEntries():
 			entryKeyNames.append(entry.getKeyName())

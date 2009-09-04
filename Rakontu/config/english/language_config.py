@@ -280,6 +280,7 @@ TERMS = {
 		"term_sincerely": "Sincerely",
 		"term_your_site": "Your Rakontu site",
 		"term_link": "link",
+		"term_links": "links",
 		"term_question": "question",
 		# used to describe search filters
 		"term_of_the_words": "of the words",
@@ -301,6 +302,9 @@ TERMS = {
 		# used when exporting to files
 		"term_export": "export",
 		"term_print": "print",
+		# used when printing
+		"term_printed_from_rakontu": "Printed from Rakontu",
+		"term_selections_for": "Selections for", # rakontu name
 		# miscellaneous
 		"term_does_not_apply": "doesn't apply",
 		"term_copy_of": "Copy of",
@@ -687,6 +691,7 @@ TEMPLATE_TERMS = {
 		"template_tag_line": "Tag line",
 		"template_custom_skin": "Custom skin",
 		"template_custom": "custom",
+		"template_external_style_sheet": "Enter a valid CSS URL to use as an external style sheet",
 		"template_halping_role_texts": "Helping role texts",
 		"template_rakontu_outoing_email": "Outgoing email address",
 		"template_welcome_message_for_new_members": "Welcome message for new members",
@@ -982,8 +987,8 @@ TEMPLATE_BUTTONS = {
 		"button_create_another": "Make another",
 		"button_apply": "Apply",
 		"button_make_new": "Make new",
-		"button_print": "Print",
-		"button_export": "Export",
+		"button_print_selection": "Print selection",
+		"button_export_selection": "Export selection",
 		"button_really_and_truly_leave": "Really and Truly Leave this Rakontu",
 		"button_go_back_to_prefs_page": "Go Back to My Preferences Page",
 		"button_return_to_list": "Return to list",
@@ -1383,6 +1388,5 @@ URL_OPTIONS = {
 	"url_query_help_type": "type",
 	"url_query_bookmark": "bookmark",
 	"url_query_name_taken": "name_taken",
-	"url_query_refresh": "refresh",
 	}
 
