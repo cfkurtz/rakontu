@@ -5,7 +5,7 @@
 "; NEIGHBORHOOD",,,,,,,,
 "member, character","Know about history","How much do you know about the history of this area?","ordinal","everything, an awful lot, pretty much, some, not much, nothing at all","no",,,"neighborhood"
 "member, character","Living here ranks","How would you say that living in our community ranks among places you have lived?","ordinal","the highest, very high, high, medium, low, very low, the absolute bottom","no",,,"neighborhood"
-,,,,,,,,
+"member","Community groups","What community groups do you belong to?","text",,,,,"neighborhood"
 ,,,,,,,,
 ,,,,,,,,
 "; INTEREST OR SUPPORT GROUP",,,,,,,,
@@ -24,6 +24,9 @@
 "member, character","Full or part time","Do you work full or part time?","ordinal","full, part","no",,,"work group"
 ,,,,,,,,
 "; FAMILY",,,,,,,,
+"member","Parents","Who are your parents?","text",,,,,"family"
+"member","Grandparents","Who are your grandparents?","text",,,,,"family"
+"member, character","Where live","Where do you live?","text",,,"Enter any sort of location you like, specific or vague.",,"family"
 "member, character","Closeness","Compared to all of the families you have known, how would you characterize the closeness in this family?","ordinal","great, good, okay, not so great, bad, awful","no",,,"family"
 "member, character","Openness","Compared to all of the families you have known, how would you characterize the openness and honesty in this family?","ordinal","great, good, okay, not so great, bad, awful","no",,,"family"
 "member, character","Craziness","What is your favorite crazy thing about this family? What do we do that nobody else does?","text",,,,,
@@ -31,7 +34,13 @@
 "member, character","Favorite characteristic","What is your favorite thing about how the members of this family relate to each other?","text",,,,,
 ,,,,,,,,
 ,,,,,,,,
+"; ALL ENTRIES",,,,,,,,
+"story, pattern, collage, invitation, resource","Intensity","What is the emotional intensity of this entry?","ordinal","very high, high, moderate, low, no emotion at all","no",,,
+,,,,,,,,
 "; ALL ENTRIES EXCEPT RESOURCES",,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
 "story, pattern, collage, invitation","Needs to see","Is there anyone who you think particularly needs to see this?","text",,,,,
 "story, pattern, collage, invitation","Should not see","Is there anyone who you think should not see this?","text",,,,,
 "story, pattern, collage, invitation","Right about","What does this entry say about what is right about this community or group?","text",,,,,
@@ -41,6 +50,7 @@
 "story, pattern, collage, invitation","Rules","Does this entry reveal any unwritten community or group rules?","text",,,,,
 ,,,,,,,,
 "; STORIES",,,,,,,,
+"story","Common","How common would you say the events in this story are?","ordinal","extremely, very, moderately, not much, not at all","no",,,
 "story","Fictional","Is this story a deliberate fiction?","boolean","Yes, it didn't happen",,,,
 "story","Main character","Who would you say is the main character in this story?","text",,,,,
 "story","Multiple main character","Is the main character in this story one person or more than one?","ordinal","one person, more than one person",,,,

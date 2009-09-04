@@ -525,6 +525,13 @@ Your client has issued a malformed or illegal request.
 
 This happens in older browsers. Refreshing the page can help, as can removing cached (temporary) files.
 
+[Using an external style sheet to style your Rakontu]
+Category=Technical
+Interpret as=Wiki markup
+Managers only=yes
+
+CFK FINISH
+
 
 
 

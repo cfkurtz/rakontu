@@ -6,7 +6,6 @@
 "; NEIGHBORHOOD",,,,,,,,
 "member, character","How long lived here","How long have you lived in this community?","ordinal","6 months or less, 6 months to a year, 1 to 2 years, 2 to 5 years, 5 to 10 years, 10 to 20 years, 20 to 30 years, more than 30 years","no",,,"neighborhood"
 "member","Where live","Where do you live?","text",,,"Enter any sort of location you like, specific or vague.",,"neighborhood"
-"member","Community groups","What community groups do you belong to?","text",,,,,"neighborhood"
 "member, character","Feel about community","How do you feel about this community?","ordinal","great, good, okay, not so great, bad, awful","no",,,"neighborhood"
 ,,,,,,,,
 "; INTEREST OR SUPPORT GROUP",,,,,,,,
@@ -23,23 +22,18 @@
 "member, character","Type of work","What sorts of work do you do in the group?","text",,,,,"work group"
 ,,,,,,,,
 "; FAMILY",,,,,,,,
-"member","Parents","Who are your parents?","text",,,,,"family"
-"member","Grandparents","Who are your grandparents?","text",,,,,"family"
 "member, character","Talk to","Who would you say you talk to most often?","text",,,,,"family"
 "member, character","Children","How many children do you have, if any?","ordinal","none, one, two, three, four, five, six, seven, eight, nine, ten, more than ten","no",,,"family"
 "member","Live closest to","Who do you live the closest to?","text",,,,,"family"
-"member, character","Where live","Where do you live?","text",,,"Enter any sort of location you like, specific or vague.",,"family"
 ,,,,,,,,
 "; ALL ENTRIES",,,,,,,,
-"story, pattern, collage, invitation, resource","How feel about","How does this make you feel?","ordinal","happy, enthused, hopeful, relieved, indifferent, confused, sad, angry, frustrated, hopeless","yes",,,
-"story, pattern, collage, invitation, resource","Reason","Why was this contributed?","nominal","to inform, to persuade, to praise, to criticize, to entertain, to reminisce, for a reason not listed here","yes",,,
-"story, pattern, collage, invitation, resource","Intensity","What is the emotional intensity of this entry?","ordinal","very high, high, moderate, low, no emotion at all","no",,,
+"story, pattern, collage, invitation, resource","How feel about","How does this make you feel?","ordinal","happy, enthused, hopeful, relieved, calm, indifferent, confused, sad, angry, frustrated, hopeless, stressed, no feeling named here","yes",,,
+"story, pattern, collage, invitation, resource","Reason","Why was this contributed?","nominal","to inform, to help, to persuade, to praise, to criticize, to entertain, to reminisce, for fun, for a reason not listed here","yes",,,
 ,,,,,,,,
 "; STORIES",,,,,,,,
 "story","When happened","When did this story happen?","ordinal","today, within the past month, within a few months, within the last year, within the last two years, within the last five years, I'm not sure","no",,,
-"story","Where came from","Where do you think this story came from?","nominal","first-hand, second-hand, third-hand, rumor, I'm not sure","yes",,,
-"story","Will remember","How long do you think you will remember the events that happened in this story?","ordinal","for as long as I live, for a good long time, for a while but it will fade, not long, what story?","no",,,
-"story","Common","How common would you say the events in this story are?","ordinal","extremely, very, moderately, not much, not at all","no",,,
+"story","Where came from","Where do you think this story came from?","nominal","it happened to me, it happened the the person who told me about it, I heard about it, you hear it around, I'm not sure","yes",,,
+"story","Will remember","How long do you think you will remember the events that happened in this story?","ordinal","for as long as I live, for a very long time, for a while but it will fade, not for very long, what story?","no",,,
 ,,,,,,,,
 "; PATTERNS",,,,,,,,
 "pattern","Strength","How strong would you say this pattern is?","ordinal","barely there, very weak, weak, moderate, pretty strong, very strong, overwhelming","no","How much does the pattern stand out?",,
