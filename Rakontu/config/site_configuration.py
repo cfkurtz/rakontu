@@ -115,10 +115,6 @@ else:
 				 (TIMEFRAME_2WEEKS, WEEK_SECONDS * 2),
 				 (TIMEFRAME_MONTH, MONTH_SECONDS),
 				 ]
-	
-# This is how much of a text is shown when the "Show details" setting is in place,
-# on both the main screen and the per-entry screen.
-DEFAULT_DETAILS_TEXT_LENGTH = 150
 
 # These are the available date and time formats. They affect all places where the date or time is displayed.
 # The key in each dictionary (before the colon) is the django template format string.
@@ -226,7 +222,7 @@ PRINT_DELIMITER = "=======\n"
 EXPORT_RANGE_XML = 50
 
 # This is how much text to show where an entry (or comment or request) is being summarized
-SHORT_DISPLAY_LENGTH = 100
+SHORT_DISPLAY_LENGTH = 60
 
 # ============================================================================================ 
 # QUESTIONS

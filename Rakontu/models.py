@@ -1352,25 +1352,14 @@ class Member(db.Model):
 			filter("type IN ", entryTypes).\
 			filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
 		result.extend(entries)
-		liaisonedEntries = Entry.all().filter("liaison = ", self.key()).filter("draft = ", False).\
-			filter("type IN ", entryTypes).\
-			filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
-		result.extend(liaisonedEntries)
 		annotations = Annotation.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).\
 			filter("type IN ", annotationTypes).\
 			filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
 		result.extend(annotations)
-		liaisonedAnnotations = Annotation.all().filter("liaison = ", self.key()).filter("draft = ", False).\
-			filter("type IN ", annotationTypes).\
-			filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
-		result.extend(liaisonedAnnotations)
 		if "answer" in annotationTypes:
 			answers = Answer.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).\
 				filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
 			result.extend(answers)
-			liaisonedAnswers = Answer.all().filter("liaison = ", self.key()).filter("draft = ", False).\
-				filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
-			result.extend(liaisonedAnswers)
 		if "link" in annotationTypes:
 			links = Link.all().filter("creator = ", self.key()).\
 				filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)

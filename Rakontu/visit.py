@@ -212,7 +212,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 					nameString = " (%s, " % entry.character.name
 			dateTimeString = " %s)" % TimeDisplay(entry.published, member)
 			if entry.text_formatted:
-				textString = ": %s" % upToWithLink(stripTags(entry.text_formatted), DEFAULT_DETAILS_TEXT_LENGTH, entry.linkURL())
+				textString = ": %s" % upToWithLink(stripTags(entry.text_formatted), SHORT_DISPLAY_LENGTH, entry.linkURL())
 			else:
 				textString = ""
 		else:
@@ -1661,10 +1661,6 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 		viewOptions.endTime = datetime.now(tz=pytz.utc)
 		viewOptions.put()
 		return defaultURL 
-	elif "refresh" in request.arguments():
-		viewOptions.endTime = datetime.now(tz=pytz.utc)
-		viewOptions.put()
-		return defaultURL 
 	elif "setToFirst" in request.arguments():
 		if location == "home":
 			if rakontu.firstPublish:
@@ -1823,7 +1819,7 @@ def ItemDisplayStringForGrid(item, member, location, curating=False, showDetails
 	else:
 		linkString = item.linkString()
 	# name 
-	if showDetails:
+	if showDetails and location != "member":
 		if item.attributedToMember(): 
 			if item.creator.active:
 				nameString = ' (%s' % (item.creator.linkString())
@@ -1847,7 +1843,7 @@ def ItemDisplayStringForGrid(item, member, location, curating=False, showDetails
 		curateString = ""
 	# date string if showing details
 	if showDetails:
-		dateTimeString = " %s)" % TimeDisplay(item.published, member)
+		dateTimeString = " %s" % TimeDisplay(item.published, member)
 	else:
 		dateTimeString = ""
 	# annotations count string if entry and showing details
@@ -1868,13 +1864,13 @@ def ItemDisplayStringForGrid(item, member, location, curating=False, showDetails
 		if item.__class__.__name__ == "Annotation":
 			if item.type == "comment" or item.type == "request":
 				if item.longString_formatted:
-					textString = ": %s" % upToWithLink(stripTags(item.longString_formatted), DEFAULT_DETAILS_TEXT_LENGTH, item.linkURL())
+					textString = ": %s" % upToWithLink(stripTags(item.longString_formatted), SHORT_DISPLAY_LENGTH, item.linkURL())
 				else:
 					textString = ""
 			else:
 				textString = ""
 		elif item.__class__.__name__ == "Entry":
-			textString = " %s" % upToWithLink(stripTags(item.text_formatted), DEFAULT_DETAILS_TEXT_LENGTH, item.linkURL())
+			textString = " %s" % upToWithLink(stripTags(item.text_formatted), SHORT_DISPLAY_LENGTH, item.linkURL())
 		else:
 			textString = ""
 	else:
