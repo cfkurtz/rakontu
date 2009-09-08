@@ -194,15 +194,42 @@ class EnterEntryPage(webapp.RequestHandler):
 			bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
 			if entry and "loadVersion" in self.request.arguments():
 				versionKeyName = self.request.get("versionToLoad")
-				version = TextVersion.get_by_key_name(versionKeyName)
+				version = TextVersion.get_by_key_name(versionKeyName, parent=entry)
 				if version:
 					url = BuildURL("dir_visit", "%s?%s&%s" % (entry.typeAsURL(), entry.urlQuery(), version.urlQuery()))
 					self.redirect(url)
 			else:
-				newEntry = False
+				thingsToPut = []
+				thingsToDelete = []
+				incomingLinksToPutAfterward = []
+				collectedOffline = self.request.get("collectedOffline") == "yes"
+				if collectedOffline and member.isLiaison():
+					foundMember = False
+					for aMember in rakontu.getActiveOfflineMembers():
+						if self.request.get("offlineSource") == str(aMember.key()):
+							creator = aMember
+							foundMember = True
+							break
+					if not foundMember:
+						self.redirect(BuildResultURL("offlineMemberNotFound", rakontu=rakontu)) 
+						return
+					liaison = member
+					dateCollected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
+				else:
+					creator = member
+					liaison = None
+					dateCollected = None
+				newEntry = False  
 				if not entry:
-					entry=Entry(key_name=KeyName("entry"), rakontu=rakontu, type=type, title=DEFAULT_UNTITLED_ENTRY_TITLE)
+					keyName = GenerateSequentialKeyName("entry")
+					entry=Entry(key_name=keyName, parent=creator, rakontu=rakontu, id=keyName, type=type, title=DEFAULT_UNTITLED_ENTRY_TITLE)
 					newEntry = True
+				entry.collectedOffline = collectedOffline
+				entry.creator = creator
+				if liaison:
+					entry.liaison = liaison
+				if dateCollected:
+					entry.collected = dateCollected
 				entry.edited = datetime.now(tz=pytz.utc)
 				preview = False
 				if "save|%s" % type in self.request.arguments():
@@ -225,21 +252,6 @@ class EnterEntryPage(webapp.RequestHandler):
 				entry.text = text
 				entry.text_formatted = db.Text(InterpretEnteredText(text, format))
 				entry.text_format = format
-				entry.collectedOffline = self.request.get("collectedOffline") == "yes"
-				if entry.collectedOffline and member.isLiaison():
-					foundMember = False
-					for aMember in rakontu.getActiveOfflineMembers():
-						if self.request.get("offlineSource") == str(aMember.key()):
-							entry.creator = aMember
-							foundMember = True
-							break
-					if not foundMember:
-						self.redirect(BuildResultURL("offlineMemberNotFound", rakontu=rakontu)) 
-						return
-					entry.liaison = member
-					entry.collected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
-				else:
-					entry.creator = member
 				if entry.collectedOffline:
 					attributionQueryString = "offlineAttribution"
 				else:
@@ -252,7 +264,7 @@ class EnterEntryPage(webapp.RequestHandler):
 					entry.resourceForHelpPage = self.request.get("resourceForHelpPage") == "yes"
 					entry.resourceForNewMemberPage = self.request.get("resourceForNewMemberPage") == "yes"
 					entry.resourceForManagersAndOwnersOnly = self.request.get("resourceForManagersAndOwnersOnly") == "yes"
-				entry.put()
+				thingsToPut.append(entry)
 				if not entry.draft:
 					entry.publish()
 				linkType = None
@@ -272,58 +284,56 @@ class EnterEntryPage(webapp.RequestHandler):
 						elif self.request.get("link_type") == "reference":
 							linkType = "referenced"
 						comment = htmlEscape(self.request.get("link_comment"))
-						link = Link(key_name=KeyName("link"), 
+						link = Link(key_name=GenerateSequentialKeyName("link"), 
+								parent=itemFrom,
 								rakontu=rakontu,
 								itemFrom=itemFrom, 
 								itemTo=entry, 
 								type=linkType, 
 								creator=member,
 								comment=comment)
-						link.put()
+						incomingLinksToPutAfterward.append(link)
 						link.publish()
 				if entry.isCollage():
-					linksToRemove = []
 					for link in entry.getOutgoingLinksOfType("included"):
 						link.comment = self.request.get("linkComment|%s" % link.key())
-						link.put()
+						thingsToPut.append(link)
 						if self.request.get("removeLink|%s" % link.key()) == "yes":
-							linksToRemove.append(link)
-					for link in linksToRemove:
-						db.delete(link)
+							thingsToDelete.append(link)
 					prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging("story", bookmark)
 					for anEntry in entries:
 						if self.request.get("addLink|%s" % anEntry.key()) == "yes":
 							comment = htmlEscape(self.request.get("linkComment|%s" % anEntry.key()))
-							link = Link(key_name=KeyName("link"), 
+							keyName = GenerateSequentialKeyName("link")
+							link = Link(key_name=keyName, 
+								parent=entry,
 								rakontu=rakontu,
 								itemFrom=entry, 
 								itemTo=anEntry, 
 								type="included", 
 								comment=comment,
 								creator=member)
-							link.put()
+							thingsToPut.append(link)
 							if not entry.draft:
 								link.publish()
 				if entry.isPattern():
-					linksToRemove = []
 					for link in entry.getOutgoingLinksOfType("referenced"):
 						link.comment = self.request.get("linkComment|%s" % link.key())
-						link.put()
+						thingsToPut.append(link)
 						if self.request.get("removeLink|%s" % link.key()) == "yes":
-							linksToRemove.append(link)
-					for link in linksToRemove:
-						db.delete(link)
+							thingsToDelete.append(link)
 					for aSearch in rakontu.getNonPrivateSavedSearches():
 						comment = htmlEscape(self.request.get("linkComment|%s" % aSearch.key()))
 						if self.request.get("addLink|%s" % aSearch.key()) == "yes":
-							link = Link(key_name=KeyName("link"), 
+							link = Link(key_name=GenerateSequentialKeyName("link"), 
+								parent=entry,
 								rakontu=rakontu,
 								itemFrom=entry, 
 								itemTo=aSearch, 
 								type="referenced", 
 								comment=comment,
 								creator=member)
-							link.put()
+							thingsToPut.append(link)
 							if not entry.draft:
 								link.publish()
 				questions = rakontu.getAllQuestionsOfReferType(type)
@@ -332,8 +342,10 @@ class EnterEntryPage(webapp.RequestHandler):
 					if foundAnswers:
 						answerToEdit = foundAnswers[0]
 					else:
+						keyName = GenerateSequentialKeyName("answer")
 						answerToEdit = Answer(
-											key_name=KeyName("answer"),
+											key_name=keyName,
+											parent=entry,
 											rakontu=rakontu, 
 											question=question, 
 											creator=member,
@@ -372,20 +384,32 @@ class EnterEntryPage(webapp.RequestHandler):
 						answerToEdit.draft = entry.draft
 						answerToEdit.inBatchEntryBuffer = entry.inBatchEntryBuffer
 						answerToEdit.collected = entry.collected
-						answerToEdit.put()
+						thingsToPut.append(answerToEdit)
 						if not answerToEdit.draft:
 							answerToEdit.publish()
 					else:
-						db.delete(answerToEdit)
+						thingsToDelete.append(answerToEdit)
 				foundAttachments = entry.getAttachments()
-				attachmentsToRemove = []
 				for attachment in foundAttachments:
 					for name, value in self.request.params.items():
 						if value == "removeAttachment|%s" % attachment.key():
-							attachmentsToRemove.append(attachment)
-				if attachmentsToRemove:
-					for attachment in attachmentsToRemove:
-						db.delete(attachment)
+							thingsToDelete.append(attachment)
+				thingsToPut.append(entry.creator)
+				if entry.liaison:
+					thingsToPut.append(entry.liaison)
+				def txn(thingsToPut, thingsToDelete):
+					if thingsToPut:
+						db.put(thingsToPut)
+					if thingsToDelete:
+						db.delete(thingsToDelete)
+				db.run_in_transaction(txn, thingsToPut, thingsToDelete)
+				# second transaction for incoming links which have different parents
+				def txn(incomingLinksToPutAfterward):
+					if incomingLinksToPutAfterward:
+						db.put(incomingLinksToPutAfterward)
+				db.run_in_transaction(txn, incomingLinksToPutAfterward)
+				# do attachments separately - in same entity group, but want to let them fail separately so that 
+				# some might still attach even if one doesn't
 				foundAttachments = entry.getAttachments()
 				for i in range(rakontu.maxNumAttachments):
 					for name, value in self.request.params.items():
@@ -395,7 +419,8 @@ class EnterEntryPage(webapp.RequestHandler):
 								if len(foundAttachments) > i:
 									attachmentToEdit = foundAttachments[i]
 								else:
-									attachmentToEdit = Attachment(key_name=KeyName("attachment"), entry=entry, rakontu=rakontu)
+									keyName = GenerateSequentialKeyName("attachment")
+									attachmentToEdit = Attachment(key_name=keyName, parent=entry, id=keyName, entry=entry, rakontu=rakontu)
 								j = 0
 								mimeType = None
 								for type in ACCEPTED_ATTACHMENT_FILE_TYPES:
@@ -406,14 +431,12 @@ class EnterEntryPage(webapp.RequestHandler):
 									attachmentToEdit.mimeType = mimeType
 									attachmentToEdit.fileName = filename
 									attachmentToEdit.name = htmlEscape(self.request.get("attachmentName%s" % i))
-									#blob = db.Blob(str(self.request.get("attachment%s" % i)))
 									blob = db.Blob(self.request.POST.get("attachment%s" % i).file.read())
 									attachmentToEdit.data = blob
 									try:
 										attachmentToEdit.put()
 									except:
-										self.redirect(BuildResultURL("attachmentsTooLarge", rakontu=rakontu))
-										return
+										pass # no way to tell user ? the attachment will just not get added
 				if preview:
 					self.redirect(BuildURL("dir_visit", "url_preview", entry.urlQuery()))
 				elif entry.draft:
@@ -472,6 +495,8 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 		if access:
 			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 			if entry:
+				thingsToPut = []
+				thingsToDelete = []
 				newAnswers = False
 				preview = False
 				setAsDraft = False
@@ -513,8 +538,10 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 					if foundAnswers:
 						answerToEdit = foundAnswers[0]
 					else:
+						keyName = GenerateSequentialKeyName("answer")
 						answerToEdit = Answer(
-											key_name=KeyName("answer"), 
+											key_name=keyName, 
+											parent=entry,
 											rakontu=rakontu, 
 											question=question, 
 											referent=entry, 
@@ -556,11 +583,18 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 					if keepAnswer:
 						if setAsDraft:
 							answerToEdit.edited = datetime.now(tz=pytz.utc)
-							answerToEdit.put()
 						else:
 							answerToEdit.publish()
+						thingsToPut.append(answerToEdit)
 					else:
-						db.delete(answerToEdit)
+						thingsToDelete.append(answerToEdit)
+					thingsToPut.append(creator)
+					def txn(thingsToPut, thingsToDelete):
+						if thingsToPut:
+							db.put(thingsToPut)
+						if thingsToDelete:
+							db.delete(thingsToDelete)
+					db.run_in_transaction(txn, thingsToPut, thingsToDelete)
 				if preview:
 					self.redirect(BuildURL("dir_visit", "url_preview_answers", entry.urlQuery()))
 				elif setAsDraft:
@@ -612,10 +646,12 @@ class PreviewAnswersPage(webapp.RequestHandler):
 					self.redirect(BuildURL("dir_visit", "url_preferences", member.urlQuery()))
 				elif "publish" in self.request.arguments():
 					answers = entry.getAnswersForMember(member)
-					for answer in answers:
-						answer.draft = False
-						answer.published = datetime.now(tz=pytz.utc)
-					db.put(answers)
+					def txn(answers):
+						for answer in answers:
+							answer.draft = False
+							answer.published = datetime.now(tz=pytz.utc)
+						db.put(answers)
+					db.run_in_transaction(txn, answers)
 					self.redirect(rakontu.linkURL())
 
 class EnterAnnotationPage(webapp.RequestHandler):
@@ -684,11 +720,11 @@ class EnterAnnotationPage(webapp.RequestHandler):
 			newAnnotation = False
 			entry, annotation = GetEntryAndAnnotationFromURLQuery(self.request.query_string)
 			if entry:
+				thingsToPut = []
+				thingsToDelete = []
 				if not annotation:
-					annotation = Annotation(key_name=KeyName("annotation"), 
-										rakontu=rakontu, 
-										type=type, 
-										entry=entry)
+					keyName = GenerateSequentialKeyName("annotation")
+					annotation = Annotation(key_name=keyName, parent=entry, id=keyName, rakontu=rakontu, type=type, entry=entry)
 					newAnnotation = True
 				preview = False
 				annotation.edited = datetime.now(tz=pytz.utc)
@@ -784,10 +820,14 @@ class EnterAnnotationPage(webapp.RequestHandler):
 					newTotalNudgePointsInThisNudge = annotation.totalNudgePointsAbsolute()
 					member.nudgePoints += oldTotalNudgePointsInThisNudge
 					member.nudgePoints -= newTotalNudgePointsInThisNudge
-					member.put()
-				annotation.put()
 				if not annotation.draft:
 					annotation.publish()
+				def txn(annotation, entry):
+					annotation.put()
+					entry.put()
+				db.run_in_transaction(txn, annotation, entry)
+				# cannot put member into transaction because it might not be their entry, hence they are not in the group
+				member.put()
 				if preview:
 					self.redirect(BuildURL("dir_visit", "url_preview", annotation.urlQuery()))
 				elif annotation.draft:
@@ -848,13 +888,31 @@ class PreviewPage(webapp.RequestHandler):
 				if "edit" in self.request.arguments():
 					self.redirect(BuildURL("dir_visit", URLForAnnotationType(annotation.type), annotation.urlQuery()))
 				elif "publish" in self.request.arguments():
-					annotation.publish()
+					def txn(annotation):
+						annotation.publish()
+						annotation.put()
+						annotation.creator.put()
+					db.run_in_transaction(txn, annotation)
 					self.redirect(BuildURL("dir_visit", "url_read", annotation.entry.urlQuery()))
 			else:
 				if "edit" in self.request.arguments():
 					self.redirect(BuildURL("dir_visit", URLForEntryType(entry.type), entry.urlQuery()))
 				elif "publish" in self.request.arguments():
+					thingsToPut = []
 					entry.publish()
+					thingsToPut.append(entry)
+					for answer in entry.getAnswersForMember(entry.creator):
+						answer.publish()
+						thingsToPut.append(answer)
+					for link in entry.getOutgoingLinks():
+						link.publish()
+						thingsToPut.append(link)
+					thingsToPut.append(entry.creator)
+					DebugPrint(thingsToPut)
+					def txn(thingsToPut):
+						if thingsToPut:
+							db.put(thingsToPut)
+					db.run_in_transaction(txn, thingsToPut)
 					self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
@@ -918,38 +976,50 @@ class RelateEntryPage(webapp.RequestHandler):
 			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 			bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
 			type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_type")
-			DebugPrint(type)
 			if entry:
 				if "changeSelections" in self.request.arguments():
 					type = self.request.get("entry_type")
 					bookmark = None
 				else:
-					linksToRemove = []
+					linksToPut = []
+					linksToDelete = []
+					incomingLinksToPutAfterward = []
 					for link in entry.getLinksOfType("related"):
 						if self.request.get("linkComment|%s" % link.key()):
 							link.comment = self.request.get("linkComment|%s" % link.key())
-							link.put()
+							if str(link.itemFrom.key()) == str(entry.key()):
+								linksToPut.append(link)
+							else:
+								incomingLinksToPutAfterward.append(link)
 						if self.request.get("removeLink|%s" % link.key()) == "yes":
-							linksToRemove.append(link)
-					for link in linksToRemove:
-						db.delete(link)
+							linksToDelete.append(link)
 					prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging(type, bookmark)
 					atLeastOneLinkCreated = False
 					for anEntry in entries:
 						if self.request.get("addLink|%s" % anEntry.key()) == "yes":
 							comment = htmlEscape(self.request.get("linkComment|%s" % anEntry.key()))
-							link = Link(key_name=KeyName("link"), 
+							keyName = GenerateSequentialKeyName("link")
+							link = Link(key_name=keyName, 
+									parent=entry,
 									rakontu=rakontu,
 									itemFrom=entry, 
 									itemTo=anEntry, 
 									type="related", 
 									creator=member, 
 									comment=comment)
-							link.put()
 							link.publish()
+							linksToPut.append(link)
 							atLeastOneLinkCreated = True
 					if atLeastOneLinkCreated:
 						bookmark = None
+					def txn(linksToPut, linksToDelete):
+						if linksToPut:
+							db.put(linksToPut)
+						if linksToDelete:
+							db.delete(linksToDelete)
+					db.run_in_transaction(txn, linksToPut, linksToDelete)
+					# put incoming links afterward (and not in transaction) because they have other parent entries
+					db.put(incomingLinksToPutAfterward)
 				if bookmark:
 					# bookmark must be last, because of the extra == the PageQuery puts on it
 					query = "%s&%s=%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_type"], type, URL_OPTIONS["url_query_bookmark"], bookmark)

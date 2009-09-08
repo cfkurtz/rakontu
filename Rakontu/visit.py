@@ -1,7 +1,6 @@
 # --------------------------------------------------------------------------------------------
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: pre-0.1
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
@@ -92,18 +91,6 @@ class BrowseEntriesPage(webapp.RequestHandler):
 			skinDict = rakontu.getSkinDictionary()
 			(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
 			textsForGrid, rowColors = self.buildGrid(entries, member, skinDict, viewOptions.showDetails)
-			
-			# CFK TEMP - for updating new fields in existing entries
-			"""
-			for entry in rakontu.getNonDraftEntries():
-				i = 0
-				for type in ANNOTATION_TYPES:
-					entry.numAnnotations[i] = entry.numNonDraftAnnotationsOfType(type)
-					i += 1
-				entry.numAnswers = entry.numNonDraftAnswers()
-				entry.numLinks = entry.getNumLinks()
-				entry.put()
-			"""
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': TITLES["HOME"],
 							'rakontu': rakontu, 
@@ -299,9 +286,13 @@ class ReadEntryPage(webapp.RequestHandler):
 								   'show_versions': showVersions,
 								   'versions': entry.getTextVersionsInReverseTimeOrder(),
 								   })
-				member.lastReadAnything = datetime.now(tz=pytz.utc)
-				member.nudgePoints += rakontu.getMemberNudgePointsForEvent("reading")
-				member.put()
+				def txn(member):
+					member.lastReadAnything = datetime.now(tz=pytz.utc)
+					member.nudgePoints += rakontu.getMemberNudgePointsForEvent("reading")
+					member.put()
+				db.run_in_transaction(txn, member)
+				entry.recordAction("read", entry, "Entry")
+				entry.put()
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/read.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
@@ -445,13 +436,16 @@ class ReadEntryPage(webapp.RequestHandler):
 								entry.put()
 						self.redirect(self.request.uri)
 					else:
+						itemsToPut = []
 						for item in entry.getAllNonDraftDependents():
 							if "flag|%s" % item.key() in self.request.arguments():
 								item.flaggedForRemoval = True
-								item.put()
+								itemsToPut.append(item)
 							elif "unflag|%s" % item.key() in self.request.arguments():
 								item.flaggedForRemoval = False
-								item.put()
+								itemsToPut.append(item)
+						if itemsToPut:
+							db.put(itemsToPut)
 						self.redirect(self.request.uri)
 		else:
 			self.redirect(START)
@@ -473,9 +467,11 @@ class ReadAnnotationPage(webapp.RequestHandler):
 								   'annotation': annotation,
 								   'included_links_outgoing': annotation.entry.getOutgoingLinksOfType("included"),
 								   })
-				member.lastReadAnything = datetime.now(tz=pytz.utc)
-				member.nudgePoints += rakontu.getMemberNudgePointsForEvent("reading")
-				member.put()
+				def txn(member):
+					member.lastReadAnything = datetime.now(tz=pytz.utc)
+					member.nudgePoints += rakontu.getMemberNudgePointsForEvent("reading")
+					member.put()
+				db.run_in_transaction(txn, member)
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/readAnnotation.html'))
 				self.response.out.write(template.render(path, template_values))
 		else:
@@ -768,13 +764,16 @@ class SeeMemberPage(webapp.RequestHandler):
 					allItems.extend(memberToSee.getNonDraftLiaisonedEntries())
 					allItems.extend(memberToSee.getNonDraftLiaisonedAnnotations())
 					allItems.extend(memberToSee.getNonDraftLiaisonedAnswers())
+					itemsToPut = []
 					for item in allItems:
 						if "flag|%s" % item.key() in self.request.arguments():
 							item.flaggedForRemoval = True
-							item.put()
+							itemsToPut.append(item)
 						elif "unflag|%s" % item.key() in self.request.arguments():
 							item.flaggedForRemoval = False
-							item.put()
+							itemsToPut.append(item)
+					if itemsToPut:
+						db.put(itemsToPut)
 					self.redirect(self.request.uri)
 			else:
 				self.redirect(BuildResultURL("memberNotFound", rakontu=rakontu))
@@ -902,13 +901,16 @@ class SeeCharacterPage(webapp.RequestHandler):
 				if url:
 					self.redirect(url)
 				else:
+					itemsToPut = []
 					for item in character.getAllItemsAttributedToCharacter():
 						if "flag|%s" % item.key() in self.request.arguments():
 							item.flaggedForRemoval = True
-							item.put()
+							itemsToPut.append(item)
 						elif "unflag|%s" % item.key() in self.request.arguments():
 							item.flaggedForRemoval = False
-							item.put()
+							itemsToPut.append(item)
+					if itemsToPut:
+						db.put(itemsToPut)
 					self.redirect(self.request.uri)
 			else:
 				self.redirect(rakontu.linkURL())
@@ -1028,13 +1030,16 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 					memberToEdit.profileImage = db.Blob(images.resize(str(self.request.get("img")), THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT))
 				memberToEdit.put()
 				questions = rakontu.getActiveQuestionsOfType("member")
+				answersToPut = []
 				for question in questions:
 					foundAnswer = memberToEdit.getAnswerForMemberQuestion(question)
 					if foundAnswer:
 						answerToEdit = foundAnswer
 					else:
+						keyName = GenerateSequentialKeyName("answer")
 						answerToEdit = Answer(
-											key_name=KeyName("answer"), 
+											key_name=keyName, 
+											parent=memberToEdit,
 											rakontu=rakontu, 
 											question=question, 
 											referent=memberToEdit, 
@@ -1070,7 +1075,9 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 								answerToEdit.answerIfText = self.request.get(queryText)
 					answerToEdit.creator = memberToEdit
 					if keepAnswer:
-						answerToEdit.put()
+						answersToPut.append(answerToEdit)
+				if answersToPut:
+					db.put(answersToPut)
 				if offlineMember:
 					self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
 				else:
@@ -1493,7 +1500,10 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 				self.redirect(defaultURL)
 			elif "saveAs" in self.request.arguments() or "save" in self.request.arguments():
 				if not search or "saveAs" in self.request.arguments():
-					search = SavedSearch(key_name=KeyName("filter"), rakontu=rakontu, creator=member)
+					keyName = GenerateSequentialKeyName("filter")
+					search = SavedSearch(key_name=keyName, parent=member, id=keyName, rakontu=rakontu, creator=member)
+				thingsToPut = []
+				thingsToPut.append(search)
 				search.private = self.request.get("privateOrSharedSearch") == "private"
 				search.name = htmlEscape(self.request.get("searchName", default_value="Untitled"))
 				text = self.request.get("comment")
@@ -1523,7 +1533,6 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 				for i in range(NUM_SEARCH_FIELDS):
 					if self.request.get("tags|%s" % i) and self.request.get("tags|%s" % i) != "None":
 						search.tags.append(self.request.get("tags|%s" % i))
-				search.put()
 				# questions
 				for preface in ["entry", "creator"]:
 					if preface == "entry":
@@ -1531,7 +1540,7 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 						questions = rakontu.getActiveNonMemberQuestions()
 					else:
 						search.creatornswers_anyOrAll = self.request.get("creator|anyOrAll")
-						questions = rakontu.getActiveMemberAndCharacterQuestions()
+						questions = rakontu.getActiveMemberAndCharacterQuestions() 
 					for i in range(NUM_SEARCH_FIELDS):
 						response = self.request.get("%s|question|%s" % (preface, i))
 						for question in questions:
@@ -1558,12 +1567,17 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 							if foundQuestion and answer:
 								ref = search.getQuestionReferenceForQuestionAndOrder(question, i)
 								if not ref:
-									ref = SavedSearchQuestionReference(key_name=KeyName("searchref"), rakontu=rakontu, search=search, question=question)
+									keyName = GenerateSequentialKeyName("searchref")
+									ref = SavedSearchQuestionReference(key_name=keyName, parent=search, rakontu=rakontu, search=search, question=question)
 								ref.answer = answer
 								ref.comparison = comparison
 								ref.order = i
 								ref.type = preface
-								ref.put()
+								thingsToPut.append(ref)
+				def txn(thingsToPut):
+					if thingsToPut:
+						db.put(thingsToPut)
+				db.run_in_transaction(txn, thingsToPut)
 				member.setSearchForLocation(location, search)
 				self.redirect(defaultURL)
 			else:
@@ -1663,10 +1677,7 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 		return defaultURL 
 	elif "setToFirst" in request.arguments():
 		if location == "home":
-			if rakontu.firstPublish:
-				startTime = rakontu.firstPublish 
-			else:
-				startTime = rakontu.created
+			startTime = rakontu.created
 		elif location == "member":
 			startTime = member.joined
 		elif location == "character":
@@ -1750,8 +1761,13 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 			return BuildURL("dir_visit", "url_search_filter", query, rakontu=rakontu)
 	elif "copySearch"  in request.arguments():
 		if search:
-			newSearch = SavedSearch(key_name=KeyName("filter"), rakontu=rakontu, creator=member)
-			newSearch.copyDataFromOtherSearchAndPut(search)
+			keyName = GenerateSequentialKeyName("filter")
+			refs = search.getQuestionReferences()
+			def txn(keyName, member, rakontu, search, refs):
+				newSearch = SavedSearch(key_name=keyName, parent=member, id=keyName, rakontu=rakontu, creator=member)
+				newSearch.copyDataFromOtherSearchAndPut(search, refs)
+				return newSearch
+			newSearch = db.run_in_transaction(txn, keyName, member, rakontu, search, refs)
 			viewOptions.search = newSearch
 			viewOptions.put()
 			query = "%s&%s=%s" % (newSearch.urlQuery(), URL_OPTIONS["url_query_location"], location)

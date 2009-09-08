@@ -32,10 +32,8 @@
 				<ul>
 				<li><a href="/{{dir_visit}}/{{url_story}}?{{rakontu.urlQuery}}">{{menu_story}}</a></li>
 	  			<li><a href="/{{dir_visit}}/{{url_invitation}}?{{rakontu.urlQuery}}">{{menu_invitation}}</a></li>
-	  			{% if rakontu.firstPublish %}
-	  				<li><a href="/{{dir_visit}}/{{url_collage}}?{{rakontu.urlQuery}}">{{menu_collage}}</a></li>
-	  				<li><a href="/{{dir_visit}}/{{url_pattern}}?{{rakontu.urlQuery}}">{{menu_pattern}}</a> </li>
-	  			{% endif %}
+  				<li><a href="/{{dir_visit}}/{{url_collage}}?{{rakontu.urlQuery}}">{{menu_collage}}</a></li>
+  				<li><a href="/{{dir_visit}}/{{url_pattern}}?{{rakontu.urlQuery}}">{{menu_pattern}}</a> </li>
 	  			</ul>
 			</li>
 			{% if current_member.isCurator %}

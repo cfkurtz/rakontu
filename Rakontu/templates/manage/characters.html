@@ -17,10 +17,10 @@
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
-		      		<th>{{template_name}}</th>
+		      		<th width="180">{{template_name}}</th>
 		      		<th>{{template_picture}}</th>
 		      		<th>{{template_description}}</th>
-		      		<th>{{template_inactivate}}?</th>
+		      		<th width="100">{{template_inactivate}}?</th>
 		      		</tr>
 		      		{% for character in characters %}
 		  				<tr>
@@ -36,7 +36,7 @@
 							{{term_none}}
 						{% endif %}
 						</td>
-						<td>{{character.description_formatted}}</td>
+						<td>{{character.description_formatted|orNbsp}}</td>
 		  				<td>
 		  					<input type="checkbox" name="remove|{{ character.key }}" value="yes" id="remove|{{character.key}}"/>
 							<label for="remove|{{ character.key }}">{{template_inactivate}}</label>

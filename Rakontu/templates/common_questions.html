@@ -40,7 +40,7 @@
 					{% if question.multiple %}
 						{% for i in question.choices|makeRangeFromListLength %}
 							{% if question.choices|listLookup:i|slugify %}
-								{% if i|dividesBy:5 %}
+								{% if i|dividesBy:4 %}
 									<br/>
 								{% endif %}
 								&nbsp; &nbsp; <input type="checkbox" name="{{question.key}}|{{question.choices|listLookup:i}}" 

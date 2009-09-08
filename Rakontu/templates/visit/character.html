@@ -32,39 +32,6 @@
 	  	{% endif %}
 	  	</div>
 	  	
-      	<table cellspacing=0 cellpadding=0 style="width:100%;">
-      	<tr>
-	      	<th>{{template_created}}</th>
-	      	<th>{{template_last_entry}}</th>
-	      	<th>{{template_last_annotation}}</th>
-	      	<th>{{template_last_answer}}</th>
-      	</tr>
-      	
-		<td>{{character.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}</td>
- 		<td>
-			{% if character.lastEnteredEntry %} 
-				{{character.lastEnteredEntry|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-			{% else %}
-				&nbsp;
-			{% endif %}
-			</td>
-		<td>
-			{% if character.lastEnteredAnnotation %} 
-				{{character.lastEnteredAnnotation|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-			{% else %}
-				&nbsp;
-			{% endif %}
-			</td>
-		<td>
-			{% if character.lastAnsweredQuestion %} 
-				{{character.lastAnsweredQuestion|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-			{% else %}
-				&nbsp;
-			{% endif %}
-			</td>
-		</tr>
-		</table>
-
 		<p></p>
     	<table cellspacing=0 cellpadding=0 style="width:100%;">
  			{% for name in count_names %}

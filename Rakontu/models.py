@@ -18,7 +18,7 @@ from translationLookup import *
 from google.appengine.ext import db
 import pager
 
-def KeyName(type):
+def GenerateSequentialKeyName(type):
 	IncrementCount(type)
 	return "%s%s" % (type, GetShardCount(type))
 
@@ -101,8 +101,10 @@ class TzDateTimeProperty(db.DateTimeProperty):
 	
 # ============================================================================================
 # ============================================================================================
-class CounterShard(db.Model):
+class CounterShard(db.Model): 
 # ============================================================================================
+# to shard counters
+# no parent
 # ============================================================================================
 
 	type = db.StringProperty(required=True)
@@ -110,8 +112,10 @@ class CounterShard(db.Model):
 	
 # ============================================================================================
 # ============================================================================================
-class CounterShardConfiguration(db.Model):
+class CounterShardConfiguration(db.Model): 
 # ============================================================================================
+# to define counter sharding
+# no parent
 # ============================================================================================
 
 	type = db.StringProperty(required=True, indexed=False)
@@ -119,8 +123,10 @@ class CounterShardConfiguration(db.Model):
 	
 # ============================================================================================
 # ============================================================================================
-class Rakontu(db.Model):
+class Rakontu(db.Model): 
 # ============================================================================================
+# community or group
+# no parent
 # ============================================================================================
 
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
@@ -131,9 +137,6 @@ class Rakontu(db.Model):
 	# state
 	active = db.BooleanProperty(default=True)
 	created = TzDateTimeProperty(auto_now_add=True, indexed=False) 
-	firstVisit = TzDateTimeProperty(default=None, indexed=False)
-	lastPublish = TzDateTimeProperty(default=None, indexed=False)
-	firstPublish = TzDateTimeProperty(default=None, indexed=False)
 
 	# governance options
 	maxNumAttachments = db.IntegerProperty(choices=NUM_ATTACHMENT_CHOICES, default=DEFAULT_MAX_NUM_ATTACHMENTS, indexed=False)
@@ -181,6 +184,8 @@ class Rakontu(db.Model):
 		self.welcomeMessage_formatted = db.Text("<p>%s</p>" % self.welcomeMessage)
 		for i in range(3):
 			self.roleReadmes_formatted[i] = db.Text(self.roleReadmes[i])
+			
+	def initializeCustomSkinText(self):
 		skin = GetSkinByName(START_CUSTOM_SKIN_NAME)
 		if skin:
 			self.customSkin = db.Text(skin.asText())
@@ -355,6 +360,13 @@ class Rakontu(db.Model):
 				return member
 		return None
 	
+	def pendingMemberWithGoogleEmail(self, email):
+		pendingMembers = self.getPendingMembers()
+		for pendingMember in pendingMembers:
+			if pendingMember.email == email:
+				return pendingMember
+		return None
+	
 	def memberWithNickname(self, nickname):
 		members = self.getActiveAndInactiveMembers()
 		for member in members:
@@ -482,6 +494,9 @@ class Rakontu(db.Model):
 			result[resource.categoryIfResource].append(resource)
 		return result
 	
+	def getResourceWithTitle(self, title):
+		return Entry.all().filter("title = ", title).get()
+	
 	# ENTRIES, ANNOTATIONS, ANSWERS, LINKS - EVERYTHING
 	
 	def getAllFlaggedItems(self):
@@ -552,8 +567,8 @@ class Rakontu(db.Model):
 		for item in items:
 			item.draft = False
 			item.inBatchEntryBuffer = False
-			item.put()
 			item.publish()
+			item.put()
 			
 	def getNonDraftTagSets(self):
 		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "tag set").filter("draft = ", False).fetch(FETCH_NUMBER)
@@ -569,16 +584,7 @@ class Rakontu(db.Model):
 		tagsSorted.extend(tags.keys())
 		tagsSorted.sort()
 		return tagsSorted
-	
-	def firstPublishOrCreatedWhicheverExists(self):
-		if self.firstPublish:
-			# the reason this "padding" is needed is in the case of data being generated at rakontu creation,
-			# when the time of item creation may actually be slightly before the "firstPublish" flag is set
-			# it won't hurt to have an extra second in otherwise, anyway
-			return self.firstPublish - timedelta(seconds=1)
-		else:
-			return self.created
-		
+			
 	# QUERIES WITH PAGING
 	
 	def getNonDraftEntriesLackingMetadata_WithPaging(self, show, type, sortBy, bookmark, numToFetch=MAX_ITEMS_PER_LIST_PAGE):
@@ -668,9 +674,11 @@ class Rakontu(db.Model):
 				return True
 		return False
 	
-	def AddCopyOfQuestion(self, question):
+	def GenerateCopyOfQuestion(self, question):
+		keyName = GenerateSequentialKeyName("question")
 		newQuestion = Question(
-							   key_name=KeyName("question"),
+							   key_name=keyName,
+							   parent=self,
 							   rakontu=self,
 							   refersTo=question.refersTo,
 							   name=question.name,
@@ -680,11 +688,11 @@ class Rakontu(db.Model):
 							   multiple=question.multiple,
 							   help=question.help,
 							   useHelp=question.useHelp)
-		newQuestion.put()
+		return newQuestion # caller will do the put
 		
-	def addQuestionsOfTypeFromCSV(self, type, input):
+	def GenerateQuestionsOfTypeFromCSV(self, type, input):
 		rows = csv.reader(input.split("\n"))
-		questionsToPut = []
+		result = []
 		for row in rows:
 			if len(row) >= 4 and row[0] and row[1] and row[0][0] != ";":
 				refersTo = row[0].strip()
@@ -715,7 +723,9 @@ class Rakontu(db.Model):
 				help = row[6]
 				useHelp=row[7]
 				question = Question(
-								key_name=KeyName("question"),
+								key_name=GenerateSequentialKeyName("question"),
+								parent=self,
+								rakontu=self,
 								refersTo=refersTo, 
 								name=name, 
 								text=text, 
@@ -727,10 +737,9 @@ class Rakontu(db.Model):
 								maxIfValue=maxValue, 
 								help=help, 
 								useHelp=useHelp, 
-								rakontu=self)
-				questionsToPut.append(question)
-		if questionsToPut:
-			db.put(questionsToPut)
+								)
+				result.append(question)
+		return result
 		
 	# SEARCHES
 	
@@ -803,7 +812,8 @@ class Rakontu(db.Model):
 													text = row[4].strip()
 												else:
 													text = "No text imported."
-												entry = Entry(key_name=KeyName("entry"), rakontu=self, type=type, title=title) 
+												keyName = GenerateSequentialKeyName("entry")
+												entry = Entry(key_name=keyName, parent=member, id=keyName, rakontu=self, type=type, title=title) 
 												entry.text = text
 												entry.rakontu = self
 												entry.creator = member
@@ -823,7 +833,7 @@ class Rakontu(db.Model):
 		exportAlreadyThereForType = self.getExportOfType(type)
 		if exportAlreadyThereForType:
 			db.delete(exportAlreadyThereForType)
-		export = Export(key_name=KeyName("export"), rakontu=self, type=type, fileFormat=fileFormat)
+		export = Export(key_name=GenerateSequentialKeyName("export"), rakontu=self, type=type, fileFormat=fileFormat)
 		exportText = ""
 		if type == "csv_export_search":
 			if member:
@@ -976,10 +986,12 @@ class Rakontu(db.Model):
 # ============================================================================================
 class Question(db.Model):
 # ============================================================================================
+# thing asked about entry, member or character
+# parent: rakontu; URL lookup: none, never looked up so not needed
 # ============================================================================================
 
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
-	rakontu = db.ReferenceProperty(Rakontu, collection_name="questions_to_rakontu")
+	rakontu = db.ReferenceProperty(Rakontu, collection_name="questions_to_rakontu") # CFK
 	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO, required=True)
 	
 	name = db.StringProperty(required=True, default=DEFAULT_QUESTION_NAME)
@@ -1033,8 +1045,10 @@ class Question(db.Model):
 	
 # ============================================================================================
 # ============================================================================================
-class Member(db.Model):
+class Member(db.Model): 
 # ============================================================================================
+# person in rakontu
+# no parent
 # ============================================================================================
 
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
@@ -1094,12 +1108,13 @@ class Member(db.Model):
 		# caller does put
 		
 	def createViewOptions(self):
-		viewOptionsNow = ViewOptions.all().filter("member = ", self.key()).fetch(8) # probably only 4, but could be more
+		viewOptionsNow = ViewOptions.all().ancestor(self)#filter("member = ", self.key()).fetch(8) # probably only 4, but could be more
 		if viewOptionsNow:
 			db.delete(viewOptionsNow)
 		newObjects = []
 		for location in VIEW_OPTION_LOCATIONS:
-			viewOptions = ViewOptions(member=self,location=location)
+			keyName = GenerateSequentialKeyName("options")
+			viewOptions = ViewOptions(key_name=keyName, parent=self, id=keyName, member=self, location=location)
 			if viewOptions.endTime.tzinfo is None:
 				viewOptions.endTime = viewOptions.endTime.replace(tzinfo=pytz.utc)
 			newObjects.append(viewOptions)
@@ -1289,7 +1304,7 @@ class Member(db.Model):
 			
 	def setTimeFrameToStartAtFirstPublish(self, location):
 		viewOptions = self.getViewOptionsForLocation(location)
-		viewOptions.endTime = self.rakontu.firstPublish + timedelta(seconds=viewOptions.timeFrameInSeconds)
+		viewOptions.endTime = self.rakontu.created + timedelta(seconds=viewOptions.timeFrameInSeconds)
 		viewOptions.put()
 		
 	def setNewNudgeCategoriesForLocation(self, location, newNudgeCategories):
@@ -1512,10 +1527,13 @@ class Member(db.Model):
 	
 # ============================================================================================
 # ============================================================================================
-class ViewOptions(db.Model): # options on what to show - four per member (home, entry, member, character)
+class ViewOptions(db.Model): 
 # ============================================================================================
+# options on what to show - four per member (home, entry, member, character)
+# # parent: member; URL lookup: id property
 # ============================================================================================
 
+	id = db.StringProperty(required=True)
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	member = db.ReferenceProperty(Member, required=True, collection_name="view_options_to_member")
 	location = db.StringProperty(choices=VIEW_OPTION_LOCATIONS, default="home") 
@@ -1554,8 +1572,10 @@ class ViewOptions(db.Model): # options on what to show - four per member (home, 
 			
 # ============================================================================================
 # ============================================================================================
-class PendingMember(db.Model): # person invited to join rakontu but not yet logged in
+class PendingMember(db.Model): 
 # ============================================================================================
+# person invited to join rakontu but not yet logged in
+# no parent
 # ============================================================================================
 
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
@@ -1564,10 +1584,21 @@ class PendingMember(db.Model): # person invited to join rakontu but not yet logg
 	invited = TzDateTimeProperty(auto_now_add=True)
 	governanceType = db.StringProperty(default="member")
 	
+	def governanceTypeForDisplay(self):
+		# GOVERNANCE_ROLE_TYPES_DISPLAY = ["member", "manager", "owner"]
+		if self.governanceType == "member":
+			return GOVERNANCE_ROLE_TYPES_DISPLAY[0]
+		elif self.governanceType == "manager":
+			return GOVERNANCE_ROLE_TYPES_DISPLAY[1]
+		elif self.governanceType == "owner":
+			return GOVERNANCE_ROLE_TYPES_DISPLAY[2]
+	
 # ============================================================================================
 # ============================================================================================
-class Character(db.Model): # optional fictions to anonymize entries but provide some information about intent
+class Character(db.Model):
 # ============================================================================================
+# optional fictions to anonymize entries but provide some information about intent
+# no parent
 # ============================================================================================
 
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
@@ -1586,11 +1617,6 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 	
 	image = db.BlobProperty(default=None) # optional
 	
-	lastEnteredEntry = db.DateTimeProperty(indexed=False)
-	lastEnteredAnnotation = db.DateTimeProperty(indexed=False)
-	lastAnsweredQuestion = db.DateTimeProperty(indexed=False)
-	counts = db.ListProperty(int, default=[0] * (len(ENTRY_TYPES) + len(ANNOTATION_ANSWER_LINK_TYPES)), indexed=False) 
-
 	def removeAllDependents(self):
 		db.delete(Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER))
 
@@ -1637,47 +1663,33 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 					if "link" in annotationTypes:
 						result.append(item)
 		return result
-	
-	# COUNTS
-	
-	def incrementCount(self, type, value=1):
-		valueSet = False
-		i = 0
-		for aType in ENTRY_TYPES:
-			if aType == type:
-				self.counts[i] = self.counts[i] + value
-				valueSet = True
-				break
-			i += 1
-		i = len(ENTRY_TYPES)
-		if not valueSet:
-			for aType in ANNOTATION_ANSWER_LINK_TYPES:
-				if aType == type:
-					self.counts[i] = self.counts[i] + value
-					break
-				i += 1
-		# caller will put
-		
-	def decrementCount(self, type):
-		self.incrementCount(type, value=-1)
-		
+			
 	def getCounts(self):
 		countNames = []
 		counts = []
 		i = 0
 		for aType in ENTRY_TYPES:
 			countNames.append(ENTRY_TYPES_PLURAL_DISPLAY[i])
-			counts.append(self.counts[i])
+			count = Entry.all().filter("character = ", self.key()).filter("type = ", aType).count()
+			counts.append(count)
 			i += 1
 		i = len(ENTRY_TYPES)
 		j = 0
 		for aType in ANNOTATION_ANSWER_LINK_TYPES:
-			countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
-			counts.append(self.counts[i])
+			if aType in ANNOTATION_TYPES:
+				countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
+				count = Annotation.all().filter("character = ", self.key()).filter("type = ", aType).count()
+				counts.append(count)
+			elif aType == "answer":
+				countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
+				count = Answer.all().filter("character = ", self.key()).count()
+				counts.append(count)
+			elif aType == "link":
+				pass
 			i += 1
 			j += 1
 		return countNames, counts
-	
+		
 	def getNonDraftEntriesAttributedToCharacter(self):
 		return Entry.all().filter("character = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
@@ -1713,10 +1725,13 @@ class Character(db.Model): # optional fictions to anonymize entries but provide 
 		
 # ============================================================================================
 # ============================================================================================
-class SavedSearch(db.Model):
+class SavedSearch(db.Model): 
 # ============================================================================================
+# search parameters, also called search filter or just filter
+# parent: member; URL lookup: id property
 # ============================================================================================
 
+	id = db.StringProperty(required=True)
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="searches_to_rakontu")
 	creator = db.ReferenceProperty(Member, required=True, collection_name="searches_to_member")
@@ -1744,7 +1759,7 @@ class SavedSearch(db.Model):
 	comment_formatted = db.TextProperty()
 	comment_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 
-	def copyDataFromOtherSearchAndPut(self, search):
+	def copyDataFromOtherSearchAndPut(self, search, refs):
 		self.private = True
 		self.name = "%s %s" % (TERMS["term_copy_of"], search.name)
 		self.words_anyOrAll = search.words_anyOrAll
@@ -1760,9 +1775,12 @@ class SavedSearch(db.Model):
 		self.comment = db.Text(search.comment)
 		self.comment_formatted = db.Text(search.comment_formatted)
 		self.comment_format = search.comment_format
-		for ref in search.getQuestionReferences():
+		thingsToPut = []
+		for ref in refs:
+			keyName = GenerateSequentialKeyName("searchref")
 			myRef = SavedSearchQuestionReference(
-												key_name=KeyName("searchref"),
+												key_name=keyName,
+												parent=self,
 												rakontu=self.rakontu, 
 												creator=self.creator,
 												search=self, 
@@ -1772,8 +1790,8 @@ class SavedSearch(db.Model):
 												answer=ref.answer,
 												comparison=ref.comparison
 												)
-			myRef.put()
-		self.put()
+			thingsToPut.append(myRef)
+		db.put(thingsToPut)
 	
 	def getQuestionReferences(self):
 		return SavedSearchQuestionReference.all().filter("search = ", self.key()).fetch(FETCH_NUMBER)
@@ -1852,8 +1870,10 @@ class SavedSearch(db.Model):
 	
 # ============================================================================================
 # ============================================================================================
-class SavedSearchQuestionReference(db.Model):
+class SavedSearchQuestionReference(db.Model): 
 # ============================================================================================
+# reference to the use of a question in the search filter
+# parent: savedsearch; URL lookup: none needed
 # ============================================================================================
 
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
@@ -1869,8 +1889,10 @@ class SavedSearchQuestionReference(db.Model):
 	
 # ============================================================================================
 # ============================================================================================
-class Answer(db.Model):
+class Answer(db.Model): 
 # ============================================================================================
+# answer to a question (about entry, character or member)
+# parent: member, character or entry; URL lookup: none needed, never looked up directly
 # ============================================================================================
 
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
@@ -1914,27 +1936,17 @@ class Answer(db.Model):
 		if self.referentType == "entry":
 			self.draft = False
 			self.published = datetime.now(pytz.utc)
-			self.put()
-			self.referent.recordAction("added", self)
-			if self.referentType == "entry":
-				for i in range(NUM_NUDGE_CATEGORIES):
-					if self.rakontu.nudgeCategoryIndexHasContent(i):
-						self.entryNudgePointsWhenPublished[i] = self.referent.nudgePoints[i]
-				self.entryActivityPointsWhenPublished = self.referent.activityPoints
-				self.put()
-			# nudge points accrue even if using character
+			self.referent.recordAction("added", self, "Answer")
+			for i in range(NUM_NUDGE_CATEGORIES):
+				if self.rakontu.nudgeCategoryIndexHasContent(i):
+					self.entryNudgePointsWhenPublished[i] = self.referent.nudgePoints[i]
+			self.entryActivityPointsWhenPublished = self.referent.activityPoints
 			self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("answering question")
-			if self.character:
-				self.character.lastAnsweredQuestion = datetime.now(pytz.utc)
-				self.character.incrementCount("answer")
-				self.character.put()
-			else:
+			if not self.character:
 				self.creator.lastAnsweredQuestion = datetime.now(pytz.utc)
 				self.creator.incrementCount("answer")
-			self.creator.put()
-			self.rakontu.lastPublish = self.published
-			self.rakontu.put()
-							
+		# caller must do puts
+			
 	# DISPLAY
 		
 	def getImageLinkForType(self):
@@ -1974,9 +1986,6 @@ class Answer(db.Model):
 	
 	def linkString(self):
 		return self.displayString()
-	
-	def urlQuery(self):
-		return "%s=%s" % (URL_IDS["url_query_answer"], self.getKeyName())
 	
 	def linkStringWithQuestionName(self):
 		return self.displayString(includeQuestionName=True, includeQuestionText=False)
@@ -2026,10 +2035,13 @@ class Answer(db.Model):
 
 # ============================================================================================
 # ============================================================================================
-class Entry(db.Model):					   # story, invitation, collage, pattern, resource
+class Entry(db.Model):
 # ============================================================================================
+# main element of data: story, invitation, collage, pattern, resource
+# parent: member; URL lookup: id property
 # ============================================================================================
 
+	id = db.StringProperty(required=True)
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	type = db.StringProperty(choices=ENTRY_TYPES, required=True) 
 	title = db.StringProperty(required=True, default=DEFAULT_UNTITLED_ENTRY_TITLE)
@@ -2079,42 +2091,26 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	def publish(self):
 		self.draft = False
 		self.published = datetime.now(pytz.utc)
-		self.recordAction("added", self) # does a put
-		# nudge points accrue even if using character
+		self.recordAction("added", self, "Entry")
 		self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("adding %s" % self.type)
-		if self.character:
-			self.character.lastEnteredEntry = datetime.now(pytz.utc)
-			self.character.incrementCount(self.type)
-			self.character.put()
-		else:
+		if not self.character:
 			self.creator.lastEnteredEntry = datetime.now(pytz.utc)
 			self.creator.incrementCount(self.type)
-		self.creator.put()
-		for answer in self.getAnswersForMember(self.creator):
-			answer.publish()
-		for link in self.getOutgoingLinks():
-			link.publish()
-		self.rakontu.lastPublish = self.published
-		if not self.rakontu.firstPublish:
-			self.rakontu.firstPublish = self.published
-		self.rakontu.put()
-		
+		# caller must do puts
+					
 	def unPublish(self):
-		if self.character:
-			self.character.decrementCount(self.type)
-			self.character.put()
-		else:
+		if not self.character:
 			self.creator.decrementCount(self.type)
-			self.creator.put()
+		# caller must do puts
 		
-	def recordAction(self, action, referent):
-		if referent.__class__.__name__ == "Entry":
+	def recordAction(self, action, referent, className):
+		if className == "Entry":
 			if action == "read":
 				eventType = "reading"
 				self.lastRead = datetime.now(tz=pytz.utc)
 			elif action =="added":
 				eventType = "adding %s" % self.type
-		elif referent.__class__.__name__ == "Annotation":
+		elif className == "Annotation":
 			eventType = "adding %s" % referent.type
 			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
 			typeIndex = -1
@@ -2128,20 +2124,23 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 				self.numAnnotations[typeIndex] = self.numAnnotations[typeIndex] + 1
 			if referent.type == "nudge":
 				self.nudgePoints = self.getCurrentTotalNudgePointsInAllCategories()
-		elif referent.__class__.__name__ == "Answer":
+		elif className == "Answer":
 			eventType = "answering question"
 			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
 			self.numAnswers += 1
-		elif referent.__class__.__name__ == "Link":
+		elif className == "Link":
 			eventType = "adding %s link" % referent.type 
 			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
 			self.numLinks += 1
 		self.activityPoints += self.rakontu.getEntryActivityPointsForEvent(eventType)
-		self.put()
+		# caller must do put
 		
 	def addCurrentTextToPreviousVersions(self):
+		keyName = GenerateSequentialKeyName("version")
 		version = TextVersion(
-							key_name=KeyName("version"), 
+							key_name=keyName, 
+							parent=self,
+							id=keyName,
 							entry=self.key(), 
 							rakontu=self.rakontu.key(),
 							title=self.title,
@@ -2760,9 +2759,13 @@ class Entry(db.Model):					   # story, invitation, collage, pattern, resource
 	
 # ============================================================================================
 # ============================================================================================
-class TextVersion(db.Model):
+class TextVersion(db.Model): 
 # ============================================================================================
+# version of text portion of entry (for audit trail and for backtracking)
+# # parent: entry; URL lookup: id property
 # ============================================================================================
+
+	id = db.StringProperty(required=True)
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="versions_to_rakontu")
 	entry = db.ReferenceProperty(Entry, required=True, collection_name="versions_to_entries")
@@ -2781,8 +2784,10 @@ class TextVersion(db.Model):
 	
 # ============================================================================================
 # ============================================================================================
-class Link(db.Model):						 # related, retold, reminded, responded, included
+class Link(db.Model): 
 # ============================================================================================
+# connection between entries, types: related, retold, reminded, responded, included
+# parent: entry (parent is always entry FROM); URL lookup: none needed, never looked up directly
 # ============================================================================================
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	type = db.StringProperty(choices=LINK_TYPES, required=True) 
@@ -2815,23 +2820,17 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 	
 	def publish(self):
 		self.published = datetime.now(pytz.utc)
-		self.put()
 		if self.itemTo.isEntry():
-			self.itemTo.recordAction("added", self)
-		self.itemFrom.recordAction("added", self)
+			self.itemTo.recordAction("added", self, "Link")
+		self.itemFrom.recordAction("added", self, "Link")
 		for i in range(NUM_NUDGE_CATEGORIES):
 			if self.rakontu.nudgeCategoryIndexHasContent(i):
 				self.entryNudgePointsWhenPublished[i] = self.itemFrom.nudgePoints[i]
 		self.entryActivityPointsWhenPublished = self.itemFrom.activityPoints
-		self.put()
 		self.creator.nudgePoints = self.itemFrom.rakontu.getMemberNudgePointsForEvent("adding %s link" % self.type)
 		self.creator.lastEnteredLink = datetime.now(pytz.utc)
 		self.creator.incrementCount("link")
-		self.creator.put()
-		self.itemFrom.rakontu.lastPublish = self.published
-		if not self.itemFrom.rakontu.firstPublish:
-			self.itemFrom.rakontu.firstPublish = self.published
-		self.itemFrom.rakontu.put()
+		# caller must do puts
 		
 	# MEMBERS
 		
@@ -2854,9 +2853,6 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 	
 	def linkString(self):
 		return self.displayString()
-	
-	def urlQuery(self):
-		return "%s=%s" % (URL_IDS["url_query_link"], self.getKeyName())
 	
 	def linkStringWithFromItem(self):
 		result = self.itemFrom.linkString()
@@ -2885,10 +2881,13 @@ class Link(db.Model):						 # related, retold, reminded, responded, included
 	
 # ============================================================================================
 # ============================================================================================
-class Attachment(db.Model):								   # binary attachments to entries
+class Attachment(db.Model):	
 # ============================================================================================
+# file attachments to entries
+# parent: entry; URL lookup: id property
 # ============================================================================================
 
+	id = db.StringProperty(required=True)
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	created = TzDateTimeProperty(auto_now_add=True)
 	entry = db.ReferenceProperty(Entry, collection_name="attachments")
@@ -2925,10 +2924,13 @@ class Attachment(db.Model):								   # binary attachments to entries
 	
 # ============================================================================================
 # ============================================================================================
-class Annotation(db.Model):								# tag set, comment, request, nudge
+class Annotation(db.Model):	
 # ============================================================================================
+# things people said about entries, types: tag set, comment, request, nudge
+# parent: entry; URL lookup: id property
 # ============================================================================================
 
+	id = db.StringProperty(required=True)
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	type = db.StringProperty(choices=ANNOTATION_TYPES, required=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="annotations_to_rakontu")
@@ -2977,25 +2979,16 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 	def publish(self):
 		self.draft = False
 		self.published = datetime.now(pytz.utc)
-		self.put()
-		self.entry.recordAction("added", self)
+		self.entry.recordAction("added", self, "Annotation")
 		for i in range(NUM_NUDGE_CATEGORIES):
 			if self.rakontu.nudgeCategoryIndexHasContent(i):
 				self.entryNudgePointsWhenPublished[i] = self.entry.nudgePoints[i]
 		self.entryActivityPointsWhenPublished = self.entry.activityPoints
-		self.put()
 		self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("adding %s" % self.type)
-		if self.character:
-			self.character.lastEnteredAnnotation = datetime.now(pytz.utc)
-			self.character.incrementCount(self.type)
-			self.character.put()
-		else:
+		if not self.character:
 			self.creator.lastEnteredAnnotation = datetime.now(pytz.utc)
 			self.creator.incrementCount(self.type)
-			self.creator.put()
-		self.creator.put()
-		self.rakontu.lastPublish = self.published
-		self.rakontu.put()
+		# caller must do puts
 
 	# TYPE
 	
@@ -3154,8 +3147,10 @@ class Annotation(db.Model):								# tag set, comment, request, nudge
 
 # ============================================================================================
 # ============================================================================================
-class Help(db.Model):		 # context-sensitive help string - appears as title hover on icon 
+class Help(db.Model): 
 # ============================================================================================
+# context-sensitive help string - appears as title hover on icon 
+# no parent
 # ============================================================================================
 
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
@@ -3168,8 +3163,10 @@ class Help(db.Model):		 # context-sensitive help string - appears as title hover
 	
 # ============================================================================================
 # ============================================================================================
-class Skin(db.Model):		 # style sets to change look of each Rakontu
+class Skin(db.Model): 
 # ============================================================================================
+# style sets to change look of each Rakontu
+# no parent
 # ============================================================================================
 
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
@@ -3242,8 +3239,10 @@ class Skin(db.Model):		 # style sets to change look of each Rakontu
 
 # ============================================================================================
 # ============================================================================================
-class Export(db.Model):		 # data prepared for export, in XML or CSV or TXT format
+class Export(db.Model):
 # ============================================================================================
+# data prepared for export, in XML or CSV or HTML format
+# no parent
 # ============================================================================================
 	
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)

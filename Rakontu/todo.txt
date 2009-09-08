@@ -12,16 +12,9 @@ finish help resources
 
 test approcket on server!
 
-SCALING UP:
-
-transactions
-get keys only when possible?
-more caching for speed
-look at all puts to see if they can be better lumped together
-
 PRETTIFYING:
 
-add cancel button on all pages that save things?
+add cancel button on all pages that save things? cancel links?
 javascript sliders for values?
 javascript in search creation?
 problem with CSS and font sizes...

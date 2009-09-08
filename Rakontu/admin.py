@@ -65,18 +65,20 @@ class CreateRakontuPage_PartTwo(webapp.RequestHandler):
 		user = users.get_current_user()
 		if users.is_current_user_admin():
 			ownerEmail = self.request.get('ownerEmail').strip()
-			if ownerEmail: # cfk fix - check if valid email?
+			if ownerEmail: # if this is not a valid email, the admin has to fix it
 				url = self.request.get('url')
 				name = htmlEscape(self.request.get('name'))
 				type = self.request.get("type")
 				rakontu = Rakontu(key_name=url, name=name, type=type)
 				rakontu.initializeFormattedTexts()
+				rakontu.initializeCustomSkinText()
 				rakontu.put()
-				if rakontu.type != RAKONTU_TYPES[-1]:
+				if rakontu.type != RAKONTU_TYPES[-1]: # last type means no default questions
 					GenerateDefaultQuestionsForRakontu(rakontu, rakontu.type)
 				GenerateDefaultCharactersForRakontu(rakontu)
+				keyName = GenerateSequentialKeyName("pendingmember")
 				newPendingMember = PendingMember(
-					key_name=KeyName("pendingmember"), 
+					key_name=keyName, 
 					rakontu=rakontu, 
 					email=ownerEmail,
 					governanceType="owner")
@@ -88,16 +90,24 @@ class CreateRakontuPage_PartTwo(webapp.RequestHandler):
 class AdministerSitePage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
-		# this one method does not require a rakontu and member, since the admin has to look at multiple rakontus.
+		# this method does not require a rakontu and member, since the admin has to look at multiple rakontus.
 		if users.is_current_user_admin():
+			user = users.get_current_user()
 			rakontus = AllRakontus()
 			memberOfRakontus = {}
 			for rakontu in rakontus:
-				member = rakontu.memberWithGoogleUserID(users.get_current_user().user_id())
+				member = rakontu.memberWithGoogleUserID(user.user_id())
 				if member and member.active:
 					memberOfRakontus[rakontu.key()] = member.governanceTypeForDisplay()
 				else:
 					memberOfRakontus[rakontu.key()] = None
+			pendingMemberOfRakontus = {}
+			for rakontu in rakontus:
+				pendingMember = rakontu.pendingMemberWithGoogleEmail(user.email())
+				if pendingMember:
+					pendingMemberOfRakontus[rakontu.key()] = pendingMember.governanceTypeForDisplay()
+				else:
+					pendingMemberOfRakontus[rakontu.key()] = None
 			siteResourceNames = []
 			resources = SystemEntriesOfType("resource")
 			numDefaultResources = len(resources)
@@ -114,6 +124,7 @@ class AdministerSitePage(webapp.RequestHandler):
 						   	   'title': TITLES["REVIEW_RAKONTUS"], 
 							   'rakontus': rakontus, 
 							   'member_of': memberOfRakontus,
+							   'pending_member_of': pendingMemberOfRakontus,
 						   	   'num_sample_questions': NumSystemQuestions(),
 						   	   'site_resource_names': siteResourceNamesString,
 						   	   'num_default_resources': numDefaultResources,
@@ -130,30 +141,27 @@ class AdministerSitePage(webapp.RequestHandler):
 			
 	@RequireLogin 
 	def post(self):
-		# this one method does not require a rakontu and member, since the admin has to look at multiple rakontus.
+		# this method does not require a rakontu and member, since the admin has to look at multiple rakontus.
 		if users.is_current_user_admin():
 			rakontus = AllRakontus()
 			user = users.get_current_user()
 			for aRakontu in rakontus:
 				if "joinOrLeave|%s" % aRakontu.key() in self.request.arguments():
-					member = aRakontu.memberWithGoogleUserID(user.user_id())
-					joinAs = self.request.get("joinAs|%s" % aRakontu.key())
-					if member and not aRakontu.memberIsOnlyOwner(member):
-						member.active = not member.active
-						member.governanceType = joinAs
-						member.put()
+					pendingMember = aRakontu.pendingMemberWithGoogleEmail(user.email())
+					if pendingMember:
+						member = CreateMemberFromPendingMember(aRakontu, pendingMember, user.user_id(), user.email())
 					else:
-						member = Member(
-							key_name=KeyName("member"), 
-							nickname="administrator",
-							googleAccountID=user.user_id(),
-							googleAccountEmail=user.email(),
-							rakontu=aRakontu,
-							active=True,
-							governanceType=joinAs) 
-						member.initialize()
-						member.put()
-						member.createViewOptions()
+						member = aRakontu.memberWithGoogleUserID(user.user_id())
+						joinAs = self.request.get("joinAs|%s" % aRakontu.key())
+						if member and not aRakontu.memberIsOnlyOwner(member):
+							def txn(member, joinAs):
+								member.active = not member.active
+								if member.active:
+									member.governanceType = joinAs
+								member.put()
+							db.run_in_transaction(txn, member, joinAs)
+						else:
+							member = CreateMemberFromInfo(aRakontu, user.user_id(), user.email(), "administrator", joinAs)
 					self.redirect(BuildURL("dir_admin", "url_admin"))
 				elif "toggleActiveState|%s" % aRakontu.key() in self.request.arguments():
 					aRakontu.active = not aRakontu.active
@@ -213,6 +221,7 @@ class GenerateSkinsPage(webapp.RequestHandler):
 class GenerateFakeDataPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
+		# no transaction: not likely to conflict
 		if users.is_current_user_admin():
 			GenerateFakeTestingData()
 			self.redirect(BuildURL("dir_admin", "url_admin"))
@@ -222,6 +231,7 @@ class GenerateFakeDataPage(webapp.RequestHandler):
 class GenerateStressTestPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):
+		# no transaction: not likely to conflict
 		if users.is_current_user_admin():
 			GenerateStressTestData()
 			self.redirect(BuildURL("dir_admin", "url_admin"))

@@ -61,30 +61,57 @@ def GetCurrentMemberFromRakontuAndUser(rakontu, user):
 			if not member:
 				pendingMember = pendingMemberForEmailAndRakontu(user.email(), rakontu)
 				if pendingMember:
-					member = Member(
-						key_name=KeyName("member"), 
-						nickname=user.email(),
-						googleAccountID=user.user_id(),
-						googleAccountEmail=user.email(),
-						rakontu=rakontu,
-						active=True,
-						governanceType=pendingMember.governanceType) 
-					member.initialize()
-					member.put()
-					member.createViewOptions()
-					db.delete(pendingMember) 
+					member = CreateMemberFromPendingMember(rakontu, pendingMember, user.user_id(), user.email())
 	return member
- 
+
+def CreateMemberFromPendingMember(rakontu, pendingMember, userId, email):
+	keyName = GenerateSequentialKeyName("member")
+	def txn(rakontu, pendingMember, userId, email, keyName):
+		member = Member(
+			key_name=keyName, 
+			nickname=email,
+			googleAccountID=userId,
+			googleAccountEmail=email,
+			rakontu=rakontu,
+			active=True,
+			governanceType=pendingMember.governanceType) 
+		member.initialize()
+		member.put()
+		
+		return member
+	member = db.run_in_transaction(txn, rakontu, pendingMember, userId, email, keyName)
+	# this runs a transaction so must be done afterward
+	member.createViewOptions()
+	# must do afterward, different group
+	db.delete(pendingMember) 
+	return member
+
+def CreateMemberFromInfo(rakontu, userId, email, nickname, joinAs):
+	keyName = GenerateSequentialKeyName("member")
+	def txn(rakontu, userId, email, nickname, joinAs, keyName):
+		member = Member(
+			key_name=keyName, 
+			nickname=nickname,
+			googleAccountID=userId,
+			googleAccountEmail=email,
+			rakontu=rakontu,
+			active=True,
+			governanceType=joinAs) 
+		member.initialize()
+		member.put()
+		return member
+	member = db.run_in_transaction(txn, rakontu, userId, email, nickname, joinAs, keyName)
+	# this runs a transaction so must be done afterward
+	member.createViewOptions()
+	return member
+
 def SetFirstThingsAndReturnWhetherMemberIsNew(rakontu, member):
 	isFirstVisit = False
 	if rakontu and member:
 		isFirstVisit = not member.firstVisited
-		if not rakontu.firstVisit:
-			rakontu.firstVisit = datetime.now(tz=pytz.utc)
-			rakontu.put()
+		if isFirstVisit:
 			if member.governanceType == "owner":
 				CopyDefaultResourcesForNewRakontu(rakontu, member)
-		if not member.firstVisited:
 			member.firstVisited = datetime.now(tz=pytz.utc)
 			member.put()
 	return isFirstVisit
@@ -104,34 +131,28 @@ def GetRakontuFromURLQuery(query):
 	queryAsDictionary = GetDictionaryFromURLQuery(query)  
 	rakontuLookupKey = URL_IDS["url_query_rakontu"]
 	if queryAsDictionary.has_key(rakontuLookupKey):
-		rakontuKey = queryAsDictionary[rakontuLookupKey]
-		return Rakontu.get_by_key_name(rakontuKey) 
+		rakontuKeyName = queryAsDictionary[rakontuLookupKey]
+		return Rakontu.get_by_key_name(rakontuKeyName) 
 	else:
 		for lookup, url in URL_IDS.items():
 			if queryAsDictionary.has_key(url):
 				entityKeyName = queryAsDictionary[url] 
-				if lookup == "url_query_entry": 
-					entity = Entry.get_by_key_name(entityKeyName) 
-				elif lookup == "url_query_attachment": 
-					entity = Attachment.get_by_key_name(entityKeyName)  
-				elif lookup == "url_query_annotation":
-					entity = Annotation.get_by_key_name(entityKeyName)   
-				elif lookup == "url_query_answer": 
-					entity = Answer.get_by_key_name(entityKeyName)
-				elif lookup == "url_query_version": 
-					entity = TextVersion.get_by_key_name(entityKeyName)
-				elif lookup == "url_query_member":
+				if lookup == "url_query_member":
 					entity = Member.get_by_key_name(entityKeyName)
-				elif lookup == "url_query_character":
-					entity = Character.get_by_key_name(entityKeyName) 
-				elif lookup == "url_query_search_filter":
-					entity = SavedSearch.get_by_key_name(entityKeyName)
-				elif lookup == "url_query_attachment":
-					entity = Attachment.get_by_key_name(entityKeyName)
-				elif lookup == "url_query_link":
-					entity = Link.get_by_key_name(entityKeyName)
 				elif lookup in ["url_query_export_csv", "url_query_export_txt", "url_query_export_xml"]:
 					entity = Export.get_by_key_name(entityKeyName)
+				elif lookup == "url_query_character":
+					entity = Character.get_by_key_name(entityKeyName) 
+				elif lookup == "url_query_entry": 
+					entity = Entry.all().filter("id =", entityKeyName).get()
+				elif lookup == "url_query_attachment": 
+					entity = Attachment.all().filter("id =", entityKeyName).get()
+				elif lookup == "url_query_annotation":
+					entity = Annotation.all().filter("id =", entityKeyName).get()
+				elif lookup == "url_query_version": 
+					entity = TextVersion.all().filter("id =", entityKeyName).get()
+				elif lookup == "url_query_search_filter":
+					entity = SavedSearch.all().filter("id =", entityKeyName).get()
 				if entity and entity.rakontu: 
 					return entity.rakontu 
 				else: 
@@ -152,28 +173,22 @@ def GetObjectOfTypeFromURLQuery(query, type):
 		keyName = dictionary[lookupKey]
 		if type == "url_query_rakontu":
 			return Rakontu.get_by_key_name(keyName)
-		elif type == "url_query_entry":
-			return Entry.get_by_key_name(keyName)
-		elif type == "url_query_attachment":
-			return Attachment.get_by_key_name(keyName)
-		elif type == "url_query_annotation":
-			return Annotation.get_by_key_name(keyName)
-		elif type == "url_query_answer":
-			return Answer.get_by_key_name(keyName)
-		elif type == "url_query_version": 
-			return TextVersion.get_by_key_name(keyName)
 		elif type == "url_query_member":
 			return Member.get_by_key_name(keyName)
 		elif type == "url_query_character": 
 			return Character.get_by_key_name(keyName) 
-		elif type == "url_query_link": 
-			return Link.get_by_key_name(keyName)
-		elif type == "url_query_search_filter":
-			return SavedSearch.get_by_key_name(keyName)  
-		elif type == "url_query_attachment":
-			return Attachment.get_by_key_name(keyName)
 		elif type == "url_query_export": 
 			return Export.get_by_key_name(keyName)
+		elif type == "url_query_entry":
+			return Entry.all().filter("id =", keyName).get()
+		elif type == "url_query_attachment":
+			return Attachment.all().filter("id =", keyName).get()
+		elif type == "url_query_annotation":
+			return Annotation.all().filter("id =", keyName).get()
+		elif type == "url_query_version": 
+			return TextVersion.all().filter("id =", keyName).get()
+		elif type == "url_query_search_filter":
+			return SavedSearch.all().filter("id =", keyName).get()
 	else:
 		return None
 	
@@ -307,7 +322,7 @@ class ImageHandler(webapp.RequestHandler):
 			else:
 				self.error(404)
 		elif entryKeyName:
-			entry = Entry.get_by_key_name(entryKeyName)
+			entry = Entry.all().filter("id = ", entryKeyName).get()
 			if entry and entry.type == "pattern" and entry.screenshotIfPattern:
 				self.response.headers['Content-Type'] = "image/jpeg"
 				self.response.out.write(entry.screenshotIfPattern)
@@ -317,7 +332,7 @@ class ImageHandler(webapp.RequestHandler):
 				self.response.headers['Content-Type'] = "image/jpeg"
 				self.response.out.write(character.image)
 		elif attachmentKeyName:
-			attachment = Attachment.get_by_key_name(attachmentKeyName)
+			attachment = Attachment.all().filter("id = ", attachmentKeyName).get()
 			if attachment:
 				self.response.headers['Content-Type'] = attachment.mimeType
 				self.response.out.write(attachment.data)
@@ -326,7 +341,7 @@ class AttachmentHandler(webapp.RequestHandler):
 	def get(self):
 		attachmentKeyName = self.request.get(URL_IDS["url_query_attachment"])
 		if attachmentKeyName:
-			attachment = Attachment.get_by_key_name(attachmentKeyName)
+			attachment = Attachment.all().filter("id = ", attachmentKeyName).get()
 			if attachment and attachment.data:
 				if attachment.mimeType in ["image/jpeg", "image/png", "text/html", "text/plain"]:
 					self.response.headers['Content-Disposition'] = 'filename="%s"' % attachment.fileName
@@ -380,7 +395,8 @@ def GenerateHelps():
 		helpStrings = csv.reader(file)
 		for row in helpStrings:
 			if len(row[0]) > 0 and row[0][0] != ";":
-				helps.append(Help(key_name=KeyName("help"), type=row[0].strip(), name=row[1].strip(), text=row[2].strip()))
+				keyName = GenerateSequentialKeyName("help")
+				helps.append(Help(key_name=keyName, type=row[0].strip(), name=row[1].strip(), text=row[2].strip()))
 		db.put(helps) 
 	finally:
 		file.close()  
@@ -470,7 +486,8 @@ def ReadQuestionsFromFile(fileName, rakontu=None, rakontuType="ALL"):
 					useHelp=row[7]
 					typesOfRakontu = [x.strip() for x in row[8].split(",")]
 					question = Question(
-									key_name=KeyName("question"),
+									key_name=GenerateSequentialKeyName("question"),
+									parent=rakontu,
 									rakontu=rakontu,
 									refersTo=reference, 
 									name=name, 
@@ -506,8 +523,9 @@ def GenerateDefaultCharactersForRakontu(rakontu):
 			fullImageFileName = "config/images/%s" % imageFileName    
 			imageData = open(fullImageFileName).read()  
 			image = db.Blob(imageData) 
+			keyName = GenerateSequentialKeyName("character")
 			character = Character( 
-							   key_name=KeyName("character"),   
+							   key_name=keyName,   
 							   name=row[0], 
 							   rakontu=rakontu,
 							   )
@@ -539,8 +557,10 @@ def GenerateSystemResources():
 				currentResource.text = currentText
 				currentResource.text_formatted = db.Text(InterpretEnteredText(currentText, currentResource.text_format))
 				resources.append(currentResource)
-			currentResource = Entry(key_name=KeyName("entry"),
+			keyName = GenerateSequentialKeyName("entry")
+			currentResource = Entry(key_name=keyName,
 							rakontu=None, 
+							id=keyName,
 							type="resource",
 							title=name,
 							creator=None,
@@ -564,25 +584,31 @@ def GenerateSystemResources():
 	
 def CopyDefaultResourcesForNewRakontu(rakontu, member):
 	systemResources = SystemEntriesOfType("resource")
+	resourcesToPut = []
 	for resource in systemResources:
-		newResource = Entry(key_name=KeyName("entry"), 
-						rakontu=rakontu, 
-						type="resource",
-						title=resource.title,
-						text=resource.text,
-						text_format=resource.text_format,
-						text_formatted=resource.text_formatted,
-						creator=member,
-						draft=False,
-						inBatchEntryBuffer=False,
-						published=datetime.now(tz=pytz.utc),
-						resourceForHelpPage=resource.resourceForHelpPage,
-						resourceForNewMemberPage=resource.resourceForNewMemberPage,
-						resourceForManagersAndOwnersOnly=resource.resourceForManagersAndOwnersOnly,
-						resourceForAllNewRakontus=False,
-						categoryIfResource=resource.categoryIfResource,
-						)
-	 	newResource.put()
+		alreadyThereResource = rakontu.getResourceWithTitle(resource.title)
+		if not alreadyThereResource:
+			keyName = GenerateSequentialKeyName("entry")
+			newResource = Entry(key_name=keyName, 
+							rakontu=rakontu, 
+							type="resource",
+							title=resource.title,
+							text=resource.text,
+							text_format=resource.text_format,
+							text_formatted=resource.text_formatted,
+							creator=member,
+							draft=False,
+							inBatchEntryBuffer=False,
+							published=datetime.now(tz=pytz.utc),
+							resourceForHelpPage=resource.resourceForHelpPage,
+							resourceForNewMemberPage=resource.resourceForNewMemberPage,
+							resourceForManagersAndOwnersOnly=resource.resourceForManagersAndOwnersOnly,
+							resourceForAllNewRakontus=False,
+							categoryIfResource=resource.categoryIfResource,
+							)
+	 		resourcesToPut.append(newResource)
+	if resourcesToPut:
+		db.put(resourcesToPut)
 
 # ============================================================================================
 # ============================================================================================
@@ -818,32 +844,37 @@ def checkedBlank(value):
 
 def GenerateFakeTestingData():
 	user = users.get_current_user()
-	rakontu = Rakontu(key_name=KeyName("rakontu"), name="Test rakontu", description="Test description")
+	rakontu = Rakontu(key_name=GenerateSequentialKeyName("rakontu"), name="Test rakontu", description="Test description")
 	rakontu.initializeFormattedTexts()
+	rakontu.initializeCustomSkinText()
 	GenerateDefaultQuestionsForRakontu(rakontu, "neighborhood")
 	rakontu.put()
-	member = Member(key_name=KeyName("member"), googleAccountID=user.user_id(), googleAccountEmail=user.email(), nickname="Tester", rakontu=rakontu, governanceType="owner")
+	member = Member(key_name=GenerateSequentialKeyName("member"), googleAccountID=user.user_id(), googleAccountEmail=user.email(), nickname="Tester", rakontu=rakontu, governanceType="owner")
 	member.initialize()
 	member.put()
 	member.createViewOptions()
 	if user.email() != "test@example.com":
-		PendingMember(key_name=KeyName("pendingmember"), rakontu=rakontu, email="test@example.com").put()
+		PendingMember(key_name=GenerateSequentialKeyName("pendingmember"), rakontu=rakontu, email="test@example.com").put()
 	else:
-		PendingMember(key_name=KeyName("pendingmember"), rakontu=rakontu, email="cfkurtz@cfkurtz.com").put()
-	PendingMember(key_name=KeyName("pendingmember"), rakontu=rakontu, email="admin@example.com").put()
-	Character(key_name=KeyName("character"), name="Little Bird", rakontu=rakontu).put()
-	Character(key_name=KeyName("character"), name="Old Coot", rakontu=rakontu).put()
-	Character(key_name=KeyName("character"), name="Blooming Idiot", rakontu=rakontu).put()
-	entry = Entry(key_name=KeyName("entry"), rakontu=rakontu, type="story", creator=member, title="The dog", text="The dog sat on a log.", draft=False)
+		PendingMember(key_name=GenerateSequentialKeyName("pendingmember"), rakontu=rakontu, email="cfkurtz@cfkurtz.com").put()
+	PendingMember(key_name=GenerateSequentialKeyName("pendingmember"), rakontu=rakontu, email="admin@example.com").put()
+	Character(key_name=GenerateSequentialKeyName("character"), name="Little Bird", rakontu=rakontu).put()
+	Character(key_name=GenerateSequentialKeyName("character"), name="Old Coot", rakontu=rakontu).put()
+	Character(key_name=GenerateSequentialKeyName("character"), name="Blooming Idiot", rakontu=rakontu).put()
+	keyName = GenerateSequentialKeyName("entry")
+	entry = Entry(key_name=keyName, parent=member, id=keyName, rakontu=rakontu, type="story", creator=member, title="The dog", text="The dog sat on a log.", draft=False)
 	entry.put()
 	entry.publish()
-	annotation = Annotation(key_name=KeyName("annotation"), rakontu=rakontu, type="comment", creator=member, entry=entry, shortString="Great!", longString="Wonderful!", draft=False)
+	keyName = GenerateSequentialKeyName("annotation")
+	annotation = Annotation(key_name=keyName, parent=entry, id=keyName, rakontu=rakontu, type="comment", creator=member, entry=entry, shortString="Great!", longString="Wonderful!", draft=False)
 	annotation.put()
 	annotation.publish()
-	annotation = Annotation(key_name=KeyName("annotation"), rakontu=rakontu, type="comment", creator=member, entry=entry, shortString="Dumb", longString="Silly", draft=False)
+	keyName = GenerateSequentialKeyName("annotation")
+	annotation = Annotation(key_name=keyName, parent=entry, id=keyName, rakontu=rakontu, type="comment", creator=member, entry=entry, shortString="Dumb", longString="Silly", draft=False)
 	annotation.put()
 	annotation.publish()
-	entry = Entry(key_name=KeyName("entry"), rakontu=rakontu, type="story", creator=member, title="The circus", text="I went the the circus. It was great.", draft=False)
+	keyName = GenerateSequentialKeyName("entry")
+	entry = Entry(key_name=keyName, parent=member, id=keyName, rakontu=rakontu, type="story", creator=member, title="The circus", text="I went the the circus. It was great.", draft=False)
 	entry.put()
 	entry.publish()
 
@@ -872,7 +903,7 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 		numMembersNow = rakontu.numActiveMembers()
 		for i in range(numItems):
 			member = Member(
-						key_name=KeyName("member"), 
+						key_name=GenerateSequentialKeyName("member"), 
 						nickname="Member %s" % (numMembersNow + i + 1), 
 						rakontu=rakontu, 
 						governanceType="member")  
@@ -889,8 +920,11 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 			type = random.choice(ENTRY_TYPES)
 			member = Member.get_by_key_name(random.choice(memberKeyNames))
 			text = random.choice(LOREM_IPSUM)
+			keyName = GenerateSequentialKeyName("entry")
 			entry = Entry( 
-						key_name=KeyName("entry"), 
+						key_name=keyName, 
+						parent=member,
+						id=keyName,
 						rakontu=rakontu, 
 						type=type, 
 						creator=member, 
@@ -914,10 +948,13 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 		for i in range(numItems):
 			type = random.choice(ANNOTATION_TYPES)
 			member = Member.get_by_key_name(random.choice(memberKeyNames))
-			entry = Entry.get_by_key_name(random.choice(entryKeyNames))
+			entry = Entry.all().filter("id = ", random.choice(entryKeyNames)).get()
 			text = random.choice(LOREM_IPSUM)
+			keyName = GenerateSequentialKeyName("annotation")
 			annotation = Annotation(
-								key_name=KeyName("annotation"), 
+								key_name=keyName, 
+								parent=entry,
+								id=keyName,
 								rakontu=rakontu, 
 								type=type, 
 								creator=member, 
@@ -950,10 +987,13 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 			entryKeyNames.append(entry.getKeyName())
 		for i in range(numItems):
 			member = Member.get_by_key_name(random.choice(memberKeyNames))
-			entry = Entry.get_by_key_name(random.choice(entryKeyNames))
+			entry = Entry.all().filter("id = ", random.choice(entryKeyNames)).get()
 			text = random.choice(LOREM_IPSUM)
+			keyName = GenerateSequentialKeyName("annotation")
 			annotation = Annotation(
-								key_name=KeyName("annotation"), 
+								key_name=keyName, 
+								parent=entry,
+								id=keyName,
 								rakontu=rakontu, 
 								type="nudge", 
 								creator=member, 

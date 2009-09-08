@@ -43,27 +43,36 @@ class CurateFlagsPage(webapp.RequestHandler):
 				self.redirect(rakontu.linkURL())
 				return
 			items = rakontu.getAllFlaggedItemsAsOneList()
+			itemsToPut = []
 			for item in items:
 				if self.request.get("flagComment|%s" % item.key()):
 					item.flagComment = self.request.get("flagComment|%s" % item.key())
-					item.put()
+					itemsToPut.append(item)
 				if self.request.get("unflag|%s" % item.key()) == "yes":
 				 	item.flaggedForRemoval = False
-				 	item.put()
+				 	itemsToPut.append(item)
+			if itemsToPut:
+				db.put(itemsToPut)
 			if member.isManagerOrOwner():
+				itemsToPut = []
+				itemsToDelete = []
 				for item in items:
 					if self.request.get("removeComment|%s" % item.key()) == "yes":
 						if item.__class__.__name__ == "Annotation": # nudge
 							item.shortString = ""
 						elif item.__class__.__name__ == "Link":
 							item.comment = ""
-						item.put()
+						itemsToPut.append(item)
 					elif self.request.get("remove|%s" % item.key()) == "yes":
 						if item.__class__.__name__ == "Entry":
 							item.removeAllDependents()
 						elif item.__class__.__name__ == "SavedSearch":
 							item.deleteAllDependents()
-						db.delete(item)
+						itemsToDelete.append(item)
+				if itemsToPut:
+					db.put(itemsToPut)
+				if itemsToDelete:
+					db.delete(itemsToDelete)
 				self.redirect(BuildURL("dir_curate", "url_flags", rakontu=rakontu))
 			elif member.isCurator():
 				itemsToSendMessageAbout = []
@@ -220,13 +229,15 @@ class CurateAttachmentsPage(webapp.RequestHandler):
 			if member.isCurator():
 				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
 				prev, attachments, next = rakontu.getAttachments_WithPaging(bookmark)
+				entriesToPut = []
 				for attachment in attachments:
 					if "flag|%s" % attachment.entry.key() in self.request.arguments():
 						attachment.entry.flaggedForRemoval = True
-						attachment.entry.put()
+						entriesToPut.append(attachment.entry)
 					elif "unflag|%s" % attachment.entry.key() in self.request.arguments():
 						attachment.entry.flaggedForRemoval = False
-						attachment.entry.put()
+						entriesToPut.append(attachment.entry)
+				db.put(entriesToPut)
 				if bookmark:
 					# bookmark must be last, because of the extra == the PageQuery puts on it
 					query = "%s=%s&%s=%s" % (URL_IDS["url_query_rakontu"], rakontu.getKeyName(), URL_OPTIONS["url_query_bookmark"], bookmark)
@@ -270,18 +281,26 @@ class CurateTagsPage(webapp.RequestHandler):
 			if member.isCurator():
 				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
 				prev, tagSets, next = rakontu.getTagSets_WithPaging(bookmark)
+				tagsetsToPut = []
 				for tagset in tagSets:
-					tagset.tagsIfTagSet = []
-					for i in range(NUM_TAGS_IN_TAG_SET):
-						if self.request.get("tag%s|%s" % (i, tagset.key())):
-							tagset.tagsIfTagSet.append(self.request.get("tag%s|%s" % (i, tagset.key())))
-						else:
-							tagset.tagsIfTagSet.append("")
 					if "flag|%s" % tagset.key() in self.request.arguments():
 						tagset.flaggedForRemoval = True
+						tagsetsToPut.append(tagset)
+						break
 					elif "unflag|%s" % tagset.key() in self.request.arguments():
 						tagset.flaggedForRemoval = False
-				db.put(tagSets)
+						tagsetsToPut.append(tagset)
+						break
+					else:
+						tagsetsToPut.append(tagset)
+						tagset.tagsIfTagSet = []
+						for i in range(NUM_TAGS_IN_TAG_SET):
+							if self.request.get("tag%s|%s" % (i, tagset.key())):
+								tagset.tagsIfTagSet.append(self.request.get("tag%s|%s" % (i, tagset.key())))
+							else:
+								tagset.tagsIfTagSet.append("")
+				if tagsetsToPut:
+					db.put(tagsetsToPut)
 				if bookmark:
 					# bookmark must be last, because of the extra == the PageQuery puts on it
 					query = "%s=%s&%s=%s" % (URL_IDS["url_query_rakontu"], rakontu.getKeyName(), URL_OPTIONS["url_query_bookmark"], bookmark)

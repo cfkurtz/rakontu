@@ -57,6 +57,7 @@ class ManageRakontuMembersPage(webapp.RequestHandler):
 		if access:
 			if member.isManagerOrOwner():
 				rakontuMembers = rakontu.getActiveMembers()
+				membersToPut = []
 				for aMember in rakontuMembers:
 					for name, value in self.request.params.items():
 						if aMember.googleAccountID and value.find(aMember.googleAccountID) >= 0:
@@ -79,21 +80,26 @@ class ManageRakontuMembersPage(webapp.RequestHandler):
 					else:
 						for i in range(3):
 							aMember.helpingRolesAvailable[i] = True
-					aMember.put()
+					membersToPut.append(aMember)
 				for aMember in rakontuMembers:
 					if self.request.get("remove|%s" % aMember.key()) == "yes":
 						aMember.active = False
-						aMember.put()
+						membersToPut.append(aMember)
+				if membersToPut:
+					db.put(membersToPut)
+				# don't lump these, they are unlikely to be many 
 				for pendingMember in rakontu.getPendingMembers():
 					pendingMember.email = htmlEscape(self.request.get("email|%s" % pendingMember.key()))
 					pendingMember.put()
 					if self.request.get("removePendingMember|%s" % pendingMember.key()):
 						db.delete(pendingMember)
+				# or these
 				memberEmailsToAdd = htmlEscape(self.request.get("newMemberEmails")).split('\n')
 				for email in memberEmailsToAdd:
 					if email.strip():
 						if not rakontu.hasMemberWithGoogleEmail(email.strip()):
-							newPendingMember = PendingMember(key_name=KeyName("pendingmember"), rakontu=rakontu, email=email.strip())
+							keyName = GenerateSequentialKeyName("pendingmember")
+							newPendingMember = PendingMember(key_name=keyName, rakontu=rakontu, email=email.strip())
 							newPendingMember.put()
 				self.redirect(BuildURL("dir_manage", "url_members", rakontu=rakontu))
 			else:
@@ -127,40 +133,46 @@ class ManageRakontuAppearancePage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
-				rakontu.name = htmlEscape(self.request.get("name"))
-				rakontu.tagline = htmlEscape(self.request.get("tagline"))
-				rakontu.skinName = self.request.get("skinName")
-				if rakontu.skinName == TERMS["term_custom"]:
-					rakontu.customSkin = db.Text(self.request.get("customSkin"))
-				rakontu.externalStyleSheetURL = self.request.get("externalStyleSheetURL")
-				text = self.request.get("description")
-				format = self.request.get("description_format").strip()
-				rakontu.description = text
-				rakontu.description_formatted = db.Text(InterpretEnteredText(text, format))
-				rakontu.description_format = format
-				text = self.request.get("welcomeMessage")
-				format = self.request.get("welcomeMessage_format").strip()
-				rakontu.welcomeMessage = text
-				rakontu.welcomeMessage_formatted = db.Text(InterpretEnteredText(text, format))
-				rakontu.welcomeMessage_format = format
-				text = self.request.get("etiquetteStatement")
-				format = self.request.get("etiquetteStatement_format").strip()
-				rakontu.etiquetteStatement = text
-				rakontu.etiquetteStatement_formatted = db.Text(InterpretEnteredText(text, format))
-				rakontu.etiquetteStatement_format = format
-				rakontu.contactEmail = self.request.get("contactEmail")
-				rakontu.defaultTimeZoneName = self.request.get("defaultTimeZoneName")
-				rakontu.defaultDateFormat = self.request.get("defaultDateFormat")
-				rakontu.defaultTimeFormat = self.request.get("defaultTimeFormat")
-				if self.request.get("img"):
-					rakontu.image = db.Blob(images.resize(str(self.request.get("img")), THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT))
-				if self.request.get("removeImage"):
-					rakontu.image = None
-				for i in range(3):
-					rakontu.roleReadmes[i] = db.Text(self.request.get("readme%s" % i))
-					rakontu.roleReadmes_formatted[i] = db.Text(InterpretEnteredText(self.request.get("readme%s" % i), self.request.get("roleReadmes_formats%s" % i)))
-					rakontu.roleReadmes_formats[i] = self.request.get("roleReadmes_formats%s" % i)
-				rakontu.put()
+				def txn(rakontu):
+					rakontu.name = htmlEscape(self.request.get("name"))
+					rakontu.tagline = htmlEscape(self.request.get("tagline"))
+					rakontu.skinName = self.request.get("skinName")
+					if rakontu.skinName == TERMS["term_custom"]:
+						rakontu.customSkin = db.Text(self.request.get("customSkin"))
+					url = self.request.get("externalStyleSheetURL")
+					if url and url != "None":
+						rakontu.externalStyleSheetURL = url
+					else:
+						rakontu.externalStyleSheetURL = None
+					text = self.request.get("description")
+					format = self.request.get("description_format").strip()
+					rakontu.description = text
+					rakontu.description_formatted = db.Text(InterpretEnteredText(text, format))
+					rakontu.description_format = format
+					text = self.request.get("welcomeMessage")
+					format = self.request.get("welcomeMessage_format").strip()
+					rakontu.welcomeMessage = text
+					rakontu.welcomeMessage_formatted = db.Text(InterpretEnteredText(text, format))
+					rakontu.welcomeMessage_format = format
+					text = self.request.get("etiquetteStatement")
+					format = self.request.get("etiquetteStatement_format").strip()
+					rakontu.etiquetteStatement = text
+					rakontu.etiquetteStatement_formatted = db.Text(InterpretEnteredText(text, format))
+					rakontu.etiquetteStatement_format = format
+					rakontu.contactEmail = self.request.get("contactEmail")
+					rakontu.defaultTimeZoneName = self.request.get("defaultTimeZoneName")
+					rakontu.defaultDateFormat = self.request.get("defaultDateFormat")
+					rakontu.defaultTimeFormat = self.request.get("defaultTimeFormat")
+					if self.request.get("img"):
+						rakontu.image = db.Blob(images.resize(str(self.request.get("img")), THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT))
+					if self.request.get("removeImage"):
+						rakontu.image = None
+					for i in range(3):
+						rakontu.roleReadmes[i] = db.Text(self.request.get("readme%s" % i))
+						rakontu.roleReadmes_formatted[i] = db.Text(InterpretEnteredText(self.request.get("readme%s" % i), self.request.get("roleReadmes_formats%s" % i)))
+						rakontu.roleReadmes_formats[i] = self.request.get("roleReadmes_formats%s" % i)
+					rakontu.put()
+				db.run_in_transaction(txn, rakontu)
 			self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
@@ -248,43 +260,45 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
-				rakontu.allowNonManagerCuratorsToEditTags = self.request.get("allowNonManagerCuratorsToEditTags") == "yes"
-				i = 0
-				for entryType in ENTRY_AND_ANNOTATION_TYPES:
-					rakontu.allowCharacter[i] = self.request.get("character|%s" % entryType) == "yes"
-					i += 1
-				oldValue = rakontu.maxNudgePointsPerEntry
-				try:
-					rakontu.maxNudgePointsPerEntry = int(self.request.get("maxNudgePointsPerEntry"))
-				except:
-					rakontu.maxNudgePointsPerEntry = oldValue
-				for i in range(NUM_NUDGE_CATEGORIES):
-					rakontu.nudgeCategories[i] = htmlEscape(self.request.get("nudgeCategory%s" % i))
-				for i in range(NUM_NUDGE_CATEGORIES):
-					rakontu.nudgeCategoryQuestions[i] = htmlEscape(self.request.get("nudgeCategoryQuestion%s" % i))
-				oldValue = rakontu.maxNumAttachments
-				try:
-					rakontu.maxNumAttachments = int(self.request.get("maxNumAttachments"))
-				except:
-					rakontu.maxNumAttachments = oldValue
-				i = 0
-				for eventType in EVENT_TYPES:
-					if eventType != EVENT_TYPES[0]: # leave time out for nudge accumulations
-						oldValue = rakontu.memberNudgePointsPerEvent[i]
-						try:
-							rakontu.memberNudgePointsPerEvent[i] = int(self.request.get("member|%s" % eventType))
-						except:
-							rakontu.memberNudgePointsPerEvent[i] = oldValue
-					i += 1
-				i = 0
-				for eventType in EVENT_TYPES:
-					oldValue = rakontu.entryActivityPointsPerEvent[i]
+				def txn(rakontu):
+					rakontu.allowNonManagerCuratorsToEditTags = self.request.get("allowNonManagerCuratorsToEditTags") == "yes"
+					i = 0
+					for entryType in ENTRY_AND_ANNOTATION_TYPES:
+						rakontu.allowCharacter[i] = self.request.get("character|%s" % entryType) == "yes"
+						i += 1
+					oldValue = rakontu.maxNudgePointsPerEntry
 					try:
-						rakontu.entryActivityPointsPerEvent[i] = int(self.request.get("entry|%s" % eventType))
+						rakontu.maxNudgePointsPerEntry = int(self.request.get("maxNudgePointsPerEntry"))
 					except:
-						rakontu.entryActivityPointsPerEvent[i] = oldValue
-					i += 1
-				rakontu.put()
+						rakontu.maxNudgePointsPerEntry = oldValue
+					for i in range(NUM_NUDGE_CATEGORIES):
+						rakontu.nudgeCategories[i] = htmlEscape(self.request.get("nudgeCategory%s" % i))
+					for i in range(NUM_NUDGE_CATEGORIES):
+						rakontu.nudgeCategoryQuestions[i] = htmlEscape(self.request.get("nudgeCategoryQuestion%s" % i))
+					oldValue = rakontu.maxNumAttachments
+					try:
+						rakontu.maxNumAttachments = int(self.request.get("maxNumAttachments"))
+					except:
+						rakontu.maxNumAttachments = oldValue
+					i = 0
+					for eventType in EVENT_TYPES:
+						if eventType != EVENT_TYPES[0]: # leave time out for nudge accumulations
+							oldValue = rakontu.memberNudgePointsPerEvent[i]
+							try:
+								rakontu.memberNudgePointsPerEvent[i] = int(self.request.get("member|%s" % eventType))
+							except:
+								rakontu.memberNudgePointsPerEvent[i] = oldValue
+						i += 1
+					i = 0
+					for eventType in EVENT_TYPES:
+						oldValue = rakontu.entryActivityPointsPerEvent[i]
+						try:
+							rakontu.entryActivityPointsPerEvent[i] = int(self.request.get("entry|%s" % eventType))
+						except:
+							rakontu.entryActivityPointsPerEvent[i] = oldValue
+						i += 1
+					rakontu.put()
+				db.run_in_transaction(txn, rakontu)
 			self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
@@ -301,7 +315,8 @@ class ManageRakontuQuestionsListPage(webapp.RequestHandler):
 					questions = rakontu.getActiveQuestionsOfType(type)
 					countsForThisType = []
 					for question in questions:
-						countsForThisType.append((question.text, question.getAnswerCount()))
+						countsForThisType.append((question.name, question.text, question.getAnswerCount()))
+					countsForThisType.sort(lambda a,b: cmp(b[2], a[2])) # descending order
 					counts.append(countsForThisType)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["MANAGE_QUESTIONS"], 
@@ -380,6 +395,7 @@ class ManageRakontuQuestionsPage(webapp.RequestHandler):
 							break
 				rakontuQuestionsOfType = rakontu.getActiveQuestionsOfType(type)
 				systemQuestionsOfType = SystemQuestionsOfType(type)
+				questionsToPut = []
 				for question in rakontuQuestionsOfType:
 					question.name = htmlEscape(self.request.get("name|%s" % question.key()))
 					if not question.name:
@@ -402,11 +418,11 @@ class ManageRakontuQuestionsPage(webapp.RequestHandler):
 						question.maxIfValue = oldValue
 					question.responseIfBoolean = self.request.get("responseIfBoolean|%s" % question.key())
 					question.multiple = self.request.get("multiple|%s" % question.key()) == "multiple|%s" % question.key()
-				db.put(rakontuQuestionsOfType)
+				questionsToPut.extend(rakontuQuestionsOfType)
 				for question in rakontuQuestionsOfType:
 					if self.request.get("inactivate|%s" % question.key()):
 						question.active = False
-						question.put()
+						questionsToPut.append(question)
 				questionNamesToAdd = htmlEscape(self.request.get("newQuestionNames")).split('\n')
 				for name in questionNamesToAdd:
 					if name.strip():
@@ -415,21 +431,29 @@ class ManageRakontuQuestionsPage(webapp.RequestHandler):
 							if oldQuestion.name == name.strip():
 								foundQuestion = True
 								oldQuestion.active = True
-								oldQuestion.put()
+								questionsToPut.append(oldQuestion)
 								break
 						if not foundQuestion:
+							keyName = GenerateSequentialKeyName("question")
 							question = Question(
-											key_name=KeyName("question"), 
+											key_name=keyName, 
+											parent=rakontu,
 											rakontu=rakontu, 
 											name=name, 
 											refersTo=type, 
 											text=name)
-							question.put()
+							questionsToPut.append(question)
 				for sysQuestion in systemQuestionsOfType:
 					if self.request.get("copy|%s" % sysQuestion.key()) == "copy|%s" % sysQuestion.key():
-						rakontu.AddCopyOfQuestion(sysQuestion)
+						newQuestion = rakontu.GenerateCopyOfQuestion(sysQuestion)
+						questionsToPut.append(newQuestion)
 				if self.request.get("import"):
-					rakontu.addQuestionsOfTypeFromCSV(type, str(self.request.get("import")))
+					newQuestions = rakontu.GenerateQuestionsOfTypeFromCSV(type, str(self.request.get("import")))
+					questionsToPut.extend(newQuestions)
+				def txn(questionsToPut):
+					if questionsToPut:
+						db.put(questionsToPut)
+				db.run_in_transaction(txn, questionsToPut)
 				self.redirect(BuildURL("dir_manage", "url_questions_list", rakontu=rakontu))
 			else:
 				self.redirect(rakontu.linkURL())
@@ -481,10 +505,11 @@ class ManageCharactersPage(webapp.RequestHandler):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
+				charactersToPut = []
 				for character in rakontu.getActiveCharacters():
 					if self.request.get("remove|%s" % character.key()):
 						character.active = False
-						character.put()
+						charactersToPut.append(character)
 				namesToAdd = htmlEscape(self.request.get("newCharacterNames")).split('\n')
 				for name in namesToAdd:
 					if name.strip():
@@ -493,11 +518,14 @@ class ManageCharactersPage(webapp.RequestHandler):
 							if oldCharacter.name == name.strip():
 								foundCharacter = True
 								oldCharacter.active = True
-								oldCharacter.put()
+								charactersToPut.append(oldCharacter)
 								break
 						if not foundCharacter:
-							newCharacter = Character(key_name=KeyName("character"), name=name, rakontu=rakontu)
-							newCharacter.put()
+							keyName = GenerateSequentialKeyName("character")
+							newCharacter = Character(key_name=keyName, name=name, rakontu=rakontu)
+							charactersToPut.append(newCharacter)
+				if charactersToPut:
+					db.put(charactersToPut)
 				self.redirect(BuildURL("dir_manage", "url_characters", rakontu=rakontu))
 			else:
 				self.redirect(rakontu.linkURL())
@@ -548,6 +576,8 @@ class ManageCharacterPage(webapp.RequestHandler):
 									goAhead = False
 								break
 				if goAhead:
+					questions = rakontu.getActiveQuestionsOfType("character")
+					thingsToPut = []
 					character.name = htmlEscape(self.request.get("name")).strip()
 					text = self.request.get("description")
 					format = self.request.get("description_format").strip()
@@ -563,15 +593,16 @@ class ManageCharacterPage(webapp.RequestHandler):
 						character.image = None
 					elif self.request.get("img"):
 						character.image = db.Blob(images.resize(str(self.request.get("img")), THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT))
-					character.put()
-					questions = rakontu.getActiveQuestionsOfType("character")
+					thingsToPut.append(character)
 					for question in questions:
-						foundAnswer = character.getAnswerForQuestion()
-						if foundAnswers:
+						foundAnswer = character.getAnswerForQuestion(question)
+						if foundAnswer:
 							answerToEdit = foundAnswer
 						else:
+							keyName = GenerateSequentialKeyName("answer")
 							answerToEdit = Answer(
-												key_name=KeyName("answer"), 
+												key_name=keyName, 
+												parent=character,
 												rakontu=rakontu, 
 												question=question, 
 												referent=character, 
@@ -595,16 +626,17 @@ class ManageCharacterPage(webapp.RequestHandler):
 							else:
 								answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
 						answerToEdit.creator = member
-						answerToEdit.put()
+						thingsToPut.append(answerToEdit)
+					def txn(thingsToPut):
+						if thingsToPut:
+							db.put(thingsToPut)
+					db.run_in_transaction(txn, thingsToPut)
 					self.redirect(BuildURL("dir_manage", "url_characters", rakontu=rakontu))
 			else:
 				self.redirect(rakontu.linkURL())
 		else:
 			self.redirect(START)
 		
-class ManageRakontuTechnicalPage(webapp.RequestHandler):
-	pass
-
 class ExportRakontuDataPage(webapp.RequestHandler):
 	@RequireLogin 
 	def get(self):

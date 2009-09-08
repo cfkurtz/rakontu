@@ -41,13 +41,16 @@ class ReviewResourcesPage(webapp.RequestHandler):
 			if member.isGuideOrManagerOrOwner():
 				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
 				prev, resources, next = rakontu.getNonDraftEntriesOfType_WithPaging("resource", bookmark)
+				resourcesToPut = []
 				for resource in resources:
 					if "flag|%s" % resource.key() in self.request.arguments():
 						resource.flaggedForRemoval = True
-						resource.put()
+						resourcesToPut.append(resource)
 					elif "unflag|%s" % resource.key() in self.request.arguments():
 						resource.flaggedForRemoval = False
-						resource.put()
+						resourcesToPut.append(resource)
+				if resourcesToPut:
+					db.put(resourcesToPut)
 				if bookmark:
 					query = "%s&%s=%s" % (rakontu.urlQuery(), URL_OPTIONS["url_query_bookmark"], bookmark)
 				else:
@@ -123,15 +126,18 @@ class ReviewRequestsPage(webapp.RequestHandler):
 					self.redirect(BuildURL("dir_guide", "url_requests", query, rakontu=rakontu))
 				else:
 					requests = rakontu.getAllNonDraftRequests()
+					requestsToPut = []
 					for request in requests:
 						if "setCompleted|%s" % request.key() in self.request.arguments():
 							request.completedIfRequest = True
-							request.put()
+							requestsToPut.append(request)
 							break
 						elif "setUncompleted|%s" % request.key() in self.request.arguments():
 							request.completedIfRequest = False
-							request.put()
+							requestsToPut.append(request)
 							break
+					if requestsToPut:
+						db.put(requestsToPut)
 					self.redirect(self.request.uri)
 			else:
 				self.redirect(rakontu.linkURL())

@@ -11,7 +11,7 @@
       		<ul>
       		{% if counts|listLookup:i %}
 	      		{% for questionAndCount in counts|listLookup:i %}
-	      			<li class="nobullet">{{questionAndCount|listLookup:0}} ({{questionAndCount|listLookup:1}} {{template_responses|lower}})</li>
+	      			<li class="nobullet">{{questionAndCount|listLookup:1}} ({{questionAndCount|listLookup:0}}, {{questionAndCount|listLookup:2}} {{template_responses|lower}})</li>
 	      		{% endfor %}
 	      		<li class="nobullet"><a href="/{{dir_manage}}/{{url_questions}}_{{refer_types_urls|listLookup:i}}?{{rakontu.urlQuery}}">{{template_change}}</a></li>
 	      	{% else %}

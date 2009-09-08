@@ -69,20 +69,6 @@
 	    		</td>
 	    	<td>
 	    		<p>{{template_created}}: {{rakontu.created|timeZone:"UTC"|time:"h:i a"}} {{rakontu.created|timeZone:"UTC"|date:"F j, Y"}}</p>
-	    		<p>{{template_first_publish}}: 
-				<p>{{template_last_activity}}: 
-		    		{% if rakontu.lastPublish %}
-		    			{{rakontu.firstPublish|timeZone:"UTC"|time:"h:i a"}} {{rakontu.firstPublish|timeZone:"UTC"|date:"F j, Y"}}
-		    		{% else %}
-		    			{{term_none}}
-		    		{% endif %}
-				<p>{{template_last_activity}}: 
-		    		{% if rakontu.lastPublish %}
-		    			{{rakontu.lastPublish|timeZone:"UTC"|time:"h:i a"}} {{rakontu.lastPublish|timeZone:"UTC"|date:"F j, Y"}}
-		    		{% else %}
-		    			{{term_none}}
-		    		{% endif %}
-				</p>
 				<p>{{template_approcket_timestamp}}: 
 	    		{% if rakontu.appRocketTimeStamp %}
 	    			{{rakontu.appRocketTimeStamp|time:"h:i a"}} {{rakontu.appRocketTimeStamp|date:"F j, Y"}}
@@ -103,17 +89,24 @@
 	    			{{template_yes|upper}}, {{member_of|dictLookup:rakontu.key}}
 	    		{% else %}
 	    			{{template_no}}
+	    			{% if pending_member_of|dictLookup:rakontu.key %}
+	    				({{template_pending_member}})
+	    			{% endif %}
 	    		{% endif %}
 	    		<br/>
 	    		{% if member_of|dictLookup:rakontu.key %}
 	    			<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="{{button_leave}}" class="button">
 	    		{% else %}
-	    			<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="{{button_join}}" class="button"><br/>
-	    			{{template_join_as_a}}
-	    			<select name="joinAs|{{rakontu.key}}">
-	    			<option value="member">{{governance_roles_display|listLookup:0}}</option>
-	    			<option value="manager">{{governance_roles_display|listLookup:1}}</option>
-	    			</select>
+	    			{% if pending_member_of|dictLookup:rakontu.key %}
+	    				<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="{{button_join}}" class="button"><br/>
+	    			{% else %}
+		    			<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="{{button_join}}" class="button"><br/>
+		    			{{template_join_as_a}}
+		    			<select name="joinAs|{{rakontu.key}}">
+		    			<option value="member">{{governance_roles_display|listLookup:0}}</option>
+		    			<option value="manager">{{governance_roles_display|listLookup:1}}</option>
+		    			</select>
+		    		{% endif %}
 	    		{% endif %}
 	    	</td>
 			<td align="center">

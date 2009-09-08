@@ -36,39 +36,44 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 		if access:
 			if member.isLiaison():
 				offlineMembers = rakontu.getActiveOfflineMembers()
-				for aMember in offlineMembers:
-					if self.request.get("remove|%s" % aMember.key()) == "yes":
-						aMember.active = False
-						aMember.put()
-				memberNicknamesToAdd = htmlEscape(self.request.get("newMemberNicknames")).split('\n')
-				for nickname in memberNicknamesToAdd:
-					if nickname.strip():
-						existingMember = rakontu.memberWithNickname(nickname.strip())
-						if existingMember:
-							existingMember.active = True
-							existingMember.put()
-						else:
-							newMember = Member(
-											key_name=KeyName("member"), 
-											rakontu=rakontu, 
-											nickname=nickname.strip(),
-											isOnlineMember = False,
-											liaisonIfOfflineMember = member,
-											googleAccountID = None,
-											googleAccountEmail = None)
-							newMember.put()
-							member.createViewOptions()
+				# changes to existing members
+				membersToPut = []
 				for aMember in offlineMembers:
 					if self.request.get("take|%s" % aMember.key()) == "yes":
 						aMember.liaisonIfOfflineMember = member
-						aMember.put()
+						membersToPut.append(aMember)
 				otherLiaisons = rakontu.getLiaisonsOtherThanMember(member)
 				if otherLiaisons:
 					for liaison in otherLiaisons:
 						for aMember in offlineMembers:
 							if self.request.get("reassign|%s" % aMember.key()) == "%s" % liaison.key():
 								aMember.liaisonIfOfflineMember = liaison
-								aMember.put()
+								membersToPut.append(aMember)
+				for aMember in offlineMembers:
+					if self.request.get("remove|%s" % aMember.key()) == "yes":
+						aMember.active = False
+						membersToPut.append(aMember)
+				# new members
+				memberNicknamesToAdd = htmlEscape(self.request.get("newMemberNicknames")).split('\n')
+				for nickname in memberNicknamesToAdd:
+					if nickname.strip():
+						existingMember = rakontu.memberWithNickname(nickname.strip())
+						if existingMember:
+							existingMember.active = True
+							membersToPut.append(existingMember)
+						else:
+							keyName = GenerateSequentialKeyName("member")
+							newMember = Member(
+											key_name=keyName, 
+											rakontu=rakontu, 
+											nickname=nickname.strip(),
+											isOnlineMember = False,
+											liaisonIfOfflineMember = member,
+											googleAccountID = None,
+											googleAccountEmail = None)
+							membersToPut.append(newMember)
+				if membersToPut:
+					db.put(membersToPut)
 				self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
 			
 class PrintSearchPage(webapp.RequestHandler):
@@ -172,6 +177,8 @@ class ReviewBatchEntriesPage(webapp.RequestHandler):
 				else:
 					entriesToFinalize = []
 					entries = rakontu.getEntriesInImportBufferForLiaison(member)
+					# not lumping puts here because of copying collected dates, etc 
+					# this is not frequently done so it can be messier
 					for entry in entries:
 						date = parseDate(self.request.get("year|%s" % entry.key()), self.request.get("month|%s" % entry.key()), self.request.get("day|%s" % entry.key()))
 						entry.collected = date
@@ -252,7 +259,8 @@ class BatchEntryPage(webapp.RequestHandler):
 										date = datetime(year, month, day, tzinfo=pytz.utc)
 									except:
 										pass
-								entry = Entry(key_name=KeyName("entry"), rakontu=rakontu, type="story", title=title, text=text, text_format=format)
+								keyName = GenerateSequentialKeyName("entry")
+								entry = Entry(key_name=keyName, parent=memberToAttribute, id=keyName, rakontu=rakontu, type="story", title=title, text=text, text_format=format)
 								entry.creator = memberToAttribute
 								entry.collected = date
 								entry.text_formatted = db.Text(InterpretEnteredText(text, format))
@@ -271,7 +279,8 @@ class BatchEntryPage(webapp.RequestHandler):
 										if name == "attachment|%s|%s" % (i, j):
 											if value != None and value != "":
 												filename = value.filename
-												attachment = Attachment(key_name=KeyName("attachment"), entry=entry, rakontu=rakontu)
+												keyName = GenerateSequentialKeyName("attachment")
+												attachment = Attachment(key_name=keyName, parent=entry, id=keyName, entry=entry, rakontu=rakontu)
 												k = 0
 												mimeType = None
 												for type in ACCEPTED_ATTACHMENT_FILE_TYPES:
@@ -286,8 +295,10 @@ class BatchEntryPage(webapp.RequestHandler):
 													attachment.put()
 								questions = rakontu.getAllQuestionsOfReferType("story")
 								for question in questions:
+									keyName = GenerateSequentialKeyName("answer")
 									answer = Answer(
-												key_name=KeyName("answer"), 
+												key_name=keyName, 
+												parent=entry,
 												rakontu=rakontu, 
 												question=question, 
 												creator=memberToAttribute, 
@@ -334,7 +345,10 @@ class BatchEntryPage(webapp.RequestHandler):
 									subject = self.request.get("commentSubject|%s" % i, default_value="No subject")
 									text = self.request.get("comment|%s" % i)
 									format = self.request.get("commentFormat|%s" % i)
-									comment = Annotation(key_name=KeyName("annotation"), 
+									keyName = GenerateSequentialKeyName("annotation")
+									comment = Annotation(key_name=keyName, 
+														parent=entry,
+														id=keyName,
 														rakontu=rakontu, 
 														type="comment", 
 														creator=memberToAttribute, 
@@ -354,7 +368,10 @@ class BatchEntryPage(webapp.RequestHandler):
 									if self.request.get(queryString):
 										tags.append(self.request.get(queryString))
 								if tags:
-									tagset = Annotation(key_name=KeyName("annotation"), 
+									keyName = GenerateSequentialKeyName("annotation")
+									tagset = Annotation(key_name=keyName, 
+													parent=entry,
+													id=keyName,
 													rakontu=rakontu, 
 													type="tag set", 
 													creator=memberToAttribute, 

@@ -244,7 +244,10 @@ class PagerQuery(object):
 
             # Track the very first result to avoid building the 'previous'
             # bookmark for the first page.
-            first_result_key = str(res[0].key().id_or_name())
+            if self._keys_only: #cfk added - not dealing with keys_only case here
+            	first_result_key = str(res[0].id_or_name())
+            else:
+            	first_result_key = str(res[0].key().id_or_name())
             if not bookmark:
                 self._first_result = first_result_key
             elif self._first_result and self._first_result != first_result_key:

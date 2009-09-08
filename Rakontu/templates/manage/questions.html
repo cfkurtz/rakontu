@@ -59,9 +59,20 @@
 	      		{% endfor %}
 	      	</table>
 	      	</fieldset>
-	      	
-   	    <p><center><input type="submit" name="changesTo|{{refer_type}}" value="{{button_save_changes}}" class="button"/></center></p>
 	    {% endif %}
+	      	
+		{% if inactive_questions %}
+			<h3>{{template_inactive_questions}} {{"inactive_questions"|caution}}</h3>
+			<fieldset>
+			<ul>
+			{% for question in inactive_questions %}
+				<li class="nobullet">{{question.name}} 
+				</li>
+			{% endfor %}
+			</ul>
+			</fieldset>
+		{% endif %}
+
 	    
 	    <h3>{{template_import_export_questions_about}} {{refer_type_plural_display}}</h3>
 	    <fieldset>
@@ -71,16 +82,6 @@
 	    	<p><a href="/{{dir_manage}}/{{url_questionsToCSV}}?{{url_query_export_type}}={{refer_type}}&{{rakontu.urlQuery}}">{{template_export_questions_to_csv}}</a></p>
 	    {% endif %}
 	    </fieldset>
-	      	
-		{% if inactive_questions %}
-			<h3>{{template_inactive_questions}} {{"inactive_questions"|caution}}</h3>
-			<ul>
-			{% for question in inactive_questions %}
-				<li class="nobullet">{{question.name}} 
-				</li>
-			{% endfor %}
-			</ul>
-		{% endif %}
 
 	    {% if system_questions %}
 			<h3>{{template_copy_sample_questions_about}} {{refer_type_plural_display}} {{"copying_sample_questions"|tip}}</h3>
