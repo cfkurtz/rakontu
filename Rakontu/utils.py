@@ -5,7 +5,7 @@
 # License: GPL 3.0 
 # Google Code Project: http://code.google.com/p/rakontu/
 # -------------------------------------------------------------------------- -------- ----------
-       
+        
 import os       
 import string             
 import cgi          
@@ -20,6 +20,7 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.api import images 
 from google.appengine.api import mail
 from google.appengine.api import memcache
+import traceback
   
 webapp.template.register_template_library('djangoTemplateExtras')
 import csv 
@@ -293,14 +294,53 @@ def GetBookmarkQueryWithCleanup(queryString):
 	if bookmark:
 		bookmark += "=" * equalsSigns
 	return bookmark
+ 
+# ============================================================================================
+# ============================================================================================
+# HANDLERS 
+# ============================================================================================
+# ============================================================================================
 
-# ============================================================================================
-# ============================================================================================
-# HANDLERS
-# ============================================================================================
-# ============================================================================================
+class ErrorHandlingRequestHander(webapp.RequestHandler):
+	def handle_exception(self, exception, debug_mode):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
+		exceptionLines = traceback.format_exception(*sys.exc_info())
+		tracebackString = '\n'.join(exceptionLines) 
+		tracebackStringForHTML = "<p>" + '</p></p>'.join(exceptionLines) + "</p>"
+		tracebackStringPlusIdentifyingInfo = ""
+		if rakontu:
+			tracebackStringPlusIdentifyingInfo += "Rakontu: %s (%s)\n\n" % (rakontu.name, rakontu.getKeyName())
+		if member:
+			tracebackStringPlusIdentifyingInfo += "Member: %s (%s)\n\n" % (member.nickname, member.getKeyName())
+		tracebackStringPlusIdentifyingInfo += "URL: %s\n\n" % (self.request.uri)
+		tracebackStringPlusIdentifyingInfo += "\n----------------------------\n\n" + tracebackString
+		exceptionValueWithRakontuName = str(exceptionValue)
+		if rakontu:
+			exceptionValueWithRakontuName += " (%s)" % (rakontu.name)
+		logging.error(tracebackStringPlusIdentifyingInfo)
+		mail.send_mail_to_admins(sender=users.get_current_user().email(), subject="Error: %s" % exceptionValueWithRakontuName, body=tracebackStringPlusIdentifyingInfo) 
+		template_values = GetStandardTemplateDictionaryAndAddMore({
+						'title': TITLES["ERROR"],
+						'rakontu': rakontu,
+						'current_member': member,
+						'traceback': tracebackStringForHTML})
+		path = os.path.join(os.path.dirname(__file__), FindTemplate('error.html'))
+		self.response.out.write(template.render(path, template_values))
+		
+class NotFoundPageHandler(webapp.RequestHandler):
+    def get(self):
+        self.error(404)
+        rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+        template_values = GetStandardTemplateDictionaryAndAddMore({
+						'title': TITLES["URL_NOT_FOUND"],
+						'rakontu': rakontu,
+						'current_member': member,
+						'url': self.request.uri})
+        path = os.path.join(os.path.dirname(__file__), FindTemplate('notFound.html'))
+        self.response.out.write(template.render(path, template_values))
 
-class ImageHandler(webapp.RequestHandler):
+class ImageHandler(ErrorHandlingRequestHander):
 	def get(self):
 		memberKeyName = self.request.get(URL_IDS["url_query_member"])
 		rakontuKeyName = self.request.get(URL_IDS["url_query_rakontu"])
@@ -337,7 +377,7 @@ class ImageHandler(webapp.RequestHandler):
 				self.response.headers['Content-Type'] = attachment.mimeType
 				self.response.out.write(attachment.data)
 			   
-class AttachmentHandler(webapp.RequestHandler): 
+class AttachmentHandler(ErrorHandlingRequestHander): 
 	def get(self):
 		attachmentKeyName = self.request.get(URL_IDS["url_query_attachment"])
 		if attachmentKeyName:
@@ -352,7 +392,7 @@ class AttachmentHandler(webapp.RequestHandler):
 			else:
 				self.error(404)
 				
-class ExportHandler(webapp.RequestHandler):
+class ExportHandler(ErrorHandlingRequestHander):
 	def get(self): 
 		csvKeyName = self.request.get(URL_IDS["url_query_export_csv"])
 		txtKeyName = self.request.get(URL_IDS["url_query_export_txt"])

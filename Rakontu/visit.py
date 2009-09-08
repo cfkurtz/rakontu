@@ -7,7 +7,7 @@
 
 from utils import *
 
-class StartPage(webapp.RequestHandler):
+class StartPage(ErrorHandlingRequestHander):
 	def get(self):
 		user = users.get_current_user()
 		rakontusTheyAreAMemberOf = []
@@ -56,7 +56,7 @@ class StartPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class NewMemberPage(webapp.RequestHandler):
+class NewMemberPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -76,7 +76,7 @@ class NewMemberPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class BrowseEntriesPage(webapp.RequestHandler):
+class BrowseEntriesPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -219,7 +219,7 @@ class BrowseEntriesPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class ReadEntryPage(webapp.RequestHandler):
+class ReadEntryPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -450,7 +450,7 @@ class ReadEntryPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class ReadAnnotationPage(webapp.RequestHandler):
+class ReadAnnotationPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -490,7 +490,7 @@ class ReadAnnotationPage(webapp.RequestHandler):
 		else:
 			self.redirect(rakontu.linkURL())
 
-class SeeRakontuPage(webapp.RequestHandler):
+class SeeRakontuPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -539,7 +539,7 @@ class SeeRakontuPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class SeeRakontuMembersPage(webapp.RequestHandler):
+class SeeRakontuMembersPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -575,7 +575,7 @@ class SeeRakontuMembersPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class SendMessagePage(webapp.RequestHandler):
+class SendMessagePage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -638,7 +638,7 @@ class SendMessagePage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 	
-class SeeMemberPage(webapp.RequestHandler):
+class SeeMemberPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -780,7 +780,7 @@ class SeeMemberPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
    
-class SeeCharacterPage(webapp.RequestHandler):
+class SeeCharacterPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -917,7 +917,7 @@ class SeeCharacterPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
    
-class AskGuidePage(webapp.RequestHandler):
+class AskGuidePage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -970,7 +970,7 @@ class AskGuidePage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
    
-class ChangeMemberProfilePage(webapp.RequestHandler):
+class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -1087,7 +1087,7 @@ class ChangeMemberProfilePage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class ChangeMemberPreferencesPage(webapp.RequestHandler):
+class ChangeMemberPreferencesPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -1165,7 +1165,7 @@ class ChangeMemberPreferencesPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class ChangeMemberNicknamePage(webapp.RequestHandler):
+class ChangeMemberNicknamePage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -1233,7 +1233,7 @@ class ChangeMemberNicknamePage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class ChangeMemberDraftsPage(webapp.RequestHandler):
+class ChangeMemberDraftsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -1308,7 +1308,7 @@ class ChangeMemberDraftsPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class ChangeMemberFiltersPage(webapp.RequestHandler):
+class ChangeMemberFiltersPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -1371,7 +1371,7 @@ class ChangeMemberFiltersPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class LeaveRakontuPage(webapp.RequestHandler):
+class LeaveRakontuPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -1407,7 +1407,7 @@ class LeaveRakontuPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 		
-class SavedSearchEntryPage(webapp.RequestHandler):
+class SavedSearchEntryPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -1585,7 +1585,7 @@ class SavedSearchEntryPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class ResultFeedbackPage(webapp.RequestHandler):
+class ResultFeedbackPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -1602,7 +1602,7 @@ class ResultFeedbackPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 				
-class ContextualHelpPage(webapp.RequestHandler):
+class ContextualHelpPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -1631,7 +1631,7 @@ class ContextualHelpPage(webapp.RequestHandler):
 		else:
 			self.redirect(BuildResultURL("helpNotFound", rakontu=rakontu))
 			
-class GeneralHelpPage(webapp.RequestHandler):
+class GeneralHelpPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)

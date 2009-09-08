@@ -1,0 +1,33 @@
+<html>
+	{% include "common_head.html" %}
+	<body>
+	{% include "common_menus.html" %}
+	<div id="content">
+	
+	<img src="/images/Rakontu_404.jpg"  alt="Rakontu URL not found" class="noborder" align="left">
+
+	<h3>{{template_URL_not_found}}</h3>
+	
+	<div style="margin-left:220px;">
+	
+	<p>{{template_the_page_could_not_be_found}}</p>
+		
+	<p>&nbsp; {{template_click_back_button}}</p>
+	<p>&nbsp; &nbsp; ... {{template_or_return_to_home}} 
+	
+	{% if rakontu %}
+		<b><a href="{{rakontu.linkURL}}">{{template_home_page}}</a></b>?</p>
+		<p>&nbsp; &nbsp; &nbsp; &nbsp; ... {{template_or_would_you_like_some}} 
+		<b><a href="/{{dir_visit}}/{{url_help}}?{{rakontu.urlQuery}}">{{template_help}}</a></b>?</p>
+	{% else %}
+		<b><a href="/">{{template_home_page}}</a></b>?</p>
+	{% endif %}
+	
+	<p>&nbsp;</p>
+	
+	</div>
+	
+	</div>
+	{% include "common_footer.html" %}
+	</body>
+</html>

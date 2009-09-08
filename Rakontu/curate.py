@@ -8,7 +8,7 @@
 
 from utils import *
 
-class CurateFlagsPage(webapp.RequestHandler):
+class CurateFlagsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -136,7 +136,7 @@ class CurateFlagsPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class CurateGapsPage(webapp.RequestHandler):
+class CurateGapsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -197,7 +197,7 @@ class CurateGapsPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class CurateAttachmentsPage(webapp.RequestHandler):
+class CurateAttachmentsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -249,7 +249,7 @@ class CurateAttachmentsPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 
-class CurateTagsPage(webapp.RequestHandler):
+class CurateTagsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)

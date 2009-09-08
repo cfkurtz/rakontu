@@ -511,9 +511,16 @@ TEMPLATE_TERMS = {
 		"template_answer_questions_about": "Please answer these questions about this",
 		"template_enter_number": "Please enter a number between",
 		"template_no_questions": "There are no questions for this type of item.",
+		# error
+		"template_error": "Oops! Sorry :(",
+		"template_an_error_has_occurred_and_admin_notified": "Something went wrong. The system administrator has been notified.",
+		"template_error_message": "If you want to talk about this error with the administrator, copy this message and paste it into your email.",
 		# help 
 		"template_click_back_button": "Click the Back button to return to the page you were on.",
 		"template_or_would_you_like_more": "or would you like more",
+		# notFound
+		"template_URL_not_found": "Oops! Can't find it!",
+		"template_the_page_could_not_be_found": "We can't find the page you asked for.",
 		# result
 		"template_or_return_to_home": "or perhaps you would like to return to the",
 		"template_home_page": "Home page",
@@ -1239,6 +1246,8 @@ TITLES = {
         "MESSAGE_TO_USER": "Message", # (on page that tells user something is completed or something is wrong)
         "HELP_ON": "Help on", # help topic
         "INITIALIZE_SITE": "Initialize site",
+        "ERROR": "Error",
+        "URL_NOT_FOUND": "URL not found",
 		}
 
 # ============================================================================================ 

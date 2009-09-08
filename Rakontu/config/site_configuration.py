@@ -32,7 +32,7 @@ SITE_LANGUAGE = "english"
 
 # You MUST replace this with whomever is supporting the site.
 # All Rakontu managers/owners see this email link at the bottom of each page.
-SITE_SUPPORT_EMAIL = "support@xyz.org"
+SITE_SUPPORT_EMAIL = "support@rakontu.org"
 
 # Don't touch this
 import sys

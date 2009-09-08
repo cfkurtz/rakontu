@@ -8,7 +8,7 @@
 
 from utils import *
 							 
-class EnterEntryPage(webapp.RequestHandler):
+class EnterEntryPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -452,7 +452,7 @@ class EnterEntryPage(webapp.RequestHandler):
 		else: # no rakontu or member
 			self.redirect(START)
 			
-class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
+class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -606,7 +606,7 @@ class AnswerQuestionsAboutEntryPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class PreviewAnswersPage(webapp.RequestHandler):
+class PreviewAnswersPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -654,7 +654,7 @@ class PreviewAnswersPage(webapp.RequestHandler):
 					db.run_in_transaction(txn, answers)
 					self.redirect(rakontu.linkURL())
 
-class EnterAnnotationPage(webapp.RequestHandler):
+class EnterAnnotationPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -845,7 +845,7 @@ class EnterAnnotationPage(webapp.RequestHandler):
 		else: # no rakontu or member
 			self.redirect(START)
 			
-class PreviewPage(webapp.RequestHandler):
+class PreviewPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -917,7 +917,7 @@ class PreviewPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 					
-class RelateEntryPage(webapp.RequestHandler):
+class RelateEntryPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)

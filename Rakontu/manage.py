@@ -8,7 +8,7 @@
 
 from utils import *
 
-class FirstOwnerVisitPage(webapp.RequestHandler):
+class FirstOwnerVisitPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -28,7 +28,7 @@ class FirstOwnerVisitPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 		
-class ManageRakontuMembersPage(webapp.RequestHandler):
+class ManageRakontuMembersPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -107,7 +107,7 @@ class ManageRakontuMembersPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 				
-class ManageRakontuAppearancePage(webapp.RequestHandler):
+class ManageRakontuAppearancePage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -177,7 +177,7 @@ class ManageRakontuAppearancePage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 		
-class ManageRakontuSettingsPage(webapp.RequestHandler):
+class ManageRakontuSettingsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -303,7 +303,7 @@ class ManageRakontuSettingsPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 		
-class ManageRakontuQuestionsListPage(webapp.RequestHandler):
+class ManageRakontuQuestionsListPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -338,7 +338,7 @@ class ManageRakontuQuestionsListPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 				
-class ManageRakontuQuestionsPage(webapp.RequestHandler):
+class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -460,7 +460,7 @@ class ManageRakontuQuestionsPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 		
-class WriteQuestionsToCSVPage(webapp.RequestHandler):
+class WriteQuestionsToCSVPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -478,7 +478,7 @@ class WriteQuestionsToCSVPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class ManageCharactersPage(webapp.RequestHandler):
+class ManageCharactersPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -532,7 +532,7 @@ class ManageCharactersPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 		
-class ManageCharacterPage(webapp.RequestHandler):
+class ManageCharacterPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -637,7 +637,7 @@ class ManageCharacterPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 		
-class ExportRakontuDataPage(webapp.RequestHandler):
+class ExportRakontuDataPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -758,7 +758,7 @@ class ExportRakontuDataPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 
-class ExportSearchPage(webapp.RequestHandler):
+class ExportSearchPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -771,7 +771,7 @@ class ExportSearchPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 		
-class InactivateRakontuPage(webapp.RequestHandler):
+class InactivateRakontuPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)

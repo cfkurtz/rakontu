@@ -8,7 +8,7 @@
 
 from utils import *
 
-class CreateRakontuPage_PartOne(webapp.RequestHandler):
+class CreateRakontuPage_PartOne(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		user = users.get_current_user()
@@ -44,7 +44,7 @@ class CreateRakontuPage_PartOne(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 
-class CreateRakontuPage_PartTwo(webapp.RequestHandler):
+class CreateRakontuPage_PartTwo(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		user = users.get_current_user()
@@ -87,7 +87,7 @@ class CreateRakontuPage_PartTwo(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 
-class AdministerSitePage(webapp.RequestHandler):
+class AdministerSitePage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		# this method does not require a rakontu and member, since the admin has to look at multiple rakontus.
@@ -182,7 +182,7 @@ class AdministerSitePage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class GenerateSampleQuestionsPage(webapp.RequestHandler):
+class GenerateSampleQuestionsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		if users.is_current_user_admin():
@@ -191,7 +191,7 @@ class GenerateSampleQuestionsPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 				
-class GenerateSystemResourcesPage(webapp.RequestHandler):
+class GenerateSystemResourcesPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		if users.is_current_user_admin():
@@ -200,7 +200,7 @@ class GenerateSystemResourcesPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 				
-class GenerateHelpsPage(webapp.RequestHandler):
+class GenerateHelpsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		if users.is_current_user_admin():
@@ -209,7 +209,7 @@ class GenerateHelpsPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class GenerateSkinsPage(webapp.RequestHandler):
+class GenerateSkinsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		if users.is_current_user_admin():
@@ -218,7 +218,7 @@ class GenerateSkinsPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 
-class GenerateFakeDataPage(webapp.RequestHandler):
+class GenerateFakeDataPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		# no transaction: not likely to conflict
@@ -228,7 +228,7 @@ class GenerateFakeDataPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 				
-class GenerateStressTestPage(webapp.RequestHandler):
+class GenerateStressTestPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		# no transaction: not likely to conflict

@@ -1,0 +1,38 @@
+<html>
+	{% include "common_head.html" %}
+	<body>
+	{% include "common_menus.html" %}
+	<div id="content">
+	
+	<img src="/images/Rakontu_error.jpg"  alt="Rakontu error" class="noborder" align="left">
+
+	<h3>{{template_error}}</h3>
+	
+	<div style="margin-left:220px;">
+	
+	<p>{{template_an_error_has_occurred_and_admin_notified}}</p>
+	<p><i>{{template_error_message}}</i></p>
+		
+	<div style="background: #FCD59C;border:dashed 1px #734A12;padding:8px;">
+	{{traceback}}
+	</div>
+		
+	<p>&nbsp; {{template_click_back_button}}</p>
+	<p>&nbsp; &nbsp; ... {{template_or_return_to_home}} 
+	
+	{% if rakontu %}
+		<b><a href="{{rakontu.linkURL}}">{{template_home_page}}</a></b>?</p>
+		<p>&nbsp; &nbsp; &nbsp; &nbsp; ... {{template_or_would_you_like_some}} 
+		<b><a href="/{{dir_visit}}/{{url_help}}?{{rakontu.urlQuery}}">{{template_help}}</a></b>?</p>
+	{% else %}
+		<b><a href="/">{{template_home_page}}</a></b>?</p>
+	{% endif %}
+	
+	<p>&nbsp;</p>
+	
+	</div>
+	
+	</div>
+	{% include "common_footer.html" %}
+	</body>
+</html>

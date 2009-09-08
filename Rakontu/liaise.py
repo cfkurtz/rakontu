@@ -8,7 +8,7 @@
 
 from utils import *
 
-class ReviewOfflineMembersPage(webapp.RequestHandler):
+class ReviewOfflineMembersPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -76,7 +76,7 @@ class ReviewOfflineMembersPage(webapp.RequestHandler):
 					db.put(membersToPut)
 				self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
 			
-class PrintSearchPage(webapp.RequestHandler):
+class PrintSearchPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -89,7 +89,7 @@ class PrintSearchPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class PrintEntryAnnotationsPage(webapp.RequestHandler):
+class PrintEntryAnnotationsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -107,7 +107,7 @@ class PrintEntryAnnotationsPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class PrintMemberEntriesAndAnnotationsPage(webapp.RequestHandler):
+class PrintMemberEntriesAndAnnotationsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -125,7 +125,7 @@ class PrintMemberEntriesAndAnnotationsPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class PrintCharacterEntriesAndAnnotationsPage(webapp.RequestHandler):
+class PrintCharacterEntriesAndAnnotationsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -143,7 +143,7 @@ class PrintCharacterEntriesAndAnnotationsPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class ReviewBatchEntriesPage(webapp.RequestHandler):
+class ReviewBatchEntriesPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -192,7 +192,7 @@ class ReviewBatchEntriesPage(webapp.RequestHandler):
 						rakontu.moveImportedEntriesOutOfBuffer(entriesToFinalize)
 					self.redirect(BuildURL("dir_liaise", "url_review", rakontu=rakontu))
 
-class BatchEntryPage(webapp.RequestHandler):
+class BatchEntryPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)

@@ -8,7 +8,7 @@
 
 from utils import *
 
-class ReviewResourcesPage(webapp.RequestHandler):
+class ReviewResourcesPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -61,7 +61,7 @@ class ReviewResourcesPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class CopySystemResourcesPage(webapp.RequestHandler):
+class CopySystemResourcesPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -74,7 +74,7 @@ class CopySystemResourcesPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 						
-class ReviewRequestsPage(webapp.RequestHandler):
+class ReviewRequestsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -144,7 +144,7 @@ class ReviewRequestsPage(webapp.RequestHandler):
 		else:
 			self.redirect(START)
 			
-class ReviewInvitationsPage(webapp.RequestHandler):
+class ReviewInvitationsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)

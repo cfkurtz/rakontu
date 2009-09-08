@@ -148,15 +148,21 @@ application = webapp.WSGIApplication(
 									  (BuildURL(None, "url_attachment"), AttachmentHandler),
 									  (BuildURL("dir_visit", "url_attachment"), AttachmentHandler),
 									  (BuildURL(None, "url_export"), ExportHandler),
+									  ('/.*', NotFoundPageHandler),
 									  ],
 									 debug=False)
 
 def real_main():
 	run_wsgi_app(application)
+	
+def profile_randomly_main():
+	# every once in a while, profile a page in use, to see how things are going
+	if random.randint(0, 100) == 4:
+		profile_log_main()
+	else:
+		real_main()
 
 def profile_log_main():
-	 # This is the main function for profiling 
-	 # We've renamed our original main() above to real_main()
 	 import cProfile, pstats, StringIO
 	 prof = cProfile.Profile()
 	 prof = prof.runctx("real_main()", globals(), locals())
@@ -164,14 +170,11 @@ def profile_log_main():
 	 stats = pstats.Stats(prof, stream=stream)
 	 stats.sort_stats("time")  # Or cumulative
 	 stats.print_stats(80)  # 80 = how many to print
-	 # The rest is optional.
 	 # stats.print_callees()
 	 # stats.print_callers()
 	 logging.info("Profile data:\n%s", stream.getvalue())
 	 
 def profile_html_main():
-	 # This is the main function for profiling 
-	 # We've renamed our original main() above to real_main()
 	 import cProfile, pstats
 	 prof = cProfile.Profile()
 	 prof = prof.runctx("real_main()", globals(), locals())
@@ -179,13 +182,13 @@ def profile_html_main():
 	 stats = pstats.Stats(prof)
 	 stats.sort_stats("time")  # Or cumulative
 	 stats.print_stats(80)  # 80 = how many to print
-	 # The rest is optional.
 	 # stats.print_callees()
 	 # stats.print_callers()
 	 print "</pre>"
 	 
 #main = profile_html_main
 main = real_main
+#main = profile_randomly_main
 
 if __name__ == "__main__":
 	main()
