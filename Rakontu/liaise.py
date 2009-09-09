@@ -26,9 +26,9 @@ class ReviewOfflineMembersPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('liaise/members.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("liaison", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	@RequireLogin 
 	def post(self):
@@ -75,6 +75,10 @@ class ReviewOfflineMembersPage(ErrorHandlingRequestHander):
 				if membersToPut:
 					db.put(membersToPut)
 				self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
+			else:
+				self.redirect(NotAuthorizedURL("liaison", rakontu))
+		else:
+			self.redirect(NoRakontuAndMemberURL())
 			
 class PrintSearchPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -85,9 +89,9 @@ class PrintSearchPage(ErrorHandlingRequestHander):
 				export = rakontu.createOrRefreshExport("liaisonPrint_simple", "search", member=member, fileFormat="txt")
 				self.redirect(BuildURL(None, "url_export", export.urlQuery()))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("liaison", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class PrintEntryAnnotationsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -101,11 +105,11 @@ class PrintEntryAnnotationsPage(ErrorHandlingRequestHander):
 					url = BuildURL(None, "url_export", export.urlQuery())
 					self.redirect(url)
 				else:
-					self.redirect(rakontu.linkURL())
+					self.redirect(NotFoundURL(rakontu))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("liaison", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class PrintMemberEntriesAndAnnotationsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -119,11 +123,11 @@ class PrintMemberEntriesAndAnnotationsPage(ErrorHandlingRequestHander):
 					url = BuildURL(None, "url_export", export.urlQuery())
 					self.redirect(url)
 				else:
-					self.redirect(rakontu.linkURL())
+					self.redirect(NotFoundURL(rakontu))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("liaison", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class PrintCharacterEntriesAndAnnotationsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -137,11 +141,11 @@ class PrintCharacterEntriesAndAnnotationsPage(ErrorHandlingRequestHander):
 					url = BuildURL(None, "url_export", export.urlQuery())
 					self.redirect(url)
 				else:
-					self.redirect(rakontu.linkURL())
+					self.redirect(NotFoundURL(rakontu))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("liaison", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class ReviewBatchEntriesPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -163,9 +167,9 @@ class ReviewBatchEntriesPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('liaise/review.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("liaison", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 
 	@RequireLogin 
 	def post(self):
@@ -191,6 +195,10 @@ class ReviewBatchEntriesPage(ErrorHandlingRequestHander):
 					if entriesToFinalize:
 						rakontu.moveImportedEntriesOutOfBuffer(entriesToFinalize)
 					self.redirect(BuildURL("dir_liaise", "url_review", rakontu=rakontu))
+			else:
+				self.redirect(NotAuthorizedURL("liaison", rakontu))
+		else:
+			self.redirect(NoRakontuAndMemberURL())
 
 class BatchEntryPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -216,9 +224,9 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('liaise/batch.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("liaison", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	@RequireLogin 
 	def post(self):
@@ -384,4 +392,8 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 									tagset.collected = entry.collected
 									tagset.collectedOffline = not memberToAttribute.isOnlineMember
 									tagset.put()
-		self.redirect(BuildURL("dir_liaise", "url_review", rakontu=rakontu))
+				self.redirect(BuildURL("dir_liaise", "url_review", rakontu=rakontu))
+			else:
+				self.redirect(NotAuthorizedURL("liaison", rakontu))
+		else:
+			self.redirect(NoRakontuAndMemberURL())

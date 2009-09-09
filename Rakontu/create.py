@@ -167,7 +167,7 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/entry.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	def reduceStoriesThatCanBeIncludedInCollage(self, entry, includedLinksOutgoing, entries):
 		entriesThatCanBeIncluded = []
@@ -450,7 +450,7 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 				else: # new entry
 					self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
 		else: # no rakontu or member
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -485,9 +485,9 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/answers.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 				
 	@RequireLogin 
 	def post(self):
@@ -604,7 +604,7 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class PreviewAnswersPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -629,10 +629,12 @@ class PreviewAnswersPage(ErrorHandlingRequestHander):
 								   'questions': rakontu.getActiveQuestionsOfType(entry.type),
 								   'answers': answers,
 								   })
-			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/previewAnswers.html'))
-			self.response.out.write(template.render(path, template_values))
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/previewAnswers.html'))
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 		
 	@RequireLogin 
 	def post(self):
@@ -653,6 +655,10 @@ class PreviewAnswersPage(ErrorHandlingRequestHander):
 						db.put(answers)
 					db.run_in_transaction(txn, answers)
 					self.redirect(rakontu.linkURL())
+			else:
+				self.redirect(NotFoundURL(rakontu))
+		else:
+			self.redirect(NoRakontuAndMemberURL())
 
 class EnterAnnotationPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -704,9 +710,9 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/annotation.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	@RequireLogin 
 	def post(self):
@@ -824,6 +830,8 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 					annotation.publish()
 				def txn(annotation, entry):
 					annotation.put()
+					if annotation.type == "nudge":
+						entry.updateNudgePoints()
 					entry.put()
 				db.run_in_transaction(txn, annotation, entry)
 				# cannot put member into transaction because it might not be their entry, hence they are not in the group
@@ -843,7 +851,7 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 			else: # new entry
 				self.redirect(rakontu.linkURL())
 		else: # no rakontu or member
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class PreviewPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -867,10 +875,12 @@ class PreviewPage(ErrorHandlingRequestHander):
 								   'answers_with_entry': entry.getAnswersForMember(member),
 								   'nudge_categories': rakontu.nudgeCategories,
 								   })
-			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/preview.html'))
-			self.response.out.write(template.render(path, template_values))
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/preview.html'))
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 		
 	@RequireLogin 
 	def post(self):
@@ -914,8 +924,10 @@ class PreviewPage(ErrorHandlingRequestHander):
 							db.put(thingsToPut)
 					db.run_in_transaction(txn, thingsToPut)
 					self.redirect(rakontu.linkURL())
+				else:
+					self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 					
 class RelateEntryPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -937,26 +949,29 @@ class RelateEntryPage(ErrorHandlingRequestHander):
 					prev, moreEntries, next = entry.rakontu.getNonDraftEntriesOfType_WithPaging(type, next)
 					moreEntriesThatCanBeRelated = self.reduceEntriesForRelationsAlreadyThere(entry, links, moreEntries)
 					entriesThatCanBeRelated.extend(moreEntriesThatCanBeRelated)
-				template_values = GetStandardTemplateDictionaryAndAddMore({
-								'title': TITLES["RELATE_TO"],
-							   	'title_extra': entry.title,
-								'rakontu': rakontu, 
-								'skin': rakontu.getSkinDictionary(),
-								'current_member': member, 
-								'entry': entry,
-								'entries': entriesThatCanBeRelated, 
-								'related_links': links,
-							   'bookmark': bookmark,
-							   'previous': prev,
-							   'next': next,
-							   'type': type,
-								})
-				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/relate.html'))
-				self.response.out.write(template.render(path, template_values))
+				if len(entriesThatCanBeRelated):
+					template_values = GetStandardTemplateDictionaryAndAddMore({
+									'title': TITLES["RELATE_TO"],
+								   	'title_extra': entry.title,
+									'rakontu': rakontu, 
+									'skin': rakontu.getSkinDictionary(),
+									'current_member': member, 
+									'entry': entry,
+									'entries': entriesThatCanBeRelated, 
+									'related_links': links,
+								   'bookmark': bookmark,
+								   'previous': prev,
+								   'next': next,
+								   'type': type,
+									})
+					path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/relate.html'))
+					self.response.out.write(template.render(path, template_values))
+				else:
+					self.redirect(BuildResultURL("noEntriesToRelate", rakontu=rakontu))
 			else:
-				self.redirect(BuildResultURL("noEntriesToRelate", rakontu=rakontu))
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	def reduceEntriesForRelationsAlreadyThere(self, entry, links, entries):
 		entriesThatCanBeRelated = []
@@ -1027,7 +1042,7 @@ class RelateEntryPage(ErrorHandlingRequestHander):
 					query = "%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_type"], type)
 				self.redirect(BuildURL("dir_visit", "url_relate", query))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			

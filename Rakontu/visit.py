@@ -48,9 +48,9 @@ class StartPage(ErrorHandlingRequestHander):
 						else:
 							self.redirect(rakontu.linkURL())
 					else:
-						self.redirect(START)
+						self.redirect(NoRakontuAndMemberURL())
 				else:
-					self.redirect(START)
+					self.redirect(NoRakontuAndMemberURL())
 			else:
 				self.redirect(START)
 		else:
@@ -74,7 +74,7 @@ class NewMemberPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/new.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class BrowseEntriesPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -131,7 +131,7 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/home.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	def buildGrid(self, entries, member, skinDict, showDetails):
 		haveContent = False
@@ -145,8 +145,9 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 		minTime = member.getViewStartTime("home")
 		maxTime = member.getViewEndTime("home")
 		timeRangeInSeconds = (maxTime - minTime).seconds + (maxTime - minTime).days * DAY_SECONDS
+		exist, show = NudgeCategoriesExistAndShouldBeShownInContext(member, "home")
 		for entry in entries:
-			nudgePoints = entry.nudgePointsForMemberAndLocation(member, "home")
+			nudgePoints = entry.nudgePointsForExistAndShowOptions(exist, show)
 			timeToCheck = entry.lastPublishedOrAnnotated()
 			if nudgePointRange != 0:
 				rowEntryShouldBeIn = max(0, min(numRows-1, int(1.0 * numRows * (nudgePoints - minNudgePoints) / nudgePointRange) - 1))
@@ -178,38 +179,6 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 			textsForGrid = None
 		return textsForGrid, rowColors
 	
-	def DisplayTextForEntry(self, entry, member, minActivityPoints):
-		fontSizePercent = min(200, 90 + entry.activityPoints - minActivityPoints)
-		downdrift = member.rakontu.getEntryActivityPointsForEvent("downdrift")
-		if downdrift:
-			daysSinceTouched = 1.0 * (datetime.now(tz=pytz.utc) - entry.lastTouched()).seconds / DAY_SECONDS
-			timeLoss = daysSinceTouched * downdrift
-			fontSizePercent += timeLoss
-			fontSizePercent = int(max(MIN_BROWSE_FONT_SIZE_PERCENT, min(fontSizePercent, MAX_BROWSE_FONT_SIZE_PERCENT)))
-		if member.getViewDetailsForLocation("home"):
-			if entry.attributedToMember():
-				if entry.creator.active:
-					nameString = ' (<a href="/%s/%s?%s">%s</a>, ' % (DIRS["dir_visit"], URLS["url_member"], entry.creator.urlQuery(), entry.creator.nickname)
-				else:
-					nameString = " (%s, " % entry.creator.nickname
-			else:
-				if entry.character.active:
-					nameString = ' (<a href="/%s/%s?%s">%s</a>, ' % (DIRS["dir_visit"], URLS["url_character"], entry.character.urlQuery(), entry.character.name)
-				else:
-					nameString = " (%s, " % entry.character.name
-			dateTimeString = " %s)" % TimeDisplay(entry.published, member)
-			if entry.text_formatted:
-				textString = ": %s" % upToWithLink(stripTags(entry.text_formatted), SHORT_DISPLAY_LENGTH, entry.linkURL())
-			else:
-				textString = ""
-		else:
-			nameString = ""
-			textString = ""
-			dateTimeString = ""
-		text = '<p>%s <span style="font-size:%s%%">%s</span>%s%s%s</p>' % \
-			(entry.getImageLinkForType(), fontSizePercent, entry.linkString(), nameString, dateTimeString, textString)
-		return text
-
 	@RequireLogin 
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -217,7 +186,7 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 			url = ProcessGridOptionsCommand(rakontu, member, self.request, location="home")
 			self.redirect(url)
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class ReadEntryPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -296,9 +265,9 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/read.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(BuildResultURL("entryNotFound", rakontu=rakontu))
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	def buildGrid(self, allItems, entry, member, rakontu, curating):
 		haveContent = False
@@ -315,8 +284,9 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 			minTime = entry.published
 			maxTime = entry.lastPublishedOrAnnotated()
 			timeRangeInSeconds = (maxTime - minTime).seconds + (maxTime - minTime).days * DAY_SECONDS
+			exist, show = NudgeCategoriesExistAndShouldBeShownInContext(member, "entry")
 			for item in allItems:
-				nudgePoints = item.getEntryNudgePointsWhenPublishedForMemberAndLocation(member, "entry")
+				nudgePoints = item.getEntryNudgePointsWhenPublishedForExistAndShowOptions(exist, show)
 				timeToCheck = item.published
 				if nudgePointRange > 0:
 					rowItemShouldBeIn = max(0, min(numRows-1, int(1.0 * numRows * (nudgePoints - minNudgePoints) / nudgePointRange) - 1))
@@ -448,7 +418,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 							db.put(itemsToPut)
 						self.redirect(self.request.uri)
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class ReadAnnotationPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -474,8 +444,10 @@ class ReadAnnotationPage(ErrorHandlingRequestHander):
 				db.run_in_transaction(txn, member)
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/readAnnotation.html'))
 				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	@RequireLogin 
 	def post(self):
@@ -488,7 +460,7 @@ class ReadAnnotationPage(ErrorHandlingRequestHander):
 					annotation.put()
 			self.redirect(self.request.uri)
 		else:
-			self.redirect(rakontu.linkURL())
+			self.redirect(NoRakontuAndMemberURL())
 
 class SeeRakontuPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -537,7 +509,7 @@ class SeeRakontuPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/rakontu.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class SeeRakontuMembersPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -555,7 +527,7 @@ class SeeRakontuMembersPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/members.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	@RequireLogin 
 	def post(self):
@@ -573,7 +545,7 @@ class SeeRakontuMembersPage(ErrorHandlingRequestHander):
 				else:
 					self.redirect(BuildURL("dir_visit", "url_members", rakontu=rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class SendMessagePage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -596,9 +568,9 @@ class SendMessagePage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/message.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	@RequireLogin 
 	def post(self):
@@ -636,7 +608,7 @@ class SendMessagePage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(BuildResultURL("membersNotFound", rakontu=rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 	
 class SeeMemberPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -696,9 +668,9 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/member.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	def buildGrid(self, allItems, member, memberToSee, rakontu, curating):
 		if allItems:
@@ -714,11 +686,12 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 			rowColItems = {}
 			nudgePointRange = maxNudgePoints - minNudgePoints
 			timeRangeInSeconds = (maxTime - minTime).seconds + (maxTime - minTime).days * DAY_SECONDS
+			exist, show = NudgeCategoriesExistAndShouldBeShownInContext(member, "member")
 			for item in allItems:
 				if item.__class__.__name__ == "Entry":
-					nudgePoints = item.nudgePointsForMemberAndLocation(member, "member")
+					nudgePoints = item.nudgePointsForExistAndShowOptions(exist, show)
 				else:
-					nudgePoints = item.getEntryNudgePointsWhenPublishedForMemberAndLocation(member, "member")
+					nudgePoints = item.getEntryNudgePointsWhenPublishedForExistAndShowOptions(exist, show)
 				timeToCheck = item.published
 				if nudgePointRange > 0:
 					rowItemShouldBeIn = max(0, min(numRows-1, int(1.0 * numRows * (nudgePoints - minNudgePoints) / nudgePointRange) - 1))
@@ -776,9 +749,9 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 						db.put(itemsToPut)
 					self.redirect(self.request.uri)
 			else:
-				self.redirect(BuildResultURL("memberNotFound", rakontu=rakontu))
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
    
 class SeeCharacterPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -836,9 +809,9 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/character.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	def buildGrid(self, allItems, member, character, rakontu, curating):
 		if allItems:
@@ -854,11 +827,12 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 			rowColItems = {}
 			nudgePointRange = maxNudgePoints - minNudgePoints
 			timeRangeInSeconds = (maxTime - minTime).seconds + (maxTime - minTime).days * DAY_SECONDS
+			exist, show = NudgeCategoriesExistAndShouldBeShownInContext(member, "character")
 			for item in allItems:
 				if item.__class__.__name__ == "Entry":
-					nudgePoints = item.nudgePointsForMemberAndLocation(member, "character")
+					nudgePoints = item.nudgePointsForExistAndShowOptions(exist, show)
 				else:
-					nudgePoints = item.getEntryNudgePointsWhenPublishedForMemberAndLocation(member, "character")
+					nudgePoints = item.getEntryNudgePointsWhenPublishedForExistAndShowOptions(exist, show)
 				timeToCheck = item.published
 				if nudgePointRange > 0:
 					rowItemShouldBeIn = max(0, min(numRows-1, int(1.0 * numRows * (nudgePoints - minNudgePoints) / nudgePointRange) - 1))
@@ -890,7 +864,6 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 			rowColors = None
 		return textsForGrid, rowColors
 
-
 	@RequireLogin 
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -913,9 +886,9 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 						db.put(itemsToPut)
 					self.redirect(self.request.uri)
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
    
 class AskGuidePage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -937,9 +910,9 @@ class AskGuidePage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/ask.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 
 	@RequireLogin 
 	def post(self):
@@ -966,9 +939,9 @@ class AskGuidePage(ErrorHandlingRequestHander):
 					message.send()
 					self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
 				else:
-					self.redirect(BuildResultURL("memberNotFound", rakontu=rakontu))
+					self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
    
 class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -996,7 +969,7 @@ class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/profile.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 							 
 	@RequireLogin  
 	def post(self):
@@ -1083,9 +1056,9 @@ class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 				else:
 					self.redirect(BuildURL("dir_visit", "url_member", memberToEdit.urlQuery()))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class ChangeMemberPreferencesPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -1107,12 +1080,13 @@ class ChangeMemberPreferencesPage(ErrorHandlingRequestHander):
 							   'current_member': member,
 							   'show_leave_link': not rakontu.memberIsOnlyOwner(member),
 							   'my_offline_members': rakontu.getActiveOfflineMembersForLiaison(member),
+							   'time_zone_names': pytz.all_timezones,    
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/preferences.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(START)
-							 
+			self.redirect(NoRakontuAndMemberURL())
+			
 	@RequireLogin  
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -1161,9 +1135,9 @@ class ChangeMemberPreferencesPage(ErrorHandlingRequestHander):
 				else:
 					self.redirect(BuildURL("dir_visit", "url_member", memberToEdit.urlQuery()))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class ChangeMemberNicknamePage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -1196,7 +1170,7 @@ class ChangeMemberNicknamePage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/nickname.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 							 
 	@RequireLogin  
 	def post(self):
@@ -1229,9 +1203,9 @@ class ChangeMemberNicknamePage(ErrorHandlingRequestHander):
 					memcache.delete("nickname:%s" % memberToEdit.key())
 					self.redirect(BuildURL("dir_visit", "url_profile", memberToEdit.urlQuery()))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class ChangeMemberDraftsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -1264,7 +1238,7 @@ class ChangeMemberDraftsPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/drafts.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 							 
 	@RequireLogin 
 	def post(self):
@@ -1304,9 +1278,9 @@ class ChangeMemberDraftsPage(ErrorHandlingRequestHander):
 				else:
 					self.redirect(BuildURL("dir_visit", "url_drafts", memberToEdit.urlQuery()))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class ChangeMemberFiltersPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -1335,7 +1309,7 @@ class ChangeMemberFiltersPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/filters.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 							 
 	@RequireLogin 
 	def post(self):
@@ -1367,9 +1341,9 @@ class ChangeMemberFiltersPage(ErrorHandlingRequestHander):
 				else:
 					self.redirect(BuildURL("dir_visit", "url_filters", memberToEdit.urlQuery()))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class LeaveRakontuPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -1388,7 +1362,7 @@ class LeaveRakontuPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/leave.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	@RequireLogin 
 	def post(self):
@@ -1405,7 +1379,7 @@ class LeaveRakontuPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(BuildURL("dir_visit", "url_preferences", member.urlQuery()))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 		
 class SavedSearchEntryPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -1463,7 +1437,7 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/filter.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	@RequireLogin 
 	def post(self):
@@ -1581,9 +1555,9 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 				member.setSearchForLocation(location, search)
 				self.redirect(defaultURL)
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class ResultFeedbackPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -1600,7 +1574,7 @@ class ResultFeedbackPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('result.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 				
 class ContextualHelpPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -1650,7 +1624,7 @@ class GeneralHelpPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/help.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=None, memberToSee=None, character=None):
 	viewOptions = member.getViewOptionsForLocation(location)
@@ -1898,12 +1872,13 @@ def GetMinMaxNudgeAndActivityPointsFromListOfItems(items, member, location):
 		minNudgePoints = -9999999
 		minActivityPoints = -9999999
 		maxActivityPoints = -9999999
+		exist, show = NudgeCategoriesExistAndShouldBeShownInContext(member, location)
 		for item in items:
 			if item.__class__.__name__ == "Entry":
-				nudgePoints = item.nudgePointsForMemberAndLocation(member, location)
+				nudgePoints = item.nudgePointsForExistAndShowOptions(exist, show)
 				activityPoints = item.activityPoints
 			else:
-				nudgePoints = item.getEntryNudgePointsWhenPublishedForMemberAndLocation(member, location)
+				nudgePoints = item.getEntryNudgePointsWhenPublishedForExistAndShowOptions(exist, show)
 				activityPoints = item.entryActivityPointsWhenPublished
 			if minNudgePoints == -9999999:
 				minNudgePoints = nudgePoints
@@ -1922,3 +1897,6 @@ def GetMinMaxNudgeAndActivityPointsFromListOfItems(items, member, location):
 			elif activityPoints > maxActivityPoints:
 				maxActivityPoints = activityPoints
 		return minNudgePoints, maxNudgePoints, minActivityPoints, maxActivityPoints
+	
+
+

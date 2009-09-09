@@ -2018,6 +2018,13 @@ class Answer(db.Model):
 				result += self.entryNudgePointsWhenPublished[i]
 		return result
 		
+	def getEntryNudgePointsWhenPublishedForExistAndShowOptions(self, exist, show):
+		result = 0
+		for i in range(NUM_NUDGE_CATEGORIES):
+			if exist[i] and show[i]:
+				result += self.entryNudgePointsWhenPublished[i]
+		return result
+	
 	# ATTRIBUTION
 	
 	def attributedToMember(self):
@@ -2122,8 +2129,6 @@ class Entry(db.Model):
 				i += 1
 			if typeIndex >= 0:
 				self.numAnnotations[typeIndex] = self.numAnnotations[typeIndex] + 1
-			if referent.type == "nudge":
-				self.nudgePoints = self.getCurrentTotalNudgePointsInAllCategories()
 		elif className == "Answer":
 			eventType = "answering question"
 			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
@@ -2133,6 +2138,20 @@ class Entry(db.Model):
 			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
 			self.numLinks += 1
 		self.activityPoints += self.rakontu.getEntryActivityPointsForEvent(eventType)
+		# caller must do put
+		
+	def updateNudgePoints(self):
+		# must do ancestor query since this is used within a transaction
+		nudgePoints = [0] * NUM_NUDGE_CATEGORIES
+		items = Annotation.all().ancestor(self)
+		for item in items:
+			if item.type == "nudge":
+				i = 0
+				for value in item.valuesIfNudge:
+					nudgePoints[i] += value
+					i += 1
+		self.nudgePoints = []
+		self.nudgePoints.extend(nudgePoints)
 		# caller must do put
 		
 	def addCurrentTextToPreviousVersions(self):
@@ -2405,15 +2424,6 @@ class Entry(db.Model):
 	def memberCanNudge(self, member):
 		return member.key() != self.creator.key()
 
-	def getCurrentTotalNudgePointsInAllCategories(self):
-		result = [0] * NUM_NUDGE_CATEGORIES
-		for nudge in self.getNonDraftAnnotationsOfType("nudge"):
-			i = 0
-			for value in nudge.valuesIfNudge:
-				result[i] += value
-				i += 1
-		return result
-	
 	def nudgePointsCombined(self):
 		result = 0
 		for i in range(NUM_NUDGE_CATEGORIES):
@@ -2421,11 +2431,10 @@ class Entry(db.Model):
 				result += self.nudgePoints[i]
 		return result
 	
-	def nudgePointsForMemberAndLocation(self, member, location):
-		viewOptions = member.getViewOptionsForLocation(location)
+	def nudgePointsForExistAndShowOptions(self, exist, show):
 		result = 0
 		for i in range(NUM_NUDGE_CATEGORIES):
-			if self.rakontu.nudgeCategoryIndexHasContent(i) and viewOptions.nudgeCategories[i]:
+			if exist[i] and show[i]:
 				result += self.nudgePoints[i]
 		return result
 	
@@ -2879,6 +2888,13 @@ class Link(db.Model):
 				result += self.entryNudgePointsWhenPublished[i]
 		return result
 	
+	def getEntryNudgePointsWhenPublishedForExistAndShowOptions(self, exist, show):
+		result = 0
+		for i in range(NUM_NUDGE_CATEGORIES):
+			if exist[i] and show[i]:
+				result += self.entryNudgePointsWhenPublished[i]
+		return result
+	
 # ============================================================================================
 # ============================================================================================
 class Attachment(db.Model):	
@@ -3145,6 +3161,13 @@ class Annotation(db.Model):
 				result += self.entryNudgePointsWhenPublished[i]
 		return result
 
+	def getEntryNudgePointsWhenPublishedForExistAndShowOptions(self, exist, show):
+		result = 0
+		for i in range(NUM_NUDGE_CATEGORIES):
+			if exist[i] and show[i]:
+				result += self.entryNudgePointsWhenPublished[i]
+		return result
+	
 # ============================================================================================
 # ============================================================================================
 class Help(db.Model): 
@@ -3364,9 +3387,10 @@ def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, m
 		considerSearch = True
 	# nudge floor
 	itemsWithNudgeFloor = []
+	exist, show = NudgeCategoriesExistAndShouldBeShownInContext(member, location)
 	if considerNudgeFloor:
 		for item in itemsToStart:
-			if item.nudgePointsForMemberAndLocation(member, location) >= viewOptions.nudgeFloor:
+			if item.nudgePointsForExistAndShowOptions(exist, show) >= viewOptions.nudgeFloor:
 				itemsWithNudgeFloor.append(item)
 	else:
 		itemsWithNudgeFloor.extend(itemsToStart)
@@ -3404,6 +3428,15 @@ def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, m
 	else:
 		itemsWithLimit.extend(itemsWithSearch)
 	return (itemsWithLimit, overLimitWarning, numItemsBeforeLimitTruncation)
+
+def NudgeCategoriesExistAndShouldBeShownInContext(member, location):
+	exist = []
+	show = []
+	viewOptions = member.getViewOptionsForLocation(location)
+	for i in range(NUM_NUDGE_CATEGORIES):
+		exist.append(member.rakontu.nudgeCategoryIndexHasContent(i))
+		show.append(viewOptions.nudgeCategories[i])
+	return exist, show
 		
 # ============================================================================================
 # ============================================================================================

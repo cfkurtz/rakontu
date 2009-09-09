@@ -102,9 +102,16 @@
 		</td><td valign="center" class="noborder">
 	
 		{% else %}
-			{% if system_message %}
+			{% if system_message or error_message %}
 				<td class="noborder">
-				<h1><i>{{system_message}}</i></h1>
+				<h1><i>
+				{% if system_message %}
+					{{system_message}}
+				{% endif %}
+				{% if error_message %}
+					{{error_message}}
+				{% endif %}
+				</i></h1>
 			{% else %}
 				{% if user_is_admin %}
 					<td class="noborder">

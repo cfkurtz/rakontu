@@ -6,6 +6,13 @@ TESTING:
 
 test "send this member a note" thing
 
+BUGS RIGHT NOW:
+
+- nudges not showing in main screen
+- answers not recorded with liaison input entries
+
+
+
 FLESHING OUT:
 
 finish help resources 

@@ -30,9 +30,9 @@ class ReviewResourcesPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/resources.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("guide", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	@RequireLogin 
 	def post(self):
@@ -57,9 +57,9 @@ class ReviewResourcesPage(ErrorHandlingRequestHander):
 					query = rakontu.urlQuery()
 				self.redirect(BuildURL("dir_guide", "url_resources", query))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("guide", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class CopySystemResourcesPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -70,9 +70,9 @@ class CopySystemResourcesPage(ErrorHandlingRequestHander):
 				CopyDefaultResourcesForNewRakontu(rakontu, member)
 				self.redirect(BuildURL("dir_visit", "url_help", rakontu=rakontu))
 			else:
-				self.redirect(START)
+				self.redirect(NotAuthorizedURL("guide", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 						
 class ReviewRequestsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -107,9 +107,9 @@ class ReviewRequestsPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/requests.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("guide", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	@RequireLogin 
 	def post(self):
@@ -140,9 +140,9 @@ class ReviewRequestsPage(ErrorHandlingRequestHander):
 						db.put(requestsToPut)
 					self.redirect(self.request.uri)
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("guide", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class ReviewInvitationsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -175,9 +175,9 @@ class ReviewInvitationsPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/invitations.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("guide", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	def reduceInvitationsByOnlyUnresponded(self, invitations):
 		unrespondedInvitations = []
@@ -209,7 +209,7 @@ class ReviewInvitationsPage(ErrorHandlingRequestHander):
 							query = rakontu.urlQuery()
 						self.redirect(BuildURL("dir_guide", "url_invitations", query))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("guide", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			

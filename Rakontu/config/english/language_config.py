@@ -521,6 +521,17 @@ TEMPLATE_TERMS = {
 		# notFound
 		"template_URL_not_found": "Oops! Can't find it!",
 		"template_the_page_could_not_be_found": "We can't find the page you asked for.",
+		# notAuthorized
+		"template_to_access_page_take_on_role": "To access this page you must take on this helping role",
+		"template_how_to_take_on_a_role": "To take on a helping role, see your Preferences page.", 
+		# noRakontuAndMember
+		"template_the_rakontu_and_member_could_not_be_found": "The specified Rakontu and member could not be found, or the membership (or Rakontu) has become inactive. Please check with your system administrator for the link to the Rakontu you want to access.",
+		# managersOnly
+		"template_manager_only_page": "This page is available only to Rakontu managers. If you want to become a manager of your Rakontu, talk to a manager.",
+		# ownersOnly
+		"template_owners_only_page": "This page is available only to owners of the Rakontu. If you want to become an owner of your Rakontu, talk to a manager.",
+		# adminOnly
+		"template_admin_only_page": "This page is available only to Rakontu site administrators.",
 		# result
 		"template_or_return_to_home": "or perhaps you would like to return to the",
 		"template_home_page": "Home page",
@@ -1248,6 +1259,11 @@ TITLES = {
         "INITIALIZE_SITE": "Initialize site",
         "ERROR": "Error",
         "URL_NOT_FOUND": "URL not found",
+        "NOT_AUTHORIZED": "Required role missing",
+        "NO_RAKONTU_AND_MEMBER": "Rakontu and member not found",
+        "MANAGERS_ONLY": "For managers only",
+        "OWNERS_ONLY": "For Rakontu owners only",
+        "ADMIN_ONLY": "For site administrators only",
 		}
 
 # ============================================================================================ 
@@ -1320,7 +1336,7 @@ URLS = {
 	# manage
     "url_first": "first",
     "url_members": "members",
-    "url_questions_list": "questions_list",
+    "url_questions_list": "questionsList",
     "url_questions": "questions",
     "url_questions_to_csv": "questionsToCSV",
     "url_characters": "characters",
@@ -1334,18 +1350,24 @@ URLS = {
 	"url_create2": "create2",
     "url_export": "export",
     "url_admin": "admin",
-    "url_sample_questions": "sample_questions",
-    "url_default_resources": "default_resources",
+    "url_sample_questions": "sampleQuestions",
+    "url_default_resources": "defaultResources",
     "url_helps": "helps",
     "url_skins": "skins",
     # testing
-    "url_make_fake_data": "make_fake_data",
-    "url_stress_test": "stress_test",
+    "url_make_fake_data": "makeFakeData",
+    "url_stress_test": "stressTest",
 	# general
     "url_help": "help",
     "url_result": "result",
     "url_image": "img",
     "url_attachment": "attachment",
+    "url_not_found": "notFound",
+    "url_not_authorized": "notAuthorized",
+    "url_no_rakontu_and_member": "noRakontuAndMember",
+    "url_managers_only": "managersOnly",
+    "url_owners_only": "ownersOnly",
+    "url_admin_only": "adminOnly",
     }
 
 # ============================================================================================ 

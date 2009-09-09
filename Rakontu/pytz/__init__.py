@@ -1013,8 +1013,9 @@ all_timezones = \
  'W-SU',
  'WET',
  'Zulu']
-all_timezones = [
-		tz for tz in all_timezones if resource_exists(tz)]
+# do not need this as the whole library is in the zip file and it slows things down
+#all_timezones = [
+#		tz for tz in all_timezones if resource_exists(tz)]
 		
 all_timezones_set = set(all_timezones)
 common_timezones = \

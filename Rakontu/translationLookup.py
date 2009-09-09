@@ -56,6 +56,36 @@ def BuildResultURL(query, rakontu=None):
 	if rakontu:
 		result += "&" + rakontu.urlQuery()
 	return result
+
+def NotFoundURL(rakontu=None):
+	if rakontu:
+		return "/%s?%s" % (URLS["url_not_found"], rakontu.urlQuery())
+	else:
+		return "/%s" % URLS["url_not_found"]
+	
+def NotAuthorizedURL(role, rakontu=None):
+	if rakontu:
+		return "/%s?%s&%s=%s" % (URLS["url_not_authorized"], rakontu.urlQuery(), URL_OPTIONS["url_query_type"], role)
+	else:
+		return "/%s?%s=%s" % (URLS["url_not_authorized"], URL_OPTIONS["url_query_type"], role)
+	
+def NoRakontuAndMemberURL(rakontu=None):
+	if rakontu:
+		return "/%s?%s" % (URLS["url_no_rakontu_and_member"], rakontu.urlQuery())
+	else:
+		return "/%s" % URLS["url_no_rakontu_and_member"]
+	
+def ManagersOnlyURL(rakontu=None):
+	if rakontu:
+		return "/%s?%s" % (URLS["url_managers_only"], rakontu.urlQuery())
+	else:
+		return "/%s" % URLS["url_managers_only"]
+	
+def OwnersOnlyURL(rakontu):
+	return "/%s?%s" % (URLS["url_owners_only"], rakontu.urlQuery())
+
+def AdminOnlyURL():
+	return "/%s" % URLS["url_admin_only"]
 	
 def DisplayTypeForEntryType(type):
 	i = 0 

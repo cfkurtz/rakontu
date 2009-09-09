@@ -31,9 +31,9 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/flags.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("curator", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 				
 	@RequireLogin 
 	def post(self):
@@ -132,9 +132,9 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 						message.send()
 					self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("curator", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class CurateGapsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -169,9 +169,9 @@ class CurateGapsPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/gaps.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("curator", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	@RequireLogin 
 	def post(self):
@@ -193,9 +193,9 @@ class CurateGapsPage(ErrorHandlingRequestHander):
 					url = BuildURL("dir_curate", "url_gaps", rakontu=rakontu)
 					self.redirect(url)
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("curator", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class CurateAttachmentsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -218,9 +218,9 @@ class CurateAttachmentsPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/attachments.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("curator", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	@RequireLogin 
 	def post(self):
@@ -245,9 +245,9 @@ class CurateAttachmentsPage(ErrorHandlingRequestHander):
 					query = "%s=%s" % (URL_IDS["url_query_rakontu"], rakontu.getKeyName())
 				self.redirect(BuildURL("dir_curate", "url_attachments", query))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("curator", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 
 class CurateTagsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -270,9 +270,9 @@ class CurateTagsPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/tags.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(NotAuthorizedURL("curator", rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	@RequireLogin 
 	def post(self):
@@ -307,4 +307,8 @@ class CurateTagsPage(ErrorHandlingRequestHander):
 				else:
 					query = "%s=%s" % (URL_IDS["url_query_rakontu"], rakontu.getKeyName())
 				self.redirect(BuildURL("dir_curate", "url_tags", query))
+			else:
+				self.redirect(NotAuthorizedURL("curator", rakontu))
+		else:
+			self.redirect(NoRakontuAndMemberURL())
 

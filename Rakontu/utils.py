@@ -222,7 +222,6 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'no_access': NO_ACCESS,
 	   'num_nudge_categories': NUM_NUDGE_CATEGORIES, 
 	   'num_tags_in_tag_set': NUM_TAGS_IN_TAG_SET,  
-	   'time_zone_names': pytz.all_timezones,    
 	   'date_formats': DateFormatStrings(), 
 	   'time_formats': TimeFormatStrings(),  
 	   'time_frames': TIME_FRAMES,  
@@ -328,18 +327,78 @@ class ErrorHandlingRequestHander(webapp.RequestHandler):
 		path = os.path.join(os.path.dirname(__file__), FindTemplate('error.html'))
 		self.response.out.write(template.render(path, template_values))
 		
-class NotFoundPageHandler(webapp.RequestHandler):
-    def get(self):
+class NotFoundPageHandler(ErrorHandlingRequestHander):
+    def get(self): 
         self.error(404)
         rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
         template_values = GetStandardTemplateDictionaryAndAddMore({
 						'title': TITLES["URL_NOT_FOUND"],
-						'rakontu': rakontu,
+						'rakontu': rakontu, 
 						'current_member': member,
+						'error_message': "Page not found",
 						'url': self.request.uri})
         path = os.path.join(os.path.dirname(__file__), FindTemplate('notFound.html'))
         self.response.out.write(template.render(path, template_values))
+        
+class NotAuthorizedPageHandler(ErrorHandlingRequestHander):
+   def get(self):
+        rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+        type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_type")
+        template_values = GetStandardTemplateDictionaryAndAddMore({
+						'title': TITLES["NOT_AUTHORIZED"],
+						'rakontu': rakontu,
+						'current_member': member,
+						'type': type,
+						'error_message': TITLES["NOT_AUTHORIZED"], 
+						'url': self.request.uri})
+        path = os.path.join(os.path.dirname(__file__), FindTemplate('notAuthorized.html'))
+        self.response.out.write(template.render(path, template_values))
 
+class NoRakontuAndActiveMemberPageHandler(ErrorHandlingRequestHander):
+   def get(self):
+        rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+        template_values = GetStandardTemplateDictionaryAndAddMore({
+						'title': TITLES["NO_RAKONTU_AND_MEMBER"],
+						'rakontu': rakontu,
+						'current_member': member,
+						'error_message': TITLES["NO_RAKONTU_AND_MEMBER"],
+						'url': self.request.uri})
+        path = os.path.join(os.path.dirname(__file__), FindTemplate('noRakontuAndMember.html'))
+        self.response.out.write(template.render(path, template_values))
+
+class ManagersOnlyPageHandler(ErrorHandlingRequestHander):
+   def get(self):
+        rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+        template_values = GetStandardTemplateDictionaryAndAddMore({
+						'title': TITLES["MANAGERS_ONLY"],
+						'rakontu': rakontu,
+						'current_member': member,
+						'error_message': TITLES["MANAGERS_ONLY"],
+						'url': self.request.uri})
+        path = os.path.join(os.path.dirname(__file__), FindTemplate('managersOnly.html'))
+        self.response.out.write(template.render(path, template_values))
+        
+class OwnersOnlyPageHandler(ErrorHandlingRequestHander):
+   def get(self):
+        rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+        template_values = GetStandardTemplateDictionaryAndAddMore({
+						'title': TITLES["OWNERS_ONLY"],
+						'rakontu': rakontu,
+						'current_member': member,
+						'error_message': TITLES["OWNERS_ONLY"],
+						'url': self.request.uri})
+        path = os.path.join(os.path.dirname(__file__), FindTemplate('ownersOnly.html'))
+        self.response.out.write(template.render(path, template_values))
+        
+class AdminOnlyPageHandler(ErrorHandlingRequestHander):
+   def get(self):
+        template_values = GetStandardTemplateDictionaryAndAddMore({
+						'title': TITLES["ADMIN_ONLY"],
+						'error_message': TITLES["ADMIN_ONLY"],
+						'url': self.request.uri})
+        path = os.path.join(os.path.dirname(__file__), FindTemplate('adminOnly.html'))
+        self.response.out.write(template.render(path, template_values))
+        
 class ImageHandler(ErrorHandlingRequestHander):
 	def get(self):
 		memberKeyName = self.request.get(URL_IDS["url_query_member"])
@@ -903,20 +962,20 @@ def GenerateFakeTestingData():
 	Character(key_name=GenerateSequentialKeyName("character"), name="Blooming Idiot", rakontu=rakontu).put()
 	keyName = GenerateSequentialKeyName("entry")
 	entry = Entry(key_name=keyName, parent=member, id=keyName, rakontu=rakontu, type="story", creator=member, title="The dog", text="The dog sat on a log.", draft=False)
-	entry.put()
 	entry.publish()
+	entry.put()
 	keyName = GenerateSequentialKeyName("annotation")
 	annotation = Annotation(key_name=keyName, parent=entry, id=keyName, rakontu=rakontu, type="comment", creator=member, entry=entry, shortString="Great!", longString="Wonderful!", draft=False)
-	annotation.put()
 	annotation.publish()
+	annotation.put()
 	keyName = GenerateSequentialKeyName("annotation")
 	annotation = Annotation(key_name=keyName, parent=entry, id=keyName, rakontu=rakontu, type="comment", creator=member, entry=entry, shortString="Dumb", longString="Silly", draft=False)
-	annotation.put()
 	annotation.publish()
+	annotation.put()
 	keyName = GenerateSequentialKeyName("entry")
 	entry = Entry(key_name=keyName, parent=member, id=keyName, rakontu=rakontu, type="story", creator=member, title="The circus", text="I went the the circus. It was great.", draft=False)
-	entry.put()
 	entry.publish()
+	entry.put()
 
 LOREM_IPSUM = [
 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla malesuada arcu a lorem interdum euismod aliquet dui vehicula. Integer posuere mollis massa, ac posuere diam vestibulum eget. Quisque gravida arcu non lorem placerat tempus eget in risus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aliquam velit nulla, tempus sit amet gravida vel, gravida sit amet libero. Maecenas bibendum nulla ac leo feugiat egestas. Suspendisse vel dui velit. Duis a velit eget augue pellentesque bibendum in non urna. Nunc vestibulum mi vitae neque pulvinar et feugiat urna auctor. Proin volutpat euismod nunc, adipiscing pharetra leo commodo a. Suspendisse potenti. Vestibulum luctus velit non purus laoreet elementum. Donec euismod, ipsum interdum facilisis porttitor, dui dui suscipit turpis, faucibus imperdiet ante metus tempus elit. Ut vulputate, leo quis tincidunt tincidunt, massa ante fringilla libero, iaculis varius tortor quam tempor ipsum. Praesent cursus consequat tellus, eget molestie dui aliquet vitae.",

@@ -21,7 +21,7 @@ class CreateRakontuPage_PartOne(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('admin/create_rakontu_part_one.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(START)
+			self.redirect(AdminOnlyURL())
 			
 	@RequireLogin 
 	def post(self):
@@ -42,7 +42,7 @@ class CreateRakontuPage_PartOne(ErrorHandlingRequestHander):
 				else:
 					self.redirect(BuildURL("dir_admin", "url_create1", "nameTaken"))
 		else:
-			self.redirect(START)
+			self.redirect(AdminOnlyURL())
 
 class CreateRakontuPage_PartTwo(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -58,7 +58,7 @@ class CreateRakontuPage_PartTwo(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('admin/create_rakontu_part_two.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(START)
+			self.redirect(AdminOnlyURL())
 			
 	@RequireLogin 
 	def post(self):
@@ -85,7 +85,7 @@ class CreateRakontuPage_PartTwo(ErrorHandlingRequestHander):
 				newPendingMember.put()
 				self.redirect(BuildURL("dir_admin", "url_admin"))
 		else:
-			self.redirect(START)
+			self.redirect(AdminOnlyURL())
 
 class AdministerSitePage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -137,7 +137,7 @@ class AdministerSitePage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('admin/admin.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(START)
+			self.redirect(AdminOnlyURL())
 			
 	@RequireLogin 
 	def post(self):
@@ -180,7 +180,7 @@ class AdministerSitePage(ErrorHandlingRequestHander):
 				elif "export|%s" % aRakontu.key() in self.request.arguments():
 					self.redirect(BuildURL("dir_manage", "url_export", aRakontu.urlQuery()))
 		else:
-			self.redirect(START)
+			self.redirect(AdminOnlyURL())
 			
 class GenerateSampleQuestionsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -189,7 +189,7 @@ class GenerateSampleQuestionsPage(ErrorHandlingRequestHander):
 			GenerateSampleQuestions()
 			self.redirect(BuildURL("dir_admin", "url_admin"))
 		else:
-			self.redirect(START)
+			self.redirect(AdminOnlyURL())
 				
 class GenerateSystemResourcesPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -198,7 +198,7 @@ class GenerateSystemResourcesPage(ErrorHandlingRequestHander):
 			GenerateSystemResources()
 			self.redirect(BuildURL("dir_admin", "url_admin"))
 		else:
-			self.redirect(START)
+			self.redirect(AdminOnlyURL())
 				
 class GenerateHelpsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -207,7 +207,7 @@ class GenerateHelpsPage(ErrorHandlingRequestHander):
 			GenerateHelps()
 			self.redirect(BuildURL("dir_admin", "url_admin"))
 		else:
-			self.redirect(START)
+			self.redirect(AdminOnlyURL())
 			
 class GenerateSkinsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -216,7 +216,7 @@ class GenerateSkinsPage(ErrorHandlingRequestHander):
 			GenerateSkins()
 			self.redirect(BuildURL("dir_admin", "url_admin"))
 		else:
-			self.redirect(START)
+			self.redirect(AdminOnlyURL())
 
 class GenerateFakeDataPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -226,7 +226,7 @@ class GenerateFakeDataPage(ErrorHandlingRequestHander):
 			GenerateFakeTestingData()
 			self.redirect(BuildURL("dir_admin", "url_admin"))
 		else:
-			self.redirect(START)
+			self.redirect(AdminOnlyURL())
 				
 class GenerateStressTestPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -236,5 +236,5 @@ class GenerateStressTestPage(ErrorHandlingRequestHander):
 			GenerateStressTestData()
 			self.redirect(BuildURL("dir_admin", "url_admin"))
 		else:
-			self.redirect(START)
+			self.redirect(AdminOnlyURL())
 				

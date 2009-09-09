@@ -4,13 +4,15 @@
 	{% include "common_menus.html" %}
 	<div id="content">
 	
-	<img src="/images/notFound.jpg"  alt="Rakontu URL not found" class="noborder" align="left">
+	<img src="/images/managersOnly.jpg"  alt="Manager only page" class="noborder" align="left">
 
-	<h3>{{template_URL_not_found}}</h3>
-	
 	<div style="margin-left:220px;">
 	
-	<p>{{template_the_page_could_not_be_found}}</p>
+	{% if rakontu %}
+		<h3>{{title}}</h3>
+	{% endif %}
+	
+	<p>{{template_manager_only_page}}</p>
 		
 	<p>&nbsp; {{template_click_back_button}}</p>
 	<p>&nbsp; &nbsp; ... {{template_or_return_to_home}} 

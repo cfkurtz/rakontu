@@ -24,9 +24,9 @@ class FirstOwnerVisitPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/first.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 		
 class ManageRakontuMembersPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -47,9 +47,9 @@ class ManageRakontuMembersPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/members.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 				
 	@RequireLogin 
 	def post(self):
@@ -103,9 +103,9 @@ class ManageRakontuMembersPage(ErrorHandlingRequestHander):
 							newPendingMember.put()
 				self.redirect(BuildURL("dir_manage", "url_members", rakontu=rakontu))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 				
 class ManageRakontuAppearancePage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -120,13 +120,14 @@ class ManageRakontuAppearancePage(ErrorHandlingRequestHander):
 								   'skin': rakontu.getSkinDictionary(),
 								   'current_member': member,
 								   'skin_names': GetSkinNames(),
+								   'time_zone_names': pytz.all_timezones,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/appearance.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 	
 	@RequireLogin 
 	def post(self):
@@ -173,9 +174,11 @@ class ManageRakontuAppearancePage(ErrorHandlingRequestHander):
 						rakontu.roleReadmes_formats[i] = self.request.get("roleReadmes_formats%s" % i)
 					rakontu.put()
 				db.run_in_transaction(txn, rakontu)
-			self.redirect(rakontu.linkURL())
+				self.redirect(rakontu.linkURL())
+			else:
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 		
 class ManageRakontuSettingsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -251,9 +254,9 @@ class ManageRakontuSettingsPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/settings.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 	
 	@RequireLogin 
 	def post(self):
@@ -299,9 +302,11 @@ class ManageRakontuSettingsPage(ErrorHandlingRequestHander):
 						i += 1
 					rakontu.put()
 				db.run_in_transaction(txn, rakontu)
-			self.redirect(rakontu.linkURL())
+				self.redirect(rakontu.linkURL())
+			else:
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 		
 class ManageRakontuQuestionsListPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -334,9 +339,9 @@ class ManageRakontuQuestionsListPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/questionsList.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 				
 class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -379,9 +384,9 @@ class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/questions.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 	
 	@RequireLogin 
 	def post(self):
@@ -456,9 +461,9 @@ class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 				db.run_in_transaction(txn, questionsToPut)
 				self.redirect(BuildURL("dir_manage", "url_questions_list", rakontu=rakontu))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 		
 class WriteQuestionsToCSVPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -474,9 +479,9 @@ class WriteQuestionsToCSVPage(ErrorHandlingRequestHander):
 				else:
 					self.redirect(BuildResultURL("noQuestionsToExport", rakontu=rakontu))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 class ManageCharactersPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -496,9 +501,9 @@ class ManageCharactersPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/characters.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 				
 	@RequireLogin 
 	def post(self):
@@ -528,9 +533,9 @@ class ManageCharactersPage(ErrorHandlingRequestHander):
 					db.put(charactersToPut)
 				self.redirect(BuildURL("dir_manage", "url_characters", rakontu=rakontu))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 		
 class ManageCharacterPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -555,9 +560,9 @@ class ManageCharacterPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/character.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 							 
 	@RequireLogin 
 	def post(self):
@@ -633,9 +638,9 @@ class ManageCharacterPage(ErrorHandlingRequestHander):
 					db.run_in_transaction(txn, thingsToPut)
 					self.redirect(BuildURL("dir_manage", "url_characters", rakontu=rakontu))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 		
 class ExportRakontuDataPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -715,9 +720,9 @@ class ExportRakontuDataPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/export.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(START)
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 				
 	@RequireLogin 
 	def post(self):
@@ -752,11 +757,10 @@ class ExportRakontuDataPage(ErrorHandlingRequestHander):
 						endNumber = None
 					export = rakontu.createOrRefreshExport(type="xml_export", subtype=subtype, startNumber=startNumber, endNumber=endNumber, fileFormat="xml")
 					self.redirect(BuildURL(None, "url_export", export.urlQuery()))
-				#self.redirect(self.request.uri)
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 
 class ExportSearchPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -767,9 +771,9 @@ class ExportSearchPage(ErrorHandlingRequestHander):
 				export = rakontu.createOrRefreshExport("csv_export_search", subtype="search", member=member, fileFormat="csv")
 				self.redirect(BuildURL(None, "url_export", export.urlQuery()))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 		
 class InactivateRakontuPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -787,9 +791,9 @@ class InactivateRakontuPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/inactivate.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(OwnersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
 			
 	@RequireLogin 
 	def post(self):
@@ -803,6 +807,6 @@ class InactivateRakontuPage(ErrorHandlingRequestHander):
 				else:
 					self.redirect(BuildURL("dir_manage", "url_settings", rakontu=rakontu))
 			else:
-				self.redirect(rakontu.linkURL())
+				self.redirect(OwnersOnlyURL(rakontu))
 		else:
-			self.redirect(START)
+			self.redirect(NoRakontuAndMemberURL())
