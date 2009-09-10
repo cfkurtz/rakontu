@@ -312,36 +312,11 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 												creator=memberToAttribute, 
 												referent=entry, 
 												referentType="entry")
-									keepAnswer = False
 									queryText = "%s|%s" % (i, question.key())
-									if question.type == "text":
-										keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
-										if keepAnswer:
-											answer.answerIfText = htmlEscape(self.request.get(queryText))
-									elif question.type == "value":
-										keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
-										if keepAnswer:
-											oldValue = answer.answerIfValue
-											try:
-												answer.answerIfValue = int(self.request.get(queryText))
-											except:
-												answer.answerIfValue = oldValue
-									elif question.type == "boolean":
-										keepAnswer = queryText in self.request.params.keys()
-										if keepAnswer:
-											answer.answerIfBoolean = self.request.get(queryText) == queryText
-									elif question.type == "nominal" or question.type == "ordinal":
-										if question.multiple:
-											answer.answerIfMultiple = []
-											for choice in question.choices:
-												if self.request.get("%s|%s|%s" % (i, question.key(), choice)) == "yes":
-													answer.answerIfMultiple.append(choice)
-													keepAnswer = True
-										else:
-											keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
-											if keepAnswer:
-												answer.answerIfText = self.request.get(queryText)
+									response = self.request.get(queryText)
+									keepAnswer = answer.shouldKeepMe(self.request, question)
 									if keepAnswer:
+										answer.setValueBasedOnResponse(question, self.request, response)
 										answer.creator = memberToAttribute
 										answer.liaison = member
 										answer.draft = True

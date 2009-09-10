@@ -31,8 +31,9 @@
 SITE_LANGUAGE = "english" 
 
 # You MUST replace this with whomever is supporting the site.
-# All Rakontu managers/owners see this email link at the bottom of each page.
-SITE_SUPPORT_EMAIL = "support@rakontu.org"
+# If you don't you won't be able to get emails from the site telling when things went wrong.
+# This MUST be the email address you are using for the Google account you use to administer the Rakontu site.
+SITE_SUPPORT_EMAIL = "cfkurtz@cfkurtz.com"
 
 # Don't touch this
 import sys

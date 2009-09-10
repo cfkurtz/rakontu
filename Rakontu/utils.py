@@ -293,7 +293,7 @@ def GetBookmarkQueryWithCleanup(queryString):
 	if bookmark:
 		bookmark += "=" * equalsSigns
 	return bookmark
- 
+
 # ============================================================================================
 # ============================================================================================
 # HANDLERS 
@@ -318,7 +318,7 @@ class ErrorHandlingRequestHander(webapp.RequestHandler):
 		if rakontu:
 			exceptionValueWithRakontuName += " (%s)" % (rakontu.name)
 		logging.error(tracebackStringPlusIdentifyingInfo)
-		mail.send_mail_to_admins(sender=users.get_current_user().email(), subject="Error: %s" % exceptionValueWithRakontuName, body=tracebackStringPlusIdentifyingInfo) 
+		mail.send_mail_to_admins(sender=SITE_SUPPORT_EMAIL, subject="Error: %s" % exceptionValueWithRakontuName, body=tracebackStringPlusIdentifyingInfo) 
 		template_values = GetStandardTemplateDictionaryAndAddMore({
 						'title': TITLES["ERROR"],
 						'rakontu': rakontu,
@@ -689,6 +689,7 @@ def CopyDefaultResourcesForNewRakontu(rakontu, member):
 		if not alreadyThereResource:
 			keyName = GenerateSequentialKeyName("entry")
 			newResource = Entry(key_name=keyName, 
+							id=keyName,
 							rakontu=rakontu, 
 							type="resource",
 							title=resource.title,
@@ -752,20 +753,6 @@ def HexColorStringForRowIndex(index, colorDict):
 # ============================================================================================
 # ============================================================================================
 
-HTML_ESCAPES = {
- 	"&": "&amp;",
- 	'"': "&quot;",
- 	"'": "&apos;",
- 	">": "&gt;",
- 	"<": "&lt;",  
- 	 } 
-  
-def htmlEscape(text):  
-	result = []  
-	for character in text:  
-		result.append(HTML_ESCAPES.get(character, character))  
-	return "".join(result)
- 
 SIMPLE_HTML_REPLACEMENTS = [  
 							("<p>", "{{startPar}}"), ("</p>", "{{stopPar}}"),
 							("<b>", "{{startBold}}"), ("</b>", "{{stopBold}}"),

@@ -4,12 +4,9 @@
 	{% include "../common_menus.html" %}
 	<div id="content">
 	
-	<h2>{{entry.title}} ({{entry.typeForDisplay}})</h2>
-	<div class="blurb">{{entry.text}}</div>
-	
 	{% if answers %}
 		{% if rakontu_has_questions_for_this_entry_type %}
-			<h4>{{template_answers}}</h4>
+			<h3>{{template_answers_to_questions_about}} {{entry.linkString}}</h3>
 			<ul>
 			{% for question in questions %}
 				<li class="nobullet"><b>{{question.text}}</b></li>
@@ -24,6 +21,9 @@
 			</ul>
 		{% endif %}
 	{% endif %}
+	
+	<p>{{entry.linkString}} ({{entry.typeForDisplay}})</p>
+	<div class="blurb">{{entry.text}}</div>
 	
 	<div id="stylized" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_previewAnswers}}?{{entry.urlQuery}}" method="post" enctype="multipart/form-data">

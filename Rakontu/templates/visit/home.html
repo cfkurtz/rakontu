@@ -8,11 +8,14 @@
 	<div id="stylized" class="rakontu_form">
 	<form action="/{{dir_visit}}/{{url_home}}
 	{% if current_search %}
-		?{{current_search.urlQuery}}"
+		?{{current_search.urlQuery}}
 	{% else %}
-		?{{rakontu.urlQuery}}"
+		?{{rakontu.urlQuery}}
 	{% endif %}
-	method="post">
+	{% if curating %}
+		&{{url_query_curate}}={{url_query_curate}}
+	{% endif %}
+	" method="post">
 	
 	{% if grid_options_on_top %}
 		{% include "../common_grid_options.html" %}

@@ -105,7 +105,7 @@
 				{% endif %}	
 			{% else %}
 				{{template_search_filters}} - {{template_none}}
-				<input type="submit" name="makeNewSavedSearch" value="{{button_make_new}}" class="button_small">
+				<input type="submit" name="makeNewSavedSearch" value="{{button_make_new_filter}}" class="button_small">
 			{% endif %}
 			{% ifequal location "member" %}
 				{{"searching_for_entries_by_members_or_characters"|tip}}
@@ -116,26 +116,40 @@
 			</td></tr>
 		{% endif %}
 		
-		<tr><th align="right">{{template_other_options}}</th><td>
+		<tr>
 		
-		{% if show_details %}
-			<input type="submit" name="toggleShowDetails" value="{{button_hide_details}}" class="button_small">
-		{% else %}
-			<input type="submit" name="toggleShowDetails" value="{{button_show_details}}" class="button_small">
-		{% endif %}
-
-		{% if include_print %}
-			<input type="submit" name="printSearchResults" value="{{button_print_selection}}" class="button_small">
-		{% endif %}
+		{% if rows_cols %}
 		
-		{% if include_export and current_member.isManagerOrOwner %}
-			<input type="submit" name="exportSearchResults" value="{{button_export_selection}}" class="button_small">
-		{% endif %}
-
-		{% if grid_options_on_top %}
-			<input type="submit" name="toggleViewHomeOptionsOnTop" value="{{button_move_choices_to_bottom}}" class="button_small">
-		{% else %}
-			<input type="submit" name="toggleViewHomeOptionsOnTop" value="{{button_move_choices_to_top}}" class="button_small">
+			<th align="right">{{template_other_options}}</th><td>
+			
+			{% if show_details %}
+				<input type="submit" name="toggleShowDetails" value="{{button_hide_details}}" class="button_small">
+			{% else %}
+				<input type="submit" name="toggleShowDetails" value="{{button_show_details}}" class="button_small">
+			{% endif %}
+			
+			{% if include_curate %}
+				{% if curating %}
+					<input type="submit" name="stopCurating" value="{{button_stop_curating}}" class="button_small">
+				{% else %}
+					<input type="submit" name="startCurating" value="{{button_curate}}" class="button_small">
+				{% endif %}
+			{% endif %}
+	
+			{% if include_print %}
+				<input type="submit" name="printSearchResults" value="{{button_print_selection}}" class="button_small">
+			{% endif %}
+			
+			{% if include_export and current_member.isManagerOrOwner %}
+				<input type="submit" name="exportSearchResults" value="{{button_export_selection}}" class="button_small">
+			{% endif %}
+	
+			{% if grid_options_on_top %}
+				<input type="submit" name="toggleViewHomeOptionsOnTop" value="{{button_move_choices_to_bottom}}" class="button_small">
+			{% else %}
+				<input type="submit" name="toggleViewHomeOptionsOnTop" value="{{button_move_choices_to_top}}" class="button_small">
+			{% endif %}
+			
 		{% endif %}
 		
 		</td></tr>

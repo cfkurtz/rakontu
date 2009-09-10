@@ -39,9 +39,6 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			if "cancel" in self.request.arguments():
-				self.redirect(rakontu.linkURL())
-				return
 			items = rakontu.getAllFlaggedItemsAsOneList()
 			itemsToPut = []
 			for item in items:
@@ -131,6 +128,8 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 						DebugPrint(messageBody)
 						message.send()
 					self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
+				else:
+					self.redirect(BuildURL("dir_curate", "url_flags", rakontu=rakontu))
 			else:
 				self.redirect(NotAuthorizedURL("curator", rakontu))
 		else:

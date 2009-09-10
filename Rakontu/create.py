@@ -351,34 +351,11 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 											creator=member,
 											referent=entry, 
 											referentType="entry")
-					if (question.type == "nominal" or question.type == "ordinal") and question.multiple:
-						keepAnswer = False
-						answerToEdit.answerIfMultiple = []
-						for choice in question.choices:
-							if self.request.get("%s|%s" % (question.key(), choice)) == "yes":
-								answerToEdit.answerIfMultiple.append(choice)
-								keepAnswer = True
-					else:
-						queryText = "%s" % question.key()
-						response = self.request.get(queryText).strip()
-						if question.type == "boolean":
-							keepAnswer = queryText in self.request.params.keys()
-						else:
-							keepAnswer = len(response) > 0 and response != "None"
-						if keepAnswer:
-							if question.type == "text":
-								answerToEdit.answerIfText = htmlEscape(response)
-							elif question.type == "value":
-								oldValue = answerToEdit.answerIfValue
-								try:
-									answerToEdit.answerIfValue = int(response)
-								except:
-									answerToEdit.answerIfValue = oldValue
-							elif question.type == "boolean":
-								answerToEdit.answerIfBoolean = response == "yes"
-							elif (question.type == "nominal" or question.type == "ordinal") and not question.multiple:
-								answerToEdit.answerIfText = response
+					queryText = "%s" % question.key()	
+					response = self.request.get(queryText)
+					keepAnswer = answerToEdit.shouldKeepMe(self.request, question)
 					if keepAnswer:
+						answerToEdit.setValueBasedOnResponse(question, self.request, response)
 						answerToEdit.creator = member
 						answerToEdit.character = entry.character
 						answerToEdit.draft = entry.draft
@@ -395,8 +372,6 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 						if value == "removeAttachment|%s" % attachment.key():
 							thingsToDelete.append(attachment)
 				thingsToPut.append(entry.creator)
-				if entry.liaison:
-					thingsToPut.append(entry.liaison)
 				def txn(thingsToPut, thingsToDelete):
 					if thingsToPut:
 						db.put(thingsToPut)
@@ -552,35 +527,12 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 						answerToEdit.liaison = liaison
 						answerToEdit.collected = collected
 					answerToEdit.character = character
-					if (question.type == "nominal" or question.type == "ordinal") and question.multiple:
-						keepAnswer = False
-						answerToEdit.answerIfMultiple = []
-						for choice in question.choices:
-							if self.request.get("%s|%s" % (question.key(), choice)) == "yes":
-								answerToEdit.answerIfMultiple.append(choice)
-								keepAnswer = True
-					else:		
-						queryText = "%s" % question.key()	
-						response = self.request.get(queryText)
-						if question.type == "boolean":
-							keepAnswer = queryText in self.request.params.keys()
-						else:
-							keepAnswer = len(response) > 0 and response != "None"
-						if keepAnswer:
-							if question.type == "text":
-								answerToEdit.answerIfText = htmlEscape(response)
-							elif question.type == "value":
-								oldValue = answerToEdit.answerIfValue
-								try:
-									answerToEdit.answerIfValue = int(response)
-								except:
-									answerToEdit.answerIfValue = oldValue
-							elif question.type == "boolean":
-								answerToEdit.answerIfBoolean = response == "yes"
-							elif (question.type == "nominal" or question.type == "ordinal") and not question.multiple:
-								answerToEdit.answerIfText = response
-					answerToEdit.draft = setAsDraft
+					queryText = "%s" % question.key()	
+					response = self.request.get(queryText)
+					keepAnswer = answerToEdit.shouldKeepMe(self.request, question)
 					if keepAnswer:
+						answerToEdit.setValueBasedOnResponse(question, self.request, response)
+						answerToEdit.draft = setAsDraft
 						if setAsDraft:
 							answerToEdit.edited = datetime.now(tz=pytz.utc)
 						else:
@@ -588,13 +540,16 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 						thingsToPut.append(answerToEdit)
 					else:
 						thingsToDelete.append(answerToEdit)
-					thingsToPut.append(creator)
-					def txn(thingsToPut, thingsToDelete):
-						if thingsToPut:
-							db.put(thingsToPut)
-						if thingsToDelete:
-							db.delete(thingsToDelete)
-					db.run_in_transaction(txn, thingsToPut, thingsToDelete)
+				thingsToPut.append(entry)
+				def txn(thingsToPut, thingsToDelete):
+					if thingsToPut:
+						db.put(thingsToPut)
+					if thingsToDelete:
+						db.delete(thingsToDelete)
+				db.run_in_transaction(txn, thingsToPut, thingsToDelete)
+				# cannot put creator in same transaction, because they might be answering questions about another person's entry
+				# which is a different path
+				creator.put()
 				if preview:
 					self.redirect(BuildURL("dir_visit", "url_preview_answers", entry.urlQuery()))
 				elif setAsDraft:
@@ -640,7 +595,7 @@ class PreviewAnswersPage(ErrorHandlingRequestHander):
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			entry = Entry.get(self.request.query_string)
+			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 			if entry:
 				if "edit" in self.request.arguments():
 					self.redirect(BuildURL("dir_visit", "url_answers", entry.urlQuery()))
@@ -648,13 +603,18 @@ class PreviewAnswersPage(ErrorHandlingRequestHander):
 					self.redirect(BuildURL("dir_visit", "url_preferences", member.urlQuery()))
 				elif "publish" in self.request.arguments():
 					answers = entry.getAnswersForMember(member)
-					def txn(answers):
+					def txn(answers, entry):
 						for answer in answers:
 							answer.draft = False
-							answer.published = datetime.now(tz=pytz.utc)
+							answer.publish()
 						db.put(answers)
-					db.run_in_transaction(txn, answers)
-					self.redirect(rakontu.linkURL())
+						entry.put()
+					db.run_in_transaction(txn, answers, entry)
+					# cannot put creator in same transaction, because they might be answering questions about another person's entry
+					# which is a different path
+					if answers:
+						answers[0].creator.put()
+					self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
@@ -818,10 +778,9 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 					else:
 						adjustedValues.extend(nudgeValuesTheyWantToSet)
 					annotation.valuesIfNudge = [0,0,0,0,0]
-					i = 0
-					for value in adjustedValues:
-						annotation.valuesIfNudge[i] = value
-						i += 1
+					for i in range(NUM_NUDGE_CATEGORIES):
+						if rakontu.nudgeCategoryIndexHasContent(i):
+							annotation.valuesIfNudge[i] = adjustedValues[i]
 					annotation.shortString = htmlEscape(self.request.get("shortString"))
 					newTotalNudgePointsInThisNudge = annotation.totalNudgePointsAbsolute()
 					member.nudgePoints += oldTotalNudgePointsInThisNudge
@@ -830,12 +789,14 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 					annotation.publish()
 				def txn(annotation, entry):
 					annotation.put()
-					if annotation.type == "nudge":
-						entry.updateNudgePoints()
 					entry.put()
 				db.run_in_transaction(txn, annotation, entry)
+				# yes this is silly, but I can't get the ancestor query to work so it will go inside the transaction
+				if annotation.type == "nudge":
+					entry.updateNudgePoints()
+					entry.put()
 				# cannot put member into transaction because it might not be their entry, hence they are not in the group
-				member.put()
+				annotation.creator.put()
 				if preview:
 					self.redirect(BuildURL("dir_visit", "url_preview", annotation.urlQuery()))
 				elif annotation.draft:
@@ -901,10 +862,11 @@ class PreviewPage(ErrorHandlingRequestHander):
 					def txn(annotation):
 						annotation.publish()
 						annotation.put()
+						annnotation.entry.put()
 						annotation.creator.put()
 					db.run_in_transaction(txn, annotation)
 					self.redirect(BuildURL("dir_visit", "url_read", annotation.entry.urlQuery()))
-			else:
+			elif entry:
 				if "edit" in self.request.arguments():
 					self.redirect(BuildURL("dir_visit", URLForEntryType(entry.type), entry.urlQuery()))
 				elif "publish" in self.request.arguments():
@@ -918,7 +880,6 @@ class PreviewPage(ErrorHandlingRequestHander):
 						link.publish()
 						thingsToPut.append(link)
 					thingsToPut.append(entry.creator)
-					DebugPrint(thingsToPut)
 					def txn(thingsToPut):
 						if thingsToPut:
 							db.put(thingsToPut)
@@ -926,6 +887,8 @@ class PreviewPage(ErrorHandlingRequestHander):
 					self.redirect(rakontu.linkURL())
 				else:
 					self.redirect(NotFoundURL(rakontu))
+			else:
+				self.redirect(NotFoundURL(rakontu))
 		else:
 			self.redirect(NoRakontuAndMemberURL())
 					
@@ -998,14 +961,10 @@ class RelateEntryPage(ErrorHandlingRequestHander):
 				else:
 					linksToPut = []
 					linksToDelete = []
-					incomingLinksToPutAfterward = []
 					for link in entry.getLinksOfType("related"):
 						if self.request.get("linkComment|%s" % link.key()):
 							link.comment = self.request.get("linkComment|%s" % link.key())
-							if str(link.itemFrom.key()) == str(entry.key()):
-								linksToPut.append(link)
-							else:
-								incomingLinksToPutAfterward.append(link)
+							linksToPut.append(link)
 						if self.request.get("removeLink|%s" % link.key()) == "yes":
 							linksToDelete.append(link)
 					prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging(type, bookmark)
@@ -1024,17 +983,16 @@ class RelateEntryPage(ErrorHandlingRequestHander):
 									comment=comment)
 							link.publish()
 							linksToPut.append(link)
+							linksToPut.append(entry)
+							linksToPut.append(anEntry)
 							atLeastOneLinkCreated = True
 					if atLeastOneLinkCreated:
 						bookmark = None
-					def txn(linksToPut, linksToDelete):
-						if linksToPut:
-							db.put(linksToPut)
-						if linksToDelete:
-							db.delete(linksToDelete)
-					db.run_in_transaction(txn, linksToPut, linksToDelete)
-					# put incoming links afterward (and not in transaction) because they have other parent entries
-					db.put(incomingLinksToPutAfterward)
+					# cannot do transaction because entries are all mixed together
+					if linksToPut:
+						db.put(linksToPut)
+					if linksToDelete:
+						db.delete(linksToDelete)
 				if bookmark:
 					# bookmark must be last, because of the extra == the PageQuery puts on it
 					query = "%s&%s=%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_type"], type, URL_OPTIONS["url_query_bookmark"], bookmark)

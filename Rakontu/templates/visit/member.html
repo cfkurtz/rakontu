@@ -102,18 +102,6 @@
 		</tr>
 		</table>
 
-		{% if answers %}
-			<p>{{template_member_answers_to_questions}}:</p>
-			<ul>
-			{% for answer in answers %}
-				{% if answer.question.active %}
-					<li class="nobullet"><i>{{answer.question.text}}</i></li>
-					<li class="nobullet">&nbsp; &nbsp; &nbsp; {{answer.displayStringShort}}</li>
-				{% endif %}
-			{% endfor %}
-			</ul>
-		{% endif %}
-		
 		<h3>{{term_entries_contributed_by}} {{member.nickname}}</h3>
 		
 		{% if grid_options_on_top %}
@@ -133,9 +121,6 @@
 			{% include "../common_grid_options.html" %}
 		{% endif %}
 
-       	{% ifequal member.key current_member.key %}
-      		<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_preferences}}?{{member.urlQuery}}">{{template_change_your_preferences}}</a></p></div>
-      	{% endifequal %}
       	{% if current_member.isCurator %}
       		{% if curating %}
       			<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_member}}?{{member.urlQuery}}">{{template_stop_curating}}</a></p></div>
@@ -149,6 +134,18 @@
       	{% endif %}
     </form>
     </div>
+    
+	<h3>{{template_member_answers_to_questions}}</h3>
+	{% if answers %}
+		<ul>
+		{% for answer in answers %}
+			<li class="nobullet">{{answer.question.text}} &nbsp; {{answer.displayStringShort}}</li>
+		{% endfor %}
+		</ul>
+	{% else %}
+		<ul><li class="nobullet">({{template_none}})</li></ul>
+	{% endif %}
+		
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

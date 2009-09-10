@@ -54,7 +54,7 @@ urlInfo = [('/', StartPage),
 	  # answering questions
 	  (BuildURL("dir_visit", "url_answers"), AnswerQuestionsAboutEntryPage),
 	  (BuildURL("dir_visit", "url_preview"), PreviewPage),
-	  (BuildURL("dir_visit", "url_preview_answers"), PreviewPage),
+	  (BuildURL("dir_visit", "url_preview_answers"), PreviewAnswersPage),
 	  # entering annotations
 	  (BuildURL("dir_visit", URLForAnnotationType("request")), EnterAnnotationPage),
 	  (BuildURL("dir_visit", URLForAnnotationType("tag set")), EnterAnnotationPage),

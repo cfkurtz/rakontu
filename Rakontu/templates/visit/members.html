@@ -38,7 +38,7 @@
 			  		{% endif %}
 			  		</p>
 	  				</td>
-	  			<td style="border:none;border-left:1px solid #{{skin|dictLookup:"color_border_normal"}};" padding-left:16px;">
+	  			<td style="border:none;border-left:1px solid #{{skin|dictLookup:"color_border_normal"}}; padding-left:16px;">
 	  			{% ifnotequal aMember.key current_member.key %}
 					{% if aMember.isGuide or aMember.acceptsMessages %}
 						<p><input type="checkbox" name="sendMessage|{{aMember.key}}" value="yes" id="sendMessage|{{aMember.key}}">

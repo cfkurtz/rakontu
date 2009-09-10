@@ -1,16 +1,19 @@
 Things to do before v0.9 is complete
 
-===== RIGHT NOW:
-
 TESTING:
 
 test "send this member a note" thing
 
+curate from main page - add "curate" button
+move curate option to button on other things
+feels like it should be a button
+
+move reported nudge points for member to their own profile page, out of member page
+get rid of "last x" on member page
+
+on read page, move "change your xx" to link that is less obvious? don't like having it in drop-down box
+
 BUGS RIGHT NOW:
-
-- nudges not showing in main screen
-- answers not recorded with liaison input entries
-
 
 
 FLESHING OUT:
@@ -21,8 +24,9 @@ test approcket on server!
 
 PRETTIFYING:
 
-add cancel button on all pages that save things? cancel links?
+add cancel LINKS on all pages that save things? (links should say where they go to)
+problem with CSS and font sizes...
+
 javascript sliders for values?
 javascript in search creation?
-problem with CSS and font sizes...
 

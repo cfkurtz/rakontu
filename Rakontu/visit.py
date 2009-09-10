@@ -82,6 +82,7 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
+			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
 			viewOptions = member.getViewOptionsForLocation("home")
 			currentSearch = viewOptions.search
 			querySearch = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_search_filter")
@@ -90,7 +91,7 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 				member.setSearchForLocation("home", currentSearch)
 			skinDict = rakontu.getSkinDictionary()
 			(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
-			textsForGrid, rowColors = self.buildGrid(entries, member, skinDict, viewOptions.showDetails)
+			textsForGrid, rowColors = self.buildGrid(entries, member, skinDict, viewOptions.showDetails, curating)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': TITLES["HOME"],
 							'rakontu': rakontu, 
@@ -104,6 +105,7 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 							'too_many_items_warning': overLimitWarning,
 							'show_details': viewOptions.showDetails,
 							'grid_options_on_top': viewOptions.showOptionsOnTop,
+							'curating': curating,
 							# grid options
 							'location': "home",
 							'include_time_range': True,
@@ -125,6 +127,7 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 							'member_searches': member.getPrivateSavedSearches(),
 							'current_search': currentSearch,
 							
+							'include_curate': member.isCurator(),
 							'include_print': True,
 							'include_export': True,
 							})
@@ -133,7 +136,7 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 		else:
 			self.redirect(NoRakontuAndMemberURL())
 			
-	def buildGrid(self, entries, member, skinDict, showDetails):
+	def buildGrid(self, entries, member, skinDict, showDetails, curating):
 		haveContent = False
 		textsForGrid = []
 		rowColors = []
@@ -169,7 +172,7 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 				if rowColEntries.has_key((row, col)):
 					entries = rowColEntries[(row, col)]
 					for entry in entries:
-						text =  ItemDisplayStringForGrid(entry, member, "home", curating=False, showDetails=showDetails, adjustFontSize=True, minActivityPoints=minActivityPoints)
+						text =  ItemDisplayStringForGrid(entry, member, "home", curating=curating, showDetails=showDetails, adjustFontSize=True, minActivityPoints=minActivityPoints)
 						textsInThisCell.append(text)
 				haveContent = haveContent or len(textsInThisCell) > 0
 				textsInThisRow.append(textsInThisCell)
@@ -182,9 +185,15 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
 		if access:
-			url = ProcessGridOptionsCommand(rakontu, member, self.request, location="home")
-			self.redirect(url)
+			if curating and not "stopCurating" in self.request.arguments():
+				(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
+				ProcessFlagOrUnFlagCommand(self.request, entries)
+				self.redirect(self.request.uri)
+			else:
+				url = ProcessGridOptionsCommand(rakontu, member, self.request, location="home")
+				self.redirect(url)
 		else:
 			self.redirect(NoRakontuAndMemberURL())
 			
@@ -196,7 +205,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 			if entry:
-				curating = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
+				curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
 				showVersions = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_versions") == URL_OPTIONS["url_query_versions"]
 				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "entry", entry=entry)
 				textsForGrid, rowColors = self.buildGrid(items, entry, member, rakontu, curating)
@@ -247,6 +256,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 										'nudge_categories_to_show': viewOptions.nudgeCategories,
 										'include_nudge_floor': False,
 									'include_search': False,
+									'include_curate': member.isCurator(),
 									'include_print': True,
 									'include_export': False,
 								   # actions
@@ -343,38 +353,26 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 		if entry.isInvitation():
 			key = TERMS["term_respond_to_invitation"]
 			thingsUserCanDo[key] = BuildURL("dir_visit", "url_respond", entry.urlQuery())
+		# nudging
+		if memberCanAddNudgeToThisEntry:
+			key = "%s %s" % (TERMS["term_nudge_this"], displayType)
+			thingsUserCanDo[key] = BuildURL("dir_visit", URLForAnnotationType("nudge"), entry.urlQuery())
 		# answering questions
 		if rakontuHasQuestionsForThisEntryType and memberCanAnswerQuestionsAboutThisEntry:
 			key = "%s %s" % (TERMS["term_answer_questions_about_this"], displayType)
 			thingsUserCanDo[key] = BuildURL("dir_visit", "url_answers", entry.urlQuery())
-		# comment
+		# commenting
 		key = "%s %s" % (TERMS["term_make_a_comment"], displayType)
 		thingsUserCanDo[key] = BuildURL("dir_visit", URLForAnnotationType("comment"), entry.urlQuery())
-		# tag
+		# tagging
 		key = "%s %s" % (TERMS["term_tag_this"], displayType)
 		thingsUserCanDo[key] = BuildURL("dir_visit", URLForAnnotationType("tag set"), entry.urlQuery())
-		# request
+		# requesting
 		key = "%s %s" % (TERMS["term_request_something_about_this"], displayType)
 		thingsUserCanDo[key] = BuildURL("dir_visit", URLForAnnotationType("request"), entry.urlQuery())
-		# relate
+		# relating
 		key = TERMS["term_relate_entry_to_others"]
 		thingsUserCanDo[key] = BuildURL("dir_visit", "url_relate", entry.urlQuery())
-		# nudge
-		if memberCanAddNudgeToThisEntry:
-			key = "%s %s" % (TERMS["term_nudge_this"], displayType)
-			thingsUserCanDo[key] = BuildURL("dir_visit", URLForAnnotationType("nudge"), entry.urlQuery())
-		# curate
-		if member.isCurator():
-			if curating:
-				key = "%s %s" % (TERMS["term_stop_curating_this"], displayType)
-				thingsUserCanDo[key] = BuildURL("dir_visit", "url_read", "%s" % (entry.urlQuery()))
-			else:
-				key = "%s %s" % (TERMS["term_curate_this"], displayType)
-				thingsUserCanDo[key] = BuildURL("dir_visit", "url_read", "%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_curate"], URL_OPTIONS["url_query_curate"]))
-		# change
-		if entry.creator.key() == member.key():
-			key = "%s %s" % (TERMS["term_change_this"], displayType)
-			thingsUserCanDo[key] = BuildURL("dir_visit", URLForEntryType(entry.type), entry.urlQuery())
 		return thingsUserCanDo
 			
 	@RequireLogin 
@@ -382,6 +380,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
+			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
 			if "doSomething" in self.request.arguments():
 				self.redirect(self.request.get("nextAction"))
 			elif "showVersions" in self.request.arguments():
@@ -390,33 +389,15 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 			elif "hideVersions" in self.request.arguments():
 				url = BuildURL("dir_visit", "url_read", "%s" % (entry.urlQuery()))
 				self.redirect(url)
+			elif curating and not "stopCurating" in self.request.arguments():
+				itemsThatCanBeCurated = [entry]
+				for item in entry.getAllNonDraftDependents():
+					 itemsThatCanBeCurated.append(item)
+				ProcessFlagOrUnFlagCommand(self.request, itemsThatCanBeCurated)
+				self.redirect(self.request.uri)
 			else:
 				url = ProcessGridOptionsCommand(rakontu, member, self.request, location="entry", entry=entry)
-				if url:
-					self.redirect(url)
-				else:
-					if "flag|%s" % entry.key() in self.request.arguments() or "unflag|%s" % entry.key() in self.request.arguments():
-						curating = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
-						if entry and curating:
-							if "flag|%s" % entry.key() in self.request.arguments():
-								entry.flaggedForRemoval = True
-								entry.put()
-							elif "unflag|%s" % entry.key() in self.request.arguments():
-								entry.flaggedForRemoval = False
-								entry.put()
-						self.redirect(self.request.uri)
-					else:
-						itemsToPut = []
-						for item in entry.getAllNonDraftDependents():
-							if "flag|%s" % item.key() in self.request.arguments():
-								item.flaggedForRemoval = True
-								itemsToPut.append(item)
-							elif "unflag|%s" % item.key() in self.request.arguments():
-								item.flaggedForRemoval = False
-								itemsToPut.append(item)
-						if itemsToPut:
-							db.put(itemsToPut)
-						self.redirect(self.request.uri)
+				self.redirect(url)
 		else:
 			self.redirect(NoRakontuAndMemberURL())
 			
@@ -662,6 +643,7 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 												'shared_searches': rakontu.getNonPrivateSavedSearches(),
 												'member_searches': member.getPrivateSavedSearches(),
 												'current_search': currentSearch,
+								'include_curate': member.isCurator(),
 								'include_print': True,
 								'include_export': False,
 					   		   })
@@ -728,26 +710,14 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			memberToSee = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
+			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
 			if memberToSee:
-				url = ProcessGridOptionsCommand(rakontu, member, self.request, location="member", memberToSee=memberToSee)
-				if url:
-					self.redirect(url)
-				else:
-					allItems = memberToSee.getAllItemsAttributedToMember()
-					allItems.extend(memberToSee.getNonDraftLiaisonedEntries())
-					allItems.extend(memberToSee.getNonDraftLiaisonedAnnotations())
-					allItems.extend(memberToSee.getNonDraftLiaisonedAnswers())
-					itemsToPut = []
-					for item in allItems:
-						if "flag|%s" % item.key() in self.request.arguments():
-							item.flaggedForRemoval = True
-							itemsToPut.append(item)
-						elif "unflag|%s" % item.key() in self.request.arguments():
-							item.flaggedForRemoval = False
-							itemsToPut.append(item)
-					if itemsToPut:
-						db.put(itemsToPut)
+				if curating and not "stopCurating" in self.request.arguments():
+					ProcessFlagOrUnFlagCommand(self.request, memberToSee.getAllItemsAttributedToMember())
 					self.redirect(self.request.uri)
+				else:
+					url = ProcessGridOptionsCommand(rakontu, member, self.request, location="member", memberToSee=memberToSee)
+					self.redirect(url)
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
@@ -803,6 +773,7 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 												'shared_searches': rakontu.getNonPrivateSavedSearches(),
 												'member_searches': member.getPrivateSavedSearches(),
 												'current_search': currentSearch,
+								'include_curate': member.isCurator(),
 								'include_print': True,
 								'include_export': False,
 													 })
@@ -869,22 +840,14 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			character = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_character")
+			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
 			if character:
-				url = ProcessGridOptionsCommand(rakontu, member, self.request, location="character", character=character)
-				if url:
-					self.redirect(url)
-				else:
-					itemsToPut = []
-					for item in character.getAllItemsAttributedToCharacter():
-						if "flag|%s" % item.key() in self.request.arguments():
-							item.flaggedForRemoval = True
-							itemsToPut.append(item)
-						elif "unflag|%s" % item.key() in self.request.arguments():
-							item.flaggedForRemoval = False
-							itemsToPut.append(item)
-					if itemsToPut:
-						db.put(itemsToPut)
+				if curating and not "stopCurating" in self.request.arguments():
+					ProcessFlagOrUnFlagCommand(self.request, character.getAllItemsAttributedToCharacter())
 					self.redirect(self.request.uri)
+				else:
+					url = ProcessGridOptionsCommand(rakontu, member, self.request, location="character", character=character)
+					self.redirect(url)
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
@@ -1017,37 +980,12 @@ class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 											question=question, 
 											referent=memberToEdit, 
 											referentType="member")
-					keepAnswer = False
 					queryText = "%s" % question.key()
-					if question.type == "text":
-						keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
-						if keepAnswer:
-							answerToEdit.answerIfText = htmlEscape(self.request.get(queryText))
-					elif question.type == "value":
-						keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
-						if keepAnswer:
-							oldValue = answerToEdit.answerIfValue
-							try:
-								answerToEdit.answerIfValue = int(self.request.get(queryText))
-							except:
-								answerToEdit.answerIfValue = oldValue
-					elif question.type == "boolean":
-						keepAnswer = queryText in self.request.params.keys()
-						if keepAnswer:
-							answerToEdit.answerIfBoolean = self.request.get(queryText) == "yes"
-					elif question.type == "nominal" or question.type == "ordinal":
-						if question.multiple:
-							answerToEdit.answerIfMultiple = []
-							for choice in question.choices:
-								if self.request.get("%s|%s" % (question.key(), choice)) == "yes":
-									answerToEdit.answerIfMultiple.append(choice)
-									keepAnswer = True
-						else:
-							keepAnswer = len(self.request.get(queryText)) > 0 and self.request.get(queryText) != "None"
-							if keepAnswer:
-								answerToEdit.answerIfText = self.request.get(queryText)
-					answerToEdit.creator = memberToEdit
+					response = self.request.get(queryText)
+					keepAnswer = answerToEdit.shouldKeepMe(self.request, question)
 					if keepAnswer:
+						answerToEdit.setValueBasedOnResponse(question, self.request, response)
+						answerToEdit.creator = memberToEdit
 						answersToPut.append(answerToEdit)
 				if answersToPut:
 					db.put(answersToPut)
@@ -1640,8 +1578,13 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 	defaultURL += "&%s=%s" % (URL_OPTIONS["url_query_location"], location)
 	delta = timedelta(seconds=viewOptions.timeFrameInSeconds)
 	now = datetime.now(tz=pytz.utc)
+	# turn on or off curating
+	if "startCurating" in request.arguments():
+		return defaultURL + "&%s=%s" % (URL_OPTIONS["url_query_curate"], URL_OPTIONS["url_query_curate"])
+	elif "stopCurating" in request.arguments():
+		return defaultURL
 	# time frame - home, member, character
-	if "changeTimeFrame" in request.arguments():
+	elif "changeTimeFrame" in request.arguments():
 		viewOptions.setViewTimeFrameFromTimeFrameString(request.get("timeFrame"))
 		viewOptions.put()
 		return defaultURL
@@ -1774,6 +1717,17 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 			return defaultURL
 	else:
 			return None
+		
+def ProcessFlagOrUnFlagCommand(request, itemsThatCanBeCurated):
+	for item in itemsThatCanBeCurated:
+		if "flag|%s" % item.key() in request.arguments():
+			item.flaggedForRemoval = True
+			item.put()
+			break # only one thing can be flagged or unflagged at a time
+		elif "unflag|%s" % item.key() in request.arguments():
+			item.flaggedForRemoval = False
+			item.put()
+			break # only one thing can be flagged or unflagged at a time
 		
 def ItemDisplayStringForGrid(item, member, location, curating=False, showDetails=False, adjustFontSize=False, minActivityPoints=0):
 	# font size string (home grid only)

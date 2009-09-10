@@ -495,7 +495,7 @@ class Rakontu(db.Model):
 		return result
 	
 	def getResourceWithTitle(self, title):
-		return Entry.all().filter("title = ", title).get()
+		return Entry.all().filter("rakontu = ", self.key()).filter("type = ", "resource").filter("title = ", title).get()
 	
 	# ENTRIES, ANNOTATIONS, ANSWERS, LINKS - EVERYTHING
 	
@@ -563,12 +563,35 @@ class Rakontu(db.Model):
 		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "request").filter("draft = ", False).\
 				filter("typeIfRequest = ", type).filter("completedIfRequest = ", False).fetch(FETCH_NUMBER)
 	
-	def moveImportedEntriesOutOfBuffer(self, items):
-		for item in items:
-			item.draft = False
-			item.inBatchEntryBuffer = False
-			item.publish()
-			item.put()
+	def moveImportedEntriesOutOfBuffer(self, entries):
+		thingsToPut = []
+		charactersToPutAfterward = []
+		for entry in entries:
+			entry.draft = False
+			entry.inBatchEntryBuffer = False
+			entry.publish()
+			thingsToPut.append(entry)
+			if entry.character:
+				charactersToPutAfterward.append(entry.character)
+			else:
+				thingsToPut.append(entry.creator)
+			for annotation in entry.getAnnotations():
+				annotation.publish()
+				thingsToPut.append(annotation)
+			for answer in entry.getAnswersForMember(entry.creator):
+				answer.publish()
+				thingsToPut.append(answer)
+			for link in entry.getOutgoingLinks():
+				link.publish()
+				thingsToPut.append(link)
+		if thingsToPut:
+			def txn(thingsToPut):
+				db.put(thingsToPut)
+			db.run_in_transaction(txn, thingsToPut)
+		if charactersToPutAfterward:
+			def txn(charactersToPutAfterward):
+				db.put(charactersToPutAfterward)
+			db.run_in_transaction(txn, charactersToPutAfterward)
 			
 	def getNonDraftTagSets(self):
 		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "tag set").filter("draft = ", False).fetch(FETCH_NUMBER)
@@ -1087,14 +1110,16 @@ class Member(db.Model):
 	
 	joined = TzDateTimeProperty(auto_now_add=True)
 	firstVisited = db.DateTimeProperty(indexed=False)
+	
+	# THESE MAKE TRANSACTIONS DIFFICULT
 	lastEnteredEntry = db.DateTimeProperty(indexed=False)
 	lastEnteredAnnotation = db.DateTimeProperty(indexed=False)
 	lastEnteredLink = db.DateTimeProperty(indexed=False)
 	lastAnsweredQuestion = db.DateTimeProperty(indexed=False)
 	lastReadAnything = db.DateTimeProperty(indexed=False)
-	
 	counts = db.ListProperty(int, default=[0] * (len(ENTRY_TYPES) + len(ANNOTATION_ANSWER_LINK_TYPES)), indexed=False) 
 	nudgePoints = db.IntegerProperty(default=DEFAULT_START_NUDGE_POINTS, indexed=False) # accumulated through participation
+	
 	viewOptions = db.ListProperty(db.Key)
 	
 	# CREATION
@@ -1472,7 +1497,7 @@ class Member(db.Model):
 	def decrementCount(self, type):
 		self.incrementCount(type, value=-1)
 		
-	def getCounts(self):
+	def oldGetCounts(self):
 		countNames = []
 		counts = []
 		i = 0
@@ -1488,6 +1513,36 @@ class Member(db.Model):
 			i += 1
 			j += 1
 		return countNames, counts
+	
+	def getCounts(self):
+		countNames = []
+		counts = []
+		i = 0
+		for aType in ENTRY_TYPES:
+			countNames.append(ENTRY_TYPES_PLURAL_DISPLAY[i])
+			count = Entry.all().filter("creator = ", self.key()).filter("character = ", None).filter("type = ", aType).count()
+			counts.append(count)
+			i += 1
+		i = len(ENTRY_TYPES)
+		j = 0
+		for aType in ANNOTATION_ANSWER_LINK_TYPES:
+			if aType in ANNOTATION_TYPES:
+				countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
+				count = Annotation.all().filter("creator = ", self.key()).filter("character = ", None).filter("type = ", aType).count()
+				counts.append(count)
+			elif aType == "answer":
+				countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
+				count = Answer.all().filter("creator = ", self.key()).filter("character = ", None).count()
+				counts.append(count)
+			elif aType == "link":
+				countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
+				count = Link.all().filter("creator = ", self.key()).count()
+				counts.append(count)
+			i += 1
+			j += 1
+		return countNames, counts
+		
+
 	
 	# DISPLAY
 	
@@ -1932,6 +1987,46 @@ class Answer(db.Model):
 	
 	# IMPORTANT METHODS
 	
+	def shouldKeepMe(self, request, question):
+		keepMe = False
+		queryText = "%s" % question.key()
+		response = request.get(queryText)
+		if (question.type == "nominal" or question.type == "ordinal"):
+			if question.multiple:
+				keepMe = False
+				for choice in question.choices:
+					if request.get("%s|%s" % (question.key(), choice)) == "yes":
+						keepMe = True
+						break
+			else: # single choice
+				keepMe = len(response) > 0 and response != "None" and response != TERMS["term_choose"]
+		else:		
+			if question.type == "boolean":
+				keepMe = queryText in request.params.keys()
+			else:
+				keepMe = len(response) > 0 and response != "None"
+		return keepMe
+	
+	def setValueBasedOnResponse(self, question, request, response):
+		if question.type == "text":
+			self.answerIfText = htmlEscape(response)
+		elif question.type == "value":
+			oldValue = self.answerIfValue
+			try:
+				self.answerIfValue = int(response)
+			except:
+				self.answerIfValue = oldValue
+		elif question.type == "boolean":
+			self.answerIfBoolean = response == "yes"
+		elif (question.type == "nominal" or question.type == "ordinal"):
+			if question.multiple:
+				self.answerIfMultiple = []
+				for choice in question.choices:
+					if request.get("%s|%s" % (question.key(), choice)) == "yes":
+						self.answerIfMultiple.append(choice)
+			else:
+				self.answerIfText = response
+	
 	def publish(self):
 		if self.referentType == "entry":
 			self.draft = False
@@ -2009,15 +2104,7 @@ class Answer(db.Model):
 			
 	def MemberWantsToSeeMyTypeInLocation(self, member, location):
 		return member.getAnnotationAnswerLinkTypeForLocationAndIndex(location, ANNOTATION_ANSWER_LINK_TYPES_ANSWER_INDEX)
-	
-	def getEntryNudgePointsWhenPublishedForMemberAndLocation(self, member, location):
-		viewOptions = member.getViewOptionsForLocation(location)
-		result = 0
-		for i in range(NUM_NUDGE_CATEGORIES):
-			if self.rakontu.nudgeCategoryIndexHasContent(i) and viewOptions.nudgeCategories[i]:
-				result += self.entryNudgePointsWhenPublished[i]
-		return result
-		
+			
 	def getEntryNudgePointsWhenPublishedForExistAndShowOptions(self, exist, show):
 		result = 0
 		for i in range(NUM_NUDGE_CATEGORIES):
@@ -2077,12 +2164,11 @@ class Entry(db.Model):
 	edited = TzDateTimeProperty(auto_now_add=True, indexed=False)
 	published = TzDateTimeProperty(auto_now_add=True)
 	
+	# THESE MAKE TRANSACTIONS DIFFICULT
 	lastRead = TzDateTimeProperty(default=None)
 	lastAnnotatedOrAnsweredOrLinked = TzDateTimeProperty(default=None)
-	
 	activityPoints = db.IntegerProperty(default=0)
 	nudgePoints = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES)
-	
 	numAnnotations = db.ListProperty(int, default=[0] * len(ANNOTATION_TYPES), indexed=False)
 	numAnswers = db.IntegerProperty(default=0, indexed=False)
 	numLinks = db.IntegerProperty(default=0, indexed=False)
@@ -2142,14 +2228,13 @@ class Entry(db.Model):
 		
 	def updateNudgePoints(self):
 		# must do ancestor query since this is used within a transaction
-		nudgePoints = [0] * NUM_NUDGE_CATEGORIES
-		items = Annotation.all().ancestor(self)
-		for item in items:
-			if item.type == "nudge":
-				i = 0
-				for value in item.valuesIfNudge:
-					nudgePoints[i] += value
-					i += 1
+		nudgePoints = []
+		nudges = self.getNonDraftAnnotationsOfType("nudge")
+		for i in range(NUM_NUDGE_CATEGORIES):
+			total = 0
+			for nudge in nudges:
+				total += nudge.valuesIfNudge[i]
+			nudgePoints.append(total)
 		self.nudgePoints = []
 		self.nudgePoints.extend(nudgePoints)
 		# caller must do put
@@ -2648,7 +2733,7 @@ class Entry(db.Model):
 		return "/%s/%s" % (DIRS["dir_visit"], URLS["url_read"])
 
 	def urlQuery(self):
-		return "%s=%s" % (URL_IDS["url_query_entry"], self.key().name())
+		return "%s=%s" % (URL_IDS["url_query_entry"], self.getKeyName())
 
 	def typeAsURL(self):
 		return URLForEntryType(self.type)
@@ -2879,14 +2964,6 @@ class Link(db.Model):
 
 	def MemberWantsToSeeMyTypeInLocation(self, member, location):
 		return member.getAnnotationAnswerLinkTypeForLocationAndIndex(location, ANNOTATION_ANSWER_LINK_TYPES_LINK_INDEX)
-	
-	def getEntryNudgePointsWhenPublishedForMemberAndLocation(self, member, location):
-		viewOptions = member.getViewOptionsForLocation(location)
-		result = 0
-		for i in range(NUM_NUDGE_CATEGORIES):
-			if self.rakontu.nudgeCategoryIndexHasContent(i) and viewOptions.nudgeCategories[i]:
-				result += self.entryNudgePointsWhenPublished[i]
-		return result
 	
 	def getEntryNudgePointsWhenPublishedForExistAndShowOptions(self, exist, show):
 		result = 0
@@ -3152,14 +3229,6 @@ class Annotation(db.Model):
 				break
 			i += 1
 		return False
-
-	def getEntryNudgePointsWhenPublishedForMemberAndLocation(self, member, location):
-		viewOptions = member.getViewOptionsForLocation(location)
-		result = 0
-		for i in range(NUM_NUDGE_CATEGORIES):
-			if self.rakontu.nudgeCategoryIndexHasContent(i) and viewOptions.nudgeCategories[i]:
-				result += self.entryNudgePointsWhenPublished[i]
-		return result
 
 	def getEntryNudgePointsWhenPublishedForExistAndShowOptions(self, exist, show):
 		result = 0
@@ -3520,3 +3589,17 @@ def ImageLinkForAnswer():
 def ImageLinkForLink():
 	return'<img src="/images/link.png" alt="link" border="0">'
 
+HTML_ESCAPES = {
+ 	"&": "&amp;",
+ 	'"': "&quot;",
+ 	"'": "&apos;",
+ 	">": "&gt;",
+ 	"<": "&lt;",  
+ 	 } 
+  
+def htmlEscape(text):  
+	result = []  
+	for character in text:  
+		result.append(HTML_ESCAPES.get(character, character))  
+	return "".join(result)
+ 

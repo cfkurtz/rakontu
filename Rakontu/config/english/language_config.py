@@ -762,6 +762,7 @@ TEMPLATE_TERMS = {
 		"template_your_saved_drafts": "Your saved drafts",
 		"template_saved_drafts_for": "Saved drafts for",
 		"template_versions": "History",
+		"template_you_have_no_drafts": 'You have no saved drafts. To save a draft, create a story or other entry and click "Save draft" at the bottom of the screen.',
 		# visit/entry
 		"template_restoring_version_from": "Recalling version from",
 		"template_tell_new_story": "Please tell your story here.",
@@ -804,6 +805,7 @@ TEMPLATE_TERMS = {
 		"template_apply_to_home_page": "Apply to home page",
 		"template_questions_about_entries": "Questions about entries",
 		"template_questions_about_members_or_characters": "Questions about members or characters",
+		"template_you_have_no_filters": 'You have no saved search filters. To create a search filter, go to your Rakontu home page and click "Make new filter" in the options shown.',
 		# visit/help
 		"template_help_resources": "Help! Read about using Rakontu",
 		"template_ask_a_guide": "Help! Ask a guide about your Rakontu",
@@ -866,6 +868,8 @@ TEMPLATE_TERMS = {
 		"template_about_help_icons": "Around the site you will see little icons that provide help. Either hover over them with your mouse or click on them to read them.",
 		# visit/preview
 		"template_with_reference_to_the": "with reference to the",
+		# visit/previewAnswers
+		"template_answers_to_questions_about": "Answers to questions about",
 		# visit/profile
 		"template_you_profile": "Your profile",
 		"template_offline_member_profile": "Off-line member profile",
@@ -964,7 +968,7 @@ TEMPLATE_BUTTONS = {
 		"button_inactivate_shorter": "Inactivate",
 		# curate
 		"button_make_selected_changes": "Make selected changes",
-		"button_send_selected_notifications": "Send selected notifications",
+		"button_send_selected_notifications": "Unflag items and send selected notifications",
 		"button_change_tags": "Change tags",
 		# guide
 		"button_show_uncompleted_requests": "Show only uncompleted requests",
@@ -974,6 +978,7 @@ TEMPLATE_BUTTONS = {
 		# liaise
 		"button_add_stories": "Add stories",
 		"button_add_more_stories": "Add more stories",
+		"button_import_or_remove_selected_stories": "Import or Remove selected stories",
 		# manage
 		"button_inactivate": "Really And Truly Inactivate This Rakontu",
 		"button_export_xml": "Export to XML",
@@ -992,6 +997,8 @@ TEMPLATE_BUTTONS = {
 		"button_remove_selected_drafts": "Remove selected drafts",
 		"button_save_and_apply": "Save and apply",
 		"button_save_as_new_search_and_apply": "Save as new search and apply",
+		"button_curate": "Curate",
+		"button_stop_curating": "Stop curating",
 		"button_flag": "Flag",
 		"button_unflag": "Unflag",
 		"button_delete": "Delete",
@@ -1007,6 +1014,7 @@ TEMPLATE_BUTTONS = {
 		"button_create_another": "Make another",
 		"button_apply": "Apply",
 		"button_make_new": "Make new",
+		"button_make_new_filter": "Make new filter",
 		"button_print_selection": "Print selection",
 		"button_export_selection": "Export selection",
 		"button_really_and_truly_leave": "Really and Truly Leave this Rakontu",
