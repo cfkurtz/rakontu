@@ -850,7 +850,7 @@ TEMPLATE_TERMS = {
 		"template_last_answer": "Last answer",
 		"template_last_link": "Last link",
 		"template_last_reading": "Last reading",
-		"template_nudge_points_accumulated": "Nudge points",
+		"template_nudge_points_accumulated": "Nudge points accumulated",
 		"template_member_answers_to_questions": "Answers to member questions",
 		"template_send_a_message_to": "Send a message to",
 		"template_change_your_preferences": "Change your preferences",

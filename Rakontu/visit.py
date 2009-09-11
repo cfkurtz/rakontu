@@ -923,6 +923,7 @@ class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 							   'rakontu': rakontu, 
 							   'skin': rakontu.getSkinDictionary(),
 							   'member': memberToEdit,
+							   'accumulated_nudge_points': member.nudgePoints,
 							   'current_member': member,
 							   'questions': rakontu.getActiveMemberQuestions(),
 							   'answers': memberToEdit.getAnswers(),
@@ -1489,6 +1490,7 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 				def txn(thingsToPut):
 					if thingsToPut:
 						db.put(thingsToPut)
+				# SEQUENTIAL TRANSACTION PROBLEM
 				db.run_in_transaction(txn, thingsToPut)
 				member.setSearchForLocation(location, search)
 				self.redirect(defaultURL)
@@ -1684,6 +1686,7 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 				newSearch = SavedSearch(key_name=keyName, parent=member, id=keyName, rakontu=rakontu, creator=member)
 				newSearch.copyDataFromOtherSearchAndPut(search, refs)
 				return newSearch
+			# SEQUENTIAL TRANSACTION PROBLEM
 			newSearch = db.run_in_transaction(txn, keyName, member, rakontu, search, refs)
 			viewOptions.search = newSearch
 			viewOptions.put()
@@ -1797,12 +1800,12 @@ def ItemDisplayStringForGrid(item, member, location, curating=False, showDetails
 		i = 0
 		for type in ANNOTATION_TYPES:
 			if item.numAnnotations[i] > 0:
-				annotationsCountString += "%s%s" % (ImageLinkForAnnotationType(type), item.numAnnotations[i]) #ANNOTATION_TYPES_PLURAL_DISPLAY[i])
+				annotationsCountString += "%s%s" % (ImageLinkForAnnotationType(type), item.numAnnotations[i]) 
 			i += 1
 		if item.numAnswers > 0:
-			annotationsCountString += "%s%s" % (ImageLinkForAnswer(), item.numAnswers) # TERMS["term_answers"])
+			annotationsCountString += "%s%s" % (ImageLinkForAnswer(), item.numAnswers)
 		if item.numLinks > 0:
-			annotationsCountString += "%s%s" % (ImageLinkForLink(), item.numLinks) # TERMS["term_links"])
+			annotationsCountString += "%s%s" % (ImageLinkForLink(), item.numLinks)
 	# longer text if showing details
 	if showDetails:
 		if item.__class__.__name__ == "Annotation":
@@ -1814,7 +1817,10 @@ def ItemDisplayStringForGrid(item, member, location, curating=False, showDetails
 			else:
 				textString = ""
 		elif item.__class__.__name__ == "Entry":
-			textString = " %s" % upToWithLink(stripTags(item.text_formatted), SHORT_DISPLAY_LENGTH, item.linkURL())
+			if item.text_formatted:
+				textString = " %s" % upToWithLink(stripTags(item.text_formatted), SHORT_DISPLAY_LENGTH, item.linkURL())
+			else:
+				textString = ""
 		else:
 			textString = ""
 	else:

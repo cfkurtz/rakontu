@@ -99,6 +99,33 @@ class TzDateTimeProperty(db.DateTimeProperty):
 				value = value.astimezone(pytz.utc)
 		return value
 	
+class IdNumberDictionaryProperty(db.Property):
+	data_type = str
+	def get_value_for_datastore(self, model_instance):
+		# for writing to datastore
+		value = super(IdNumberDictionaryProperty, self).get_value_for_datastore(model_instance)
+		if value is not None:
+			textList = []
+			for key in value:
+				textList.append("%s|%s" % (key, value[key]))
+			text = "@@@".join(textList)
+			return text
+		else:
+			return None
+	def make_value_from_datastore(self, value):
+		# for reading from datastore
+		if value is not None:
+			dictionary = {}
+			valueAsList = value.split("@@@")
+			for listItem in valueAsList:
+				key, content = listItem.split("|")
+				dictionary[key] = int(content)
+			return dictionary
+		else:
+			return {}
+	def empty(self, value):
+		return not value
+	
 # ============================================================================================
 # ============================================================================================
 class CounterShard(db.Model): 
@@ -319,7 +346,7 @@ class Rakontu(db.Model):
 		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).count() > 0
 	
 	def numAnnotations(self):
-		# this is only used in the admin pages - if 1000 will say could be more
+		# this is only used in the admin pages - documentation will say could be > 1000
 		return Annotation.all().filter("rakontu = ", self.key()).count()
 	
 	def getGuides(self):
@@ -1541,8 +1568,6 @@ class Member(db.Model):
 			i += 1
 			j += 1
 		return countNames, counts
-		
-
 	
 	# DISPLAY
 	
@@ -1740,7 +1765,7 @@ class Character(db.Model):
 				count = Answer.all().filter("character = ", self.key()).count()
 				counts.append(count)
 			elif aType == "link":
-				pass
+				pass  # characters can't do links
 			i += 1
 			j += 1
 		return countNames, counts
@@ -2204,7 +2229,11 @@ class Entry(db.Model):
 			elif action =="added":
 				eventType = "adding %s" % self.type
 		elif className == "Annotation":
-			eventType = "adding %s" % referent.type
+			if action == "read":
+				eventType = "reading"
+				self.lastRead = datetime.now(tz=pytz.utc) # reading an annotation counts as reading the entry
+			else:
+				eventType = "adding %s" % referent.type
 			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
 			typeIndex = -1
 			i = 0
@@ -2224,19 +2253,17 @@ class Entry(db.Model):
 			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
 			self.numLinks += 1
 		self.activityPoints += self.rakontu.getEntryActivityPointsForEvent(eventType)
-		# caller must do put
+
+		# caller must do puts
 		
 	def updateNudgePoints(self):
-		# must do ancestor query since this is used within a transaction
-		nudgePoints = []
+		self.nudgePoints = [0] * NUM_NUDGE_CATEGORIES
 		nudges = self.getNonDraftAnnotationsOfType("nudge")
 		for i in range(NUM_NUDGE_CATEGORIES):
 			total = 0
 			for nudge in nudges:
 				total += nudge.valuesIfNudge[i]
-			nudgePoints.append(total)
-		self.nudgePoints = []
-		self.nudgePoints.extend(nudgePoints)
+			self.nudgePoints[i] = total
 		# caller must do put
 		
 	def addCurrentTextToPreviousVersions(self):

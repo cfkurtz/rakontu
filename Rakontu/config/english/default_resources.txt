@@ -161,19 +161,22 @@ You gain "nudge points" by participating in the Rakontu -- telling stories, addi
 Category=Introduction
 Interpret as=Wiki markup
 Managers only=no
-CFK FINISH
+
+------- This help resource is not yet finished ----------
 
 [Building a Story Collage]
 Category=Introduction
 Interpret as=Wiki markup
 Managers only=no
-CFK FINISH
+
+------- This help resource is not yet finished ----------
 
 [Describing a Pattern]
 Category=Introduction
 Interpret as=Wiki markup
 Managers only=no
-CFK FINISH
+
+------- This help resource is not yet finished ----------
 
 [How to Be a Curator]
 Category= Helping
@@ -502,9 +505,7 @@ Questions can be an important part of your Rakontu. Asking people to answer ques
 
 You can set up questions about each type of entry (stories, invitations, collages, patterns and resources) and you can ask people questions about themselves. Combining these questions in search filters is useful, so you should make sure you have at least a few questions about each entry type and about members. Your Rakontu will most likely start out with some default questions (depending on your site installation) as well as some sample questions. You can also trade questions with other Rakontu managers using CSV import and export.  
 
-
-
-CFK FINISH
+------- This help resource is not yet finished ----------
 
 [Limitations in Rakontu]
 Category=Technical
@@ -520,17 +521,16 @@ Category=Technical
 Interpret as=Wiki markup
 Managers only=no
 
-Bad Request
-Your client has issued a malformed or illegal request. 
+Bad Request: Your client has issued a malformed or illegal request. This happens in older browsers. Refreshing the page can help, as can removing cached (temporary) files.
 
-This happens in older browsers. Refreshing the page can help, as can removing cached (temporary) files.
+------- This help resource is not yet finished ----------
 
 [Using an external style sheet to style your Rakontu]
 Category=Technical
 Interpret as=Wiki markup
 Managers only=yes
 
-CFK FINISH
+------- This help resource is not yet finished ----------
 
 
 

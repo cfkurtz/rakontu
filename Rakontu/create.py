@@ -377,6 +377,7 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 						db.put(thingsToPut)
 					if thingsToDelete:
 						db.delete(thingsToDelete)
+				# SEQUENTIAL TRANSACTIONS PROBLEM
 				db.run_in_transaction(txn, thingsToPut, thingsToDelete)
 				# second transaction for incoming links which have different parents
 				def txn(incomingLinksToPutAfterward):
@@ -640,7 +641,7 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 				i += 1
 			entry, annotation = GetEntryAndAnnotationFromURLQuery(self.request.query_string)
 			if entry:
-				if not entry.memberCanNudge(member):
+				if str(member.key()) == str(entry.creator.key()):
 					nudgePointsMemberCanAssign = 0
 				else:
 					nudgePointsMemberCanAssign = max(0, rakontu.maxNudgePointsPerEntry - entry.getTotalNudgePointsForMember(member))
@@ -752,39 +753,37 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 					else:
 						annotation.typeIfRequest = REQUEST_TYPES[-1]
 				elif type == "nudge":
-					oldTotalNudgePointsInThisNudge = annotation.totalNudgePointsAbsolute()
-					nudgeValuesTheyWantToSet = []
+					nudgeValuesTheyWantToSet = [0] * NUM_NUDGE_CATEGORIES
 					totalNudgeValuesTheyWantToSet = 0
 					for i in range(NUM_NUDGE_CATEGORIES):
 						if rakontu.nudgeCategoryIndexHasContent(i):
-							oldValue = annotation.valuesIfNudge[i]
 							try:
-								nudgeValuesTheyWantToSet.append(int(self.request.get("nudge%s" % i)))
+								nudgeValuesTheyWantToSet[i] = int(self.request.get("nudge%s" % i))
 							except:
-								nudgeValuesTheyWantToSet.append(oldValue)
+								nudgeValuesTheyWantToSet[i] = annotation.valuesIfNudge[i]
 							totalNudgeValuesTheyWantToSet += abs(nudgeValuesTheyWantToSet[i])
-					adjustedValues = []
-					maximumAllowedInThisInstance = min(member.nudgePoints, rakontu.maxNudgePointsPerEntry)
+					# if they put in more total values than they could, strip off the last ones
+					adjustedValues = [0] * NUM_NUDGE_CATEGORIES
+					nudgePointsMemberCanAssignToThisEntry = max(0, rakontu.maxNudgePointsPerEntry - entry.getTotalNudgePointsForMember(member))
+					maximumAllowedInThisInstance = min(member.nudgePoints, nudgePointsMemberCanAssignToThisEntry)
 					if totalNudgeValuesTheyWantToSet > maximumAllowedInThisInstance:
 						totalNudgePointsAllocated = 0
 						for i in range(NUM_NUDGE_CATEGORIES):
 							if rakontu.nudgeCategoryIndexHasContent(i):
 								overLimit = totalNudgePointsAllocated + nudgeValuesTheyWantToSet[i] > maximumAllowedInThisInstance
 								if not overLimit:
-									adjustedValues.append(nudgeValuesTheyWantToSet[i])
+									adjustedValues[i] = nudgeValuesTheyWantToSet[i]
 									totalNudgePointsAllocated += abs(nudgeValuesTheyWantToSet[i])
 								else:
 									break
 					else:
+						adjustedValues = []
 						adjustedValues.extend(nudgeValuesTheyWantToSet)
-					annotation.valuesIfNudge = [0,0,0,0,0]
+					annotation.valuesIfNudge = [0] * NUM_NUDGE_CATEGORIES
 					for i in range(NUM_NUDGE_CATEGORIES):
 						if rakontu.nudgeCategoryIndexHasContent(i):
 							annotation.valuesIfNudge[i] = adjustedValues[i]
 					annotation.shortString = htmlEscape(self.request.get("shortString"))
-					newTotalNudgePointsInThisNudge = annotation.totalNudgePointsAbsolute()
-					member.nudgePoints += oldTotalNudgePointsInThisNudge
-					member.nudgePoints -= newTotalNudgePointsInThisNudge
 				if not annotation.draft:
 					annotation.publish()
 				def txn(annotation, entry):

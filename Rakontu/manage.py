@@ -134,44 +134,44 @@ class ManageRakontuAppearancePage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
+				rakontu.name = htmlEscape(self.request.get("name"))
+				rakontu.tagline = htmlEscape(self.request.get("tagline"))
+				rakontu.skinName = self.request.get("skinName")
+				if rakontu.skinName == TERMS["term_custom"]:
+					rakontu.customSkin = db.Text(self.request.get("customSkin"))
+				url = self.request.get("externalStyleSheetURL")
+				if url and url != "None":
+					rakontu.externalStyleSheetURL = url
+				else:
+					rakontu.externalStyleSheetURL = None
+				text = self.request.get("description")
+				format = self.request.get("description_format").strip()
+				rakontu.description = text
+				rakontu.description_formatted = db.Text(InterpretEnteredText(text, format))
+				rakontu.description_format = format
+				text = self.request.get("welcomeMessage")
+				format = self.request.get("welcomeMessage_format").strip()
+				rakontu.welcomeMessage = text
+				rakontu.welcomeMessage_formatted = db.Text(InterpretEnteredText(text, format))
+				rakontu.welcomeMessage_format = format
+				text = self.request.get("etiquetteStatement")
+				format = self.request.get("etiquetteStatement_format").strip()
+				rakontu.etiquetteStatement = text
+				rakontu.etiquetteStatement_formatted = db.Text(InterpretEnteredText(text, format))
+				rakontu.etiquetteStatement_format = format
+				rakontu.contactEmail = self.request.get("contactEmail")
+				rakontu.defaultTimeZoneName = self.request.get("defaultTimeZoneName")
+				rakontu.defaultDateFormat = self.request.get("defaultDateFormat")
+				rakontu.defaultTimeFormat = self.request.get("defaultTimeFormat")
+				if self.request.get("img"):
+					rakontu.image = db.Blob(images.resize(str(self.request.get("img")), THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT))
+				if self.request.get("removeImage"):
+					rakontu.image = None
+				for i in range(3):
+					rakontu.roleReadmes[i] = db.Text(self.request.get("readme%s" % i))
+					rakontu.roleReadmes_formatted[i] = db.Text(InterpretEnteredText(self.request.get("readme%s" % i), self.request.get("roleReadmes_formats%s" % i)))
+					rakontu.roleReadmes_formats[i] = self.request.get("roleReadmes_formats%s" % i)
 				def txn(rakontu):
-					rakontu.name = htmlEscape(self.request.get("name"))
-					rakontu.tagline = htmlEscape(self.request.get("tagline"))
-					rakontu.skinName = self.request.get("skinName")
-					if rakontu.skinName == TERMS["term_custom"]:
-						rakontu.customSkin = db.Text(self.request.get("customSkin"))
-					url = self.request.get("externalStyleSheetURL")
-					if url and url != "None":
-						rakontu.externalStyleSheetURL = url
-					else:
-						rakontu.externalStyleSheetURL = None
-					text = self.request.get("description")
-					format = self.request.get("description_format").strip()
-					rakontu.description = text
-					rakontu.description_formatted = db.Text(InterpretEnteredText(text, format))
-					rakontu.description_format = format
-					text = self.request.get("welcomeMessage")
-					format = self.request.get("welcomeMessage_format").strip()
-					rakontu.welcomeMessage = text
-					rakontu.welcomeMessage_formatted = db.Text(InterpretEnteredText(text, format))
-					rakontu.welcomeMessage_format = format
-					text = self.request.get("etiquetteStatement")
-					format = self.request.get("etiquetteStatement_format").strip()
-					rakontu.etiquetteStatement = text
-					rakontu.etiquetteStatement_formatted = db.Text(InterpretEnteredText(text, format))
-					rakontu.etiquetteStatement_format = format
-					rakontu.contactEmail = self.request.get("contactEmail")
-					rakontu.defaultTimeZoneName = self.request.get("defaultTimeZoneName")
-					rakontu.defaultDateFormat = self.request.get("defaultDateFormat")
-					rakontu.defaultTimeFormat = self.request.get("defaultTimeFormat")
-					if self.request.get("img"):
-						rakontu.image = db.Blob(images.resize(str(self.request.get("img")), THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT))
-					if self.request.get("removeImage"):
-						rakontu.image = None
-					for i in range(3):
-						rakontu.roleReadmes[i] = db.Text(self.request.get("readme%s" % i))
-						rakontu.roleReadmes_formatted[i] = db.Text(InterpretEnteredText(self.request.get("readme%s" % i), self.request.get("roleReadmes_formats%s" % i)))
-						rakontu.roleReadmes_formats[i] = self.request.get("roleReadmes_formats%s" % i)
 					rakontu.put()
 				db.run_in_transaction(txn, rakontu)
 				self.redirect(rakontu.linkURL())
@@ -263,43 +263,43 @@ class ManageRakontuSettingsPage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
-				def txn(rakontu):
-					rakontu.allowNonManagerCuratorsToEditTags = self.request.get("allowNonManagerCuratorsToEditTags") == "yes"
-					i = 0
-					for entryType in ENTRY_AND_ANNOTATION_TYPES:
-						rakontu.allowCharacter[i] = self.request.get("character|%s" % entryType) == "yes"
-						i += 1
-					oldValue = rakontu.maxNudgePointsPerEntry
-					try:
-						rakontu.maxNudgePointsPerEntry = int(self.request.get("maxNudgePointsPerEntry"))
-					except:
-						rakontu.maxNudgePointsPerEntry = oldValue
-					for i in range(NUM_NUDGE_CATEGORIES):
-						rakontu.nudgeCategories[i] = htmlEscape(self.request.get("nudgeCategory%s" % i))
-					for i in range(NUM_NUDGE_CATEGORIES):
-						rakontu.nudgeCategoryQuestions[i] = htmlEscape(self.request.get("nudgeCategoryQuestion%s" % i))
-					oldValue = rakontu.maxNumAttachments
-					try:
-						rakontu.maxNumAttachments = int(self.request.get("maxNumAttachments"))
-					except:
-						rakontu.maxNumAttachments = oldValue
-					i = 0
-					for eventType in EVENT_TYPES:
-						if eventType != EVENT_TYPES[0]: # leave time out for nudge accumulations
-							oldValue = rakontu.memberNudgePointsPerEvent[i]
-							try:
-								rakontu.memberNudgePointsPerEvent[i] = int(self.request.get("member|%s" % eventType))
-							except:
-								rakontu.memberNudgePointsPerEvent[i] = oldValue
-						i += 1
-					i = 0
-					for eventType in EVENT_TYPES:
-						oldValue = rakontu.entryActivityPointsPerEvent[i]
+				rakontu.allowNonManagerCuratorsToEditTags = self.request.get("allowNonManagerCuratorsToEditTags") == "yes"
+				i = 0
+				for entryType in ENTRY_AND_ANNOTATION_TYPES:
+					rakontu.allowCharacter[i] = self.request.get("character|%s" % entryType) == "yes"
+					i += 1
+				oldValue = rakontu.maxNudgePointsPerEntry
+				try:
+					rakontu.maxNudgePointsPerEntry = int(self.request.get("maxNudgePointsPerEntry"))
+				except:
+					rakontu.maxNudgePointsPerEntry = oldValue
+				for i in range(NUM_NUDGE_CATEGORIES):
+					rakontu.nudgeCategories[i] = htmlEscape(self.request.get("nudgeCategory%s" % i))
+				for i in range(NUM_NUDGE_CATEGORIES):
+					rakontu.nudgeCategoryQuestions[i] = htmlEscape(self.request.get("nudgeCategoryQuestion%s" % i))
+				oldValue = rakontu.maxNumAttachments
+				try:
+					rakontu.maxNumAttachments = int(self.request.get("maxNumAttachments"))
+				except:
+					rakontu.maxNumAttachments = oldValue
+				i = 0
+				for eventType in EVENT_TYPES:
+					if eventType != EVENT_TYPES[0]: # leave time out for nudge accumulations
+						oldValue = rakontu.memberNudgePointsPerEvent[i]
 						try:
-							rakontu.entryActivityPointsPerEvent[i] = int(self.request.get("entry|%s" % eventType))
+							rakontu.memberNudgePointsPerEvent[i] = int(self.request.get("member|%s" % eventType))
 						except:
-							rakontu.entryActivityPointsPerEvent[i] = oldValue
-						i += 1
+							rakontu.memberNudgePointsPerEvent[i] = oldValue
+					i += 1
+				i = 0
+				for eventType in EVENT_TYPES:
+					oldValue = rakontu.entryActivityPointsPerEvent[i]
+					try:
+						rakontu.entryActivityPointsPerEvent[i] = int(self.request.get("entry|%s" % eventType))
+					except:
+						rakontu.entryActivityPointsPerEvent[i] = oldValue
+					i += 1
+				def txn(rakontu):
 					rakontu.put()
 				db.run_in_transaction(txn, rakontu)
 				self.redirect(rakontu.linkURL())

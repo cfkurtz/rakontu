@@ -80,6 +80,7 @@ def CreateMemberFromPendingMember(rakontu, pendingMember, userId, email):
 		member.put()
 		
 		return member
+	# SEQUENTIAL TRANSACTION PROBLEM
 	member = db.run_in_transaction(txn, rakontu, pendingMember, userId, email, keyName)
 	# this runs a transaction so must be done afterward
 	member.createViewOptions()
@@ -101,6 +102,7 @@ def CreateMemberFromInfo(rakontu, userId, email, nickname, joinAs):
 		member.initialize()
 		member.put()
 		return member
+	# SEQUENTIAL TRANSACTION PROBLEM
 	member = db.run_in_transaction(txn, rakontu, userId, email, nickname, joinAs, keyName)
 	# this runs a transaction so must be done afterward
 	member.createViewOptions()
@@ -680,7 +682,7 @@ def GenerateSystemResources():
 			currentText += line
 	resources.append(currentResource)	
 	db.put(resources)
-	
+	 
 def CopyDefaultResourcesForNewRakontu(rakontu, member):
 	systemResources = SystemEntriesOfType("resource")
 	resourcesToPut = []
