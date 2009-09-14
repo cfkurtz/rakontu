@@ -287,9 +287,6 @@ TERMS = {
 		"term_of_the_tags": "of the tags",
 		"term_of_the_entry_questions": "of the entry questions",
 		"term_of_the_creator_questions": "of the creator questions", 
-		"term_of_these_answers_to_questions": "of these answers to questions",
-		"term_of_these_answers_to_questions_about_members_or_characters": "of these answers to questions about their creators (members or characters)",
-		"term_of_these_answers_to_questions_about_creators": "of these answers to questions about their creators",
 		# used when displaying times on home page
 		"term_now": "Now",
 		"term_moments_ago": "Moments ago", # NOT followed by time
@@ -323,6 +320,8 @@ TERMS = {
 		"term_custom": "custom",
 		"term_links": "links",
 		"term_too_many_items_warning": "most recent items shown. To show older items, use selections to reduce the number of items showing.", # preceded by number/number
+		"term_untitled": "Untitled",
+		"term_no_subject": "No subject", # for a comment or request
 		}
 
 # ============================================================================================ 
@@ -352,6 +351,7 @@ TEMPLATE_TERMS = {
 		"template_never": "never",
 		"template_go": "go",
 		"template_choose": "choose",
+		"template_why": "why",
 		
 		# types of people (singular and plural)
 		"template_member": "Member",
@@ -713,7 +713,7 @@ TEMPLATE_TERMS = {
 		"template_custom": "custom",
 		"template_external_style_sheet": "Enter a valid CSS URL to use as an external style sheet",
 		"template_halping_role_texts": "Helping role texts",
-		"template_rakontu_outoing_email": "Outgoing email address",
+		"template_rakontu_outoing_email": "Outgoing reply-to email address",
 		"template_welcome_message_for_new_members": "Welcome message for new members",
 		"template_time_zones_and_time_reporting": "Time zones and time reporting",
 		"template_what_time_zone_should_members_see": "What time zone should members see as the default?",
@@ -745,7 +745,7 @@ TEMPLATE_TERMS = {
 		"template_nudge_points_member_has_left": "Points you have remaining",
 		# visit/ask
 		"template_ask_this_guide": "Ask a guide",
-		"template_ask_subject": "Please summarize your question in a few words.",
+		"template_ask_subject": "Please summarize your question in a few words for the email subject line.",
 		"template_ask_body": "What question would you like to ask?",
 		# visit/character
 		"template_about": "About",
@@ -800,6 +800,8 @@ TEMPLATE_TERMS = {
 		"template_of_these_selection_criteria": "of the following selection criteria",
 		"template_of_these_words_or_phrases": "of these words of phrases",
 		"template_of_these_tags": "of these tags",
+		"template_of_these_answers_to_questions_about_entries": "of these answers to questions about entries",
+		"template_of_these_answers_to_questions_about_creators_of_entries": "of these answers about creators of entries",
 		# visit/filters
 		"template_saved_search_filters": "Saved search filters",
 		"template_apply_to_home_page": "Apply to home page",
@@ -862,7 +864,7 @@ TEMPLATE_TERMS = {
 		"template_make_changes_to_members": "Make changes to memberships",
 		"template_send_message": "Send message",
 		# visit/message
-		"template_what_should_reply_to_be": "What email address should the email be sent from? (To use the Rakontu address, leave this blank.)",
+		"template_what_should_reply_to_be": "What email address should be given as the reply-to address? (To use the Rakontu address, leave this blank.)",
 		# visit/new
 		"template_resources_for_new_members": "You may find these resources helpful for getting started",
 		"template_about_help_icons": "Around the site you will see little icons that provide help. Either hover over them with your mouse or click on them to read them.",
@@ -1004,6 +1006,7 @@ TEMPLATE_BUTTONS = {
 		"button_delete": "Delete",
 		"button_remove_selected_searches": "Remove selected search filters",
 		"button_send_question": "Send question",
+		"button_compose_message": "Compose message to selected members",
 		"button_send_message": "Send message",
 		"button_send_messages": "Send message to selected members",
 		"button_refresh": "Refresh",
@@ -1129,6 +1132,7 @@ RESULTS = {
 		"entryNotFound": ("entryNotFound", "That entry was not found."),
 		"memberNotFound": ("memberNotFound", "That member was not found."),
 		"membersNotFound": ("membersNotFound", "None of the specified members were found."),
+		"couldNotSendMessage": ("couldNotSendMessage", "Could not send the requested email message. Please check the sender and recipient addresses or ask your site administrator for help."),
 		"offlineMemberNotFound": ("offlineMemberNotFound", "That off-line member was not found."),
 		"helpNotFound": ("helpNotFound", "No help message was found for that item. You may want to let your site administrator know there is a problem."),
 

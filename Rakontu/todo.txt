@@ -2,16 +2,16 @@ Things to do before v0.9 is complete
 
 TESTING:
 
-test "send this member a note" thing
+should there be a way to set the order of questions ? they come out in random order.
+should resources have an order within their category? also random.
 
-curate from main page - add "curate" button
-move curate option to button on other things
-feels like it should be a button
+what about having some questions marked as "teller only" questions ?? would that be too hard to implement?
 
-move reported nudge points for member to their own profile page, out of member page
-get rid of "last x" on member page
+would like guide-resources page to be able to select type of resource (help, new members, managers, all, category)
 
-on read page, move "change your xx" to link that is less obvious? don't like having it in drop-down box
+emotion question (how feel) needs to have different answers for story, invitation whatever ??
+
+add member option of how long texts should be. i can imagine changing that at different times.
 
 BUGS RIGHT NOW:
 

@@ -581,8 +581,8 @@ class ManageCharacterPage(ErrorHandlingRequestHander):
 									goAhead = False
 								break
 				if goAhead:
-					questions = rakontu.getActiveQuestionsOfType("character")
 					thingsToPut = []
+					thingsToDelete = []
 					character.name = htmlEscape(self.request.get("name")).strip()
 					text = self.request.get("description")
 					format = self.request.get("description_format").strip()
@@ -599,6 +599,8 @@ class ManageCharacterPage(ErrorHandlingRequestHander):
 					elif self.request.get("img"):
 						character.image = db.Blob(images.resize(str(self.request.get("img")), THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT))
 					thingsToPut.append(character)
+					questions = rakontu.getActiveQuestionsOfType("character")
+					answersToPut = []
 					for question in questions:
 						foundAnswer = character.getAnswerForQuestion(question)
 						if foundAnswer:
@@ -612,30 +614,21 @@ class ManageCharacterPage(ErrorHandlingRequestHander):
 												question=question, 
 												referent=character, 
 												referentType="character")
-						if question.type == "text":
-							answerToEdit.answerIfText = htmlEscape(self.request.get("%s" % question.key()))
-						elif question.type == "value":
-							oldValue = answerToEdit.answerIfValue
-							try:
-								answerToEdit.answerIfValue = int(self.request.get("%s" % question.key()))
-							except:
-								answerToEdit.answerIfValue = oldValue
-						elif question.type == "boolean":
-							answerToEdit.answerIfBoolean = self.request.get("%s" % question.key()) == "%s" % question.key()
-						elif question.type == "nominal" or question.type == "ordinal":
-							if question.multiple:
-								answerToEdit.answerIfMultiple = []
-								for choice in question.choices:
-									if self.request.get("%s|%s" % (question.key(), choice)) == "yes":
-										answerToEdit.answerIfMultiple.append(choice)
-							else:
-								answerToEdit.answerIfText = self.request.get("%s" % (question.key()))
-						answerToEdit.creator = member
-						thingsToPut.append(answerToEdit)
-					def txn(thingsToPut):
+						queryText = "%s" % question.key()
+						response = self.request.get(queryText)
+						keepAnswer = answerToEdit.shouldKeepMe(self.request, queryText, question)
+						if keepAnswer:
+							answerToEdit.setValueBasedOnResponse(question, self.request, queryText, response)
+							answerToEdit.creator = member
+							thingsToPut.append(answerToEdit)
+						else:
+							thingsToDelete.append(answerToEdit)
+					def txn(thingsToPut, thingsToDelete):
 						if thingsToPut:
 							db.put(thingsToPut)
-					db.run_in_transaction(txn, thingsToPut)
+						if thingsToDelete:
+							db.delete(thingsToDelete)
+					db.run_in_transaction(txn, thingsToPut, thingsToDelete)
 					self.redirect(BuildURL("dir_manage", "url_characters", rakontu=rakontu))
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))

@@ -23,15 +23,15 @@
 	      			 <td>{{attachment.linkString}}</td>
 	      			 <td>{{attachment.mimeType}}</td>
 	      			 <td>
-					{% if attachment.entry.flaggedForRemoval %}
-						<input type="submit" class="flag_red" value="" name="unflag|{{attachment.entry.key}}" title="{{template_click_here_to_unflag}}">
+					{% if attachment.entryFlaggedForRemoval %}
+						<input type="submit" class="flag_red" value="" name="unflag|{{attachment.entryKey}}" title="{{template_click_here_to_unflag}}">
 					{% else %}
-						<input type="submit" class="flag_green" value="" name="flag|{{attachment.entry.key}}" title="{{template_click_here_to_flag_this_entry}}">
+						<input type="submit" class="flag_green" value="" name="flag|{{attachment.entryKey}}" title="{{template_click_here_to_flag_this_entry}}">
 					{% endif %}
-	      			 {{attachment.entry.linkString}}</td>
+	      			 {{attachment.entryLinkString}}</td>
 	      			 <td>
-	      			 {{attachment.entry.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
-					 {{attachment.entry.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+	      			 {{attachment.entryPublished|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					 {{attachment.entryPublished|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 	      			 </td>
 	      			 </tr>
 	      		{% endfor %}

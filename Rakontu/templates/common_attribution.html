@@ -3,7 +3,7 @@
 				<fieldset>
 				{{template_collected_from_offline_member}}</p>
 				<input type="radio" name="collectedOffline" value="yes" id="collectedOffline"
-					{% if attribution_referent.collectedOffline %}
+					{% if attribution_referent.collectedOfflineOrInBatchEntryBuffer %}
 					checked
 					{% endif %}
 				><label for="collectedOffline">{{template_yes_collected_from}}</label>
@@ -48,8 +48,8 @@
 						{% endif %}
 					</select></p> 
 				{% endif %} 
-				<input type="radio" name="collectedOffline" value="no" id="notCollectedOffline"
-					{% if not attribution_referent.collectedOffline %}
+				<p><input type="radio" name="collectedOffline" value="no" id="notCollectedOffline"
+					{% if not attribution_referent.collectedOfflineOrInBatchEntryBuffer  %}
 					checked
 					{% endif %}
 				><label for="notCollectedOffline">{{template_no_my_contribution}}.</label>

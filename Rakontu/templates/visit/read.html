@@ -87,21 +87,21 @@
 	{% ifequal entry.type "story" %}
 		{% if retold_links_incoming %}
 			{% for link in retold_links_incoming %}
-				<p>{{template_retelling_of}} {{link.itemFrom.linkString}}.
-				 {% if link.comment %} ({{link.comment}}) {% endif %}</p>
+				<ul><li class="nobullet">{{template_retelling_of}} {{link.itemFrom.linkString}}.
+				 {% if link.comment %} ({{template_why|capfirst}}? {{link.comment}}) {% endif %}</li></ul>
 			{% endfor %}
 		{% endif %}
 		{% if reminded_links_incoming %}
 			{% for link in reminded_links_incoming %}
-				<p>{{template_reminding_from}} {{link.itemFrom.linkString}}.
-				{% if link.comment %} ({{link.comment}}) {% endif %}</p>
+				<ul><li class="nobullet">{{template_reminding_from}} {{link.itemFrom.linkString}}.
+				{% if link.comment %} ({{template_why|capfirst}}? {{link.comment}}) {% endif %}</li></ul>
 			{% endfor %}
 		{% endif %}
 		{% if included_links_incoming_from_invitations %}
 			<ul>
 			{% for link in included_links_incoming_from_invitations %}
 				<li class="nobullet">{{template_in_response_to_invitation}} {{link.itemFrom.linkString}}
-				 {% if link.comment %} ({{link.comment}}) {% endif %}
+				 {% if link.comment %} ({{template_why|capfirst}}? {{link.comment}}) {% endif %}
 				 </li>
 			{% endfor %}
 			</ul>
@@ -111,7 +111,7 @@
 			<ul>
 			{% for link in included_links_incoming_from_collages %}
 				<li class="nobullet">{{link.itemFrom.linkString}}
-				 {% if link.comment %} ({{link.comment}}) {% endif %}</li>
+				 {% if link.comment %} ({{template_why|capfirst}}? {{link.comment}}) {% endif %}</li>
 			{% endfor %}
 			</ul>
 		{% endif %}
@@ -127,6 +127,7 @@
 			{% else %}
 				{{link.itemTo.linkString}}
 			{% endifequal %}
+			{% if link.comment %} ({{template_why|capfirst}}? {{link.comment}}) {% endif %}
 			</li>
 		{% endfor %}
 		</ul>

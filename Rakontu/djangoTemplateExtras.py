@@ -54,6 +54,10 @@ def isLastInSeries(list, object):
 	return list.index(object) == len(list) - 1
 register.filter(isLastInSeries)
 
+def isFirstInSeries(list, object):
+	return list.index(object) == 0
+register.filter(isFirstInSeries)
+
 def isInList(object, list):
 	if list and object:
 		return object in list
@@ -231,6 +235,11 @@ register.filter(capitalize)
 def lower(value):
 	return value.lower()
 register.filter(lower)
+
+def stringLengthExceeds(value, limit):
+	return len(value) > limit
+register.filter(stringLengthExceeds)
+
 
 def strip(value):
 	return value.strip()

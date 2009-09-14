@@ -82,7 +82,7 @@
 			{% if member.isGuide %}
 				<p><input type="checkbox" name="guideAlwaysAcceptsMessages" value="yes" id="guideAlwaysAcceptsMessages"
 					checked disabled>
-				><label for="guideAlwaysAcceptsMessages">{{template_yes_people_can_send_me_messages}}</label></p>
+				<label for="guideAlwaysAcceptsMessages">{{template_yes_people_can_send_me_messages}}</label></p>
 			{% else %}
 				<p><input type="checkbox" name="acceptsMessages" value="yes" id="acceptsMessages"
 					{% if member.acceptsMessages %}

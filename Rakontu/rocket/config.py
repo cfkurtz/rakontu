@@ -1,7 +1,7 @@
 from consts import *
 
 # Replication URL - change this to URL corresponding your application
-ROCKET_URL = "http://localhost:8080/rocket"
+ROCKET_URL = "http://www.rakontu.net/rocket"
 
 SECRET_KEY = "rakontu"
 
@@ -31,9 +31,6 @@ ROCKET_ENTITIES = {
 # Example:
 {"NotAComment": {},
 "Comment": {EMBEDDED_LIST_FIELDS: ["list2"]},
-
-#  /usr/local/mysql/bin/mysql -u root -pmaizie
-# set time_zone = '+0:00';
 
 # This is simplest format  where Comment and NotAComment are names of entities in AppEngine application.
 

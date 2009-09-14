@@ -118,15 +118,20 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 					message = "\n".join(messageLines)
 					ownersAndManagers = rakontu.getManagersAndOwners()
 					for ownerOrManager in ownersAndManagers:
-						messageLines.insert(0, "% %s:\n" % TERMS["term_dear_manager"], ownerOrManager.nickname)
-						messageBody = "\n".join(messageLines)
-						message = mail.EmailMessage()
-						message.sender = rakontu.contactEmail
-						message.subject = subject
-						message.to = ownerOrManager.googleAccountEmail
-						message.body = messageBody
-						DebugPrint(messageBody)
-						message.send()
+						if mail.is_email_valid(ownerOrManager.googleAccountEmail):
+							messageLines.insert(0, "% %s:\n" % TERMS["term_dear_manager"], ownerOrManager.nickname)
+							messageBody = "\n".join(messageLines)
+							message = mail.EmailMessage()
+							message.sender = SITE_SUPPORT_EMAIL
+							message.reply_to = rakontu.contactEmail
+							message.subject = subject
+							message.to = ownerOrManager.googleAccountEmail
+							message.body = messageBody
+							try:
+								message.send()
+							except:
+								self.redirect(BuildResultURL("couldNotSendMessage", rakontu=rakontu))
+								return
 					self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
 				else:
 					self.redirect(BuildURL("dir_curate", "url_flags", rakontu=rakontu))

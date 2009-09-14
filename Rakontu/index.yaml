@@ -72,7 +72,13 @@ indexes:
   
 - kind: Annotation
   properties:
-  - name: draft
+  - name: character
+  - name: creator
+  - name: type
+  - name: published
+  
+- kind: Annotation
+  properties:
   - name: rakontu
   - name: type
   - name: __key__
@@ -82,20 +88,17 @@ indexes:
   properties:
   - name: character
   - name: creator
-  - name: draft
   - name: type
   - name: published
   
 - kind: Annotation
   properties:
   - name: character
-  - name: draft
   - name: type
   - name: published
   
 - kind: Annotation
   properties:
-  - name: draft
   - name: liaison
   - name: type
   - name: published
@@ -103,32 +106,23 @@ indexes:
 - kind: Annotation
   properties:
   - name: entry
-  - name: draft
   - name: type
   
 - kind: Answer
   properties:
-  - name: creator
-  - name: draft
   - name: character
+  - name: creator
   - name: published
-
+  
 - kind: Answer
   properties:
-  - name: draft
   - name: character
   - name: published
  
 - kind: Answer
   properties:
   - name: liaison
-  - name: draft
   - name: published
- 
-- kind: Answer
-  properties:
-  - name: referent
-  - name: draft
  
 - kind: Attachment
   properties:

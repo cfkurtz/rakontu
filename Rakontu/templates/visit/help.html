@@ -29,6 +29,7 @@
       	{% endif %}
 	{% endif %}
 	
+	
 	{% if non_manager_resources %}
 		<ul>
 		{% for category in non_manager_resources|dictKeys %}
@@ -43,6 +44,7 @@
 		</ul>
 		{% if current_member.isManagerOrOwner %}
 			{% if manager_resources %}
+				<h3>{{template_for_managers_only}}</h3>
 				<ul>
 				{% for category in manager_resources|dictKeys %}
 					<li class="nobullet"><b>{{category}}</b>

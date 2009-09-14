@@ -27,7 +27,7 @@
 "member","Live closest to","Who do you live the closest to?","text",,,,,"family"
 ,,,,,,,,
 "; ALL ENTRIES",,,,,,,,
-"story, pattern, collage, invitation, resource","How feel about","How does this make you feel?","ordinal","happy, enthused, hopeful, relieved, calm, indifferent, confused, sad, angry, frustrated, hopeless, stressed, no feeling named here","yes",,,
+"story, pattern, collage, invitation, resource","How feel about","How does this make you feel?","ordinal","happy, enthused, hopeful, relieved,  indifferent, confused, sad, angry, frustrated, hopeless, grateful, amazed, no feeling named here","yes",,,
 "story, pattern, collage, invitation, resource","Reason","Why was this contributed?","nominal","to inform, to help, to persuade, to praise, to criticize, to entertain, to reminisce, for fun, for a reason not listed here","yes",,,
 ,,,,,,,,
 "; STORIES",,,,,,,,

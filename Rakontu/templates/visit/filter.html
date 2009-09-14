@@ -62,7 +62,7 @@
 		<h3>{{template_filter_selections}}</h3>
 		<fieldset>
 		<p>
-		<select name="overall_anyOrAll"
+		<select name="overall_anyOrAll">
 		{% for i in any_or_all_choices|makeRangeFromListLength %}
 			<option value="{{any_or_all_choices|listLookup:i}}"
 			{% if current_search %}
@@ -137,103 +137,36 @@
 		{% endfor %}
 		</p>
 		
-		{% for search_dict in questions_and_refs_dict_list %}
-			<hr>
-			<p>
-			<select name="{{search_dict|dictLookup:"result_preface"}}|anyOrAll">
-			{% for i in any_or_all_choices|makeRangeFromListLength %}
-				<option value="{{any_or_all_choices|listLookup:i}}"
-				{% if current_search %}
-					{% if any_or_all_choices|listLookup:i|equalTest:search_dict|dictLookup:"anyOrAll" %}
-						selected="selected"
-					{% endif %}
+		<hr>
+		<p>
+		<select name="entryQuestions|anyOrAll">
+		{% for i in any_or_all_choices|makeRangeFromListLength %}
+			<option value="{{any_or_all_choices|listLookup:i}}"
+			{% if current_search %}
+				{% if any_or_all_choices|listLookup:i|equalTest:entry_questions_any_or_all %}
+					selected="selected"
 				{% endif %}
-				>{{any_or_all_choices_display|listLookup:i}}</option>
-			{% endfor %}
-			</select> {{search_dict|dictLookup:"afterAnyText"}}<br/>
-			{% for i in num_search_fields|makeRange %} 
-				&nbsp; &nbsp; <select name="{{search_dict|dictLookup:"result_preface"}}|question|{{i}}"><option>({{term_choose}})</option>
-				{% for question in search_dict|dictLookup:"questions" %}
-					{% if question.isTextOrValue %}
-						<option value="{{question.key}}"
-						{% for ref in search_dict|dictLookup:"references" %}
-							{% ifequal ref.question.key question.key %}
-								{% ifequal ref.order i %}
-									selected="selected"
-								{% endifequal %}
-							{% endifequal %}
-						{% endfor %}
-						>{{question.refersTo}} - {{question.name}} --&gt;</option>
-					{% endif %}
-					{% ifequal question.type "boolean" %}
-						<option value="yes|{{question.key}}"
-						{% for ref in search_dict|dictLookup:"references" %}
-							{% ifequal ref.question.key question.key %}
-								{% ifequal ref.order i %}
-									{% ifequal ref.answer "yes" %}
-										selected="selected"
-									{% endifequal %}
-								{% endifequal %}
-							{% endifequal %}
-						{% endfor %}
-						>{{question.refersTo}} - {{question.name}} - {{template_yes}}</option>
-						<option value="no|{{question.key}}"
-						{% for ref in search_dict|dictLookup:"references" %}
-							{% ifequal ref.question.key question.key %}
-								{% ifequal ref.order i %}
-									{% ifequal ref.answer "no" %}
-										selected="selected"
-									{% endifequal %}
-								{% endifequal %}
-							{% endifequal %}
-						{% endfor %}
-						>{{question.refersTo}} - {{question.name}} - {{template_no}}</option>
-					{% endifequal %}
-					{% if question.isOrdinalOrNominal %}
-						{% for choice in question.choices %}
-							{% if choice|orNothing %}
-								<option value="{{choice}}|{{question.key}}"
-								{% for ref in search_dict|dictLookup:"references" %}
-									{% ifequal ref.question.key question.key %}
-										{% ifequal ref.order i %}
-											{% ifequal ref.answer choice %}
-												selected="selected"
-											{% endifequal %}
-										{% endifequal %}
-									{% endifequal %}
-								{% endfor %}
-								>{{question.refersTo}} - {{question.name}} - {{choice}}</option>
-							{% endif %}
-						{% endfor %}
-					{% endif %}
-				{% endfor %} {# question list #}
-				</select>
-				<select name="{{search_dict|dictLookup:"result_preface"}}|comparison|{{i}}"><option></option>
-				{% for t in answer_comparison_types|makeRangeFromListLength %}
-					<option value="{{answer_comparison_types|listLookup:t}}"
-					{% for ref in search_dict|dictLookup:"references" %}
-						{% ifequal ref.order i %}
-							{% if answer_comparison_types|listLookup:t|equalTest:ref.comparison %}
-								selected="selected"
-							{% endif %}
-						{% endifequal %}
-					{% endfor %}
-					>{{answer_comparison_types_display|listLookup:t}}</option>
-				{% endfor %} {# num_search_fields #}
-				</select>
-				<input type="text" name="{{search_dict|dictLookup:"result_preface"}}|answer|{{i}}" 
-				{% for ref in search_dict|dictLookup:"references" %}
-					{% ifequal ref.order i %}
-						{% if ref.question.isTextOrValue %} 
-							value="{{ref.answer}}"
-						{% endif %}
-					{% endifequal %}
-				{% endfor %}
-				size="16" maxlength="{{maxlength_tag_or_choice}}"> 
-				<br/>
-			{% endfor %} {# iterations #}
-		{% endfor %} {# list of dictionaries #}
+			{% endif %}
+			>{{any_or_all_choices_display|listLookup:i}}</option>
+		{% endfor %}
+		</select> {{template_of_these_answers_to_questions_about_entries}} {{"searching_for_questions"|tip}}</p>
+		{{entry_questions_html}}
 		
+		<hr>
+		<p>
+		<select name="creatorQuestions|anyOrAll">
+		{% for i in any_or_all_choices|makeRangeFromListLength %}
+			<option value="{{any_or_all_choices|listLookup:i}}"
+			{% if current_search %}
+				{% if any_or_all_choices|listLookup:i|equalTest:creator_questions_any_or_all %}
+					selected="selected"
+				{% endif %}
+			{% endif %}
+			>{{any_or_all_choices_display|listLookup:i}}</option>
+		{% endfor %}
+		</select> {{template_of_these_answers_to_questions_about_creators_of_entries}}</p>
+		{{creator_questions_html}}
+	
 		</fieldset>
 		
 		<p></p>

@@ -40,8 +40,16 @@
 					{% if question.multiple %}
 						{% for i in question.choices|makeRangeFromListLength %}
 							{% if question.choices|listLookup:i|slugify %}
-								{% if i|dividesBy:4 %}
-									<br/>
+								{% if question.choices|listLookup:i|slugify|stringLengthExceeds:20 %}
+									{% ifnotequal i 0 %}
+										<br/>
+									{% endifnotequal %}
+								{% else %}
+									{% if i|dividesBy:4 %}
+										{% ifnotequal i 0 %}
+											<br/>
+										{% endifnotequal %}
+									{% endif %}
 								{% endif %}
 								&nbsp; &nbsp; <input type="checkbox" name="{{question.key}}|{{question.choices|listLookup:i}}" 
 								value="yes" id="{{question.key}}|{{question.choices|listLookup:i}}" 

@@ -45,9 +45,6 @@
 	      	<th>{{template_last_annotation}}</th>
 	      	<th>{{template_last_answer}}</th>
 	      	<th>{{template_last_link}}</th>
-			{% if member.isOnlineMember %}
-				<th>{{template_nudge_points_accumulated}}</th>
-			{% endif %}
       	</tr>
       	
 		<td>{{member.joined|timeZone:member.timeZoneName|date:member.dateFormat}}</td>
@@ -79,9 +76,6 @@
 				&nbsp;
 			{% endif %}
 			</td>
-		{% if member.isOnlineMember %}
-			<td>{{member.nudgePoints}}</td>
-		{% endif %}
 		</tr>
 		</table>
 

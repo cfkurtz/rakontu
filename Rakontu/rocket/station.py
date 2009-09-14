@@ -161,12 +161,13 @@ def replicate(kind, options):
         
     if mode == RECEIVE_SEND or mode == SEND_RECEIVE or mode == RECEIVE:     
         if receive_updates(kind, table_name, timestamp_field, table_key_field, receive_fields, embedded_list_fields):
+            logging.info('receive_updates %s' % kind)
             updates = True
 
     if mode == RECEIVE_SEND:     
         if send_updates(kind, table_name, timestamp_field, table_key_field, send_fields, embedded_list_fields):
             updates = True
-    
+
     return updates
     
     
@@ -301,8 +302,12 @@ def receive_updates(kind, table_name, timestamp_field, table_key_field, receive_
     updates = False
                 
     # receive updates
-    count = BATCH_SIZE
-    while count == BATCH_SIZE:
+    
+    # CFK CHANGE - the -1 was BATCH_SIZE, but there is a pathological case
+    # where the number of things to be retrieved is EXACTLY equal to BATCH_SIZE
+    # and in that case you get into an endless loop!
+    count = -1
+    while count == -1:
         count = 0
         
         url = "%s/%s?secret_key=%s&timestamp=%s&count=%d" % (ROCKET_URL, kind, SECRET_KEY, timestamp_field, BATCH_SIZE)
@@ -340,8 +345,6 @@ def receive_updates(kind, table_name, timestamp_field, table_key_field, receive_
             con.rollback()
         
         cur.close()
-            
-        logging.info("receive %s: batch end, count=%d" % (kind, count))
         
     return updates 
 

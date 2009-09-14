@@ -90,9 +90,9 @@ class ReviewRequestsPage(ErrorHandlingRequestHander):
 						typeForLookup = REQUEST_TYPES[i]
 						break
 				if uncompletedOnly:
-					requests = rakontu.getAllUncompletedNonDraftRequestsOfType(typeForLookup)
+					requests = rakontu.getAllUncompletedRequestsOfType(typeForLookup)
 				else:
-					requests = rakontu.getAllNonDraftRequestsOfType(typeForLookup)
+					requests = rakontu.getAllRequestsOfType(typeForLookup)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_REQUESTS"], 
 								   'rakontu': rakontu, 
@@ -125,7 +125,7 @@ class ReviewRequestsPage(ErrorHandlingRequestHander):
 						query = "%s=%s" % (URL_OPTIONS["url_query_type"], type)
 					self.redirect(BuildURL("dir_guide", "url_requests", query, rakontu=rakontu))
 				else:
-					requests = rakontu.getAllNonDraftRequests()
+					requests = rakontu.getAllRequests()
 					requestsToPut = []
 					for request in requests:
 						if "setCompleted|%s" % request.key() in self.request.arguments():

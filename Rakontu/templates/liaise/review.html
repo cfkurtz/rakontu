@@ -12,7 +12,7 @@
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
-		      		<th>{{template_import}}?</th>
+		      		<th width=80>{{template_import}}?</th>
 		      		<th>{{template_title}}</th>
 		      		<th>{{template_links}}</th>
 		      		<th>{{template_collected_from}}</th>
@@ -25,7 +25,7 @@
 			      	{% endif %}
 			      	<th>{{template_comment}}</th>
 			      	<th>{{template_tag_set}}</th>
-			      	<th>{{template_remove}}?</th>
+			      	<th width=80>{{template_remove}}?</th>
 			      	</tr>
 	      		{% for entry in batch_entries %}
 	      			<tr>
@@ -62,14 +62,14 @@
 	      			 {% endif %}
 	      			 <td>
 	      			 	{% for comment in batch_comments %}
-	      			 		{% ifequal comment.entry.key entry.key %}
+	      			 		{% ifequal comment.entryKey entry.key %}
 	      			 			<a href="/{{dir_visit}}/{{comment.typeAsURL}}?{{comment.urlQuery}}">{{comment.displayString}}</a>
 	      			 		{% endifequal %}
 	      			 	{% endfor %}
 	      			 &nbsp;</td>
 	      			 <td>&nbsp;
 	      			 	{% for tagset in batch_tagsets %}
-	      			 		{% ifequal tagset.entry.key entry.key %}
+	      			 		{% ifequal tagset.entryKey entry.key %}
 	      			 			<a href="/{{dir_visit}}/{{tagset.typeAsURL}}?{{url_query_annotation}}={{tagset.getKeyName}}">{{tagset.displayString}}</a>
 	      			 		{% endifequal %}
 	      			 	{% endfor %}

@@ -8,21 +8,21 @@
 		<form action="/{{dir_visit}}/{{url_members}}?{{rakontu.urlQuery}}" method="post">
 	
 		<h3>{{template_members}}</h3>
-      		<hr>
-      		{% for aMember in rakontu_members %}
-  				<table style="width:100%;" class="noborder">
+      		<table style="width:100%;border-left:none; border-right:none;border-top:none;" cellpadding=4 cellspacing=0>
+        		{% for aMember in rakontu_members %}
   				<tr>
-  				<td style="border:none; border-right:1px solid #{{skin|dictLookup:"color_border_normal"}};" width="100" valign="center" align="center">
+  				<td width="70" valign="center" align="center" style="border-left:none; border-right:none;">
 			 		{% if aMember.profileImage %}
 			 			<a href="{{aMember.linkURL}}">{{aMember.imageEmbed}}</a>
 					{% else %}
 						&nbsp;
 					{% endif %}
 				</td>
-				<td style="border:none;padding-left:16px;">
+				<td style="border-left:none; border-right:none;">
 	 				{{aMember.linkString}}  
 	  				{% ifequal aMember.key current_member.key %}<i>({{template_you}})</i> {% endifequal %} 
-			  		<p>
+			  	</td>
+			  	<td style="border-left:none; border-right:none;">
 			  		{% if aMember.isOnlineMember %}
 			  			{{template_online}};
 			  		{% else %}
@@ -36,28 +36,26 @@
 			  				{{template_manager}}.
 			  			{% endif %}
 			  		{% endif %}
-			  		</p>
+			  		{% if aMember.profileText_formatted|orNothing %}
+			  			<p><i>{{aMember.shortFormattedProfileText}}</i></p>
+			  		{% endif %}
 	  				</td>
-	  			<td style="border:none;border-left:1px solid #{{skin|dictLookup:"color_border_normal"}}; padding-left:16px;">
-	  			{% ifnotequal aMember.key current_member.key %}
-					{% if aMember.isGuide or aMember.acceptsMessages %}
-						<p><input type="checkbox" name="sendMessage|{{aMember.key}}" value="yes" id="sendMessage|{{aMember.key}}">
-						<label for="sendMessage|{{aMember.key}}">{{template_send_message}}</label></p>
-					{% endif %}
-				{% endifnotequal %}
+	  			<td style="border-left:none; border-right:none;">
+				{% if aMember.isGuide or aMember.acceptsMessages %}
+					<p><input type="checkbox" name="sendMessage|{{aMember.key}}" value="yes" id="sendMessage|{{aMember.key}}">
+					<label for="sendMessage|{{aMember.key}}">{{template_send_message}}</label></p>
+				{% else %}
+					&nbsp;
+				{% endif %}
 	  			</td>
    				</tr>
-  				</table>
-  				<hr>
       		{% endfor %}
+      		</table>
  
- 		<p><center><input type="submit" name="sendMessage" value="{{button_send_messages}}" class="button"></center></p>
+ 		<p><center><input type="submit" name="sendMessage" value="{{button_compose_message}}" class="button"></center></p>
  		</form>
  		</div>
  		     	
-      	{% if current_member.isManagerOrOwner %}
-      		<div class="rightalign"><p><a href="/{{dir_manage}}/{{url_members}}?{{rakontu.urlQuery}}">{{template_make_changes_to_members}}</a></p></div>
-      	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

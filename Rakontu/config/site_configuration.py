@@ -30,8 +30,7 @@
 # Which language files to load. This must match the directory name (under config) under which the language dependent files are stored.
 SITE_LANGUAGE = "english" 
 
-# You MUST replace this with whomever is supporting the site.
-# If you don't you won't be able to get emails from the site telling when things went wrong.
+# You MUST replace this with an email address connected to a site administrator (as defined by Google).
 # This MUST be the email address you are using for the Google account you use to administer the Rakontu site.
 SITE_SUPPORT_EMAIL = "cfkurtz@cfkurtz.com"
 
@@ -234,8 +233,8 @@ DEFAULT_QUESTION_VALUE_MIN = 0
 DEFAULT_QUESTION_VALUE_MAX = 1000
 
 # How many choices can be offered for an ordinal or nominal question, maximum.
-# A reasonable range is between 5 and 10.
-MAX_NUM_CHOICES_PER_QUESTION = 10
+# A reasonable range is between 5 and 15.
+MAX_NUM_CHOICES_PER_QUESTION = 15
 
 # ============================================================================================ 
 # NUDGE SYSTEM

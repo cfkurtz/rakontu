@@ -278,9 +278,10 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 								entry.collectedOffline = not memberToAttribute.isOnlineMember
 								entry.liaison = member
 								if self.request.get("attribution|%s" % i) != "member":
-									entry.character = Character.get(self.request.get("attribution|%s" % i))
+									character = Character.get(self.request.get("attribution|%s" % i))
 								else:
-									entry.character = None
+									character = None
+								entry.character = character
 								entry.put()
 								for j in range(rakontu.maxNumAttachments):
 									for name, value in self.request.params.items():
@@ -314,18 +315,19 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 												referentType="entry")
 									queryText = "%s|%s" % (i, question.key())
 									response = self.request.get(queryText)
-									keepAnswer = answer.shouldKeepMe(self.request, question)
+									keepAnswer = answer.shouldKeepMe(self.request, queryText, question)
 									if keepAnswer:
-										answer.setValueBasedOnResponse(question, self.request, response)
-										answer.creator = memberToAttribute
+										answer.setValueBasedOnResponse(question, self.request, queryText, response)
+										answer.character = character
 										answer.liaison = member
-										answer.draft = True
 										answer.collected = entry.collected
 										answer.inBatchEntryBuffer = True
 										answer.collectedOffline = not memberToAttribute.isOnlineMember
 										answer.put()
 								if self.request.get("comment|%s" % i):
-									subject = self.request.get("commentSubject|%s" % i, default_value="No subject")
+									subject = self.request.get("commentSubject|%s" % i)
+									if not len(subject.strip()):
+										subject = TERMS["term_no_subject"]
 									text = self.request.get("comment|%s" % i)
 									format = self.request.get("commentFormat|%s" % i)
 									keyName = GenerateSequentialKeyName("annotation")
@@ -337,9 +339,9 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 														creator=memberToAttribute, 
 														entry=entry)
 									comment.shortString = subject
+									comment.character = character
 									comment.longString = text
 									comment.longString_format = format
-									comment.draft = True
 									comment.inBatchEntryBuffer = True
 									comment.liaison = member
 									comment.collected = entry.collected
@@ -361,7 +363,7 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 													entry=entry)
 									tagset.tagsIfTagSet = []
 									tagset.tagsIfTagSet.extend(tags)
-									tagset.draft = True
+									tagset.character = character
 									tagset.inBatchEntryBuffer = True
 									tagset.liaison = member
 									tagset.collected = entry.collected

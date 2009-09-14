@@ -45,11 +45,11 @@
 			      		</td>
 			      	<td>
 			      		{% for ref in search.getEntryQuestionRefs %}
-			      			{{ref.question.name}}: 
-			      			{% if ref.question.type|equalTest:"text" %}
+			      			{{ref.questionName}}: 
+			      			{% if ref.questionType|equalTest:"text" %}
 			      				{{ref.comparison}}
 			      			{% endif %}
-			      			{% if ref.question.type|equalTest:"value" %}
+			      			{% if ref.questionType|equalTest:"value" %}
 			      				{{ref.comparison}}
 			      			{% endif %}
 			      			<b>{{ref.answer}}</b><br/>
@@ -58,11 +58,11 @@
 			      		</td>
 			      	<td>
 			      		{% for ref in search.getCreatorQuestionRefs %}
-			      			{{ref.question.text}}: 
-			      			{% ifequal ref.question.type "text" %}
+			      			{{ref.questionName}}: 
+			      			{% ifequal ref.questionType "text" %}
 			      				{{ref.comparison}}
 			      			{% endifequal %}
-			      			{% if ref.question.type|equalTest:"value" %}
+			      			{% if ref.questionType|equalTest:"value" %}
 			      				{{ref.comparison}}
 			      			{% endif %}
 			      			<b>{{ref.answer}}</b><br/>

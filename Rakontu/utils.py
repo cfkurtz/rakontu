@@ -240,13 +240,13 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'maxlength_name': MAXLENGTH_NAME,
 	   'maxlength_tag_or_choice': MAXLENGTH_TAG_OR_CHOICE, 
 	   'maxlength_number': MAXLENGTH_NUMBER,
-	   'short_display_length': SHORT_DISPLAY_LENGTH,
+	   'short_display_length': SHORT_DISPLAY_LENGTH, 
 	   'home': HOME,
 	   'current_user': user, 
 	   'user_is_admin': users.is_current_user_admin(),
 	   'user_email': email,
 	   'logout_url': users.create_logout_url("/"),
-	   'site_language': SITE_LANGUAGE,
+	   'site_language': SITE_LANGUAGE, 
 	   'site_support_email': SITE_SUPPORT_EMAIL,
 	   'max_possible_attachments': MAX_POSSIBLE_ATTACHMENTS,
 	   'development': DEVELOPMENT,
@@ -691,6 +691,7 @@ def CopyDefaultResourcesForNewRakontu(rakontu, member):
 		if not alreadyThereResource:
 			keyName = GenerateSequentialKeyName("entry")
 			newResource = Entry(key_name=keyName, 
+							parent=member,
 							id=keyName,
 							rakontu=rakontu, 
 							type="resource",
@@ -935,6 +936,7 @@ def GenerateFakeTestingData():
 	rakontu = Rakontu(key_name=GenerateSequentialKeyName("rakontu"), name="Test rakontu", description="Test description")
 	rakontu.initializeFormattedTexts()
 	rakontu.initializeCustomSkinText()
+	rakontu.created = rakontu.created - timedelta(days=30)
 	GenerateDefaultQuestionsForRakontu(rakontu, "neighborhood")
 	rakontu.put()
 	member = Member(key_name=GenerateSequentialKeyName("member"), googleAccountID=user.user_id(), googleAccountEmail=user.email(), nickname="Tester", rakontu=rakontu, governanceType="owner")
@@ -951,6 +953,7 @@ def GenerateFakeTestingData():
 	Character(key_name=GenerateSequentialKeyName("character"), name="Blooming Idiot", rakontu=rakontu).put()
 	keyName = GenerateSequentialKeyName("entry")
 	entry = Entry(key_name=keyName, parent=member, id=keyName, rakontu=rakontu, type="story", creator=member, title="The dog", text="The dog sat on a log.", draft=False)
+	entry.text_formatted = db.Text(InterpretEnteredText(entry.text, "plain text"))
 	entry.publish()
 	entry.put()
 	keyName = GenerateSequentialKeyName("annotation")
@@ -963,8 +966,13 @@ def GenerateFakeTestingData():
 	annotation.put()
 	keyName = GenerateSequentialKeyName("entry")
 	entry = Entry(key_name=keyName, parent=member, id=keyName, rakontu=rakontu, type="story", creator=member, title="The circus", text="I went the the circus. It was great.", draft=False)
+	entry.text_formatted = db.Text(InterpretEnteredText(entry.text, "plain text"))
 	entry.publish()
 	entry.put()
+	AddFakeDataToRakontu(rakontu, 10, "members")
+	AddFakeDataToRakontu(rakontu, 100, "entries")
+	AddFakeDataToRakontu(rakontu, 200, "annotations")
+	AddFakeDataToRakontu(rakontu, 400, "nudges")
 
 LOREM_IPSUM = [
 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla malesuada arcu a lorem interdum euismod aliquet dui vehicula. Integer posuere mollis massa, ac posuere diam vestibulum eget. Quisque gravida arcu non lorem placerat tempus eget in risus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aliquam velit nulla, tempus sit amet gravida vel, gravida sit amet libero. Maecenas bibendum nulla ac leo feugiat egestas. Suspendisse vel dui velit. Duis a velit eget augue pellentesque bibendum in non urna. Nunc vestibulum mi vitae neque pulvinar et feugiat urna auctor. Proin volutpat euismod nunc, adipiscing pharetra leo commodo a. Suspendisse potenti. Vestibulum luctus velit non purus laoreet elementum. Donec euismod, ipsum interdum facilisis porttitor, dui dui suscipit turpis, faucibus imperdiet ante metus tempus elit. Ut vulputate, leo quis tincidunt tincidunt, massa ante fringilla libero, iaculis varius tortor quam tempor ipsum. Praesent cursus consequat tellus, eget molestie dui aliquet vitae.",
@@ -1065,6 +1073,8 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 			annotation.created = annotation.published
 			annotation.put()
 			entry.lastAnnotatedOrAnsweredOrLinked = annotation.published
+			if type == "nudge":
+				entry.updateNudgePoints()
 			entry.put()
 	elif createWhat == "nudges":
 		entryKeyNames = []
@@ -1097,6 +1107,7 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 			annotation.created = annotation.published
 			annotation.put()
 			entry.lastAnnotatedOrAnsweredOrLinked = annotation.published
+			entry.updateNudgePoints()
 			entry.put()
 		DebugPrint("%s nudges generated" % numItems)
 

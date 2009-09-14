@@ -23,7 +23,7 @@
 	      		</tr>
 	      		{% for aMember in rakontu_members %}
 	  				<tr>
-	  				<td>{{aMember.nickname}} {% ifequal aMember.key current_member.key %}<br><i>({{template_you}})</i> {% endifequal %} </td>
+	  				<td>{{aMember.linkString}} {% ifequal aMember.key current_member.key %}<br><i>({{template_you}})</i> {% endifequal %} </td>
 	  				<td>
 	  					{% if aMember.isOnlineMember %}
 	  						{{template_online}}
@@ -33,83 +33,87 @@
 	  				</td>
 	  				<td>{{aMember.googleUserEmailOrNotOnline}}</td>
 	  				<td>
-	  					<select name="governanceType" class="select">
-	  						<option value="member|{{aMember.googleAccountID}}"
-	  							{% if aMember.isRegularMember %}
-	  								selected="selected"
-	  							{% endif %}
-	  							>{{template_member}}</option>
-	  						<option value="manager|{{aMember.googleAccountID}}"
-	  							{% if aMember.isManager %}
-	  								selected="selected"
-	  							{% endif %}
-	  							>{{template_manager}}</option>
-	  						<option value="owner|{{aMember.googleAccountID}}"
-	  							{% if aMember.isOwner %}
-	  								selected="selected"
-	  							{% endif %}
-	  							>{{template_owner}}</option>
-						</select>
-	  					</td>
-	  				<td>
-	  					<p>{{template_curator}}: 
-	  					{% if aMember.helpingRoles.0 %}
-	  						{{template_yes|upper}}
-	  					{% else %}
-	  						{{template_no}}
-	  					{% endif %}
-	  					</p>
-	  					<p>{{template_guide}}: 
-	  					{% if aMember.helpingRoles.1 %}
-	  						{{template_yes|upper}}
-	  					{% else %}
-	  						{{template_no}}
-	  					{% endif %}
-	  					</p>
-	  					<p>{{template_liaison}}: 
-	  					{% if aMember.helpingRoles.2 %}
-	  						{{template_yes|upper}}
-	  					{% else %}
-	  						{{template_no}}
-	  					{% endif %}
-	  					</p>
-	  					</td>
-	  				<td>
-	  					<p>{{template_curator}}: 
-	  					{% if aMember.isManagerOrOwner %}
-	  						{{template_available}}
-	  					{% else %}
-	      					<input type="checkbox" name="curatorAvailable|{{aMember.key}}" value="yes" id="curatorAvailable|{{aMember.key}}"
-	      					{% if aMember.helpingRolesAvailable.0 %}
-	      						checked="checked"
-	      					{% endif %}
-	      					><label for="curatorAvailable|{{aMember.key}}">{{template_available}}</label>
-	      				{% endif %}
-	      				</p>
-	  					
-	  					<p>{{template_guide}}: 
-	  					{% if aMember.isManagerOrOwner %}
-	  						{{template_available}}
-	  					{% else %}
-	      					<input type="checkbox" name="guideAvailable|{{aMember.key}}" value="yes" id="guideAvailable|{{aMember.key}}"
-	     					{% if aMember.helpingRolesAvailable.1 %}
-	      						checked="checked"
-	      					{% endif %}
-	      					><label for="guideAvailable|{{aMember.key}}">{{template_available}}</label>
+	  					{% if aMember.isOnlineMember %}
+		  					<select name="governanceType" class="select">
+		  						<option value="member|{{aMember.googleAccountID}}"
+		  							{% if aMember.isRegularMember %}
+		  								selected="selected"
+		  							{% endif %}
+		  							>{{template_member}}</option>
+		  						<option value="manager|{{aMember.googleAccountID}}"
+		  							{% if aMember.isManager %}
+		  								selected="selected"
+		  							{% endif %}
+		  							>{{template_manager}}</option>
+		  						<option value="owner|{{aMember.googleAccountID}}"
+		  							{% if aMember.isOwner %}
+		  								selected="selected"
+		  							{% endif %}
+		  							>{{template_owner}}</option>
+							</select>
+						{% else %}
+							&nbsp;
 						{% endif %}
-						</p>
-						
-	  					<p>{{template_liaison}}: 
-	  					{% if aMember.isManagerOrOwner %}
-	  						{{template_available}}
-	  					{% else %}
-	      					<input type="checkbox" name="liaisonAvailable|{{aMember.key}}" value="yes" id="liaisonAvailable|{{aMember.key}}"
-	     					{% if aMember.helpingRolesAvailable.2 %}
-	      						checked="checked"
-	      					{% endif %}
-	      					><label for="liaisonAvailable|{{aMember.key}}">{{template_available}}</label>
-	      				{% endif %}
-	      				</p>
+	  					</td>
+	  				<td>
+	  					{% if aMember.isOnlineMember %}
+		  					<p>{{template_curator}}: 
+		  					{% if aMember.helpingRoles.0 %}
+		  						{{template_yes|upper}}
+		  					{% else %}
+		  						{{template_no}}
+		  					{% endif %}
+		  					</p>
+		  					<p>{{template_guide}}: 
+		  					{% if aMember.helpingRoles.1 %}
+		  						{{template_yes|upper}}
+		  					{% else %}
+		  						{{template_no}}
+		  					{% endif %}
+		  					</p>
+		  					<p>{{template_liaison}}: 
+		  					{% if aMember.helpingRoles.2 %}
+		  						{{template_yes|upper}}
+		  					{% else %}
+		  						{{template_no}}
+		  					{% endif %}
+		  					</p>
+						{% else %}
+							&nbsp;
+						{% endif %}
+	  					</td>
+	  				<td>
+	  					{% if aMember.isOnlineMember %}
+	  						{% if not aMember.isManagerOrOwner %}
+		  						<p>{{template_curator}}: 
+		      					<input type="checkbox" name="curatorAvailable|{{aMember.key}}" value="yes" id="curatorAvailable|{{aMember.key}}"
+		      					{% if aMember.helpingRolesAvailable.0 %}
+		      						checked="checked"
+		      					{% endif %}
+		      					><label for="curatorAvailable|{{aMember.key}}">{{template_available}}</label>
+		      					</p>
+		  					
+		  						<p>{{template_guide}}: 
+		      					<input type="checkbox" name="guideAvailable|{{aMember.key}}" value="yes" id="guideAvailable|{{aMember.key}}"
+		     					{% if aMember.helpingRolesAvailable.1 %}
+		      						checked="checked"
+		      					{% endif %}
+		      					><label for="guideAvailable|{{aMember.key}}">{{template_available}}</label>
+								</p>
+							
+		  						<p>{{template_liaison}}: 
+		      					<input type="checkbox" name="liaisonAvailable|{{aMember.key}}" value="yes" id="liaisonAvailable|{{aMember.key}}"
+		     					{% if aMember.helpingRolesAvailable.2 %}
+		      						checked="checked"
+		      					{% endif %}
+		      					><label for="liaisonAvailable|{{aMember.key}}">{{template_available}}</label>
+		      					</p>
+		      				{% else %}
+		      					&nbsp;
+		      				{% endif %}
+						{% else %}
+							&nbsp;
+						{% endif %}
 	      				
 	  					</td>
 	  				<td>

@@ -148,7 +148,7 @@ interesting queries, like "Show me stories told by members under 20 in which peo
 Answers, like annotations, are utterances that cannot be saved as drafts or changed and have no histories.
 
 [The Rakontu Nudge System]
-Category=Introduction
+Category=Using Rakontu
 Interpret as=Wiki markup
 Managers only=no
 Rakontu uses a ratings system similar to SlashDot's karma system (with a few elaborations) called the *nudge* system. The idea is that Rakontu members nudge stories and other entries up and down in a sort of matrix or grid of meaning, where things nearer the surface are more important _for one reason or another_. Nudging in Rakontu has more to do with utility for particular purposes than with simple popularity.
@@ -157,26 +157,67 @@ The people who set up your Rakontu also set up from one to five nudge *categorie
 
 You gain "nudge points" by participating in the Rakontu -- telling stories, adding comments, answering questions, and so on -- which you can use to nudge stories up and down. Exactly how many nudge points you accumulate may have been customized by your Rakontu managers. Some Rakontus might be more interested in having people tell stories while others are more interested in comments and question answering. You can find out what influences nudge point accumulation in your Rakontu by looking at the Visit - About this Rakontu page.
 
-[Searching in Your Rakontu]
-Category=Introduction
+[Grid Displays in Rakontu]
+Category=Using Rakontu
 Interpret as=Wiki markup
 Managers only=no
 
-------- This help resource is not yet finished ----------
+The home page of your Rakontu shows entries (stories, invitations, collages, patterns, resources) in three dimensions of meaning. The dimensions are:
+
+  * Left-to-right placement shows when each item was created or last changed, with the most recent items appearing towards the right.
+  * Top-to-bottom placement shows how high or low each entry falls on the "nudge" rating system, with the highest-nudged items towards the top: good things "float up."
+  * The size of each item's text shows how much activity has taken place around the item. Things people are paying attention to have "buzz." (This is similar to how words are sized in tag clouds.)
+
+You can think of the grid display as sort of like a "stream" of stories and other items that the group is collectively building and talking about. The items most important to the group will usually be recent (toward the right), of high value (toward the top) and big (of high activity). The same grid appears on the page for each entry and for member pages (and character pages, if your Rakontu has characters). 
+
+=== Changing the horizontal (time) view
+
+You can change what time span you want to see by clicking on the buttons in the "Time range" area of the options below (or above) the grid. To refresh the grid to show new items that might have been recently added, click the ">|" button to set the right side of the grid to the present moment. To go back to the first entries in the Rakontu, click the "|<" button. 
+
+=== Changing the vertical (nudge) view
+
+You can change the meaning of the vertical dimension by changing which categories are checked in the "Nudges" area of the options below (or above) the grid. For example, if (at the moment) you care more about importance than appropriateness, you can ignore appropriate/inappropriate nudges, and items will shift around accordingly. The managers of your Rakontu should set up nudge categories that are particularly meaningful to your group (and you should feel free to suggest useful categories!). 
+
+You can also set a nudge "floor" so that you can ignore items that have been rated below a certain level. To do this, change the number labeled "Hide entries below" and click Change. (Rakontu will save your preference for the next time you visit.)
+
+[Searching in Your Rakontu]
+Category=Using Rakontu
+Interpret as=Wiki markup
+Managers only=no
+
+All searching in Rakontu is done by creating and using search *filters*. When you search using filters, you don't go to a separate "search results" page with a simple list of matching items. Instead, you _change_ what is shown on the same grids you see on your Rakontu's home page and on each member's page (and character pages if your Rakontu has characters). In this way you can move back and forth through time and see the nudge levels (height) and activity levels (size) of items while you are looking at a subset of items based on your search.
+
+Members of your Rakontu can *share* some of the search filters they create. Shared search filters can be used by everyone, but they can only be changed by their creators. Shared filters can also be used as elements in patterns. To use a shared filter, look at the list of filters in the "Search filters" area of the options below (or above) any of the grid displays. If there are no shared search filters, you'll just see something saying there are no filters and that you can make one.
+
+To make a new search filter, click on "Make new filter" in the options section below (or above) the grid on the home or member/character pages. You can search on:
+
+  * The title and/or text of the entry
+  * Texts in annotations such as comments, requests, nudges, or links
+  * Tags 
+  * Answers to questions about stories and other entries
+  * Answers to questions about the people (or characters) who told the stories
+
+And you can combine these search elements in any way you like. For example, you might want to find stories in which people said they were happy about the outcome, were over 60, and said the word "bureaucracy" in their story. 
+
+All searches are case insensitive.
 
 [Building a Story Collage]
-Category=Introduction
+Category=Using Rakontu
 Interpret as=Wiki markup
 Managers only=no
 
-------- This help resource is not yet finished ----------
+A story collage is an annotated list of entries that you want to highlight for some reason: top ten stories for new members to read, or five invitations you want people to notice, or the result of an exercise where people chose stories most useful for learning about particular topics. (In future versions of Rakontu we would like to support more elaborate methods of building collages; but for now the simple annotated list is what a collage can be.)
+
+To build a story collage, choose "Build a story collage" from the Create menu. Most of the screen will look the same as that when you enter a story, except that you can choose stories to add, and add a comment as to why you are adding each one. Collages, like stories, patterns, invitations and resources, can have comments, requests, nudges, and tags added to them; and they can be linked to other collages (and invitations, etc). 
 
 [Describing a Pattern]
-Category=Introduction
+Category=Using Rakontu
 Interpret as=Wiki markup
 Managers only=no
 
-------- This help resource is not yet finished ----------
+A pattern is an observation about something you've noticed in your story museum. Perhaps there are fewer stories about crime than you expected, or when you searched for stories about crime you found more than you expected about neighbors helping neighbors. A pattern is a way to talk to each other about the story collection you have built together. Patterns typically link to one or more search filters, possibly contrasting them. For example, you might say: "I noticed that if you show stories where people said they were indifferent, you get a lot about the park, but if you search for stories where people said they felt frustrated, the stories are mostly about the beach. Why is that?" And then people can add comments to discuss it.
+
+To create a pattern, choose "Describe a pattern" from the Create menu. Type in an explanation of what you noticed, and if you like, choose some shared search filters to include in the pattern. You can only used *shared* filters, so if you noticed something using your private filters you need to change the filter to switch it to sharing. Like stories, patterns can have comments, requests, nudges, and tags added to them; and they can be linked to other patterns (and invitations, etc). 
 
 [How to Be a Curator]
 Category= Helping
@@ -405,7 +446,7 @@ links <a href=""></a>
 
 image tags <img src="" alt=""/> (these MUST include alt tags)
 
-Tables and nested lists are not supported."
+Tables and nested lists are not supported.
 
 [Managing Rakontu Members]
 Category=Managing
@@ -453,7 +494,7 @@ There are three main areas of your Rakontu's appearance, any or all of which you
 
 The text details of a Rakontu are its description, welcome message, and etiquette statement. Using either the Wiki format or simple HTML, you can include links and images in these texts and make them as short or long as you like. You can use these to tell people what the Rakontu is for, where they should look for other info (web site? discussion group?), and how they should behave while using it.
 
-The look of the Rakontu is set by its skin. You can choose from available skins or build your own. To build your own skin, simply replace the entries in the "Custom skin" box (on the Settings page) with other fonts and colors. (You can find lists of hex colors on many web sites; type "hex colors" to find them.)
+The look of the Rakontu is set by its skin. You can choose from available skins, build your own, or ignore skins entirely and use your own CSS page to change the look of your Rakontu entirely. To build your own skin, simply replace the entries in the "Custom skin" box (on the Settings page) with other fonts and colors. (You can find lists of hex colors on many web sites; type "hex colors" to find them.) To use a separate CSS file, see the help entry on that topic.
 
 [Managing Your Rakontu's Nudge System]
 Category=Managing
@@ -501,11 +542,44 @@ You as a manager should be clear (in case people ask) that nothing in Rakontu is
 Category=Managing
 Interpret as=Wiki markup
 Managers only=yes
-Questions can be an important part of your Rakontu. Asking people to answer questions about the stories they tell, and about other elements of the system, can help people explain things to each other. Also, looking at patterns across stories and members can help your group find out some amazing things about patterns of collective meaning in the group. For example, say you find out that only members over 50 told stories in which the tag "health care" co-occurred with a positive outcome, or that only members with dogs told stories about nasty cats, or so on. Finding useful patterns together can be a great way to achieve common goals.
+Questions may be the most important part of your Rakontu. Asking people to answer questions about the stories they tell, and about other elements of the system, can help people explain things to each other. Also, looking at patterns across stories and members can help your group find out some amazing things about patterns of collective meaning in the group. For example, say you find out that only members over 50 told stories in which the tag "health care" co-occurred with a positive outcome, or that only members with dogs told stories about nasty cats, or so on. Finding useful patterns together can help you achieve common goals.
 
-You can set up questions about each type of entry (stories, invitations, collages, patterns and resources) and you can ask people questions about themselves. Combining these questions in search filters is useful, so you should make sure you have at least a few questions about each entry type and about members. Your Rakontu will most likely start out with some default questions (depending on your site installation) as well as some sample questions. You can also trade questions with other Rakontu managers using CSV import and export.  
+You can set up questions about each type of entry (stories, invitations, collages, patterns and resources). You can ask people questions about themselves as well. Combining entry and member questions in search filters is useful, so you should make sure you have at least a few questions about each entry type and about members. Your Rakontu will most likely start out with some default questions (depending on your site installation). There are also some sample questions you can look at or copy for inspiration. You can also trade questions with other Rakontus using CSV import and export.  
 
-------- This help resource is not yet finished ----------
+=== Reviewing your question sets
+
+To change your Rakontu's questions, choose "Questions" from the Manage menu. You can use the questions-list page to review how your questions are performing, because it counts up for you how many people have answered each question. If you see for example that one question out of five is never answered, you might want to ask a few people why they didn't answer it and consider rewording it. To change any set of questions, click the Change link on the questions list page. 
+
+=== Changing questions
+
+To add new questions, type them in the top box. To change questions you have already created, change the information in each row of the table. The available question types are:
+
+  * boolean: yes or no (a check box)
+  * text: free text words (a text box)
+  * ordinal: choices in order (checkboxes if multiple, drop-down list if single)
+  * nominal: choices not in any particular order (checkboxes if multiple, drop-down list if single)
+  * value: a number (a text box)
+
+Note that there is not actually any difference between ordinal and nominal questions. The distinction is a placeholder in case we want to add a distinction in later versions of Rakontu. Note also that value entry is a simple text box -- hopefully it will be a fancy slider at some point in the future.
+
+The name, question and explanation deserve some extra mention:
+
+  * The question's name is what appears in the search-filter page and when details are being hidden in the grid displays. It's basically a description of the question when space is short. These should be brief but tell you what the question is about.
+  * The question's question (yes you read that correctly) is what people are actually asked when they are typing in a story or other entry, or answering questions about themselves. 
+  * The question's explanation is an optional extra bit of text that you can use to help people understand a confusing question. Don't overuse it, because if you do your question list will get too long and too boring. But if people tell you a question is hard to understand, you can add clarification here. The explanation appears after the question proper in italics.
+
+If a question has choices, you can change the choices at any time. However, if you remove an available choice, people won't be able to search on it anymore, so answers with that choice will never be found again. (That may or may not be what you want to happen.)
+
+=== Removing a question
+
+If you don't want to use a question anymore, check the box to inactivate it. You can't remove a question entirely, ever. The reason for  this is that the answers people tell are objects in the database, and they are linked to question objects. If you delete a question object the answers would link to nothing, and you'd never be able to link them up again. Inactivated questions go into a sort of pool where you can recall them if you need to search on them again. If you don't like how a question reads, it's better to change the text of the question rather than inactivate it, _unless_ you need to change the _meaning_ of the question. 
+
+=== Advice on question writing
+
+  * Be careful to word the question so that both the people who tell the stories and those who are reading other people's stories can make sense of it. For example, don't include the question, "How do you feel about the story you just told?" -- because some of the people will be looking at _someone else's_ story. (That's one of the best parts of Rakontu, that people can record their own opinions about other people's stories.)
+  * People are rarely willing to answer very many questions about anything. The more questions you ask, the more information you might _appear_ to be getting, but be careful: the _quality_ of the information will go down. People are famous for "clicking past" things when they get bored. The best number of questions per entry is no less than three and no more than five, or seven if you think people are really committed to contributing. 
+  * All question answering in Rakontu is optional; you can't _require_ anybody to answer any question. 
+  * It's often a good idea to have a "I don't know" or "I can't remember" or "I'm not sure" answer in any list of choices. You don't absolutely have to add an "I don't want to say" answer, because they can just decline to answer the question; but you can.
 
 [Limitations in Rakontu]
 Category=Technical
@@ -513,15 +587,15 @@ Interpret as=Wiki markup
 Managers only=yes
 As of this writing, Rakontu resides on the Google App Engine, which sets some limitations on the volume of use and speed of operation. Because of this, Rakontu also has limitations. Two are important:
 
-# No Rakontu can have more than 1000 entries (stories + invitations + patterns + collages + resources). For most small groups this limit will not be a problem. If you run up against this limit, you can remove older items to make room for more.
-# For pages with time-based grids (home, entry, member, character), if the number of items selected exceeds a constant (set at the site level, by default 200), the number of items shown will be truncated (and the page will say so). To reduce the number, make different selections in the time range or types of items.
+  # No Rakontu can have more than 1000 entries (stories + invitations + patterns + collages + resources). For most small groups this limit will not be a problem. If you run up against this limit, you can remove older items to make room for more.
+  # For pages with time-based grids (home, entry, member, character), if the number of items selected exceeds a constant (set at the site level, by default 200), the number of items shown will be truncated (and the page will say so). To reduce the number, make different selections in the time range or types of items.
 
 [Rakontu known issues]
 Category=Technical
 Interpret as=Wiki markup
 Managers only=no
 
-Bad Request: Your client has issued a malformed or illegal request. This happens in older browsers. Refreshing the page can help, as can removing cached (temporary) files.
+*Bad Request: Your client has issued a malformed or illegal request.* This happens in older browsers. Refreshing the page can help, as can removing cached (temporary) files.
 
 ------- This help resource is not yet finished ----------
 

@@ -20,7 +20,7 @@
 		{% for i in num_entries|makeRange %}
 			<h3>{{template_story}} {{i|add:1}}</h3>
 			<fieldset>
-			<table style="width:100%;">
+			<table cellpadding=4 cellspacing=0 style="width:100%;">
 			<tr><th>{{template_collected_from}} 
 				{% ifequal i 0 %}
 					{{"entering_batch_stories_collected_from_members"|tip}}

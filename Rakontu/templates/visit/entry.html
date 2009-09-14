@@ -299,7 +299,7 @@
 	      		{% for search in searches_that_can_be_added_to_pattern %}
 	      			<tr>
 	      			 <td>{{search.linkString}}</td>
-	      			 <td>{{search.shortFormattedText}}</td>
+	      			 <td>{{search.shortFormattedText|orNbsp}}</td>
 	        		 <td>{{search.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}</td>
 	      			<td>
 	      			<input type="checkbox" name="addLink|{{search.key}}" value="yes" id="addLink|{{search.key}}"/>

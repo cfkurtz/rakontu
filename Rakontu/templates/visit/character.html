@@ -90,7 +90,9 @@
 	{% if answers %}
 		<ul>
 		{% for answer in answers %}
-			<li class="nobullet">{{answer.question.text}} &nbsp; {{answer.displayStringShort}}</li>
+			{% if answer.displayStringShort %}
+				<li class="nobullet">{{answer.question.text}} &nbsp; {{answer.displayStringShort}}</li>
+			{% endif %}
 		{% endfor %}
 		</ul>
 	{% else %}

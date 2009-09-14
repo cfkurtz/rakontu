@@ -125,6 +125,10 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 				versions = entry.getTextVersionsInReverseTimeOrder()
 			else:
 				versions = None
+			if member.isLiaison() and not member.isManagerOrOwner():
+				offlineOrAllMembers = rakontu.getActiveOfflineMembers()
+			elif member.isManagerOrOwner():
+				offlineOrAllMembers = rakontu.getActiveMembers()
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': typeDisplay.capitalize(), 
 						   	   'title_extra': pageTitleExtra, 
@@ -144,7 +148,7 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 							   # used by common_attribution
 							   'attribution_referent_type': type,
 							   'attribution_referent': entry,
-							   'offline_members': rakontu.getActiveOfflineMembers(),
+							   'offline_members': offlineOrAllMembers,
 							   'character_allowed': rakontu.allowCharacter[entryTypeIndexForCharacters],
 							   # used by common_questions
 							   'refer_type': type,
@@ -205,7 +209,11 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 				collectedOffline = self.request.get("collectedOffline") == "yes"
 				if collectedOffline and member.isLiaison():
 					foundMember = False
-					for aMember in rakontu.getActiveOfflineMembers():
+					if member.isManagerOrOwner():
+						membersToConsider = rakontu.getActiveMembers()
+					else:
+						membersToConsider = rakontu.getActiveOfflineMembers()
+					for aMember in membersToConsider:
 						if self.request.get("offlineSource") == str(aMember.key()):
 							creator = aMember
 							foundMember = True
@@ -257,9 +265,10 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 				else:
 					attributionQueryString = "attribution"
 				if self.request.get(attributionQueryString) and self.request.get(attributionQueryString) != "member":
-					entry.character = Character.get(self.request.get(attributionQueryString))
+					character = Character.get(self.request.get(attributionQueryString))
 				else:
-					entry.character = None
+					character = None
+				entry.character = character
 				if type == "resource":
 					entry.resourceForHelpPage = self.request.get("resourceForHelpPage") == "yes"
 					entry.resourceForNewMemberPage = self.request.get("resourceForNewMemberPage") == "yes"
@@ -290,7 +299,8 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 								itemFrom=itemFrom, 
 								itemTo=entry, 
 								type=linkType, 
-								creator=member,
+								creator=creator,
+								liaison=liaison,
 								comment=comment)
 						incomingLinksToPutAfterward.append(link)
 						link.publish()
@@ -312,7 +322,8 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 								itemTo=anEntry, 
 								type="included", 
 								comment=comment,
-								creator=member)
+								creator=creator,
+								liaison=liaison)
 							thingsToPut.append(link)
 							if not entry.draft:
 								link.publish()
@@ -332,13 +343,14 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 								itemTo=aSearch, 
 								type="referenced", 
 								comment=comment,
-								creator=member)
+								creator=creator,
+								liaison=liaison)
 							thingsToPut.append(link)
 							if not entry.draft:
 								link.publish()
 				questions = rakontu.getAllQuestionsOfReferType(type)
 				for question in questions:
-					foundAnswers = entry.getAnswersForQuestionAndMember(question, member)
+					foundAnswers = entry.getAnswersForQuestionAndMember(question, creator)
 					if foundAnswers:
 						answerToEdit = foundAnswers[0]
 					else:
@@ -348,17 +360,18 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 											parent=entry,
 											rakontu=rakontu, 
 											question=question, 
-											creator=member,
+											creator=creator,
+											liaison=liaison,
 											referent=entry, 
 											referentType="entry")
 					queryText = "%s" % question.key()	
 					response = self.request.get(queryText)
-					keepAnswer = answerToEdit.shouldKeepMe(self.request, question)
+					keepAnswer = answerToEdit.shouldKeepMe(self.request, queryText, question)
 					if keepAnswer:
-						answerToEdit.setValueBasedOnResponse(question, self.request, response)
-						answerToEdit.creator = member
-						answerToEdit.character = entry.character
-						answerToEdit.draft = entry.draft
+						answerToEdit.setValueBasedOnResponse(question, self.request, queryText, response)
+						answerToEdit.creator = creator
+						answerToEdit.character = character
+						answerToEdit.liaison = liaison
 						answerToEdit.inBatchEntryBuffer = entry.inBatchEntryBuffer
 						answerToEdit.collected = entry.collected
 						thingsToPut.append(answerToEdit)
@@ -484,12 +497,12 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 				collectedOffline = self.request.get("collectedOffline") == "yes"
 				if collectedOffline and member.isLiaison():
 					foundMember = False
-					for aMember in rakontu.getActiveOfflineMembers():
+					if member.isManagerOrOwner():
+						membersToConsider = rakontu.getActiveMembers()
+					else:
+						membersToConsider = rakontu.getActiveOfflineMembers()
+					for aMember in membersToConsider:
 						if self.request.get("offlineSource") == str(aMember.key()):
-							answersAlreadyInPlace = aMember.getDraftAnswersForEntry(entry)
-							if answersAlreadyInPlace:
-								self.redirect(BuildResultURL("offlineMemberAlreadyAnsweredQuestions", rakontu=rakontu))
-								return
 							creator = aMember
 							foundMember = True
 							break
@@ -530,9 +543,9 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 					answerToEdit.character = character
 					queryText = "%s" % question.key()	
 					response = self.request.get(queryText)
-					keepAnswer = answerToEdit.shouldKeepMe(self.request, question)
+					keepAnswer = answerToEdit.shouldKeepMe(self.request, queryText, question)
 					if keepAnswer:
-						answerToEdit.setValueBasedOnResponse(question, self.request, response)
+						answerToEdit.setValueBasedOnResponse(question, self.request, queryText, response)
 						answerToEdit.draft = setAsDraft
 						if setAsDraft:
 							answerToEdit.edited = datetime.now(tz=pytz.utc)
@@ -666,7 +679,7 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 								   'nudge_points_member_can_assign': nudgePointsMemberCanAssign,
 								   'character_allowed': rakontu.allowCharacter[entryTypeIndex],
 								   'included_links_outgoing': entry.getOutgoingLinksOfType("included"),
-								   'already_there_tags': rakontu.getNonDraftTags(),
+								   'already_there_tags': rakontu.getTags(),
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/annotation.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -735,14 +748,18 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 						elif self.request.get("alreadyThereTag%i" %i) and self.request.get("alreadyThereTag%i" %i) != "none":
 							annotation.tagsIfTagSet.append(htmlEscape(self.request.get("alreadyThereTag%s" % i)))
 				elif type == "comment":
-					annotation.shortString = htmlEscape(self.request.get("shortString", default_value="No subject"))
+					annotation.shortString = htmlEscape(self.request.get("shortString"))
+					if not len(annotation.shortString.strip()):
+						annotation.shortString = TERMS["term_no_subject"]
 					text = self.request.get("longString")
 					format = self.request.get("longString_format").strip()
 					annotation.longString = text
 					annotation.longString_formatted = db.Text(InterpretEnteredText(text, format))
 					annotation.longString_format = format
 				elif type == "request":
-					annotation.shortString = htmlEscape(self.request.get("shortString", default_value="No subject"))
+					annotation.shortString = htmlEscape(self.request.get("shortString"))
+					if not len(annotation.shortString.strip()):
+						annotation.shortString = TERMS["term_no_subject"]
 					text = self.request.get("longString")
 					format = self.request.get("longString_format").strip()
 					annotation.longString = text

@@ -95,7 +95,9 @@
 	    		{% endif %}
 	    		<br/>
 	    		{% if member_of|dictLookup:rakontu.key %}
-	    			<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="{{button_leave}}" class="button">
+	    			{% if not only_owner_of|dictLookup:rakontu.key %}
+	    				<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="{{button_leave}}" class="button">
+	    			{% endif %}
 	    		{% else %}
 	    			{% if pending_member_of|dictLookup:rakontu.key %}
 	    				<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="{{button_join}}" class="button"><br/>

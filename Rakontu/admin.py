@@ -101,6 +101,13 @@ class AdministerSitePage(ErrorHandlingRequestHander):
 					memberOfRakontus[rakontu.key()] = member.governanceTypeForDisplay()
 				else:
 					memberOfRakontus[rakontu.key()] = None
+			onlyOwnerOfRakontus = {}
+			for rakontu in rakontus:
+				member = rakontu.memberWithGoogleUserID(user.user_id())
+				if member and member.active:
+					onlyOwnerOfRakontus[rakontu.key()] = rakontu.memberIsOnlyOwner(member)
+				else:
+					onlyOwnerOfRakontus[rakontu.key()] = False
 			pendingMemberOfRakontus = {}
 			for rakontu in rakontus:
 				pendingMember = rakontu.pendingMemberWithGoogleEmail(user.email())
@@ -124,6 +131,7 @@ class AdministerSitePage(ErrorHandlingRequestHander):
 						   	   'title': TITLES["REVIEW_RAKONTUS"], 
 							   'rakontus': rakontus, 
 							   'member_of': memberOfRakontus,
+							   'only_owner_of': onlyOwnerOfRakontus,
 							   'pending_member_of': pendingMemberOfRakontus,
 						   	   'num_sample_questions': NumSystemQuestions(),
 						   	   'site_resource_names': siteResourceNamesString,

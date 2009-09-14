@@ -528,8 +528,8 @@ class Rakontu(db.Model):
 	
 	def getAllFlaggedItems(self):
 		entries = Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
-		annotations = Annotation.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
-		answers = Answer.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
+		annotations = Annotation.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
+		answers = Answer.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
 		links = Link.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
 		searches = SavedSearch.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
 		return (entries, annotations, answers, links, searches)
@@ -546,8 +546,8 @@ class Rakontu(db.Model):
 
 	def getAllItems(self):
 		entries = Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
-		annotations = Annotation.all().filter("rakontu = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
-		answers = Answer.all().filter("rakontu = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+		annotations = Annotation.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
+		answers = Answer.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
 		links = Link.all().filter("rakontu = ", self.key()).filter("inBatchEntryBuffer = ", False).fetch(FETCH_NUMBER)
 		return (entries, annotations, answers, links)
 	
@@ -579,15 +579,15 @@ class Rakontu(db.Model):
 	def getTagsetsInImportBufferForLiaison(self, liaison):
 		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "tag set").filter("inBatchEntryBuffer = ", True).filter("liaison = ", liaison.key()).fetch(FETCH_NUMBER)
 		
-	def getAllNonDraftRequests(self):
-		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "request").filter("draft = ", False).fetch(FETCH_NUMBER)
+	def getAllRequests(self):
+		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "request").fetch(FETCH_NUMBER)
 		
-	def getAllNonDraftRequestsOfType(self, type):
-		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "request").filter("draft = ", False).\
+	def getAllRequestsOfType(self, type):
+		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "request").\
 			filter("typeIfRequest = ", type).fetch(FETCH_NUMBER)
 		
-	def getAllUncompletedNonDraftRequestsOfType(self, type):
-		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "request").filter("draft = ", False).\
+	def getAllUncompletedRequestsOfType(self, type):
+		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "request").\
 				filter("typeIfRequest = ", type).filter("completedIfRequest = ", False).fetch(FETCH_NUMBER)
 	
 	def moveImportedEntriesOutOfBuffer(self, entries):
@@ -620,13 +620,13 @@ class Rakontu(db.Model):
 				db.put(charactersToPutAfterward)
 			db.run_in_transaction(txn, charactersToPutAfterward)
 			
-	def getNonDraftTagSets(self):
-		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "tag set").filter("draft = ", False).fetch(FETCH_NUMBER)
+	def getTagSets(self):
+		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "tag set").fetch(FETCH_NUMBER)
 	
-	def getNonDraftTags(self):
+	def getTags(self):
 		# cfk check - this may be too slow and may need to be updated instead when a tag set is added or removed
 		tags = {}
-		tagsets = self.getNonDraftTagSets()
+		tagsets = self.getTagSets()
 		for tagset in tagsets:
 			for tag in tagset.tagsIfTagSet:
 				tags[tag] = 1
@@ -664,7 +664,7 @@ class Rakontu(db.Model):
 		elif sortBy == "date":
 			result.sort(lambda a,b: cmp(b.published, a.published))
 		elif sortBy == "annotations":
-			result.sort(lambda a,b: cmp(b.getNonDraftAnnotationCount(), a.getNonDraftAnnotationCount()))
+			result.sort(lambda a,b: cmp(b.getAnnotationCount(), a.getAnnotationCount()))
 		return prev, result, next
 	
 	def getAttachments_WithPaging(self, bookmark, numToFetch=MAX_ITEMS_PER_LIST_PAGE):
@@ -677,7 +677,7 @@ class Rakontu(db.Model):
 		return prev, results, next
 	
 	def getTagSets_WithPaging(self, bookmark, numToFetch=MAX_ITEMS_PER_LIST_PAGE):
-		query = pager.PagerQuery(Annotation).filter("rakontu = ", self.key()).filter("type = ", "tag set").filter("draft = ", False).order("-__key__")
+		query = pager.PagerQuery(Annotation).filter("rakontu = ", self.key()).filter("type = ", "tag set").order("-__key__")
 		prev, results, next = query.fetch(numToFetch, bookmark)
 		return prev, results, next
 	
@@ -705,8 +705,8 @@ class Rakontu(db.Model):
 	def getActiveMemberQuestions(self):
 		return self.getActiveQuestionsOfType("member")
 	
-	def getActiveNonMemberQuestions(self):
-		return Question.all().filter("rakontu = ", self.key()).filter("refersTo !=", "member").filter("active = ", True).fetch(FETCH_NUMBER)
+	def getActiveNonMemberNonCharacterQuestions(self):
+		return Question.all().filter("rakontu = ", self.key()).filter("refersTo !=", "member").filter("refersTo !=", "character").filter("active = ", True).fetch(FETCH_NUMBER)
 		
 	def getActiveMemberAndCharacterQuestions(self):
 		return Question.all().filter("rakontu = ", self.key()).filter("refersTo IN ", ["character", "member"]).filter("active = ", True).fetch(FETCH_NUMBER)
@@ -901,7 +901,7 @@ class Rakontu(db.Model):
 							entriesOfThisType.append(entry)
 					if entriesOfThisType:
 						questions = self.getActiveQuestionsOfType(type)
-						exportText += '\n%s\nTitle,Date,Contributor,' % ENTRY_TYPES_PLURAL_DISPLAY[typeCount].upper()
+						exportText += '\n%s\nTitle,Date,Text,Contributor,' % ENTRY_TYPES_PLURAL_DISPLAY[typeCount].upper()
 						for question in questions:
 							exportText += question.name + ","
 						for question in memberQuestions:
@@ -920,7 +920,7 @@ class Rakontu(db.Model):
 			characterQuestions = self.getActiveQuestionsOfType("character")
 			questions = self.getActiveQuestionsOfType(subtype)
 			entries = self.getNonDraftEntriesOfTypeInReverseTimeOrder(subtype)
-			exportText += '\n%s\nTitle,Date,Contributor,' % subtype.upper()
+			exportText += '\n%s\nTitle,Date,Text,Contributor,' % subtype.upper()
 			for question in questions:
 				exportText += question.name + ","
 			for question in memberQuestions:
@@ -958,7 +958,7 @@ class Rakontu(db.Model):
 						exportText += entry.to_xml() + "\n\n"
 						for attachment in entry.getAttachments():
 							exportText += attachment.to_xml() + "\n\n"
-						for annotation in entry.getNonDraftAnnotations():
+						for annotation in entry.getAnnotations():
 							exportText += annotation.to_xml() + "\n\n"
 						for answer in entry.getAnswers():
 							exportText += answer.to_xml() + "\n\n"
@@ -1408,8 +1408,8 @@ class Member(db.Model):
 	def getAllItemsAttributedToMember(self):
 		result = []
 		result.extend(self.getNonDraftEntriesAttributedToMember())
-		result.extend(self.getNonDraftAnnotationsAttributedToMember())
-		result.extend(self.getNonDraftAnswersAboutEntriesAttributedToMember())
+		result.extend(self.getAnnotationsAttributedToMember())
+		result.extend(self.getAnswersAboutEntriesAttributedToMember())
 		result.extend(self.getLinksCreatedByMember())
 		return result
 	
@@ -1419,12 +1419,12 @@ class Member(db.Model):
 			filter("type IN ", entryTypes).\
 			filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
 		result.extend(entries)
-		annotations = Annotation.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).\
+		annotations = Annotation.all().filter("creator = ", self.key()).filter("character = ", None).\
 			filter("type IN ", annotationTypes).\
 			filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
 		result.extend(annotations)
 		if "answer" in annotationTypes:
-			answers = Answer.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).\
+			answers = Answer.all().filter("creator = ", self.key()).filter("character = ", None).\
 				filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
 			result.extend(answers)
 		if "link" in annotationTypes:
@@ -1463,43 +1463,26 @@ class Member(db.Model):
 	def getNonDraftEntriesAttributedToMember(self):
 		return Entry.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).fetch(FETCH_NUMBER)
 	
-	def getNonDraftAnnotationsAttributedToMember(self):
-		return Annotation.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).fetch(FETCH_NUMBER)
+	def getAnnotationsAttributedToMember(self):
+		return Annotation.all().filter("creator = ", self.key()).filter("character = ", None).fetch(FETCH_NUMBER)
 	
-	def getNonDraftAnswersAboutEntriesAttributedToMember(self):
-		return Answer.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
+	def getAnswersAboutEntriesAttributedToMember(self):
+		return Answer.all().filter("creator = ", self.key()).filter("character = ", None).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
 	
 	def getNonDraftLiaisonedEntries(self):
 		return Entry.all().filter("liaison = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
-	def getNonDraftLiaisonedAnnotations(self):
-		return Annotation.all().filter("liaison = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
-	
-	def getNonDraftLiaisonedAnswers(self):
-		return Answer.all().filter("liaison = ", self.key()).filter("draft = ", False).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
-	
 	def getLinksCreatedByMember(self):
 		return Link.all().filter("creator = ", self.key()).fetch(FETCH_NUMBER)
 
-	# DRAFTS
-	
 	def getDraftEntries(self):
 		return Entry.all().filter("creator = ", self.key()).filter("draft = ", True).fetch(FETCH_NUMBER)
 	
-	def getDraftAnswersForEntry(self, entry):
-		return Answer.all().filter("creator = ", self.key()).filter("draft = ", True).filter("referent = ", entry.key()).fetch(FETCH_NUMBER)
+	def getSavedSearches(self):
+		return SavedSearch.all().filter("creator = ", self.key()).fetch(FETCH_NUMBER)
 	
-	def getDraftAnnotations(self):
-		return Annotation.all().filter("creator = ", self.key()).filter("draft = ", True).fetch(FETCH_NUMBER)
-	
-	def getEntriesWithDraftAnswers(self):
-		answers = Answer.all().filter("creator = ", self.key()).filter("draft = ", True).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
-		entries = {}
-		for answer in answers:
-			if not answer.referent.draft: # don't include entries that are themselves in draft format
-				if not entries.has_key(answer.referent.getKeyName()):
-					entries[answer.referent.getKeyName()] = answer.referent
-		return entries.values()
+	def getPrivateSavedSearches(self):
+		return SavedSearch.all().filter("creator = ", self.key()).filter("private = ", True).fetch(FETCH_NUMBER)
 	
 	# COUNTS
 	
@@ -1599,12 +1582,12 @@ class Member(db.Model):
 	def imageEmbed(self):
 		return '<img src="/%s/%s?%s=%s" class="bordered">' % (DIRS["dir_visit"], URLS["url_image"], URL_IDS["url_query_member"], self.getKeyName())
 	
-	def getSavedSearches(self):
-		return SavedSearch.all().filter("creator = ", self.key()).fetch(FETCH_NUMBER)
-	
-	def getPrivateSavedSearches(self):
-		return SavedSearch.all().filter("creator = ", self.key()).filter("private = ", True).fetch(FETCH_NUMBER)
-	
+	def shortFormattedProfileText(self):
+		if len(self.profileText_formatted) > SHORT_DISPLAY_LENGTH:
+			return "%s ..." % self.profileText_formatted[:SHORT_DISPLAY_LENGTH-2]
+		else:
+			return self.profileText_formatted
+
 # ============================================================================================
 # ============================================================================================
 class ViewOptions(db.Model): 
@@ -1706,8 +1689,8 @@ class Character(db.Model):
 	def getAllItemsAttributedToCharacter(self):
 		result = []
 		result.extend(self.getNonDraftEntriesAttributedToCharacter())
-		result.extend(self.getNonDraftAnnotationsAttributedToCharacter())
-		result.extend(self.getNonDraftAnswersAboutEntriesAttributedToCharacter())
+		result.extend(self.getAnnotationsAttributedToCharacter())
+		result.extend(self.getAnswersAboutEntriesAttributedToCharacter())
 		return result
 
 	def browseItems(self, minTime, maxTime, entryTypes, annotationTypes):
@@ -1716,12 +1699,12 @@ class Character(db.Model):
 			filter("type IN ", entryTypes).\
 			filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
 		result.extend(entries)
-		annotations = Annotation.all().filter("character = ", self.key()).filter("draft = ", False).\
+		annotations = Annotation.all().filter("character = ", self.key()).\
 			filter("type IN ", annotationTypes).\
 			filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
 		result.extend(annotations)
 		if "answer" in annotationTypes:
-			answers = Answer.all().filter("character = ", self.key()).filter("draft = ", False).\
+			answers = Answer.all().filter("character = ", self.key()).\
 				filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
 			result.extend(answers)
 		return result
@@ -1773,11 +1756,11 @@ class Character(db.Model):
 	def getNonDraftEntriesAttributedToCharacter(self):
 		return Entry.all().filter("character = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
 	
-	def getNonDraftAnnotationsAttributedToCharacter(self):
-		return Annotation.all().filter("character = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+	def getAnnotationsAttributedToCharacter(self):
+		return Annotation.all().filter("character = ", self.key()).fetch(FETCH_NUMBER)
 	
-	def getNonDraftAnswersAboutEntriesAttributedToCharacter(self):
-		return Answer.all().filter("character = ", self.key()).filter("draft = ", False).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
+	def getAnswersAboutEntriesAttributedToCharacter(self):
+		return Answer.all().filter("character = ", self.key()).filter("referentType = ", "entry").fetch(FETCH_NUMBER)
 
 	def getKeyName(self):
 		return self.key().name()
@@ -1864,7 +1847,8 @@ class SavedSearch(db.Model):
 												rakontu=self.rakontu, 
 												creator=self.creator,
 												search=self, 
-												question=ref.question,
+												questionName=ref.questionName,
+												questionType=ref.questionType,
 												type=ref.type,
 												order=ref.order,
 												answer=ref.answer,
@@ -1879,8 +1863,11 @@ class SavedSearch(db.Model):
 	def getQuestionReferencesOfType(self, type):
 		return SavedSearchQuestionReference.all().filter("search = ", self.key()).filter("type = ", type).fetch(FETCH_NUMBER)
 	
-	def getQuestionReferenceForQuestionAndOrder(self, question, order):
-		return SavedSearchQuestionReference.all().filter("search = ", self.key()).filter("question = ", question).filter("order = ", order).get()
+	def getQuestionReferenceForQuestionNameTypeAndOrder(self, name, type, order):
+		return SavedSearchQuestionReference.all().filter("search = ", self.key()).\
+			filter("questionName = ", name).\
+			filter("questionType = ", type).\
+			filter("order = ", order).get()
 	
 	def getEntryQuestionRefs(self):
 		return self.getQuestionReferencesOfType("entry")
@@ -1960,12 +1947,23 @@ class SavedSearchQuestionReference(db.Model):
 	created = TzDateTimeProperty(auto_now_add=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="searchrefs_to_rakontu")
 	search = db.ReferenceProperty(SavedSearch, required=True, collection_name="question_refs_to_saved_search")
-	question = db.ReferenceProperty(Question, required=True, collection_name="question_refs_to_question")
+	
+	questionName = db.StringProperty(required=True)
+	questionType = db.StringProperty(required=True)
 	
 	type = db.StringProperty() # entry or creator
 	order = db.IntegerProperty()
 	answer = db.StringProperty(indexed=False)
 	comparison = db.StringProperty(indexed=False)
+	
+	def matchesQuestionInfo(self, name, type, order, answer=None):
+		if answer:
+			return self.questionName == name and self.questionType == type and self.order == order and self.answer == answer
+		else:
+			return self.questionName == name and self.questionType == type and self.order == order
+	
+	def matchesComparisonAndOrder(self, comparison, order):
+		return self.comparison == comparison and self.order == order
 	
 # ============================================================================================
 # ============================================================================================
@@ -1986,7 +1984,7 @@ class Answer(db.Model):
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="answers_to_liaisons")
 	character = db.ReferenceProperty(Character, default=None, collection_name="answers_to_characters")
 	
-	draft = db.BooleanProperty(default=True)
+	draft = db.BooleanProperty(default=True) # CFK GET RID OF LATER
 	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	flagComment = db.StringProperty(indexed=False)
@@ -2012,15 +2010,14 @@ class Answer(db.Model):
 	
 	# IMPORTANT METHODS
 	
-	def shouldKeepMe(self, request, question):
+	def shouldKeepMe(self, request, queryText, question):
 		keepMe = False
-		queryText = "%s" % question.key()
 		response = request.get(queryText)
 		if (question.type == "nominal" or question.type == "ordinal"):
 			if question.multiple:
 				keepMe = False
 				for choice in question.choices:
-					if request.get("%s|%s" % (question.key(), choice)) == "yes":
+					if request.get("%s|%s" % (queryText, choice)) == "yes":
 						keepMe = True
 						break
 			else: # single choice
@@ -2032,7 +2029,7 @@ class Answer(db.Model):
 				keepMe = len(response) > 0 and response != "None"
 		return keepMe
 	
-	def setValueBasedOnResponse(self, question, request, response):
+	def setValueBasedOnResponse(self, question, request, queryText, response):
 		if question.type == "text":
 			self.answerIfText = htmlEscape(response)
 		elif question.type == "value":
@@ -2047,14 +2044,14 @@ class Answer(db.Model):
 			if question.multiple:
 				self.answerIfMultiple = []
 				for choice in question.choices:
-					if request.get("%s|%s" % (question.key(), choice)) == "yes":
+					if request.get("%s|%s" % (queryText, choice)) == "yes":
 						self.answerIfMultiple.append(choice)
 			else:
 				self.answerIfText = response
 	
 	def publish(self):
 		if self.referentType == "entry":
-			self.draft = False
+			self.draft = False # CFK GET RID OF LATER
 			self.published = datetime.now(pytz.utc)
 			self.referent.recordAction("added", self, "Answer")
 			for i in range(NUM_NUDGE_CATEGORIES):
@@ -2114,10 +2111,17 @@ class Answer(db.Model):
 		return self.displayString(includeQuestionName=False, includeQuestionText=True, )
 	
 	def linkStringWithQuestionNameAndReferentLink(self):
-		return "%s for %s" % (self.linkStringWithQuestionName(), self.referent.linkString())
+		# CFK TEMP - something broken - should I ALWAYS be checking???
+		try:
+			return "%s for %s" % (self.linkStringWithQuestionName(), self.referent.linkString())
+		except:
+			return self.linkStringWithQuestionName()
 		
 	def linkStringWithQuestionTextAndReferentLink(self):
-		return "%s for %s" % (self.linkStringWithQuestionText(), self.referent.linkString())
+		try:
+			return "%s for %s" % (self.linkStringWithQuestionText(), self.referent.linkString())
+		except:
+			return self.linkStringWithQuestionText()
 	
 	def PrintText(self, member):
 		answerString = TERMS["term_answer"].capitalize()
@@ -2201,6 +2205,9 @@ class Entry(db.Model):
 	def isEntry(self):
 		return True
 	
+	def collectedOfflineOrInBatchEntryBuffer(self):
+		return self.collectedOffline or self.inBatchEntryBuffer
+	
 	def getClassName(self):
 		return self.__class__.__name__
 	
@@ -2258,7 +2265,7 @@ class Entry(db.Model):
 		
 	def updateNudgePoints(self):
 		self.nudgePoints = [0] * NUM_NUDGE_CATEGORIES
-		nudges = self.getNonDraftAnnotationsOfType("nudge")
+		nudges = self.getAnnotationsOfType("nudge")
 		for i in range(NUM_NUDGE_CATEGORIES):
 			total = 0
 			for nudge in nudges:
@@ -2348,56 +2355,61 @@ class Entry(db.Model):
 			if aboutCreator:
 				try: # in case creator doesn't exist
 					if self.character:
-						answer = self.character.getAnswerForQuestion(ref.question)
+						answers = self.character.getAnswers()
 					else:
 						if self.creator.active:
-							answer = self.creator.getAnswerForQuestion(ref.question)
+							answers = self.creator.getAnswers()
 						else:
 							return False
-					answers = [answer]
 				except:
 					return False
 			else:
-				answers = self.getAnswersForQuestion(ref.question)
-			if answers:
-				for answer in answers:
-					if answer:
-						if ref.question.type == "text":
-							if ref.comparison == "contains":
-								match = caseInsensitiveFind(answer.answerIfText, ref.answer)
-							elif ref.comparison == "is":
-								match = answer.answerIfText.lower() == ref.answer.lower()
-						elif ref.question.type == "value":
-							if ref.comparison == "is less than":
-								try:
-									answerValue = int(ref.answer)
-									match = answer.answerIfValue < answerValue
-								except:
-									match = False
-							elif ref.comparison == "is greater than":
-								try:
-									answerValue = int(ref.answer)
-									match = answer.answerIfValue > answerValue
-								except:
-									match = False
-							elif ref.comparison == "is":
-								try:
-									answerValue = int(ref.answer)
-									match = answer.answerIfValue == answerValue
-								except:
-									match = False
-						elif ref.question.type == "ordinal" or ref.question.type == "nominal":
-							if ref.question.multiple:
-								match = ref.answer in answer.answerIfMultiple
-							else:
-								match = ref.answer == answer.answerIfText
-						elif ref.question.type == "boolean":
-							if ref.answer == "yes":
-								match = answer.answerIfBoolean == True
-							else:
-								match = answer.answerIfBoolean == False
-						if match:
-							break # don't need to check if more than one answer matches
+				answers = self.getAnswers()
+			matchingAnswers = []
+			for answer in answers:
+				if answer.question.name == ref.questionName and answer.question.type == ref.questionType:
+					matchingAnswers.append(answer)
+			if matchingAnswers:
+				for answer in matchingAnswers:
+					if ref.questionType == "text":
+						if ref.comparison == "contains":
+							match = caseInsensitiveFind(answer.answerIfText, ref.answer)
+						elif ref.comparison == "is":
+							match = answer.answerIfText.lower() == ref.answer.lower()
+					elif ref.questionType == "value":
+						if ref.comparison == "is less than":
+							try:
+								answerValue = int(ref.answer)
+								match = answer.answerIfValue < answerValue
+							except:
+								match = False
+						elif ref.comparison == "is greater than":
+							try:
+								answerValue = int(ref.answer)
+								match = answer.answerIfValue > answerValue
+							except:
+								match = False
+						elif ref.comparison == "is":
+							try:
+								answerValue = int(ref.answer)
+								match = answer.answerIfValue == answerValue
+							except:
+								match = False
+					elif ref.questionType == "ordinal" or ref.questionType == "nominal":
+						# ignore whether it is multiple choice or not - if it has it, it has it
+						foundChoice = False
+						for choice in answer.answerIfMultiple:
+							if ref.answer == choice:
+								foundChoice = True
+								break
+						match = foundChoice or ref.answer == answer.answerIfText
+					elif ref.questionType == "boolean":
+						if ref.answer == "yes":
+							match = answer.answerIfBoolean == True
+						else:
+							match = answer.answerIfBoolean == False
+					if match:
+						break # don't need to check if more than one answer matches
 			if match:
 				numAnswerSearchesSatisfied += 1
 		if anyOrAll == "any":
@@ -2429,21 +2441,21 @@ class Entry(db.Model):
 			return numWordSearchesSatisfied >= len(words)
 
 	def wordIsFoundInAComment(self, word):
-		comments = self.getNonDraftAnnotationsOfType("comment")
+		comments = self.getAnnotationsOfType("comment")
 		for comment in comments:
 			if caseInsensitiveFind(comment.longString, word):
 				return True
 		return False
 	
 	def wordIsFoundInARequest(self, word):
-		requests = self.getNonDraftAnnotationsOfType("request")
+		requests = self.getAnnotationsOfType("request")
 		for request in requests:
 			if caseInsensitiveFind(request.longString, word):
 				return True
 		return False
 	
 	def wordIsFoundInANudgeComment(self, word):
-		nudges = self.getNonDraftAnnotationsOfType("nudge")
+		nudges = self.getAnnotationsOfType("nudge")
 		for nudge in nudges:
 			if caseInsensitiveFind(nudge.shortString, word):
 				return True
@@ -2460,7 +2472,7 @@ class Entry(db.Model):
 		numWordSearchesSatisfied = 0
 		for word in words:
 			match = False
-			tagsets = self.getNonDraftAnnotationsOfType("tag set")
+			tagsets = self.getAnnotationsOfType("tag set")
 			for tagset in tagsets:
 				for tag in tagset.tagsIfTagSet:
 					match = match or caseInsensitiveFind(tag, word)
@@ -2552,20 +2564,19 @@ class Entry(db.Model):
 	
 	# ANNOTATIONS, ANSWERS, LINKS
 	
-	def getNonDraftAnnotationsAnswersAndLinks(self):
+	def getAnnotationsAnswersAndLinks(self):
 		result = []
-		result.extend(self.getNonDraftAnnotations())
-		result.extend(self.getNonDraftAnswers())
+		result.extend(self.getAnnotations())
+		result.extend(self.getAnswers())
 		result.extend(self.getAllLinks())
 		return result
 	
 	def browseItems(self, annotationTypes):
 		result = []
-		annotations = Annotation.all().filter("entry = ", self.key()).filter("draft = ", False).\
-			filter("type IN ", annotationTypes).fetch(FETCH_NUMBER)
+		annotations = Annotation.all().filter("entry = ", self.key()).filter("type IN ", annotationTypes).fetch(FETCH_NUMBER)
 		result.extend(annotations)
 		if "answer" in annotationTypes:
-			answers = Answer.all().filter("referent = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+			answers = Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
 			result.extend(answers)
 		if "link" in annotationTypes:
 			linksTo = Link.all().filter("itemTo = ", self.key()).fetch(FETCH_NUMBER)
@@ -2591,26 +2602,26 @@ class Entry(db.Model):
 	def getAnnotations(self):
 		return Annotation.all().filter("entry =", self.key()).fetch(FETCH_NUMBER)
 	
-	def getNonDraftAnnotations(self):
-		return Annotation.all().filter("entry =", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+	def getAnnotations(self):
+		return Annotation.all().filter("entry =", self.key()).fetch(FETCH_NUMBER)
 	
-	def getNonDraftAnnotationCount(self):
-		return Annotation.all().filter("entry =", self.key()).filter("draft = ", False).count()
+	def getAnnotationCount(self):
+		return Annotation.all().filter("entry =", self.key()).count()
 	
-	def getNonDraftAnnotationsOfType(self, type):
-		return Annotation.all().filter("entry =", self.key()).filter("type = ", type).filter("draft = ", False).fetch(FETCH_NUMBER)
+	def getAnnotationsOfType(self, type):
+		return Annotation.all().filter("entry =", self.key()).filter("type = ", type).fetch(FETCH_NUMBER)
 	
-	def numNonDraftAnnotationsOfType(self, type):
-		return Annotation.all().filter("entry =", self.key()).filter("type = ", type).filter("draft = ", False).count()
+	def numAnnotationsOfType(self, type):
+		return Annotation.all().filter("entry =", self.key()).filter("type = ", type).count()
 	
 	def hasTagSets(self):
-		return Annotation.all().filter("entry =", self.key()).filter("type = ", "tag set").filter("draft = ", False).count() > 0
+		return Annotation.all().filter("entry =", self.key()).filter("type = ", "tag set").count() > 0
 		
 	def hasComments(self):
-		return Annotation.all().filter("entry =", self.key()).filter("type = ", "comment").filter("draft = ", False).count() > 0
+		return Annotation.all().filter("entry =", self.key()).filter("type = ", "comment").count() > 0
 		
 	def getComments(self):
-		return Annotation.all().filter("entry =", self.key()).filter("type = ", "comment").filter("draft = ", False).fetch(FETCH_NUMBER)
+		return Annotation.all().filter("entry =", self.key()).filter("type = ", "comment").fetch(FETCH_NUMBER)
 		
 	def getAttachments(self):
 		return Attachment.all().filter("entry =", self.key()).fetch(FETCH_NUMBER)
@@ -2618,11 +2629,8 @@ class Entry(db.Model):
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
 	
-	def numNonDraftAnswers(self):
-		return Answer.all().filter("referent = ", self.key()).filter("draft = ", False).count()
-	
-	def hasNonDraftAnswers(self):
-		return Answer.all().filter("referent = ", self.key()).filter("draft = ", False).count() > 0
+	def hasAnswers(self):
+		return Answer.all().filter("referent = ", self.key()).count() > 0
 	
 	def getAnswersForQuestion(self, question):
 		return Answer.all().filter("referent = ", self.key()).filter("question = ", question.key()).fetch(FETCH_NUMBER)
@@ -2630,8 +2638,8 @@ class Entry(db.Model):
 	def getAnswersForQuestionAndMember(self, question, member):
 		return Answer.all().filter("question = ", question.key()).filter("referent =", self.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
 	
-	def getNonDraftAnswers(self):
-		return Answer.all().filter("referent = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+	def getAnswers(self):
+		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
 
 	def getAnswersForMember(self, member):
 		return Answer.all().filter("referent = ", self.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
@@ -2734,14 +2742,7 @@ class Entry(db.Model):
 		for answer in answers:
 			answer.collected = self.collected
 			answer.put()
-			
-	def getAllNonDraftDependents(self):
-		result = []
-		result.extend(self.getNonDraftAnnotations())
-		result.extend(self.getNonDraftAnswers())
-		result.extend(self.getAllLinks())
-		return result
-	
+				
 	# DISPLAY
 	
 	def displayString(self):
@@ -2808,11 +2809,16 @@ class Entry(db.Model):
 	
 	def csvLineWithAnswers(self, member, questions, memberQuestions, characterQuestions):
 		timeString = TimeDisplay(self.published, member)
-		parts = [self.title, timeString, self.memberNickNameOrCharacterName()]
+		if self.text_formatted:
+			text = self.text_formatted
+		else:
+			text = ""
+		parts = [self.title, timeString, text, self.memberNickNameOrCharacterName()]
 		(members, characters) = self.getMembersAndCharactersWhoHaveAnsweredQuestionsAboutMe()
 		for aMember in members:
 			parts.append("\n%s" % self.title)
 			parts.append(timeString)
+			parts.append(text)
 			parts.append(aMember.nickname)
 			# questions about entry
 			for question in questions:
@@ -3054,10 +3060,10 @@ class Annotation(db.Model):
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	type = db.StringProperty(choices=ANNOTATION_TYPES, required=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="annotations_to_rakontu")
-	entry = db.ReferenceProperty(Entry, required=True, collection_name="annotations")
-	creator = db.ReferenceProperty(Member, collection_name="annotations")
+	entry = db.ReferenceProperty(Entry, required=True, collection_name="annotations") #CFK FIX THIS IS WRONG
+	creator = db.ReferenceProperty(Member, collection_name="annotations") #CFK FIX THIS IS WRONG
 	
-	draft = db.BooleanProperty(default=True)
+	draft = db.BooleanProperty(default=True) # CFK GET RID OF LATER
 	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	flagComment = db.StringProperty(indexed=False)
@@ -3094,10 +3100,50 @@ class Annotation(db.Model):
 	def isCommentOrRequest(self):
 		return self.type == "comment" or self.type == "request"
 	
+	def entryKey(self):
+		# CFK FIX - this is only temporarily necessary because of the collection_name mistake above
+		try:
+			if self.entry:
+				return self.entry.key()
+		except:
+			return None
+		else:
+			return None
+		
+	def entryLinkString(self):
+		# CFK FIX - this is only temporarily necessary because of the collection_name mistake above
+		try:
+			if self.entry:
+				return self.entry.linkString()
+		except:
+			return None
+		else:
+			return None
+		
+	def entryPublished(self):
+		# CFK FIX - this is only temporarily necessary because of the collection_name mistake above
+		try:
+			if self.entry:
+				return self.entry.published
+		except:
+			return None
+		else:
+			return None
+		
+	def entryFlaggedForRemoval(self):
+		# CFK FIX - this is only temporarily necessary because of the collection_name mistake above
+		try:
+			if self.entry:
+				return self.entry.flaggedForRemoval
+		except:
+			return None
+		else:
+			return None
+	
 	# IMPORTANT METHODS
 	
 	def publish(self):
-		self.draft = False
+		self.draft = False # CFK GET RID OF LATER
 		self.published = datetime.now(pytz.utc)
 		self.entry.recordAction("added", self, "Annotation")
 		for i in range(NUM_NUDGE_CATEGORIES):

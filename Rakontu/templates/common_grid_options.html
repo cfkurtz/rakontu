@@ -98,10 +98,10 @@
 					{% else %}
 						<input type="submit" name="changeSearch" value="{{button_change}}" class="button_small">
 					{% endifnotequal %}
-					<input type="submit" name="makeNewSavedSearch" value="{{button_create_another}}" class="button_small">
+					<input type="submit" name="makeNewSavedSearch" value="{{button_make_new_filter}}" class="button_small">
 				{% else %}
 					<input type="submit" name="loadAndApplySavedSearch" value="{{button_apply}}" class="button_small">
-					<input type="submit" name="makeNewSavedSearch" value="{{button_create_another}}" class="button_small">
+					<input type="submit" name="makeNewSavedSearch" value="{{button_make_new_filter}}" class="button_small">
 				{% endif %}	
 			{% else %}
 				{{template_search_filters}} - {{template_none}}

@@ -92,6 +92,12 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 			skinDict = rakontu.getSkinDictionary()
 			(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
 			textsForGrid, rowColors = self.buildGrid(entries, member, skinDict, viewOptions.showDetails, curating)
+			
+			# CFK TEMP - FIX FOR NUDGES GETTING OFF
+			#for entry in rakontu.getNonDraftEntries():
+			#	entry.updateNudgePoints()
+			#	entry.put()
+			
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': TITLES["HOME"],
 							'rakontu': rakontu, 
@@ -391,7 +397,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 				self.redirect(url)
 			elif curating and not "stopCurating" in self.request.arguments():
 				itemsThatCanBeCurated = [entry]
-				for item in entry.getAllNonDraftDependents():
+				for item in entry.getAnnotationsAnswersAndLinks():
 					 itemsThatCanBeCurated.append(item)
 				ProcessFlagOrUnFlagCommand(self.request, itemsThatCanBeCurated)
 				self.redirect(self.request.uri)
@@ -575,14 +581,23 @@ class SendMessagePage(ErrorHandlingRequestHander):
 					replyTo = self.request.get("messageReplyToEmail")
 				else:
 					replyTo = rakontu.contactEmail
-				if emailAddresses:
+				foundGoodSendEmail = False
+				for email in emailAddresses:
+					if mail.is_email_valid(email):
+						foundGoodSendEmail = True
+						break
+				if emailAddresses and foundGoodSendEmail:
 					message = mail.EmailMessage()
-					message.sender = rakontu.contactEmail
+					message.sender = member.googleAccountEmail
 					message.reply_to = replyTo
 					message.subject = htmlEscape(self.request.get("subject"))
 					message.to = emailAddresses 
 					message.body = htmlEscape(self.request.get("message"))
-					message.send()
+					try:
+						message.send()
+					except:
+						self.redirect(BuildResultURL("couldNotSendMessage", rakontu=rakontu))
+						return
 					self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
 				else:
 					self.redirect(BuildResultURL("membersNotFound", rakontu=rakontu))
@@ -893,16 +908,25 @@ class AskGuidePage(ErrorHandlingRequestHander):
 								messageMember = None
 								goAhead = False
 							break
-				if goAhead and messageMember:
+				if self.request.get("messageReplyToEmail") != None and self.request.get("messageReplyToEmail") != "":
+					replyTo = self.request.get("messageReplyToEmail")
+				else:
+					replyTo = rakontu.contactEmail
+				if goAhead and messageMember and mail.is_email_valid(messageMember.googleAccountEmail):
 					message = mail.EmailMessage()
-					message.sender = rakontu.contactEmail
-					message.subject = "Rakontu %s - %s" % (TERMS["term_question"], htmlEscape(self.request.get("subject")))
+					message.sender = SITE_SUPPORT_EMAIL
 					message.to = messageMember.googleAccountEmail
+					message.reply_to = replyTo
+					message.subject = "Rakontu %s - %s" % (TERMS["term_question"], htmlEscape(self.request.get("subject")))
 					message.body = htmlEscape(self.request.get("message"))
-					message.send()
+					try:
+						message.send()
+					except:
+						self.redirect(BuildResultURL("couldNotSendMessage", rakontu=rakontu))
+						return
 					self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
 				else:
-					self.redirect(NotFoundURL(rakontu))
+					self.redirect(BuildResultURL("memberNotFound", rakontu=rakontu))
 		else:
 			self.redirect(NoRakontuAndMemberURL())
    
@@ -968,6 +992,7 @@ class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 				memberToEdit.put()
 				questions = rakontu.getActiveQuestionsOfType("member")
 				answersToPut = []
+				answersToDelete = []
 				for question in questions:
 					foundAnswer = memberToEdit.getAnswerForMemberQuestion(question)
 					if foundAnswer:
@@ -983,13 +1008,17 @@ class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 											referentType="member")
 					queryText = "%s" % question.key()
 					response = self.request.get(queryText)
-					keepAnswer = answerToEdit.shouldKeepMe(self.request, question)
+					keepAnswer = answerToEdit.shouldKeepMe(self.request, queryText, question)
 					if keepAnswer:
-						answerToEdit.setValueBasedOnResponse(question, self.request, response)
+						answerToEdit.setValueBasedOnResponse(question, self.request, queryText, response)
 						answerToEdit.creator = memberToEdit
 						answersToPut.append(answerToEdit)
+					else:
+						answersToDelete.append(answerToEdit)
 				if answersToPut:
 					db.put(answersToPut)
+				if answersToDelete:
+					db.delete(answersToDelete)
 				if offlineMember:
 					self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
 				else:
@@ -1157,12 +1186,6 @@ class ChangeMemberDraftsPage(ErrorHandlingRequestHander):
 				memberToEdit = offlineMember
 			else:
 				memberToEdit = member
-			draftAnswerEntries = memberToEdit.getEntriesWithDraftAnswers()
-			firstDraftAnswerForEachEntry = []
-			for entry in draftAnswerEntries:
-				answers = memberToEdit.getDraftAnswersForEntry(entry)
-				if answers:
-					firstDraftAnswerForEachEntry.append(answers[0])
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': TITLES["DRAFTS_FOR"], 
 						   	   'title_extra': memberToEdit.nickname, 
@@ -1204,14 +1227,6 @@ class ChangeMemberDraftsPage(ErrorHandlingRequestHander):
 					if self.request.get("remove|%s" % entry.key()) == "yes":
 						entry.removeAllDependents()
 						db.delete(entry)
-				for annotation in memberToEdit.getDraftAnnotations():
-					if self.request.get("remove|%s" % annotation.key()) == "yes":
-						db.delete(annotation)
-				for entry in memberToEdit.getEntriesWithDraftAnswers():
-					if self.request.get("removeAnswers|%s" % entry.key()) == "yes":
-						answers = memberToEdit.getDraftAnswersForEntry(entry)
-						for answer in answers:
-							db.delete(answer)
 				if offlineMember:
 					self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
 				else:
@@ -1328,35 +1343,33 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			location = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_location")
 			currentSearch = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_search_filter")
-			questionsAndRefsDictList = []
-			entryQuestions = rakontu.getActiveNonMemberQuestions()
-			if entryQuestions:
-				entryQuestionsAndRefsDictionary = {
-					"result_preface": "entry", "afterAnyText": "%s:" % TERMS["term_of_these_answers_to_questions"],
-					"questions": entryQuestions}
+			
+			questionsInfoList = self.questionsInfoListForType(rakontu, "entry", sort=True)
+			if questionsInfoList:
 				if currentSearch:
-					entryQuestionsAndRefsDictionary["references"] = currentSearch.getQuestionReferencesOfType("entry") 
-					entryQuestionsAndRefsDictionary["anyOrAll"] = currentSearch.answers_anyOrAll
+					entryRefs = currentSearch.getQuestionReferencesOfType("entry") 
+					entryQuestions_anyOrAll = currentSearch.answers_anyOrAll
 				else:
-					entryQuestionsAndRefsDictionary["references"] = []
-					entryQuestionsAndRefsDictionary["anyOrAll"] = None
-				questionsAndRefsDictList.append(entryQuestionsAndRefsDictionary)
-			creatorQuestions = rakontu.getActiveMemberAndCharacterQuestions()
-			if creatorQuestions:
-				if rakontu.hasActiveCharacters() and rakontu.hasActiveQuestionsOfType("character"):
-					afterAnyText = "%s:" % TERMS["term_of_these_answers_to_questions_about_members_or_characters"]
-				else:
-					afterAnyText = "%s:" % TERMS["term_of_these_answers_to_questions_about_creators"]
-				creatorQuestionsAndRefsDictionary = {
-					"result_preface": "creator", "afterAnyText": afterAnyText,
-					"questions": creatorQuestions}
+					entryRefs = []
+					entryQuestions_anyOrAll = None
+				entryQuestionsHTML = self.formHtmlForQuestionList(questionsInfoList, entryRefs, "entry")
+			else:
+				entryQuestionsHTML = None
+				entryQuestions_anyOrAll = None
+				
+			questionsInfoList = self.questionsInfoListForType(rakontu, "creator", sort=True)
+			if questionsInfoList:
 				if currentSearch:
-					creatorQuestionsAndRefsDictionary["references"] = currentSearch.getQuestionReferencesOfType("creator") 
-					creatorQuestionsAndRefsDictionary["anyOrAll"] = currentSearch.creatorAnswers_anyOrAll
+					creatorRefs = currentSearch.getQuestionReferencesOfType("creator") 
+					creatorQuestions_anyOrAll = currentSearch.creatorAnswers_anyOrAll
 				else:
-					creatorQuestionsAndRefsDictionary["references"] = []
-					creatorQuestionsAndRefsDictionary["anyOrAll"] = None
-				questionsAndRefsDictList.append(creatorQuestionsAndRefsDictionary)
+					creatorRefs = []
+					creatorQuestions_anyOrAll = None
+				creatorQuestionsHTML = self.formHtmlForQuestionList(questionsInfoList, creatorRefs, "creator")
+			else:
+				creatorQuestionsHTML = None
+				creatorQuestions_anyOrAll = None
+
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': TITLES["SEARCH_FILTER"],
 							'rakontu': rakontu, 
@@ -1370,7 +1383,10 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 							'answer_comparison_types': ANSWER_COMPARISON_TYPES,
 							'answer_comparison_types_display': ANSWER_COMPARISON_TYPES_DISPLAY,
 							'current_search': currentSearch,
-							'questions_and_refs_dict_list': questionsAndRefsDictList,
+							'entry_questions_html': entryQuestionsHTML,
+							'entry_questions_any_or_all': entryQuestions_anyOrAll,
+							'creator_questions_html': creatorQuestionsHTML,
+							'creator_questions_any_or_all': creatorQuestions_anyOrAll,
 							'location': location,
 							})
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/filter.html'))
@@ -1378,6 +1394,89 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 		else:
 			self.redirect(NoRakontuAndMemberURL())
 			
+	def questionsInfoListForType(self, rakontu, type, sort=False):
+		# get all unique combinations of question name, text, type and choices in one list
+		if type == "entry":
+			questions = rakontu.getActiveNonMemberNonCharacterQuestions()
+		else:
+			questions = rakontu.getActiveMemberAndCharacterQuestions()
+		questionsInfoDict = {}
+		for question in questions:
+			key = question.name, question.type
+			if not questionsInfoDict.has_key(key):
+				questionsInfoDict[key] = question.name, question.type, question.choices
+		questionsInfoList = questionsInfoDict.values()
+		if sort and len(questionsInfoList):
+			questionsInfoList.sort(lambda a,b: cmp(a[0], b[0])) # slows things down but easier to read
+		return questionsInfoList
+			
+	def formHtmlForQuestionList(self, questionsInfoList, refs, preface):
+		result = ""
+		SELECTED = ' selected="selected"'
+		for i in range(NUM_SEARCH_FIELDS):
+			# questions drop down box
+			result += '\n\n &nbsp; &nbsp; <select name="%s|question|%s">\n' % (preface, i)
+			result += '<option>(%s)</option>\n' % (TERMS["term_choose"])
+			for name, type, choices in questionsInfoList:
+				if type == "text" or type == "value":
+					result += '<option value="%s|%s"' % (name, type)
+					if self.refMatchingInfo(refs, name, type, i, None):
+						result += SELECTED
+					result += '>%s ---&gt;</option>\n' % name
+				elif type == "boolean":
+					for answer in ["yes", "no"]:
+						result += '<option value="%s|%s|%s"' % (name, type, answer)
+						if self.refMatchingInfo(refs, name, type, i, answer):
+							result += SELECTED
+						if answer == "yes":
+							answerToShow = TERMS["term_yes"]
+						else:
+							answerToShow = TERMS["term_no"]
+						result += '>%s: %s</option>\n' % (name, answerToShow)
+				elif type == "ordinal" or type == "nominal":
+					for choice in choices:
+						if choice:
+							result += '<option value="%s|%s|%s"' % (name, type, choice)
+							if self.refMatchingInfo(refs, name, type, i, choice):
+								result += SELECTED
+							result += '>%s: %s</option>\n' % (name, choice)
+			result += '</select>\n\n'
+			# comparison drop down box
+			result += '<select name="%s|comparison|%s"><option></option>' % (preface, i)
+			for j in range(len(ANSWER_COMPARISON_TYPES)):
+				typeToSend = ANSWER_COMPARISON_TYPES[j]
+				typeToShow = ANSWER_COMPARISON_TYPES_DISPLAY[j]
+				result += '<option value="%s"' % typeToSend
+				if self.refMatchingComparisonAndOrder(refs, typeToSend, i):
+					result += SELECTED
+				result += '>%s</option>\n' % typeToShow
+			result += '</select>\n\n'
+			# text to compare drop down box
+			result += '<input type="text" name="%s|answer|%s"' % (preface, i)
+			matchingRef = self.refOfTypeTextOrValueRefMatchingOrder(refs, i)
+			if matchingRef:
+				result += 'value="%s"' % matchingRef.answer
+			result += 'size="16" maxlength="%s">\n<br/>' % MAXLENGTH_TAG_OR_CHOICE
+		return result
+
+	def refMatchingInfo(self, refs, name, type, order, answer=None):
+		for ref in refs:
+			if ref.matchesQuestionInfo(name, type, order, answer):
+				return True
+		return False
+	
+	def refMatchingComparisonAndOrder(self, refs, comparison, order):
+		for ref in refs:
+			if ref.matchesComparisonAndOrder(comparison, order):
+				return True
+		return False
+	
+	def refOfTypeTextOrValueRefMatchingOrder(self, refs, order):
+		for ref in refs:
+			if (ref.questionType == "text" or ref.questionType == "value") and ref.order == order:
+				return ref
+		return None
+	
 	@RequireLogin 
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -1418,7 +1517,9 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 				thingsToPut = []
 				thingsToPut.append(search)
 				search.private = self.request.get("privateOrSharedSearch") == "private"
-				search.name = htmlEscape(self.request.get("searchName", default_value="Untitled"))
+				search.name = htmlEscape(self.request.get("searchName"))
+				if not len(search.name.strip()):
+					search.name = TERMS["term_untitled"]
 				text = self.request.get("comment")
 				format = self.request.get("comment_format").strip()
 				search.comment = text
@@ -1449,43 +1550,50 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 				# questions
 				for preface in ["entry", "creator"]:
 					if preface == "entry":
-						search.answers_anyOrAll = self.request.get("entry|anyOrAll")
-						questions = rakontu.getActiveNonMemberQuestions()
+						search.answers_anyOrAll = self.request.get("entryQuestions|anyOrAll")
+						questionsInfoList = self.questionsInfoListForType(rakontu, "entry")
 					else:
-						search.creatornswers_anyOrAll = self.request.get("creator|anyOrAll")
-						questions = rakontu.getActiveMemberAndCharacterQuestions() 
+						search.creatorAnswers_anyOrAll = self.request.get("creatorQuestions|anyOrAll")
+						questionsInfoList = self.questionsInfoListForType(rakontu, "creator")
 					for i in range(NUM_SEARCH_FIELDS):
 						response = self.request.get("%s|question|%s" % (preface, i))
-						for question in questions:
+						for name, type, choices in questionsInfoList:
 							foundQuestion = False
 							comparison = ""
 							answer = ""
-							if question.isTextOrValue():
-								if response == "%s" % question.key():
+							if type == "text" or type == "value":
+								if response == "%s|%s" % (name, type):
 									foundQuestion = True
 									answer = self.request.get("%s|answer|%s" % (preface, i)).strip()
 									comparison = self.request.get("%s|comparison|%s" % (preface, i))
-							elif question.type == "boolean":
-								if response == "yes|%s" % question.key():
-									foundQuestion = True
-									answer = "yes"
-								elif response == "no|%s" % question.key():
-									foundQuestion = True
-									answer = "no"
-							elif question.isOrdinalOrNominal():
-								for choice in question.choices:
-									if response == "%s|%s" % (choice, question.key()):
+							elif type == "boolean":
+								for yesno in ["yes", "no"]:
+									if response == "%s|%s|%s" % (name, type, yesno):
+										foundQuestion = True
+										answer = yesno
+										break
+							elif type == "ordinal" or type == "nominal":
+								for choice in choices:
+									if response == "%s|%s|%s" % (name, type, choice):
 										foundQuestion = True
 										answer = choice
+										break
 							if foundQuestion and answer:
-								ref = search.getQuestionReferenceForQuestionAndOrder(question, i)
+								ref = search.getQuestionReferenceForQuestionNameTypeAndOrder(name, type, i)
 								if not ref:
 									keyName = GenerateSequentialKeyName("searchref")
-									ref = SavedSearchQuestionReference(key_name=keyName, parent=search, rakontu=rakontu, search=search, question=question)
+									ref = SavedSearchQuestionReference(
+												key_name=keyName, 
+												parent=search, 
+												rakontu=rakontu, 
+												search=search, 
+												questionName=name,
+												questionType=type,
+												)
 								ref.answer = answer
 								ref.comparison = comparison
-								ref.order = i
 								ref.type = preface
+								ref.order = i
 								thingsToPut.append(ref)
 				def txn(thingsToPut):
 					if thingsToPut:
