@@ -12,80 +12,46 @@
 		</fieldset>
 
 		{% if questions %}
-			<h3>{{template_change_questions_about}} {{refer_type_plural_display}}</h3>
+			<h3>{{template_change_questions_about}} {{refer_type_plural_display}} {{"inactive_questions"|caution}}</h3>
 			<fieldset>
-	      	<table border="0" cellpadding="4" cellspacing="0">
-	      	<tr>
-	      		<th>{{template_name_question_explanation}} {{"preparing_questions_for_searching"|tip}}</th>
-	      		<th>{{template_type}} {{"ordinal_and_nominal_questions"|tip}}</th>
-	      		<th>{{template_min_max}}<br><i>{{template_if_value}}</i></th>
-	      		<th>{{template_response}}<br><i>{{template_if_boolean}}</i>{{"response_if_boolean"|info}}</th>
-	      		<th>{{template_choices}}<br><i>{{template_if_ordinal_or_nominal}}</i></i></th>
-	      		<th width="100">{{template_inactivate}}?</th>
-	      		</tr>
+	      	<table cellpadding="0" cellspacing="0"  style="border:none;">
 	      		{% for question in questions %}
 	      			<tr>
-	      			<td valign="top">{{template_name}} 
-	      				{% if questions|isFirstInSeries:question %}
-	      					{{"question_names"|info}} 
+ 					<td style="border:none;">
+ 						{% if question.active %}
+ 	      					<input type="submit" class="active" value="" name="inactivate|{{question.key}}" title="{{template_inactivate}}"></td>
+ 						{% else %}
+ 	      					<input type="submit" class="inactive" value="" name="activate|{{question.key}}" title="{{template_activate}}"></td>
+ 						{% endif %}
+ 					</td>
+	      			<td style="border:none;">
+	      				{% if not questions|isFirstInSeries:question %}
+	      					<input type="submit" class="move_up" value="" name="moveUp|{{question.key}}" title="{{template_move_up}}"></td>
+	      				{% else %}
+	      					&nbsp;
 	      				{% endif %}
-	      				<div><input type="text" name="name|{{question.key}}" size="40" value="{{question.name}}" maxlength="{{maxlength_name}}"></div>
-	      				<br>{{template_question}} 
-	      				{% if questions|isFirstInSeries:question %}
-	      					{{"question_texts"|info}} 
-	      				{% endif %}
-	      				<div><input type="text" name="text|{{question.key}}" size="40" value="{{question.text}}" maxlength="{{maxlength_subject_or_comment}}"></div>
-	      				<br>{{template_explanation}} 
-	      				{% if questions|isFirstInSeries:question %}
-	      					{{"question_explanations"|info}} 
-	      				{% endif %}
-	      				<div><input type="text" name="help|{{question.key}}" size="40" value="{{question.help|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></div></td>
-	      			<td valign="top"><div><select name="type|{{question.key}}">
-	      				{% for i in question_types|makeRangeFromListLength %}
-	      			 		<option value="{{question_types|listLookup:i}}"
-	      			 		{% if question_types|listLookup:i|equalTest:question.type %}
-	      			 			selected="selected"
-	      			 		{% endif %}
-	      			 		>{{question_types_display|listLookup:i}}</option>
-	      			 	{% endfor %}
-	      			 	</select></div></td>
-	      			 <td valign="top" align="center"><div><input type="text" name="minIfValue|{{question.key}}" size="4" value="{{question.minIfValue}}" maxlength="{{maxlength_number}}"></div>
-	      			 	<div><input type="text" name="maxIfValue|{{question.key}}" size="4" value="{{question.maxIfValue}}" maxlength="{{maxlength_number}}"></div>
-	      			 	</td>
-	      			 <td valign="top" align="center"><div><input type="text" name="responseIfBoolean|{{question.key}}" size="10" value="{{question.responseIfBoolean}}" maxlength="{{maxlength_name}}"></div></td>
-	      			 <td valign="top" align="center">
-	      			 	{% for i in max_num_choices|makeRange %}
-	      			 		<input type="text" name="choice{{i}}|{{question.key}}" size="16" value="{{question.choices|listLookup:i|orNothing}}" maxlength="{{maxlength_tag_or_choice}}"><br/>
-	      			 	{% endfor %}
-	     			 <label><input type="checkbox" name="multiple|{{question.key}}" value="multiple|{{question.key}}"
-	     			 	{% if question.multiple %}
-	     			 		checked="checked"
-	     			 	{% endif %}
-	     			 	> {{template_multiple_answers_allowed}}</label></div>
-	     			 </td>
-	      			 <td valign="top" align="center">
-	      			 	<input type="checkbox" name="inactivate|{{question.key}}" id="inactivate|{{question.key}}">
-	      			 	<label for="inactivate|{{question.key}}">{{template_inactivate}}</label>
-	      			 </td>
+	      			<td style="border:none;">
+	      				{% if not questions|isLastInSeries:question %}
+	      					<input type="submit" class="move_down" value="" name="moveDown|{{question.key}}" title="{{template_move_down}}"></td>
+ 						{% else %}	
+ 							&nbsp;
+ 						{% endif %}
+      				<td style="border:none;">
+      					<p><b>{{question.linkString}}</b> </p>
+      					<p>{{question.name}} - {{question.type}} 
+      					{% if question.isOrdinalOrNominal %}
+      						{% if question.choices %}
+      							- {{question.choices|join:", "}}
+      						{% endif %}
+      					{% endif %}
+      					</p>
+      				</td>
 	      				</tr>
 	      		{% endfor %}
 	      	</table>
 	      	</fieldset>
 	    {% endif %}
 	      	
-		{% if inactive_questions %}
-			<h3>{{template_inactive_questions}} {{"inactive_questions"|caution}}</h3>
-			<fieldset>
-			<ul>
-			{% for question in inactive_questions %}
-				<li class="nobullet">{{question.name}} 
-				</li>
-			{% endfor %}
-			</ul>
-			</fieldset>
-		{% endif %}
-
-	    
 	    <h3>{{template_import_export_questions_about}} {{refer_type_plural_display}}</h3>
 	    <fieldset>
 	    <p>{{template_choose_csv_question_file}}:

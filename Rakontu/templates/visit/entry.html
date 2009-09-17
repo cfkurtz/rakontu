@@ -200,7 +200,7 @@
 		      		{% for link in included_links_outgoing %}
 		  				<tr>
 		  				<td>{{link.itemTo.linkString}}</a></td>
-			  			<td>{{link.itemTo.shortFormattedText|orNone}}</td>
+			  			<td>{{link.itemTo.text_formatted|upTo:current_member.shortDisplayLength|orNbsp}}</td>
 	        			<td>{{link.itemTo.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}</td>
 		  				<td><input type="text" name="linkComment|{{link.key}}" value="{{link.comment}}" size="40" maxlength="{{maxlength_subject_or_comment}}"/></td>
 		  				<td width="80">
@@ -226,7 +226,7 @@
 	      		{% for anEntry in collage_entries %}
 	      			<tr>
 	      			 <td>{{anEntry.linkString}}</td>
-	      			 <td>{{anEntry.text_formatted|upTo:short_display_length|orNbsp}}</td>
+	      			 <td>{{anEntry.text_formatted|upTo:current_member.shortDisplayLength|orNbsp}}</td>
 	        		 <td>{{anEntry.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}</td>
 	      			<td>
 	      			<input type="checkbox" name="addLink|{{anEntry.key}}" value="yes" id="addLink|{{anEntry.key}}"/>
@@ -274,7 +274,7 @@
 		      		{% for link in referenced_links_outgoing %}
 		  				<tr>
 		  				<td>{{link.itemTo.linkString}}</a></td>
-		  				<td>{{link.itemTo.shortFormattedText|orNone}}</td>
+		  				<td>{{link.itemTo.text_formatted|upTo:current_member.shortDisplayLength|orNbsp}}</td>
 		  				<td><input type="text" name="linkComment|{{link.key}}" value="{{link.comment}}" size="60" maxlength="{{maxlength_subject_or_comment}}"/></td>
 		  				<td width="80">
 		  					<input type="checkbox" name="removeLink|{{ link.key }}" value="yes" id="removeLink|{{ link.key }}"/>
@@ -299,7 +299,7 @@
 	      		{% for search in searches_that_can_be_added_to_pattern %}
 	      			<tr>
 	      			 <td>{{search.linkString}}</td>
-	      			 <td>{{search.shortFormattedText|orNbsp}}</td>
+	      			 <td>{{search.description|orNbsp}}</td>
 	        		 <td>{{search.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}</td>
 	      			<td>
 	      			<input type="checkbox" name="addLink|{{search.key}}" value="yes" id="addLink|{{search.key}}"/>

@@ -83,6 +83,7 @@
 				<p>{{template_inactive_members}}: {{rakontu.numInactiveMembers}}</p>
 				<p>{{template_entries}}: {{rakontu.numEntries}}</p>
 				<p>{{template_annotations}}: {{rakontu.numAnnotations}}</p>
+				<p>{{template_answers}}: {{rakontu.numAnswers}}</p>
 	    	</td>
 	    	<td align="center">
 	    		{% if member_of|dictLookup:rakontu.key %}
@@ -129,6 +130,7 @@
 					<option value="members">members</option>
 					<option value="entries" selected="selected">entries</option>
 					<option value="annotations">annotations</option>
+					<option value="answers">answers</option>
 					<option value="nudges">nudges</option>
 					</select>
 				<input type="submit" name="addFakeDataTo|{{rakontu.key}}" value="Add" class="button">

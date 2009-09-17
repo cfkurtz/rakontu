@@ -132,21 +132,23 @@ def GetRakontuFromURLQuery(query):
 			if queryAsDictionary.has_key(url):
 				entityKeyName = queryAsDictionary[url] 
 				if lookup == "url_query_member":
-					entity = Member.all().filter("id =", entityKeyName).get()
+					entity = Member.all().filter("id = ", entityKeyName).get()
 				elif lookup in ["url_query_export_csv", "url_query_export_txt", "url_query_export_xml"]:
 					entity = Export.get_by_key_name(entityKeyName)
 				elif lookup == "url_query_character":
-					entity = Character.all().filter("id =", entityKeyName).get()
+					entity = Character.all().filter("id = ", entityKeyName).get()
 				elif lookup == "url_query_entry": 
-					entity = Entry.all().filter("id =", entityKeyName).get()
+					entity = Entry.all().filter("id = ", entityKeyName).get()
 				elif lookup == "url_query_attachment": 
-					entity = Attachment.all().filter("id =", entityKeyName).get()
+					entity = Attachment.all().filter("id = ", entityKeyName).get()
 				elif lookup == "url_query_annotation":
-					entity = Annotation.all().filter("id =", entityKeyName).get()
+					entity = Annotation.all().filter("id = ", entityKeyName).get()
 				elif lookup == "url_query_version": 
-					entity = TextVersion.all().filter("id =", entityKeyName).get()
+					entity = TextVersion.all().filter("id = ", entityKeyName).get()
 				elif lookup == "url_query_search_filter":
-					entity = SavedSearch.all().filter("id =", entityKeyName).get()
+					entity = SavedSearch.all().filter("id = ", entityKeyName).get()
+				elif lookup == "url_query_question":
+					entity = Question.all().filter("id = ", entityKeyName).get()
 				if entity and entity.rakontu: 
 					return entity.rakontu 
 				else: 
@@ -168,21 +170,23 @@ def GetObjectOfTypeFromURLQuery(query, type):
 		if type == "url_query_rakontu":
 			return Rakontu.get_by_key_name(keyName)
 		elif type == "url_query_member":
-			return Member.all().filter("id =", keyName).get()
+			return Member.all().filter("id = ", keyName).get()
 		elif type == "url_query_character": 
-			return Character.all().filter("id =", keyName).get()
+			return Character.all().filter("id = ", keyName).get()
 		elif type == "url_query_export": 
 			return Export.get_by_key_name(keyName)
 		elif type == "url_query_entry":
-			return Entry.all().filter("id =", keyName).get()
+			return Entry.all().filter("id = ", keyName).get()
 		elif type == "url_query_attachment":
-			return Attachment.all().filter("id =", keyName).get()
+			return Attachment.all().filter("id = ", keyName).get()
 		elif type == "url_query_annotation":
-			return Annotation.all().filter("id =", keyName).get()
+			return Annotation.all().filter("id = ", keyName).get()
 		elif type == "url_query_version": 
-			return TextVersion.all().filter("id =", keyName).get()
+			return TextVersion.all().filter("id = ", keyName).get()
 		elif type == "url_query_search_filter":
-			return SavedSearch.all().filter("id =", keyName).get()
+			return SavedSearch.all().filter("id = ", keyName).get()
+		elif type == "url_query_question":
+			return Question.all().filter("id = ", keyName).get()
 	else:
 		return None
 	
@@ -219,7 +223,7 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'time_formats': TimeFormatStrings(),  
 	   'time_frames': TIME_FRAMES,  
 	   'entry_types': ENTRY_TYPES,
-	   'entry_types_display': ENTRY_TYPES_DISPLAY,
+	   'entry_types_display': ENTRY_TYPES_DISPLAY, 
 	   'entry_types_plural': ENTRY_TYPES_PLURAL,  
 	   'entry_types_plural_display': ENTRY_TYPES_PLURAL_DISPLAY,
 	   'annotation_types': ANNOTATION_TYPES,
@@ -231,7 +235,6 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'maxlength_name': MAXLENGTH_NAME,
 	   'maxlength_tag_or_choice': MAXLENGTH_TAG_OR_CHOICE, 
 	   'maxlength_number': MAXLENGTH_NUMBER,
-	   'short_display_length': SHORT_DISPLAY_LENGTH, 
 	   'home': HOME,
 	   'current_user': user, 
 	   'user_is_admin': users.is_current_user_admin(),
@@ -540,61 +543,71 @@ def ReadQuestionsFromFile(fileName, rakontu=None, rakontuType="ALL"):
 	if not rakontu:
 		db.delete(AllSystemQuestions()) 
 	file = open(fileName)
-	questionStrings = csv.reader(file) 
-	questionsToPut = []
-	for row in questionStrings:
-		if row[0] and row[1] and row[0][0] != ";":
-			if rakontuType != "ALL":
-				if row[8]: 
-					typesOfRakontu = [x.strip() for x in row[8].split(",")]
-				else:
-					typesOfRakontu = RAKONTU_TYPES[:-1] # if no entry interpret as all except custom
-			if rakontuType == "ALL" or rakontuType in typesOfRakontu:
-				refersTo = [x.strip() for x in row[0].split(",")]
-				for reference in refersTo:
-					name = row[1]
-					text = row[2]
-					type = row[3]
-					choices = []
-					minValue = DEFAULT_QUESTION_VALUE_MIN
-					maxValue = DEFAULT_QUESTION_VALUE_MAX
-					responseIfBoolean = DEFAULT_QUESTION_BOOLEAN_RESPONSE
-					if type == "ordinal" or type == "nominal":
-						choices = [x.strip() for x in row[4].split(",")]
-					elif type == "value":
-						minAndMax = row[4].split("-")
-						try:
-							minValue = int(minAndMax[0])
-						except:
-							pass
-						try:
-							maxValue = int(minAndMax[1])
-						except:
-							pass
-					elif type == "boolean":
-						responseIfBoolean = row[4]
-					multiple = row[5] == "yes"
-					help = row[6]
-					useHelp=row[7]
-					typesOfRakontu = [x.strip() for x in row[8].split(",")]
-					question = Question(
-									key_name=GenerateSequentialKeyName("question"),
-									parent=rakontu,
-									rakontu=rakontu,
-									refersTo=reference, 
-									name=name, 
-									text=text, 
-									type=type, 
-									choices=choices, 
-									multiple=multiple,
-									responseIfBoolean=responseIfBoolean, 
-									minIfValue=minValue, 
-									maxIfValue=maxValue, 
-									help=help, 
-									useHelp=useHelp)
-					questionsToPut.append(question)
-	db.put(questionsToPut)
-	file.close()
+	try:
+		questionStrings = csv.reader(file) 
+		questionsToPut = []
+		referenceCounts = {}
+		for row in questionStrings:
+			if row[0] and row[1] and row[0][0] != ";": 
+				if rakontuType != "ALL":
+					if row[8]:  
+						typesOfRakontu = [x.strip() for x in row[8].split(",")]
+					else: 
+						typesOfRakontu = RAKONTU_TYPES[:-1] # if no entry interpret as all except custom
+				if rakontuType == "ALL" or rakontuType in typesOfRakontu:
+					refersTo = [x.strip() for x in row[0].split(",")]  
+					for reference in refersTo: 
+						if not referenceCounts.has_key(reference):
+							referenceCounts[reference] = 0 
+						else: 
+							referenceCounts[reference] += 1 
+						name = row[1]
+						text = row[2]
+						type = row[3]
+						choices = [] 
+						minValue = DEFAULT_QUESTION_VALUE_MIN
+						maxValue = DEFAULT_QUESTION_VALUE_MAX
+						responseIfBoolean = DEFAULT_QUESTION_BOOLEAN_RESPONSE
+						if type == "ordinal" or type == "nominal":
+							choices = [x.strip() for x in row[4].split(",")]
+						elif type == "value":
+							minAndMax = row[4].split("-")
+							try:
+								minValue = int(minAndMax[0])
+							except:
+								pass
+							try:
+								maxValue = int(minAndMax[1])
+							except:
+								pass
+						elif type == "boolean":
+							responseIfBoolean = row[4]
+						multiple = row[5] == "yes"
+						help = row[6]
+						useHelp=row[7]
+						typesOfRakontu = [x.strip() for x in row[8].split(",")]
+						keyName = GenerateSequentialKeyName("question")
+						question = Question(
+										key_name=keyName,
+										parent=rakontu,
+										id=keyName,
+										rakontu=rakontu,
+										refersTo=reference, 
+										order=referenceCounts[reference],
+										name=name, 
+										text=text, 
+										type=type, 
+										choices=choices, 
+										multiple=multiple,
+										responseIfBoolean=responseIfBoolean, 
+										minIfValue=minValue, 
+										maxIfValue=maxValue, 
+										help=help, 
+										useHelp=useHelp)
+						questionsToPut.append(question)
+		db.put(questionsToPut)
+	finally:
+		file.close()
 
 def GenerateSampleQuestions():
 	ReadQuestionsFromFile(SAMPLE_QUESTIONS_FILE_NAME)
@@ -917,6 +930,35 @@ def checkedBlank(value):
 		return "checked"
 	return "" 
 
+def MoveItemWithOrderFieldUpOrDownInList(item, list, increment):
+	if increment < 0: # move toward start of list
+		if item.order == 0:
+			return
+		else:
+			itemBelow = None
+			for anItem in list:
+				if anItem.order == item.order - 1:
+					itemBelow = anItem
+					break
+			if itemBelow:
+				itemBelow.order += 1
+			item.order -= 1
+	elif increment > 0:
+		highestInList = 0
+		for anItem in list:
+			highestInList = max(highestInList, anItem.order)
+		if item.order == highestInList:
+			item.order += 1
+		else:
+			itemAbove = None
+			for anItem in list:
+				if anItem.order == item.order + 1:
+					itemAbove = anItem
+					break
+			if itemAbove:
+				itemAbove.order -= 1
+			item.order += 1
+				
 # ============================================================================================
 # ============================================================================================
 # MAKING FAKE DATA FOR TESTING
@@ -1100,6 +1142,61 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 			entry.lastAnnotatedOrAnsweredOrLinked = annotation.published
 			if type == "nudge":
 				entry.updateNudgePoints()
+			entry.put()
+	elif createWhat == "answers":
+		entryKeyNames = [] 
+		memberKeyNames = []
+		questionKeyNames = {}
+		for question in rakontu.getActiveQuestions():
+			if not questionKeyNames.has_key(question.refersTo):
+				questionKeyNames[question.refersTo] = []
+			questionKeyNames[question.refersTo].append(question.getKeyName())
+		for member in rakontu.getActiveMembers(): 
+			memberKeyNames.append(member.getKeyName())  
+		for entry in rakontu.getNonDraftEntries():
+			entryKeyNames.append(entry.getKeyName())
+		for i in range(numItems):
+			member = Member.get_by_key_name(random.choice(memberKeyNames), parent=rakontu)
+			entry = Entry.all().filter("id = ", random.choice(entryKeyNames)).get()
+			questionKeyNamesForThisType = questionKeyNames[entry.type]
+			question = Question.all().filter("id = ", random.choice(questionKeyNamesForThisType)).get()
+			text = random.choice(LOREM_IPSUM)[:random.randrange(5,20)]
+			keyName = GenerateSequentialKeyName("answer")
+			answer = Answer(
+								key_name=keyName, 
+								parent=entry,
+								id=keyName,
+								rakontu=rakontu, 
+								question=question,
+								creator=member, 
+								referent=entry)
+			if question.type == "boolean":
+				if random.randrange(100) > 50:
+					answer.answerIfBoolean = "yes"
+				else:
+					answer.answerIfBoolean = "no"
+			elif question.type == "text":
+				answer.answerIfText = text
+			elif question.type == "value":
+				answer.answerIfValue = random.randrange(question.minIfValue, question.maxIfValue)
+			elif question.isOrdinalOrNominal():
+				if question.multiple:
+					answer.answerIfMultiple = []
+					for choice in question.choices:
+						if random.randrange(100) > 50:
+							answer.answerIfMultiple.append(choice)
+				else:
+					for choice in question.choices:
+						if random.randrange(100) > 100 // len(question.choices):
+							answer.answerIfText = choice
+							break
+					if not answer.answerIfText:
+						answer.answerIfText = question.choices[0]
+			answer.publish()
+			answer.published = GenerateRandomDate(entry.published, endDate)
+			answer.created = answer.published
+			answer.put()
+			entry.lastAnnotatedOrAnsweredOrLinked = answer.published
 			entry.put()
 	elif createWhat == "nudges":
 		entryKeyNames = []

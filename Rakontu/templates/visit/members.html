@@ -37,7 +37,7 @@
 			  			{% endif %}
 			  		{% endif %}
 			  		{% if aMember.profileText_formatted|orNothing %}
-			  			<p><i>{{aMember.shortFormattedProfileText}}</i></p>
+			  			<p><i>{{aMember.profileText_formatted|upTo:current_member.shortDisplayLength|orNbsp}}</i></p>
 			  		{% endif %}
 	  				</td>
 	  			<td style="border-left:none; border-right:none;">

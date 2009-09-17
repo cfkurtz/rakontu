@@ -1,0 +1,66 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+	
+	{% if current_member.isManagerOrOwner %}
+		<div id="stylized" class="rakontu_form">
+		<form action="/{{dir_manage}}/{{url_question}}?{{question.urlQuery}}" method="post" enctype="multipart/form-data">
+		<h3>{{template_change}} {{template_question|lower}} "{{question.name}}"</h3>
+
+		<fieldset>
+		
+  		<p>{{template_text}} {{"question_texts"|info}}</p>
+  		<p>&nbsp; &nbsp;<input type="text" name="text" size="80" value="{{question.text}}" maxlength="{{maxlength_subject_or_comment}}"></p>
+  		
+  		<p>{{template_name}}  {{"question_names"|info}}</p>
+  		<p>&nbsp; &nbsp;<input type="text" name="name" size="40" value="{{question.name}}" maxlength="{{maxlength_name}}"></p>
+  		
+  		<p>{{template_explanation}} {{"question_explanations"|info}} </p>
+  		<p>&nbsp; &nbsp;<input type="text" name="help" size="80" value="{{question.help|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></p>
+  		
+  		<p>{{template_type}}</p> 
+  		<p>&nbsp; &nbsp;<select name="type">
+  				{% for i in question_types|makeRangeFromListLength %}
+  			 		<option value="{{question_types|listLookup:i}}"
+  			 		{% if question_types|listLookup:i|equalTest:question.type %}
+  			 			selected="selected"
+  			 		{% endif %}
+  			 		>{{question_types_display|listLookup:i}}</option>
+  			 	{% endfor %}
+  			 	</select> {{"ordinal_and_nominal_questions"|tip}}</p>
+  		
+  		<p>{{template_min_max}} ({{template_if_value}})</p>
+  		<p>&nbsp; &nbsp;<input type="text" name="minIfValue" size="4" value="{{question.minIfValue}}" maxlength="{{maxlength_number}}">
+  		<input type="text" name="maxIfValue" size="4" value="{{question.maxIfValue}}" maxlength="{{maxlength_number}}">
+		</p>
+		
+		<p>{{template_response}} ({{template_if_boolean}})  </p>
+		<p>&nbsp; &nbsp;<input type="text" name="responseIfBoolean" size="10" value="{{question.responseIfBoolean}}" maxlength="{{maxlength_name}}">
+		{{"response_if_boolean"|info}} </p>
+		
+		<p>{{template_choices}} ({{template_if_ordinal_or_nominal}}) {{"entering_question_choices"|tip}} {{"changing_question_choices"|caution}}</p>
+		<textarea name="choices" rows="12" cols="20">{{question.choicesAsLineDelimitedTextString}}</textarea>
+		
+		<p>{{template_multiple_answers_allowed}} ({{template_if_ordinal_or_nominal}})</p>
+		<p>&nbsp; &nbsp;<input type="checkbox" name="multiple" value="yes" id="multiple"
+ 			 	{% if question.multiple %}
+ 			 		checked="checked"
+ 			 	{% endif %}
+ 			 	><label for="multiple">{{template_yes_multiple_answers_allowed}}</label>
+ 		</p>
+	      
+	    </fieldset>
+	<p></p>
+	
+    <center><input type="submit" name="changesTo|{{refer_type}}" value="{{button_save_changes}}" class="button"/></center>
+	</form>	
+	</div>
+	{% else %}
+		<p>{{no_access|dictLookup:"questions"}}</p>
+	{% endif %}
+
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

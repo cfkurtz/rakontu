@@ -318,8 +318,8 @@ class ManageRakontuQuestionsListPage(ErrorHandlingRequestHander):
 					questions = rakontu.getActiveQuestionsOfType(type)
 					countsForThisType = []
 					for question in questions:
-						countsForThisType.append((question.name, question.text, question.getAnswerCount()))
-					countsForThisType.sort(lambda a,b: cmp(b[2], a[2])) # descending order
+						countsForThisType.append((question.linkString(), question.getAnswerCount()))
+					countsForThisType.sort(lambda a,b: cmp(b[1], a[1])) # descending order
 					counts.append(countsForThisType)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["MANAGE_QUESTIONS"], 
@@ -358,8 +358,8 @@ class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 						typePluralDisplay = QUESTION_REFERS_TO_PLURAL_DISPLAY[i]
 						break
 					i += 1
-				rakontuQuestionsOfType = rakontu.getActiveQuestionsOfType(type)
-				inactiveQuestionsOfType = rakontu.getInactiveQuestionsOfType(type)
+				sortedQuestions = rakontu.getQuestionsOfType(type)
+				sortedQuestions.sort(lambda a,b: cmp(a.order, b.order))
 				systemQuestionsOfType = SystemQuestionsOfType(type)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["MANAGE_QUESTIONS_ABOUT"], 
@@ -367,8 +367,7 @@ class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 								   'rakontu': rakontu, 
 								   'skin': rakontu.getSkinDictionary(),
 								   'current_member': member,
-								   'questions': rakontuQuestionsOfType,
-								   'inactive_questions': inactiveQuestionsOfType,
+								   'questions': sortedQuestions,
 								   'question_types': QUESTION_TYPES,
 								   'question_types_display': QUESTION_TYPES_DISPLAY,
 								   'system_questions': systemQuestionsOfType,
@@ -391,36 +390,24 @@ class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
-				for aType in QUESTION_REFERS_TO:
-					for argument in self.request.arguments():
-						if argument == "changesTo|%s" % aType:
-							type = aType
-							break
-				rakontuQuestionsOfType = rakontu.getActiveQuestionsOfType(type)
+				i = 0
+				for aType in QUESTION_REFERS_TO_URLS:
+					if self.request.uri.find(aType) >= 0:
+						type = aType
+						break
+					i += 1
+				rakontuQuestionsOfType = rakontu.getQuestionsOfType(type)
 				systemQuestionsOfType = SystemQuestionsOfType(type)
 				questionsToPut = []
 				for question in rakontuQuestionsOfType:
-					question.name = htmlEscape(self.request.get("name|%s" % question.key()))
-					if not question.name:
-						question.name = DEFAULT_QUESTION_NAME
-					question.text = htmlEscape(self.request.get("text|%s" % question.key()))
-					question.help = htmlEscape(self.request.get("help|%s" % question.key()))
-					question.type = self.request.get("type|%s" % question.key())
-					question.choices = []
-					for i in range(10):
-						question.choices.append(htmlEscape(self.request.get("choice%s|%s" % (i, question.key()))))
-					oldValue = question.minIfValue
-					try:
-						question.minIfValue = int(self.request.get("minIfValue|%s" % question.key()))
-					except:
-						question.minIfValue = oldValue
-					oldValue = question.maxIfValue
-					try:
-						question.maxIfValue = int(self.request.get("maxIfValue|%s" % question.key()))
-					except:
-						question.maxIfValue = oldValue
-					question.responseIfBoolean = self.request.get("responseIfBoolean|%s" % question.key())
-					question.multiple = self.request.get("multiple|%s" % question.key()) == "multiple|%s" % question.key()
+					if "moveUp|%s" % question.key() in self.request.arguments():
+						MoveItemWithOrderFieldUpOrDownInList(question, rakontuQuestionsOfType, -1)
+					elif "moveDown|%s" % question.key() in self.request.arguments():
+						MoveItemWithOrderFieldUpOrDownInList(question, rakontuQuestionsOfType, 1)
+					elif "activate|%s" % question.key() in self.request.arguments():
+						question.active = True
+					elif "inactivate|%s" % question.key() in self.request.arguments():
+						question.active = False
 				questionsToPut.extend(rakontuQuestionsOfType)
 				for question in rakontuQuestionsOfType:
 					if self.request.get("inactivate|%s" % question.key()):
@@ -441,6 +428,7 @@ class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 							question = Question(
 											key_name=keyName, 
 											parent=rakontu,
+											id=keyName,
 											rakontu=rakontu, 
 											name=name, 
 											refersTo=type, 
@@ -457,7 +445,84 @@ class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 					if questionsToPut:
 						db.put(questionsToPut)
 				db.run_in_transaction(txn, questionsToPut)
-				self.redirect(BuildURL("dir_manage", "url_questions_list", rakontu=rakontu))
+				self.redirect(self.request.uri)
+			else:
+				self.redirect(ManagersOnlyURL(rakontu))
+		else:
+			self.redirect(NoRakontuAndMemberURL())
+		
+class ManageOneQuestionPage(ErrorHandlingRequestHander):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
+			if member.isManagerOrOwner():
+				question = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_question")
+				if question:
+					template_values = GetStandardTemplateDictionaryAndAddMore({
+									   'title': TITLES["MANAGE_QUESTION"], 
+								   	   'title_extra': question.name,
+									   'rakontu': rakontu, 
+									   'skin': rakontu.getSkinDictionary(),
+									   'current_member': member,
+									   'question': question,
+									   'question_types': QUESTION_TYPES,
+									   'question_types_display': QUESTION_TYPES_DISPLAY,
+									   })
+					path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/question.html'))
+					self.response.out.write(template.render(path, template_values))
+				else:
+					self.redirect(NotFoundURL(rakontu))
+			else:
+				self.redirect(ManagersOnlyURL(rakontu))
+		else:
+			self.redirect(NoRakontuAndMemberURL())
+	
+	@RequireLogin 
+	def post(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if member.isManagerOrOwner():
+				question = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_question")
+				i = 0
+				for aType in QUESTION_REFERS_TO_URLS:
+					if question.refersTo == aType:
+						typeURL = QUESTION_REFERS_TO_URLS[i]
+						break
+					i += 1
+				DebugPrint(question)
+				DebugPrint(typeURL)
+				if question and typeURL:
+					question.name = htmlEscape(self.request.get("name"))
+					if not question.name:
+						question.name = DEFAULT_QUESTION_NAME
+					question.text = htmlEscape(self.request.get("text"))
+					question.help = htmlEscape(self.request.get("help"))
+					question.type = self.request.get("type")
+					question.choices = []
+					choicesToAdd = htmlEscape(self.request.get("choices")).split('\n')
+					for choice in choicesToAdd:
+						if choice.strip():
+							question.choices.append(choice.strip())
+					oldValue = question.minIfValue
+					try:
+						question.minIfValue = int(self.request.get("minIfValue"))
+					except:
+						question.minIfValue = oldValue
+					oldValue = question.maxIfValue
+					try:
+						question.maxIfValue = int(self.request.get("maxIfValue"))
+					except:
+						question.maxIfValue = oldValue
+					question.responseIfBoolean = self.request.get("responseIfBoolean")
+					question.multiple = self.request.get("multiple") == "yes"
+					question.put()
+					DebugPrint("url_questions_%s" % typeURL)
+					url = "/%s/%s_%s?%s" % (DIRS["dir_manage"], URLS["url_questions"], typeURL, rakontu.urlQuery())
+					self.redirect(url)
+				else:
+					self.redirect(NotFoundURL(rakontu))
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
@@ -548,6 +613,8 @@ class ManageCharacterPage(ErrorHandlingRequestHander):
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			if member.isManagerOrOwner():
 				character = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_character")
+				sortedQuestions = rakontu.getActiveQuestionsOfType("character")
+				sortedQuestions.sort(lambda a,b: cmp(a.order, b.order))
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["MANAGE_CHARACTER"],
 							   	   'title_extra': character.name, 
@@ -555,7 +622,7 @@ class ManageCharacterPage(ErrorHandlingRequestHander):
 								   'skin': rakontu.getSkinDictionary(),
 								   'character': character,
 								   'current_member': member,
-								   'questions': rakontu.getActiveQuestionsOfType("character"),
+								   'questions': sortedQuestions,
 								   'answers': character.getAnswers(),
 								   'refer_type': "character",
 								   'refer_type_display': DisplayTypeForQuestionReferType("character"),

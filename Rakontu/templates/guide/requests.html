@@ -46,7 +46,7 @@
       			<tr>
       			<td>{{request.entry.linkString}}</td>
       			<td>{{request.linkString}}</td>
-      			<td>{{request.longString_formatted|upTo:short_display_length}}</a></td>
+      			<td>{{request.longString_formatted|upTo:current_member.shortDisplayLength|orNbsp}}</a></td>
       			<td align="center">
   					{% if request.completedIfRequest %}
   						{{template_yes|upper}}

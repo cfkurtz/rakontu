@@ -7,17 +7,25 @@
 	{% if current_member.isManagerOrOwner %}
 
 		{% for i in num_types|makeRange %}
-			<h3>{{template_questions_about}} {{refer_types_plural_display|listLookup:i}}</h3>
-      		<ul>
+			<h3>{{template_questions_and_response_counts_about}} {{refer_types_plural_display|listLookup:i}}
+			{% if counts %}
+			- <a href="/{{dir_manage}}/{{url_questions}}_{{refer_types_urls|listLookup:i}}?{{rakontu.urlQuery}}">{{template_change|lower}}</a>
+			{% endif %}
+			</h3>
       		{% if counts|listLookup:i %}
+      			<table cellpadding=4 cellspacing=0 style="width:100%;">
 	      		{% for questionAndCount in counts|listLookup:i %}
-	      			<li class="nobullet">{{questionAndCount|listLookup:1}} ({{questionAndCount|listLookup:0}}, {{questionAndCount|listLookup:2}} {{template_responses|lower}})</li>
+	      			<tr>
+	      			<td width="20" align="center" style="border:none;">{{questionAndCount|listLookup:1}}</td>
+	      			<td style="border:none;">{{questionAndCount|listLookup:0}}</td>
+	      			</tr>
 	      		{% endfor %}
-	      		<li class="nobullet"><a href="/{{dir_manage}}/{{url_questions}}_{{refer_types_urls|listLookup:i}}?{{rakontu.urlQuery}}">{{template_change}}</a></li>
+	      		</table>
 	      	{% else %}
+	      		<ul>
 	      		<li class="nobullet">{{term_none}} - <a href="/{{dir_manage}}/{{url_questions}}_{{refer_types_urls|listLookup:i}}?{{rakontu.urlQuery}}">{{template_add_some}}</a></li>
+	      		</ul>
 	      	{% endif %}
-      		</ul>
       	{% endfor %}
        	
 	{% else %}

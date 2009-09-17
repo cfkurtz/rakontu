@@ -154,6 +154,16 @@
 				{% endif %}
 				>{{template_no}}</option>
 			</select></p>
+			<p>{{template_details_text_length_choice}}
+			<select name="shortDisplayLength">
+				{% for choice in details_text_length_choices %}
+					<option value="{{choice}}"
+					{% ifequal choice member.shortDisplayLength %}
+						selected="selected"
+					{% endifequal %}
+					>{{choice}}</option>
+				{% endfor %}
+			</select></p>
 		{% endif %}
 		{% if member.isOnlineMember %}
 			{% if show_leave_link %}

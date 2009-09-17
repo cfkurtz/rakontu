@@ -935,6 +935,8 @@ class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 				memberToEdit = offlineMember
 			else:
 				memberToEdit = member
+			sortedQuestions = rakontu.getActiveMemberQuestions()
+			sortedQuestions.sort(lambda a,b: cmp(a.order, b.order))
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': TITLES["PROFILE_FOR"], 
 						   	   'title_extra': memberToEdit.nickname, 
@@ -943,7 +945,7 @@ class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 							   'member': memberToEdit,
 							   'accumulated_nudge_points': member.nudgePoints,
 							   'current_member': member,
-							   'questions': rakontu.getActiveMemberQuestions(),
+							   'questions': sortedQuestions,
 							   'answers': memberToEdit.getAnswers(),
 							   'refer_type': "member",
 							   'refer_type_display': DisplayTypeForQuestionReferType("member"),
@@ -1043,6 +1045,7 @@ class ChangeMemberPreferencesPage(ErrorHandlingRequestHander):
 							   'show_leave_link': not rakontu.memberIsOnlyOwner(member),
 							   'my_offline_members': rakontu.getActiveOfflineMembersForLiaison(member),
 							   'time_zone_names': pytz.all_timezones,    
+							   'details_text_length_choices': DETAILS_TEXT_LENGTH_CHOICES,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/preferences.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -1091,6 +1094,11 @@ class ChangeMemberPreferencesPage(ErrorHandlingRequestHander):
 					memberToEdit.guideIntro_format = format
 					memberToEdit.preferredTextFormat = self.request.get("preferredTextFormat")
 					memberToEdit.showAttachedImagesInline = self.request.get("showAttachedImagesInline") == "yes"
+					oldValue = memberToEdit.shortDisplayLength
+					try:
+						memberToEdit.shortDisplayLength = int(self.request.get("shortDisplayLength"))
+					except:
+						memberToEdit.shortDisplayLength = oldValue
 				memberToEdit.put()
 				if offlineMember:
 					self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
@@ -1913,14 +1921,14 @@ def ItemDisplayStringForGrid(item, member, location, curating=False, showDetails
 		if item.__class__.__name__ == "Annotation":
 			if item.type == "comment" or item.type == "request":
 				if item.longString_formatted:
-					textString = ": %s" % upToWithLink(stripTags(item.longString_formatted), SHORT_DISPLAY_LENGTH, item.linkURL())
+					textString = ": %s" % upToWithLink(stripTags(item.longString_formatted), member.shortDisplayLength, item.linkURL())
 				else:
 					textString = ""
 			else:
 				textString = ""
 		elif item.__class__.__name__ == "Entry":
 			if item.text_formatted:
-				textString = " %s" % upToWithLink(stripTags(item.text_formatted), SHORT_DISPLAY_LENGTH, item.linkURL())
+				textString = " %s" % upToWithLink(stripTags(item.text_formatted), member.shortDisplayLength, item.linkURL())
 			else:
 				textString = ""
 		else:

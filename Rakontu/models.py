@@ -349,6 +349,10 @@ class Rakontu(db.Model):
 		# this is only used in the admin pages - documentation will say could be > 1000
 		return Annotation.all().filter("rakontu = ", self.key()).count()
 	
+	def numAnswers(self):
+		# this is only used in the admin pages - documentation will say could be > 1000
+		return Answer.all().filter("rakontu = ", self.key()).count()
+	
 	def getGuides(self):
 		result = []
 		onlineMembers = Member.all().filter("rakontu = ", self.key()).filter("active = ", True).filter("isOnlineMember = ", True).fetch(FETCH_NUMBER)
@@ -701,6 +705,9 @@ class Rakontu(db.Model):
 	def getInactiveQuestionsOfType(self, type):
 		return Question.all().filter("rakontu = ", self.key()).filter("refersTo = ", type).filter("active = ", False).fetch(FETCH_NUMBER)
 	
+	def getQuestionsOfType(self, type):
+		return Question.all().filter("rakontu = ", self.key()).filter("refersTo = ", type).fetch(FETCH_NUMBER)
+	
 	def getActiveMemberQuestions(self):
 		return self.getActiveQuestionsOfType("member")
 	
@@ -728,6 +735,7 @@ class Rakontu(db.Model):
 		newQuestion = Question(
 							   key_name=keyName,
 							   parent=self,
+							   id=keyName,
 							   rakontu=self,
 							   refersTo=question.refersTo,
 							   name=question.name,
@@ -771,9 +779,11 @@ class Rakontu(db.Model):
 				multiple = row[5] == "yes"
 				help = row[6]
 				useHelp=row[7]
+				keyName = GenerateSequentialKeyName("question")
 				question = Question(
-								key_name=GenerateSequentialKeyName("question"),
+								key_name=keyName,
 								parent=self,
+								id=keyName,
 								rakontu=self,
 								refersTo=refersTo, 
 								name=name, 
@@ -1037,9 +1047,10 @@ class Rakontu(db.Model):
 class Question(db.Model):
 # ============================================================================================
 # thing asked about entry, member or character
-# parent: rakontu; URL lookup: none, never looked up so not needed
+# parent: rakontu; URL lookup: id property
 # ============================================================================================
 
+	id = db.StringProperty(required=True)
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, collection_name="questions_to_rakontu") 
 	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO, required=True)
@@ -1093,6 +1104,24 @@ class Question(db.Model):
 	
 	def getAnswerCount(self):
 		return Answer.all().filter("question = ", self.key()).count()
+			
+	def getKeyName(self):
+		return self.key().name()
+	
+	def linkString(self):
+		return '<a href="%s?%s">%s</a>' % (self.urlWithoutQuery(), self.urlQuery(), self.text)
+		
+	def linkURL(self):
+		return '%s?%s' % (self.urlWithoutQuery(), self.urlQuery())
+		
+	def urlWithoutQuery(self):
+		return "/%s/%s" % (DIRS["dir_manage"], URLS["url_question"])
+
+	def urlQuery(self):
+		return "%s=%s" % (URL_IDS["url_query_question"], self.key().name())
+	
+	def choicesAsLineDelimitedTextString(self):
+		return "\n".join(self.choices)
 	
 # ============================================================================================
 # ============================================================================================
@@ -1131,6 +1160,7 @@ class Member(db.Model):
 	acceptsMessages = db.BooleanProperty(default=True, indexed=False) # other members can send emails to their google email (without seeing it)
 	messageReplyToEmail = db.StringProperty(default="", indexed=False)
 	preferredTextFormat = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
+	shortDisplayLength = db.IntegerProperty(default=DEFAULT_DETAILS_TEXT_LENGTH) # how long to show texts in details
 	
 	timeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE, indexed=False) # members choose these in their prefs page
 	timeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT, indexed=False) # how they want to see dates
@@ -1140,7 +1170,6 @@ class Member(db.Model):
 	joined = TzDateTimeProperty(auto_now_add=True)
 	firstVisited = db.DateTimeProperty(indexed=False)
 	
-	# THESE MAKE TRANSACTIONS DIFFICULT
 	lastEnteredEntry = db.DateTimeProperty(indexed=False)
 	lastEnteredAnnotation = db.DateTimeProperty(indexed=False)
 	lastEnteredLink = db.DateTimeProperty(indexed=False)
@@ -1587,12 +1616,6 @@ class Member(db.Model):
 	def imageEmbed(self):
 		return '<img src="/%s/%s?%s=%s" class="bordered">' % (DIRS["dir_visit"], URLS["url_image"], URL_IDS["url_query_member"], self.getKeyName())
 	
-	def shortFormattedProfileText(self):
-		if len(self.profileText_formatted) > SHORT_DISPLAY_LENGTH:
-			return "%s ..." % self.profileText_formatted[:SHORT_DISPLAY_LENGTH-2]
-		else:
-			return self.profileText_formatted
-
 # ============================================================================================
 # ============================================================================================
 class ViewOptions(db.Model): 
@@ -1917,7 +1940,7 @@ class SavedSearch(db.Model):
 	def urlQuery(self):
 		return "%s=%s" % (URL_IDS["url_query_search_filter"], self.key().name())
 
-	def shortFormattedText(self):
+	def description(self):
 		result = ""
 		if self.words:
 			result += '<p>%s %s "%s"</p>' % (self.words_anyOrAll, TERMS["term_of_the_words"], ",".join(self.words))
@@ -2179,6 +2202,7 @@ class Entry(db.Model):
 	resourceForNewMemberPage = db.BooleanProperty(default=False)
 	resourceForManagersAndOwnersOnly = db.BooleanProperty(default=False)
 	categoryIfResource = db.StringProperty(default="")
+	orderIfResource = db.IntegerProperty(default=0)
 
 	rakontu = db.ReferenceProperty(Rakontu, collection_name="entries_to_rakontu")
 	creator = db.ReferenceProperty(Member, collection_name="entries_to_members")
@@ -2774,16 +2798,10 @@ class Entry(db.Model):
 	
 	def getTooltipText(self):
 		if self.text_formatted:
-			return'title="%s (%s)"' % (stripTags(self.text_formatted[:SHORT_DISPLAY_LENGTH]), self.memberNickNameOrCharacterName())
+			return'title="%s (%s)"' % (stripTags(self.text_formatted[:TOOLTIP_LENGTH]), self.memberNickNameOrCharacterName())
 		else:
 			return ""
 	
-	def shortFormattedText(self):
-		if len(self.text_formatted) > SHORT_DISPLAY_LENGTH:
-			return "%s ..." % self.text_formatted[:SHORT_DISPLAY_LENGTH-2]
-		else:
-			return self.text_formatted
-
 	def getImageLinkForType(self):
 		text = self.getTooltipText()
 		if self.type == "story":
@@ -3271,7 +3289,7 @@ class Annotation(db.Model):
 		
 	def getTooltipText(self):
 		if self.longString_formatted:
-			return'title="%s (%s)"' % (stripTags(self.longString_formatted[:SHORT_DISPLAY_LENGTH]), self.memberNickNameOrCharacterName())
+			return'title="%s (%s)"' % (stripTags(self.longString_formatted[:TOOLTIP_LENGTH]), self.memberNickNameOrCharacterName())
 		else:
 			return ""
 	

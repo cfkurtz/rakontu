@@ -221,8 +221,14 @@ PRINT_DELIMITER = "=======\n"
 # This is the number of entries to export to XML in one request.
 EXPORT_RANGE_XML = 50
 
-# This is how much text to show where an entry (or comment or request) is being summarized
-SHORT_DISPLAY_LENGTH = 60
+# This is how much text to show where an entry (or comment or request) is being summarized in a details view
+# The user can change this
+DEFAULT_DETAILS_TEXT_LENGTH = 60
+DETAILS_TEXT_LENGTH_CHOICES = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000]
+
+# This is how much text shows on tooltips over names 
+# The user can't change this (too many template references...)
+TOOLTIP_LENGTH = 200
 
 # ============================================================================================ 
 # QUESTIONS

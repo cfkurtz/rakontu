@@ -131,6 +131,8 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 				offlineOrAllMembers = rakontu.getActiveMembers()
 			else:
 				offlineOrAllMembers = None
+			sortedQuestions = rakontu.getActiveQuestionsOfType(type)
+			sortedQuestions.sort(lambda a,b: cmp(a.order, b.order))
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': typeDisplay.capitalize(), 
 						   	   'title_extra': pageTitleExtra, 
@@ -155,7 +157,7 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 							   # used by common_questions
 							   'refer_type': type,
 							   'refer_type_display': typeDisplay,
-							   'questions': rakontu.getActiveQuestionsOfType(type),
+							   'questions': sortedQuestions,
 							   'answers': answers,
 							   # for a retold or remined story
 							   'link_type': linkType,
@@ -455,6 +457,8 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 					answerRefForQuestions =  answers[0]
 				else:
 					answerRefForQuestions = None
+				sortedQuestions = rakontu.getActiveQuestionsOfType(entry.type),
+				sortedQuestions.sort(lambda a,b: cmp(a.order, b.order))
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["ANSWERS_FOR"], 
 						   	   	   'title_extra': entry.title, 
@@ -466,7 +470,7 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 							       'attribution_referent': answerRefForQuestions,
 								   'refer_type': entry.type,
 								   'refer_type_display': DisplayTypeForQuestionReferType(entry.type),
-								   'questions': rakontu.getActiveQuestionsOfType(entry.type),
+								   'questions': sortedQuestions,
 								   'answers': answers,
 								   'rakontu_members': rakontu.getActiveMembers(),
 								   'offline_members': rakontu.getOfflineMembers(),
@@ -578,6 +582,8 @@ class PreviewAnswersPage(ErrorHandlingRequestHander):
 			else:
 				answers = None
 			if entry and answers:
+				sortedQuestions = rakontu.getActiveQuestionsOfType(entry.type),
+				sortedQuestions.sort(lambda a,b: cmp(a.order, b.order))
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["PREVIEW_OF"], 
 						   	   	   'title_extra': "%s %s " % (TITLES["ANSWERS_FOR"], entry.title), 
@@ -586,7 +592,7 @@ class PreviewAnswersPage(ErrorHandlingRequestHander):
 								   'skin': rakontu.getSkinDictionary(),
 								   'entry': entry,
 								   'rakontu_has_questions_for_this_entry_type': len(rakontu.getActiveQuestionsOfType(entry.type)) > 0,
-								   'questions': rakontu.getActiveQuestionsOfType(entry.type),
+								   'questions': sortedQuestions,
 								   'answers': answers,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/previewAnswers.html'))
@@ -819,6 +825,8 @@ class PreviewPage(ErrorHandlingRequestHander):
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			entry, annotation = GetEntryAndAnnotationFromURLQuery(self.request.query_string)
 			if entry:
+				sortedQuestions = rakontu.getActiveQuestionsOfType(entry.type),
+				sortedQuestions.sort(lambda a,b: cmp(a.order, b.order))
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["PREVIEW_OF"], 
 						   	   	   'title_extra': entry.title, 
@@ -829,7 +837,7 @@ class PreviewPage(ErrorHandlingRequestHander):
 								   'entry': entry,
 								   'included_links_outgoing': entry.getOutgoingLinksOfType("included"),
 								   'rakontu_has_questions_for_this_entry_type': len(rakontu.getActiveQuestionsOfType(entry.type)) > 0,
-								   'questions': rakontu.getActiveQuestionsOfType(entry.type),
+								   'questions': sortedQuestions,
 								   'answers_with_entry': entry.getAnswersForMember(member),
 								   'nudge_categories': rakontu.nudgeCategories,
 								   })

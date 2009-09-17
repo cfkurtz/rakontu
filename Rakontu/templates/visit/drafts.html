@@ -31,7 +31,7 @@
 						<p><a href="{{entry.typeAsURL}}?{{entry.urlQuery}}&{{version.urlQuery}}">{{version.title}}</a>
 						{{version.created|timeZone:member.timeZoneName|time:member.timeFormat}}
 						{{version.created|timeZone:member.timeZoneName|date:member.dateFormat}}
-						({{version.text|upTo:short_display_length}})
+						({{version.text|upTo:current_member.shortDisplayLength|orNbsp}})
 						</p>
 					{% endfor %}
 					&nbsp;

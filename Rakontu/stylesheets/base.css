@@ -291,5 +291,53 @@ ul li.nobullet {
 	border:none;
 	}
 	
+#stylized input.move_up {
+	background: transparent;
+	background-image: url(../images/arrow_up.png);
+	height:16px;
+	width:16px;
+	border:none;
+	}
+	
+#stylized input.move_up {
+	border:none;
+	}
+	
+#stylized input.move_down {
+	background: transparent;
+	background-image: url(../images/arrow_down.png);
+	height:16px;
+	width:16px;
+	border:none;
+	}
+
+#stylized input.move_down {
+	border:none;
+	}
+	
+#stylized input.active {
+	background: transparent;
+	background-image: url(../images/accept.png);
+	height:16px;
+	width:16px;
+	border:none;
+	}
+	
+#stylized input.active {
+	border:none;
+	}
+	
+#stylized input.inactive {
+	background: transparent;
+	background-image: url(../images/cancel.png);
+	height:16px;
+	width:16px;
+	border:none;
+	}
+
+#stylized input.inactive {
+	border:none;
+	}
+	
 /* ----------- margin: top right bottom left ----------- */
 

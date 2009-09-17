@@ -200,13 +200,15 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 				if rakontu.hasWithinTenOfTheMaximumNumberOfEntries():
 					self.redirect(BuildResultURL("reachedMaxEntriesPerRakontu", rakontu))
 					return
+				sortedQuestions = rakontu.getActiveQuestionsOfType("story"),
+				sortedQuestions.sort(lambda a,b: cmp(a.order, b.order))
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["BATCH_ENTRY"], 
 								   'rakontu': rakontu, 
 								   'skin': rakontu.getSkinDictionary(),
 								   'num_entries': NUM_ENTRIES_PER_BATCH_PAGE,
 								   'character_allowed': rakontu.allowCharacter[STORY_ENTRY_TYPE_INDEX],
-								   'questions': rakontu.getActiveQuestionsOfType("story"),
+								   'questions': sortedQuestions,
 								   'my_offline_members': rakontu.getActiveOfflineMembersForLiaison(member),
 								   'offline_members': rakontu.getActiveOfflineMembers(),
 								   'online_members': rakontu.getActiveOnlineMembers(),

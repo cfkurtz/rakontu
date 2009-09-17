@@ -352,6 +352,7 @@ TEMPLATE_TERMS = {
 		"template_go": "go",
 		"template_choose": "choose",
 		"template_why": "why",
+		"template_click_to_change": "click to change",
 		
 		# types of people (singular and plural)
 		"template_member": "Member",
@@ -432,6 +433,7 @@ TEMPLATE_TERMS = {
 		# things lots of objects have
 		"template_linked_to": "Linked to",
 		"template_name": "Name",
+		"template_text": "Text",
 		"template_file": "File",
 		"template_nickname": "Nickname",
 		"template_description": "Description",
@@ -683,14 +685,15 @@ TEMPLATE_TERMS = {
 		"template_send_invitation_email": "Send invitation email",
 		"template_invitation_to_join": "Invitation to join",
 		# manage/questions
+		"template_order": "Order",
 		"template_add_new_questions_about": "Add new questions about",
 		"template_change_questions_about": "Change questions about",
 		"template_import_export_questions_about": "Import and export questions about",
 		"template_name_question_explanation": "Name, question, and explanation",
 		"template_min_max": "Minimum and maximum",
-		"template_if_value": "if value",
-		"template_if_boolean": "if boolean",
-		"template_if_ordinal_or_nominal": "if ordinal or nominal",
+		"template_if_value": "only applies if question is of the value type",
+		"template_if_boolean": "only applies if question is of the boolean type",
+		"template_if_ordinal_or_nominal": "only applies if question is of the ordinal or nominal type",
 		"template_explanation": "Explanation",
 		"template_choices": "Choices",
 		"template_multiple_answers_allowed": "Multiple answers allowed",
@@ -701,11 +704,11 @@ TEMPLATE_TERMS = {
 		"template_min_max_are": "Minumum and maximum values are",
 		"template_a_positive_answer_is": "The text of a positive answer is", 
 		"template_choices_are": "Choices are",
-		"template_multiple_answers_allowed": "Multiple answers are allowed.",
+		"template_yes_multiple_answers_allowed": "Yes, allow multiple answers",
 		"template_explanation_is": "The explanation given is", 
 		"template_inactive_questions": "Inactive questions",
 		# manage/questionsList
-		"template_questions_about": "Questions about",
+		"template_questions_and_response_counts_about": "Responses to questions about",
 		# manage/appearance
 		"template_visual_appearance": "Visual appearance",
 		"template_tag_line": "Tag line",
@@ -909,6 +912,7 @@ TEMPLATE_TERMS = {
 		"template_time_display_choice": "How should times be displayed?",
 		"template_rakontu_created_on": "This Rakontu was created on",
 		"template_inline_image_display_choice": "Do you want to see attached images on the same page as the entries they are attached to?",
+		"template_details_text_length_choice": "How long would you like texts displayed in details views to be?",
 		# visit/rakontu
 		"template_rakontu_created_on": "This Rakontu was created on",
 		"template_make_changes_to_settings": "Make changes to Rakontu-level settings",
@@ -1247,6 +1251,7 @@ TITLES = {
         "MANAGE_APPEARANCE": "Manage appearance",
         "MANAGE_SETTINGS": "Manage settings" ,
         "MANAGE_QUESTIONS": "Manage questions" ,
+        "MANAGE_QUESTION": "Manage question", # question name
         "MANAGE_QUESTIONS_ABOUT": "Manage questions about", # thing referred to
         "MANAGE_CHARACTERS": "Manage characters",
         "MANAGE_CHARACTER": "Manage character", # character name
@@ -1350,6 +1355,7 @@ URLS = {
     "url_members": "members",
     "url_questions_list": "questionsList",
     "url_questions": "questions",
+    "url_question": "question",
     "url_questions_to_csv": "questionsToCSV",
     "url_characters": "characters",
     "url_character": "character",
@@ -1404,6 +1410,7 @@ URL_IDS = {
 	"url_query_export_csv": "csv",
 	"url_query_export_txt": "txt",
 	"url_query_export_xml": "xml",
+	"url_query_question": "question",
 	}
 
 # ============================================================================================ 
