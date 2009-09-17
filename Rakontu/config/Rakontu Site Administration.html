@@ -14,7 +14,14 @@ xxx
 
 <h3>Customizing your installation</h3>
 
-xxx
+<p>There are a few steps that you MUST do when starting up a Rakontu site. After the software is installed,</p>
+
+<ol>
+<li>Change the SITE_SUPPORT_EMAIL address in site_configuration.py. This MUST be the email address associated 
+with the Google account of one of the administrators of the application. If it isn't, people in Rakontus
+on your site won't be able to send each other emails. If you don't want to list your personal email
+here, create a Google account with a separate email you use only for this purpose.</li>
+</ol>
 
 
 
@@ -30,8 +37,11 @@ the data in SQL. </p>
 <ol>
 <li>Install a MySQL server on your local computer. Set up a user with a password for AppRocket to use.</li>
 <li>Edit the file <code>config.py</code> on your Rakontu GAE site so that it has the correct entries in the
-<code>MYSQL DATABASE CONFIGURATION</code> section of the file.
+<code>Replication URL</code> and <code>MYSQL DATABASE CONFIGURATION</code> sections of the file. 
 <pre>
+# Replication URL - change this to URL corresponding your application
+ROCKET_URL = "http://www.yoururl.com/rocket"
+...
 # MYSQL DATABASE CONFIGURATION
 DATABASE_HOST = "localhost"
 DATABASE_NAME = "rakontu_or_whatever_you_want_to_call_it"
@@ -39,9 +49,11 @@ DATABASE_USER = "approcket_or_whatever_you_want_to_call_it"
 DATABASE_PASSWORD = "whatever_you_set_the_approcket_password_to"
 </pre>
 </li>
+<li>Make sure that "/rocket" comes after your Rakontu site url in the ROCKET_URL constant.</li>
 <li>Set the <code>CURRENT_MODE</code> constant in <code>config.py</code>
 to one of the modes listed in the file. (If you just want to backup, keep it as RECEIVE.)</li>
-<li>Make sure you have Python 2.5 or greater installed on your system. (To find out, type "python -V" at a command prompt.)</li>
+<li>Make sure you have Python 2.5 or greater installed on your system. (To find out what you have installed, 
+type "python -V" at a command prompt.)</li>
 <li>Copy <code>rocket/station.py</code> from your GAE installation to a local machine.</li>
 <li>Start your MySQL server. Create an empty database called <code>rakontu</code> (or whatever you named it
 in your <code>config.py</code>). </li>
@@ -59,6 +71,22 @@ Helps and Exports. Helps come from the system and can't be changed per community
 identical to what is in the "help.csv" file, so there is not much reason to back them up.
 Exports are only kept as temporary generations for download and can easily be created again.
 Also, some will be large enough to make MySQL choke. So these two classes are not downloaded.</li>
+
+<li>If you have multiple Rakontus on your site, they will be mixed together in the MySQL database.
+Since every major data item that can possibly be part of a Rakontu has a "rakontu" reference field,
+you can use filters to select only those items in any one Rakontu. The table field will be called "rakontu_ref".
+However, sadly, AppRocket (as of this writing) doesn't deal well with list fields in GAE objects,
+so all list-field items will be in separate tables, linked to their parent object by a "k" field.
+So you have to retrieve the data for one Rakontu in two steps: first, get all parent objects
+by the "rakontu_ref" field; then second, retrieve their child objects by their "k" fields.
+Messy but doable.
+</li>
+
+<li>If you need to make any sort of bulk change to Rakontu objects, you should be able to set the AppRocket mode
+to RECEIVE, make changes in the updated MySQL database, set the AppRocket mode to SEND, then update
+the online database. However, take care to do this at some time when your users are not likely to be
+using the sytem (or temporarily disconnect it to make the change).
+</li>
 
 <li>The AppRocket backup includes <i>inactivated</i> Rakontus, members, questions, and characters. 
 (Because so many things point to these objects, they are never removed, only made invisible.

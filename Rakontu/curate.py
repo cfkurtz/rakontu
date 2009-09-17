@@ -64,7 +64,7 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 						if item.__class__.__name__ == "Entry":
 							item.removeAllDependents()
 						elif item.__class__.__name__ == "SavedSearch":
-							item.deleteAllDependents()
+							item.removeAllDependents()
 						itemsToDelete.append(item)
 				if itemsToPut:
 					db.put(itemsToPut)

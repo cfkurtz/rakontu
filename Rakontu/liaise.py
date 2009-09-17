@@ -62,16 +62,7 @@ class ReviewOfflineMembersPage(ErrorHandlingRequestHander):
 							existingMember.active = True
 							membersToPut.append(existingMember)
 						else:
-							keyName = GenerateSequentialKeyName("member")
-							newMember = Member(
-											key_name=keyName, 
-											rakontu=rakontu, 
-											nickname=nickname.strip(),
-											isOnlineMember = False,
-											liaisonIfOfflineMember = member,
-											googleAccountID = None,
-											googleAccountEmail = None)
-							membersToPut.append(newMember)
+							CreateMemberFromInfo(rakontu, None, None, nickname.strip(), "member", isOnline=False, liaison=member)
 				if membersToPut:
 					db.put(membersToPut)
 				self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))

@@ -76,13 +76,7 @@ class CreateRakontuPage_PartTwo(ErrorHandlingRequestHander):
 				if rakontu.type != RAKONTU_TYPES[-1]: # last type means no default questions
 					GenerateDefaultQuestionsForRakontu(rakontu, rakontu.type)
 				GenerateDefaultCharactersForRakontu(rakontu)
-				keyName = GenerateSequentialKeyName("pendingmember")
-				newPendingMember = PendingMember(
-					key_name=keyName, 
-					rakontu=rakontu, 
-					email=ownerEmail,
-					governanceType="owner")
-				newPendingMember.put()
+				CreatePendingMemberFromInfo(rakontu, ownerEmail, "owner")
 				self.redirect(BuildURL("dir_admin", "url_admin"))
 		else:
 			self.redirect(AdminOnlyURL())
@@ -157,7 +151,7 @@ class AdministerSitePage(ErrorHandlingRequestHander):
 				if "joinOrLeave|%s" % aRakontu.key() in self.request.arguments():
 					pendingMember = aRakontu.pendingMemberWithGoogleEmail(user.email())
 					if pendingMember:
-						member = CreateMemberFromPendingMember(aRakontu, pendingMember, user.user_id(), user.email())
+						member = CreateMemberFromInfo(aRakontu, user.user_id(), user.email(), user.email(), pendingMember.governanceType)
 					else:
 						member = aRakontu.memberWithGoogleUserID(user.user_id())
 						joinAs = self.request.get("joinAs|%s" % aRakontu.key())

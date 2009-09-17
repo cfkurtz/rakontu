@@ -624,7 +624,6 @@ class Rakontu(db.Model):
 		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "tag set").fetch(FETCH_NUMBER)
 	
 	def getTags(self):
-		# cfk check - this may be too slow and may need to be updated instead when a tag set is added or removed
 		tags = {}
 		tagsets = self.getTagSets()
 		for tagset in tagsets:
@@ -810,6 +809,7 @@ class Rakontu(db.Model):
 				db.delete(entries)
 		for member in self.getMembers():
 			member.removeAllDependents()
+		db.delete(SavedSearch.all().filter("rakontu =", self.key()).fetch(FETCH_NUMBER)) # shared searches
 		db.delete(Member.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
 		db.delete(PendingMember.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
 		for character in self.getCharacters():
@@ -1041,12 +1041,13 @@ class Question(db.Model):
 # ============================================================================================
 
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
-	rakontu = db.ReferenceProperty(Rakontu, collection_name="questions_to_rakontu") # CFK
+	rakontu = db.ReferenceProperty(Rakontu, collection_name="questions_to_rakontu") 
 	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO, required=True)
 	
 	name = db.StringProperty(required=True, default=DEFAULT_QUESTION_NAME)
 	text = db.StringProperty(required=True, indexed=False)
 	type = db.StringProperty(choices=QUESTION_TYPES, default="text") # text, boolean, ordinal, nominal, value
+	order = db.IntegerProperty(default=0) # order in list (for each type)
 	
 	active = db.BooleanProperty(default=True) # used to hide questions no longer being used, same as members
 	
@@ -1098,9 +1099,10 @@ class Question(db.Model):
 class Member(db.Model): 
 # ============================================================================================
 # person in rakontu
-# no parent
+# parent: rakontu; URL lookup: id property
 # ============================================================================================
 
+	id = db.StringProperty(required=True)
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="members_to_rakontu")
 	nickname = db.StringProperty(default=NO_NICKNAME_SET)
@@ -1160,13 +1162,13 @@ class Member(db.Model):
 		# caller does put
 		
 	def createViewOptions(self):
-		viewOptionsNow = ViewOptions.all().ancestor(self)#filter("member = ", self.key()).fetch(8) # probably only 4, but could be more
+		viewOptionsNow = ViewOptions.all().ancestor(self)
 		if viewOptionsNow:
 			db.delete(viewOptionsNow)
 		newObjects = []
 		for location in VIEW_OPTION_LOCATIONS:
-			keyName = GenerateSequentialKeyName("options")
-			viewOptions = ViewOptions(key_name=keyName, parent=self, id=keyName, member=self, location=location)
+			# because the view options are never used in a URL query, they don't need a key name
+			viewOptions = ViewOptions(parent=self, member=self, rakontu=self.rakontu, location=location)
 			if viewOptions.endTime.tzinfo is None:
 				viewOptions.endTime = viewOptions.endTime.replace(tzinfo=pytz.utc)
 			newObjects.append(viewOptions)
@@ -1179,7 +1181,10 @@ class Member(db.Model):
 	def removeAllDependents(self):
 		db.delete(ViewOptions.all().filter("member = ", self.key()).fetch(8) )
 		db.delete(Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER))
-		db.delete(SavedSearch.all().filter("creator =", self.key()).filter("private = ", True).fetch(FETCH_NUMBER))
+		searches = self.getPrivateSavedSearches()
+		for search in searches:
+			search.removeAllDependents()
+		db.delete(searches)
 		
 	# INFO
 	
@@ -1337,7 +1342,7 @@ class Member(db.Model):
 	
 	def getLimitForLocation(self, location):
 		viewOptions = self.getViewOptionsForLocation(location)
-		return viewOptions.limit
+		return viewOptions.limitPerPage
 	
 	# BROWSING - VIEW OPTIONS - SET
 	
@@ -1593,12 +1598,12 @@ class Member(db.Model):
 class ViewOptions(db.Model): 
 # ============================================================================================
 # options on what to show - four per member (home, entry, member, character)
-# # parent: member; URL lookup: id property
+# # parent: member; URL lookup: not needed
 # ============================================================================================
 
-	id = db.StringProperty(required=True)
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	member = db.ReferenceProperty(Member, required=True, collection_name="view_options_to_member")
+	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="view_options_to_rakontu")
 	location = db.StringProperty(choices=VIEW_OPTION_LOCATIONS, default="home") 
 	
 	endTime = TzDateTimeProperty(auto_now_add=True, indexed=False)
@@ -1612,7 +1617,7 @@ class ViewOptions(db.Model):
 	
 	search = db.ReferenceProperty(None, collection_name="view_options_to_search", indexed=False)
 	
-	limit = db.IntegerProperty(default=MAX_ITEMS_PER_GRID_PAGE, indexed=False) # may want to set this later, just constant for now
+	limitPerPage = db.IntegerProperty(default=MAX_ITEMS_PER_GRID_PAGE, indexed=False) # may want to set this later, just constant for now
 	
 	showDetails = db.BooleanProperty(default=False, indexed=False)
 	showOptionsOnTop = db.BooleanProperty(default=False, indexed=False)
@@ -1638,7 +1643,7 @@ class ViewOptions(db.Model):
 class PendingMember(db.Model): 
 # ============================================================================================
 # person invited to join rakontu but not yet logged in
-# no parent
+# parent: rakontu; no lookup required
 # ============================================================================================
 
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
@@ -1661,9 +1666,10 @@ class PendingMember(db.Model):
 class Character(db.Model):
 # ============================================================================================
 # optional fictions to anonymize entries but provide some information about intent
-# no parent
+# parent: rakontu; URL lookup: id property
 # ============================================================================================
 
+	id = db.StringProperty(required=True)
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="characters_to_rakontu")
 	name = db.StringProperty(required=True)
@@ -1878,7 +1884,7 @@ class SavedSearch(db.Model):
 	def getIncomingLinks(self):
 		return Link.all().filter("itemTo = ", self.key()).fetch(FETCH_NUMBER)
 	
-	def deleteAllDependents(self):
+	def removeAllDependents(self):
 		for ref in self.getQuestionReferences():
 			db.delete(ref)
 			
@@ -1984,7 +1990,6 @@ class Answer(db.Model):
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="answers_to_liaisons")
 	character = db.ReferenceProperty(Character, default=None, collection_name="answers_to_characters")
 	
-	draft = db.BooleanProperty(default=True) # CFK GET RID OF LATER
 	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	flagComment = db.StringProperty(indexed=False)
@@ -2051,7 +2056,6 @@ class Answer(db.Model):
 	
 	def publish(self):
 		if self.referentType == "entry":
-			self.draft = False # CFK GET RID OF LATER
 			self.published = datetime.now(pytz.utc)
 			self.referent.recordAction("added", self, "Answer")
 			for i in range(NUM_NUDGE_CATEGORIES):
@@ -2111,7 +2115,6 @@ class Answer(db.Model):
 		return self.displayString(includeQuestionName=False, includeQuestionText=True, )
 	
 	def linkStringWithQuestionNameAndReferentLink(self):
-		# CFK TEMP - something broken - should I ALWAYS be checking???
 		try:
 			return "%s for %s" % (self.linkStringWithQuestionName(), self.referent.linkString())
 		except:
@@ -2178,7 +2181,7 @@ class Entry(db.Model):
 	categoryIfResource = db.StringProperty(default="")
 
 	rakontu = db.ReferenceProperty(Rakontu, collection_name="entries_to_rakontu")
-	creator = db.ReferenceProperty(Member, collection_name="entries")
+	creator = db.ReferenceProperty(Member, collection_name="entries_to_members")
 	collectedOffline = db.BooleanProperty(default=False, indexed=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="entries_to_liaisons")
 	character = db.ReferenceProperty(Character, default=None, collection_name="entries_to_characters")
@@ -2889,7 +2892,7 @@ class Entry(db.Model):
 class TextVersion(db.Model): 
 # ============================================================================================
 # version of text portion of entry (for audit trail and for backtracking)
-# # parent: entry; URL lookup: id property
+# parent: entry; URL lookup: id property
 # ============================================================================================
 
 	id = db.StringProperty(required=True)
@@ -2925,10 +2928,10 @@ class Link(db.Model):
 	#   responded: invitation to story
 	#	included: collage to story
 	#   referenced: pattern to saved search - note, this is the only non-entry link item, and it is ALWAYS itemTo
-	itemFrom = db.ReferenceProperty(None, collection_name="fromLinks", required=True)
-	itemTo = db.ReferenceProperty(None, collection_name="toLinks", required=True)
+	itemFrom = db.ReferenceProperty(None, collection_name="links_to_entries_incoming", required=True)
+	itemTo = db.ReferenceProperty(None, collection_name="links_to_entries_outgoing", required=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="links_to_rakontu")
-	creator = db.ReferenceProperty(Member, collection_name="links")
+	creator = db.ReferenceProperty(Member, collection_name="links_to_members")
 	
 	# links cannot be in draft mode and cannot be entered in batch mode
 	flaggedForRemoval = db.BooleanProperty(default=False)
@@ -3016,13 +3019,13 @@ class Attachment(db.Model):
 	id = db.StringProperty(required=True)
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	created = TzDateTimeProperty(auto_now_add=True)
-	entry = db.ReferenceProperty(Entry, collection_name="attachments")
+	entry = db.ReferenceProperty(Entry, collection_name="attachments_to_entries")
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="attachments_to_rakontu")
 
 	name = db.StringProperty(default=UNTITLED_ATTACHMENT_NAME, indexed=False)
 	mimeType = db.StringProperty(indexed=False) # from ACCEPTED_ATTACHMENT_MIME_TYPES
 	fileName = db.StringProperty(indexed=False) # as uploaded
-	data = db.BlobProperty() # there is a practical limit on this size - cfk look at
+	data = db.BlobProperty() 
 	
 	def getKeyName(self):
 		return self.key().name()
@@ -3060,10 +3063,9 @@ class Annotation(db.Model):
 	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	type = db.StringProperty(choices=ANNOTATION_TYPES, required=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="annotations_to_rakontu")
-	entry = db.ReferenceProperty(Entry, required=True, collection_name="annotations") #CFK FIX THIS IS WRONG
-	creator = db.ReferenceProperty(Member, collection_name="annotations") #CFK FIX THIS IS WRONG
+	entry = db.ReferenceProperty(Entry, required=True, collection_name="annotations_to_entry") 
+	creator = db.ReferenceProperty(Member, collection_name="annotations_to_member") 
 	
-	draft = db.BooleanProperty(default=True) # CFK GET RID OF LATER
 	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	flagComment = db.StringProperty(indexed=False)
@@ -3080,7 +3082,7 @@ class Annotation(db.Model):
 	completedIfRequest = db.BooleanProperty(default=False)
 
 	collectedOffline = db.BooleanProperty(default=False, indexed=False)
-	liaison = db.ReferenceProperty(Member, default=None, collection_name="annotations_liaisoned")
+	liaison = db.ReferenceProperty(Member, default=None, collection_name="annotations_to_liaisons")
 	character = db.ReferenceProperty(Character, default=None, collection_name="annotations_to_characters")
 
 	collected = TzDateTimeProperty(default=None, indexed=False)
@@ -3101,7 +3103,6 @@ class Annotation(db.Model):
 		return self.type == "comment" or self.type == "request"
 	
 	def entryKey(self):
-		# CFK FIX - this is only temporarily necessary because of the collection_name mistake above
 		try:
 			if self.entry:
 				return self.entry.key()
@@ -3111,7 +3112,6 @@ class Annotation(db.Model):
 			return None
 		
 	def entryLinkString(self):
-		# CFK FIX - this is only temporarily necessary because of the collection_name mistake above
 		try:
 			if self.entry:
 				return self.entry.linkString()
@@ -3121,7 +3121,6 @@ class Annotation(db.Model):
 			return None
 		
 	def entryPublished(self):
-		# CFK FIX - this is only temporarily necessary because of the collection_name mistake above
 		try:
 			if self.entry:
 				return self.entry.published
@@ -3131,7 +3130,6 @@ class Annotation(db.Model):
 			return None
 		
 	def entryFlaggedForRemoval(self):
-		# CFK FIX - this is only temporarily necessary because of the collection_name mistake above
 		try:
 			if self.entry:
 				return self.entry.flaggedForRemoval
@@ -3143,7 +3141,6 @@ class Annotation(db.Model):
 	# IMPORTANT METHODS
 	
 	def publish(self):
-		self.draft = False # CFK GET RID OF LATER
 		self.published = datetime.now(pytz.utc)
 		self.entry.recordAction("added", self, "Annotation")
 		for i in range(NUM_NUDGE_CATEGORIES):
@@ -3559,7 +3556,7 @@ def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, m
 	numItemsBeforeLimitTruncation = None
 	considerLimit = True # in case of need later
 	if considerLimit:
-		limit = MAX_ITEMS_PER_GRID_PAGE # viewOptions.limit # in case of need later
+		limit = MAX_ITEMS_PER_GRID_PAGE # viewOptions.limitPerPage # in case of need later
 		if len(itemsWithSearch) > limit:
 			for i in range(limit):
 				itemsWithLimit.append(itemsWithSearch[i])

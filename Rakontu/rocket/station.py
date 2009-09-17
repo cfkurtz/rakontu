@@ -202,8 +202,15 @@ def send_updates(kind, table_name, timestamp_field, table_key_field, send_fields
     count = BATCH_SIZE
     while count == BATCH_SIZE:
         count = 0
+
         batch_sql = sql + " limit %d, %d" % (offset, BATCH_SIZE)
-        cur.execute(batch_sql, params)
+
+        logging.info(batch_sql, params)
+        
+        try:
+            cur.execute(batch_sql, params)
+        except Exception, e:
+            logging.info(e)
         intermediate_timestamp = None
 
         for row in cur.fetchall():                
@@ -245,14 +252,13 @@ def send_updates(kind, table_name, timestamp_field, table_key_field, send_fields
             
             # retrieve lists
             for field_name, field_type in table.list_fields.items():
-                if not send_fields or field_name in send_fields:                                      
-                    cur.execute('select %s from %s_%s where %s = ' % (field_name, table_name, field_name, table_key_field) + """%s""", (key))
+                cur.execute('select %s from %s_%s where %s = ' % (field_name, table_name, field_name, table_key_field) + """%s""", (key))
+                
+                items = []
+                for item in cur.fetchall():
+                    items.append(mysql_to_rocket(field_type, item[0]))
                     
-                    items = []
-                    for item in cur.fetchall():
-                        items.append(mysql_to_rocket(field_type, item[0]))
-                    
-                    entity["*%s|%s" % (field_type, field_name)] = '|'.join(items)
+                entity["*%s|%s" % (field_type, field_name)] = '|'.join(items)
                     
             logging.debug('send %s: key=%s' % (kind, key))
                         
@@ -303,14 +309,13 @@ def receive_updates(kind, table_name, timestamp_field, table_key_field, receive_
                 
     # receive updates
     
-    # CFK CHANGE - the -1 was BATCH_SIZE, but there is a pathological case
-    # where the number of things to be retrieved is EXACTLY equal to BATCH_SIZE
-    # and in that case you get into an endless loop!
-    count = -1
-    while count == -1:
+    count = BATCH_SIZE
+    while count == BATCH_SIZE:
         count = 0
         
         url = "%s/%s?secret_key=%s&timestamp=%s&count=%d" % (ROCKET_URL, kind, SECRET_KEY, timestamp_field, BATCH_SIZE)
+
+        
         if receive_states.has_key(kind) and receive_states[kind]:
             url += "&from=%s" % receive_states[kind]        
             logging.info("receive %s: from %s" % (kind, receive_states[kind]))
@@ -328,13 +333,14 @@ def receive_updates(kind, table_name, timestamp_field, table_key_field, receive_
             for entity in xml:
                 receive_row(cur, kind, table_name, timestamp_field, table_key_field, receive_fields, embedded_list_fields, entity)
                 count += 1
-                last_timestamp = entity.findtext("timestamp")
+                 # CFK CHANGE - was entity.findtext('timestamp') 
+                last_timestamp = entity.findtext(timestamp_field)
             
             if count > 0:
                 updates = True
                 write_receive_state(cur, kind, last_timestamp)            
-                con.commit()            
-                receive_states[kind] = last_timestamp    
+                con.commit()
+                receive_states[kind] = last_timestamp
         
         except ExpatError, e:
             logging.exception("receive %s: error parsing response: %s, response:\n%s" % (kind, e, response))

@@ -98,9 +98,7 @@ class ManageRakontuMembersPage(ErrorHandlingRequestHander):
 				for email in memberEmailsToAdd:
 					if email.strip():
 						if not rakontu.hasMemberWithGoogleEmail(email.strip()):
-							keyName = GenerateSequentialKeyName("pendingmember")
-							newPendingMember = PendingMember(key_name=keyName, rakontu=rakontu, email=email.strip())
-							newPendingMember.put()
+							CreatePendingMemberFromInfo(rakontu, email.strip(), "member")
 				self.redirect(BuildURL("dir_manage", "url_members", rakontu=rakontu))
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
@@ -527,7 +525,12 @@ class ManageCharactersPage(ErrorHandlingRequestHander):
 								break
 						if not foundCharacter:
 							keyName = GenerateSequentialKeyName("character")
-							newCharacter = Character(key_name=keyName, name=name, rakontu=rakontu)
+							newCharacter = Character(
+													key_name=keyName, 
+													parent=rakontu,
+													id=keyName,
+													rakontu=rakontu,
+													name=name)
 							charactersToPut.append(newCharacter)
 				if charactersToPut:
 					db.put(charactersToPut)

@@ -92,12 +92,6 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 			skinDict = rakontu.getSkinDictionary()
 			(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
 			textsForGrid, rowColors = self.buildGrid(entries, member, skinDict, viewOptions.showDetails, curating)
-			
-			# CFK TEMP - FIX FOR NUDGES GETTING OFF
-			#for entry in rakontu.getNonDraftEntries():
-			#	entry.updateNudgePoints()
-			#	entry.put()
-			
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': TITLES["HOME"],
 							'rakontu': rakontu, 
@@ -1288,7 +1282,7 @@ class ChangeMemberFiltersPage(ErrorHandlingRequestHander):
 					memberToEdit = member
 				for search in memberToEdit.getSavedSearches():
 					if self.request.get("remove|%s" % search.key()) == "yes":
-						search.deleteAllDependents()
+						search.removeAllDependents()
 						db.delete(search)
 				if offlineMember:
 					self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))

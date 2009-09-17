@@ -2,6 +2,7 @@ from consts import *
 
 # Replication URL - change this to URL corresponding your application
 ROCKET_URL = "http://www.rakontu.net/rocket"
+#ROCKET_URL = "http://localhost:8080/rocket"
 
 SECRET_KEY = "rakontu"
 
@@ -9,24 +10,23 @@ CURRENT_MODE = RECEIVE
 
 ROCKET_ENTITIES = {
 # Define entities that you want to be replicated here.
-	"Rakontu": {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
-	"Question": {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
+	"Rakontu": {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"}, 
+	"Question": {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"}, 
 	"Member":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
-	"PendingMember":   {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
 	"ViewOptions": {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
+	"PendingMember":   {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
 	"Character": {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp", TABLE_NAME:"RakontuCharacter"},
-	"SavedSearch": {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
+	"SavedSearch": {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"}, 
 	"SavedSearchQuestionReference":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
-	"Answer":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
+	"Answer":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"}, 
 	"Entry":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
 	"Link":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
 	"Attachment":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
-	"Annotation":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
+	"Annotation":  {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"}, 
 	"TextVersion": {MODE: CURRENT_MODE, TIMESTAMP_FIELD: "appRocketTimeStamp"},
 	# Helps are not synchonized
 	# Exports are not synchronized
 	}
-
 
 # Example:
 {"NotAComment": {},
@@ -76,6 +76,7 @@ BATCH_SIZE = 150
 
 # MYSQL DATABASE CONFIGURATION
 DATABASE_HOST = "localhost"
+#DATABASE_NAME = "rakontu_local"
 DATABASE_NAME = "rakontu"
 DATABASE_USER = "approcket"
 DATABASE_PASSWORD = "approcket"
@@ -84,7 +85,7 @@ DATABASE_ENGINE = "InnoDB"
 
 #LOGGING CONFIGURATION
 import logging, sys
-LOG_LEVEL = logging.INFO
+LOG_LEVEL = logging.DEBUG
 
 # DAEMON CONFIGURATION 
 # This provides configuration for running AppRocket replicator (station.py) in daemon mode 

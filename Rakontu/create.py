@@ -129,6 +129,8 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 				offlineOrAllMembers = rakontu.getActiveOfflineMembers()
 			elif member.isManagerOrOwner():
 				offlineOrAllMembers = rakontu.getActiveMembers()
+			else:
+				offlineOrAllMembers = None
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': typeDisplay.capitalize(), 
 						   	   'title_extra': pageTitleExtra, 
@@ -374,9 +376,8 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 						answerToEdit.liaison = liaison
 						answerToEdit.inBatchEntryBuffer = entry.inBatchEntryBuffer
 						answerToEdit.collected = entry.collected
+						answerToEdit.publish()
 						thingsToPut.append(answerToEdit)
-						if not answerToEdit.draft:
-							answerToEdit.publish()
 					else:
 						thingsToDelete.append(answerToEdit)
 				foundAttachments = entry.getAttachments()
@@ -488,12 +489,8 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 				thingsToDelete = []
 				newAnswers = False
 				preview = False
-				setAsDraft = False
 				if "preview" in self.request.arguments():
-					setAsDraft = True
 					preview = True
-				elif "publish" in self.request.arguments():
-					setAsDraft = False
 				collectedOffline = self.request.get("collectedOffline") == "yes"
 				if collectedOffline and member.isLiaison():
 					foundMember = False
@@ -546,11 +543,7 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 					keepAnswer = answerToEdit.shouldKeepMe(self.request, queryText, question)
 					if keepAnswer:
 						answerToEdit.setValueBasedOnResponse(question, self.request, queryText, response)
-						answerToEdit.draft = setAsDraft
-						if setAsDraft:
-							answerToEdit.edited = datetime.now(tz=pytz.utc)
-						else:
-							answerToEdit.publish()
+						answerToEdit.publish()
 						thingsToPut.append(answerToEdit)
 					else:
 						thingsToDelete.append(answerToEdit)
@@ -566,8 +559,6 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 				creator.put()
 				if preview:
 					self.redirect(BuildURL("dir_visit", "url_preview_answers", entry.urlQuery()))
-				elif setAsDraft:
-					self.redirect(BuildURL("dir_visit", "url_drafts", creator.urlQuery()))
 				else:
 					self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
 			else:
@@ -619,7 +610,6 @@ class PreviewAnswersPage(ErrorHandlingRequestHander):
 					answers = entry.getAnswersForMember(member)
 					def txn(answers, entry):
 						for answer in answers:
-							answer.draft = False
 							answer.publish()
 						db.put(answers)
 						entry.put()
@@ -709,10 +699,8 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 				preview = False
 				annotation.edited = datetime.now(tz=pytz.utc)
 				if "preview|%s" % type in self.request.arguments():
-					annotation.draft = True
 					preview = True
 				elif "publish|%s" % type in self.request.arguments():
-					annotation.draft = False
 					annotation.inBatchEntryBuffer = False
 					annotation.published = datetime.now(tz=pytz.utc)
 				annotation.collectedOffline = self.request.get("collectedOffline") == "yes"
@@ -801,8 +789,7 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 						if rakontu.nudgeCategoryIndexHasContent(i):
 							annotation.valuesIfNudge[i] = adjustedValues[i]
 					annotation.shortString = htmlEscape(self.request.get("shortString"))
-				if not annotation.draft:
-					annotation.publish()
+				annotation.publish()
 				def txn(annotation, entry):
 					annotation.put()
 					entry.put()
@@ -815,15 +802,9 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 				annotation.creator.put()
 				if preview:
 					self.redirect(BuildURL("dir_visit", "url_preview", annotation.urlQuery()))
-				elif annotation.draft:
-					if annotation.collectedOffline:
-						if entry.inBatchEntryBuffer:
-							self.redirect(BuildURL("dir_liaise", "url_review", rakontu=rakontu))
-						else: # not in batch entry 
-							self.redirect(BuildURL("dir_visit", "url_drafts", annotation.creator.urlQuery()))
-					else: # not collected offline
-						self.redirect(BuildURL("dir_visit", "url_drafts", member.urlQuery()))
-				else: # not draft
+				elif annotation.collectedOffline:
+					self.redirect(BuildURL("dir_liaise", "url_review", rakontu=rakontu))
+				else:
 					self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
 			else: # new entry
 				self.redirect(rakontu.linkURL())
@@ -878,7 +859,7 @@ class PreviewPage(ErrorHandlingRequestHander):
 					def txn(annotation):
 						annotation.publish()
 						annotation.put()
-						annnotation.entry.put()
+						annotation.entry.put()
 						annotation.creator.put()
 					db.run_in_transaction(txn, annotation)
 					self.redirect(BuildURL("dir_visit", "url_read", annotation.entry.urlQuery()))

@@ -76,11 +76,6 @@ class Rocket(webapp.RequestHandler):
 				if isinstance(value, list):
 					if len(value) > 0 and value[0] != None:
 						field_type = get_type(value[0])
-						
-						#logging.info(field)
-						#logging.info(value)
-						#logging.info(field_type)
-						
 						self.response.out.write(u'		<%s type="%s" list="true">\n' % (field, field_type))
 						for item in value:
 							self.response.out.write(u"			<item>%s</item>\n" % ae_to_rocket(field_type, item))					
@@ -138,26 +133,24 @@ class Rocket(webapp.RequestHandler):
 			clear_cache = True
 				
 		args = self.request.arguments()
+		
+		#logging.info(args)
+		
 		for arg in args:
 			if arg != TYPE_KEY:				
 				bar = arg.find('|')
 				if bar > 0:
-					
-					#logging.info(arg)
-					
 					field_type = arg[:bar]
 					field_name = arg[bar + 1:]
-					value = self.request.get(arg)					
+					value = self.request.get(arg)		
+					
 					if field_type.startswith("*"):
 						field_type = field_type[1:] # CFK CHANGE - added colon after 1
 						if len(value) == 0:
 							if entity.has_key(field_name):
 								del entity[field_name]
 						else:
-							#logging.info(field_name)
-							#logging.info(field_type)
 							entity[field_name] = map(lambda v: rocket_to_ae(field_type, v), value.split('|'))
-							#logging.info(entity[field_name])
 					else:
 						entity[field_name] = rocket_to_ae(field_type, value)
 						

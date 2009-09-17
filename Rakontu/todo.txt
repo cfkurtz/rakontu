@@ -2,16 +2,29 @@ Things to do before v0.9 is complete
 
 TESTING:
 
+CHANGES TO DB:
 should there be a way to set the order of questions ? they come out in random order.
+yes, and make a per-question edit page ? table is too unweildy, and I hate limiting the number of choices
+to a fixed number. should be open textarea with carriage returns between choices.
+
+list has 
+	[active] [move up] [move down] Text? (name - type)
+	
+click text to edit on its own page (and preview on page?? why not?)
+
 should resources have an order within their category? also random.
+
+add member option of how long texts should be. i can imagine changing that at different times.
 
 what about having some questions marked as "teller only" questions ?? would that be too hard to implement?
 
+put "extra" fields in all objects (not indexable? - strings?) for later use
+
+NOT DB CHANGES:
 would like guide-resources page to be able to select type of resource (help, new members, managers, all, category)
 
 emotion question (how feel) needs to have different answers for story, invitation whatever ??
 
-add member option of how long texts should be. i can imagine changing that at different times.
 
 BUGS RIGHT NOW:
 

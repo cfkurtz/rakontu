@@ -62,51 +62,42 @@ def GetCurrentMemberFromRakontuAndUser(rakontu, user):
 			if not member:
 				pendingMember = pendingMemberForEmailAndRakontu(user.email(), rakontu)
 				if pendingMember:
-					member = CreateMemberFromPendingMember(rakontu, pendingMember, user.user_id(), user.email())
+					member = CreateMemberFromInfo(rakontu, user.user_id(), user.email(), user.email(), pendingMember.governanceType)
 	return member
 
-def CreateMemberFromPendingMember(rakontu, pendingMember, userId, email):
-	keyName = GenerateSequentialKeyName("member")
-	def txn(rakontu, pendingMember, userId, email, keyName):
-		member = Member(
-			key_name=keyName, 
-			nickname=email,
-			googleAccountID=userId,
-			googleAccountEmail=email,
-			rakontu=rakontu,
-			active=True,
-			governanceType=pendingMember.governanceType) 
-		member.initialize()
-		member.put()
-		
-		return member
-	# SEQUENTIAL TRANSACTION PROBLEM
-	member = db.run_in_transaction(txn, rakontu, pendingMember, userId, email, keyName)
-	# this runs a transaction so must be done afterward
-	member.createViewOptions()
-	# must do afterward, different group
-	db.delete(pendingMember) 
-	return member
-
-def CreateMemberFromInfo(rakontu, userId, email, nickname, joinAs):
+def CreateMemberFromInfo(rakontu, userId, email, nickname, joinAs, isOnline=True, liaison=None):
 	keyName = GenerateSequentialKeyName("member")
 	def txn(rakontu, userId, email, nickname, joinAs, keyName):
 		member = Member(
 			key_name=keyName, 
+			id=keyName,
+			parent=rakontu,
 			nickname=nickname,
 			googleAccountID=userId,
 			googleAccountEmail=email,
+			isOnlineMember=isOnline,
+			liaisonIfOfflineMember=liaison,
 			rakontu=rakontu,
 			active=True,
 			governanceType=joinAs) 
 		member.initialize()
 		member.put()
+		member.createViewOptions()
 		return member
-	# SEQUENTIAL TRANSACTION PROBLEM
 	member = db.run_in_transaction(txn, rakontu, userId, email, nickname, joinAs, keyName)
-	# this runs a transaction so must be done afterward
-	member.createViewOptions()
 	return member
+
+def CreatePendingMemberFromInfo(rakontu, email, joinAs):
+	keyName = GenerateSequentialKeyName("pendingmember")
+	pendingMember = PendingMember(
+				key_name=keyName, 
+				id=keyName,
+				parent=rakontu,
+				rakontu=rakontu, 
+				email=email,
+				governanceType=joinAs)
+	pendingMember.put()
+	return pendingMember
 
 def SetFirstThingsAndReturnWhetherMemberIsNew(rakontu, member):
 	isFirstVisit = False
@@ -141,11 +132,11 @@ def GetRakontuFromURLQuery(query):
 			if queryAsDictionary.has_key(url):
 				entityKeyName = queryAsDictionary[url] 
 				if lookup == "url_query_member":
-					entity = Member.get_by_key_name(entityKeyName)
+					entity = Member.all().filter("id =", entityKeyName).get()
 				elif lookup in ["url_query_export_csv", "url_query_export_txt", "url_query_export_xml"]:
 					entity = Export.get_by_key_name(entityKeyName)
 				elif lookup == "url_query_character":
-					entity = Character.get_by_key_name(entityKeyName) 
+					entity = Character.all().filter("id =", entityKeyName).get()
 				elif lookup == "url_query_entry": 
 					entity = Entry.all().filter("id =", entityKeyName).get()
 				elif lookup == "url_query_attachment": 
@@ -177,9 +168,9 @@ def GetObjectOfTypeFromURLQuery(query, type):
 		if type == "url_query_rakontu":
 			return Rakontu.get_by_key_name(keyName)
 		elif type == "url_query_member":
-			return Member.get_by_key_name(keyName)
+			return Member.all().filter("id =", keyName).get()
 		elif type == "url_query_character": 
-			return Character.get_by_key_name(keyName) 
+			return Character.all().filter("id =", keyName).get()
 		elif type == "url_query_export": 
 			return Export.get_by_key_name(keyName)
 		elif type == "url_query_entry":
@@ -409,7 +400,7 @@ class ImageHandler(ErrorHandlingRequestHander):
 		characterKeyName = self.request.get(URL_IDS["url_query_character"])
 		attachmentKeyName = self.request.get(URL_IDS["url_query_attachment"])
 		if memberKeyName:
-			member = Member.get_by_key_name(memberKeyName)
+			member = Member.all().filter("id = ", memberKeyName).get()
 			if member and member.profileImage:
 				self.response.headers['Content-Type'] = "image/jpeg"
 				self.response.out.write(member.profileImage)
@@ -428,7 +419,7 @@ class ImageHandler(ErrorHandlingRequestHander):
 				self.response.headers['Content-Type'] = "image/jpeg"
 				self.response.out.write(entry.screenshotIfPattern)
 		elif characterKeyName:
-			character = Character.get_by_key_name(characterKeyName)
+			character = Character.all().filter("id = ", characterKeyName).get()
 			if character:
 				self.response.headers['Content-Type'] = "image/jpeg"
 				self.response.out.write(character.image)
@@ -626,10 +617,11 @@ def GenerateDefaultCharactersForRakontu(rakontu):
 			image = db.Blob(imageData) 
 			keyName = GenerateSequentialKeyName("character")
 			character = Character( 
-							   key_name=keyName,   
-							   name=row[0], 
+							   key_name=keyName,  
+							   parent=rakontu,
+							   id=keyName, 
 							   rakontu=rakontu,
-							   )
+							   name=row[0])
 			format = "plain text" 
 			character.description = db.Text(description)
 			character.description_formatted = db.Text(InterpretEnteredText(description, format))
@@ -933,46 +925,84 @@ def checkedBlank(value):
 
 def GenerateFakeTestingData():
 	user = users.get_current_user()
-	rakontu = Rakontu(key_name=GenerateSequentialKeyName("rakontu"), name="Test rakontu", description="Test description")
+	# make rakontu
+	keyName = GenerateSequentialKeyName("rakontu")
+	rakontu = Rakontu(
+					key_name=keyName, 
+					name="Test rakontu", 
+					description="Test description")
+	# initialize rakontu
 	rakontu.initializeFormattedTexts()
 	rakontu.initializeCustomSkinText()
 	rakontu.created = rakontu.created - timedelta(days=30)
 	GenerateDefaultQuestionsForRakontu(rakontu, "neighborhood")
 	rakontu.put()
-	member = Member(key_name=GenerateSequentialKeyName("member"), googleAccountID=user.user_id(), googleAccountEmail=user.email(), nickname="Tester", rakontu=rakontu, governanceType="owner")
-	member.initialize()
-	member.put()
-	member.createViewOptions()
+	# make member
+	member = CreateMemberFromInfo(rakontu, user.user_id(), user.email(), "Tester", "owner")
+	# make two pending members
 	if user.email() != "test@example.com":
-		PendingMember(key_name=GenerateSequentialKeyName("pendingmember"), rakontu=rakontu, email="test@example.com").put()
+		email = "test@example.com"
 	else:
-		PendingMember(key_name=GenerateSequentialKeyName("pendingmember"), rakontu=rakontu, email="cfkurtz@cfkurtz.com").put()
-	PendingMember(key_name=GenerateSequentialKeyName("pendingmember"), rakontu=rakontu, email="admin@example.com").put()
-	Character(key_name=GenerateSequentialKeyName("character"), name="Little Bird", rakontu=rakontu).put()
-	Character(key_name=GenerateSequentialKeyName("character"), name="Old Coot", rakontu=rakontu).put()
-	Character(key_name=GenerateSequentialKeyName("character"), name="Blooming Idiot", rakontu=rakontu).put()
+		email = "cfkurtz@cfkurtz.com"
+	CreatePendingMemberFromInfo(rakontu, email, "member")
+	CreatePendingMemberFromInfo(rakontu, "admin@example.com", "member")
+	GenerateDefaultCharactersForRakontu(rakontu)
 	keyName = GenerateSequentialKeyName("entry")
-	entry = Entry(key_name=keyName, parent=member, id=keyName, rakontu=rakontu, type="story", creator=member, title="The dog", text="The dog sat on a log.", draft=False)
+	entry = Entry(
+				key_name=keyName, 
+				parent=member, 
+				id=keyName, 
+				rakontu=rakontu, 
+				type="story", 
+				creator=member, 
+				title="The dog", 
+				text="The dog sat on a log.")
 	entry.text_formatted = db.Text(InterpretEnteredText(entry.text, "plain text"))
 	entry.publish()
 	entry.put()
 	keyName = GenerateSequentialKeyName("annotation")
-	annotation = Annotation(key_name=keyName, parent=entry, id=keyName, rakontu=rakontu, type="comment", creator=member, entry=entry, shortString="Great!", longString="Wonderful!", draft=False)
+	annotation = Annotation(
+						key_name=keyName, 
+						parent=entry, 
+						id=keyName, 
+						rakontu=rakontu, 
+						type="comment", 
+						creator=member, 
+						entry=entry,
+						shortString="Great!", 
+						longString="Wonderful!")
 	annotation.publish()
 	annotation.put()
 	keyName = GenerateSequentialKeyName("annotation")
-	annotation = Annotation(key_name=keyName, parent=entry, id=keyName, rakontu=rakontu, type="comment", creator=member, entry=entry, shortString="Dumb", longString="Silly", draft=False)
+	annotation = Annotation(
+						key_name=keyName, 
+						parent=entry, 
+						id=keyName, 
+						rakontu=rakontu, 
+						type="comment", 
+						creator=member, 
+						entry=entry, 
+						shortString="Dumb", 
+						longString="Silly")
 	annotation.publish()
 	annotation.put()
 	keyName = GenerateSequentialKeyName("entry")
-	entry = Entry(key_name=keyName, parent=member, id=keyName, rakontu=rakontu, type="story", creator=member, title="The circus", text="I went the the circus. It was great.", draft=False)
+	entry = Entry(
+				key_name=keyName, 
+				parent=member, 
+				id=keyName, 
+				rakontu=rakontu, 
+				type="story", 
+				creator=member, 
+				title="The circus", 
+				text="I went the the circus. It was great.")
 	entry.text_formatted = db.Text(InterpretEnteredText(entry.text, "plain text"))
 	entry.publish()
 	entry.put()
-	AddFakeDataToRakontu(rakontu, 10, "members")
-	AddFakeDataToRakontu(rakontu, 100, "entries")
-	AddFakeDataToRakontu(rakontu, 200, "annotations")
-	AddFakeDataToRakontu(rakontu, 400, "nudges")
+	#AddFakeDataToRakontu(rakontu, 10, "members")
+	#AddFakeDataToRakontu(rakontu, 100, "entries")
+	#AddFakeDataToRakontu(rakontu, 200, "annotations")
+	#AddFakeDataToRakontu(rakontu, 400, "nudges")
 
 LOREM_IPSUM = [
 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla malesuada arcu a lorem interdum euismod aliquet dui vehicula. Integer posuere mollis massa, ac posuere diam vestibulum eget. Quisque gravida arcu non lorem placerat tempus eget in risus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aliquam velit nulla, tempus sit amet gravida vel, gravida sit amet libero. Maecenas bibendum nulla ac leo feugiat egestas. Suspendisse vel dui velit. Duis a velit eget augue pellentesque bibendum in non urna. Nunc vestibulum mi vitae neque pulvinar et feugiat urna auctor. Proin volutpat euismod nunc, adipiscing pharetra leo commodo a. Suspendisse potenti. Vestibulum luctus velit non purus laoreet elementum. Donec euismod, ipsum interdum facilisis porttitor, dui dui suscipit turpis, faucibus imperdiet ante metus tempus elit. Ut vulputate, leo quis tincidunt tincidunt, massa ante fringilla libero, iaculis varius tortor quam tempor ipsum. Praesent cursus consequat tellus, eget molestie dui aliquet vitae.",
@@ -998,11 +1028,7 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 	if createWhat == "members":
 		numMembersNow = rakontu.numActiveMembers()
 		for i in range(numItems):
-			member = Member(
-						key_name=GenerateSequentialKeyName("member"), 
-						nickname="Member %s" % (numMembersNow + i + 1), 
-						rakontu=rakontu, 
-						governanceType="member")  
+			member = CreateMemberFromInfo(rakontu, None, None, "Member %s" % (numMembersNow + i + 1), "member")
 			member.joined = startDate
 			member.initialize()
 			member.put() 
@@ -1014,7 +1040,7 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 			memberKeyNames.append(member.getKeyName())
 		for i in range(numItems):
 			type = random.choice(ENTRY_TYPES)
-			member = Member.get_by_key_name(random.choice(memberKeyNames))
+			member = Member.get_by_key_name(random.choice(memberKeyNames), parent=rakontu)
 			text = random.choice(LOREM_IPSUM)
 			keyName = GenerateSequentialKeyName("entry")
 			entry = Entry( 
@@ -1043,7 +1069,7 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 			entryKeyNames.append(entry.getKeyName())
 		for i in range(numItems):
 			type = random.choice(ANNOTATION_TYPES)
-			member = Member.get_by_key_name(random.choice(memberKeyNames))
+			member = Member.get_by_key_name(random.choice(memberKeyNames), parent=rakontu)
 			entry = Entry.all().filter("id = ", random.choice(entryKeyNames)).get()
 			text = random.choice(LOREM_IPSUM)
 			keyName = GenerateSequentialKeyName("annotation")
@@ -1056,8 +1082,7 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 								creator=member, 
 								entry=entry, 
 								shortString=text[:random.randrange(5,40)], 
-								longString=text, 
-								draft=False)
+								longString=text)
 			if type == "nudge":
 				annotation.valuesIfNudge = []
 				for j in range(NUM_NUDGE_CATEGORIES):
@@ -1084,7 +1109,7 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 		for entry in rakontu.getNonDraftEntries():
 			entryKeyNames.append(entry.getKeyName())
 		for i in range(numItems):
-			member = Member.get_by_key_name(random.choice(memberKeyNames))
+			member = Member.get_by_key_name(random.choice(memberKeyNames), parent=rakontu)
 			entry = Entry.all().filter("id = ", random.choice(entryKeyNames)).get()
 			text = random.choice(LOREM_IPSUM)
 			keyName = GenerateSequentialKeyName("annotation")
@@ -1096,8 +1121,7 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 								type="nudge", 
 								creator=member, 
 								entry=entry, 
-								shortString=text[:random.randrange(5,40)], 
-								draft=False)
+								shortString=text[:random.randrange(5,40)])
 			annotation.valuesIfNudge = []
 			for j in range(NUM_NUDGE_CATEGORIES):
 				annotation.valuesIfNudge.append(random.randint(-10, 10))
