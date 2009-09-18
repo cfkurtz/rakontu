@@ -14,18 +14,49 @@ class ReviewResourcesPage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isGuideOrManagerOrOwner():
-				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
-				prev, resources, next = rakontu.getNonDraftEntriesOfType_WithPaging("resource", bookmark)
+				managersOnlyType = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_managers_only") 
+				if not managersOnlyType:
+					managersOnlyType = URL_OPTION_NAMES["url_option_all"]
+				type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_type")
+				if not type:
+					type = URL_OPTION_NAMES["url_option_all"]
+				resources = rakontu.getNonDraftEntriesOfType("resource")
+				resourcesToShowNotConsideringManagers = []
+				for resource in resources:
+					if type == URL_OPTION_NAMES["url_option_all"]:
+						resourcesToShowNotConsideringManagers.append(resource)
+					elif type == URL_OPTION_NAMES["url_option_help"]:
+						if resource.resourceForHelpPage:
+							resourcesToShowNotConsideringManagers.append(resource)
+					elif type == URL_OPTION_NAMES["url_option_new"]:
+						if resource.resourceForNewMemberPage:
+							resourcesToShowNotConsideringManagers.append(resource)
+					elif type == URL_OPTION_NAMES["url_option_remind"]:
+						if not resource.resourceForHelpPage and not resource.resourceForNewMemberPage:
+							resourcesToShowNotConsideringManagers.append(resource)
+				resourcesToShow = []
+				if managersOnlyType == URL_OPTION_NAMES["url_option_managers_only"]:
+					for resource in resourcesToShowNotConsideringManagers:
+						if resource.resourceForManagersAndOwnersOnly:
+							resourcesToShow.append(resource)
+				elif managersOnlyType == URL_OPTION_NAMES["url_option_not_managers_only"]:
+					for resource in resourcesToShowNotConsideringManagers:
+						if not resource.resourceForManagersAndOwnersOnly:
+							resourcesToShow.append(resource)
+				elif managersOnlyType == URL_OPTION_NAMES["url_option_all"]:
+					resourcesToShow.extend(resourcesToShowNotConsideringManagers)
+				resourcesToShow.sort(lambda a,b: cmp(a.orderIfResource, b.orderIfResource))
+				resourcesToShow.sort(lambda a,b: cmp(a.categoryIfResource, b.categoryIfResource))
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_RESOURCES"], 
 								   'rakontu': rakontu, 
 								   'skin': rakontu.getSkinDictionary(),
-								   'resources': resources,
+								   'resources': resourcesToShow,
 								   'current_member': member,
 								   'url_resource': URLForEntryType("resource"),
-								   'bookmark': bookmark,
-								   'previous': prev,
-								   'next': next,
+								   'resource_group': type,
+								   'managers_only': managersOnlyType,
+								   'max_resources_per_category': MAX_RESOURCES_PER_CATEGORY,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/resources.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -39,23 +70,42 @@ class ReviewResourcesPage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isGuideOrManagerOrOwner():
-				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
-				prev, resources, next = rakontu.getNonDraftEntriesOfType_WithPaging("resource", bookmark)
-				resourcesToPut = []
-				for resource in resources:
-					if "flag|%s" % resource.key() in self.request.arguments():
-						resource.flaggedForRemoval = True
-						resourcesToPut.append(resource)
-					elif "unflag|%s" % resource.key() in self.request.arguments():
-						resource.flaggedForRemoval = False
-						resourcesToPut.append(resource)
-				if resourcesToPut:
-					db.put(resourcesToPut)
-				if bookmark:
-					query = "%s&%s=%s" % (rakontu.urlQuery(), URL_OPTIONS["url_query_bookmark"], bookmark)
+				managersOnlyType = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_managers_only") 
+				if not managersOnlyType:
+					managersOnlyType = URL_OPTION_NAMES["url_option_all"]
+				type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_type")
+				if not type:
+					type = URL_OPTION_NAMES["url_option_all"]
+				if "changeSelections" in self.request.arguments():
+					resourceGroupChoice = self.request.get("show_resource_group")
+					managersOnlyChoice = self.request.get("show_managers_only")
+					query = "%s&%s=%s&%s=%s" % (rakontu.urlQuery(), URL_OPTIONS["url_query_type"], resourceGroupChoice, 
+									URL_OPTIONS["url_query_managers_only"], managersOnlyChoice)
+					self.redirect(BuildURL("dir_guide", "url_resources", query))
 				else:
-					query = rakontu.urlQuery()
-				self.redirect(BuildURL("dir_guide", "url_resources", query))
+					resources = rakontu.getNonDraftEntriesOfType("resource")
+					resourcesToPut = []
+					for resource in resources:
+					 	if "submitChangesToOrders" in self.request.arguments():
+							if self.request.get("order|%s" % resource.key()):
+								oldValue = resource.orderIfResource
+								try:
+									resource.orderIfResource = int(self.request.get("order|%s" % resource.key()))
+								except:
+									resource.orderIfResource = oldValue
+								resourcesToPut.append(resource)
+						elif "flag|%s" % resource.key() in self.request.arguments():
+							resource.flaggedForRemoval = True
+							resourcesToPut.append(resource)
+						elif "unflag|%s" % resource.key() in self.request.arguments():
+							resource.flaggedForRemoval = False
+							resourcesToPut.append(resource)
+					def txn(resourcesToPut):
+						db.put(resourcesToPut)
+					db.run_in_transaction(txn, resourcesToPut)
+					query = "%s&%s=%s&%s=%s" % (rakontu.urlQuery(), URL_OPTIONS["url_query_type"], type, 
+									URL_OPTIONS["url_query_managers_only"], managersOnlyType)
+					self.redirect(BuildURL("dir_guide", "url_resources", query))
 			else:
 				self.redirect(NotAuthorizedURL("guide", rakontu))
 		else:
@@ -136,8 +186,9 @@ class ReviewRequestsPage(ErrorHandlingRequestHander):
 							request.completedIfRequest = False
 							requestsToPut.append(request)
 							break
-					if requestsToPut:
+					def txn(requestsToPut):
 						db.put(requestsToPut)
+					db.run_in_transaction(txn, requestsToPut)
 					self.redirect(self.request.uri)
 			else:
 				self.redirect(NotAuthorizedURL("guide", rakontu))

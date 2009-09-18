@@ -6,90 +6,143 @@
 		
 		{% if current_member.isGuideOrManagerOrOwner %}
 			<div id="stylized" class="rakontu_form">
-			<form action="/{{dir_guide}}/{{url_resources}}?{{rakontu.urlQuery}}
-			{% if bookmark %}&{{url_query_bookmark}}={{bookmark}}{% endif %}
-			" method="post">
+			<form action="/{{dir_guide}}/{{url_resources}}?{{rakontu.urlQuery}}&{{url_query_type}}={{resource_group}}&{{url_query_managers_only}}={{managers_only}}" method="post">
+			
+			<p>{{template_show}}
+			<select name="show_resource_group">
+				<option value="{{url_option_all}}"
+				{% ifequal resource_group url_option_all %}
+					selected="selected"
+				{% endifequal %}
+				>{{template_all_resources}}</option>
+				<option value="{{url_option_help}}"
+				{% ifequal resource_group url_option_help %}
+					selected="selected"
+				{% endifequal %}
+				>{{template_only_help_resources}}</option>
+				<option value="{{url_option_new}}"
+				{% ifequal resource_group url_option_new %}
+					selected="selected"
+				{% endifequal %}
+				>{{template_only_new_member_resources}}</option>
+				<option value="{{url_option_remind}}"
+				{% ifequal resource_group url_option_remind %}
+					selected="selected"
+				{% endifequal %}
+				>{{template_only_non_help_resources}}</option>
+				</select>
+			{% if current_member.isManagerOrOwner %}
+				<select name="show_managers_only">
+					<option value="{{url_option_managers_only}}"
+					{% ifequal managers_only url_option_managers_only %}
+						selected="selected"
+					{% endifequal %}
+				>{{template_for_managers_only|lower}}</option>
+					<option value="{{url_option_not_managers_only}}"
+					{% ifequal managers_only url_option_not_managers_only %}
+						selected="selected"
+					{% endifequal %}
+				>{{template_not_for_managers_only|lower}}</option>
+					<option value="{{url_option_all}}"
+					{% ifequal managers_only url_option_all %}
+						selected="selected"
+					{% endifequal %}
+				>{{template_for_managers_and_non_managers|lower}}</option>
+				</select>
+			{% endif %}
+			<input type="submit" name="changeSelections" value="{{button_change}}" class="button_small">
+			</p>
 
 			{% if resources %}
 			<h3>{{template_resources}}</h3>
+			<fieldset>
 	      	<table border="0" cellpadding="4" cellspacing="0">
 	      	<tr>
-	      		<th>{{template_category}} {{"resource_categories"|info}}</th>
 	      		<th>{{template_name}} {{"flagging_and_unflagging_items"|tip}}</th>
+	      		<th>{{template_category}} {{"resource_categories"|info}}</th>
+	      		<th>{{template_order_in_category}}</th>
 	      		<th>{{template_attachments}}</th>
-	      		<th>{{template_help}}?</th>
+	      		<th>{{template_appears_on_help_page}}?</th>
 	      		<th>{{template_for_new_members}}?</th>
 	      		{% if current_member.isManagerOrOwner %}
 	      			<th>{{template_for_managers_only}}?</th>
 	      		{% endif %}
-	      		<th>{{template_created}}</th>
 	      		<th>{{template_last_published}}</th>
 	      		</tr>
 	      		{% for resource in resources %}
-	  				<tr>
-	  				<td>{{resource.categoryIfResource}}</td>
-	  				<td>
-					{% if resource.flaggedForRemoval %}
-						<input type="submit" class="flag_red" value="" name="unflag|{{resource.key}}" title="{{template_click_here_to_unflag}}">
-					{% else %}
-						<input type="submit" class="flag_green" value="" name="flag|{{resource.key}}" title="{{template_click_here_to_flag_this_resource}}">
-					{% endif %}
-
-	  				{{resource.linkString}}</td>
-	  				<td>
-	  				{% if resource.getAttachments %}
-	  					{% for attachment in resource.getAttachments %}
-	  						<p>{{attachment.linkString}}</p>
-	  					{% endfor %}
-	  				{% else %}
-	  					<p>{{term_none}}</p>
-	  				{% endif %}
-					</td>
-					<td>
-						{% if resource.resourceForHelpPage %}
-							{{template_yes|upper}}
+	      			{% if current_member.isManagerOrOwner or resource.isForEveryoneIfResource %}
+		  				<tr>
+		  				<td>
+						{% if resource.flaggedForRemoval %}
+							<input type="submit" class="flag_red" value="" name="unflag|{{resource.key}}" title="{{template_click_here_to_unflag}}">
 						{% else %}
-							{{template_no}}
+							<input type="submit" class="flag_green" value="" name="flag|{{resource.key}}" title="{{template_click_here_to_flag_this_resource}}">
 						{% endif %}
-					</td>
-					<td>
-						{% if resource.resourceForNewMemberPage %}
-							{{template_yes|upper}}
-						{% else %}
-							{{template_no}}
-						{% endif %}
-					</td>
-					{% if current_member.isManagerOrOwner %}
+	
+		  				{{resource.linkString}}</td>
+		  				<td>{{resource.categoryIfResource}}</td>
+		  				<td>
+		  				{% if resource.categoryIfResource|orNothing %}
+		  					<select name="order|{{resource.key}}">
+		  					{% for choice in max_resources_per_category|makeRangeStartingAtOne %}
+		  						<option value="{{choice}}"
+		  						{% ifequal choice resource.orderIfResource %}
+		  							selected="selected"
+		  						{% endifequal %}
+		  						>{{choice}}</option>
+		  					{% endfor %}
+		  					</select>
+		  				{% else %}
+		  					&nbsp;
+		  				{% endif %}
+		  				</td>
+		  				<td>
+		  				{% if resource.getAttachments %}
+		  					{% for attachment in resource.getAttachments %}
+		  						<p>{{attachment.linkString}}</p>
+		  					{% endfor %}
+		  				{% else %}
+		  					<p>{{term_none}}</p>
+		  				{% endif %}
+						</td>
 						<td>
-							{% if resource.resourceForManagersAndOwnersOnly %}
+							{% if resource.resourceForHelpPage %}
 								{{template_yes|upper}}
 							{% else %}
 								{{template_no}}
 							{% endif %}
 						</td>
-					{% endif %}
-					<td>
-					{{resource.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-					</td>
-					<td>
-					{{resource.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-					</td>
-	  				</tr>
+						<td>
+							{% if resource.resourceForNewMemberPage %}
+								{{template_yes|upper}}
+							{% else %}
+								{{template_no}}
+							{% endif %}
+						</td>
+						{% if current_member.isManagerOrOwner %}
+							<td>
+								{% if resource.resourceForManagersAndOwnersOnly %}
+									{{template_yes|upper}}
+								{% else %}
+									{{template_no}}
+								{% endif %}
+							</td>
+						{% endif %}
+						<td>
+						{{resource.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+						</td>
+		  				</tr>
+		  			{% endif %}
 	      		{% endfor %}
 	      	</table>
-			<p>
-			{% if previous %}
-				 <a href="/{{dir_guide}}/{{url_resources}}?{{rakontu.urlQuery}}&{{url_query_bookmark}}={{previous}}">{{template_newer}} {{template_resources|lower}}</a>
-			{% endif %}	
-			{% if previous and next %} ... {% endif %}
-			{% if next %}
-				 <a href="/{{dir_guide}}/{{url_resources}}?{{rakontu.urlQuery}}&{{url_query_bookmark}}={{next}}">{{template_older}} {{template_resources|lower}}</a>
-			{% endif %}	
+			</fieldset>
+			<p></p>
+			<center><input type="submit" name="submitChangesToOrders" value="{{button_save_changes}}" class="button"></center>	
 			</p>
 		</form>	
 		</div>
 	      	{% else %}
-	      		<p>{{template_no_help_resources}}<p>
+	      		<p>{{template_no_resources}}<p>
 	      		<ul>
 	      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_resource}}?{{rakontu.urlQuery}}">{{template_create_one}}</a></li>
 	      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_copy_resources}}?{{rakontu.urlQuery}}">{{template_generate_default_help_resources}}</a></li>

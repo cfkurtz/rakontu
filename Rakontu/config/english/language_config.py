@@ -631,10 +631,18 @@ TEMPLATE_TERMS = {
 		"template_no_requests": "There are no requests of the selected type.",
 		"template_no_uncompleted_requests": "There are no uncompleted requests of the selected type.",
 		# guide/resources
+		"template_all_resources": "all resources",
+		"template_only_help_resources": "only help resources",
+		"template_only_new_member_resources": "only resources for new members",
+		"template_only_non_help_resources": "only non-help (reminding) resources",
 		"template_category": "Category",
+		"template_order_in_category": "Order in category",
+		"template_appears_on_help_page": "Appears on help page",
 		"template_for_new_members": "For new members",
 		"template_for_managers_only": "For managers only",
-		"template_no_help_resources": "This Rakontu has no help resources.",
+		"template_not_for_managers_only": "Not for managers only",
+		"template_for_managers_and_non_managers": "For managers or non-managers",
+		"template_no_resources": "No resources were found that match the current selections.",
 		"template_generate_default_help_resources": "Generate all default help resources",
 		# liaise/batch
 		"template_batch_story_entry": "Batch story entry",
@@ -673,6 +681,7 @@ TEMPLATE_TERMS = {
 		# manage/first
 		"template_welcome_to_new": "Welcome to your new Rakontu",
 		"template_here_are_terms": "To get you started, here is a brief explanation of some important terms.",
+		"template_resources_for_new_managers": "Here are some resources that might get you started.",
 		# manage/inactivate
 		"template_or_go_back_to_settings": "or go back to the settings page",
 		# manage/members
@@ -1438,5 +1447,23 @@ URL_OPTIONS = {
 	"url_query_help_type": "type",
 	"url_query_bookmark": "bookmark",
 	"url_query_name_taken": "name_taken",
+	"url_query_managers_only": "managers_only",
+	}
+
+# ============================================================================================ 
+# URL OPTION NAMES
+# These are the parts of URLs after the ?URL_OPTIONS=.
+# The things on the left MUST stay as is, because they match strings in the source code. Don't change them!
+# The things on the right can be translated.
+# Because these appear in URLs they cannot contain spaces or special characters.
+# ============================================================================================ 
+
+URL_OPTION_NAMES = {
+	"url_option_all": "all",
+	"url_option_help": "help",
+	"url_option_new": "new",
+	"url_option_remind": "remind",
+	"url_option_managers_only": "managers",
+	"url_option_not_managers_only": "not_managers",
 	}
 

@@ -496,6 +496,8 @@ class Rakontu(db.Model):
 			if not result.has_key(resource.categoryIfResource):
 				result[resource.categoryIfResource] = []
 			result[resource.categoryIfResource].append(resource)
+		for key in result.keys():
+			result[key].sort(lambda a,b: cmp(a.orderIfResource, b.orderIfResource))
 		return result
 	
 	def getNonDraftHelpResourcesAsDictionaryByCategory(self):
@@ -510,6 +512,24 @@ class Rakontu(db.Model):
 			if not result.has_key(resource.categoryIfResource):
 				result[resource.categoryIfResource] = []
 			result[resource.categoryIfResource].append(resource)
+		for key in result.keys():
+			result[key].sort(lambda a,b: cmp(a.orderIfResource, b.orderIfResource))
+		return result
+	
+	def getNonDraftNewMemberManagerResourcesAsDictionaryByCategory(self):
+		result = {}
+		resources = Entry.all().filter("rakontu = ", self.key()). \
+			filter("draft = ", False). \
+			filter("type = ", "resource"). \
+			filter("resourceForNewMemberPage =", True). \
+			filter("resourceForManagersAndOwnersOnly = ", True). \
+			fetch(FETCH_NUMBER)
+		for resource in resources:
+			if not result.has_key(resource.categoryIfResource):
+				result[resource.categoryIfResource] = []
+			result[resource.categoryIfResource].append(resource)
+		for key in result.keys():
+			result[key].sort(lambda a,b: cmp(a.orderIfResource, b.orderIfResource))
 		return result
 	
 	def getNonDraftManagerOnlyHelpResourcesAsDictionaryByCategory(self):
@@ -523,6 +543,8 @@ class Rakontu(db.Model):
 			if not result.has_key(resource.categoryIfResource):
 				result[resource.categoryIfResource] = []
 			result[resource.categoryIfResource].append(resource)
+		for key in result.keys():
+			result[key].sort(lambda a,b: cmp(a.orderIfResource, b.orderIfResource))
 		return result
 	
 	def getResourceWithTitle(self, title):
@@ -594,36 +616,6 @@ class Rakontu(db.Model):
 		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "request").\
 				filter("typeIfRequest = ", type).filter("completedIfRequest = ", False).fetch(FETCH_NUMBER)
 	
-	def moveImportedEntriesOutOfBuffer(self, entries):
-		thingsToPut = []
-		charactersToPutAfterward = []
-		for entry in entries:
-			entry.draft = False
-			entry.inBatchEntryBuffer = False
-			entry.publish()
-			thingsToPut.append(entry)
-			if entry.character:
-				charactersToPutAfterward.append(entry.character)
-			else:
-				thingsToPut.append(entry.creator)
-			for annotation in entry.getAnnotations():
-				annotation.publish()
-				thingsToPut.append(annotation)
-			for answer in entry.getAnswersForMember(entry.creator):
-				answer.publish()
-				thingsToPut.append(answer)
-			for link in entry.getOutgoingLinks():
-				link.publish()
-				thingsToPut.append(link)
-		if thingsToPut:
-			def txn(thingsToPut):
-				db.put(thingsToPut)
-			db.run_in_transaction(txn, thingsToPut)
-		if charactersToPutAfterward:
-			def txn(charactersToPutAfterward):
-				db.put(charactersToPutAfterward)
-			db.run_in_transaction(txn, charactersToPutAfterward)
-			
 	def getTagSets(self):
 		return Annotation.all().filter("rakontu = ", self.key()).filter("type = ", "tag set").fetch(FETCH_NUMBER)
 	
@@ -1296,7 +1288,7 @@ class Member(db.Model):
 	def canEditTags(self):
 		return (NUM_TAGS_IN_TAG_SET) and (self.isCurator() and self.isManagerOrOwner()) or (self.isCurator() and self.rakontu.allowNonManagerCuratorsToEditTags)
 	
-	# BROWSING - VIEW OPTIONS - GET
+	# BROWSING - VIEW OPTIONS 
 	
 	def getViewOptionsForLocation(self, location):
 		if not self.viewOptions:
@@ -1310,127 +1302,14 @@ class Member(db.Model):
 		elif location == "character":
 			return ViewOptions.get(self.viewOptions[3])
 	
-	def getViewStartTime(self, location):
-		viewOptions = self.getViewOptionsForLocation(location)
-		return viewOptions.endTime - timedelta(seconds=viewOptions.timeFrameInSeconds)
-	
-	def getViewEndTime(self, location):
-		viewOptions = self.getViewOptionsForLocation(location)
-		return viewOptions.endTime
-	
-	def getViewTimeFrameForLocation(self, location):
-		viewOptions = self.getViewOptionsForLocation(location)
-		return viewOptions.timeFrameInSeconds
-	
-	def getTimeDeltaForLocation(self, location):
-		viewOptions = self.getViewOptionsForLocation(location)
-		return timedelta(seconds=viewOptions.timeFrameInSeconds)
-			
-	def getFrameStringForViewTimeFrame(self, location):
-		viewOptions = self.getViewOptionsForLocation(location)
-		for aFrame, seconds in TIME_FRAMES:
-			if viewOptions.timeFrameInSeconds == seconds:
-				return aFrame
-		return None
-	
-	def getNudgeCategoriesToShowForLocation(self, location):
-		viewOptions = self.getViewOptionsForLocation(location)
-		return viewOptions.nudgeCategories
-	
-	def getNudgeFloorForLocation(self, location):
-		viewOptions = self.getViewOptionsForLocation(location)
-		return viewOptions.nudgeFloor
-	
-	def getAnnotationAnswerLinkTypesForLocation(self, location):
-		viewOptions = self.getViewOptionsForLocation(location)
-		return viewOptions.annotationAnswerLinkTypes
-			
 	def getAnnotationAnswerLinkTypeForLocationAndIndex(self, location, index):
 		viewOptions = self.getViewOptionsForLocation(location)
 		return viewOptions.annotationAnswerLinkTypes[index]
 			
-	def getEntryTypesForLocation(self, location):
-		viewOptions = self.getViewOptionsForLocation(location)
-		return viewOptions.entryTypes
-	
 	def getEntryTypeForLocationAndIndex(self, location, index):
 		viewOptions = self.getViewOptionsForLocation(location)
 		return viewOptions.entryTypes[index]
 	
-	def getSearchForLocation(self, location):
-		viewOptions = self.getViewOptionsForLocation(location)
-		return viewOptions.search
-	
-	def getViewDetailsForLocation(self, location):
-		viewOptions = self.getViewOptionsForLocation(location)
-		return viewOptions.showDetails
-	
-	def getGridOptionsOnTopForLocation(self, location):
-		viewOptions = self.getViewOptionsForLocation(location)
-		return viewOptions.showOptionsOnTop
-	
-	def getLimitForLocation(self, location):
-		viewOptions = self.getViewOptionsForLocation(location)
-		return viewOptions.limitPerPage
-	
-	# BROWSING - VIEW OPTIONS - SET
-	
-	def setEndTimeForLocation(self, location, endTime):
-		viewOptions = self.getViewOptionsForLocation(location)
-		viewOptions.endTime = endTime
-		viewOptions.put()
-			
-	def setViewTimeFrameFromTimeFrameString(self, frame, location):
-		viewOptions = self.getViewOptionsForLocation(location)
-		for aFrame, seconds in TIME_FRAMES:
-			if frame == aFrame:
-				viewOptions.timeFrameInSeconds = seconds
-				viewOptions.put()
-				break
-			
-	def setTimeFrameToStartAtFirstPublish(self, location):
-		viewOptions = self.getViewOptionsForLocation(location)
-		viewOptions.endTime = self.rakontu.created + timedelta(seconds=viewOptions.timeFrameInSeconds)
-		viewOptions.put()
-		
-	def setNewNudgeCategoriesForLocation(self, location, newNudgeCategories):
-		viewOptions = self.getViewOptionsForLocation(location)
-		viewOptions.nudgeCategories = []
-		viewOptions.nudgeCategories.extend(newNudgeCategories)
-		viewOptions.put()
-		
-	def setNewEntryTypesForLocation(self, location, newTypes):
-		viewOptions = self.getViewOptionsForLocation(location)
-		viewOptions.entryTypes = []
-		viewOptions.entryTypes.extend(newTypes)
-		viewOptions.put()
-		
-	def setNewAnnotationTypesForLocation(self, location, newTypes):
-		viewOptions = self.getViewOptionsForLocation(location)
-		viewOptions.annotationAnswerLinkTypes = []
-		viewOptions.annotationAnswerLinkTypes.extend(newTypes)
-		viewOptions.put()
-		
-	def setNudgeFloorForLocation(self, location, newNudgeFloor):
-		viewOptions = self.getViewOptionsForLocation(location)
-		viewOptions.nudgeFloor = newNudgeFloor
-		viewOptions.put()
-		
-	def setSearchForLocation(self, location, search):
-		viewOptions = self.getViewOptionsForLocation(location)
-		viewOptions.search = search
-		viewOptions.put()
-			
-	def setViewDetailsForLocation(self, location, showDetails):
-		viewOptions = self.getViewOptionsForLocation(location)
-		viewOptions.showDetails = showDetails
-		viewOptions.put()
-			
-	def setGridOptionsOnTopForLocation(self, location, option):
-		viewOptions = self.getViewOptionsForLocation(location)
-		viewOptions.showOptionsOnTop = option
-		viewOptions.put()
-			
 	def firstVisitURL(self):
 		if self.isManagerOrOwner():
 			return BuildURL("dir_manage", "url_first", rakontu=self.rakontu)
@@ -2238,6 +2117,9 @@ class Entry(db.Model):
 	def getClassName(self):
 		return self.__class__.__name__
 	
+	def isForEveryoneIfResource(self):
+		return not self.resourceForManagersAndOwnersOnly
+	
 	# IMPORTANT METHODS
 	
 	def publish(self):
@@ -2292,11 +2174,12 @@ class Entry(db.Model):
 		
 	def updateNudgePoints(self):
 		self.nudgePoints = [0] * NUM_NUDGE_CATEGORIES
-		nudges = self.getAnnotationsOfType("nudge")
+		annotations = Annotation.all().ancestor(self)
 		for i in range(NUM_NUDGE_CATEGORIES):
 			total = 0
-			for nudge in nudges:
-				total += nudge.valuesIfNudge[i]
+			for annotation in annotations:
+				if annotation.type == "nudge":
+					total += nudge.valuesIfNudge[i]
 			self.nudgePoints[i] = total
 		# caller must do put
 		
@@ -3415,6 +3298,7 @@ class Skin(db.Model):
 		for key in properties.keys():
 			if key.find("font_") >= 0 or key.find("color_") >= 0:
 				lines.append("%s=%s" % (key, getattr(self, key)))
+		lines.sort()
 		return "\n".join(lines)
 
 # ============================================================================================
@@ -3554,7 +3438,7 @@ def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, m
 	# search
 	itemsWithSearch = []
 	if considerSearch:
-		search = member.getSearchForLocation(location)
+		search = viewOptions.search
 		if search:
 			entryRefs = search.getEntryQuestionRefs()
 			creatorRefs = search.getCreatorQuestionRefs()

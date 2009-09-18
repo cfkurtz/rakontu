@@ -48,8 +48,9 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 				if self.request.get("unflag|%s" % item.key()) == "yes":
 				 	item.flaggedForRemoval = False
 				 	itemsToPut.append(item)
-			if itemsToPut:
+			def txn(itemsToPut):
 				db.put(itemsToPut)
+			db.run_in_transaction(txn, itemsToPut)
 			if member.isManagerOrOwner():
 				itemsToPut = []
 				itemsToDelete = []
@@ -66,10 +67,10 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 						elif item.__class__.__name__ == "SavedSearch":
 							item.removeAllDependents()
 						itemsToDelete.append(item)
-				if itemsToPut:
+				def txn(itemsToPut, itemsToDelete):
 					db.put(itemsToPut)
-				if itemsToDelete:
 					db.delete(itemsToDelete)
+				db.run_in_transaction(txn, itemsToPut, itemsToDeleteS)
 				self.redirect(BuildURL("dir_curate", "url_flags", rakontu=rakontu))
 			elif member.isCurator():
 				itemsToSendMessageAbout = []
@@ -241,7 +242,9 @@ class CurateAttachmentsPage(ErrorHandlingRequestHander):
 					elif "unflag|%s" % attachment.entry.key() in self.request.arguments():
 						attachment.entry.flaggedForRemoval = False
 						entriesToPut.append(attachment.entry)
-				db.put(entriesToPut)
+				def txn(entriesToPut):
+					db.put(entriesToPut)
+				db.run_in_transaction(txn, entriesToPut)
 				if bookmark:
 					# bookmark must be last, because of the extra == the PageQuery puts on it
 					query = "%s=%s&%s=%s" % (URL_IDS["url_query_rakontu"], rakontu.getKeyName(), URL_OPTIONS["url_query_bookmark"], bookmark)
@@ -303,8 +306,9 @@ class CurateTagsPage(ErrorHandlingRequestHander):
 								tagset.tagsIfTagSet.append(self.request.get("tag%s|%s" % (i, tagset.key())))
 							else:
 								tagset.tagsIfTagSet.append("")
-				if tagsetsToPut:
+				def txn(tagsetsToPut):
 					db.put(tagsetsToPut)
+				db.run_in_transaction(txn, tagsetsToPut)
 				if bookmark:
 					# bookmark must be last, because of the extra == the PageQuery puts on it
 					query = "%s=%s&%s=%s" % (URL_IDS["url_query_rakontu"], rakontu.getKeyName(), URL_OPTIONS["url_query_bookmark"], bookmark)

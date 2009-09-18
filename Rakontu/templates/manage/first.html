@@ -17,6 +17,33 @@
 	</ul>
 	</div>
 	
+	{% if resources %}
+		<p>{{template_resources_for_new_members}}:</p>
+		<ul>
+		{% for category in resources|dictKeys %}
+			<li class="nobullet"><b>{{category}}</b>
+			<ul>
+			{% for resource in resources|dictLookup:category %}
+				<li class="nobullet">{{resource.linkString}}</li>
+			{% endfor %}
+			</ul>
+			</li>
+		{% endfor %}
+		</ul>
+	{% endif %}
+	{% if manager_resources %}
+		<ul>
+		{% for category in manager_resources|dictKeys %}
+			<li class="nobullet"><b>{{category}}</b>
+			<ul>
+			{% for resource in manager_resources|dictLookup:category %}
+				<li class="nobullet">{{resource.linkString}}</li>
+			{% endfor %}
+			</ul>
+			</li>
+		{% endfor %}
+		</ul>
+	{% endif %}
 	
 	</div>
 	{% include "../common_footer.html" %}

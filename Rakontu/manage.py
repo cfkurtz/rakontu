@@ -20,6 +20,8 @@ class FirstOwnerVisitPage(ErrorHandlingRequestHander):
 								'skin': rakontu.getSkinDictionary(),
 								'current_member': member,
 								"blurbs": BLURBS,
+								'resources': rakontu.getNonDraftNewMemberResourcesAsDictionaryByCategory(),
+								'manager_resources': rakontu.getNonDraftNewMemberManagerResourcesAsDictionaryByCategory(),
 								})
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/first.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -57,7 +59,8 @@ class ManageRakontuMembersPage(ErrorHandlingRequestHander):
 		if access:
 			if member.isManagerOrOwner():
 				rakontuMembers = rakontu.getActiveMembers()
-				membersToPut = []
+				thingsToPut = []
+				thingsToDelete = []
 				for aMember in rakontuMembers:
 					for name, value in self.request.params.items():
 						if aMember.googleAccountID and value.find(aMember.googleAccountID) >= 0:
@@ -80,20 +83,21 @@ class ManageRakontuMembersPage(ErrorHandlingRequestHander):
 					else:
 						for i in range(3):
 							aMember.helpingRolesAvailable[i] = True
-					membersToPut.append(aMember)
+					thingsToPut.append(aMember)
 				for aMember in rakontuMembers:
 					if self.request.get("remove|%s" % aMember.key()) == "yes":
 						aMember.active = False
-						membersToPut.append(aMember)
-				if membersToPut:
-					db.put(membersToPut)
-				# don't lump these, they are unlikely to be many 
-				for pendingMember in rakontu.getPendingMembers():
+						thingsToPut.append(aMember)
+				for pendingMember in PendingMember.all().ancestor(rakontu):
 					pendingMember.email = htmlEscape(self.request.get("email|%s" % pendingMember.key()))
-					pendingMember.put()
+					thingsToPut.append(pendingMember)
 					if self.request.get("removePendingMember|%s" % pendingMember.key()):
-						db.delete(pendingMember)
-				# or these
+						thingsToDelete.append(pendingMember)
+				def txn(thingsToPut, thingsToDelete):
+					db.put(thingsToPut)
+					db.delete(thingsToDelete)
+				db.run_in_transaction(txn, thingsToPut, thingsToDelete)
+				# do these separately
 				memberEmailsToAdd = htmlEscape(self.request.get("newMemberEmails")).split('\n')
 				for email in memberEmailsToAdd:
 					if email.strip():
@@ -169,9 +173,7 @@ class ManageRakontuAppearancePage(ErrorHandlingRequestHander):
 					rakontu.roleReadmes[i] = db.Text(self.request.get("readme%s" % i))
 					rakontu.roleReadmes_formatted[i] = db.Text(InterpretEnteredText(self.request.get("readme%s" % i), self.request.get("roleReadmes_formats%s" % i)))
 					rakontu.roleReadmes_formats[i] = self.request.get("roleReadmes_formats%s" % i)
-				def txn(rakontu):
-					rakontu.put()
-				db.run_in_transaction(txn, rakontu)
+				rakontu.put()
 				self.redirect(rakontu.linkURL())
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
@@ -297,9 +299,7 @@ class ManageRakontuSettingsPage(ErrorHandlingRequestHander):
 					except:
 						rakontu.entryActivityPointsPerEvent[i] = oldValue
 					i += 1
-				def txn(rakontu):
-					rakontu.put()
-				db.run_in_transaction(txn, rakontu)
+				rakontu.put()
 				self.redirect(rakontu.linkURL())
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
@@ -442,8 +442,7 @@ class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 					newQuestions = rakontu.GenerateQuestionsOfTypeFromCSV(type, str(self.request.get("import")))
 					questionsToPut.extend(newQuestions)
 				def txn(questionsToPut):
-					if questionsToPut:
-						db.put(questionsToPut)
+					db.put(questionsToPut)
 				db.run_in_transaction(txn, questionsToPut)
 				self.redirect(self.request.uri)
 			else:
@@ -518,7 +517,6 @@ class ManageOneQuestionPage(ErrorHandlingRequestHander):
 					question.responseIfBoolean = self.request.get("responseIfBoolean")
 					question.multiple = self.request.get("multiple") == "yes"
 					question.put()
-					DebugPrint("url_questions_%s" % typeURL)
 					url = "/%s/%s_%s?%s" % (DIRS["dir_manage"], URLS["url_questions"], typeURL, rakontu.urlQuery())
 					self.redirect(url)
 				else:
@@ -597,8 +595,9 @@ class ManageCharactersPage(ErrorHandlingRequestHander):
 													rakontu=rakontu,
 													name=name)
 							charactersToPut.append(newCharacter)
-				if charactersToPut:
+				def txn(charactersToPut):
 					db.put(charactersToPut)
+				db.run_in_transaction(txn, charactersToPut)
 				self.redirect(BuildURL("dir_manage", "url_characters", rakontu=rakontu))
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
@@ -694,10 +693,8 @@ class ManageCharacterPage(ErrorHandlingRequestHander):
 						else:
 							thingsToDelete.append(answerToEdit)
 					def txn(thingsToPut, thingsToDelete):
-						if thingsToPut:
-							db.put(thingsToPut)
-						if thingsToDelete:
-							db.delete(thingsToDelete)
+						db.put(thingsToPut)
+						db.delete(thingsToDelete)
 					db.run_in_transaction(txn, thingsToPut, thingsToDelete)
 					self.redirect(BuildURL("dir_manage", "url_characters", rakontu=rakontu))
 			else:

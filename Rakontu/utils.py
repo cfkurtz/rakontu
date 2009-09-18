@@ -81,12 +81,12 @@ def CreateMemberFromInfo(rakontu, userId, email, nickname, joinAs, isOnline=True
 			active=True,
 			governanceType=joinAs) 
 		member.initialize()
-		member.put()
+		member.put() 
 		member.createViewOptions()
 		return member
 	member = db.run_in_transaction(txn, rakontu, userId, email, nickname, joinAs, keyName)
 	return member
-
+ 
 def CreatePendingMemberFromInfo(rakontu, email, joinAs):
 	keyName = GenerateSequentialKeyName("pendingmember")
 	pendingMember = PendingMember(
@@ -249,6 +249,7 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	for key in URLS.keys():				items[key] = URLS[key] 
 	for key in URL_IDS.keys():			items[key] = URL_IDS[key] 
 	for key in URL_OPTIONS.keys():		items[key] = URL_OPTIONS[key] 
+	for key in URL_OPTION_NAMES.keys(): items[key] = URL_OPTION_NAMES[key]
 	for key in TERMS.keys():			items[key] = TERMS[key]
 	for key in TEMPLATE_TERMS.keys(): 	items[key] = TEMPLATE_TERMS[key]
 	for key in TEMPLATE_BUTTONS.keys(): items[key] = TEMPLATE_BUTTONS[key] 
@@ -257,7 +258,7 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	items["url_invitation"] = URLForEntryType("invitation")
 	items["url_collage"] = URLForEntryType("collage")
 	items["url_pattern"] = URLForEntryType("pattern")
-	items["url_resource"] = URLForEntryType("resource")
+	items["url_resource"] = URLForEntryType("resource") 
 	for key in newItems.keys():
 		items[key] = newItems[key]
 	return items
@@ -642,11 +643,11 @@ def GenerateDefaultCharactersForRakontu(rakontu):
 			character.etiquetteStatement = db.Text(etiquetteStatement)
 			character.etiquetteStatement_formatted = db.Text(InterpretEnteredText(etiquetteStatement, format))
 			character.etiquetteStatement_format = format
-			character.image = image
+			character.image = image 
 			characters.append(character)
 	db.put(characters)
 	file.close()
-	
+	 
 def GenerateSystemResources(): 
 	db.delete(SystemEntriesOfType("resource"))
 	file = open(DEFAULT_RESOURCES_FILE_NAME) 
@@ -683,17 +684,26 @@ def GenerateSystemResources():
 			currentResource.text_format = stringBeyond(line, "=").strip()
 		elif stringUpTo(line, "=") == "Managers only":
 			currentResource.resourceForManagersAndOwnersOnly = stringBeyond(line, "=").strip().lower() == "yes"
+		elif stringUpTo(line, "=") == "For new members":
+			currentResource.resourceForNewMemberPage = stringBeyond(line, "=").strip().lower() == "yes"
+		elif stringUpTo(line, "=") == "Help resource":
+			currentResource.resourceForHelpPage = stringBeyond(line, "=").strip().lower() == "yes"
+		elif stringUpTo(line, "=") == "Order in category":
+			try:
+				currentResource.orderIfResource = int(stringBeyond(line, "="))
+			except:
+				pass
 		else:
-			currentText += line
-	resources.append(currentResource)	
+			currentText += line 
+	resources.append(currentResource)	 
 	db.put(resources)
-	 
+	  
 def CopyDefaultResourcesForNewRakontu(rakontu, member):
 	systemResources = SystemEntriesOfType("resource")
 	resourcesToPut = []
 	for resource in systemResources:
 		alreadyThereResource = rakontu.getResourceWithTitle(resource.title)
-		if not alreadyThereResource:
+		if not alreadyThereResource: 
 			keyName = GenerateSequentialKeyName("entry")
 			newResource = Entry(key_name=keyName, 
 							parent=member,
@@ -711,8 +721,8 @@ def CopyDefaultResourcesForNewRakontu(rakontu, member):
 							resourceForHelpPage=resource.resourceForHelpPage,
 							resourceForNewMemberPage=resource.resourceForNewMemberPage,
 							resourceForManagersAndOwnersOnly=resource.resourceForManagersAndOwnersOnly,
-							resourceForAllNewRakontus=False,
 							categoryIfResource=resource.categoryIfResource,
+							orderIfResource=resource.orderIfResource,
 							)
 	 		resourcesToPut.append(newResource)
 	if resourcesToPut:

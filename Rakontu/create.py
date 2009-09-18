@@ -209,7 +209,6 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 			else:
 				thingsToPut = []
 				thingsToDelete = []
-				incomingLinksToPutAfterward = []
 				collectedOffline = self.request.get("collectedOffline") == "yes"
 				if collectedOffline and member.isLiaison():
 					foundMember = False
@@ -306,7 +305,7 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 								creator=creator,
 								liaison=liaison,
 								comment=comment)
-						incomingLinksToPutAfterward.append(link)
+						thingsToPut.append(link)
 						link.publish()
 				if entry.isCollage():
 					for link in entry.getOutgoingLinksOfType("included"):
@@ -389,17 +388,9 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 							thingsToDelete.append(attachment)
 				thingsToPut.append(entry.creator)
 				def txn(thingsToPut, thingsToDelete):
-					if thingsToPut:
-						db.put(thingsToPut)
-					if thingsToDelete:
-						db.delete(thingsToDelete)
-				# SEQUENTIAL TRANSACTIONS PROBLEM
+					db.put(thingsToPut)
+					db.delete(thingsToDelete)
 				db.run_in_transaction(txn, thingsToPut, thingsToDelete)
-				# second transaction for incoming links which have different parents
-				def txn(incomingLinksToPutAfterward):
-					if incomingLinksToPutAfterward:
-						db.put(incomingLinksToPutAfterward)
-				db.run_in_transaction(txn, incomingLinksToPutAfterward)
 				# do attachments separately - in same entity group, but want to let them fail separately so that 
 				# some might still attach even if one doesn't
 				foundAttachments = entry.getAttachments()
@@ -457,7 +448,7 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 					answerRefForQuestions =  answers[0]
 				else:
 					answerRefForQuestions = None
-				sortedQuestions = rakontu.getActiveQuestionsOfType(entry.type),
+				sortedQuestions = rakontu.getActiveQuestionsOfType(entry.type)
 				sortedQuestions.sort(lambda a,b: cmp(a.order, b.order))
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["ANSWERS_FOR"], 
@@ -552,15 +543,11 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 					else:
 						thingsToDelete.append(answerToEdit)
 				thingsToPut.append(entry)
+				thingsToPut.append(creator)
 				def txn(thingsToPut, thingsToDelete):
-					if thingsToPut:
-						db.put(thingsToPut)
-					if thingsToDelete:
-						db.delete(thingsToDelete)
+					db.put(thingsToPut)
+					db.delete(thingsToDelete)
 				db.run_in_transaction(txn, thingsToPut, thingsToDelete)
-				# cannot put creator in same transaction, because they might be answering questions about another person's entry
-				# which is a different path
-				creator.put()
 				if preview:
 					self.redirect(BuildURL("dir_visit", "url_preview_answers", entry.urlQuery()))
 				else:
@@ -582,7 +569,7 @@ class PreviewAnswersPage(ErrorHandlingRequestHander):
 			else:
 				answers = None
 			if entry and answers:
-				sortedQuestions = rakontu.getActiveQuestionsOfType(entry.type),
+				sortedQuestions = rakontu.getActiveQuestionsOfType(entry.type)
 				sortedQuestions.sort(lambda a,b: cmp(a.order, b.order))
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["PREVIEW_OF"], 
@@ -591,7 +578,7 @@ class PreviewAnswersPage(ErrorHandlingRequestHander):
 								   'rakontu': rakontu, 
 								   'skin': rakontu.getSkinDictionary(),
 								   'entry': entry,
-								   'rakontu_has_questions_for_this_entry_type': len(rakontu.getActiveQuestionsOfType(entry.type)) > 0,
+								   'rakontu_has_questions_for_this_entry_type': rakontu.hasActiveQuestionsOfType(entry.type),
 								   'questions': sortedQuestions,
 								   'answers': answers,
 								   })
@@ -610,8 +597,6 @@ class PreviewAnswersPage(ErrorHandlingRequestHander):
 			if entry:
 				if "edit" in self.request.arguments():
 					self.redirect(BuildURL("dir_visit", "url_answers", entry.urlQuery()))
-				elif "profile" in self.request.arguments():
-					self.redirect(BuildURL("dir_visit", "url_preferences", member.urlQuery()))
 				elif "publish" in self.request.arguments():
 					answers = entry.getAnswersForMember(member)
 					def txn(answers, entry):
@@ -619,11 +604,8 @@ class PreviewAnswersPage(ErrorHandlingRequestHander):
 							answer.publish()
 						db.put(answers)
 						entry.put()
-					db.run_in_transaction(txn, answers, entry)
-					# cannot put creator in same transaction, because they might be answering questions about another person's entry
-					# which is a different path
-					if answers:
 						answers[0].creator.put()
+					db.run_in_transaction(txn, answers, entry)
 					self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
 			else:
 				self.redirect(NotFoundURL(rakontu))
@@ -798,14 +780,11 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 				annotation.publish()
 				def txn(annotation, entry):
 					annotation.put()
+					if annotation.type == "nudge":
+						entry.updateNudgePoints()
 					entry.put()
+					annotation.creator.put()
 				db.run_in_transaction(txn, annotation, entry)
-				# yes this is silly, but I can't get the ancestor query to work so it will go inside the transaction
-				if annotation.type == "nudge":
-					entry.updateNudgePoints()
-					entry.put()
-				# cannot put member into transaction because it might not be their entry, hence they are not in the group
-				annotation.creator.put()
 				if preview:
 					self.redirect(BuildURL("dir_visit", "url_preview", annotation.urlQuery()))
 				elif annotation.collectedOffline:
@@ -825,7 +804,7 @@ class PreviewPage(ErrorHandlingRequestHander):
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			entry, annotation = GetEntryAndAnnotationFromURLQuery(self.request.query_string)
 			if entry:
-				sortedQuestions = rakontu.getActiveQuestionsOfType(entry.type),
+				sortedQuestions = rakontu.getActiveQuestionsOfType(entry.type)
 				sortedQuestions.sort(lambda a,b: cmp(a.order, b.order))
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["PREVIEW_OF"], 
@@ -886,8 +865,7 @@ class PreviewPage(ErrorHandlingRequestHander):
 						thingsToPut.append(link)
 					thingsToPut.append(entry.creator)
 					def txn(thingsToPut):
-						if thingsToPut:
-							db.put(thingsToPut)
+						db.put(thingsToPut)
 					db.run_in_transaction(txn, thingsToPut)
 					self.redirect(rakontu.linkURL())
 				else:
@@ -993,11 +971,10 @@ class RelateEntryPage(ErrorHandlingRequestHander):
 							atLeastOneLinkCreated = True
 					if atLeastOneLinkCreated:
 						bookmark = None
-					# cannot do transaction because entries are all mixed together
-					if linksToPut:
+					def txn(linksToPut, linksToDelete):
 						db.put(linksToPut)
-					if linksToDelete:
 						db.delete(linksToDelete)
+					db.run_in_transaction(txn, linksToPut, linksToDelete)
 				if bookmark:
 					# bookmark must be last, because of the extra == the PageQuery puts on it
 					query = "%s&%s=%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_type"], type, URL_OPTIONS["url_query_bookmark"], bookmark)

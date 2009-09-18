@@ -230,6 +230,10 @@ DETAILS_TEXT_LENGTH_CHOICES = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 250
 # The user can't change this (too many template references...)
 TOOLTIP_LENGTH = 200
 
+# This just determines the length of the drop-down list when setting the order for resources
+# in a category. It's a constant so you can set it higher if for some reason you need more.
+MAX_RESOURCES_PER_CATEGORY = 20
+
 # ============================================================================================ 
 # QUESTIONS
 # ============================================================================================ 

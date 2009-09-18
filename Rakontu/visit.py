@@ -88,7 +88,8 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 			querySearch = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_search_filter")
 			if querySearch:
 				currentSearch = querySearch
-				member.setSearchForLocation("home", currentSearch)
+				viewOptions.search = currentSearch
+				viewOptions.put()
 			skinDict = rakontu.getSkinDictionary()
 			(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
 			textsForGrid, rowColors = self.buildGrid(entries, member, skinDict, viewOptions.showDetails, curating)
@@ -145,8 +146,9 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 		numCols = BROWSE_NUM_COLS
 		rowColEntries = {}
 		nudgePointRange = maxNudgePoints - minNudgePoints
-		minTime = member.getViewStartTime("home")
-		maxTime = member.getViewEndTime("home")
+		viewOptions = member.getViewOptionsForLocation("home")
+		minTime = viewOptions.getStartTime()
+		maxTime = viewOptions.endTime
 		timeRangeInSeconds = (maxTime - minTime).seconds + (maxTime - minTime).days * DAY_SECONDS
 		exist, show = NudgeCategoriesExistAndShouldBeShownInContext(member, "home")
 		for entry in entries:
@@ -265,13 +267,12 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 								   'show_versions': showVersions,
 								   'versions': entry.getTextVersionsInReverseTimeOrder(),
 								   })
-				def txn(member):
+				def txn(member, entry):
 					member.lastReadAnything = datetime.now(tz=pytz.utc)
 					member.nudgePoints += rakontu.getMemberNudgePointsForEvent("reading")
-					member.put()
-				db.run_in_transaction(txn, member)
-				entry.recordAction("read", entry, "Entry")
-				entry.put()
+					entry.recordAction("read", entry, "Entry")
+					db.put([member, entry])
+				db.run_in_transaction(txn, member, entry)
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/read.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
@@ -285,7 +286,8 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 			minNudgePoints, maxNudgePoints, minActivityPoints, maxActivityPoints = GetMinMaxNudgeAndActivityPointsFromListOfItems(allItems, member, "entry")
 			numRows = BROWSE_NUM_ROWS
 			numCols = BROWSE_NUM_COLS
-			showDetails = member.getViewDetailsForLocation("entry")
+			viewOptions = member.getViewOptionsForLocation("entry")
+			showDetails = viewOptions.showDetails
 			skinDict = rakontu.getSkinDictionary()
 			textsForGrid = []
 			rowColors = []
@@ -665,12 +667,13 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 			
 	def buildGrid(self, allItems, member, memberToSee, rakontu, curating):
 		if allItems:
-			minTime = member.getViewStartTime("member")
-			maxTime = member.getViewEndTime("member")
+			viewOptions = member.getViewOptionsForLocation("member")
+			minTime = viewOptions.getStartTime()
+			maxTime = viewOptions.endTime
 			minNudgePoints, maxNudgePoints, minActivityPoints, maxActivityPoints = GetMinMaxNudgeAndActivityPointsFromListOfItems(allItems, member, "member")
 			numRows = BROWSE_NUM_ROWS
 			numCols = BROWSE_NUM_COLS
-			showDetails = member.getViewDetailsForLocation("member")
+			showDetails = viewOptions.showDetails
 			skinDict = rakontu.getSkinDictionary()
 			textsForGrid = []
 			rowColors = []
@@ -795,12 +798,13 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 			
 	def buildGrid(self, allItems, member, character, rakontu, curating):
 		if allItems:
-			minTime = member.getViewStartTime("character")
-			maxTime = member.getViewEndTime("character")
+			viewOptions = member.getViewOptionsForLocation("character")
+			minTime = viewOptions.getStartTime()
+			maxTime = viewOptions.endTime
 			minNudgePoints, maxNudgePoints, minActivityPoints, maxActivityPoints = GetMinMaxNudgeAndActivityPointsFromListOfItems(allItems, member, "member")
 			numRows = BROWSE_NUM_ROWS
 			numCols = BROWSE_NUM_COLS
-			showDetails = member.getViewDetailsForLocation("character")
+			showDetails = viewOptions.showDetails
 			skinDict = rakontu.getSkinDictionary()
 			textsForGrid = []
 			rowColors = []
@@ -972,6 +976,8 @@ class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 								goAhead = False
 							break
 			if goAhead:
+				thingsToPut = []
+				thingsToDelete = []
 				if offlineMember:
 					memberToEdit = offlineMember
 				else:
@@ -985,10 +991,8 @@ class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 					memberToEdit.profileImage = None
 				elif self.request.get("img"):
 					memberToEdit.profileImage = db.Blob(images.resize(str(self.request.get("img")), THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT))
-				memberToEdit.put()
+				thingsToPut.append(memberToEdit)
 				questions = rakontu.getActiveQuestionsOfType("member")
-				answersToPut = []
-				answersToDelete = []
 				for question in questions:
 					foundAnswer = memberToEdit.getAnswerForMemberQuestion(question)
 					if foundAnswer:
@@ -1008,13 +1012,13 @@ class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 					if keepAnswer:
 						answerToEdit.setValueBasedOnResponse(question, self.request, queryText, response)
 						answerToEdit.creator = memberToEdit
-						answersToPut.append(answerToEdit)
+						thingsToPut.append(answerToEdit)
 					else:
-						answersToDelete.append(answerToEdit)
-				if answersToPut:
-					db.put(answersToPut)
-				if answersToDelete:
-					db.delete(answersToDelete)
+						thingsToDelete.append(answerToEdit)
+				def txn(thingsToPut, thingsToDelete):
+					db.put(thingsToPut)
+					db.delete(thingsToDelete)
+				db.run_in_transaction(txn, thingsToPut, thingsToDelete)
 				if offlineMember:
 					self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
 				else:
@@ -1493,11 +1497,13 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 			elif location == "character":
 				defaultURL = character.linkURL()
 			defaultURL += "&%s=%s" % (URL_OPTIONS["url_query_location"], location)
-			search = member.getSearchForLocation(location)
+			viewOptions = member.getViewOptionsForLocation(location)
+			search = viewOptions.search
 			if "deleteSearchByCreator" in self.request.arguments():
 				if search:
 					db.delete(search)
-					member.setSearchForLocation(location, None)
+					viewOptions.search = None
+					viewOptions.put()
 				self.redirect(defaultURL)
 			elif "flagSearchByCurator" in self.request.arguments():
 				if search:
@@ -1510,7 +1516,8 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 			elif "removeSearchByManager" in self.request.arguments():
 				if search:
 					db.delete(search)
-					member.setSearchForLocation(location, None)
+					viewOptions.search = None
+					viewOptions.put()
 				self.redirect(defaultURL)
 			elif "saveAs" in self.request.arguments() or "save" in self.request.arguments():
 				if not search or "saveAs" in self.request.arguments():
@@ -1597,12 +1604,12 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 								ref.type = preface
 								ref.order = i
 								thingsToPut.append(ref)
+				viewOptions = member.getViewOptionsForLocation(location)
+				viewOptions.search = search
+				thingsToPut.append(viewOptions)
 				def txn(thingsToPut):
-					if thingsToPut:
-						db.put(thingsToPut)
-				# SEQUENTIAL TRANSACTION PROBLEM
+					db.put(thingsToPut)
 				db.run_in_transaction(txn, thingsToPut)
-				member.setSearchForLocation(location, search)
 				self.redirect(defaultURL)
 			else:
 				self.redirect(NotFoundURL(rakontu))

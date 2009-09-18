@@ -4,13 +4,7 @@ TESTING:
 
 test change to common_head with external style sheet
 
-should resources have an order within their category? also random.
-
 put "extra" fields in all objects (not indexable? - strings?) for later use
-
-would like guide-resources page to be able to select type of resource (help, new members, managers, all, category)
-
-emotion question (how feel) needs to have different answers for story, invitation whatever ??
 
 BUGS RIGHT NOW:
 

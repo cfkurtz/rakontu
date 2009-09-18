@@ -63,8 +63,9 @@ class ReviewOfflineMembersPage(ErrorHandlingRequestHander):
 							membersToPut.append(existingMember)
 						else:
 							CreateMemberFromInfo(rakontu, None, None, nickname.strip(), "member", isOnline=False, liaison=member)
-				if membersToPut:
+				def txn(membersToPut):
 					db.put(membersToPut)
+				db.run_in_transaction(txn, membersToPut)
 				self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
 			else:
 				self.redirect(NotAuthorizedURL("liaison", rakontu))
@@ -170,21 +171,44 @@ class ReviewBatchEntriesPage(ErrorHandlingRequestHander):
 				if "addMore" in self.request.arguments():
 					self.redirect(BuildURL("dir_liaise", "url_batch", rakontu=rakontu))
 				else:
-					entriesToFinalize = []
 					entries = rakontu.getEntriesInImportBufferForLiaison(member)
-					# not lumping puts here because of copying collected dates, etc 
-					# this is not frequently done so it can be messier
-					for entry in entries:
-						date = parseDate(self.request.get("year|%s" % entry.key()), self.request.get("month|%s" % entry.key()), self.request.get("day|%s" % entry.key()))
-						entry.collected = date
-						entry.put()
-						entry.copyCollectedDateToAllAnswersAndAnnotations()
-						if self.request.get("remove|%s" % entry.key()) == "yes":
-							db.delete(entry)
-						elif self.request.get("import|%s" % entry.key()) == "yes":
-							entriesToFinalize.append(entry)
-					if entriesToFinalize:
-						rakontu.moveImportedEntriesOutOfBuffer(entriesToFinalize)
+					def txn(entries):
+						entriesToFinalize = []
+						entriesToDelete = []
+						itemsToPut = []
+						for entry in entries:
+							date = parseDate(self.request.get("year|%s" % entry.key()), self.request.get("month|%s" % entry.key()), self.request.get("day|%s" % entry.key()))
+							if entry.collected != date:
+								entry.collected = date
+								itemsToPut.append(entry)
+								for annotation in Annotation.all().ancestor(entry):
+									annotation.collected = entry.collected
+									itemsToPut.append(annotation)
+								for answer in Answer.all().ancestor(entry):
+									answer.collected = entry.collected
+									itemsToPut.append(answer)
+							if self.request.get("remove|%s" % entry.key()) == "yes":
+								entriesToDelete.append(entry)
+							elif self.request.get("import|%s" % entry.key()) == "yes":
+								entriesToFinalize.append(entry)
+						if entriesToFinalize:
+							for entry in entriesToFinalize:
+								entry.publish()
+								entry.inBatchEntryBuffer = False
+								itemsToPut.append(entry)
+								if entry.character:
+									itemsToPut.append(entry.character)
+								itemsToPut.append(entry.creator)
+								for annotation in Annotation.all().ancestor(entry):
+									annotation.publish()
+									itemsToPut.append(annotation)
+								for answer in Answer.all().ancestor(entry):
+									if str(answer.creator.key()) == str(entry.creator.key()):
+										answer.publish()
+										itemsToPut.append(answer)
+						db.put(itemsToPut)
+						db.delete(entriesToDelete)
+					db.run_in_transaction(txn, entries)
 					self.redirect(BuildURL("dir_liaise", "url_review", rakontu=rakontu))
 			else:
 				self.redirect(NotAuthorizedURL("liaison", rakontu))
@@ -200,7 +224,7 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 				if rakontu.hasWithinTenOfTheMaximumNumberOfEntries():
 					self.redirect(BuildResultURL("reachedMaxEntriesPerRakontu", rakontu))
 					return
-				sortedQuestions = rakontu.getActiveQuestionsOfType("story"),
+				sortedQuestions = rakontu.getActiveQuestionsOfType("story")
 				sortedQuestions.sort(lambda a,b: cmp(a.order, b.order))
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["BATCH_ENTRY"], 
@@ -230,6 +254,7 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 					if self.request.get("import"):
 						rakontu.addEntriesFromCSV(str(self.request.get("import")), member)
 				else:
+					itemsToPut = []
 					for i in range(NUM_ENTRIES_PER_BATCH_PAGE):
 						if self.request.get("title|%s" % i):
 							offlineMembers = rakontu.getActiveOfflineMembers()
@@ -275,7 +300,9 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 								else:
 									character = None
 								entry.character = character
-								entry.put()
+								itemsToPut.append(entry)
+								# put attachments separately, so if some are too large and fail the others
+								# will still come in
 								for j in range(rakontu.maxNumAttachments):
 									for name, value in self.request.params.items():
 										if name == "attachment|%s|%s" % (i, j):
@@ -294,7 +321,10 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 													attachment.fileName = filename
 													attachment.name = htmlEscape(self.request.get("attachmentName|%s|%s" % (i, j)))
 													attachment.data = db.Blob(str(self.request.get("attachment|%s|%s" % (i, j))))
-													attachment.put()
+													try:
+														attachment.put()
+													except:
+														pass 
 								questions = rakontu.getAllQuestionsOfReferType("story")
 								for question in questions:
 									keyName = GenerateSequentialKeyName("answer")
@@ -316,7 +346,7 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 										answer.collected = entry.collected
 										answer.inBatchEntryBuffer = True
 										answer.collectedOffline = not memberToAttribute.isOnlineMember
-										answer.put()
+										itemsToPut.append(answer)
 								if self.request.get("comment|%s" % i):
 									subject = self.request.get("commentSubject|%s" % i)
 									if not len(subject.strip()):
@@ -335,11 +365,12 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 									comment.character = character
 									comment.longString = text
 									comment.longString_format = format
+									comment.longString_formatted = db.Text(InterpretEnteredText(text, format))
 									comment.inBatchEntryBuffer = True
 									comment.liaison = member
 									comment.collected = entry.collected
 									comment.collectedOffline = not memberToAttribute.isOnlineMember
-									comment.put()
+									itemsToPut.append(comment)
 								tags = []
 								for j in range(NUM_TAGS_IN_TAG_SET):
 									queryString = "tag|%s|%s" % (i, j)
@@ -361,7 +392,10 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 									tagset.liaison = member
 									tagset.collected = entry.collected
 									tagset.collectedOffline = not memberToAttribute.isOnlineMember
-									tagset.put()
+									itemsToPut.append(tagset)
+					def txn(itemsToPut):
+						db.put(itemsToPut)
+					db.run_in_transaction(txn, itemsToPut)
 				self.redirect(BuildURL("dir_liaise", "url_review", rakontu=rakontu))
 			else:
 				self.redirect(NotAuthorizedURL("liaison", rakontu))
