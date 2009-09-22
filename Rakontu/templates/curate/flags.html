@@ -106,7 +106,13 @@
 	  					{{annotation.displayString|orNbsp}}
 	  				{% endif %}
 	  				{% if annotation.isNudge %}
-	  					{% if nudge.shortString and current_member.isManagerOrOwner %}
+	  					{% if annotation.shortString and current_member.isManagerOrOwner %}
+		  						<p><input type="checkbox" name="removeComment|{{annotation.key}}" value="yes" id="removeComment|{{annotation.key}}"/>
+								<label for="removeComment|{{annotation.key}}">{{template_remove}} {{template_comment_only}}</label></p>
+						{% endif %}
+	  				{% endif %}
+	  				{% if annotation.isRequest %}
+	  					{% if annotation.completionCommentIfRequest and current_member.isManagerOrOwner %}
 		  						<p><input type="checkbox" name="removeComment|{{annotation.key}}" value="yes" id="removeComment|{{annotation.key}}"/>
 								<label for="removeComment|{{annotation.key}}">{{template_remove}} {{template_comment_only}}</label></p>
 						{% endif %}

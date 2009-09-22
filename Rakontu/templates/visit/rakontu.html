@@ -6,8 +6,27 @@
 	
 		<h3>{{template_information_about}} "{{rakontu.name}}"</h3>
 		
-		<p>{{template_rakontu_created_on}} {{rakontu.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.</p>
+		<p>{{template_rakontu_created_on}} {{rakontu.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.
 		
+		</p>
+		
+ 		<p></p>
+    	<table cellspacing=0 cellpadding=0 style="width:100%;">
+ 			{% for name in count_names %}
+				<th>{{name|capfirst}}</th>
+			{% endfor %}
+      	</tr>
+		{% for count in counts %}
+			<td>{% if count %}
+					{{count}}
+				{% else %}
+					0
+				{% endif %}
+			</td>
+		{% endfor %}
+		</tr>
+		</table>
+
 		<p>{{template_description}}:</p>
 		<div class="blurb">{{rakontu.description_formatted}}</div>
 		{% if rakontu.etiquetteStatement_formatted %}

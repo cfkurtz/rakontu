@@ -132,6 +132,11 @@ NO_TEXT_IN_ENTRY = u"No text."
 # Types of link. These MUST match the order (retold, reminded, responded, related, included, referenced).
 LINK_TYPES_DISPLAY = ["retold from", "reminded by", "responded to", "related to", "included in", "referenced by"]
 
+# Types of people who can edit an entry (in addition to its creator).
+# These MUST match the order (curators, guides, liaisons, managers, members, list).
+# Note that these are always plural (except the last).
+ADDITIONAL_EDITOR_TYPES_DISPLAY = ["all curators", "all guides", "all liaisons", "all managers", "all members", "members in the following list"]
+
 # ============================================================================================ 
 # ANNOTATIONS
 # ============================================================================================ 
@@ -557,7 +562,6 @@ TEMPLATE_TERMS = {
 		"template_have_been_created": "have been created",
 		"template_can_be_done_anytime": "Can be done anytime", 
 		"template_last_activity": "Last activity",
-		"template_approcket_timestamp": "AppRocket time stamp",
 		"template_counts": "Counts",
 		"template_dates": "Dates",
 		"template_first_publish": "First activity",
@@ -775,6 +779,10 @@ TEMPLATE_TERMS = {
 		"template_saved_drafts_for": "Saved drafts for",
 		"template_versions": "History",
 		"template_you_have_no_drafts": 'You have no saved drafts. To save a draft, create a story or other entry and click "Save draft" at the bottom of the screen.',
+		# visit/editors
+		"template_change_additional_editors": "Add or change editors of ", # the entry name
+		"template_who_can_edit_this_entry": "Besides yourself, who can change this", # story, etc
+		"template_can_edit": "Can change this entry",
 		# visit/entry
 		"template_restoring_version_from": "Recalling version from",
 		"template_tell_new_story": "Please tell your story here.",
@@ -794,6 +802,8 @@ TEMPLATE_TERMS = {
 		"template_yes_is_help_resource": "This is a help resource. Link to it from the general help page.",
 		"template_yes_is_new_member_resource":"This resource will be helpful to new members. Link to it from the page new members see.",
 		"template_yes_manager_only_resource": "This resource is only appropriate for managers. Hide it from other members.",
+		"template_what_category_should_this_resource_be_in": "If this is a help or new-members resource, in which category should it be displayed?",
+		"template_or_enter_a_new_category_here": "or enter a new category here",
 		"template_load_version": "Recall text version",
 		"template_stories_included_in_collage": "Stories included in this collage",
 		"template_link_comment": "Link comment",
@@ -859,6 +869,7 @@ TEMPLATE_TERMS = {
 		# visit/member
 		"template_information_about": "Information about",
 		"template_information_about_this": "Information about this",
+		"template_counts": "Counts",
 		"template_last_entry": "Last entry",
 		"template_last_annotation": "Last annotation",
 		"template_last_answer": "Last answer",
@@ -934,15 +945,21 @@ TEMPLATE_TERMS = {
 		"template_contributed_by": "Contributed by",
 		"template_entered_by": "entered by",
 		"template_retelling_of": "A retelling of",
+		"template_retold_as": "Retold as",
 		"template_reminding_from": "Told because of a reminding from",
+		"template_reminding_to": "Reminded someone of",
 		"template_in_response_to_invitation": "Told in response to",
 		"template_included_in_collages": "Included in the collages",
 		"template_what_would_you_like_to_do_next": "What would you like to do next?",
-		"template_hide_versions": "Hide", # right next to button that says History no need for longer name
+		"template_hide_versions": "Hide", # right next to button that says History so no need for longer name
 		"template_show_versions": "Show history",
 		"template_no_annotations_for_entry": "This entry has no annotations that match the current selections.",
+		"template_add_editors": "Allow others to edit this entry",
+		"template_change_editors": "Change who can edit this entry",
 		# visit/readAnnotation
 		"template_request_type": "Request type",
+		"template_completion_status": "Status",
+		"template_change_comment": "Change comment",
 		# visit/relate
 		"template_entries_related_to": "Entries related to",
 		"template_incoming_or_outgoing": "Incoming or outgoing",
@@ -950,6 +967,7 @@ TEMPLATE_TERMS = {
 		"template_outgoing": "outgoing",
 		"template_add_relations": "Add relations",
 		"template_related": "Related",
+		"template_related_to": "Related to",
 		"template_add_link": "Add link",
 		"template_entry_has_no_related_links": "This entry has not yet been marked as related to other entries.",
 		"template_no_entries_of_this_type_to_relate_to": "There are no entries of the selected type available for this entry to relate to.",
@@ -1244,7 +1262,9 @@ TITLES = {
         "CREATE_RAKONTU": "Create Rakontu",
         "ANSWERS_FOR": "Answers for", # entry name
         "PREVIEW_OF": "Preview of", # entry name
+        "ADDITIONAL_EDITORS_FOR": "Additional editors for", # entry name
         "RELATE_TO": "Relate to", # entry name
+        "COUNTS": "Counts for", # rakontu name or member nickname or character name
         "REVIEW_FLAGS": "Review flags",
         "REVIEW_GAPS": "Review gaps",
         "REVIEW_ATTACHMENTS": "Review attachments",
@@ -1335,6 +1355,8 @@ URLS = {
     "url_filters": "filters",
     "url_nickname": "nickname",
     "url_message": "message",
+    "url_counts": "counts",
+    "url_editors": "editors",
 	# link creating 
     "url_retell": "retell",
     "url_remind": "remind",

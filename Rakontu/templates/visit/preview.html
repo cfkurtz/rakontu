@@ -103,8 +103,10 @@
 					<input type="submit" name="edit" value="{{button_change_entry}}" class="button">
 					<input type="submit" name="batch" value="{{button_return_to_list}}" class="button">
 				{% else %}
-					<input type="submit" name="edit" value="{{button_edit_draft}}" class="button">
-					<input type="submit" name="profile" value="{{button_view_all_drafts}}" class="button">
+					<input type="submit" name="edit" value="{{button_change}}" class="button">
+					{% ifequal entry.creator.key current_member.key %}
+						<input type="submit" name="profile" value="{{button_view_all_drafts}}" class="button">
+					{% endifequal %}
 					<input type="submit" name="publish" value="{{button_publish}}" class="button">
 				{% endif %}
 			{% endif %}

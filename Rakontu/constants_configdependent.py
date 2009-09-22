@@ -21,6 +21,9 @@ HELPING_ROLE_TYPES = ["curator", "guide", "liaison"]
 GOVERNANCE_ROLE_TYPES = ["member", "manager", "owner"]
 VIEW_OPTION_LOCATIONS = ["home", "entry", "member", "character"]
 
+# member groups who can be assigned as editors
+ADDITIONAL_EDITOR_TYPES = ["curators", "guides", "liaisons", "managers", "members", "list"]
+
 # events
 EVENT_TYPES = ["downdrift", \
 			"reading", "adding story", "adding pattern", "adding collage", "adding invitation", "adding resource", \

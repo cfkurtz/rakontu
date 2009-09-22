@@ -1,12 +1,12 @@
 from consts import *
 
 # Replication URL - change this to URL corresponding your application
-ROCKET_URL = "http://www.rakontu.net/rocket"
-#ROCKET_URL = "http://localhost:8080/rocket"
+#ROCKET_URL = "http://www.rakontu.net/rocket"
+ROCKET_URL = "http://localhost:8080/rocket"
 
 SECRET_KEY = "rakontu"
 
-CURRENT_MODE = RECEIVE
+CURRENT_MODE = SEND
 
 ROCKET_ENTITIES = {
 # Define entities that you want to be replicated here.
@@ -76,8 +76,8 @@ BATCH_SIZE = 150
 
 # MYSQL DATABASE CONFIGURATION
 DATABASE_HOST = "localhost"
-#DATABASE_NAME = "rakontu_local"
-DATABASE_NAME = "rakontu"
+DATABASE_NAME = "rakontu_local"
+#DATABASE_NAME = "rakontu"
 DATABASE_USER = "approcket"
 DATABASE_PASSWORD = "approcket"
 DATABASE_PORT = 3306

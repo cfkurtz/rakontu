@@ -27,7 +27,7 @@
 	
 	{% if things_member_can_do %}
 		</td>
-		<td align="left" valign="center" style="border:none;"><b><font size="+1">{{entry.title}}</font></b></td>
+		<td align="left" valign="center" style="border:none;"><b><font size="+1">{{entry.titleWithCategoryIfResource}}</font></b></td>
 		<td align="right" style="border:none;">
 		<select name="nextAction">
 		{% for key in things_member_can_do.keys|sorted %}
@@ -37,7 +37,7 @@
 		<input type="submit" name="doSomething" value="{{template_go|capfirst}}" class="button_small">
 		</td></tr></table>
 	{% else %}
-		<h2>{{entry.title}}</h2>
+		<h2>{{entry.titleWithCategoryIfResource}}</h2>
 	{% endif %}
 	
 	<div class="blurb">{{entry.displayTextWithInlineAttachmentLinks}}
@@ -67,6 +67,8 @@
 		</ul>
 	{% endif %}
 
+	{% if any_links_at_all %} <hr> {% endif %}
+	
 	{% if entry.isCollage and included_links_outgoing %}
 		<p>{{template_stories}}:</p>
 		<ul>
@@ -91,10 +93,24 @@
 				 {% if link.comment %} ({{template_why|capfirst}}? {{link.comment}}) {% endif %}</li></ul>
 			{% endfor %}
 		{% endif %}
+		{% if retold_links_outgoing %}
+			<p>{{template_retold_as}}</p>
+			{% for link in retold_links_outgoing %}
+				<ul><li class="nobullet">{{link.itemTo.linkString}}.
+				 {% if link.comment %} ({{template_why|capfirst}}? {{link.comment}}) {% endif %}</li></ul>
+			{% endfor %}
+		{% endif %}
 		{% if reminded_links_incoming %}
 			{% for link in reminded_links_incoming %}
 				<ul><li class="nobullet">{{template_reminding_from}} {{link.itemFrom.linkString}}.
 				{% if link.comment %} ({{template_why|capfirst}}? {{link.comment}}) {% endif %}</li></ul>
+			{% endfor %}
+		{% endif %}
+		{% if reminded_links_outgoing %}
+			<p>{{template_reminding_to}}</p>
+			{% for link in reminded_links_outgoing %}
+				<ul><li class="nobullet">{{link.itemTo.linkString}}.
+				 {% if link.comment %} ({{template_why|capfirst}}? {{link.comment}}) {% endif %}</li></ul>
 			{% endfor %}
 		{% endif %}
 		{% if included_links_incoming_from_invitations %}
@@ -118,7 +134,7 @@
 	{% endifequal %}
 	
 	{% if related_links_both_ways %}
-		<p>{{template_related}}:</p>
+		<p>{{template_related_to}}</p>
 		<ul>
 		{% for link in related_links_both_ways %}
 			<li class="nobullet">
@@ -132,9 +148,21 @@
 		{% endfor %}
 		</ul>
 	{% endif %}
-		
-	</div>
 	
+	<div class="rightalign" style="font-size:80%;">
+	{% if member_can_edit_entry %}
+		(<a href="/{{dir_visit}}/{{entry.typeAsURL}}?{{entry.urlQuery}}">{{template_change}}</a>)
+	{% endif %}
+	{% ifequal entry.creator.key current_member.key %}
+		{% if entry.additionalEditors %}
+			(<a href="/{{dir_visit}}/{{url_editors}}?{{entry.urlQuery}}">{{template_change_editors}}</a>)
+		{% else %}
+			(<a href="/{{dir_visit}}/{{url_editors}}?{{entry.urlQuery}}">{{template_add_editors}}</a>)
+		{% endif %}
+	{% endifequal %}
+	</div>
+	</div>
+		
 	{{template_contributed_by}}
 	{% if entry.attributedToMember %}
 			{% if entry.creator.active %}
@@ -164,11 +192,8 @@
 		{{entry.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
 		{{entry.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 	{% endif %}
-	{% ifequal entry.creator.key current_member.key %}
-		(<a href="/{{dir_visit}}/{{entry.typeAsURL}}?{{entry.urlQuery}}">{{template_change}}</a>)
-	{% endifequal %}
 	</p>
-
+	
 	<h3>{{template_annotations}}</h3>
 	
 	{% if grid_options_on_top %}
@@ -186,7 +211,6 @@
 		<p></p>
 		{% include "../common_grid_options.html" %}
 	{% endif %}
-
 		
 	{% if show_versions and versions %}
 		<h3>{{template_versions}} <input type="submit" value="{{template_hide_versions}}" name="hideVersions" class="button_small"></h3>
@@ -202,6 +226,7 @@
 		{% endfor %}
 	{% else %}
 		{% if versions %}
+			<p></p>
 			<input type="submit" value="{{template_show_versions}}" name="showVersions" class="button_small">
 		{% endif %}
 		</div>

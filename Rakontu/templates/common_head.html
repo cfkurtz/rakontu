@@ -3,7 +3,9 @@
 		{% if rakontu and rakontu.externalStyleSheetURL %}
 			<link type="text/css" rel="stylesheet" href="{{rakontu.externalStyleSheetURL}}"/>
 		{% endif %}
-		<script type="text/javascript" src="/javascript/menu.js"></script>
+		<!--[if IE]>
+			<script type="text/javascript" src="/javascript/menu.js"></script>
+		<![endif]-->
 		<title>
 			{% if title %}{{title}}{% endif %}
 			{% if title_extra %} {{title_extra}}{% endif %}
@@ -34,7 +36,7 @@
 				color: #{{skin|dictLookup:"color_text_link"}};
 				}
 			a:hover {
-				background: #{{skin|dictLookup:"color_background_link_hover"}};
+				background-color: #{{skin|dictLookup:"color_background_link_hover"}};
 				color: #{{skin|dictLookup:"color_text_link_hover"}};
 				}
 			img.bordered {
@@ -53,17 +55,17 @@
 				border-top: 1px solid #{{skin|dictLookup:"color_border_normal"}};
 				}
 			th {
-				background: #{{skin|dictLookup:"color_background_table_header"}};
+				background-color: #{{skin|dictLookup:"color_background_table_header"}};
 				color: #{{skin|dictLookup:"color_text_table_header"}};
 				border: 1px solid #{{skin|dictLookup:"color_border_normal"}};
 				}
 			fieldset {
-				background: #{{skin|dictLookup:"color_background_entry"}}; 
+				background-color: #{{skin|dictLookup:"color_background_entry"}}; 
 				color: #{{skin|dictLookup:"color_text_entry"}};
 				border: 1px solid #{{skin|dictLookup:"color_border_normal"}};
 				}
 			.blurb {
-				background: #{{skin|dictLookup:"color_background_excerpt"}};
+				background-color: #{{skin|dictLookup:"color_background_excerpt"}};
 				border: 1px solid #{{skin|dictLookup:"color_border_normal"}};
 				color: #{{skin|dictLookup:"color_text_excerpt"}};
 				}
@@ -72,6 +74,7 @@
 				}
 			#topmenu li {
 				font-family: {{skin|dictLookup:"font_menus"}};
+				background-color: #{{skin|dictLookup:"color_background_menus"}};
 			    border: 1px solid #{{skin|dictLookup:"color_border_normal"}};
 			    color: #{{skin|dictLookup:"color_text_menus"}};
 			    }
@@ -87,7 +90,7 @@
 			    }
 			#topmenu li:hover li a, #topmenu li.hover a {
 				font-family: {{skin|dictLookup:"font_menus"}};
-			    background-color: #{{skin|dictLookup:"color_background_menus"}};
+			    background-color: #{{skin|dictLookup:"color_background_menus_hover"}};
 			    color: #{{skin|dictLookup:"color_text_menus"}};
 			    }
 			#topmenu li li a:hover {
@@ -104,7 +107,7 @@
 			#stylized select {
 				font-family: {{skin|dictLookup:"font_buttons"}};
 				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
-				background: #{{skin|dictLookup:"color_background_inputs"}}; 
+				background-color: #{{skin|dictLookup:"color_background_inputs"}}; 
 				color: #{{skin|dictLookup:"color_text_inputs"}};
 				}
 			#stylized select:hover{
@@ -113,7 +116,7 @@
 			#stylized input{
 				font-family: {{skin|dictLookup:"font_general"}};
 				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
-				background: #{{skin|dictLookup:"color_background_inputs"}}; 
+				background-color: #{{skin|dictLookup:"color_background_inputs"}}; 
 				color: #{{skin|dictLookup:"color_text_inputs"}};
 				}
 			#stylized input:hover{
@@ -122,7 +125,7 @@
 			#stylized textarea{
 				font-family: {{skin|dictLookup:"font_inputs"}};
 				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
-				background: #{{skin|dictLookup:"color_background_inputs"}}; 
+				background-color: #{{skin|dictLookup:"color_background_inputs"}}; 
 				color: #{{skin|dictLookup:"color_text_inputs"}};
 				}
 			#stylized textarea:hover{
@@ -130,25 +133,25 @@
 				}
 			#stylized input.button{
   				font-family: {{skin|dictLookup:"font_buttons"}};
-				background: #{{skin|dictLookup:"color_background_button"}};
+				background-color: #{{skin|dictLookup:"color_background_button"}};
 				border: solid 2px #{{skin|dictLookup:"color_border_normal"}};
 				color: #{{skin|dictLookup:"color_text_buttons"}};
 				}
 			#stylized input.button:hover{
   				font-family: {{skin|dictLookup:"font_buttons"}};
-				background: #{{skin|dictLookup:"color_background_button_hover"}};
+				background-color: #{{skin|dictLookup:"color_background_button_hover"}};
 				border: solid 2px #{{skin|dictLookup:"color_border_normal"}};
 				color: #{{skin|dictLookup:"color_text_buttons_hover"}};
 				}
 			#stylized input.button_small{
   				font-family: {{skin|dictLookup:"font_buttons"}};
-				background: #{{skin|dictLookup:"color_background_button"}};
+				background-color: #{{skin|dictLookup:"color_background_button"}};
 				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
 				color: #{{skin|dictLookup:"color_text_buttons"}};
 				}
 			#stylized input.button_small:hover{
   				font-family: {{skin|dictLookup:"font_buttons"}};
-				background: #{{skin|dictLookup:"color_background_button_hover"}};
+				background-color: #{{skin|dictLookup:"color_background_button_hover"}};
 				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
 				color: #{{skin|dictLookup:"color_text_buttons_hover"}};
 				}

@@ -327,19 +327,19 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 														pass 
 								questions = rakontu.getAllQuestionsOfReferType("story")
 								for question in questions:
-									keyName = GenerateSequentialKeyName("answer")
-									answer = Answer(
-												key_name=keyName, 
-												parent=entry,
-												rakontu=rakontu, 
-												question=question, 
-												creator=memberToAttribute, 
-												referent=entry, 
-												referentType="entry")
 									queryText = "%s|%s" % (i, question.key())
 									response = self.request.get(queryText)
-									keepAnswer = answer.shouldKeepMe(self.request, queryText, question)
+									keepAnswer = ShouldKeepAnswer(self.request, queryText, question)
 									if keepAnswer:
+										keyName = GenerateSequentialKeyName("answer")
+										answer = Answer(
+													key_name=keyName, 
+													parent=entry,
+													rakontu=rakontu, 
+													question=question, 
+													creator=memberToAttribute, 
+													referent=entry, 
+													referentType="entry")
 										answer.setValueBasedOnResponse(question, self.request, queryText, response)
 										answer.character = character
 										answer.liaison = member

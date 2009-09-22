@@ -98,3 +98,4 @@
 "tip","ordinal_and_nominal_questions","There is not actually any difference between nominal (names) and ordinal (names in order) questions. This is a placeholder for differences that might come in later."
 "tip","entering_question_choices","Enter each question choice on a separate line."
 "caution","changing_question_choices","After you remove a choice from a question's list, answers with that choice may remain in the Rakontu, but people will not be able to find them by searching anymore. Be careful to remove only choices you no longer want to see."
+"tip","adding_editors","Check any of these boxes to add either groups of members or individual members to the list of additional editors for this entry. Any of these groups or people will be able to edit the entry, but you will remain its creator and it will appear only on your member page."

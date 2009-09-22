@@ -133,6 +133,11 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 				offlineOrAllMembers = None
 			sortedQuestions = rakontu.getActiveQuestionsOfType(type)
 			sortedQuestions.sort(lambda a,b: cmp(a.order, b.order))
+			if type == "resource":
+				categories = rakontu.getResourceCategoryList()
+				DebugPrint(categories)
+			else:
+				categories = None
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': typeDisplay.capitalize(), 
 						   	   'title_extra': pageTitleExtra, 
@@ -171,6 +176,8 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 								# for a pattern
 								'referenced_links_outgoing': referencedLinksOutgoing,
 							    'searches_that_can_be_added_to_pattern': searchesThatCanBeIncluded,
+							    # for a resource
+							    'categories_in_use': categories,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/entry.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -207,53 +214,50 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 					url = BuildURL("dir_visit", "%s?%s&%s" % (entry.typeAsURL(), entry.urlQuery(), version.urlQuery()))
 					self.redirect(url)
 			else:
+				thingsToPublish = []
+				shouldUnpublishEntry = False
 				thingsToPut = []
 				thingsToDelete = []
-				collectedOffline = self.request.get("collectedOffline") == "yes"
-				if collectedOffline and member.isLiaison():
-					foundMember = False
-					if member.isManagerOrOwner():
-						membersToConsider = rakontu.getActiveMembers()
-					else:
-						membersToConsider = rakontu.getActiveOfflineMembers()
-					for aMember in membersToConsider:
-						if self.request.get("offlineSource") == str(aMember.key()):
-							creator = aMember
-							foundMember = True
-							break
-					if not foundMember:
-						self.redirect(BuildResultURL("offlineMemberNotFound", rakontu=rakontu)) 
-						return
-					liaison = member
-					dateCollected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
-				else:
-					creator = member
-					liaison = None
-					dateCollected = None
+				# get attribution info
+				(collectedOffline, creator, liaison, dateCollected, character) = ProcessAttributionFromRequest(self.request, member)
+				if collectedOffline and not creator:
+					self.redirect(BuildResultURL("offlineMemberNotFound", rakontu=rakontu)) 
+					return
+				# if this was edited by somebody else who got permission to do so, don't change the creator to them!
+				if entry and str(member.key()) != str(entry.creator.key()):
+					creator = entry.creator
+					character = entry.character
+				# if new entry, create
 				newEntry = False  
 				if not entry:
 					keyName = GenerateSequentialKeyName("entry")
-					entry=Entry(key_name=keyName, parent=creator, rakontu=rakontu, id=keyName, type=type, title=DEFAULT_UNTITLED_ENTRY_TITLE)
+					entry=Entry(
+							key_name=keyName,
+							id=keyName, 
+							parent=creator, 
+							rakontu=rakontu, 
+							type=type, 
+							title=DEFAULT_UNTITLED_ENTRY_TITLE)
 					newEntry = True
+				# main entry information
 				entry.collectedOffline = collectedOffline
 				entry.creator = creator
-				if liaison:
-					entry.liaison = liaison
-				if dateCollected:
-					entry.collected = dateCollected
+				entry.liaison = liaison
+				entry.character = character
+				entry.collected = dateCollected
 				entry.edited = datetime.now(tz=pytz.utc)
 				preview = False
 				if "save|%s" % type in self.request.arguments():
 					if not newEntry and not entry.draft: # was published before
-						entry.unPublish()
+						shouldUnpublishEntry = True
 					entry.draft = True
 				elif "preview|%s" % type in self.request.arguments():
 					entry.draft = True
 					preview = True
 				elif "publish|%s" % type in self.request.arguments():
+					isFirstPublish = entry.draft 
 					entry.draft = False
 					entry.inBatchEntryBuffer = False
-					entry.published = datetime.now(tz=pytz.utc)
 				if (entry.text and entry.text != NO_TEXT_IN_ENTRY):
 					entry.addCurrentTextToPreviousVersions()
 				if self.request.get("title"):
@@ -263,22 +267,18 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 				entry.text = text
 				entry.text_formatted = db.Text(InterpretEnteredText(text, format))
 				entry.text_format = format
-				if entry.collectedOffline:
-					attributionQueryString = "offlineAttribution"
-				else:
-					attributionQueryString = "attribution"
-				if self.request.get(attributionQueryString) and self.request.get(attributionQueryString) != "member":
-					character = Character.get(self.request.get(attributionQueryString))
-				else:
-					character = None
-				entry.character = character
 				if type == "resource":
 					entry.resourceForHelpPage = self.request.get("resourceForHelpPage") == "yes"
 					entry.resourceForNewMemberPage = self.request.get("resourceForNewMemberPage") == "yes"
 					entry.resourceForManagersAndOwnersOnly = self.request.get("resourceForManagersAndOwnersOnly") == "yes"
-				thingsToPut.append(entry)
+					if self.request.get("categoryIfResource_list") != "none":
+						entry.categoryIfResource = self.request.get("categoryIfResource_list")
+					elif self.request.get("categoryIfResource_entered"):
+						entry.categoryIfResource = self.request.get("categoryIfResource_entered")
 				if not entry.draft:
-					entry.publish()
+					thingsToPublish.append(entry)
+				thingsToPut.append(entry)
+				# deal with INCOMING link created during entry creation - retelling, reminding, responding
 				linkType = None
 				if self.request.get("link_item_from"):
 					itemFrom = db.get(self.request.get("link_item_from"))
@@ -289,14 +289,10 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 							linkType = "reminded"
 						elif self.request.get("link_type") == "respond":
 							linkType = "responded"
-						elif self.request.get("link_type") == "relate":
-							linkType = "related"
-						elif self.request.get("link_type") == "include":
-							linkType = "included"
-						elif self.request.get("link_type") == "reference":
-							linkType = "referenced"
 						comment = htmlEscape(self.request.get("link_comment"))
-						link = Link(key_name=GenerateSequentialKeyName("link"), 
+						keyName = GenerateSequentialKeyName("link")
+						link = Link(
+								key_name=keyName, 
 								parent=itemFrom,
 								rakontu=rakontu,
 								itemFrom=itemFrom, 
@@ -305,8 +301,10 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 								creator=creator,
 								liaison=liaison,
 								comment=comment)
+						if not entry.draft:
+							thingsToPublish.append(link)
 						thingsToPut.append(link)
-						link.publish()
+				# deal with OUTGOING links created during entry creation - included (collage)
 				if entry.isCollage():
 					for link in entry.getOutgoingLinksOfType("included"):
 						link.comment = self.request.get("linkComment|%s" % link.key())
@@ -327,9 +325,10 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 								comment=comment,
 								creator=creator,
 								liaison=liaison)
-							thingsToPut.append(link)
 							if not entry.draft:
-								link.publish()
+								thingsToPublish.append(link)
+							thingsToPut.append(link)
+				# deal with OUTGOING links created during entry creation - referenced (pattern)
 				if entry.isPattern():
 					for link in entry.getOutgoingLinksOfType("referenced"):
 						link.comment = self.request.get("linkComment|%s" % link.key())
@@ -348,51 +347,62 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 								comment=comment,
 								creator=creator,
 								liaison=liaison)
-							thingsToPut.append(link)
 							if not entry.draft:
-								link.publish()
+								thingsToPublish.append(link)
+							thingsToPut.append(link)
+				# deal with questions answered as part of entry creation
 				questions = rakontu.getAllQuestionsOfReferType(type)
 				for question in questions:
-					foundAnswers = entry.getAnswersForQuestionAndMember(question, creator)
-					if foundAnswers:
-						answerToEdit = foundAnswers[0]
-					else:
-						keyName = GenerateSequentialKeyName("answer")
-						answerToEdit = Answer(
-											key_name=keyName,
-											parent=entry,
-											rakontu=rakontu, 
-											question=question, 
-											creator=creator,
-											liaison=liaison,
-											referent=entry, 
-											referentType="entry")
 					queryText = "%s" % question.key()	
 					response = self.request.get(queryText)
-					keepAnswer = answerToEdit.shouldKeepMe(self.request, queryText, question)
+					foundAnswer = entry.getAnswerForQuestionAndMember(question, creator)
+					keepAnswer = ShouldKeepAnswer(self.request, queryText, question)
 					if keepAnswer:
+						if foundAnswer:
+							answerToEdit = foundAnswer
+						else:
+							keyName = GenerateSequentialKeyName("answer")
+							answerToEdit = Answer(
+												key_name=keyName,
+												parent=entry,
+												rakontu=rakontu, 
+												question=question, 
+												referent=entry, 
+												referentType="entry")
 						answerToEdit.setValueBasedOnResponse(question, self.request, queryText, response)
 						answerToEdit.creator = creator
 						answerToEdit.character = character
 						answerToEdit.liaison = liaison
 						answerToEdit.inBatchEntryBuffer = entry.inBatchEntryBuffer
 						answerToEdit.collected = entry.collected
-						answerToEdit.publish()
+						if not entry.draft:
+							thingsToPublish.append(answerToEdit)
 						thingsToPut.append(answerToEdit)
-					else:
-						thingsToDelete.append(answerToEdit)
+					else: # not keepAnswer
+						if foundAnswer:
+							thingsToDelete.append(foundAnswer)
 				foundAttachments = entry.getAttachments()
 				for attachment in foundAttachments:
 					for name, value in self.request.params.items():
 						if value == "removeAttachment|%s" % attachment.key():
 							thingsToDelete.append(attachment)
 				thingsToPut.append(entry.creator)
-				def txn(thingsToPut, thingsToDelete):
+				# finally, commit all changes to the database, except for new attachments
+				def txn(thingsToPut, thingsToDelete, thingsToPublish, shouldUnpublishEntry):
+					# publishing must be done inside the transaction 
+					# because it updates counters which rely on a consistent state
+					for thing in thingsToPublish:
+						if thing is entry:
+							DebugPrint(isFirstPublish, "publishing entry")
+							thing.publish(isFirstPublish)
+						else:
+							thing.publish()
+					if shouldUnpublishEntry:
+						entry.unPublish()
 					db.put(thingsToPut)
 					db.delete(thingsToDelete)
-				db.run_in_transaction(txn, thingsToPut, thingsToDelete)
-				# do attachments separately - in same entity group, but want to let them fail separately so that 
-				# some might still attach even if one doesn't
+				db.run_in_transaction(txn, thingsToPut, thingsToDelete, thingsToPublish, shouldUnpublishEntry)
+				# commit NEW attachments separately, so that SOME might still attach even if one doesn't
 				foundAttachments = entry.getAttachments()
 				for i in range(rakontu.maxNumAttachments):
 					for name, value in self.request.params.items():
@@ -403,7 +413,12 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 									attachmentToEdit = foundAttachments[i]
 								else:
 									keyName = GenerateSequentialKeyName("attachment")
-									attachmentToEdit = Attachment(key_name=keyName, parent=entry, id=keyName, entry=entry, rakontu=rakontu)
+									attachmentToEdit = Attachment(
+													key_name=keyName, 
+													id=keyName, 
+													parent=entry, 
+													entry=entry, 
+													rakontu=rakontu)
 								j = 0
 								mimeType = None
 								for type in ACCEPTED_ATTACHMENT_FILE_TYPES:
@@ -435,6 +450,55 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 		else: # no rakontu or member
 			self.redirect(NoRakontuAndMemberURL())
 			
+class ManageAdditionalEntryEditorsPage(ErrorHandlingRequestHander):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
+			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
+			if entry and str(entry.creator.key()) == str(member.key()):
+				template_values = GetStandardTemplateDictionaryAndAddMore({
+							   	   'title': TITLES["ADDITIONAL_EDITORS_FOR"], 
+						   	   	   'title_extra': entry.title, 
+								   'current_member': member,
+								   'rakontu': rakontu, 
+								   'skin': rakontu.getSkinDictionary(),
+								   'entry': entry,
+								   'editor_types': ADDITIONAL_EDITOR_TYPES,
+								   'editor_types_display': ADDITIONAL_EDITOR_TYPES_DISPLAY,
+								   'editor_types_included': entry.getAdditionalEditorTypes(),
+								   'editor_keys_included': entry.getAdditionalEditorKeys(),
+								   'rakontu_members': rakontu.getActiveOnlineMembers(),
+								   'max_num_additional_editors': MAX_NUM_ADDITIONAL_EDITORS,
+								   })
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/editors.html'))
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect(NotFoundURL(rakontu))
+		else:
+			self.redirect(NoRakontuAndMemberURL())
+				
+	@RequireLogin 
+	def post(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
+			if entry:
+				entry.additionalEditors = []
+				for editorType in ADDITIONAL_EDITOR_TYPES:
+					if self.request.get("editors|%s" % editorType) == "yes":
+						entry.additionalEditors.append(editorType)
+				for aMember in rakontu.getActiveOnlineMembers():
+					if self.request.get("key|%s" % aMember.key()) == "yes":
+						entry.additionalEditors.append(str(aMember.key()))
+				entry.put()
+				self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
+			else:
+				self.redirect(NotFoundURL(rakontu))
+		else:
+			self.redirect(NoRakontuAndMemberURL())
+		
 class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
@@ -480,71 +544,51 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 		if access:
 			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 			if entry:
+				thingsToPublish = []
 				thingsToPut = []
 				thingsToDelete = []
 				newAnswers = False
-				preview = False
-				if "preview" in self.request.arguments():
-					preview = True
-				collectedOffline = self.request.get("collectedOffline") == "yes"
-				if collectedOffline and member.isLiaison():
-					foundMember = False
-					if member.isManagerOrOwner():
-						membersToConsider = rakontu.getActiveMembers()
-					else:
-						membersToConsider = rakontu.getActiveOfflineMembers()
-					for aMember in membersToConsider:
-						if self.request.get("offlineSource") == str(aMember.key()):
-							creator = aMember
-							foundMember = True
-							break
-					if not foundMember:
-						self.redirect(BuildResultURL("offlineMemberNotFound", rakontu=rakontu))
-						return
-					liaison = member
-					collected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
-				else:
-					creator = member
-				if collectedOffline:
-					attributionQueryString = "offlineAttribution"
-				else:
-					attributionQueryString = "attribution"
-				character = None
-				if self.request.get(attributionQueryString) != "member":
-					characterKey = self.request.get(attributionQueryString)
-					character = Character.get(characterKey)
+				preview = "preview" in self.request.arguments()
+				# get attribution info
+				(collectedOffline, creator, liaison, dateCollected, character) = ProcessAttributionFromRequest(self.request, member)
+				if collectedOffline and not creator:
+					self.redirect(BuildResultURL("offlineMemberNotFound", rakontu=rakontu)) 
+					return
+				# process answers
 				questions = rakontu.getAllQuestionsOfReferType(entry.type)
 				for question in questions:
-					foundAnswers = entry.getAnswersForQuestionAndMember(question, member)
-					if foundAnswers:
-						answerToEdit = foundAnswers[0]
-					else:
-						keyName = GenerateSequentialKeyName("answer")
-						answerToEdit = Answer(
-											key_name=keyName, 
-											parent=entry,
-											rakontu=rakontu, 
-											question=question, 
-											referent=entry, 
-											referentType="entry")
-						newAnswers = True
-					answerToEdit.creator = creator
-					if collectedOffline:
-						answerToEdit.liaison = liaison
-						answerToEdit.collected = collected
-					answerToEdit.character = character
 					queryText = "%s" % question.key()	
 					response = self.request.get(queryText)
-					keepAnswer = answerToEdit.shouldKeepMe(self.request, queryText, question)
+					keepAnswer = ShouldKeepAnswer(self.request, queryText, question)
+					foundAnswer = entry.getAnswerForQuestionAndMember(question, member)
 					if keepAnswer:
+						if foundAnswer:
+							answerToEdit = foundAnswer
+						else:
+							keyName = GenerateSequentialKeyName("answer")
+							answerToEdit = Answer(
+												key_name=keyName, 
+												parent=entry,
+												rakontu=rakontu, 
+												question=question, 
+												referent=entry, 
+												referentType="entry")
+							newAnswers = True
 						answerToEdit.setValueBasedOnResponse(question, self.request, queryText, response)
-						answerToEdit.publish()
+						answerToEdit.creator = creator
+						answerToEdit.liaison = liaison
+						answerToEdit.collected = dateCollected
+						answerToEdit.character = character
+						thingsToPublish.append(answerToEdit)
 						thingsToPut.append(answerToEdit)
-					else:
-						thingsToDelete.append(answerToEdit)
+					else: # not keepAnswer
+						if foundAnswer:
+							thingsToDelete.append(foundAnswer)
 				thingsToPut.append(entry)
 				thingsToPut.append(creator)
-				def txn(thingsToPut, thingsToDelete):
+				def txn(thingsToPut, thingsToDelete, thingsToPublish):
+					for thing in thingsToPublish:
+						thing.publish()
 					db.put(thingsToPut)
 					db.delete(thingsToDelete)
 				db.run_in_transaction(txn, thingsToPut, thingsToDelete)
@@ -690,32 +734,16 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 					preview = True
 				elif "publish|%s" % type in self.request.arguments():
 					annotation.inBatchEntryBuffer = False
-					annotation.published = datetime.now(tz=pytz.utc)
-				annotation.collectedOffline = self.request.get("collectedOffline") == "yes"
-				if annotation.collectedOffline and member.isLiaison():
-					foundMember = False
-					for aMember in rakontu.getActiveOfflineMembers():
-						if self.request.get("offlineSource") == str(aMember.key()):
-							annotation.creator = aMember
-							foundMember = True
-							break
-					if not foundMember:
-						self.redirect(BuildResultURL("offlineMemberNotFound", rakontu=rakontu))
-						return
-					annotation.liaison = member
-					annotation.collected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
-				else:
-					annotation.creator = member
-				if annotation.collectedOffline:
-					attributionQueryString = "offlineAttribution"
-				else:
-					attributionQueryString = "attribution"
-				if self.request.get(attributionQueryString) and self.request.get(attributionQueryString) != "member":
-					characterKey = self.request.get(attributionQueryString)
-					character = Character.get(characterKey)
-					annotation.character = character
-				else:
-					annotation.character = None
+				# get attribution info
+				(collectedOffline, creator, liaison, dateCollected, character) = ProcessAttributionFromRequest(self.request, member)
+				if collectedOffline and not creator:
+					self.redirect(BuildResultURL("offlineMemberNotFound", rakontu=rakontu)) 
+					return
+				annotation.collectedOffline = collectedOffline
+				annotation.creator = creator
+				annotation.liaison = liaison
+				annotation.collected = dateCollected
+				annotation.character = character
 				if type == "tag set":
 					annotation.tagsIfTagSet = []
 					for i in range (NUM_TAGS_IN_TAG_SET):
@@ -777,11 +805,9 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 						if rakontu.nudgeCategoryIndexHasContent(i):
 							annotation.valuesIfNudge[i] = adjustedValues[i]
 					annotation.shortString = htmlEscape(self.request.get("shortString"))
-				annotation.publish()
 				def txn(annotation, entry):
+					annotation.publish()
 					annotation.put()
-					if annotation.type == "nudge":
-						entry.updateNudgePoints()
 					entry.put()
 					annotation.creator.put()
 				db.run_in_transaction(txn, annotation, entry)
@@ -854,19 +880,22 @@ class PreviewPage(ErrorHandlingRequestHander):
 				if "edit" in self.request.arguments():
 					self.redirect(BuildURL("dir_visit", URLForEntryType(entry.type), entry.urlQuery()))
 				elif "publish" in self.request.arguments():
+					thingsToPublish = []
 					thingsToPut = []
-					entry.publish()
+					thingsToPublish.append(entry)
 					thingsToPut.append(entry)
 					for answer in entry.getAnswersForMember(entry.creator):
-						answer.publish()
+						thingsToPublish.append(answer)
 						thingsToPut.append(answer)
 					for link in entry.getOutgoingLinks():
-						link.publish()
+						thingsToPublish.append(link)
 						thingsToPut.append(link)
 					thingsToPut.append(entry.creator)
-					def txn(thingsToPut):
+					def txn(thingsToPut, thingsToPublish):
+						for thing in thingsToPublish:
+							thing.publish()
 						db.put(thingsToPut)
-					db.run_in_transaction(txn, thingsToPut)
+					db.run_in_transaction(txn, thingsToPut, thingsToPublish)
 					self.redirect(rakontu.linkURL())
 				else:
 					self.redirect(NotFoundURL(rakontu))
@@ -942,14 +971,15 @@ class RelateEntryPage(ErrorHandlingRequestHander):
 					type = self.request.get("entry_type")
 					bookmark = None
 				else:
-					linksToPut = []
-					linksToDelete = []
+					thingsToPublish = []
+					thingsToPut = []
+					thingsToDelete = []
 					for link in entry.getLinksOfType("related"):
 						if self.request.get("linkComment|%s" % link.key()):
 							link.comment = self.request.get("linkComment|%s" % link.key())
-							linksToPut.append(link)
+							thingsToPut.append(link)
 						if self.request.get("removeLink|%s" % link.key()) == "yes":
-							linksToDelete.append(link)
+							thingsToDelete.append(link)
 					prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging(type, bookmark)
 					atLeastOneLinkCreated = False
 					for anEntry in entries:
@@ -964,17 +994,19 @@ class RelateEntryPage(ErrorHandlingRequestHander):
 									type="related", 
 									creator=member, 
 									comment=comment)
-							link.publish()
-							linksToPut.append(link)
-							linksToPut.append(entry)
-							linksToPut.append(anEntry)
+							thingsToPublish.append(link)
+							thingsToPut.append(link)
+							thingsToPut.append(entry)
+							thingsToPut.append(anEntry)
 							atLeastOneLinkCreated = True
 					if atLeastOneLinkCreated:
 						bookmark = None
-					def txn(linksToPut, linksToDelete):
-						db.put(linksToPut)
-						db.delete(linksToDelete)
-					db.run_in_transaction(txn, linksToPut, linksToDelete)
+					def txn(thingsToPut, thingsToDelete, thingsToPublish):
+						for thing in thingsToPublish:
+							thing.publish()
+						db.put(thingsToPut)
+						db.delete(thingsToDelete)
+					db.run_in_transaction(txn, thingsToPut, thingsToDelete, thingsToPublish)
 				if bookmark:
 					# bookmark must be last, because of the extra == the PageQuery puts on it
 					query = "%s&%s=%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_type"], type, URL_OPTIONS["url_query_bookmark"], bookmark)

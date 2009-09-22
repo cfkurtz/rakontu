@@ -51,14 +51,14 @@
 		<table cellpadding=4 cellspacing=0>
 		<tr>
 			<th>{{template_name}}</th>
-			<th>{{template_dates}} (UTC)</th>
+			<th>{{template_created}} (UTC)</th>
 			<th>{{template_counts}}</th>
 			<th>{{template_member}}?</th>
 			<th>{{template_active}}? {{"activating_rakontus"|caution}}</th>
+			<th>{{template_remove}} {{"removing_rakontus"|caution}}</th>
 			{% if development %}
 				<th>Add fake data?</th> 
 			{% endif %}
-			<th>{{template_remove}} {{"removing_rakontus"|caution}}</th>
 			</tr>
 		
     	{% for rakontu in rakontus %}
@@ -68,15 +68,7 @@
 	    		<p>({{rakontu.getKeyName}})</p>
 	    		</td>
 	    	<td>
-	    		<p>{{template_created}}: {{rakontu.created|timeZone:"UTC"|time:"h:i a"}} {{rakontu.created|timeZone:"UTC"|date:"F j, Y"}}</p>
-				<p>{{template_approcket_timestamp}}: 
-	    		{% if rakontu.appRocketTimeStamp %}
-	    			{{rakontu.appRocketTimeStamp|time:"h:i a"}} {{rakontu.appRocketTimeStamp|date:"F j, Y"}}
-	    		{% else %}
-	    			{{term_none}}
-	    		{% endif %}
-	    		</p>
-	    		</td>
+	    		<p>{{rakontu.created|timeZone:"UTC"|time:"h:i a"}}<br/>{{rakontu.created|timeZone:"UTC"|date:"F j, Y"}}</p>
 		    <td>
 	    		<p>{{template_active_members}}: {{rakontu.numActiveMembers}}</p>
 				<p>{{template_pending_members}}: {{rakontu.numPendingMembers}}</p>
@@ -123,6 +115,10 @@
 						onClick="javascript:return confirm('{{template_confirm_activate}} {{rakontu.name}}?')">
   					{% endif %}
   			</td>
+			<td>
+			<input type="submit" name="remove|{{rakontu.key}}" value="{{button_remove|allcaps}}" class="button" 
+			onClick="javascript:return confirm('{{template_confirm_remove}} {{rakontu.name}}?')">
+  					</td>
 			{% if development %}
 				<td>
 				<input type="text" size="4" name="numItems|{{rakontu.key}}" value="10"><br/>
@@ -136,10 +132,6 @@
 				<input type="submit" name="addFakeDataTo|{{rakontu.key}}" value="Add" class="button">
 				</td>
 			{% endif %}
-			<td>
-			<input type="submit" name="remove|{{rakontu.key}}" value="{{button_remove|allcaps}}" class="button" 
-			onClick="javascript:return confirm('{{template_confirm_remove}} {{rakontu.name}}?')">
-  					</td>
 			</td>
     	{% endfor %}
     	</table>
@@ -148,6 +140,9 @@
 		{% if development %}
 			<p><a href="/{{dir_admin}}/{{url_make_fake_data}}">Generate fake testing Rakontu</a></p>
 		{% endif %}
+		<p>Import Rakontu<input type="file" name="import" accept="xml"/>
+		<input type="submit" name="importRakontu" value="Import Rakontu" class="button">
+		</p>
 		<p></p>
 		<center><p><i><b>{{template_admin_warning}}</b></i></p>
 		</form>

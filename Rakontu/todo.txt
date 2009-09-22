@@ -2,9 +2,13 @@ Things to do before v0.9 is complete
 
 TESTING:
 
-test change to common_head with external style sheet
-
 put "extra" fields in all objects (not indexable? - strings?) for later use
+
+change all url_options arguments to constants for translation
+
+BUG: in IE menus are grey - CANNOT FIX!!
+
+BUG: became liaison, did not get attribut box until next try - timing??
 
 BUGS RIGHT NOW:
 

@@ -205,8 +205,6 @@ def send_updates(kind, table_name, timestamp_field, table_key_field, send_fields
 
         batch_sql = sql + " limit %d, %d" % (offset, BATCH_SIZE)
 
-        logging.info(batch_sql, params)
-        
         try:
             cur.execute(batch_sql, params)
         except Exception, e:
@@ -547,7 +545,7 @@ def create_field(cur, table_name, table_key_field, field_name, field_type, is_li
         elif field_type == TYPE_TEXT or field_type == TYPE_STR_LIST:
             cur.execute("ALTER TABLE %s ADD COLUMN `%s` TEXT" % (table_name, field_name))
         elif field_type == TYPE_KEY or field_type == TYPE_REFERENCE:
-            cur.execute("ALTER TABLE %s ADD COLUMN `%s` VARCHAR(500)" % (table_name, field_name))
+        	cur.execute("ALTER TABLE %s ADD COLUMN `%s` VARCHAR(500)" % (table_name, field_name))
         elif field_type == TYPE_BLOB:
             cur.execute("ALTER TABLE %s ADD COLUMN `%s` BLOB" % (table_name, field_name))
         else: # str

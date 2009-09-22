@@ -4,15 +4,15 @@
 # Version: pre-0.1
 # License: GPL 3.0 
 # Google Code Project: http://code.google.com/p/rakontu/
-# -------------------------------------------------------------------------- -------- ----------
-        
+# -------------------------------------------------------------------------- -------- ---------- 
+         
 import os       
 import string             
 import cgi          
 import htmllib          
           
 from models import *         
-    
+     
 from google.appengine.api import users     
 from google.appengine.ext.webapp import template        
 from google.appengine.ext import webapp    
@@ -21,11 +21,11 @@ from google.appengine.api import images
 from google.appengine.api import mail
 from google.appengine.api import memcache
 import traceback
-  
+   
 webapp.template.register_template_library('djangoTemplateExtras')
 import csv 
 import pytz
-  
+   
 # ============================================================================================
 # ============================================================================================
 # PREPARING INFO FOR TEMPLATES
@@ -1054,7 +1054,7 @@ def GenerateFakeTestingData():
 	#AddFakeDataToRakontu(rakontu, 10, "members")
 	#AddFakeDataToRakontu(rakontu, 100, "entries")
 	#AddFakeDataToRakontu(rakontu, 200, "annotations")
-	#AddFakeDataToRakontu(rakontu, 400, "nudges")
+	#AddFakeDataToRakontu(rakontu, 400, "nudges") 
 
 LOREM_IPSUM = [
 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla malesuada arcu a lorem interdum euismod aliquet dui vehicula. Integer posuere mollis massa, ac posuere diam vestibulum eget. Quisque gravida arcu non lorem placerat tempus eget in risus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aliquam velit nulla, tempus sit amet gravida vel, gravida sit amet libero. Maecenas bibendum nulla ac leo feugiat egestas. Suspendisse vel dui velit. Duis a velit eget augue pellentesque bibendum in non urna. Nunc vestibulum mi vitae neque pulvinar et feugiat urna auctor. Proin volutpat euismod nunc, adipiscing pharetra leo commodo a. Suspendisse potenti. Vestibulum luctus velit non purus laoreet elementum. Donec euismod, ipsum interdum facilisis porttitor, dui dui suscipit turpis, faucibus imperdiet ante metus tempus elit. Ut vulputate, leo quis tincidunt tincidunt, massa ante fringilla libero, iaculis varius tortor quam tempor ipsum. Praesent cursus consequat tellus, eget molestie dui aliquet vitae.",
@@ -1066,21 +1066,23 @@ LOREM_IPSUM = [
 
 def GenerateRandomDate(start, end):
     delta = end - start
-    deltaSeconds = (delta.days * 24 * 60 * 60) + delta.seconds
-    randomSeconds = random.randrange(deltaSeconds)
+    deltaSeconds = (delta.days * 24 * 60 * 60) + delta.seconds   
+    randomSeconds = random.randrange(deltaSeconds) 
     return start + timedelta(seconds=randomSeconds)
 	
-def AddFakeDataToRakontu(rakontu, numItems, createWhat):
-	user = users.get_current_user()
+def AddFakeDataToRakontu(rakontu, numItems, createWhat): 
+	user = users.get_current_user() 
 	startDate = rakontu.created
 	startDate = startDate.replace(tzinfo=pytz.utc)
-	endDate = datetime.now()
+	endDate = datetime.now() 
 	endDate = endDate.replace(tzinfo=pytz.utc)
 	
 	if createWhat == "members":
 		numMembersNow = rakontu.numActiveMembers()
-		for i in range(numItems):
-			member = CreateMemberFromInfo(rakontu, None, None, "Member %s" % (numMembersNow + i + 1), "member")
+		for i in range(numItems): 
+			text = random.choice(LOREM_IPSUM)
+			name = "Member %s" % (numMembersNow + i + 1) + " " + text[:random.randrange(5,40)]
+			member = CreateMemberFromInfo(rakontu, None, None, name, "member")
 			member.joined = startDate
 			member.initialize()
 			member.put() 
@@ -1150,8 +1152,6 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 			annotation.created = annotation.published
 			annotation.put()
 			entry.lastAnnotatedOrAnsweredOrLinked = annotation.published
-			if type == "nudge":
-				entry.updateNudgePoints()
 			entry.put()
 	elif createWhat == "answers":
 		entryKeyNames = [] 
@@ -1178,12 +1178,12 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 								id=keyName,
 								rakontu=rakontu, 
 								question=question,
-								creator=member, 
+								creator=member,  
 								referent=entry)
 			if question.type == "boolean":
 				if random.randrange(100) > 50:
 					answer.answerIfBoolean = "yes"
-				else:
+				else: 
 					answer.answerIfBoolean = "no"
 			elif question.type == "text":
 				answer.answerIfText = text
@@ -1238,7 +1238,6 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 			annotation.created = annotation.published
 			annotation.put()
 			entry.lastAnnotatedOrAnsweredOrLinked = annotation.published
-			entry.updateNudgePoints()
 			entry.put()
 		DebugPrint("%s nudges generated" % numItems)
 

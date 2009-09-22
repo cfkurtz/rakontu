@@ -1,0 +1,24 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+		<div id="content">
+		
+		<h3>{{title}} {{title_extra}}</h3>
+  		
+ 		<p></p>
+    	<table cellspacing=0 cellpadding=0 style="width:auto;">
+    	
+    	{% for i in count_names|makeRangeFromListLength %}
+    		<tr>
+    		<th>{{count_names|listLookup:i}}</th>
+    		<td>{{counts|listLookup:i}}</td>
+    		</tr>
+ 		{% endfor %}
+		</tr>
+		</table>
+
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

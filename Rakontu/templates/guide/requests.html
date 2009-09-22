@@ -51,10 +51,12 @@
   					{% if request.completedIfRequest %}
   						{{template_yes|upper}}
   						<input type="submit" name="setUncompleted|{{request.key}}" value="{{button_set_request_uncompleted}}" class="button_small">
-  					{% else %}
+ 					{% else %}
   						{{template_no}}
   						<input type="submit" name="setCompleted|{{request.key}}" value="{{button_set_request_completed}}" class="button_small">
-  					{% endif %}
+   					{% endif %}
+ 				 	<p>{{template_comment}}: 
+					<input type="text" name="comment|{{request.key}}" value="{{request.completionCommentIfRequest|orNothing}}" size="20" maxlength="{{maxlength_subject_or_comment}}"></p>
   				</td>
       			</tr>
       		{% endfor %}

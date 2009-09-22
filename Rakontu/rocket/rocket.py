@@ -116,6 +116,8 @@ class Rocket(webapp.RequestHandler):
 			else:
 				key = datastore.Key.from_path(kind, key_name_or_id) # KEY NAME
 				
+			logging.info(key)
+				
 			try: entity = datastore.Get(key)
 			except datastore_errors.EntityNotFoundError: pass
 			
@@ -126,15 +128,13 @@ class Rocket(webapp.RequestHandler):
 					self.response.out.write(u'Entity with AppEngine ID=%s is not found.\n' % key_name_or_id)
 					return 
 					
-				entity = datastore.Entity(kind=kind,name=key_name_or_id)
+				entity = datastore.Entity(kind=kind, name=key_name_or_id)
 			else:
 				entity = datastore.Entity(kind=kind)
 		else:
 			clear_cache = True
 				
 		args = self.request.arguments()
-		
-		#logging.info(args)
 		
 		for arg in args:
 			if arg != TYPE_KEY:				

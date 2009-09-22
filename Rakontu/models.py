@@ -156,8 +156,6 @@ class Rakontu(db.Model):
 # no parent
 # ============================================================================================
 
-	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
-	
 	# identification
 	name = db.StringProperty(required=True) # appears on all pages at top
 	
@@ -204,7 +202,7 @@ class Rakontu(db.Model):
 	skinName = db.StringProperty(default=DEFAULT_SKIN_NAME, indexed=False)
 	customSkin = db.TextProperty(indexed=False)
 	externalStyleSheetURL = db.StringProperty(default=None, indexed=False)
-	
+
 	def initializeFormattedTexts(self):
 		self.description_formatted = db.Text("<p>%s</p>" % self.description)
 		self.etiquetteStatement_formatted = db.Text("<p>%s</p>" % self.etiquetteStatement)
@@ -550,6 +548,19 @@ class Rakontu(db.Model):
 	def getResourceWithTitle(self, title):
 		return Entry.all().filter("rakontu = ", self.key()).filter("type = ", "resource").filter("title = ", title).get()
 	
+	def getResourceCategoryList(self):
+		categoryDict = {}
+		resources = Entry.all().filter("rakontu = ", self.key()). \
+			filter("draft = ", False). \
+			filter("type = ", "resource"). \
+			fetch(FETCH_NUMBER)
+		for resource in resources:
+			if resource.categoryIfResource and not categoryDict.has_key(resource.categoryIfResource):
+				categoryDict[resource.categoryIfResource] = 1
+		result = categoryDict.keys()
+		result.sort()
+		return result
+	
 	# ENTRIES, ANNOTATIONS, ANSWERS, LINKS - EVERYTHING
 	
 	def getAllFlaggedItems(self):
@@ -630,6 +641,34 @@ class Rakontu(db.Model):
 		tagsSorted.sort()
 		return tagsSorted
 			
+	def getCounts(self):
+		countNames = []
+		counts = []
+		i = 0
+		for aType in ENTRY_TYPES:
+			countNames.append(ENTRY_TYPES_PLURAL_DISPLAY[i])
+			count = Entry.all().filter("rakontu = ", self.key()).filter("type = ", aType).count()
+			counts.append(count)
+			i += 1
+		i = len(ENTRY_TYPES)
+		j = 0
+		for aType in ANNOTATION_ANSWER_LINK_TYPES:
+			if aType in ANNOTATION_TYPES:
+				countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
+				count = Annotation.all().filter("rakontu = ", self.key()).filter("type = ", aType).count()
+				counts.append(count)
+			elif aType == "answer":
+				countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
+				count = Answer.all().filter("rakontu = ", self.key()).count()
+				counts.append(count)
+			elif aType == "link":
+				countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
+				count = Link.all().filter("rakontu = ", self.key()).count()
+				counts.append(count)
+			i += 1
+			j += 1
+		return countNames, counts
+	
 	# QUERIES WITH PAGING
 	
 	def getNonDraftEntriesLackingMetadata_WithPaging(self, show, type, sortBy, bookmark, numToFetch=MAX_ITEMS_PER_LIST_PAGE):
@@ -1043,7 +1082,6 @@ class Question(db.Model):
 # ============================================================================================
 
 	id = db.StringProperty(required=True)
-	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, collection_name="questions_to_rakontu") 
 	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO, required=True)
 	
@@ -1124,7 +1162,6 @@ class Member(db.Model):
 # ============================================================================================
 
 	id = db.StringProperty(required=True)
-	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="members_to_rakontu")
 	nickname = db.StringProperty(default=NO_NICKNAME_SET)
 	isOnlineMember = db.BooleanProperty(default=True)
@@ -1154,6 +1191,7 @@ class Member(db.Model):
 	preferredTextFormat = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	shortDisplayLength = db.IntegerProperty(default=DEFAULT_DETAILS_TEXT_LENGTH) # how long to show texts in details
 	
+	viewOptions = db.ListProperty(db.Key)
 	timeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE, indexed=False) # members choose these in their prefs page
 	timeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT, indexed=False) # how they want to see dates
 	dateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT, indexed=False) # how they want to see times
@@ -1161,16 +1199,7 @@ class Member(db.Model):
 	
 	joined = TzDateTimeProperty(auto_now_add=True)
 	firstVisited = db.DateTimeProperty(indexed=False)
-	
-	lastEnteredEntry = db.DateTimeProperty(indexed=False)
-	lastEnteredAnnotation = db.DateTimeProperty(indexed=False)
-	lastEnteredLink = db.DateTimeProperty(indexed=False)
-	lastAnsweredQuestion = db.DateTimeProperty(indexed=False)
-	lastReadAnything = db.DateTimeProperty(indexed=False)
-	counts = db.ListProperty(int, default=[0] * (len(ENTRY_TYPES) + len(ANNOTATION_ANSWER_LINK_TYPES)), indexed=False) 
 	nudgePoints = db.IntegerProperty(default=DEFAULT_START_NUDGE_POINTS, indexed=False) # accumulated through participation
-	
-	viewOptions = db.ListProperty(db.Key)
 	
 	# CREATION
 	
@@ -1397,46 +1426,6 @@ class Member(db.Model):
 	def getPrivateSavedSearches(self):
 		return SavedSearch.all().filter("creator = ", self.key()).filter("private = ", True).fetch(FETCH_NUMBER)
 	
-	# COUNTS
-	
-	def incrementCount(self, type, value=1):
-		valueSet = False
-		i = 0
-		for aType in ENTRY_TYPES:
-			if aType == type:
-				self.counts[i] = self.counts[i] + value
-				valueSet = True
-				break
-			i += 1
-		i = len(ENTRY_TYPES)
-		if not valueSet:
-			for aType in ANNOTATION_ANSWER_LINK_TYPES:
-				if aType == type:
-					self.counts[i] = self.counts[i] + value
-					break
-				i += 1
-		# caller will put
-		
-	def decrementCount(self, type):
-		self.incrementCount(type, value=-1)
-		
-	def oldGetCounts(self):
-		countNames = []
-		counts = []
-		i = 0
-		for aType in ENTRY_TYPES:
-			countNames.append(ENTRY_TYPES_PLURAL_DISPLAY[i])
-			counts.append(self.counts[i])
-			i += 1
-		i = len(ENTRY_TYPES)
-		j = 0
-		for aType in ANNOTATION_ANSWER_LINK_TYPES:
-			countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
-			counts.append(self.counts[i])
-			i += 1
-			j += 1
-		return countNames, counts
-	
 	def getCounts(self):
 		countNames = []
 		counts = []
@@ -1503,7 +1492,6 @@ class ViewOptions(db.Model):
 # # parent: member; URL lookup: not needed
 # ============================================================================================
 
-	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	member = db.ReferenceProperty(Member, required=True, collection_name="view_options_to_member")
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="view_options_to_rakontu")
 	location = db.StringProperty(choices=VIEW_OPTION_LOCATIONS, default="home") 
@@ -1548,7 +1536,6 @@ class PendingMember(db.Model):
 # parent: rakontu; no lookup required
 # ============================================================================================
 
-	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="pending_members_to_rakontu")
 	email = db.StringProperty(required=True) # must match google account
 	invited = TzDateTimeProperty(auto_now_add=True)
@@ -1572,7 +1559,6 @@ class Character(db.Model):
 # ============================================================================================
 
 	id = db.StringProperty(required=True)
-	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="characters_to_rakontu")
 	name = db.StringProperty(required=True)
 	created = TzDateTimeProperty(auto_now_add=True)
@@ -1703,7 +1689,6 @@ class SavedSearch(db.Model):
 # ============================================================================================
 
 	id = db.StringProperty(required=True)
-	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="searches_to_rakontu")
 	creator = db.ReferenceProperty(Member, required=True, collection_name="searches_to_member")
 	private = db.BooleanProperty(default=True)
@@ -1787,8 +1772,7 @@ class SavedSearch(db.Model):
 		return Link.all().filter("itemTo = ", self.key()).fetch(FETCH_NUMBER)
 	
 	def removeAllDependents(self):
-		for ref in self.getQuestionReferences():
-			db.delete(ref)
+		db.delete(self.getQuestionReferences())
 			
 	def notPrivate(self):
 		return self.private == False
@@ -1851,7 +1835,6 @@ class SavedSearchQuestionReference(db.Model):
 # parent: savedsearch; URL lookup: none needed
 # ============================================================================================
 
-	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	created = TzDateTimeProperty(auto_now_add=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="searchrefs_to_rakontu")
 	search = db.ReferenceProperty(SavedSearch, required=True, collection_name="question_refs_to_saved_search")
@@ -1881,7 +1864,6 @@ class Answer(db.Model):
 # parent: member, character or entry; URL lookup: none needed, never looked up directly
 # ============================================================================================
 
-	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, collection_name="answers_to_rakontu")
 	question = db.ReferenceProperty(Question, collection_name="answers_to_questions")
 	referent = db.ReferenceProperty(None, collection_name="answers_to_objects") # entry or member
@@ -1917,25 +1899,6 @@ class Answer(db.Model):
 	
 	# IMPORTANT METHODS
 	
-	def shouldKeepMe(self, request, queryText, question):
-		keepMe = False
-		response = request.get(queryText)
-		if (question.type == "nominal" or question.type == "ordinal"):
-			if question.multiple:
-				keepMe = False
-				for choice in question.choices:
-					if request.get("%s|%s" % (queryText, choice)) == "yes":
-						keepMe = True
-						break
-			else: # single choice
-				keepMe = len(response) > 0 and response != "None" and response != TERMS["term_choose"]
-		else:		
-			if question.type == "boolean":
-				keepMe = queryText in request.params.keys()
-			else:
-				keepMe = len(response) > 0 and response != "None"
-		return keepMe
-	
 	def setValueBasedOnResponse(self, question, request, queryText, response):
 		if question.type == "text":
 			self.answerIfText = htmlEscape(response)
@@ -1965,15 +1928,12 @@ class Answer(db.Model):
 					self.entryNudgePointsWhenPublished[i] = self.referent.nudgePoints[i]
 			self.entryActivityPointsWhenPublished = self.referent.activityPoints
 			self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("answering question")
-			if not self.character:
-				self.creator.lastAnsweredQuestion = datetime.now(pytz.utc)
-				self.creator.incrementCount("answer")
 		# caller must do puts
-			
+		
 	# DISPLAY
 		
 	def getImageLinkForType(self):
-		return ImageLinkForAnswer()
+		return ImageLinkForAnswer(-1) # -1 means don't put a count tooltip
 	
 	def displayStringShort(self):
 		return self.displayString(includeQuestionText=False, includeQuestionName=False)
@@ -2070,7 +2030,6 @@ class Entry(db.Model):
 # ============================================================================================
 
 	id = db.StringProperty(required=True)
-	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	type = db.StringProperty(choices=ENTRY_TYPES, required=True) 
 	title = db.StringProperty(required=True, default=DEFAULT_UNTITLED_ENTRY_TITLE)
 	text = db.TextProperty(default=NO_TEXT_IN_ENTRY)
@@ -2082,12 +2041,14 @@ class Entry(db.Model):
 	resourceForManagersAndOwnersOnly = db.BooleanProperty(default=False)
 	categoryIfResource = db.StringProperty(default="")
 	orderIfResource = db.IntegerProperty(default=0)
-
+	
 	rakontu = db.ReferenceProperty(Rakontu, collection_name="entries_to_rakontu")
 	creator = db.ReferenceProperty(Member, collection_name="entries_to_members")
 	collectedOffline = db.BooleanProperty(default=False, indexed=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="entries_to_liaisons")
 	character = db.ReferenceProperty(Character, default=None, collection_name="entries_to_characters")
+	
+	additionalEditors = db.StringListProperty() # curators, guides, liaisons, managers, members, list
 	
 	draft = db.BooleanProperty(default=True)
 	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
@@ -2099,7 +2060,6 @@ class Entry(db.Model):
 	edited = TzDateTimeProperty(auto_now_add=True, indexed=False)
 	published = TzDateTimeProperty(auto_now_add=True)
 	
-	# THESE MAKE TRANSACTIONS DIFFICULT
 	lastRead = TzDateTimeProperty(default=None)
 	lastAnnotatedOrAnsweredOrLinked = TzDateTimeProperty(default=None)
 	activityPoints = db.IntegerProperty(default=0)
@@ -2120,16 +2080,65 @@ class Entry(db.Model):
 	def isForEveryoneIfResource(self):
 		return not self.resourceForManagersAndOwnersOnly
 	
+	def getAdditionalEditorTypes(self):
+		result = []
+		for editorTypeOrKey in self.additionalEditors:
+			found = False
+			for possibleType in ADDITIONAL_EDITOR_TYPES:
+				if editorTypeOrKey == possibleType:
+					found = True
+					break
+			if found:
+				result.append(possibleType)
+		return result
+		
+	def getAdditionalEditorKeys(self):
+		result = []
+		for editorTypeOrKey in self.additionalEditors:
+			found = False
+			for possibleType in ADDITIONAL_EDITOR_TYPES:
+				if editorTypeOrKey == possibleType:
+					found = True
+					break
+			if not found:
+				result.append(editorTypeOrKey)
+		return result
+	
+	def memberCanEditMe(self, member):
+		if str(member.key()) == str(self.creator.key()):
+			return True
+		for editorTypeOrKey in self.additionalEditors:
+			if editorTypeOrKey == "curators":
+				if member.isCurator():
+					return True
+			elif editorTypeOrKey == "guides":
+				if member.isGuide():
+					return True
+			elif editorTypeOrKey == "liaisons":
+				if member.isLiaison():
+					return True
+			elif editorTypeOrKey == "managers":
+				if member.isManagerOrOwner():
+					return True
+			elif editorTypeOrKey == "members":
+				return True
+			elif editorTypeOrKey == str(member.key()):
+				return True
+		return False
+		
+		
 	# IMPORTANT METHODS
 	
-	def publish(self):
+	def publish(self, isFirstPublish=True):
 		self.draft = False
 		self.published = datetime.now(pytz.utc)
+		# entries, unlike other things, can be published multiple times.
+		# however, they should only update the creator's nudge points once
+		# (espcially since later publishers may be others, if the creator has added additional editors)
+		# the activity points WILL go up on additional publishing, however, which makes sense.
 		self.recordAction("added", self, "Entry")
-		self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("adding %s" % self.type)
-		if not self.character:
-			self.creator.lastEnteredEntry = datetime.now(pytz.utc)
-			self.creator.incrementCount(self.type)
+		if isFirstPublish:
+			self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("adding %s" % self.type)
 		# caller must do puts
 					
 	def unPublish(self):
@@ -2138,19 +2147,20 @@ class Entry(db.Model):
 		# caller must do puts
 		
 	def recordAction(self, action, referent, className):
+		now = datetime.now(pytz.utc)
 		if className == "Entry":
 			if action == "read":
 				eventType = "reading"
-				self.lastRead = datetime.now(tz=pytz.utc)
+				self.lastRead = now
 			elif action =="added":
 				eventType = "adding %s" % self.type
 		elif className == "Annotation":
 			if action == "read":
 				eventType = "reading"
-				self.lastRead = datetime.now(tz=pytz.utc) # reading an annotation counts as reading the entry
+				self.lastRead = now # reading an annotation counts as reading the entry
 			else:
 				eventType = "adding %s" % referent.type
-			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
+			self.lastAnnotatedOrAnsweredOrLinked = now
 			typeIndex = -1
 			i = 0
 			for type in ANNOTATION_TYPES:
@@ -2160,28 +2170,38 @@ class Entry(db.Model):
 				i += 1
 			if typeIndex >= 0:
 				self.numAnnotations[typeIndex] = self.numAnnotations[typeIndex] + 1
+			if referent.type == "nudge":
+				self.updateNudgePointsIncludingUnsavedOne(referent)
 		elif className == "Answer":
 			eventType = "answering question"
-			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
+			self.lastAnnotatedOrAnsweredOrLinked = now
 			self.numAnswers += 1
 		elif className == "Link":
 			eventType = "adding %s link" % referent.type 
-			self.lastAnnotatedOrAnsweredOrLinked = datetime.now(pytz.utc)
+			self.lastAnnotatedOrAnsweredOrLinked = now
 			self.numLinks += 1
 		self.activityPoints += self.rakontu.getEntryActivityPointsForEvent(eventType)
-
 		# caller must do puts
 		
-	def updateNudgePoints(self):
+	def updateNudgePointsIncludingUnsavedOne(self, nudge):
 		self.nudgePoints = [0] * NUM_NUDGE_CATEGORIES
 		annotations = Annotation.all().ancestor(self)
 		for i in range(NUM_NUDGE_CATEGORIES):
-			total = 0
 			for annotation in annotations:
 				if annotation.type == "nudge":
-					total += nudge.valuesIfNudge[i]
-			self.nudgePoints[i] = total
+					self.nudgePoints[i] += annotation.valuesIfNudge[i]
+			if nudge:
+				self.nudgePoints[i] += nudge.valuesIfNudge[i]
 		# caller must do put
+		
+	def updateAnnotationAnswerLinkCounts(self):
+		for i in range(len(ANNOTATION_TYPES)):
+			self.numAnnotations[i] = self.numAnnotationsOfType(ANNOTATION_TYPES[i])
+		self.numAnswers = Answer.all().ancestor(self).count()
+		self.numLinks = self.getNumLinks()
+		# this counts as a reading for the purpose of time checking, but does not add to the activity points
+		self.lastRead = datetime.now(tz=pytz.utc) 
+		self.put()
 		
 	def addCurrentTextToPreviousVersions(self):
 		keyName = GenerateSequentialKeyName("version")
@@ -2231,6 +2251,15 @@ class Entry(db.Model):
 		db.delete(self.getAnswers())
 		db.delete(self.getAnnotations())
 		db.delete(self.getTextVersions())
+		
+	def listAllDependents(self):
+		result = []
+		result.extend(self.getAttachments())
+		result.extend(self.getAllLinks())
+		result.extend(self.getAnswers())
+		result.extend(self.getAnnotations())
+		result.extend(self.getTextVersions())
+		return result
 		
 	def satisfiesSearchCriteria(self, search, entryRefs, creatorRefs):
 		if not search.words and not search.tags and not entryRefs and not creatorRefs: # empty search
@@ -2545,8 +2574,8 @@ class Entry(db.Model):
 	def getAnswersForQuestion(self, question):
 		return Answer.all().filter("referent = ", self.key()).filter("question = ", question.key()).fetch(FETCH_NUMBER)
 	
-	def getAnswersForQuestionAndMember(self, question, member):
-		return Answer.all().filter("question = ", question.key()).filter("referent =", self.key()).filter("creator = ", member.key()).fetch(FETCH_NUMBER)
+	def getAnswerForQuestionAndMember(self, question, member):
+		return Answer.all().filter("question = ", question.key()).filter("referent =", self.key()).filter("creator = ", member.key()).get()
 	
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
@@ -2711,6 +2740,14 @@ class Entry(db.Model):
 					result = result.replace(findString, '<a href="/visit/attachment?attachment_id=%s">%s</a>' % (attachments[i].key(), attachments[i].fileName))
 		return result
 	
+	def titleWithCategoryIfResource(self):
+		if self.type == "resource" and self.categoryIfResource:
+			return "%s: %s" % (self.categoryIfResource, self.title)
+		else:
+			return self.title
+	
+	# EXPORT
+	
 	def csvLineWithAnswers(self, member, questions, memberQuestions, characterQuestions):
 		timeString = TimeDisplay(self.published, member)
 		if self.text_formatted:
@@ -2797,7 +2834,6 @@ class TextVersion(db.Model):
 # ============================================================================================
 
 	id = db.StringProperty(required=True)
-	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="versions_to_rakontu")
 	entry = db.ReferenceProperty(Entry, required=True, collection_name="versions_to_entries")
 	created = TzDateTimeProperty(auto_now_add=True)
@@ -2820,7 +2856,7 @@ class Link(db.Model):
 # connection between entries, types: related, retold, reminded, responded, included
 # parent: entry (parent is always entry FROM); URL lookup: none needed, never looked up directly
 # ============================================================================================
-	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
+
 	type = db.StringProperty(choices=LINK_TYPES, required=True) 
 	# how links go: 
 	#	related: any entry to any entry
@@ -2859,8 +2895,6 @@ class Link(db.Model):
 				self.entryNudgePointsWhenPublished[i] = self.itemFrom.nudgePoints[i]
 		self.entryActivityPointsWhenPublished = self.itemFrom.activityPoints
 		self.creator.nudgePoints = self.itemFrom.rakontu.getMemberNudgePointsForEvent("adding %s link" % self.type)
-		self.creator.lastEnteredLink = datetime.now(pytz.utc)
-		self.creator.incrementCount("link")
 		# caller must do puts
 		
 	# MEMBERS
@@ -2871,7 +2905,7 @@ class Link(db.Model):
 	# DISPLAY
 		
 	def getImageLinkForType(self):
-		return ImageLinkForLink()
+		return ImageLinkForLink(-1) # -1 means don't put a tooltip count
 	
 	def displayString(self):
 		result = '%s &gt; %s &gt; %s' % (self.itemFrom.linkString(), DisplayTypeForLinkType(self.type), self.itemTo.linkString())
@@ -2918,7 +2952,6 @@ class Attachment(db.Model):
 # ============================================================================================
 
 	id = db.StringProperty(required=True)
-	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	created = TzDateTimeProperty(auto_now_add=True)
 	entry = db.ReferenceProperty(Entry, collection_name="attachments_to_entries")
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="attachments_to_rakontu")
@@ -2961,7 +2994,6 @@ class Annotation(db.Model):
 # ============================================================================================
 
 	id = db.StringProperty(required=True)
-	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	type = db.StringProperty(choices=ANNOTATION_TYPES, required=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="annotations_to_rakontu")
 	entry = db.ReferenceProperty(Entry, required=True, collection_name="annotations_to_entry") 
@@ -2981,6 +3013,7 @@ class Annotation(db.Model):
 	valuesIfNudge = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES, indexed=False)
 	typeIfRequest = db.StringProperty(choices=REQUEST_TYPES)
 	completedIfRequest = db.BooleanProperty(default=False)
+	completionCommentIfRequest = db.StringProperty()
 
 	collectedOffline = db.BooleanProperty(default=False, indexed=False)
 	liaison = db.ReferenceProperty(Member, default=None, collection_name="annotations_to_liaisons")
@@ -3049,9 +3082,6 @@ class Annotation(db.Model):
 				self.entryNudgePointsWhenPublished[i] = self.entry.nudgePoints[i]
 		self.entryActivityPointsWhenPublished = self.entry.activityPoints
 		self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("adding %s" % self.type)
-		if not self.character:
-			self.creator.lastEnteredAnnotation = datetime.now(pytz.utc)
-			self.creator.incrementCount(self.type)
 		# caller must do puts
 
 	# TYPE
@@ -3189,7 +3219,7 @@ class Annotation(db.Model):
 		return "%s %s %s" % (self.linkString(showDetails=showDetails), TERMS["term_for"], self.entry.linkString())
 		
 	def getImageLinkForType(self):
-		return ImageLinkForAnnotationType(self.type)
+		return ImageLinkForAnnotationType(self.type, -1) # -1 means don't put a count tooltip
 	
 	def MemberWantsToSeeMyTypeInLocation(self, member, location):
 		i = 0
@@ -3216,7 +3246,6 @@ class Help(db.Model):
 # no parent
 # ============================================================================================
 
-	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	type = db.StringProperty() # info, tip, caution
 	name = db.StringProperty() # links to name in template
 	text = db.StringProperty(indexed=False) # text to show user (plain text)
@@ -3232,7 +3261,6 @@ class Skin(db.Model):
 # no parent
 # ============================================================================================
 
-	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	name = db.StringProperty(required=True) 
 	
 	font_general = db.StringProperty(indexed=False) # on everything except buttons and headers
@@ -3309,7 +3337,6 @@ class Export(db.Model):
 # no parent
 # ============================================================================================
 	
-	appRocketTimeStamp = TzDateTimeProperty(auto_now=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="export_to_rakontu")
 	type = db.StringProperty()
 	fileFormat = db.StringProperty(indexed=False)
@@ -3478,6 +3505,57 @@ def NudgeCategoriesExistAndShouldBeShownInContext(member, location):
 		exist.append(member.rakontu.nudgeCategoryIndexHasContent(i))
 		show.append(viewOptions.nudgeCategories[i])
 	return exist, show
+
+def ShouldKeepAnswer(request, queryText, question):
+	keepAnswer = False
+	response = request.get(queryText)
+	if (question.type == "nominal" or question.type == "ordinal"):
+		if question.multiple:
+			keepAnswer = False
+			for choice in question.choices:
+				if request.get("%s|%s" % (queryText, choice)) == "yes":
+					keepAnswer = True
+					break
+		else: # single choice
+			keepAnswer = len(response) > 0 and response != "None" and response != TERMS["term_choose"]
+	else:		
+		if question.type == "boolean":
+			keepAnswer = queryText in request.params.keys()
+		else:
+			keepAnswer = len(response) > 0 and response != "None"
+	return keepAnswer
+
+def ProcessAttributionFromRequest(request, member):
+	creator = None
+	liaison = None
+	dateCollected = None
+	collectedOffline = request.get("collectedOffline") == "yes"
+	if collectedOffline and member.isLiaison():
+		if member.isManagerOrOwner():
+			membersToConsider = rakontu.getActiveMembers()
+		else:
+			membersToConsider = rakontu.getActiveOfflineMembers()
+		for aMember in membersToConsider:
+			if request.get("offlineSource") == str(aMember.key()):
+				creator = aMember
+				break
+		liaison = member
+		dateCollected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
+	else:
+		creator = member
+	if collectedOffline:
+		attributionQueryString = "offlineAttribution"
+	else:
+		attributionQueryString = "attribution"
+	if request.get(attributionQueryString) and request.get(attributionQueryString) != "member":
+		characterKey = request.get(attributionQueryString)
+		try:
+			character = Character.get(characterKey)
+		except:
+			character = None
+	else:
+		character = None
+	return (collectedOffline, creator, liaison, dateCollected, character)
 		
 # ============================================================================================
 # ============================================================================================
@@ -3544,22 +3622,51 @@ def getTimeZone(timeZoneName):
 		memcache.add("tz:%s" % timeZoneName, timeZone, DAY_SECONDS)
 	return timeZone
 
-def ImageLinkForAnnotationType(type):
+def ImageLinkForAnnotationType(type, number):
+	if number >= 0:
+		i = 0
+		for aType in ANNOTATION_TYPES:
+			if aType == type:
+				if number > 1:
+					typeToDisplay = ANNOTATION_TYPES_PLURAL_DISPLAY[i]
+				else:
+					typeToDisplay = ANNOTATION_TYPES_DISPLAY[i]
+				break
+			i += 1
+		tooltip = 'title="%s %s"' % (number, typeToDisplay)
+	else:
+		tooltip = ""
 	if type == "comment":
-		imageText = '<img src="/images/comments.png" alt="comment" border="0">'
+		imageText = '<img src="/images/comments.png" alt="comment" %s border="0">' % tooltip
 	elif type == "request":
-		imageText = '<img src="/images/requests.png" alt="request" border="0">'
+		imageText = '<img src="/images/requests.png" alt="request" %s border="0">' % tooltip
 	elif type == "tag set":
-		imageText = '<img src="/images/tags.png" alt="tag set" border="0">'
+		imageText = '<img src="/images/tags.png" alt="tag set" %s border="0">' % tooltip
 	elif type == "nudge":
-		imageText = '<img src="/images/nudges.png" alt="nudge" border="0">'
+		imageText = '<img src="/images/nudges.png" alt="nudge" %s border="0">' % tooltip
 	return imageText
 
-def ImageLinkForAnswer():
-	return'<img src="/images/answers.png" alt="answer" border="0">'
+def ImageLinkForAnswer(number):
+	if number >= 0:
+		if number > 1:
+			term = TERMS["term_answers"]
+		else:
+			term = TERMS["term_answer"]
+		tooltip = 'title="%s %s"' % (number, term)
+	else:
+		tooltip = ""
+	return'<img src="/images/answers.png" alt="answer" %s border="0">' % tooltip
 
-def ImageLinkForLink():
-	return'<img src="/images/link.png" alt="link" border="0">'
+def ImageLinkForLink(number):
+	if number >= 0:
+		if number > 1:
+			term = TERMS["term_links"]
+		else:
+			term = TERMS["term_link"]
+		tooltip = 'title="%s %s"' % (number, term)
+	else:
+		tooltip = ""
+	return'<img src="/images/link.png" alt="link" %s border="0">' % tooltip
 
 HTML_ESCAPES = {
  	"&": "&amp;",

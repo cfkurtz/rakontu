@@ -141,46 +141,74 @@ class AdministerSitePage(ErrorHandlingRequestHander):
 		else:
 			self.redirect(AdminOnlyURL())
 			
+	def getText(self, nodelist):
+	    rc = ""
+	    for node in nodelist:
+	    	#DebugPrint(node.nodeType)
+	    	#DebugPrint(node.data)
+	        if node.nodeType == node.TEXT_NODE:
+	            rc = rc + node.data
+	    return rc
+			
 	@RequireLogin 
 	def post(self):
 		# this method does not require a rakontu and member, since the admin has to look at multiple rakontus.
 		if users.is_current_user_admin():
 			rakontus = AllRakontus()
 			user = users.get_current_user()
-			for aRakontu in rakontus:
-				if "joinOrLeave|%s" % aRakontu.key() in self.request.arguments():
-					pendingMember = aRakontu.pendingMemberWithGoogleEmail(user.email())
-					if pendingMember:
-						member = CreateMemberFromInfo(aRakontu, user.user_id(), user.email(), user.email(), pendingMember.governanceType)
-					else:
-						member = aRakontu.memberWithGoogleUserID(user.user_id())
-						joinAs = self.request.get("joinAs|%s" % aRakontu.key())
-						if member and not aRakontu.memberIsOnlyOwner(member):
-							def txn(member, joinAs):
-								member.active = not member.active
-								if member.active:
-									member.governanceType = joinAs
-								member.put()
-							db.run_in_transaction(txn, member, joinAs)
+			if "importRakontu" in self.request.arguments():
+				importedXML = str(self.request.get("import"))
+				importedXML = "<items>\n\n%s</items>" % importedXML
+				from xml.dom import minidom 
+				result = minidom.parseString(importedXML)
+				entities = result.getElementsByTagName("entity")
+				for entity in entities:
+					key = entity.getElementsByTagName("key")
+					DebugPrint(key)
+					keyValue = self.getText(key)
+					#DebugPrint(keyValue, 'KEY ----------')
+					properties = entity.getElementsByTagName("property")
+					for property in properties:
+						name = property.getAttribute("name")
+						type = property.getAttribute("type")
+						#value = self.getText(property.childNodes)
+						#DebugPrint(value, name)
+				self.redirect(BuildURL("dir_admin", "url_admin"))
+			else:
+				for aRakontu in rakontus:
+					if "joinOrLeave|%s" % aRakontu.key() in self.request.arguments():
+						pendingMember = aRakontu.pendingMemberWithGoogleEmail(user.email())
+						if pendingMember:
+							member = CreateMemberFromInfo(aRakontu, user.user_id(), user.email(), user.email(), pendingMember.governanceType)
 						else:
-							member = CreateMemberFromInfo(aRakontu, user.user_id(), user.email(), "administrator", joinAs)
-					self.redirect(BuildURL("dir_admin", "url_admin"))
-				elif "toggleActiveState|%s" % aRakontu.key() in self.request.arguments():
-					aRakontu.active = not aRakontu.active
-					aRakontu.put()
-					self.redirect(BuildURL("dir_admin", "url_admin"))
-				elif "addFakeDataTo|%s" % aRakontu.key() in self.request.arguments():
-					# no error checking here
-					numItems = int(self.request.get('numItems|%s' % aRakontu.key()))
-					createWhat = self.request.get('createWhat|%s' % aRakontu.key())
-					AddFakeDataToRakontu(aRakontu, numItems, createWhat)
-					self.redirect(BuildURL("dir_admin", "url_admin"))
-				elif "remove|%s" % aRakontu.key() in self.request.arguments():
-					aRakontu.removeAllDependents()
-					db.delete(aRakontu)
-					self.redirect(BuildURL("dir_admin", "url_admin"))
-				elif "export|%s" % aRakontu.key() in self.request.arguments():
-					self.redirect(BuildURL("dir_manage", "url_export", aRakontu.urlQuery()))
+							member = aRakontu.memberWithGoogleUserID(user.user_id())
+							joinAs = self.request.get("joinAs|%s" % aRakontu.key())
+							if member and not aRakontu.memberIsOnlyOwner(member):
+								def txn(member, joinAs):
+									member.active = not member.active
+									if member.active:
+										member.governanceType = joinAs
+									member.put()
+								db.run_in_transaction(txn, member, joinAs)
+							else:
+								member = CreateMemberFromInfo(aRakontu, user.user_id(), user.email(), "administrator", joinAs)
+						self.redirect(BuildURL("dir_admin", "url_admin"))
+					elif "toggleActiveState|%s" % aRakontu.key() in self.request.arguments():
+						aRakontu.active = not aRakontu.active
+						aRakontu.put()
+						self.redirect(BuildURL("dir_admin", "url_admin"))
+					elif "addFakeDataTo|%s" % aRakontu.key() in self.request.arguments():
+						# no error checking here
+						numItems = int(self.request.get('numItems|%s' % aRakontu.key()))
+						createWhat = self.request.get('createWhat|%s' % aRakontu.key())
+						AddFakeDataToRakontu(aRakontu, numItems, createWhat)
+						self.redirect(BuildURL("dir_admin", "url_admin"))
+					elif "remove|%s" % aRakontu.key() in self.request.arguments():
+						aRakontu.removeAllDependents()
+						db.delete(aRakontu)
+						self.redirect(BuildURL("dir_admin", "url_admin"))
+					elif "export|%s" % aRakontu.key() in self.request.arguments():
+						self.redirect(BuildURL("dir_manage", "url_export", aRakontu.urlQuery()))
 		else:
 			self.redirect(AdminOnlyURL())
 			

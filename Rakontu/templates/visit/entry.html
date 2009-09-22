@@ -94,7 +94,13 @@
 				{% endif %}
 				" maxlength="{{maxlength_name}}"/></p>
 			
-			{% include "../common_attribution.html" %}
+			{% if not entry %}
+				{% include "../common_attribution.html" %}
+			{% else %}
+				{% ifequal entry.creator.key current_member.key %}
+					{% include "../common_attribution.html" %}
+				{% endifequal %}
+			{% endif %}
 
 			{% if link_item_from %}
 				{% ifequal link_type "retell" %}
@@ -158,7 +164,21 @@
 					<label for="resourceForManagersAndOwnersOnly">{{template_yes_manager_only_resource}}</label>
 					</p>
 				{% endif %}
-			
+				<p>{{template_what_category_should_this_resource_be_in}}</p>
+				{% if categories_in_use %}
+					<p>&nbsp; &nbsp; <select name="categoryIfResource_list">
+						<option value="none">({{template_choose}})</option>
+						{% for category in categories_in_use %}
+							<option value="{{category}}"
+							{% ifequal category entry.categoryIfResource %}
+								selected="selected"
+							{% endifequal %}
+							>{{category}}</option>
+						{% endfor %}
+						</select>
+					{{template_or_enter_a_new_category_here}}:
+				{% endif %}
+				<input type="text" name="categoryIfResource_entered" value="" size="30" maxlength="{{maxlength_name}}"></p>
 				</fieldset>
 			{% endifequal %}
 				
@@ -182,7 +202,13 @@
 			
 			<p>
 			{% if questions %}
-				{% include "../common_questions.html" %}
+				{% if not entry %}
+					{% include "../common_questions.html" %}
+					{% else %}
+						{% ifequal entry.creator.key current_member.key %}
+							{% include "../common_questions.html" %}
+						{% endifequal %}
+				{% endif %}
 			{% endif %}
 			
 		{% ifequal entry_type "collage" %}
@@ -363,7 +389,9 @@
 					<input type="submit" name="save|{{entry_type}}" value="{{button_save_changes_and_return}}" class="button">
 					<input type="submit" name="preview|{{entry_type}}" value="{{button_preview}}" class="button">
 				{% else %}
-					<input type="submit" name="save|{{entry_type}}" value="{{button_save_draft}}" class="button">
+					{% ifequal entry.creator.key current_member.key %}
+						<input type="submit" name="save|{{entry_type}}" value="{{button_save_draft}}" class="button">
+					{% endifequal %}
 					<input type="submit" name="preview|{{entry_type}}" value="{{button_preview}}" class="button">
 					<input type="submit" name="publish|{{entry_type}}" value="{{button_publish}}" class="button">
 				{% endif %}

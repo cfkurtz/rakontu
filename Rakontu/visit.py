@@ -221,6 +221,8 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 					referencedLinksOutgoing = entry.getOutgoingLinksOfType("referenced")
 				else:
 					referencedLinksOutgoing = None
+				entryHasLinks = entry.hasLinks()
+				memberCanEditEntry = entry.memberCanEditMe(member)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': entry.title, 
 								   'rakontu': rakontu, 
@@ -232,12 +234,16 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 								   # to show above grid
 								   'attachments': entry.getAttachments(),
  								   'retold_links_incoming': entry.getIncomingLinksOfType("retold"),
+ 								   'retold_links_outgoing': entry.getOutgoingLinksOfType("retold"),
  								   'reminded_links_incoming': entry.getIncomingLinksOfType("reminded"),
+ 								   'reminded_links_outgoing': entry.getOutgoingLinksOfType("reminded"),
  								   'related_links_both_ways': entry.getLinksOfType("related"),
  								   'included_links_incoming_from_invitations': entry.getIncomingLinksOfType("responded"),
  								   'included_links_incoming_from_collages': entry.getIncomingLinksOfType("included"),
 								   'included_links_outgoing': includedLinksOutgoing,
 								   'referenced_links_outgoing': referencedLinksOutgoing,
+								   'any_links_at_all': entryHasLinks,
+								   'member_can_edit_entry': memberCanEditEntry,
 								   # grid
 								   'rows_cols': textsForGrid, 
 								   'row_colors': rowColors,
@@ -440,6 +446,7 @@ class ReadAnnotationPage(ErrorHandlingRequestHander):
 			if annotation:
 				if "toggleRequestCompleted" in self.request.arguments():
 					annotation.completedIfRequest = not annotation.completedIfRequest
+					annotation.completionCommentIfRequest = self.request.get("request_comment")
 					annotation.put()
 			self.redirect(self.request.uri)
 		else:
@@ -477,6 +484,7 @@ class SeeRakontuPage(ErrorHandlingRequestHander):
 					charactersAllowedFor.append(ENTRY_AND_ANNOTATION_TYPES_PLURAL_DISPLAY[i].capitalize())
 				i += 1
 			charactersAllowedForString = ", ".join(charactersAllowedFor) + "."
+			countNames, counts = rakontu.getCounts()
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': TITLES["ABOUT"], 
 							   'rakontu': rakontu, 
@@ -488,6 +496,8 @@ class SeeRakontuPage(ErrorHandlingRequestHander):
 							   'nudge_point_string': nudgePointString,
 							   'activity_point_string': activityPointString,
 							   'chars_allowed_string': charactersAllowedForString,
+					   		   'count_names': countNames,
+					   		   'counts': counts,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/rakontu.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -506,6 +516,7 @@ class SeeRakontuMembersPage(ErrorHandlingRequestHander):
 							   'skin': rakontu.getSkinDictionary(),
 							   'current_member': member,
 							   'rakontu_members': rakontu.getActiveMembers(),
+							   'no_profile_text': NO_PROFILE_TEXT,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/members.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -570,9 +581,9 @@ class SendMessagePage(ErrorHandlingRequestHander):
 						if aMember.googleAccountEmail:
 							emailAddresses.append(aMember.googleAccountEmail)
 					else:
-						if aMember.liaison and  aMember.liaison.active:
-							if aMember.liaison.aMember.googleAccountEmail:
-								emailAddresses.append(aMember.liaison.googleAccountEmail)
+						if aMember.liaisonIfOfflineMember and  aMember.liaisonIfOfflineMember.active:
+							if aMember.liaisonIfOfflineMember.aMember.googleAccountEmail:
+								emailAddresses.append(aMember.liaisonIfOfflineMember.googleAccountEmail)
 				if self.request.get("messageReplyToEmail") != None and self.request.get("messageReplyToEmail") != "":
 					replyTo = self.request.get("messageReplyToEmail")
 				else:
@@ -735,6 +746,37 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 		else:
 			self.redirect(NoRakontuAndMemberURL())
    
+class SeeCountsPage(ErrorHandlingRequestHander):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
+			memberToSee = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
+			character = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_character")
+			if memberToSee:
+				countNames, counts = memberToSee.getCounts()
+				titleExtra = memberToSee.nickname
+			elif character:
+				countNames, counts = chracter.getCounts()
+				titleExtra = character.name
+			else:
+				countNames, counts = rakontu.getCounts()
+				titleExtra = rakontu.name
+			template_values = GetStandardTemplateDictionaryAndAddMore({
+						   'title': TITLES["COUNTS"], 
+				   		   'title_extra': titleExtra, 
+				   		   'rakontu': rakontu, 
+				   		   'skin': rakontu.getSkinDictionary(),
+				   		   'current_member': member,
+				   		   'count_names': countNames,
+				   		   'counts': counts,
+				   		   })
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/counts.html'))
+			self.response.out.write(template.render(path, template_values))
+		else:
+			self.redirect(NoRakontuAndMemberURL())
+			
 class SeeCharacterPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
@@ -994,27 +1036,28 @@ class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 				thingsToPut.append(memberToEdit)
 				questions = rakontu.getActiveQuestionsOfType("member")
 				for question in questions:
-					foundAnswer = memberToEdit.getAnswerForMemberQuestion(question)
-					if foundAnswer:
-						answerToEdit = foundAnswer
-					else:
-						keyName = GenerateSequentialKeyName("answer")
-						answerToEdit = Answer(
-											key_name=keyName, 
-											parent=memberToEdit,
-											rakontu=rakontu, 
-											question=question, 
-											referent=memberToEdit, 
-											referentType="member")
 					queryText = "%s" % question.key()
 					response = self.request.get(queryText)
-					keepAnswer = answerToEdit.shouldKeepMe(self.request, queryText, question)
+					keepAnswer = ShouldKeepAnswer(self.request, queryText, question)
+					foundAnswer = memberToEdit.getAnswerForMemberQuestion(question)
 					if keepAnswer:
+						if foundAnswer:
+							answerToEdit = foundAnswer
+						else:
+							keyName = GenerateSequentialKeyName("answer")
+							answerToEdit = Answer(
+												key_name=keyName, 
+												parent=memberToEdit,
+												rakontu=rakontu, 
+												question=question, 
+												referent=memberToEdit, 
+												referentType="member")
 						answerToEdit.setValueBasedOnResponse(question, self.request, queryText, response)
 						answerToEdit.creator = memberToEdit
 						thingsToPut.append(answerToEdit)
-					else:
-						thingsToDelete.append(answerToEdit)
+					else: # not keepAnswer
+						if foundAnswer:
+							thingsToDelete.append(foundAnswer)
 				def txn(thingsToPut, thingsToDelete):
 					db.put(thingsToPut)
 					db.delete(thingsToDelete)
@@ -1802,11 +1845,10 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 			def txn(keyName, member, rakontu, search, refs):
 				newSearch = SavedSearch(key_name=keyName, parent=member, id=keyName, rakontu=rakontu, creator=member)
 				newSearch.copyDataFromOtherSearchAndPut(search, refs)
+				viewOptions.search = newSearch
+				viewOptions.put()
 				return newSearch
-			# SEQUENTIAL TRANSACTION PROBLEM
-			newSearch = db.run_in_transaction(txn, keyName, member, rakontu, search, refs)
-			viewOptions.search = newSearch
-			viewOptions.put()
+			db.run_in_transaction(txn, keyName, member, rakontu, search, refs)
 			query = "%s&%s=%s" % (newSearch.urlQuery(), URL_OPTIONS["url_query_location"], location)
 			return BuildURL("dir_visit", "url_search_filter", query, rakontu=rakontu)
 		else:
@@ -1894,7 +1936,7 @@ def ItemDisplayStringForGrid(item, member, location, curating=False, showDetails
 				nameString = ' (%s' % (item.character.linkString())
 			else: 
 				nameString = ' (%s' % item.character.name
-		nameString += ")"
+		nameString += ", "
 	else:
 		nameString = ""
 	# curating flag 
@@ -1907,22 +1949,24 @@ def ItemDisplayStringForGrid(item, member, location, curating=False, showDetails
 		curateString = ""
 	# date string if showing details
 	if showDetails:
-		dateTimeString = " %s" % TimeDisplay(item.published, member)
+		dateTimeString = " %s)" % TimeDisplay(item.published, member)
 	else:
 		dateTimeString = ""
 	# annotations count string if entry and showing details
 	annotationsCountString = ""
 	if showDetails and item.__class__.__name__ == "Entry":
+		if datetime.now(tz=pytz.utc) - item.lastTouched() > timedelta(seconds=UPDATE_ANNOTATION_COUNTS_SECONDS):
+			item.updateAnnotationAnswerLinkCounts()
 		annotationsCountString += " "
 		i = 0
 		for type in ANNOTATION_TYPES:
 			if item.numAnnotations[i] > 0:
-				annotationsCountString += "%s%s" % (ImageLinkForAnnotationType(type), item.numAnnotations[i]) 
+				annotationsCountString += ImageLinkForAnnotationType(type, item.numAnnotations[i]) 
 			i += 1
 		if item.numAnswers > 0:
-			annotationsCountString += "%s%s" % (ImageLinkForAnswer(), item.numAnswers)
+			annotationsCountString += ImageLinkForAnswer(item.numAnswers) 
 		if item.numLinks > 0:
-			annotationsCountString += "%s%s" % (ImageLinkForLink(), item.numLinks)
+			annotationsCountString += ImageLinkForLink(item.numLinks) 
 	# longer text if showing details
 	if showDetails:
 		if item.__class__.__name__ == "Annotation":
@@ -1942,7 +1986,7 @@ def ItemDisplayStringForGrid(item, member, location, curating=False, showDetails
 			textString = ""
 	else:
 		textString = ""
-	return '<p>%s %s %s %s%s%s%s%s%s</p>' % (item.getImageLinkForType(), fontSizeStartString, curateString, linkString, fontSizeEndString, nameString, dateTimeString, annotationsCountString, textString)
+	return '<p>%s %s %s %s%s%s%s%s%s</p>' % (item.getImageLinkForType(), fontSizeStartString, curateString, linkString, fontSizeEndString, annotationsCountString, nameString, dateTimeString, textString)
 
 def GetMinMaxNudgeAndActivityPointsFromListOfItems(items, member, location):
 		maxNudgePoints = -9999999

@@ -40,37 +40,43 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			items = rakontu.getAllFlaggedItemsAsOneList()
-			itemsToPut = []
-			for item in items:
-				if self.request.get("flagComment|%s" % item.key()):
-					item.flagComment = self.request.get("flagComment|%s" % item.key())
-					itemsToPut.append(item)
-				if self.request.get("unflag|%s" % item.key()) == "yes":
-				 	item.flaggedForRemoval = False
-				 	itemsToPut.append(item)
-			def txn(itemsToPut):
+			def txn(items):
+				itemsToPut = []
+				for item in items:
+					if self.request.get("flagComment|%s" % item.key()):
+						item.flagComment = self.request.get("flagComment|%s" % item.key())
+						itemsToPut.append(item)
+					if self.request.get("unflag|%s" % item.key()) == "yes":
+					 	item.flaggedForRemoval = False
+					 	itemsToPut.append(item)
 				db.put(itemsToPut)
-			db.run_in_transaction(txn, itemsToPut)
+			db.run_in_transaction(txn, items)
 			if member.isManagerOrOwner():
 				itemsToPut = []
 				itemsToDelete = []
+				# the reason you can't do this stuff inside the transaction is that
+				# entries being deleted have to look up links whose ancestors are other entries
+				# hence you can't use an ancestor query, hence you can't do it inside the transaction
 				for item in items:
 					if self.request.get("removeComment|%s" % item.key()) == "yes":
-						if item.__class__.__name__ == "Annotation": # nudge
-							item.shortString = ""
+						if item.__class__.__name__ == "Annotation": 
+							if item.isNudge():	
+								item.shortString = ""
+							elif item.isRequest():
+								item.completionCommentIfRequest = ""
 						elif item.__class__.__name__ == "Link":
 							item.comment = ""
 						itemsToPut.append(item)
 					elif self.request.get("remove|%s" % item.key()) == "yes":
 						if item.__class__.__name__ == "Entry":
-							item.removeAllDependents()
+							itemsToDelete.extend(item.listAllDependents())
 						elif item.__class__.__name__ == "SavedSearch":
-							item.removeAllDependents()
+							itemsToDelete.extend(item.getQuestionReferences())
 						itemsToDelete.append(item)
 				def txn(itemsToPut, itemsToDelete):
 					db.put(itemsToPut)
 					db.delete(itemsToDelete)
-				db.run_in_transaction(txn, itemsToPut, itemsToDeleteS)
+				db.run_in_transaction(txn, itemsToPut, itemsToDelete)
 				self.redirect(BuildURL("dir_curate", "url_flags", rakontu=rakontu))
 			elif member.isCurator():
 				itemsToSendMessageAbout = []
@@ -234,17 +240,17 @@ class CurateAttachmentsPage(ErrorHandlingRequestHander):
 			if member.isCurator():
 				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
 				prev, attachments, next = rakontu.getAttachments_WithPaging(bookmark)
-				entriesToPut = []
-				for attachment in attachments:
-					if "flag|%s" % attachment.entry.key() in self.request.arguments():
-						attachment.entry.flaggedForRemoval = True
-						entriesToPut.append(attachment.entry)
-					elif "unflag|%s" % attachment.entry.key() in self.request.arguments():
-						attachment.entry.flaggedForRemoval = False
-						entriesToPut.append(attachment.entry)
-				def txn(entriesToPut):
+				def txn(attachments):
+					entriesToPut = []
+					for attachment in attachments:
+						if "flag|%s" % attachment.entry.key() in self.request.arguments():
+							attachment.entry.flaggedForRemoval = True
+							entriesToPut.append(attachment.entry)
+						elif "unflag|%s" % attachment.entry.key() in self.request.arguments():
+							attachment.entry.flaggedForRemoval = False
+							entriesToPut.append(attachment.entry)
 					db.put(entriesToPut)
-				db.run_in_transaction(txn, entriesToPut)
+				db.run_in_transaction(txn, attachments)
 				if bookmark:
 					# bookmark must be last, because of the extra == the PageQuery puts on it
 					query = "%s=%s&%s=%s" % (URL_IDS["url_query_rakontu"], rakontu.getKeyName(), URL_OPTIONS["url_query_bookmark"], bookmark)
@@ -288,27 +294,27 @@ class CurateTagsPage(ErrorHandlingRequestHander):
 			if member.isCurator():
 				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
 				prev, tagSets, next = rakontu.getTagSets_WithPaging(bookmark)
-				tagsetsToPut = []
-				for tagset in tagSets:
-					if "flag|%s" % tagset.key() in self.request.arguments():
-						tagset.flaggedForRemoval = True
-						tagsetsToPut.append(tagset)
-						break
-					elif "unflag|%s" % tagset.key() in self.request.arguments():
-						tagset.flaggedForRemoval = False
-						tagsetsToPut.append(tagset)
-						break
-					else:
-						tagsetsToPut.append(tagset)
-						tagset.tagsIfTagSet = []
-						for i in range(NUM_TAGS_IN_TAG_SET):
-							if self.request.get("tag%s|%s" % (i, tagset.key())):
-								tagset.tagsIfTagSet.append(self.request.get("tag%s|%s" % (i, tagset.key())))
-							else:
-								tagset.tagsIfTagSet.append("")
-				def txn(tagsetsToPut):
+				def txn(tagSets):
+					tagsetsToPut = []
+					for tagset in tagSets:
+						if "flag|%s" % tagset.key() in self.request.arguments():
+							tagset.flaggedForRemoval = True
+							tagsetsToPut.append(tagset)
+							break
+						elif "unflag|%s" % tagset.key() in self.request.arguments():
+							tagset.flaggedForRemoval = False
+							tagsetsToPut.append(tagset)
+							break
+						else:
+							tagsetsToPut.append(tagset)
+							tagset.tagsIfTagSet = []
+							for i in range(NUM_TAGS_IN_TAG_SET):
+								if self.request.get("tag%s|%s" % (i, tagset.key())):
+									tagset.tagsIfTagSet.append(self.request.get("tag%s|%s" % (i, tagset.key())))
+								else:
+									tagset.tagsIfTagSet.append("")
 					db.put(tagsetsToPut)
-				db.run_in_transaction(txn, tagsetsToPut)
+				db.run_in_transaction(txn, tagSets)
 				if bookmark:
 					# bookmark must be last, because of the extra == the PageQuery puts on it
 					query = "%s=%s&%s=%s" % (URL_IDS["url_query_rakontu"], rakontu.getKeyName(), URL_OPTIONS["url_query_bookmark"], bookmark)

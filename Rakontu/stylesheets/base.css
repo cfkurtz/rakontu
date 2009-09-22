@@ -69,9 +69,10 @@ th {
 	}
 	
 fieldset {
-	background: #EEEEEE; 
+	background-color: #EEEEEE; 
 	width: auto;
 	border: 1px solid #000000;
+	padding: 4px 4px 4px 4px;
 	}
 		
 ul li.nobullet {
@@ -89,7 +90,7 @@ ul li.nobullet {
 	}
 	
 .blurb {
-	background: #CCCCCC;
+	background-color: #CCCCCC;
 	width: auto;
 	border: 1px solid #000000;
 	padding: 4px 8px 4px 8px;
@@ -214,6 +215,7 @@ ul li.nobullet {
 	border: solid 1px #000000;
 	margin: 2px 2px 2px 2px;
 	padding: 4px 4px 4px 4px;
+	padding-top: 0;
 	}
 	
 #stylized input:hover{
@@ -238,16 +240,17 @@ ul li.nobullet {
 	width: auto;
 	height: 34px;
 	line-height: 32px;
-	background: #CCCCCC;
+	background-color: #CCCCCC;
 	text-align: center;
 	font-size: 130%;
 	font-weight: bold;
 	border: solid 2px #000000;
+	padding-top: 0;
 	}
 	
 #stylized input.button:hover{
 	border: solid 2px #000000;
-	background: #999999;
+	background-color: #999999;
 	}
 	
 #stylized input.button_small{
@@ -256,15 +259,16 @@ ul li.nobullet {
 	width: auto;
 	height: 26px;
 	line-height: 24px;
-	background: #CCCCCC;
+	background-color: #CCCCCC;
 	text-align: center;
 	font-size: 80%;
 	border: solid 1px #000000;
+	padding-top: 0;
 	}
 	
 #stylized input.button_small:hover{
 	border: solid 1px #000000;
-	background: #999999;
+	background-color: #999999;
 	}
 	
 #stylized input.flag_red {

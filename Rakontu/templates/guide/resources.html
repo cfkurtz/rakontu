@@ -80,21 +80,30 @@
 						{% endif %}
 	
 		  				{{resource.linkString}}</td>
-		  				<td>{{resource.categoryIfResource}}</td>
+		  				<td>{% if resource.resourceForHelpPage or resource.resourceForNewMemberPage %}
+		  						{{resource.categoryIfResource|orNbsp}}
+		  					{% else %}
+		  						&nbsp;
+		  					{% endif %}
+		  					</td>
 		  				<td>
-		  				{% if resource.categoryIfResource|orNothing %}
-		  					<select name="order|{{resource.key}}">
-		  					{% for choice in max_resources_per_category|makeRangeStartingAtOne %}
-		  						<option value="{{choice}}"
-		  						{% ifequal choice resource.orderIfResource %}
-		  							selected="selected"
-		  						{% endifequal %}
-		  						>{{choice}}</option>
-		  					{% endfor %}
-		  					</select>
-		  				{% else %}
-		  					&nbsp;
-		  				{% endif %}
+		  				{% if resource.resourceForHelpPage or resource.resourceForNewMemberPage %}
+			  				{% if resource.categoryIfResource|orNothing %}
+			  					<select name="order|{{resource.key}}">
+			  					{% for choice in max_resources_per_category|makeRangeStartingAtOne %}
+			  						<option value="{{choice}}"
+			  						{% ifequal choice resource.orderIfResource %}
+			  							selected="selected"
+			  						{% endifequal %}
+			  						>{{choice}}</option>
+			  					{% endfor %}
+			  					</select>
+			  				{% else %}
+			  					&nbsp;
+			  				{% endif %}
+	  					{% else %}
+	  						&nbsp;
+	  					{% endif %}
 		  				</td>
 		  				<td>
 		  				{% if resource.getAttachments %}

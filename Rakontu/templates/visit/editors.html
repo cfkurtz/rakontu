@@ -1,0 +1,57 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+		<div id="content">
+		
+			<div id="stylized" class="rakontu_form">
+			<form action="/{{dir_visit}}/{{url_editors}}?{{entry.urlQuery}}" method="post">
+			
+			<h3>{{template_change_additional_editors}} {{entry.linkString}}</h3>
+			<fieldset>
+			<p>{{template_who_can_edit_this_entry}} {{entry.typeForDisplay}}? {{"adding_editors"|tip}}</p>
+			<ul>
+			{% for i in editor_types|makeRangeFromListLength %}
+  				{% if editor_types|listLookup:i|equalTest:"list" %}
+		 			<li class="nobullet">{{editor_types_display|listLookup:i}}:
+		 			<ul>
+					{% for aMember in rakontu_members %}
+	      				{% ifnotequal aMember.key current_member.key %}
+	      					<li class="nobullet">
+	      					<input type="checkbox" name="key|{{aMember.key}}" value="yes" id="key|{{aMember.key}}"
+			 				{% for key in editor_keys_included %}
+			 					{% if aMember.key|toUnicode|equalTest:key %}
+			  						checked="checked"
+			  					{% endif %}
+			  				{% endfor %}
+			  				><label for="key|{{aMember.key}}">{{aMember.linkString}}</label></li>
+						{% endifnotequal %}
+					{% endfor %}
+					</ul></li>
+				{% else %}
+	  				<li class="nobullet">
+	  				<input type="checkbox" name="editors|{{editor_types|listLookup:i}}" value="yes" id="editors|{{editor_types|listLookup:i}}}"
+	 				{% for type in editor_types_included %}
+	 					{% if editor_types|listLookup:i|equalTest:type %}
+	  						checked="checked"
+	  					{% endif %}
+	  				{% endfor %}
+	  				><label for="editors|{{editor_types|listLookup:i}}}">{{editor_types_display|listLookup:i}}</label>
+  				{% endif %}
+  				</li>
+			{% endfor %}
+			</ul>
+			
+			
+	      	</fieldset>
+			
+	
+		<p></p>
+	    <center><input type="submit" name="submitChanges" value="{{button_save_changes}}" class="button"></center>	
+		</form>	
+		</div>
+
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

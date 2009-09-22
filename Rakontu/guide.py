@@ -84,25 +84,25 @@ class ReviewResourcesPage(ErrorHandlingRequestHander):
 					self.redirect(BuildURL("dir_guide", "url_resources", query))
 				else:
 					resources = rakontu.getNonDraftEntriesOfType("resource")
-					resourcesToPut = []
-					for resource in resources:
-					 	if "submitChangesToOrders" in self.request.arguments():
-							if self.request.get("order|%s" % resource.key()):
-								oldValue = resource.orderIfResource
-								try:
-									resource.orderIfResource = int(self.request.get("order|%s" % resource.key()))
-								except:
-									resource.orderIfResource = oldValue
+					def txn(resources):
+						resourcesToPut = []
+						for resource in resources:
+						 	if "submitChangesToOrders" in self.request.arguments():
+								if self.request.get("order|%s" % resource.key()):
+									oldValue = resource.orderIfResource
+									try:
+										resource.orderIfResource = int(self.request.get("order|%s" % resource.key()))
+									except:
+										resource.orderIfResource = oldValue
+									resourcesToPut.append(resource)
+							elif "flag|%s" % resource.key() in self.request.arguments():
+								resource.flaggedForRemoval = True
 								resourcesToPut.append(resource)
-						elif "flag|%s" % resource.key() in self.request.arguments():
-							resource.flaggedForRemoval = True
-							resourcesToPut.append(resource)
-						elif "unflag|%s" % resource.key() in self.request.arguments():
-							resource.flaggedForRemoval = False
-							resourcesToPut.append(resource)
-					def txn(resourcesToPut):
+							elif "unflag|%s" % resource.key() in self.request.arguments():
+								resource.flaggedForRemoval = False
+								resourcesToPut.append(resource)
 						db.put(resourcesToPut)
-					db.run_in_transaction(txn, resourcesToPut)
+					db.run_in_transaction(txn, resources)
 					query = "%s&%s=%s&%s=%s" % (rakontu.urlQuery(), URL_OPTIONS["url_query_type"], type, 
 									URL_OPTIONS["url_query_managers_only"], managersOnlyType)
 					self.redirect(BuildURL("dir_guide", "url_resources", query))
@@ -176,19 +176,21 @@ class ReviewRequestsPage(ErrorHandlingRequestHander):
 					self.redirect(BuildURL("dir_guide", "url_requests", query, rakontu=rakontu))
 				else:
 					requests = rakontu.getAllRequests()
-					requestsToPut = []
-					for request in requests:
-						if "setCompleted|%s" % request.key() in self.request.arguments():
-							request.completedIfRequest = True
-							requestsToPut.append(request)
-							break
-						elif "setUncompleted|%s" % request.key() in self.request.arguments():
-							request.completedIfRequest = False
-							requestsToPut.append(request)
-							break
-					def txn(requestsToPut):
+					def txn(requests):
+						requestsToPut = []
+						for request in requests:
+							if "setCompleted|%s" % request.key() in self.request.arguments():
+								request.completedIfRequest = True
+								request.completionCommentIfRequest = self.request.get("comment|%s" % request.key())
+								requestsToPut.append(request)
+								break
+							elif "setUncompleted|%s" % request.key() in self.request.arguments():
+								request.completedIfRequest = False
+								request.completionCommentIfRequest = self.request.get("comment|%s" % request.key())
+								requestsToPut.append(request)
+								break
 						db.put(requestsToPut)
-					db.run_in_transaction(txn, requestsToPut)
+					db.run_in_transaction(txn, requests)
 					self.redirect(self.request.uri)
 			else:
 				self.redirect(NotAuthorizedURL("guide", rakontu))

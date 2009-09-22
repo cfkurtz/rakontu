@@ -234,6 +234,16 @@ TOOLTIP_LENGTH = 200
 # in a category. It's a constant so you can set it higher if for some reason you need more.
 MAX_RESOURCES_PER_CATEGORY = 20
 
+# This is just how many boxes to put up when people are choosing other members to allow to edit an entry.
+MAX_NUM_ADDITIONAL_EDITORS = 10
+
+# If there are many request collisions, it is possible that stored counts of 
+# annotations, answers and links per entry may become inaccurate. 
+# If an entry has not been read for at least this many seconds, 
+# the system will recalculate the counts. This is a balance: the more people in your Rakontus,
+# the more likely the counts will be off; but the longer it will take people to load pages.
+UPDATE_ANNOTATION_COUNTS_SECONDS = 60 * 60 * 24
+
 # ============================================================================================ 
 # QUESTIONS
 # ============================================================================================ 

@@ -30,6 +30,8 @@
   		{% else %}
   			{{member.governanceTypeForDisplayNotShowingOwner}}.
   		{% endif %}
+  		{{template_joined}} {{member.joined|timeZone:member.timeZoneName|date:member.dateFormat}}.
+  		
   		</p>
   	  	
   		{% if member.profileText_formatted|orNothing %}
@@ -38,48 +40,7 @@
   			{% endifnotequal %}
   		{% endif %}
   		
-      	<table cellspacing=0 cellpadding=0 style="width:100%;">
-      	<tr>
-	      	<th>{{template_joined}}</th>
-	      	<th>{{template_last_entry}}</th>
-	      	<th>{{template_last_annotation}}</th>
-	      	<th>{{template_last_answer}}</th>
-	      	<th>{{template_last_link}}</th>
-      	</tr>
-      	
-		<td>{{member.joined|timeZone:member.timeZoneName|date:member.dateFormat}}</td>
- 		<td>
-			{% if member.lastEnteredEntry %} 
-				{{member.lastEnteredEntry|timeZone:member.timeZoneName|date:member.dateFormat}}
-			{% else %}
-				&nbsp;
-			{% endif %}
-			</td>
-		<td>
-			{% if member.lastEnteredAnnotation %} 
-				{{member.lastEnteredAnnotation|timeZone:member.timeZoneName|date:member.dateFormat}}
-			{% else %}
-				&nbsp;
-			{% endif %}
-			</td>
-		<td>
-			{% if member.lastAnsweredQuestion %} 
-				{{member.lastAnsweredQuestion|timeZone:member.timeZoneName|date:member.dateFormat}}
-			{% else %}
-				&nbsp;
-			{% endif %}
-			</td>
-		<td>
-			{% if member.lastEnteredLink %} 
-				{{member.lastEnteredLink|timeZone:member.timeZoneName|date:member.dateFormat}}
-			{% else %}
-				&nbsp;
-			{% endif %}
-			</td>
-		</tr>
-		</table>
-
-		<p></p>
+ 		<p></p>
     	<table cellspacing=0 cellpadding=0 style="width:100%;">
  			{% for name in count_names %}
 				<th>{{name|capfirst}}</th>
@@ -89,7 +50,7 @@
 			<td>{% if count %}
 					{{count}}
 				{% else %}
-					&nbsp;
+					0
 				{% endif %}
 			</td>
 		{% endfor %}

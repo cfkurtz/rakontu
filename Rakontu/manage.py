@@ -671,27 +671,28 @@ class ManageCharacterPage(ErrorHandlingRequestHander):
 					questions = rakontu.getActiveQuestionsOfType("character")
 					answersToPut = []
 					for question in questions:
-						foundAnswer = character.getAnswerForQuestion(question)
-						if foundAnswer:
-							answerToEdit = foundAnswer
-						else:
-							keyName = GenerateSequentialKeyName("answer")
-							answerToEdit = Answer(
-												key_name=keyName, 
-												parent=character,
-												rakontu=rakontu, 
-												question=question, 
-												referent=character, 
-												referentType="character")
 						queryText = "%s" % question.key()
 						response = self.request.get(queryText)
-						keepAnswer = answerToEdit.shouldKeepMe(self.request, queryText, question)
+						keepAnswer = ShouldKeepAnswer(self.request, queryText, question)
+						foundAnswer = character.getAnswerForQuestion(question)
 						if keepAnswer:
+							if foundAnswer:
+								answerToEdit = foundAnswer
+							else:
+								keyName = GenerateSequentialKeyName("answer")
+								answerToEdit = Answer(
+													key_name=keyName, 
+													parent=character,
+													rakontu=rakontu, 
+													question=question, 
+													referent=character, 
+													referentType="character")
 							answerToEdit.setValueBasedOnResponse(question, self.request, queryText, response)
 							answerToEdit.creator = member
 							thingsToPut.append(answerToEdit)
 						else:
-							thingsToDelete.append(answerToEdit)
+							if foundAnswer:
+								thingsToDelete.append(foundAnswer)
 					def txn(thingsToPut, thingsToDelete):
 						db.put(thingsToPut)
 						db.delete(thingsToDelete)

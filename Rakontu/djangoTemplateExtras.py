@@ -23,7 +23,7 @@ register = webapp.template.create_template_register()
 
 # from http://stackoverflow.com/questions/35948/django-templates-and-variable-attributes
 def dictLookup(dict, key):
-	if dict:
+	if dict: 
 		if key in dict:
 			return dict[key]
 		else:
@@ -49,6 +49,17 @@ def listLookup(list, index):
 	else:
 		return None
 register.filter(listLookup)
+
+def contains(item, list):
+	if list:
+		try:
+			index = list.index(item)
+			return True
+		except:
+			return False
+	else:
+		return False
+register.filter(contains)
 
 def isLastInSeries(list, object):
 	return list.index(object) == len(list) - 1
