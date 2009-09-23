@@ -79,6 +79,12 @@ indexes:
   
 - kind: Annotation
   properties:
+  - name: entry
+  - name: type
+  - name: published
+  
+- kind: Annotation
+  properties:
   - name: rakontu
   - name: type
   - name: __key__
@@ -110,6 +116,11 @@ indexes:
   
 - kind: Answer
   properties:
+  - name: referent
+  - name: published
+  
+- kind: Answer
+  properties:
   - name: character
   - name: creator
   - name: published
@@ -135,6 +146,16 @@ indexes:
   - name: creator
   - name: published
 
+- kind: Link
+  properties:
+  - name: itemFrom
+  - name: published
+
+- kind: Link
+  properties:
+  - name: itemTo
+  - name: published
+  
 
 
 

@@ -3,7 +3,7 @@
 	<body>
 	{% include "../common_menus.html" %}
 		<div id="content">
-		<div id="stylized" class="rakontu_form">
+		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_member}}?{{member.urlQuery}}
 		{% if curating %}
 			&{{url_query_curate}}={{url_query_curate}}
@@ -40,39 +40,17 @@
   			{% endifnotequal %}
   		{% endif %}
   		
- 		<p></p>
-    	<table cellspacing=0 cellpadding=0 style="width:100%;">
- 			{% for name in count_names %}
-				<th>{{name|capfirst}}</th>
-			{% endfor %}
-      	</tr>
-		{% for count in counts %}
-			<td>{% if count %}
-					{{count}}
-				{% else %}
-					0
-				{% endif %}
-			</td>
-		{% endfor %}
-		</tr>
-		</table>
-
 		<h3>{{term_entries_contributed_by}} {{member.nickname}}</h3>
+		
+		{% include "../common_time_range.html" %}
 		
 		{% if grid_options_on_top %}
 			{% include "../common_grid_options.html" %}
-			<p></p>
 		{% endif %}
 		
-		{% if rows_cols %}
-			{% include "../common_grid.html" %}
-			<p></p>
-		{% else %}
-			<p>{{template_no_entries_or_annotations_for_member}}</p>
-		{% endif %}
+		{% include "../common_grid.html" %}
 		
 		{% if not grid_options_on_top %}
-			<p></p>
 			{% include "../common_grid_options.html" %}
 		{% endif %}
 
@@ -90,6 +68,25 @@
     </form>
     </div>
     
+    <h3>{{template_counts_of_items_contributed_by}} {{member.nickname}}</h3>
+    
+ 		<p></p>
+    	<table cellspacing=0 cellpadding=0 style="width:100%;">
+ 			{% for name in count_names %}
+				<th>{{name|capfirst}}</th>
+			{% endfor %}
+      	</tr>
+		{% for count in counts %}
+			<td>{% if count %}
+					{{count}}
+				{% else %}
+					&nbsp;
+				{% endif %}
+			</td>
+		{% endfor %}
+		</tr>
+		</table>
+
 	<h3>{{template_member_answers_to_questions}}</h3>
 	{% if answers %}
 		<ul>

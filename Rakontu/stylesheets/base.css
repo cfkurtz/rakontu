@@ -2,7 +2,7 @@
 /* ----------- margin: top right bottom left ----------- */
 
 body {
-  	font-size: 90%;
+  	font-size: 13px;
 	}
 	
 hr {
@@ -28,7 +28,8 @@ img.bordered {
 	
 table {
 	width: auto;
-	border: 1px solid #000000;
+	border-right: 1px solid #000000;
+	border-bottom: 1px solid #000000;
 	}
 	
 table.fullwidth {
@@ -41,38 +42,32 @@ table.noborder {
 	border: 0;
 	}
 	
-table.grid {
-	width: 100%; 
-	border-top: 1px solid #000000; 
-	border-bottom: 1px solid #000000; 
-	border-left: none; 
-	border-right: 1px solid #000000;
-	}
-	
 td {
-	font-size: 80%;
-	border-left: 1px solid #000000;
+	font-size: 13px;
 	border-top: 1px solid #000000;
+	border-left: 1px solid #000000;
 	padding: 4px 4px 4px 4px;
 	}
 	
 td.noborder {
-	font-size: 80%;
+	font-size: 13px;
 	border: 0;
 	}
 	
 th {
-	font-size: 80%;
+	font-size: 13px;
 	font-style: plain;
 	font-weight: normal;
-	border: 1px solid #000000;
+	border-top: 1px solid #000000;
+	border-left: 1px solid #000000;
+	padding: 4px;
 	}
 	
 fieldset {
-	background-color: #EEEEEE; 
+	background: #EEEEEE; 
 	width: auto;
 	border: 1px solid #000000;
-	padding: 4px 4px 4px 4px;
+	padding: 4px 8px 4px 8px;
 	}
 		
 ul li.nobullet {
@@ -87,10 +82,11 @@ ul li.nobullet {
 
 .rightalign {
 	text-align: right;
+	font-size: 12px;
 	}
 	
 .blurb {
-	background-color: #CCCCCC;
+	background: #CCCCCC;
 	width: auto;
 	border: 1px solid #000000;
 	padding: 4px 8px 4px 8px;
@@ -102,14 +98,9 @@ ul li.nobullet {
 	padding: 4px 30px 4px 30px;
 	}
 	
-.footer {
-	text-align: center;
-	font-size: 80%;
-	}
-	
 /* ----------- page areas ----------- */
 #header {
-	font-size: 100%;
+	font-size: 15px;
 	}
 	
 #content {
@@ -122,6 +113,11 @@ ul li.nobullet {
 	padding-right: 6px;
 	}
 	
+#footer {
+	text-align: center;
+	font-size: 11px;
+	}
+	
 /* ----------- topmenu ----------- */
 
 #topmenu {
@@ -130,27 +126,13 @@ ul li.nobullet {
     padding: 0;
     height: 1em; 
     }
+    
 #topmenu li {
     list-style: none;
     width: 80px;
     float: left; 
-    margin-left: 0px;
-    margin-right: 4px;
-    margin-top: 0px;
-    margin-bottom: 0px;
+    margin: 0px 4px 0px 0px;
     border: 1px solid #000000;
-    }
-#topmenu li a {
-    display: block;
-    padding: 3px 8px;
-    background-color: #CCCCCC;
-    color: #000;
-    text-decoration: none; 
-    }
-#topmenu li ul {
-    display: none;
-    width: 10em; /* Width to help Opera out */
-    background-color: #CCCCCC;
     }
 #topmenu li:hover ul, #topmenu li.hover ul {
     display: block;
@@ -158,18 +140,31 @@ ul li.nobullet {
     margin: 0;
     padding: 0; 
     }
+#topmenu li a {
+    display: block;
+    padding: 3px 8px;
+    background: #CCCCCC;
+    color: #000;
+    text-decoration: none; 
+    }
+    
+#topmenu li ul {
+    display: none;
+    width: 10em; /* Width to help Opera out */
+    background: #CCCCCC;
+    }
 #topmenu li:hover li, #topmenu li.hover li {
     float: none; 
     }
 #topmenu li:hover li a, #topmenu li.hover a {
-    background-color: #CCCCCC;
+    background: #CCCCCC;
     color: #000000; 
     }
 #topmenu li li {
 	width: 160px;
 	}
 #topmenu li li a:hover {
-    background-color: #000000; 
+    background: #000000; 
     color: #FFFFFF;
     }
 
@@ -180,7 +175,7 @@ ul li.nobullet {
 	width: 400px;
 	padding: 14px;
 	border: solid 1px #000000;
-	background-color: #EEEEEE;
+	background: #EEEEEE;
 	}
 	
 .rakontu_form {
@@ -188,29 +183,29 @@ ul li.nobullet {
 	padding: 0px;
 	}
 	
-#stylized label {
+#rakontu_form_style label {
 	font-weight: plain;
 	vertical-align: middle;
 	margin-left: 4px;
 	padding-bottom: 4px;
 	}
 	
-#stylized label:hover{
+#rakontu_form_style label:hover{
 	color: #999999;
 	}
 	
-#stylized select {
+#rakontu_form_style select {
 	font-size: 12px;
 	padding: 4px 2px;
 	border: solid 1px #000000;
 	margin: 2px 0px 10px 2px;
 	}
 	
-#stylized select:hover{
+#rakontu_form_style select:hover{
 	border: solid 1px #000000;
 	}
 	
-#stylized input{
+#rakontu_form_style input{
 	font-size: 12px;
 	border: solid 1px #000000;
 	margin: 2px 2px 2px 2px;
@@ -218,60 +213,60 @@ ul li.nobullet {
 	padding-top: 0;
 	}
 	
-#stylized input:hover{
+#rakontu_form_style input:hover{
 	border: solid 1px #000000;
 	}
 	
-#stylized textarea{
-	font-size: 13px;
+#rakontu_form_style textarea{
+	font-size: 12px;
 	padding: 4px 2px;
 	border: solid 1px #000000;
 	width: 98%;
 	margin: 2px 0px 10px 2px;
 	}
 	
-#stylized textarea:hover{
+#rakontu_form_style textarea:hover{
 	border: solid 1px #000000;
 	}
 	
-#stylized input.button{
+#rakontu_form_style input.button{
 	clear: both;
 	align: center;
 	width: auto;
 	height: 34px;
 	line-height: 32px;
-	background-color: #CCCCCC;
+	background: #CCCCCC;
 	text-align: center;
-	font-size: 130%;
+	font-size: 16px;
 	font-weight: bold;
 	border: solid 2px #000000;
 	padding-top: 0;
 	}
 	
-#stylized input.button:hover{
+#rakontu_form_style input.button:hover{
 	border: solid 2px #000000;
-	background-color: #999999;
+	background: #999999;
 	}
 	
-#stylized input.button_small{
+#rakontu_form_style input.button_small{
 	clear: both;
 	align: center;
 	width: auto;
 	height: 26px;
 	line-height: 24px;
-	background-color: #CCCCCC;
+	background: #CCCCCC;
 	text-align: center;
-	font-size: 80%;
+	font-size: 12px;
 	border: solid 1px #000000;
 	padding-top: 0;
 	}
 	
-#stylized input.button_small:hover{
+#rakontu_form_style input.button_small:hover{
 	border: solid 1px #000000;
-	background-color: #999999;
+	background: #999999;
 	}
 	
-#stylized input.flag_red {
+#rakontu_form_style input.flag_red {
 	background: transparent;
 	background-image: url(../images/flag_red.png);
 	height:16px;
@@ -279,11 +274,11 @@ ul li.nobullet {
 	border:none;
 	}
 	
-#stylized input.flag_red:hover {
+#rakontu_form_style input.flag_red:hover {
 	border:none;
 	}
 	
-#stylized input.flag_green {
+#rakontu_form_style input.flag_green {
 	background: transparent;
 	background-image: url(../images/flag_green.png);
 	height:16px;
@@ -291,11 +286,11 @@ ul li.nobullet {
 	border:none;
 	}
 
-#stylized input.flag_green:hover {
+#rakontu_form_style input.flag_green:hover {
 	border:none;
 	}
 	
-#stylized input.move_up {
+#rakontu_form_style input.move_up {
 	background: transparent;
 	background-image: url(../images/arrow_up.png);
 	height:16px;
@@ -303,11 +298,11 @@ ul li.nobullet {
 	border:none;
 	}
 	
-#stylized input.move_up {
+#rakontu_form_style input.move_up:hover {
 	border:none;
 	}
 	
-#stylized input.move_down {
+#rakontu_form_style input.move_down {
 	background: transparent;
 	background-image: url(../images/arrow_down.png);
 	height:16px;
@@ -315,11 +310,11 @@ ul li.nobullet {
 	border:none;
 	}
 
-#stylized input.move_down {
+#rakontu_form_style input.move_down:hover {
 	border:none;
 	}
 	
-#stylized input.active {
+#rakontu_form_style input.active {
 	background: transparent;
 	background-image: url(../images/accept.png);
 	height:16px;
@@ -327,11 +322,11 @@ ul li.nobullet {
 	border:none;
 	}
 	
-#stylized input.active {
+#rakontu_form_style input.active:hover {
 	border:none;
 	}
 	
-#stylized input.inactive {
+#rakontu_form_style input.inactive {
 	background: transparent;
 	background-image: url(../images/cancel.png);
 	height:16px;
@@ -339,7 +334,7 @@ ul li.nobullet {
 	border:none;
 	}
 
-#stylized input.inactive {
+#rakontu_form_style input.inactive:hover {
 	border:none;
 	}
 	

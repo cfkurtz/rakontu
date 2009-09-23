@@ -5,7 +5,7 @@
 		<div id="content">
 	
 	{% if current_member.isGuide %}
-		<div id="stylized" class="rakontu_form">
+		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_guide}}/{{url_invitations}}?{{rakontu.urlQuery}}
 		{% if bookmark %}&{{url_query_bookmark}}={{bookmark}}{% endif %}
 		" method="post" enctype="multipart/form-data">

@@ -1,25 +1,9 @@
-		<center>
-		<table class="grid" cellpadding="3" cellspacing="0">
+		{% if not grid_options_on_top %}
+			<table style="width:100%;" cellpadding="4" cellspacing="0">
+		{% endif %}
 
-		{% if include_time_range %}
-			<tr><th align="right">{{template_time_range}}</th><td>
-			{{min_time}} - {{max_time}}
-			<input type="submit" name="setToFirst" value=" |&lt; " class="button_small">
-			<input type="submit" name="moveTimeBack" value=" &lt; " class="button_small">
-			<input type="submit" name="moveTimeForward" value=" &gt; " class="button_small">
-			<input type="submit" name="setToLast" value=" &gt;| " class="button_small">
-			{{template_show}}
-			<select name="timeFrame">
-				{% for time_frame in time_frames %}
-					<option value="{{time_frame|listLookup:0}}"
-					{% if time_frame|listLookup:0|equalTest:member_time_frame_string %}
-						selected="selected"
-					{% endif %}
-					>{{time_frame|listLookup:0}}</option>
-				{% endfor %} 
-				</select>
-			<input type="submit" name="changeTimeFrame" value="{{button_change}}" class="button_small">
-			</td></tr>
+		{% if not include_time_range %}
+			<table style="width:100%;" cellpadding="4" cellspacing="0">
 		{% endif %}
 
 		{% if include_entry_types %}
@@ -32,7 +16,7 @@
 				>
 				<label for="{{entry_types|listLookup:i}}">{{entry_types_plural_display|listLookup:i}}</label>
 			{% endfor %}
-			<input type="submit" name="changeEntryTypesShowing" value="{{button_change}}" class="button_small">
+			<input type="submit" name="changeEntryTypesShowing" value="{{button_change_entry_types_view}}" class="button_small">
 			</td></tr>
 		{% endif %}
 		
@@ -46,7 +30,7 @@
 				>
 				<label for="{{annotation_answer_link_types|listLookup:i}}">{{annotation_answer_link_types_plural_display|listLookup:i}}</label>
 			{% endfor %}
-			<input type="submit" name="changeAnnotationTypesShowing" value="{{button_change}}" class="button_small">
+			<input type="submit" name="changeAnnotationTypesShowing" value="{{button_change_annotation_types_view}}" class="button_small">
 			</td></tr>
 		{% endif %}
 		
@@ -66,7 +50,7 @@
 			{% if include_nudge_floor %}
 				</p><p>{{template_nudge_floor}}: <input type="text" size="4" value="{{nudge_floor}}" name="nudgeFloor">
 			{% endif %}
-			<input type="submit" name="changeNudgeCategoriesShowing" value="{{button_change}}" class="button_small"></p>
+			<input type="submit" name="changeNudgeCategoriesShowing" value="{{button_change_nudge_view}}" class="button_small"></p>
 			</td></tr>
 		{% endif %}
 		
@@ -136,18 +120,12 @@
 				{% endif %}
 			{% endif %}
 	
-			{% if include_print %}
+			{% if include_print and current_member.isLiaison %}
 				<input type="submit" name="printSearchResults" value="{{button_print_selection}}" class="button_small">
 			{% endif %}
 			
 			{% if include_export and current_member.isManagerOrOwner %}
 				<input type="submit" name="exportSearchResults" value="{{button_export_selection}}" class="button_small">
-			{% endif %}
-	
-			{% if grid_options_on_top %}
-				<input type="submit" name="toggleViewHomeOptionsOnTop" value="{{button_move_choices_to_bottom}}" class="button_small">
-			{% else %}
-				<input type="submit" name="toggleViewHomeOptionsOnTop" value="{{button_move_choices_to_top}}" class="button_small">
 			{% endif %}
 			
 		{% endif %}
@@ -155,4 +133,3 @@
 		</td></tr>
 		
 		</table>
-		</center>

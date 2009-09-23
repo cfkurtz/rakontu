@@ -6,7 +6,7 @@
 	
 	<div id="content">
 	
-		<div id="stylized" class="rakontu_form">
+		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
 		{% if member.isOnlineMember %}
@@ -164,15 +164,23 @@
 					>{{choice}}</option>
 				{% endfor %}
 			</select></p>
-		{% endif %}
+			<p>{{template_view_options_on_top}}</p>
+				{% for option in view_options %}
+					<p>&nbsp; &nbsp; 
+					<input type="checkbox" name="showOptionsOnTop|{{option.location}}" value="yes" id="showOptionsOnTop|{{option.location}}"
+						{% if option.showOptionsOnTop %}
+							checked
+						{% endif %}
+						><label for="showOptionsOnTop|{{option.location}}">{{option.displayNameForLocation}}</label></p>
+				{% endfor %}
+			{% endif %}
+		</fieldset>
+		
 		{% if member.isOnlineMember %}
 			{% if show_leave_link %}
 				<div class="rightalign"><a href="/{{dir_visit}}/{{url_leave}}?{{url_query_member}}={{member.getKeyName}}">{{template_leave_rakontu}}</a></div>
 			{% endif %}
 		{% endif %}
-		</fieldset>
-			
-		
 		
       	<p>
     <center><input type="submit" name="changeSettings|{{member.key}}" value="{{button_save_changes}}" class="button"></center>

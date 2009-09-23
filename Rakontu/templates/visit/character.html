@@ -3,7 +3,7 @@
 	<body>
 	{% include "../common_menus.html" %}
 		<div id="content">
-		<div id="stylized" class="rakontu_form">
+		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_character}}?{{character.urlQuery}}
 		{% if curating %}
 			&{{url_query_curate}}={{url_query_curate}}
@@ -32,6 +32,23 @@
 	  	{% endif %}
 	  	</div>
 	  	
+		<h3>{{term_entries_contributed_by}} {{character.name}}</h3>
+		
+		{% include "../common_time_range.html" %}
+		
+		{% if grid_options_on_top %}
+			{% include "../common_grid_options.html" %}
+		{% endif %}
+		
+		{% include "../common_grid.html" %}
+		
+		{% if not grid_options_on_top %}
+			{% include "../common_grid_options.html" %}
+		{% endif %}
+
+		
+    <h3>{{template_counts_of_items_contributed_by}} {{character.name}}</h3>
+		
 		<p></p>
     	<table cellspacing=0 cellpadding=0 style="width:100%;">
  			{% for name in count_names %}
@@ -42,47 +59,13 @@
 			<td>{% if count %}
 					{{count}}
 				{% else %}
-					0
+					&nbsp;
 				{% endif %}
 			</td>
 		{% endfor %}
 		</tr>
 		</table>
 
-		<h3>{{term_entries_contributed_by}} {{character.name}}</h3>
-		
-		{% if grid_options_on_top %}
-			{% include "../common_grid_options.html" %}
-			<p></p>
-		{% endif %}
-		
-		{% if rows_cols %}
-			{% include "../common_grid.html" %}
-			<p></p>
-		{% else %}
-			<p>{{template_no_entries_or_annotations_for_character}}</p>
-		{% endif %}
-		
-		{% if not grid_options_on_top %}
-			<p></p>
-			{% include "../common_grid_options.html" %}
-		{% endif %}
-
-		
-	<div class="rightalign"><a href="/{{dir_visit}}/{{url_rakontu}}?{{rakontu.urlQuery}}">{{template_see_all_characters}}</a>
-  	{% if current_member.isManagerOrOwner %}
-  		| <a href="/{{dir_manage}}/{{url_character}}?{{character.urlQuery}}">{{template_change_this_character}}</a>
-  	{% endif %}
-  	</div>
-  	{% if current_member.isCurator %}
-  		<div class="rightalign"><p>
-  		{% if curating %}
- 	 		<a href="/{{dir_visit}}/{{url_character}}?{{character.urlQuery}}">{{template_stop_curating}}</a></p></div>
-		{% else %}
- 	 		<a href="/{{dir_visit}}/{{url_character}}?{{character.urlQuery}}&{{url_query_curate}}={{url_query_curate}}">{{template_curate_this_characters_entries}}</a></p></div>
-		{% endif %}
-  	{% endif %}
-  	
   	</form>
   	</div>
   	

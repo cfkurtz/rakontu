@@ -4,7 +4,7 @@
 	{% include "../common_menus.html" %}
 	<div id="content">
 	{% if current_member.canEditTags %}
-		<div id="stylized" class="rakontu_form">
+		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_curate}}/{{url_tags}}?{{rakontu.urlQuery}}{% if bookmark %}&{{url_query_bookmark}}={{bookmark}}{% endif %}" method="post">
 			
 			<h3>{{template_change_entry_tags}} {{"changing_tags_on_entries"|caution}}</h3>

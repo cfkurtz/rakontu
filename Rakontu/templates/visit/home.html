@@ -5,7 +5,7 @@
 	<div id="content">
 	
 	<p></p>
-	<div id="stylized" class="rakontu_form">
+	<div id="rakontu_form_style" class="rakontu_form">
 	<form action="/{{dir_visit}}/{{url_home}}
 	{% if current_search %}
 		?{{current_search.urlQuery}}
@@ -17,15 +17,15 @@
 	{% endif %}
 	" method="post">
 	
+	{% include "../common_time_range.html" %}
+	
 	{% if grid_options_on_top %}
 		{% include "../common_grid_options.html" %}
-		<p></p>
 	{% endif %}
 	
 	{% include "home_grid.html" %}
 	
 	{% if not grid_options_on_top %}
-		<p></p>
 		{% include "../common_grid_options.html" %}
 	{% endif %}
 

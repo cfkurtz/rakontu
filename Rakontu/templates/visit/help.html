@@ -65,33 +65,43 @@
 		<h3>{{template_ask_a_guide}} {{"asking_a_guide_a_question"|info}}</h3>
       		<hr>
       		{% for guide in guides %}
-  				<table style="width:100%;" class="noborder">
-  				<tr>
-  				<td style="border:none; border-right:1px solid #{{skin|dictLookup:"color_border_normal"}};" width="100" valign="center" align="center">
-			 		{% if guide.profileImage %}
-						<a href="/{{dir_visit}}/{{url_ask}}?{{guide.urlQuery}}">{{guide.imageEmbed}}</a>
-					{% else %}
-						&nbsp;
-					{% endif %}
-				</td>
-				<td style="border:none;padding-left:16px;">
-	 				<p>{{guide.askLinkString}}  
-	  				{% ifequal guide.key current_member.key %}<i>({{template_you}})</i> {% endifequal %} 
-	  				</p>
-	  				<div class="blurb">
-	  				{% if guide.guideIntro|orNothing %}
-	  					{{guide.guideIntro_formatted}}
-	  				{% else %}
-	  					{{template_guide_has_not_entered_intro}}
-	  				{% endif %}
-	  				</div>
-  				</td>
-   				</tr>
-  				</table>
-  				<hr>
-      		{% endfor %}
+      			{% ifnotequal guide.key current_member.key %}
+	  				<table style="width:100%;" class="noborder">
+	  				<tr>
+	  				<td style="border:none; border-right:1px solid #{{skin|dictLookup:"color_border_normal"}};" width="100" valign="center" align="center">
+				 		{% if guide.profileImage %}
+							<a href="/{{dir_visit}}/{{url_ask}}?{{guide.urlQuery}}">{{guide.imageEmbed}}</a>
+						{% else %}
+							&nbsp;
+						{% endif %}
+					</td>
+					<td style="border:none;padding-left:16px;">
+		 				<p>{{guide.askLinkString}}  
+		  				{% ifequal guide.key current_member.key %}<i>({{template_you}})</i> {% endifequal %} 
+		  				</p>
+		  				<div class="blurb">
+		  				{% if guide.guideIntro|orNothing %}
+		  					{{guide.guideIntro_formatted}}
+		  				{% else %}
+		  					{{template_guide_has_not_entered_intro}}
+		  				{% endif %}
+		  				</div>
+	  				</td>
+	   				</tr>
+	  				</table>
+	  				<hr>
+	      		{% endifnotequal %}
+	      	{% endfor %}
 	{% endif %}
 	
+	{% if current_member.isOnlineMember %}
+		{% if current_member.isManagerOrOwner %}
+			<p><a href="/{{dir_manage}}/{{url_first}}?{{rakontu.urlQuery}}">{{template_show_new_member_page}}</a></p>
+		{% else %}
+			<p><a href="/{{dir_visit}}/{{url_new}}?{{rakontu.urlQuery}}">{{template_show_new_member_page}}</a></p>
+		{% endif %}
+	{% endif %}
+
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

@@ -251,6 +251,10 @@ ANSWER_COMPARISON_TYPES_DISPLAY = ["contains", "is", "is greater than", "is less
 
 DEFAULT_SEARCH_NAME = "Untitled search filter"
 
+# These describe the locations of the timeline grid views. 
+# They MUST match the order (home, entry, member, character).
+VIEW_OPTION_LOCATIONS_DISPLAY = ["home", "entry", "member", "character"]
+
 # ============================================================================================ 
 # DISPLAY TERMS
 # These are bits of text that come out of the source code (NOT the templates) and display on pages.
@@ -327,6 +331,7 @@ TERMS = {
 		"term_too_many_items_warning": "most recent items shown. To show older items, use selections to reduce the number of items showing.", # preceded by number/number
 		"term_untitled": "Untitled",
 		"term_no_subject": "No subject", # for a comment or request
+		"term_could_not_email_admins": "Actually, that's not true. Rakontu could NOT send an email about this issue to the site administrator(s) because the saved email address is invalid. Please contact your site administrator for help.",
 		}
 
 # ============================================================================================ 
@@ -407,6 +412,8 @@ TEMPLATE_TERMS = {
 		"template_responses": "Responses",
 		"template_annotation": "Annotation",
 		"template_annotations": "Annotations",
+		"template_comment": "Comment",
+		"template_comments": "Comments",
 		"template_request": "Request",
 		"template_requests": "Requests",
 		"template_draft": "Draft",
@@ -415,6 +422,8 @@ TEMPLATE_TERMS = {
 		"template_tags": "Tags",
 		"template_tag_set": "Tag set",
 		"template_tag_sets": "Tag sets",
+		"template_nudge": "Nudge",
+		"template_nudges": "Nudges",
 		"template_question": "Question",
 		"template_questions": "Questions",
 		"template_answer": "Answer",
@@ -450,7 +459,6 @@ TEMPLATE_TERMS = {
 		"template_interpret_as": "Interpret as",
 		"template_first_part_of_text": "First part of text",
 		"template_contributor": "Contributor",
-		"template_comment": "Comment",
 		"template_subject": "Subject",
 		"template_joined": "Joined",
 		"template_created": "Created",
@@ -473,7 +481,7 @@ TEMPLATE_TERMS = {
 		"template_year": "year",
 		"template_month": "month",
 		"template_day": "day",
-		"template_log_out": "Log out",
+		"template_log_out": "Sign out",
 		"template_help": "Help",
 		"template_newer": "Newer",
 		"template_older": "Older",
@@ -548,8 +556,8 @@ TEMPLATE_TERMS = {
 		"template_you_are_member_of": "You are a member of these Rakontus.",
 		"template_you_are_invited_to": "You have been invited to join these Rakontus.",
 		"template_from_google": "from Google",
-		"template_must_be_logged_in": "You must be logged in to a Google account to use Rakontu.",
-		"template_login": "Log in",
+		"template_must_be_logged_in": "You must be signed in to a Google account to use Rakontu.",
+		"template_login": "Sign in",
 		"template_at_google": "at Google",
 		# admin/admin
 		"template_site_initialization_tasks": "Site initialization tasks",
@@ -626,7 +634,7 @@ TEMPLATE_TERMS = {
 		"template_only_invitations_with_no_responses": "only invitations with no responses",
 		"template_invitations_with_no_responses": "Invitations with no responses",
 		"template_no_invitations": "There are no invitations in the Rakontu.",
-		"template_no_invitations_without_responses": "There are not invitations without responses.",
+		"template_no_invitations_without_responses": "There are no invitations without responses.",
 		# guide/requests
 		"template_all_requests": "all",
 		"template_only_uncompleted_requests": "uncompleted",
@@ -771,7 +779,7 @@ TEMPLATE_TERMS = {
 		"template_curate_this_characters_entries": "Curate this character's contributions",
 		"template_no_character_description": "no character description",
 		"template_no_character_how_to": "no how-to statement",
-		"template_no_entries_or_annotations_for_character": "There are no entries or annotations that match the current selections for this character.",
+		"template_no_entries_or_annotations_for_character": "No entries or annotations match the current selections for this character.",
 		# visit/drafts
 		"template_name_click_to_edit": "Name (click to edit)",
 		"template_versions_click_to_use": "Previous versions (click to recall)",
@@ -842,6 +850,7 @@ TEMPLATE_TERMS = {
 		"template_support": "Support request",
 		"template_site_support": "Site support",
 		"template_guide_has_not_entered_intro": "This guide has not yet specified which sorts of questions they can answer.",
+		"template_show_new_member_page": "Visit the new-member page again",
 		# visit/home
 		"template_time_range": "Time range",
 		"template_to_time": "to", # between two parts of time range
@@ -849,7 +858,6 @@ TEMPLATE_TERMS = {
 		"template_show": "Show",
 		"template_entry_types": "Entry types",
 		"template_annotation_types": "Annotation types",
-		"template_nudges": "Nudges",
 		"template_filtered_by": "Filtered by",
 		"template_choose_one": "choose one",
 		"template_my_filters": "My filters",
@@ -869,7 +877,7 @@ TEMPLATE_TERMS = {
 		# visit/member
 		"template_information_about": "Information about",
 		"template_information_about_this": "Information about this",
-		"template_counts": "Counts",
+		"template_counts_of_items_contributed_by": "Counts of items contributed by", # member nickname
 		"template_last_entry": "Last entry",
 		"template_last_annotation": "Last annotation",
 		"template_last_answer": "Last answer",
@@ -882,7 +890,7 @@ TEMPLATE_TERMS = {
 		"template_curate_this_members_entries": "Curate this member's contributions",
 		"template_curate_your_entries": "Curate your contributions",
 		"template_stop_curating": "Stop curating",
-		"template_no_entries_or_annotations_for_member": "There are no entries or annotations that match the current selections for this member.",
+		"template_no_entries_or_annotations_for_member": "No entries or annotations match the current selections for this member.",
 		# visit/members
 		"template_make_changes_to_members": "Make changes to memberships",
 		"template_send_message": "Send message",
@@ -891,6 +899,7 @@ TEMPLATE_TERMS = {
 		# visit/new
 		"template_resources_for_new_members": "You may find these resources helpful for getting started",
 		"template_about_help_icons": "Around the site you will see little icons that provide help. Either hover over them with your mouse or click on them to read them.",
+		"template_how_to_get_to_new_member_page_again": "A tip: You can return to this page later by clicking the link at the bottom of the Help page.",
 		# visit/preview
 		"template_with_reference_to_the": "with reference to the",
 		# visit/previewAnswers
@@ -921,7 +930,7 @@ TEMPLATE_TERMS = {
 		"template_email_for_reply_to_in_messages": "What reply-to email address would you like to use by default for messages sent from you?",
 		"template_please_add_a_picture": "Please upload a picture of yourself.",
 		"template_please_add_a_picture_of_offline_member": "Please upload a picture of this off-line member.",
-		"template_leave_rakontu": "To stop being a member of this Rakontu, click here.",
+		"template_leave_rakontu": "I want to stop being a member of this Rakontu",
 		"template_other_options": "Other options",
 		"template_helping_roles": "Helping roles",
 		"template_i_am_a": "I am a", # if this doesn't translate you can leave it blank
@@ -932,11 +941,11 @@ TEMPLATE_TERMS = {
 		"template_time_display_choice": "How should times be displayed?",
 		"template_rakontu_created_on": "This Rakontu was created on",
 		"template_inline_image_display_choice": "Do you want to see attached images on the same page as the entries they are attached to?",
-		"template_details_text_length_choice": "How long would you like texts displayed in details views to be?",
+		"template_details_text_length_choice": "How many characters (letters) long would you like texts displayed in details views to be?",
+		"template_view_options_on_top": "On which of these timeline views should the options (other than the time range) be shown above the timeline?",
 		# visit/rakontu
 		"template_rakontu_created_on": "This Rakontu was created on",
-		"template_make_changes_to_settings": "Make changes to Rakontu-level settings",
-		"template_make_changes_to_characters": "Make changes to characters",
+		"template_counts_of_items_in": "Counts of items in", # rakontu name
 		"template_nudge_categories": "Nudge categories",
 		"template_nudge_point_accumulations": "Nudge point accumulations",
 		"template_activity_point_accumulations": "Activity point accumulations",
@@ -950,12 +959,12 @@ TEMPLATE_TERMS = {
 		"template_reminding_to": "Reminded someone of",
 		"template_in_response_to_invitation": "Told in response to",
 		"template_included_in_collages": "Included in the collages",
-		"template_what_would_you_like_to_do_next": "What would you like to do next?",
+		"template_annotations_to_this": "Annotations to this", # story, etc
 		"template_hide_versions": "Hide", # right next to button that says History so no need for longer name
 		"template_show_versions": "Show history",
 		"template_no_annotations_for_entry": "This entry has no annotations that match the current selections.",
-		"template_add_editors": "Allow others to edit this entry",
-		"template_change_editors": "Change who can edit this entry",
+		"template_add_editors": "Allow others to edit this", # story, etc
+		"template_change_editors": "Change who can edit this", # story, etc
 		# visit/readAnnotation
 		"template_request_type": "Request type",
 		"template_completion_status": "Status",
@@ -1017,6 +1026,10 @@ TEMPLATE_BUTTONS = {
 		"button_export_xml": "Export to XML",
 		"button_export_csv": "Export to CSV",
 		# visit
+		"button_change_time_range_view": "Change time range view",
+		"button_change_entry_types_view": "Change entry types view",
+		"button_change_annotation_types_view": "Change annotation types view",
+		"button_change_nudge_view": "Change nudges view",
 		"button_hide_details": "Hide details",
 		"button_show_details": "Show details",
 		"button_save_changes_and_return": "Save changes and return",
@@ -1199,17 +1212,53 @@ BLURBS = {
 	a gathering place where people build their story museum together 
 	and draw from it to remember the past, understand the present
 	and find solutions for the future.</p>
+	<p>For more information, visit <a href="http://www.rakontu.org">rakontu.org</a>.
+	</p>
 	""",
 "not logged in": 
 	"""
 	<p><b>What's Rakontu?</b></p>
 	<p>Rakontu is an open source software package that helps groups of people share and work 
 	with stories. You can find out more about it at <a href="http://www.rakontu.org">rakontu.org</a>.
-	<p>This alpha stage prototype is currently being tested.
-	If you want to help with testing, join the 
-	<a href="http://groups.google.com/group/rakontu-discuss">Rakontu discussion group</a>
-	and ask to try out the site.</p.
+	<p>Rakontu is currently being beta tested.
+	If you want to create or join a beta testing group, join the 
+	<a href="http://groups.google.com/group/rakontu-discuss">Rakontu discussion group</a>.</p.
 	<p>(If you're wondering: Rakontu is <a href="http://en.wikipedia.org/wiki/Esperanto">Esperanto</a> for "tell a story.")</p>
+	""",
+"member_new":
+	"""
+	<p>
+	The most important thing you do in a Rakontu is, of course, is <b>tell stories</b>. 
+	But you can do other things as well: <b>invite</b> other people to tell stories about
+	particular subjects; <b>search</b> for stories and find <b>patterns</b> in them;
+	build story <b>collages</b>; and make <b>comments</b> and other annotations 
+	to the stories you read.
+	</p>
+	<hr>
+	<p>The best way to get started in your Rakontu is to start <b>reading</b> the stories others have already
+	told. To do that, choose Visit - <b>Home page</b>, or just click on the picture in the upper-left hand corner
+	of the page. Stories are shown in a <b>timeline</b> from left to right. Click on a story <b>title</b> to read it.
+	If there aren't any stories yet, why not tell the first one! Choose Create - <b>Tell a story</b>.</p>
+	<hr>
+	<p>You might also like to change your <b>nickname</b> to something nicer than your email address,
+	and you can add a picture and some details about yourself, if you like. Choose My stuff - <b>Profile</b> 
+	to do that.
+	</p>
+	<hr>
+	<p>You can participate in your Rakontu as a regular <b>member</b>; but if you like, you can <b>volunteer</b> to take on
+	any of three <b>roles</b> that will help your Rakontu become more useful to everyone in it.</p>
+	<ol>
+	<li><b>Curators</b> watch over the stories. They locate and fix problems in the story "museum."</li>
+	<li><b>Guides</b> watch over the people. They help new members get started and answer questions.</li>
+	<li><b>Liaisons</b> bridge worlds. They help people who don't use computers to participate in the Rakontu by entering
+	their stories and reading them stories others have told.</li>
+	</ol>
+	<p>To take on any of these roles, choose My stuff - <b>Preferences</b>, check the appropriate box, and
+	click Save changes. New menus will appear for each role.</p>
+	<hr>
+	<p>One more thing: around the site you will see little icons that provide help. Either hover over them with your mouse or click on them
+	to read a bit of help about the area in which they appear.
+	<i>If you do not see any icons below, your site administrator has not yet generated the help system. Contact them for help.</i></p>
 	""",
 "manager_first": 
 	"""

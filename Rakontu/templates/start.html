@@ -7,10 +7,10 @@
 	<center>
 	<h1>Rakontu</h1>
 	<p><i>{{template_rakontu_motto}}</i></p>
-	<p><img src="/images/Rakontu.jpg" alt="Rakontu logo" class="bordered"></p>
+	<p><img src="/images/Rakontu.jpg" alt="Rakontu logo"></p>
 	
 	{% if user %}
-		<div id="stylized" class="rakontu_form_centered">
+		<div id="rakontu_form_style" class="rakontu_form_centered">
 		<form action="/" method="post">
 		{% if rakontus_member_of %}
 			<p>{{template_you_are_member_of}}</p>
@@ -40,16 +40,17 @@
 		</div>
 
 	{% else %}
+		<div class="blurb" style="width:400;">
 		<p>{{template_must_be_logged_in}}</p><p><a href="{{login_url}}">{{template_login}}</a> {{template_at_google}}</p>
+		</div>
 	{% endif %}
 	
 	<table class="noborder"><tr><td class="noborder" width="500">
 		{% if user %}
 			{{blurbs|dictLookup:"logged in"}}
+		{% else %}
+			{{blurbs|dictLookup:"not logged in"}}
 		{% endif %}
-		<hr>
-		{{blurbs|dictLookup:"not logged in"}}
-		<hr>
 	</td></tr></table>
 	
 	<center><img src="http://code.google.com/appengine/images/appengine-silver-120x30.gif" alt="Powered by Google App Engine" /></center>

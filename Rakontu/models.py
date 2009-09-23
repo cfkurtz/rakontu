@@ -1235,6 +1235,9 @@ class Member(db.Model):
 		for search in searches:
 			search.removeAllDependents()
 		db.delete(searches)
+	
+	def getAllViewOptions(self):
+		return ViewOptions.all().ancestor(self).fetch(FETCH_NUMBER)
 		
 	# INFO
 	
@@ -1463,8 +1466,9 @@ class Member(db.Model):
 		if self.isOnlineMember:
 			offlineImageString = ""
 		else:
-			offlineImageString = '<img src="/images/offline.png" alt="offline member"> '
-		return '%s<a href="%s?%s">%s</a>' % (offlineImageString, self.urlWithoutQuery(), self.urlQuery(), self.nickname)
+			name = TEMPLATE_TERMS["template_offline_member"]
+			offlineImageString = '<img src="/images/offline.png" alt="%s" title="%s"> ' % (name, name)
+ 		return '%s<a href="%s?%s">%s</a>' % (offlineImageString, self.urlWithoutQuery(), self.urlQuery(), self.nickname)
 	
 	def askLinkString(self):
 		return '<a href="%s?%s">%s</a>' % (self.askUrlWithoutQuery(), self.urlQuery(), self.nickname)
@@ -1509,7 +1513,7 @@ class ViewOptions(db.Model):
 	
 	limitPerPage = db.IntegerProperty(default=MAX_ITEMS_PER_GRID_PAGE, indexed=False) # may want to set this later, just constant for now
 	
-	showDetails = db.BooleanProperty(default=False, indexed=False)
+	showDetails = db.BooleanProperty(default=True, indexed=False)
 	showOptionsOnTop = db.BooleanProperty(default=False, indexed=False)
 	
 	def getStartTime(self):
@@ -1527,6 +1531,14 @@ class ViewOptions(db.Model):
 				self.timeFrameInSeconds = seconds
 				self.put()
 				break
+			
+	def displayNameForLocation(self):
+		i = 0
+		for aLocation in VIEW_OPTION_LOCATIONS:
+			if self.location == aLocation:
+				return VIEW_OPTION_LOCATIONS_DISPLAY[i]
+			i += 1
+		return None
 			
 # ============================================================================================
 # ============================================================================================
@@ -2510,17 +2522,21 @@ class Entry(db.Model):
 		result.extend(self.getAllLinks())
 		return result
 	
-	def browseItems(self, annotationTypes):
+	def browseItems(self, minTime, maxTime, annotationTypes):
 		result = []
-		annotations = Annotation.all().filter("entry = ", self.key()).filter("type IN ", annotationTypes).fetch(FETCH_NUMBER)
+		annotations = Annotation.all().filter("entry = ", self.key()).filter("type IN ", annotationTypes).\
+			filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
 		result.extend(annotations)
 		if "answer" in annotationTypes:
-			answers = Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
+			answers = Answer.all().filter("referent = ", self.key()).\
+				filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
 			result.extend(answers)
 		if "link" in annotationTypes:
-			linksTo = Link.all().filter("itemTo = ", self.key()).fetch(FETCH_NUMBER)
+			linksTo = Link.all().filter("itemTo = ", self.key()).\
+				filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
 			result.extend(linksTo)
-			linksFrom = Link.all().filter("itemFrom = ", self.key()).fetch(FETCH_NUMBER)
+			linksFrom = Link.all().filter("itemFrom = ", self.key()).\
+				filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
 			result.extend(linksFrom)
 		return result
 	
@@ -2717,15 +2733,20 @@ class Entry(db.Model):
 	def getImageLinkForType(self):
 		text = self.getTooltipText()
 		if self.type == "story":
-			imageText = '<img src="/images/story.png" alt="story" border="0" %s\>' % text
+			name = TEMPLATE_TERMS["template_story"]
+			imageText = '<img src="/images/story.png" alt="%s" title="%s" border="0" %s\>' % (name, name, text)
 		elif self.type == "pattern":
-			imageText = '<img src="/images/pattern.png" alt="pattern" border="0" %s\>' % text
+			name = TEMPLATE_TERMS["template_pattern"]
+			imageText = '<img src="/images/pattern.png" alt="%s" title="%s" border="0" %s\>' % (name, name, text)
 		elif self.type == "collage":
-			imageText = '<img src="/images/collage.png" alt="collage" border="0" %s\>' % text
+			name = TEMPLATE_TERMS["template_collage"]
+			imageText = '<img src="/images/collage.png" alt="%s" title="%s" border="0" %s\>' % (name, name, text)
 		elif self.type == "invitation":
-			imageText = '<img src="/images/invitation.png" alt="invitation" border="0" %s\>' % text
+			name = TEMPLATE_TERMS["template_invitation"]
+			imageText = '<img src="/images/invitation.png" alt="%s" title="%s" border="0" %s\>' % (name, name, text)
 		elif self.type == "resource":
-			imageText = '<img src="/images/resource.png" alt="resource" border="0" %s\>' % text
+			name = TEMPLATE_TERMS["template_resource"]
+			imageText = '<img src="/images/resource.png" alt="%s" title="%s" border="0" %s\>' % (name, name, text)
 		return imageText
 	
 	def displayTextWithInlineAttachmentLinks(self):
@@ -3406,7 +3427,7 @@ def SystemEntriesOfType(type):
 def HaveSystemResources():
 	return Entry.all().filter("rakontu = ", None).filter("type = ", "resource").count() > 0
 
-def activeMemberForUserIDAndRakontu(userID, rakontu):
+def ActiveMemberForUserIDAndRakontu(userID, rakontu):
 	return Member.all().filter("googleAccountID = ", userID).filter("rakontu = ", rakontu).filter("active = ", True).get()
 
 def pendingMemberForEmailAndRakontu(email, rakontu):
@@ -3442,7 +3463,7 @@ def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, m
 		considerNudgeFloor = True
 		considerSearch = True
 	elif location == "entry":
-		itemsToStart = entry.browseItems(annotationTypes)
+		itemsToStart = entry.browseItems(startTime, endTime, annotationTypes)
 		considerNudgeFloor = False
 		considerSearch = False
 	elif location == "member":
@@ -3532,15 +3553,15 @@ def ProcessAttributionFromRequest(request, member):
 	collectedOffline = request.get("collectedOffline") == "yes"
 	if collectedOffline and member.isLiaison():
 		if member.isManagerOrOwner():
-			membersToConsider = rakontu.getActiveMembers()
+			membersToConsider = member.rakontu.getActiveMembers()
 		else:
-			membersToConsider = rakontu.getActiveOfflineMembers()
+			membersToConsider = member.rakontu.getActiveOfflineMembers()
 		for aMember in membersToConsider:
 			if request.get("offlineSource") == str(aMember.key()):
 				creator = aMember
 				break
 		liaison = member
-		dateCollected = parseDate(self.request.get("year"), self.request.get("month"), self.request.get("day"))
+		dateCollected = parseDate(request.get("year"), request.get("month"), request.get("day"))
 	else:
 		creator = member
 	if collectedOffline:
@@ -3637,13 +3658,17 @@ def ImageLinkForAnnotationType(type, number):
 	else:
 		tooltip = ""
 	if type == "comment":
-		imageText = '<img src="/images/comments.png" alt="comment" %s border="0">' % tooltip
+		name = TEMPLATE_TERMS["template_comment"]
+		imageText = '<img src="/images/comments.png" alt="%s" title="%s" %s border="0">' % (name, name, tooltip)
 	elif type == "request":
-		imageText = '<img src="/images/requests.png" alt="request" %s border="0">' % tooltip
+		name = TEMPLATE_TERMS["template_request"]
+		imageText = '<img src="/images/requests.png" alt="%s" title="%s" %s border="0">' % (name, name, tooltip)
 	elif type == "tag set":
-		imageText = '<img src="/images/tags.png" alt="tag set" %s border="0">' % tooltip
+		name = TEMPLATE_TERMS["template_tag_set"]
+		imageText = '<img src="/images/tags.png" alt="%s" title="%s" %s border="0">' % (name, name, tooltip)
 	elif type == "nudge":
-		imageText = '<img src="/images/nudges.png" alt="nudge" %s border="0">' % tooltip
+		name = TEMPLATE_TERMS["template_nudge"]
+		imageText = '<img src="/images/nudges.png" alt="%s" title="%s" %s border="0">' % (name, name, tooltip)
 	return imageText
 
 def ImageLinkForAnswer(number):
@@ -3666,7 +3691,7 @@ def ImageLinkForLink(number):
 		tooltip = 'title="%s %s"' % (number, term)
 	else:
 		tooltip = ""
-	return'<img src="/images/link.png" alt="link" %s border="0">' % tooltip
+	return'<img src="/images/link.png" alt="link" title="link" %s border="0">' % tooltip
 
 HTML_ESCAPES = {
  	"&": "&amp;",

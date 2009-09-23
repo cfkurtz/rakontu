@@ -11,151 +11,153 @@
 			{% if title_extra %} {{title_extra}}{% endif %}
 			{% if rakontu %} - {{rakontu.name}}{% endif %}
 			- Rakontu</title>
-		<style type="text/css">
-			body {
-  				font-family: {{skin|dictLookup:"font_general"}};
-				color: #{{skin|dictLookup:"color_text_plain"}};
-			  	background-color: #{{skin|dictLookup:"color_background_general"}};
-				}
-			hr {
-				border-top: 1px solid #{{skin|dictLookup:"color_border_normal"}};
-				}
-			h1 {
-  				font-family: {{skin|dictLookup:"font_headers"}};
-			 	color: #{{skin|dictLookup:"color_text_h1"}};
-				}
-			h2 {
-  				font-family: {{skin|dictLookup:"font_headers"}};
-			 	color: #{{skin|dictLookup:"color_text_h2"}};
-				}
-			h3 {
-  				font-family: {{skin|dictLookup:"font_headers"}};
-			 	color: #{{skin|dictLookup:"color_text_h3"}};
-				}
-			a {
-				color: #{{skin|dictLookup:"color_text_link"}};
-				}
-			a:hover {
-				background-color: #{{skin|dictLookup:"color_background_link_hover"}};
-				color: #{{skin|dictLookup:"color_text_link_hover"}};
-				}
-			img.bordered {
-				border: 1px solid #{{skin|dictLookup:"color_border_image"}};
-				}
-			table {
-				border: 1px solid #{{skin|dictLookup:"color_border_normal"}};
-				}
-			table.grid {
-				border-top: 1px solid #{{skin|dictLookup:"color_border_normal"}}; 
-				border-bottom: 1px solid #{{skin|dictLookup:"color_border_normal"}}; 
-				border-right: 1px solid #{{skin|dictLookup:"color_border_normal"}}">
-				}
-			td {
-				border-left: 1px solid #{{skin|dictLookup:"color_border_normal"}};
-				border-top: 1px solid #{{skin|dictLookup:"color_border_normal"}};
-				}
-			th {
-				background-color: #{{skin|dictLookup:"color_background_table_header"}};
-				color: #{{skin|dictLookup:"color_text_table_header"}};
-				border: 1px solid #{{skin|dictLookup:"color_border_normal"}};
-				}
-			fieldset {
-				background-color: #{{skin|dictLookup:"color_background_entry"}}; 
-				color: #{{skin|dictLookup:"color_text_entry"}};
-				border: 1px solid #{{skin|dictLookup:"color_border_normal"}};
-				}
-			.blurb {
-				background-color: #{{skin|dictLookup:"color_background_excerpt"}};
-				border: 1px solid #{{skin|dictLookup:"color_border_normal"}};
-				color: #{{skin|dictLookup:"color_text_excerpt"}};
-				}
-			#header {
-				font-family: {{skin|dictLookup:"font_top"}};
-				}
-			#topmenu li {
-				font-family: {{skin|dictLookup:"font_menus"}};
-				background-color: #{{skin|dictLookup:"color_background_menus"}};
-			    border: 1px solid #{{skin|dictLookup:"color_border_normal"}};
-			    color: #{{skin|dictLookup:"color_text_menus"}};
-			    }
-			#topmenu li a {
-				font-family: {{skin|dictLookup:"font_menus"}};
-			    background-color: #{{skin|dictLookup:"color_background_menus"}};
-			    color: #{{skin|dictLookup:"color_text_menus"}};
-			    }
-			#topmenu li ul {
-				font-family: {{skin|dictLookup:"font_menus"}};
-			    background-color: #{{skin|dictLookup:"color_background_menus"}};
-			    color: #{{skin|dictLookup:"color_text_menus"}};
-			    }
-			#topmenu li:hover li a, #topmenu li.hover a {
-				font-family: {{skin|dictLookup:"font_menus"}};
-			    background-color: #{{skin|dictLookup:"color_background_menus_hover"}};
-			    color: #{{skin|dictLookup:"color_text_menus"}};
-			    }
-			#topmenu li li a:hover {
-				font-family: {{skin|dictLookup:"font_menus"}};
-			    background-color: #{{skin|dictLookup:"color_background_menus_hover"}}; 
-			    color: #{{skin|dictLookup:"color_text_menus_hover"}};
-			    }
-			.rakontu_form_centered {
-				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
-				}
-			#stylized label:hover{
-				color: #{{skin|dictLookup:"color_text_label_hover"}};
-				}
-			#stylized select {
-				font-family: {{skin|dictLookup:"font_buttons"}};
-				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
-				background-color: #{{skin|dictLookup:"color_background_inputs"}}; 
-				color: #{{skin|dictLookup:"color_text_inputs"}};
-				}
-			#stylized select:hover{
-				border: solid 1px #{{skin|dictLookup:"color_border_input_hover"}};
-				}
-			#stylized input{
-				font-family: {{skin|dictLookup:"font_general"}};
-				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
-				background-color: #{{skin|dictLookup:"color_background_inputs"}}; 
-				color: #{{skin|dictLookup:"color_text_inputs"}};
-				}
-			#stylized input:hover{
-				border: solid 1px #{{skin|dictLookup:"color_border_input_hover"}};
-				}
-			#stylized textarea{
-				font-family: {{skin|dictLookup:"font_inputs"}};
-				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
-				background-color: #{{skin|dictLookup:"color_background_inputs"}}; 
-				color: #{{skin|dictLookup:"color_text_inputs"}};
-				}
-			#stylized textarea:hover{
-				border: solid 1px #{{skin|dictLookup:"color_border_input_hover"}};
-				}
-			#stylized input.button{
-  				font-family: {{skin|dictLookup:"font_buttons"}};
-				background-color: #{{skin|dictLookup:"color_background_button"}};
-				border: solid 2px #{{skin|dictLookup:"color_border_normal"}};
-				color: #{{skin|dictLookup:"color_text_buttons"}};
-				}
-			#stylized input.button:hover{
-  				font-family: {{skin|dictLookup:"font_buttons"}};
-				background-color: #{{skin|dictLookup:"color_background_button_hover"}};
-				border: solid 2px #{{skin|dictLookup:"color_border_normal"}};
-				color: #{{skin|dictLookup:"color_text_buttons_hover"}};
-				}
-			#stylized input.button_small{
-  				font-family: {{skin|dictLookup:"font_buttons"}};
-				background-color: #{{skin|dictLookup:"color_background_button"}};
-				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
-				color: #{{skin|dictLookup:"color_text_buttons"}};
-				}
-			#stylized input.button_small:hover{
-  				font-family: {{skin|dictLookup:"font_buttons"}};
-				background-color: #{{skin|dictLookup:"color_background_button_hover"}};
-				border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
-				color: #{{skin|dictLookup:"color_text_buttons_hover"}};
-				}
-				
-			</style>
+		{% if skin %}
+			<style type="text/css">
+				body {
+	  				font-family: {{skin|dictLookup:"font_general"}};
+					color: #{{skin|dictLookup:"color_text_plain"}};
+				  	background: #{{skin|dictLookup:"color_background_general"}};
+					}
+				hr {
+					border-top: 1px solid #{{skin|dictLookup:"color_border_normal"}};
+					}
+				h1 {
+	  				font-family: {{skin|dictLookup:"font_headers"}};
+				 	color: #{{skin|dictLookup:"color_text_h1"}};
+					}
+				h2 {
+	  				font-family: {{skin|dictLookup:"font_headers"}};
+				 	color: #{{skin|dictLookup:"color_text_h2"}};
+					}
+				h3 {
+	  				font-family: {{skin|dictLookup:"font_headers"}};
+				 	color: #{{skin|dictLookup:"color_text_h3"}};
+					}
+				a {
+					color: #{{skin|dictLookup:"color_text_link"}};
+					}
+				a:hover {
+					background: #{{skin|dictLookup:"color_background_link_hover"}};
+					color: #{{skin|dictLookup:"color_text_link_hover"}};
+					}
+				img.bordered {
+					border: 1px solid #{{skin|dictLookup:"color_border_image"}};
+					}
+				table {
+					border-right: 1px solid #{{skin|dictLookup:"color_border_normal"}};
+					border-bottom: 1px solid #{{skin|dictLookup:"color_border_normal"}};
+					}
+				table.grid {
+					border-top: 1px solid #{{skin|dictLookup:"color_border_normal"}}; 
+					border-bottom: 1px solid #{{skin|dictLookup:"color_border_normal"}}; 
+					border-right: 1px solid #{{skin|dictLookup:"color_border_normal"}}">
+					}
+				td {
+					border-top: 1px solid #{{skin|dictLookup:"color_border_normal"}};
+					border-left: 1px solid #{{skin|dictLookup:"color_border_normal"}};
+					}
+				th {
+					background: #{{skin|dictLookup:"color_background_table_header"}};
+					color: #{{skin|dictLookup:"color_text_table_header"}};
+					border-top: 1px solid #{{skin|dictLookup:"color_border_normal"}};
+					border-left: 1px solid #{{skin|dictLookup:"color_border_normal"}};
+					}
+				fieldset {
+					background: #{{skin|dictLookup:"color_background_entry"}}; 
+					color: #{{skin|dictLookup:"color_text_entry"}};
+					border: 1px solid #{{skin|dictLookup:"color_border_normal"}};
+					}
+				.blurb {
+					background: #{{skin|dictLookup:"color_background_excerpt"}};
+					border: 1px solid #{{skin|dictLookup:"color_border_normal"}};
+					color: #{{skin|dictLookup:"color_text_excerpt"}};
+					}
+				#header {
+					font-family: {{skin|dictLookup:"font_top"}};
+					}
+				#topmenu li {
+					font-family: {{skin|dictLookup:"font_menus"}};
+				    border: 1px solid #{{skin|dictLookup:"color_border_normal"}};
+				    color: #{{skin|dictLookup:"color_text_menus"}};
+				    }
+				#topmenu li a {
+					font-family: {{skin|dictLookup:"font_menus"}};
+				    background: #{{skin|dictLookup:"color_background_menus"}};
+				    color: #{{skin|dictLookup:"color_text_menus"}};
+				    }
+				#topmenu li ul {
+					font-family: {{skin|dictLookup:"font_menus"}};
+				    background: #{{skin|dictLookup:"color_background_menus"}};
+				    color: #{{skin|dictLookup:"color_text_menus"}};
+				    }
+				#topmenu li:hover li a, #topmenu li.hover a {
+					font-family: {{skin|dictLookup:"font_menus"}};
+				    background: #{{skin|dictLookup:"color_background_menus"}};
+				    color: #{{skin|dictLookup:"color_text_menus"}};
+				    }
+				#topmenu li li a:hover {
+					font-family: {{skin|dictLookup:"font_menus"}};
+				    background: #{{skin|dictLookup:"color_background_menus_hover"}}; 
+				    color: #{{skin|dictLookup:"color_text_menus_hover"}};
+				    }
+				.rakontu_form_centered {
+					border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
+					}
+				#rakontu_form_style label:hover{
+					color: #{{skin|dictLookup:"color_text_label_hover"}};
+					}
+				#rakontu_form_style select {
+					font-family: {{skin|dictLookup:"font_buttons"}};
+					border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
+					background: #{{skin|dictLookup:"color_background_inputs"}}; 
+					color: #{{skin|dictLookup:"color_text_inputs"}};
+					}
+				#rakontu_form_style select:hover{
+					border: solid 1px #{{skin|dictLookup:"color_border_input_hover"}};
+					}
+				#rakontu_form_style input{
+					font-family: {{skin|dictLookup:"font_general"}};
+					border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
+					background: #{{skin|dictLookup:"color_background_inputs"}}; 
+					color: #{{skin|dictLookup:"color_text_inputs"}};
+					}
+				#rakontu_form_style input:hover{
+					border: solid 1px #{{skin|dictLookup:"color_border_input_hover"}};
+					}
+				#rakontu_form_style textarea{
+					font-family: {{skin|dictLookup:"font_inputs"}};
+					border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
+					background: #{{skin|dictLookup:"color_background_inputs"}}; 
+					color: #{{skin|dictLookup:"color_text_inputs"}};
+					}
+				#rakontu_form_style textarea:hover{
+					border: solid 1px #{{skin|dictLookup:"color_border_input_hover"}};
+					}
+				#rakontu_form_style input.button{
+	  				font-family: {{skin|dictLookup:"font_buttons"}};
+					background: #{{skin|dictLookup:"color_background_button"}};
+					border: solid 2px #{{skin|dictLookup:"color_border_normal"}};
+					color: #{{skin|dictLookup:"color_text_buttons"}};
+					}
+				#rakontu_form_style input.button:hover{
+	  				font-family: {{skin|dictLookup:"font_buttons"}};
+					background: #{{skin|dictLookup:"color_background_button_hover"}};
+					border: solid 2px #{{skin|dictLookup:"color_border_normal"}};
+					color: #{{skin|dictLookup:"color_text_buttons_hover"}};
+					}
+				#rakontu_form_style input.button_small{
+	  				font-family: {{skin|dictLookup:"font_buttons"}};
+					background: #{{skin|dictLookup:"color_background_button"}};
+					border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
+					color: #{{skin|dictLookup:"color_text_buttons"}};
+					}
+				#rakontu_form_style input.button_small:hover{
+	  				font-family: {{skin|dictLookup:"font_buttons"}};
+					background: #{{skin|dictLookup:"color_background_button_hover"}};
+					border: solid 1px #{{skin|dictLookup:"color_border_normal"}};
+					color: #{{skin|dictLookup:"color_text_buttons_hover"}};
+					}
+				</style>
+			{% endif %}
 
 	</head>

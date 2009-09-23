@@ -82,6 +82,14 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
+			# check to see if the person changed the email associated with their google account since they last visited
+			# if so, update the current email to match it. 
+			# this makes sure that emails sent from the system get to the right place.
+			user = users.get_current_user()
+			# this first ID check isn't really neeeded, but... paranoid...
+			if member.googleAccountID == user.user_id() and member.googleAccountEmail != user.email():
+				member.googleAccountEmail = user.email()
+				member.put()
 			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
 			viewOptions = member.getViewOptionsForLocation("home")
 			currentSearch = viewOptions.search
@@ -115,7 +123,6 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 									'max_time': TimeDisplay(viewOptions.endTime, member),
 								'include_entry_types': True,
 											'entry_types_to_show': viewOptions.entryTypes,
-
 							'include_annotation_types': False,
 							
 							'include_nudges': True,
@@ -140,9 +147,11 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 	def buildGrid(self, entries, member, skinDict, showDetails, curating):
 		haveContent = False
 		textsForGrid = []
-		rowColors = []
 		minNudgePoints, maxNudgePoints, minActivityPoints, maxActivityPoints = GetMinMaxNudgeAndActivityPointsFromListOfItems(entries, member, "home")
 		numRows = BROWSE_NUM_ROWS
+		rowColors = []
+		for row in range(numRows):
+			rowColors.append(HexColorStringForRowIndex(row, skinDict))
 		numCols = BROWSE_NUM_COLS
 		rowColEntries = {}
 		nudgePointRange = maxNudgePoints - minNudgePoints
@@ -167,7 +176,6 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 				rowColEntries[(rowEntryShouldBeIn, colEntryShouldBeIn)] = []
 			rowColEntries[(rowEntryShouldBeIn, colEntryShouldBeIn)].append(entry)
 		for row in range(numRows):
-			rowColors.append(HexColorStringForRowIndex(row, skinDict))
 			textsInThisRow = []
 			for col in range(numCols): 
 				textsInThisCell = []
@@ -254,9 +262,13 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 									'too_many_items_warning': overLimitWarning,
 									'show_details': viewOptions.showDetails,
 									'grid_options_on_top': viewOptions.showOptionsOnTop,
+									'no_content_warning': TEMPLATE_TERMS["template_no_annotations_for_entry"],
 								   # grid options
 									'location': "entry",
-									'include_time_range': False,
+									'include_time_range': True,
+										'member_time_frame_string': viewOptions.getFrameStringForViewTimeFrame(),
+										'min_time': TimeDisplay(viewOptions.getStartTime(), member),
+										'max_time': TimeDisplay(viewOptions.endTime, member),
 									'include_entry_types': False,
 									'include_annotation_types': True,
 												'annotation_types_to_show': viewOptions.annotationAnswerLinkTypes,
@@ -287,16 +299,19 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 			self.redirect(NoRakontuAndMemberURL())
 			
 	def buildGrid(self, allItems, entry, member, rakontu, curating):
+		skinDict = rakontu.getSkinDictionary()
+		numRows = BROWSE_NUM_ROWS
+		rowColors = []
+		for row in range(numRows):
+			rowColors.append(HexColorStringForRowIndex(row, skinDict))
 		haveContent = False
 		if allItems:
 			minNudgePoints, maxNudgePoints, minActivityPoints, maxActivityPoints = GetMinMaxNudgeAndActivityPointsFromListOfItems(allItems, member, "entry")
-			numRows = BROWSE_NUM_ROWS
 			numCols = BROWSE_NUM_COLS
 			viewOptions = member.getViewOptionsForLocation("entry")
 			showDetails = viewOptions.showDetails
-			skinDict = rakontu.getSkinDictionary()
 			textsForGrid = []
-			rowColors = []
+			
 			rowColItems = {}
 			nudgePointRange = maxNudgePoints - minNudgePoints
 			minTime = entry.published
@@ -319,7 +334,6 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 					rowColItems[(rowItemShouldBeIn, colItemShouldBeIn)] = []
 				rowColItems[(rowItemShouldBeIn, colItemShouldBeIn)].append(item)
 			for row in range(numRows):
-				rowColors.append(HexColorStringForRowIndex(row, skinDict))
 				textsInThisRow = []
 				for col in range(numCols): 
 					textsInThisCell = []
@@ -334,7 +348,6 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 			textsForGrid.reverse()
 		else:
 			textsForGrid = None
-			rowColors = []
 		if not haveContent:
 			textsForGrid = None
 		return textsForGrid, rowColors
@@ -649,6 +662,7 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 					   		   'curating': curating,
 					   		   'show_details': viewOptions.showDetails,
 								'grid_options_on_top': viewOptions.showOptionsOnTop,
+								'no_content_warning': TEMPLATE_TERMS["template_no_entries_or_annotations_for_member"],
 							   # grid options
 								'location': "member",
 								'include_time_range': True,
@@ -677,17 +691,19 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 			self.redirect(NoRakontuAndMemberURL())
 			
 	def buildGrid(self, allItems, member, memberToSee, rakontu, curating):
+		skinDict = rakontu.getSkinDictionary()
+		numRows = BROWSE_NUM_ROWS
+		rowColors = []
+		for row in range(numRows):
+			rowColors.append(HexColorStringForRowIndex(row, skinDict))
 		if allItems:
 			viewOptions = member.getViewOptionsForLocation("member")
 			minTime = viewOptions.getStartTime()
 			maxTime = viewOptions.endTime
 			minNudgePoints, maxNudgePoints, minActivityPoints, maxActivityPoints = GetMinMaxNudgeAndActivityPointsFromListOfItems(allItems, member, "member")
-			numRows = BROWSE_NUM_ROWS
 			numCols = BROWSE_NUM_COLS
 			showDetails = viewOptions.showDetails
-			skinDict = rakontu.getSkinDictionary()
 			textsForGrid = []
-			rowColors = []
 			rowColItems = {}
 			nudgePointRange = maxNudgePoints - minNudgePoints
 			timeRangeInSeconds = (maxTime - minTime).seconds + (maxTime - minTime).days * DAY_SECONDS
@@ -711,7 +727,6 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 					rowColItems[(rowItemShouldBeIn, colItemShouldBeIn)] = []
 				rowColItems[(rowItemShouldBeIn, colItemShouldBeIn)].append(item)
 			for row in range(numRows):
-				rowColors.append(HexColorStringForRowIndex(row, skinDict))
 				textsInThisRow = []
 				for col in range(numCols): 
 					textsInThisCell = []
@@ -725,7 +740,6 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 			textsForGrid.reverse()
 		else:
 			textsForGrid = None
-			rowColors = None
 		return textsForGrid, rowColors
 	
 	@RequireLogin 
@@ -811,6 +825,7 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 								'too_many_items_warning': overLimitWarning,
 					   		   'show_details': viewOptions.showDetails,
 								'grid_options_on_top': viewOptions.showOptionsOnTop,
+								'no_content_warning': TEMPLATE_TERMS["template_no_entries_or_annotations_for_character"],
 							   # grid options
 								'location': "member",
 								'include_time_range': True,
@@ -839,17 +854,19 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 			self.redirect(NoRakontuAndMemberURL())
 			
 	def buildGrid(self, allItems, member, character, rakontu, curating):
+		skinDict = rakontu.getSkinDictionary()
+		numRows = BROWSE_NUM_ROWS
+		rowColors = []
+		for row in range(numRows):
+			rowColors.append(HexColorStringForRowIndex(row, skinDict))
 		if allItems:
 			viewOptions = member.getViewOptionsForLocation("character")
 			minTime = viewOptions.getStartTime()
 			maxTime = viewOptions.endTime
 			minNudgePoints, maxNudgePoints, minActivityPoints, maxActivityPoints = GetMinMaxNudgeAndActivityPointsFromListOfItems(allItems, member, "member")
-			numRows = BROWSE_NUM_ROWS
 			numCols = BROWSE_NUM_COLS
 			showDetails = viewOptions.showDetails
-			skinDict = rakontu.getSkinDictionary()
 			textsForGrid = []
-			rowColors = []
 			rowColItems = {}
 			nudgePointRange = maxNudgePoints - minNudgePoints
 			timeRangeInSeconds = (maxTime - minTime).seconds + (maxTime - minTime).days * DAY_SECONDS
@@ -873,7 +890,6 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 					rowColItems[(rowItemShouldBeIn, colItemShouldBeIn)] = []
 				rowColItems[(rowItemShouldBeIn, colItemShouldBeIn)].append(item)
 			for row in range(numRows):
-				rowColors.append(HexColorStringForRowIndex(row, skinDict))
 				textsInThisRow = []
 				for col in range(numCols): 
 					textsInThisCell = []
@@ -887,7 +903,6 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 			textsForGrid.reverse()
 		else:
 			textsForGrid = None
-			rowColors = None
 		return textsForGrid, rowColors
 
 	@RequireLogin 
@@ -1065,7 +1080,7 @@ class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 				if offlineMember:
 					self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
 				else:
-					self.redirect(BuildURL("dir_visit", "url_member", memberToEdit.urlQuery()))
+					self.redirect(BuildURL("dir_visit", "url_profile", memberToEdit.urlQuery()))
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
@@ -1093,6 +1108,7 @@ class ChangeMemberPreferencesPage(ErrorHandlingRequestHander):
 							   'my_offline_members': rakontu.getActiveOfflineMembersForLiaison(member),
 							   'time_zone_names': pytz.all_timezones,    
 							   'details_text_length_choices': DETAILS_TEXT_LENGTH_CHOICES,
+							   'view_options': memberToEdit.getAllViewOptions(),
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/preferences.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -1146,11 +1162,12 @@ class ChangeMemberPreferencesPage(ErrorHandlingRequestHander):
 						memberToEdit.shortDisplayLength = int(self.request.get("shortDisplayLength"))
 					except:
 						memberToEdit.shortDisplayLength = oldValue
+					viewOptions = memberToEdit.getAllViewOptions()
+					for option in viewOptions:
+						option.showOptionsOnTop = self.request.get("showOptionsOnTop|%s" % option.location) == "yes"
+						option.put()
 				memberToEdit.put()
-				if offlineMember:
-					self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
-				else:
-					self.redirect(BuildURL("dir_visit", "url_member", memberToEdit.urlQuery()))
+				self.redirect(BuildURL("dir_visit", "url_preferences", memberToEdit.urlQuery()))
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
@@ -1745,7 +1762,7 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 		return defaultURL + "&%s=%s" % (URL_OPTIONS["url_query_curate"], URL_OPTIONS["url_query_curate"])
 	elif "stopCurating" in request.arguments():
 		return defaultURL
-	# time frame - home, member, character
+	# time frame - home, member, character. entry
 	elif "changeTimeFrame" in request.arguments():
 		viewOptions.setViewTimeFrameFromTimeFrameString(request.get("timeFrame"))
 		viewOptions.put()
@@ -1757,6 +1774,8 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 	elif "setToFirst" in request.arguments():
 		if location == "home":
 			startTime = rakontu.created
+		elif location == "entry":
+			startTime = entry.created # not published, because could have been published multiple times
 		elif location == "member":
 			startTime = member.joined
 		elif location == "character":

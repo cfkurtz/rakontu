@@ -4,7 +4,7 @@
 	{% include "../common_menus.html" %}
 	<div id="content">
 	{% if current_member.isLiaisonOrManagerOrOwner %}
-		<div id="stylized" class="rakontu_form">
+		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_liaise}}/{{url_batch}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
 		<h2>{{template_batch_story_entry}} {{"batch_story_entry"|caution}}</h2>

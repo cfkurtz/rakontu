@@ -1,29 +1,232 @@
 Things to do before v0.9 is complete
 
-TESTING:
+======== BUGS:
+
+in IE menus are grey - CANNOT FIX!!
+
+became liaison, did not get attribut box until next try - timing??
+
+pending member left over after member joined. not being deleted??
+
+invitation email does not have starting URL, just has /visit/home?rakontu=rakontu2
+
+
+======== ADD:
 
 put "extra" fields in all objects (not indexable? - strings?) for later use
 
 change all url_options arguments to constants for translation
 
-BUG: in IE menus are grey - CANNOT FIX!!
+activity level saved in annotation, so why can't do the font sizes in entry, member, charaacter?
 
-BUG: became liaison, did not get attribut box until next try - timing??
+add a db.text field to rakontu to use for blurb for invitation email. default is site constant
 
-BUGS RIGHT NOW:
+should be able to choose member type (or check manager box) in pending member list
 
 
-FLESHING OUT:
+======== TEST:
 
-finish help resources 
 
-test approcket on server!
+FROM PDF:
 
-PRETTIFYING:
+DONE Use a bigger font on main page for older people with worse eyesight.
+
+DONE What's a Rakontu and What's Rakontu is cute but confusing. It looks like a typo or other problem. Maybe remove horizontal lines and make the text flow?
+
+First page.
+
+DONE Welcome page maybe should restate what a Rakontu is about.
+
+NO Maybe lose the two exclamation points (after email, and after Rakontu)?
+
+DO NOT SEE A blank line above "Helping" in the list of topics?
+
+CHANGED Not clear if "log out" is for Google or for the Rakontu. Might want to follow Google groups for placement of these items?
+
+COULD NOT REPLICATE Clicked on picture. Very slow. (But Google has been slow for me the last couple of days). At least thirty seconds, still no results.
+
+LINKED Remove new page and add to the help page.
+
+===
+
+FIXED When left email address blank to send message:
+
+ A message from Rakontu
+Could not send the requested email message. Please check the sender and recipient addresses or ask your site administrator for help.
+
+  Click the Back button to return to the page you were on.
+
+    ... or perhaps you would like to return to the Home page?
+
+        ... or would you like some Help?
+
+====
+
+FIXED I don't understand the thing at the bottom with annotation and nudges. Maybe Change becomes Change View of X
+Change Time period
+
+---
+http://www.rakontu.net/visit/read?entry=entry135&location=entry
+
+FIXED Clicked Print selection at bottom (and not liason).
+
+Required role missing
+
+To access this page you must take on this helping role: liaison. To take on a helping role, see your Preferences page.
+
+  Click the Back button to return to the page you were on.
+
+    ... or perhaps you would like to return to the Home page?
+
+        ... or would you like some Help?
+
+
+=====
+
+http://www.rakontu.net/visit/read?entry=entry133
+Not sure what I am seeing with Annotations and the numbers? Nudges?
+
+DONE Maybe hint for the heart?
+
+---
+DONE Start everything with "show detail"?
+
+DONE Annotation box should not go away if there is nothing that matches. (Object permanance).
+
+===
+
+C: Put tips next to selection options. DON'T NEED?
+
+Put hint over rainbow icon (type of things).
+
+===
+
+If you add a comment and comments view turned off, won't see your comment. Maybe should show it?
+
+===
+
+Only managers can delete their own items if entered as a name... CFK
+
+===
+
+DONE Preferences -- how long unit? Characters?
+
+===
+
+Drafs: "You have no saved drafts. To save a draft, create a story or other entry and click "Save draft" at the bottom of the screen."
+What screen? CFK
+
+===
+
+New story.
+
+Algorithm for placemnt of "how do you feel about this story" etc. checkboxes. Maybe a table? not lined up.
+
+Attachments to what?
+
+====
+
+DONE "move choices to top" into preferences.
+
+===
+
+Not enough labels...?
+
+what is the main window? Grid view? Stories in time? Stream view? Timeline?
+
+CFK change help - timeline
+
+===
+
+Put time range permanently at the top. DONE
+
+
+
+===
+
+Indenting of "A retelling". CFK
+
+Timeline.
+
+Maybe have control for time periods for Annotations? DONE
+
+===
+
+On filters page, should say what they are. CFK
+
+==
+
+Click on save changes for preferences and goes to some other page. Inconistent. DONE
+
+===
+
+Use case thinking for new member...?
+
+===
+
+Picture reloading somehow in upper corner when it should be cached (memcached and cached in the browser). CFK
+
+
+---
+Does not put picture in a preview. Or other attachments? By name or path? CFK
+
+Added a story (publish) and it vanishes? Why not go back to the story page.
+Real problem -- add a story and it is not visible. Should go to the story page.
+
+====
+
+Liason -- shows all people, not just yours... OK?
+
+Should have to pick a person and a character for liason entry.
+
+Clicked on preview:
+
+Error: Server Error
+The server encountered an error and could not complete your request.
+
+If the problem persists, please report your problem and mention this error message and the query that caused it.
+
+PICKED ELLIS ELDELRY AND ATTRIBUTED TO CLUELESS NEWBIE
+
+Nothing selected for questions.
+
+===
+
+
+maybe have a source URL?
+
+===
+
+"Revert to" instead of "recall" on story
+
+===
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+======== FLESH OUT:
+
+finish admin manual, developer notes
+
+web site
+
+white papers
+
+architecture document
+
+======== PRETTIFY:
 
 add cancel LINKS on all pages that save things? (links should say where they go to)
-problem with CSS and font sizes...
 
-javascript sliders for values?
-javascript in search creation?
+problem with CSS and font sizes...
 

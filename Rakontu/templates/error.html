@@ -11,12 +11,19 @@
 	<div style="margin-left:220px;">
 	
 	<p>{{template_an_error_has_occurred_and_admin_notified}}</p>
+	{% if couldNotEmail %}
+		<p></p>
+		<div style="background: #EEB4B4;border:solid 1px #CD0000;padding:8px;">
+		{{couldNotEmail}}
+		</div>
+	{% endif %}
+
 	<p><i>{{template_error_message}}</i></p>
 		
 	<div style="background: #FCD59C;border:dashed 1px #734A12;padding:8px;">
 	{{traceback}}
 	</div>
-		
+	
 	<p>&nbsp; {{template_click_back_button}}</p>
 	<p>&nbsp; &nbsp; ... {{template_or_return_to_home}} 
 	

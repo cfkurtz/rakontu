@@ -41,7 +41,7 @@
 	{{template_with_reference_to_the}} {{annotation.entry.typeForDisplay}} {{annotation.entry.linkString}}.</p>
 		
 	{% if annotation.isRequest %}
-		<div id="stylized" class="rakontu_form">
+		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_read_annotation}}?{{annotation.urlQuery}}" method="post" enctype="multipart/form-data">
 		<p>&nbsp; &nbsp; <b>{{template_request_type}}</b>: {{annotation.typeIfRequest}}. </p>
 		<p>&nbsp; &nbsp; <b>{{template_completion_status}}</b>: 

@@ -1,26 +1,9 @@
 	  	{% if rows_cols %}
-			<table 
-				cellpadding="4" 
-				cellspacing="0" 
-				style="width:100%; 
-				border-top: 1px solid #{{skin|dictLookup:"color_border_normal"}}; 
-				border-bottom: 1px solid #{{skin|dictLookup:"color_border_normal"}}; 
-				border-left: none; 
-				border-right: 1px solid #{{skin|dictLookup:"color_border_normal"}}"
-				>
+			<table cellpadding="4" cellspacing="0" class="noborder" style="width:100%;">
 			{% for i in rows_cols|makeRangeFromListLength %}
 				<tr>
 				{% for col_list in rows_cols|listLookup:i %}
-					<td 
-						style="background-color:#{{row_colors|listLookup:i}};
-						color:#{{skin|dictLookup:"color_text_grid"}};
-						border-left: 1px solid #{{skin|dictLookup:"color_border_normal"}}; 
-						{% ifequal i 0 %}
-							border-top: 1px solid #{{skin|dictLookup:"color_border_normal"}}; 
-						{% else %}
-							border-top: none; 
-						{% endifequal %}
-						border-bottom: none; border-right: none">
+					<td class="noborder" style="background-color:#{{row_colors|listLookup:i}};color:#{{skin|dictLookup:"color_text_grid"}};">
 					{% if col_list %}
 						{% for text in col_list %}
 							{{text}}
@@ -36,4 +19,30 @@
 			{% if too_many_items_warning %}
 				<div class="blurb">{{max_num_items}} / {{num_items_before_truncation}} {{too_many_items_warning}}</div>
 			{% endif %}
+		{% else %}
+			<table cellpadding="4" cellspacing="0" class="noborder" style="width:100%;">
+			{% for i in num_grid_rows|makeRange %}
+				<tr>
+				{% for j in num_grid_cols|makeRange %}
+					<td class="noborder" style="background-color:#{{row_colors|listLookup:i}};color:#{{skin|dictLookup:"color_text_grid"}};">
+					{% ifequal i middle_grid_row %}
+						{% ifequal j middle_grid_col %}
+							{% if current_search %}
+								{{template_no_search_results_message}}
+							{% else %}
+								{% if rakontu.hasNonDraftEntries %}
+									{{template_no_match_for_selections}}
+								{% else %}
+									{{template_empty_rakontu_message}}
+								{% endif %}
+							{% endif %}
+						{% endifequal %}
+					{% else %}
+						&nbsp;
+					{% endifequal %}
+					</td>
+				{% endfor %}
+				</tr>
+			{% endfor %}
+			</table>
 		{% endif %}

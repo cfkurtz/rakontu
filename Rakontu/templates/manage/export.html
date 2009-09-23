@@ -6,7 +6,7 @@
 	
 	{% if current_member.isManagerOrOwner or user_is_admin %}
 
-		<div id="stylized" class="rakontu_form">
+		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_manage}}/{{url_export}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
 		<h3>{{template_export_to_xml}}</b> {{"exporting_data_to_xml"|info}} </h3>

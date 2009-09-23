@@ -174,7 +174,7 @@ class ManageRakontuAppearancePage(ErrorHandlingRequestHander):
 					rakontu.roleReadmes_formatted[i] = db.Text(InterpretEnteredText(self.request.get("readme%s" % i), self.request.get("roleReadmes_formats%s" % i)))
 					rakontu.roleReadmes_formats[i] = self.request.get("roleReadmes_formats%s" % i)
 				rakontu.put()
-				self.redirect(rakontu.linkURL())
+				self.redirect(self.request.uri)
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
@@ -300,7 +300,7 @@ class ManageRakontuSettingsPage(ErrorHandlingRequestHander):
 						rakontu.entryActivityPointsPerEvent[i] = oldValue
 					i += 1
 				rakontu.put()
-				self.redirect(rakontu.linkURL())
+				self.redirect(self.request.uri)
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
@@ -517,8 +517,7 @@ class ManageOneQuestionPage(ErrorHandlingRequestHander):
 					question.responseIfBoolean = self.request.get("responseIfBoolean")
 					question.multiple = self.request.get("multiple") == "yes"
 					question.put()
-					url = "/%s/%s_%s?%s" % (DIRS["dir_manage"], URLS["url_questions"], typeURL, rakontu.urlQuery())
-					self.redirect(url)
+					self.redirect(self.request.uri)
 				else:
 					self.redirect(NotFoundURL(rakontu))
 			else:
@@ -598,7 +597,7 @@ class ManageCharactersPage(ErrorHandlingRequestHander):
 				def txn(charactersToPut):
 					db.put(charactersToPut)
 				db.run_in_transaction(txn, charactersToPut)
-				self.redirect(BuildURL("dir_manage", "url_characters", rakontu=rakontu))
+				self.redirect(self.request.uri)
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:

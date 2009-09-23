@@ -32,11 +32,11 @@ import pytz
 # ============================================================================================
 # ============================================================================================
 
-def FindTemplate(template): 
-	return "templates/%s" % template  
+def FindTemplate(template):  
+	return "templates/%s" % template   
 	
 def RequireLogin(func):
-	def check_login(request):  
+	def check_login(request):   
 		if not users.get_current_user():  
 			loginURL = users.create_login_url("/") 
 			request.redirect(loginURL)
@@ -58,11 +58,13 @@ def GetCurrentMemberFromRakontuAndUser(rakontu, user):
 	member = None
 	if rakontu:
 		if user:
-			member = activeMemberForUserIDAndRakontu(user.user_id(), rakontu)
+			member = ActiveMemberForUserIDAndRakontu(user.user_id(), rakontu)
 			if not member:
 				pendingMember = pendingMemberForEmailAndRakontu(user.email(), rakontu)
 				if pendingMember:
 					member = CreateMemberFromInfo(rakontu, user.user_id(), user.email(), user.email(), pendingMember.governanceType)
+					if member:
+						db.delete(pendingMember)
 	return member
 
 def CreateMemberFromInfo(rakontu, userId, email, nickname, joinAs, isOnline=True, liaison=None):
@@ -202,11 +204,11 @@ def GetEntryAndAnnotationFromURLQuery(query):
 	if not entry:
 		annotation = GetObjectOfTypeFromURLQuery(query, "url_query_annotation")
 		if annotation:  
-			entry = annotation.entry    
-	return entry, annotation       
+			entry = annotation.entry     
+	return entry, annotation         
     
 def GetStandardTemplateDictionaryAndAddMore(newItems):      
-	user = users.get_current_user()  
+	user = users.get_current_user()    
 	if user != None:  
 		email = user.email()   
 	else: 
@@ -235,6 +237,10 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'maxlength_name': MAXLENGTH_NAME,
 	   'maxlength_tag_or_choice': MAXLENGTH_TAG_OR_CHOICE, 
 	   'maxlength_number': MAXLENGTH_NUMBER,
+	   'num_grid_rows': BROWSE_NUM_ROWS,
+	   'num_grid_cols': BROWSE_NUM_COLS,
+	   'middle_grid_row': BROWSE_NUM_ROWS // 2, # silly
+	   'middle_grid_col': BROWSE_NUM_COLS - 1,
 	   'home': HOME,
 	   'current_user': user, 
 	   'user_is_admin': users.is_current_user_admin(),
@@ -296,31 +302,37 @@ def GetBookmarkQueryWithCleanup(queryString):
 # HANDLERS 
 # ============================================================================================
 # ============================================================================================
-
+ 
 class ErrorHandlingRequestHander(webapp.RequestHandler):
 	def handle_exception(self, exception, debug_mode):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
 		exceptionLines = traceback.format_exception(*sys.exc_info())
-		tracebackString = '\n'.join(exceptionLines) 
+		tracebackString = '\n'.join(exceptionLines)  
 		tracebackStringForHTML = "<p>" + '</p></p>'.join(exceptionLines) + "</p>"
 		tracebackStringPlusIdentifyingInfo = ""
-		if rakontu:
+		if rakontu: 
 			tracebackStringPlusIdentifyingInfo += "Rakontu: %s (%s)\n\n" % (rakontu.name, rakontu.getKeyName())
 		if member:
 			tracebackStringPlusIdentifyingInfo += "Member: %s (%s)\n\n" % (member.nickname, member.getKeyName())
 		tracebackStringPlusIdentifyingInfo += "URL: %s\n\n" % (self.request.uri)
 		tracebackStringPlusIdentifyingInfo += "\n----------------------------\n\n" + tracebackString
 		exceptionValueWithRakontuName = str(exceptionValue)
-		if rakontu:
+		if rakontu:  
 			exceptionValueWithRakontuName += " (%s)" % (rakontu.name)
-		logging.error(tracebackStringPlusIdentifyingInfo)
-		mail.send_mail_to_admins(sender=SITE_SUPPORT_EMAIL, subject="Error: %s" % exceptionValueWithRakontuName, body=tracebackStringPlusIdentifyingInfo) 
+		logging.error(tracebackStringPlusIdentifyingInfo) 
+		try:
+			mail.send_mail_to_admins(sender=SITE_SUPPORT_EMAIL, subject="Error: %s" % exceptionValueWithRakontuName, body=tracebackStringPlusIdentifyingInfo) 
+			couldNotEmailMessage = ""
+		except:
+			couldNotEmailMessage = TERMS["term_could_not_email_admins"]
 		template_values = GetStandardTemplateDictionaryAndAddMore({
-						'title': TITLES["ERROR"],
+						'title': TITLES["ERROR"], 
 						'rakontu': rakontu,
 						'current_member': member,
-						'traceback': tracebackStringForHTML})
+						'traceback': tracebackStringForHTML, 
+						'couldNotEmail': couldNotEmailMessage,
+						})
 		path = os.path.join(os.path.dirname(__file__), FindTemplate('error.html'))
 		self.response.out.write(template.render(path, template_values))
 		
@@ -653,26 +665,26 @@ def GenerateSystemResources():
 	file = open(DEFAULT_RESOURCES_FILE_NAME) 
 	lines = file.readlines()
 	resources = []
-	currentText = ""
+	currentText = "" 
 	currentResource = None
-	for line in lines:
-		if line[0] == ";":
-			continue
-		elif line[0] == "[":
-			name = stringBetween("[", "]", line)
-			if currentResource:
+	for line in lines:   
+		if line[0] == ";":     
+			continue      
+		elif line[0] == "[":   
+			name = stringBetween("[", "]", line) 
+			if currentResource:   
 				currentResource.text = currentText
 				currentResource.text_formatted = db.Text(InterpretEnteredText(currentText, currentResource.text_format))
-				resources.append(currentResource)
+				resources.append(currentResource) 
 			keyName = GenerateSequentialKeyName("entry")
-			currentResource = Entry(key_name=keyName,
+			currentResource = Entry(key_name=keyName,  
 							rakontu=None, 
-							id=keyName,
-							type="resource",
+							id=keyName, 
+							type="resource", 
 							title=name,
 							creator=None,
 							draft=False,
-							inBatchEntryBuffer=False,
+							inBatchEntryBuffer=False, 
 							published=datetime.now(tz=pytz.utc),
 							resourceForHelpPage=True,
 							resourceForNewMemberPage=True,

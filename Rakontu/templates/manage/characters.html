@@ -5,7 +5,7 @@
 		<div id="content">
 	
 		{% if current_member.isManagerOrOwner %}
-			<div id="stylized" class="rakontu_form">
+			<div id="rakontu_form_style" class="rakontu_form">
 			<form action="/{{dir_manage}}/{{url_characters}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 			<h3>{{template_add_new_characters}} {{"adding_new_characters"|tip}}</h3>
 			<fieldset>

@@ -4,7 +4,7 @@
 	{% include "../common_menus.html" %}
 	<div id="content">
 	
-	<div id="stylized" class="rakontu_form">
+	<div id="rakontu_form_style" class="rakontu_form">
 	<form action="/{{dir_admin}}/{{url_admin}}" method="post" enctype="multipart/form-data">
 	
 	<h2>{{template_site_initialization_tasks}} {{"site_initialization_tasks"|tip}}  {{"site_initialization_tasks"|caution}}</h2>
@@ -48,7 +48,7 @@
 	<h2>Rakontus</h2>
 	{% if rakontus %}
 		<fieldset>
-		<table cellpadding=4 cellspacing=0>
+		<table cellpadding="4" cellspacing="0">
 		<tr>
 			<th>{{template_name}}</th>
 			<th>{{template_created}} (UTC)</th>
@@ -140,9 +140,6 @@
 		{% if development %}
 			<p><a href="/{{dir_admin}}/{{url_make_fake_data}}">Generate fake testing Rakontu</a></p>
 		{% endif %}
-		<p>Import Rakontu<input type="file" name="import" accept="xml"/>
-		<input type="submit" name="importRakontu" value="Import Rakontu" class="button">
-		</p>
 		<p></p>
 		<center><p><i><b>{{template_admin_warning}}</b></i></p>
 		</form>
@@ -153,7 +150,7 @@
 			<p><a href="/{{dir_admin}}/{{url_make_fake_data}}">Generate fake testing Rakontu</a></p>
 		{% endif %}
     {% endif %}	
-	    
+    
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

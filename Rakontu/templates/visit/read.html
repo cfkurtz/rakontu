@@ -3,7 +3,7 @@
 	<body>
 	{% include "../common_menus.html" %}
 	<div id="content">
-	<div id="stylized" class="rakontu_form">
+	<div id="rakontu_form_style" class="rakontu_form">
 	<form name="read" action="/{{dir_visit}}/{{url_read}}?{{entry.urlQuery}}
 	{% if curating %}
 		&{{url_query_curate}}={{url_query_curate}}
@@ -149,15 +149,15 @@
 		</ul>
 	{% endif %}
 	
-	<div class="rightalign" style="font-size:80%;">
+	<div class="rightalign">
 	{% if member_can_edit_entry %}
 		(<a href="/{{dir_visit}}/{{entry.typeAsURL}}?{{entry.urlQuery}}">{{template_change}}</a>)
 	{% endif %}
 	{% ifequal entry.creator.key current_member.key %}
 		{% if entry.additionalEditors %}
-			(<a href="/{{dir_visit}}/{{url_editors}}?{{entry.urlQuery}}">{{template_change_editors}}</a>)
+			(<a href="/{{dir_visit}}/{{url_editors}}?{{entry.urlQuery}}">{{template_change_editors}} {{entry.typeForDisplay}}</a>)
 		{% else %}
-			(<a href="/{{dir_visit}}/{{url_editors}}?{{entry.urlQuery}}">{{template_add_editors}}</a>)
+			(<a href="/{{dir_visit}}/{{url_editors}}?{{entry.urlQuery}}">{{template_add_editors}} {{entry.typeForDisplay}}</a>)
 		{% endif %}
 	{% endifequal %}
 	</div>
@@ -194,21 +194,17 @@
 	{% endif %}
 	</p>
 	
-	<h3>{{template_annotations}}</h3>
+	<h3>{{template_annotations_to_this}} {{entry.typeForDisplay}}</h3>
+	
+	{% include "../common_time_range.html" %}
 	
 	{% if grid_options_on_top %}
 		{% include "../common_grid_options.html" %}
 	{% endif %}
 	
-	{% if rows_cols %}
-		{% include "../common_grid.html" %}
-		<p></p>
-	{% else %}
-		<p>{{template_no_annotations_for_entry}}</p>
-	{% endif %}
+	{% include "../common_grid.html" %}
 	
 	{% if not grid_options_on_top %}
-		<p></p>
 		{% include "../common_grid_options.html" %}
 	{% endif %}
 		

@@ -1,0 +1,28 @@
+		<table style="width:100%;border-right:none;" cellpadding="4" cellspacing="0">
+
+		{% if include_time_range %}
+			<tr>
+			<td colspan="2" style="border:none;align:center;" align="center">
+			{{min_time}} - {{max_time}}
+			<input type="submit" name="setToFirst" value=" |&lt; " class="button_small">
+			<input type="submit" name="moveTimeBack" value=" &lt; " class="button_small">
+			<input type="submit" name="moveTimeForward" value=" &gt; " class="button_small">
+			<input type="submit" name="setToLast" value=" &gt;| " class="button_small">
+			{{template_show}}
+			<select name="timeFrame">
+				{% for time_frame in time_frames %}
+					<option value="{{time_frame|listLookup:0}}"
+					{% if time_frame|listLookup:0|equalTest:member_time_frame_string %}
+						selected="selected"
+					{% endif %}
+					>{{time_frame|listLookup:0}}</option>
+				{% endfor %} 
+				</select>
+			<input type="submit" name="changeTimeFrame" value="{{button_change_time_range_view}}" class="button_small">
+			</td>
+			</tr>
+		{% endif %}
+		
+		{% if not grid_options_on_top %}
+			</table>
+		{% endif %}

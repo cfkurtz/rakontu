@@ -32,7 +32,7 @@ SITE_LANGUAGE = "english"
 
 # You MUST replace this with an email address connected to a site administrator (as defined by Google).
 # This MUST be the email address you are using for the Google account you use to administer the Rakontu site.
-SITE_SUPPORT_EMAIL = "cfkurtz@cfkurtz.com"
+SITE_SUPPORT_EMAIL = "cynthia.f.kurtz@gmail.com"
 
 # Don't touch this
 import sys

@@ -6,8 +6,18 @@
 	
 	<h3>{{template_welcome}}, {{current_member.nickname}}!</h3>
 	
-	{{rakontu.welcomeMessage}}
-
+	<div class="indented">{{rakontu.welcomeMessage}}</div>
+	
+	<p>{{template_here_are_terms}}</p>
+	<div class="blurb">
+		{{blurbs|dictLookup:"member_new"}}
+	<ul>
+	<li class="nobullet">{{"information_hovers"|info}} {{template_information}}</li>
+	<li class="nobullet">{{"tip_hovers"|tip}} {{template_tip}}</li>
+	<li class="nobullet">{{"caution_hovers"|caution}}  {{template_caution}}</li>
+	</ul>
+	</div>
+	
 	{% if resources %}
 		<p>{{template_resources_for_new_members}}:</p>
 		<ul>
@@ -23,14 +33,7 @@
 		</ul>
 	{% endif %}
 	
-	{% if have_helps %}
-		<p>{{template_about_help_icons}}</p>
-		<ul>
-		<li class="nobullet">{{"information_hovers"|info}} {{template_information}}</li>
-		<li class="nobullet">{{"tip_hovers"|tip}} {{template_tip}}</li>
-		<li class="nobullet">{{"caution_hovers"|caution}}  {{template_caution}}</li>
-		</ul>
-	{% endif %}
+	<p>{{template_how_to_get_to_new_member_page_again}}</p>
 
 	</div>
 	{% include "../common_footer.html" %}
