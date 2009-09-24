@@ -11,8 +11,8 @@
 			<h3>{{template_things_members_can_do}}</h3>
 			<fieldset>
 			{% if site_allows_attachments %}
-				<p>{{template_how_many_attachments}} 
-					<select name="maxNumAttachments" style="width: 60px;">
+				<p>{{template_how_many_attachments}} {{"allowing_attachments"|tip}}</p>
+					<p>&nbsp; <select name="maxNumAttachments" style="width: 60px;">
 					{% for i in num_attachment_choices %}
 						<option value="{{i}}"
 							{% ifequal i rakontu.maxNumAttachments %}
@@ -20,22 +20,23 @@
 							{% endifequal %}
 							>{{i}}</option>
 					{% endfor %}
-					</select> {{"allowing_attachments"|tip}}
+					</select></p>
 			{% endif %}
 	
 			<p>{{template_is_entry_by_character_allowed}} {{"fictional_entry"|caution}}</p>
+			<p>&nbsp; 
 			{% for text in character_includes %}
 				{{text}}
 			{% endfor %}
-			</table>
+			</p>
 			
 			<p>{{template_non_managers_editing_tags}} {{"allowing_non_manager_curators_to_change_tags"|caution}}</p>
-				<input type="checkbox" name="allowNonManagerCuratorsToEditTags" value="yes" id="allowNonManagerCuratorsToEditTags"
+				<p>&nbsp; <input type="checkbox" name="allowNonManagerCuratorsToEditTags" value="yes" id="allowNonManagerCuratorsToEditTags"
 				{% if rakontu.allowNonManagerCuratorsToEditTags %}
 					checked="checked"
 				{% endif %}
 				>
-				<label for="allowNonManagerCuratorsToEditTags">{{template_yes_non_manager_curators_can_edit_tags}}</label>
+				<label for="allowNonManagerCuratorsToEditTags">{{template_yes_non_manager_curators_can_edit_tags}}</label></p>
 			{% if current_member.isOwner %}
 				<div class="rightalign"><a href="/{{dir_manage}}/{{url_inactivate}}?{{rakontu.urlQuery}}">{{template_inactivate}}</a> Rakontu</div>
 			{% endif %}
@@ -44,11 +45,11 @@
 			<h3>{{template_nudge_system}}</h3>
 			<fieldset>
 			<p><i></i></p>
-			<p>{{template_nudge_points_per_entry}}
-			<input type="text" name="maxNudgePointsPerEntry" size="4" value="{{rakontu.maxNudgePointsPerEntry}}" maxlength="4"/>
-			{{"nudge_points"|info}} {{"nudge_points_per_entry"|caution}}
+			<p>{{template_nudge_points_per_entry}} {{"nudge_points"|info}} {{"nudge_points_per_entry"|caution}}</p>
+			<p>&nbsp; <input type="text" name="maxNudgePointsPerEntry" size="4" value="{{rakontu.maxNudgePointsPerEntry}}" maxlength="4"/></p>
+			
 			<p>{{template_nudge_category_names_and_questions}} {{"nudge_category_names"|caution}}</p>
-			<table border="0" cellpadding="4" cellspacing="0">
+			<table cellpadding="4" cellspacing="0">
 			<tr><th>{{template_name}} {{"nudge_category_names"|tip}}</th><th>{{template_question}} {{"nudge_category_questions"|tip}}</th></tr>
 			{% for i in num_nudge_categories|makeRange %}
 				<tr>

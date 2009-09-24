@@ -58,6 +58,15 @@ class ManageRakontuMembersPage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
+				for pendingMember in rakontu.getPendingMembers():
+					if "sendInvitationEmail|%s" % pendingMember.key() in self.request.arguments():
+						# maybe they changed the email and gov type then clicked on send invitation
+						pendingMember.email = htmlEscape(self.request.get("email|%s" % pendingMember.key()))
+						pendingMember.governanceType = self.request.get("pendingMember_governanceType|%s" % pendingMember.key())
+						pendingMember.put()
+						memcache.add("sendInvitationMessage:%s" % member.key(), pendingMember, HOUR_SECONDS)
+						self.redirect(BuildURL("dir_manage", "url_invitation_message", member.urlQuery()))
+						return
 				rakontuMembers = rakontu.getActiveMembers()
 				thingsToPut = []
 				thingsToDelete = []
@@ -90,6 +99,7 @@ class ManageRakontuMembersPage(ErrorHandlingRequestHander):
 						thingsToPut.append(aMember)
 				for pendingMember in PendingMember.all().ancestor(rakontu):
 					pendingMember.email = htmlEscape(self.request.get("email|%s" % pendingMember.key()))
+					pendingMember.governanceType = self.request.get("pendingMember_governanceType|%s" % pendingMember.key())
 					thingsToPut.append(pendingMember)
 					if self.request.get("removePendingMember|%s" % pendingMember.key()):
 						thingsToDelete.append(pendingMember)
@@ -104,6 +114,69 @@ class ManageRakontuMembersPage(ErrorHandlingRequestHander):
 						if not rakontu.hasMemberWithGoogleEmail(email.strip()):
 							CreatePendingMemberFromInfo(rakontu, email.strip(), "member")
 				self.redirect(BuildURL("dir_manage", "url_members", rakontu=rakontu))
+			else:
+				self.redirect(ManagersOnlyURL(rakontu))
+		else:
+			self.redirect(NoRakontuAndMemberURL())
+			
+class SendInvitationMessagePage(ErrorHandlingRequestHander):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if member.isManagerOrOwner():
+				if isFirstVisit: self.redirect(member.firstVisitURL())
+				try:
+					pendingMember = memcache.get("sendInvitationMessage:%s" % member.key())
+				except:
+					pendingMember = None
+				if pendingMember:
+					subject = "%s %s" % (TEMPLATE_TERMS["template_invitation_to_join"], rakontu.name)
+					url = "%s/%s/%s?%s" % (self.request.headers["Host"], DIRS["dir_visit"], URLS["url_home"], rakontu.urlQuery())
+					body = "%s\n\n%s" % (rakontu.invitationMessage, url)
+					template_values = GetStandardTemplateDictionaryAndAddMore({
+								   'title': TITLES["SEND_MESSAGE"], 
+						   		   'rakontu': rakontu, 
+						   		   'skin': rakontu.getSkinDictionary(),
+						   		   'current_member': member,
+						   		   'pending_member_to_send_message_to': pendingMember,
+						   		   'subject': subject,
+						   		   'body': body,
+						   		   'email': pendingMember.email,
+						   		   })
+					path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/invitation_message.html'))
+					self.response.out.write(template.render(path, template_values))
+				else:
+					self.redirect(NotFoundURL(rakontu))
+			else:
+				self.redirect(ManagersOnlyURL(rakontu))
+		else:
+			self.redirect(NoRakontuAndMemberURL())
+			
+	@RequireLogin 
+	def post(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if member.isManagerOrOwner():
+				try:
+					pendingMember = memcache.get("sendInvitationMessage:%s" % member.key())
+				except:
+					pendingMember = None
+				if pendingMember and mail.is_email_valid(pendingMember.email):
+					message = mail.EmailMessage()
+					message.sender = member.googleAccountEmail
+					message.reply_to = member.googleAccountEmail
+					message.subject = self.request.get("subject")
+					message.to = pendingMember.email 
+					message.body = self.request.get("message")
+					try:
+						message.send()
+					except:
+						self.redirect(BuildResultURL("couldNotSendMessage", rakontu=rakontu))
+						return
+					self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
+				else:
+					self.redirect(BuildResultURL("memberNotFound", rakontu=rakontu))
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
@@ -156,6 +229,7 @@ class ManageRakontuAppearancePage(ErrorHandlingRequestHander):
 				rakontu.welcomeMessage = text
 				rakontu.welcomeMessage_formatted = db.Text(InterpretEnteredText(text, format))
 				rakontu.welcomeMessage_format = format
+				rakontu.invitationMessage = htmlEscape(self.request.get("invitationMessage"))
 				text = self.request.get("etiquetteStatement")
 				format = self.request.get("etiquetteStatement_format").strip()
 				rakontu.etiquetteStatement = text
@@ -197,7 +271,7 @@ class ManageRakontuSettingsPage(ErrorHandlingRequestHander):
 					i = 0
 					for eventType in EVENT_TYPES:
 						if i >= level and i < nextLevel:
-							nudgePointIncludes.append('<td>%s</td>' % EVENT_TYPES_DISPLAY[i])
+							nudgePointIncludes.append('<th>%s</th>' % EVENT_TYPES_DISPLAY[i])
 						i += 1
 					nudgePointIncludes.append('</tr><tr>')
 					i = 0
@@ -221,7 +295,7 @@ class ManageRakontuSettingsPage(ErrorHandlingRequestHander):
 					i = 0
 					for eventType in EVENT_TYPES:
 						if i >= level and i < nextLevel:
-							activityPointIncludes.append('<td>%s</td>' % EVENT_TYPES_DISPLAY[i])
+							activityPointIncludes.append('<th>%s</th>' % EVENT_TYPES_DISPLAY[i])
 						i += 1
 					i = 0
 					activityPointIncludes.append('</tr><tr>')
@@ -318,7 +392,7 @@ class ManageRakontuQuestionsListPage(ErrorHandlingRequestHander):
 					questions = rakontu.getActiveQuestionsOfType(type)
 					countsForThisType = []
 					for question in questions:
-						countsForThisType.append((question.linkString(), question.getAnswerCount()))
+						countsForThisType.append((question.text, question.getAnswerCount()))
 					countsForThisType.sort(lambda a,b: cmp(b[1], a[1])) # descending order
 					counts.append(countsForThisType)
 				template_values = GetStandardTemplateDictionaryAndAddMore({

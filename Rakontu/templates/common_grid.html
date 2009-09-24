@@ -27,17 +27,14 @@
 					<td class="noborder" style="background-color:#{{row_colors|listLookup:i}};color:#{{skin|dictLookup:"color_text_grid"}};">
 					{% ifequal i middle_grid_row %}
 						{% ifequal j middle_grid_col %}
-							{% if current_search %}
-								{{template_no_search_results_message}}
-							{% else %}
-								{% if rakontu.hasNonDraftEntries %}
-									{{template_no_match_for_selections}}
-								{% else %}
-									{{template_empty_rakontu_message}}
-								{% endif %}
-							{% endif %}
+							<td class="noborder" align="center" style="background-color:#{{row_colors|listLookup:i}};color:#{{skin|dictLookup:"color_text_grid"}}">
+							{{no_content_warning}}
+						{% else %}
+							<td class="noborder" style="background-color:#{{row_colors|listLookup:i}};color:#{{skin|dictLookup:"color_text_grid"}}">
+							&nbsp;
 						{% endifequal %}
 					{% else %}
+						<td class="noborder" style="background-color:#{{row_colors|listLookup:i}};color:#{{skin|dictLookup:"color_text_grid"}}">
 						&nbsp;
 					{% endifequal %}
 					</td>

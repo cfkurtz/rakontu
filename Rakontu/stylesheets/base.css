@@ -46,7 +46,7 @@ td {
 	font-size: 13px;
 	border-top: 1px solid #000000;
 	border-left: 1px solid #000000;
-	padding: 4px 4px 4px 4px;
+	padding: 4px 8px 4px 8px;
 	}
 	
 td.noborder {
@@ -60,7 +60,7 @@ th {
 	font-weight: normal;
 	border-top: 1px solid #000000;
 	border-left: 1px solid #000000;
-	padding: 4px;
+	padding: 4px 8px 4px 8px;
 	}
 	
 fieldset {
@@ -210,7 +210,6 @@ ul li.nobullet {
 	border: solid 1px #000000;
 	margin: 2px 2px 2px 2px;
 	padding: 4px 4px 4px 4px;
-	padding-top: 0;
 	}
 	
 #rakontu_form_style input:hover{

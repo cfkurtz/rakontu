@@ -22,13 +22,13 @@
 				<div class="blurb">{{max_num_items}} / {{num_items_before_truncation}} {{too_many_items_warning}}</div>
 			{% endif %}
 	{% else %}
-			<table cellpadding="4" cellspacing="0" class="noborder" style="width:100%;">
+			<table cellpadding="4" cellspacing="0" class="noborder" style="width:100%">
 			{% for i in num_grid_rows|makeRange %}
 				<tr>
 				{% for j in num_grid_cols|makeRange %}
-					<td class="noborder" style="background-color:#{{row_colors|listLookup:i}};color:#{{skin|dictLookup:"color_text_grid"}};">
 					{% ifequal i middle_grid_row %}
 						{% ifequal j middle_grid_col %}
+							<td class="noborder" align="center" style="background-color:#{{row_colors|listLookup:i}};color:#{{skin|dictLookup:"color_text_grid"}}">
 							{% if current_search %}
 								{{template_no_search_results_message}}
 							{% else %}
@@ -38,8 +38,12 @@
 									{{template_empty_rakontu_message}}
 								{% endif %}
 							{% endif %}
+						{% else %}
+							<td class="noborder" style="background-color:#{{row_colors|listLookup:i}};color:#{{skin|dictLookup:"color_text_grid"}}">
+							&nbsp;
 						{% endifequal %}
 					{% else %}
+						<td class="noborder" style="background-color:#{{row_colors|listLookup:i}};color:#{{skin|dictLookup:"color_text_grid"}}">
 						&nbsp;
 					{% endifequal %}
 					</td>

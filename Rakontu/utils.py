@@ -228,7 +228,7 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'entry_types_display': ENTRY_TYPES_DISPLAY, 
 	   'entry_types_plural': ENTRY_TYPES_PLURAL,  
 	   'entry_types_plural_display': ENTRY_TYPES_PLURAL_DISPLAY,
-	   'annotation_types': ANNOTATION_TYPES,
+	   'annotation_types': ANNOTATION_TYPES,  
 	   'annotation_answer_link_types': ANNOTATION_ANSWER_LINK_TYPES,
 	   'annotation_answer_link_types_plural_display': ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY,
 	   'request_types': REQUEST_TYPES,
@@ -240,7 +240,7 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'num_grid_rows': BROWSE_NUM_ROWS,
 	   'num_grid_cols': BROWSE_NUM_COLS,
 	   'middle_grid_row': BROWSE_NUM_ROWS // 2, # silly
-	   'middle_grid_col': BROWSE_NUM_COLS - 1,
+	   'middle_grid_col': BROWSE_NUM_COLS // 2, 
 	   'home': HOME,
 	   'current_user': user, 
 	   'user_is_admin': users.is_current_user_admin(),

@@ -1,13 +1,13 @@
-		<table style="width:100%;border-right:none;" cellpadding="4" cellspacing="0">
+		<table style="width:100%;{% if not grid_options_on_top %}border-right:none;{% endif %}" cellpadding="4" cellspacing="0">
 
 		{% if include_time_range %}
 			<tr>
-			<td colspan="2" style="border:none;align:center;" align="center">
-			{{min_time}} - {{max_time}}
-			<input type="submit" name="setToFirst" value=" |&lt; " class="button_small">
-			<input type="submit" name="moveTimeBack" value=" &lt; " class="button_small">
-			<input type="submit" name="moveTimeForward" value=" &gt; " class="button_small">
-			<input type="submit" name="setToLast" value=" &gt;| " class="button_small">
+			{% if not grid_options_on_top %}
+				<td colspan="2" style="border:none;align:center;" align="center">
+			{% else %}
+				<th align="right">{{template_time_range}}</th>
+				<td>
+			{% endif %}
 			{{template_show}}
 			<select name="timeFrame">
 				{% for time_frame in time_frames %}
@@ -18,7 +18,15 @@
 					>{{time_frame|listLookup:0}}</option>
 				{% endfor %} 
 				</select>
+			&nbsp;
 			<input type="submit" name="changeTimeFrame" value="{{button_change_time_range_view}}" class="button_small">
+
+			{{min_time}} - {{max_time}}
+			&nbsp;
+			<input type="submit" name="setToFirst" value=" |&lt; " class="button_small">
+			<input type="submit" name="moveTimeBack" value=" &lt; " class="button_small">
+			<input type="submit" name="moveTimeForward" value=" &gt; " class="button_small">
+			<input type="submit" name="setToLast" value=" &gt;| " class="button_small">
 			</td>
 			</tr>
 		{% endif %}

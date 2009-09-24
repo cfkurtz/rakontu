@@ -13,7 +13,7 @@
 			{% endif %}
 			</h3>
       		{% if counts|listLookup:i %}
-      			<table cellpadding=4 cellspacing=0 style="width:100%;">
+      			<table cellpadding=4 cellspacing=0 style="width:100%;border:none;">
 	      		{% for questionAndCount in counts|listLookup:i %}
 	      			<tr>
 	      			<td width="20" align="center" style="border:none;">{{questionAndCount|listLookup:1}}</td>

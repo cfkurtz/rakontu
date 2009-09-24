@@ -40,7 +40,7 @@
   			{% endifnotequal %}
   		{% endif %}
   		
-		<h3>{{term_entries_contributed_by}} {{member.nickname}}</h3>
+		<h3>{{term_entries_contributed_by}}</h3>
 		
 		{% include "../common_time_range.html" %}
 		
@@ -54,17 +54,6 @@
 			{% include "../common_grid_options.html" %}
 		{% endif %}
 
-      	{% if current_member.isCurator %}
-      		{% if curating %}
-      			<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_member}}?{{member.urlQuery}}">{{template_stop_curating}}</a></p></div>
-     		{% else %}
-	      		{% ifequal member.key current_member.key %}
-	      			<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_member}}?{{member.urlQuery}}&{{url_query_curate}}={{url_query_curate}}">{{template_curate_your_entries}}</a></p></div>
-	      		{% else %}
-	      			<div class="rightalign"><p><a href="/{{dir_visit}}/{{url_member}}?{{member.urlQuery}}&{{url_query_curate}}={{url_query_curate}}">{{template_curate_this_members_entries}}</a></p></div>
-	      		{% endifequal %}
-	      	{% endif %}
-      	{% endif %}
     </form>
     </div>
     

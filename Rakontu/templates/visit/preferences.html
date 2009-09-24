@@ -73,45 +73,33 @@
 			<p>{{template_offline_member_accept_messages}}</p>
 		{% endif %}
 		{% if not member.isOnlineMember %}
-			<p><input type="checkbox" name="acceptsMessages" value="yes" id="acceptsMessages"
+			<p>&nbsp; <input type="checkbox" name="acceptsMessages" value="yes" id="acceptsMessages"
 				{% if member.acceptsMessages %}
 					checked
 				{% endif %}
 			><label for="acceptsMessages">{{template_yes_people_can_send_messages_through_me}}</label></p>
 		{% else %}
 			{% if member.isGuide %}
-				<p><input type="checkbox" name="guideAlwaysAcceptsMessages" value="yes" id="guideAlwaysAcceptsMessages"
+				<p>&nbsp; <input type="checkbox" name="guideAlwaysAcceptsMessages" value="yes" id="guideAlwaysAcceptsMessages"
 					checked disabled>
 				<label for="guideAlwaysAcceptsMessages">{{template_yes_people_can_send_me_messages}}</label></p>
 			{% else %}
-				<p><input type="checkbox" name="acceptsMessages" value="yes" id="acceptsMessages"
+				<p>&nbsp; <input type="checkbox" name="acceptsMessages" value="yes" id="acceptsMessages"
 					{% if member.acceptsMessages %}
 						checked
 					{% endif %}
 					><label for="acceptsMessages">{{template_yes_people_can_send_me_messages}}</label></p>
 			{% endif %}
 			<p>{{template_email_for_reply_to_in_messages}} {{"reply_to_email"|tip}} </p>
-			<p><input type="text" name="messageReplyToEmail" value="{{member.messageReplyToEmail}}" size="20" maxlength="{{maxlength_tag_or_choice}}"/></p>
+			<p>&nbsp; <input type="text" name="messageReplyToEmail" value="{{member.messageReplyToEmail}}" size="20" maxlength="{{maxlength_tag_or_choice}}"/></p>
 		{% endif %}
 		
 		</fieldset>
 		
  		<h3>{{template_other_options}}</h3>
 		<fieldset>
-		{% if member.isOnlineMember %}
-			<p>{{template_choose_member_default_text_format}}
-			<select name="preferredTextFormat">
-				{% for format in text_formats %}
-					<option value="{{format}}"
-					{% ifequal member.preferredTextFormat format %}
-						selected="selected"
-					{% endifequal %}
-					>{{format}}</option>
-				{% endfor %}
-			</select></p>
-		{% endif %}
-		<p>{{template_time_zone_choice}}
-			<select name="timeZoneName"">
+		<p>{{template_time_zone_choice}}</p>
+			<p>&nbsp; <select name="timeZoneName"">
 			{% for name in time_zone_names %}
 				<option value="{{name}}"
 				{% ifequal member.timeZoneName name %}
@@ -120,8 +108,8 @@
 				>{{name}}</option>
 			{% endfor %}
 			</select></p>
-		<p>{{template_date_display_choice}}
-			<select name="dateFormat">
+		<p>{{template_date_display_choice}}</p>
+			<p>&nbsp; <select name="dateFormat">
 			{% for format in date_formats.keys %}
 				<option value="{{format}}"
 				{% ifequal member.dateFormat format %}
@@ -130,8 +118,8 @@
 				>{{date_formats|dictLookup:format}}</option>
 			{% endfor %}
 			</select></p>
-		<p>{{template_time_display_choice}}
-			<select name="timeFormat">
+		<p>{{template_time_display_choice}}</p>
+			<p>&nbsp; <select name="timeFormat">
 			{% for format in time_formats.keys %}
 				<option value="{{format}}"
 				{% ifequal member.timeFormat format %}
@@ -141,8 +129,18 @@
 			{% endfor %}
 			</select></p>
 		{% if member.isOnlineMember %}
-			<p>{{template_inline_image_display_choice}}
-			<select name="showAttachedImagesInline">
+			<p>{{template_choose_member_default_text_format}}</p>
+			<p>&nbsp; <select name="preferredTextFormat">
+				{% for format in text_formats %}
+					<option value="{{format}}"
+					{% ifequal member.preferredTextFormat format %}
+						selected="selected"
+					{% endifequal %}
+					>{{format}}</option>
+				{% endfor %}
+			</select></p>
+			<p>{{template_inline_image_display_choice}}</p>
+			<p>&nbsp; <select name="showAttachedImagesInline">
 				<option value="yes"
 				{% if member.showAttachedImagesInline %}
 					selected="selected"
@@ -154,8 +152,8 @@
 				{% endif %}
 				>{{template_no}}</option>
 			</select></p>
-			<p>{{template_details_text_length_choice}}
-			<select name="shortDisplayLength">
+			<p>{{template_details_text_length_choice}}</p>
+			<p>&nbsp; <select name="shortDisplayLength">
 				{% for choice in details_text_length_choices %}
 					<option value="{{choice}}"
 					{% ifequal choice member.shortDisplayLength %}
@@ -166,7 +164,7 @@
 			</select></p>
 			<p>{{template_view_options_on_top}}</p>
 				{% for option in view_options %}
-					<p>&nbsp; &nbsp; 
+					<p>&nbsp; 
 					<input type="checkbox" name="showOptionsOnTop|{{option.location}}" value="yes" id="showOptionsOnTop|{{option.location}}"
 						{% if option.showOptionsOnTop %}
 							checked

@@ -10,12 +10,12 @@
 
 			<h3>{{template_name_and_description}}</h3>
 			<fieldset>
-			<p>{{template_name}} {{"rakontu_name"|tip}}</p>
-			<input type="text" name="name" value="{{ rakontu.name }}" size="30" maxlength="{{maxlength_name}}"/>
-			<p>{{template_tag_line}} {{"tag_line"|tip}}</p>
-			<input type="text" name="tagline" value="{{ rakontu.tagline }}" size="80" maxlength="{{maxlength_subject_or_comment}}"/>
+			<p>{{template_name}} {{"rakontu_name"|info}}</p>
+			<p>&nbsp; <input type="text" name="name" value="{{ rakontu.name }}" size="30" maxlength="{{maxlength_name}}"/></p>
+			<p>{{template_tag_line}} {{"tag_line"|info}}</p>
+			<p>&nbsp; <input type="text" name="tagline" value="{{ rakontu.tagline }}" size="80" maxlength="{{maxlength_subject_or_comment}}"/></p>
 
-			<p>{{template_description}} {{"rakontu_description"|tip}}</p>
+			<p>{{template_description}} {{"rakontu_description"|info}}</p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
 				<textarea name="description" rows="8" cols="60">{{rakontu.description}}</textarea>
@@ -32,10 +32,10 @@
 					</select>
 				</td></tr></table>
 				
-			<p>{{template_welcome_message_for_new_members}} {{"welcome_message"|tip}}</p>
+			<p>{{template_welcome_message_for_new_members}} {{"welcome_message"|info}}</p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
-				<textarea name="welcomeMessage" rows="8" cols="60">{{rakontu.welcomeMessage}}</textarea>
+				<textarea name="welcomeMessage" rows="4" cols="60">{{rakontu.welcomeMessage}}</textarea>
 				</td><td class="noborder" width="80">
 				<p>{{template_interpret_as}}</p>
 					<select name="welcomeMessage_format">
@@ -49,10 +49,13 @@
 					</select>
 				</td></tr></table>
 
-			<p>{{template_etiquette_statement}} {{"rakontu_etiquette_statement"|tip}}</p>
+			<p>{{template_invitation_message_for_invitation_email}} {{"invitation_message"|info}}</p>
+			<p>&nbsp; <textarea name="invitationMessage" rows="4" cols="60">{{rakontu.invitationMessage}}</textarea></p>
+
+			<p>{{template_etiquette_statement}} {{"rakontu_etiquette_statement"|info}}</p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
-				<textarea name="etiquetteStatement" rows="8" cols="60">{{rakontu.etiquetteStatement}}</textarea>
+				<textarea name="etiquetteStatement" rows="6" cols="60">{{rakontu.etiquetteStatement}}</textarea>
 				</td><td class="noborder" width="80">
 				<p>{{template_interpret_as}}</p>
 					<select name="etiquetteStatement_format">
@@ -72,12 +75,12 @@
 			<p>{{template_picture}} {{"rakontu_image"|tip}} {{"uploading_files"|caution}}</p>
 			{% if rakontu.image %}
 				{{rakontu.imageEmbed}}
-				<input type="checkbox" name="removeImage" value="removeImage" id="removeImage"><label for="removeImage">{{template_remove}}</label>
+				<p>&nbsp; <input type="checkbox" name="removeImage" value="removeImage" id="removeImage"><label for="removeImage">{{template_remove}}</label></p>
 			{% endif %}
-			<p><input type="file" name="img" accept="jpg/png"/></p>
+			<p>&nbsp; <input type="file" name="img" accept="jpg/png"/></p>
 			
 			<p>{{template_skin}} {{"skins"|tip}}</p>
-			<p><select name="skinName">
+			<p>&nbsp; <select name="skinName">
 				{% for name in skin_names %}
 					<option value="{{name}}"
 					{% ifequal name rakontu.skinName %}
@@ -103,14 +106,14 @@
 				{{template_none}}</option>
 				</select></p>
 			<p>{{template_custom_skin}} {{"custom_skins"|tip}}</p>
-				<textarea name="customSkin" rows="5" cols="60">{{rakontu.customSkin}}</textarea>
-			<p>{{template_external_style_sheet}} {{"using_an_external_style_sheet"|info}}
-			<input type="text" name="externalStyleSheetURL" value="{{rakontu.externalStyleSheetURL|orNothing}}" size="80" maxlength="{{maxlength_name}}"/>
+				<p>&nbsp; <textarea name="customSkin" rows="5" cols="60">{{rakontu.customSkin}}</textarea></p>
+			<p>{{template_external_style_sheet}} {{"using_an_external_style_sheet"|info}}</p>
+			<p>&nbsp; <input type="text" name="externalStyleSheetURL" value="{{rakontu.externalStyleSheetURL|orNothing}}" size="80" maxlength="{{maxlength_name}}"/></p>
 			</fieldset>
 	      	
 			<h3>{{template_halping_role_texts}}</h3>
 			<fieldset>
-			<p><b>{{template_curator}} {{template_read_before_text}} {{"role_read_before_texts"|info}}</b></p>
+			<p>{{template_curator}} {{template_read_before_text}} {{"role_read_before_texts"|info}}</p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
 				<textarea name="readme0" rows="5" cols="60">{{rakontu.roleReadmes.0}}</textarea>
@@ -127,7 +130,7 @@
 					</select>
 				</td></tr></table>
 			<p></p>
-			<p><b>{{template_guide}} {{template_read_before_text}} </b></p>
+			<p>{{template_guide}} {{template_read_before_text}}</p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
 				<textarea name="readme1" rows="5" cols="60">{{rakontu.roleReadmes.1}}</textarea>
@@ -144,7 +147,7 @@
 					</select>
 				</td></tr></table>
 			<p></p>
-			<p><b>{{template_liaison}} {{template_read_before_text}} </b></p>
+			<p>{{template_liaison}} {{template_read_before_text}}</p>
 				<table style="width:100%; border:none">
 				<tr><td class="noborder">
 				<textarea name="readme2" rows="5" cols="60">{{rakontu.roleReadmes.2}}</textarea>
@@ -165,10 +168,10 @@
 			<h3>{{template_other_options}}</h3>
 			<fieldset>
 			<p>{{template_rakontu_outoing_email}} {{"rakontu_contact_email"|caution}}</p>
-			<input type="text" name="contactEmail" value="{{ rakontu.contactEmail }}" size="80" maxlength="{{maxlength_name}}"/>
+			<p>&nbsp; <input type="text" name="contactEmail" value="{{ rakontu.contactEmail }}" size="80" maxlength="{{maxlength_name}}"/></p>
 
-			<p>{{template_what_time_zone_should_members_see}}
-				<select name="defaultTimeZoneName"">
+			<p>{{template_what_time_zone_should_members_see}}</p>
+				<p>&nbsp; <select name="defaultTimeZoneName"">
 				{% for name in time_zone_names %}
 					<option value="{{name}}"
 					{% ifequal rakontu.defaultTimeZoneName name %}
@@ -177,8 +180,8 @@
 					>{{name}}</option>
 				{% endfor %}
 				</select>
-			<p>{{template_how_should_dates_display}}
-				<select name="defaultDateFormat">
+			<p>{{template_how_should_dates_display}}</p>
+				<p>&nbsp; <select name="defaultDateFormat">
 				{% for format in date_formats.keys|sorted %}
 					<option value="{{format}}"
 					{% ifequal rakontu.defaultDateFormat format %}
@@ -187,8 +190,8 @@
 					>{{date_formats|dictLookup:format}}</option>
 				{% endfor %}
 				</select>
-			<p>{{template_how_should_times_display}}
-				<select name="defaultTimeFormat">
+			<p>{{template_how_should_times_display}}</p>
+				<p>&nbsp; <select name="defaultTimeFormat">
 				{% for format in time_formats.keys %}
 					<option value="{{format}}"
 					{% ifequal rakontu.defaultTimeFormat format %}

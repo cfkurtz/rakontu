@@ -1975,7 +1975,8 @@ def ItemDisplayStringForGrid(item, member, location, curating=False, showDetails
 	annotationsCountString = ""
 	if showDetails and item.__class__.__name__ == "Entry":
 		if datetime.now(tz=pytz.utc) - item.lastTouched() > timedelta(seconds=UPDATE_ANNOTATION_COUNTS_SECONDS):
-			item.updateAnnotationAnswerLinkCounts()
+			if random.randrange(100) < 20: # spread it out
+				item.updateAnnotationAnswerLinkCounts()
 		annotationsCountString += " "
 		i = 0
 		for type in ANNOTATION_TYPES:

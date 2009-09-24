@@ -53,7 +53,17 @@ This is a group of people who will come together to tell, keep and use their com
 
 DEFAULT_WELCOME_MESSAGE = \
 u"""
-Hello and welcome to our Rakontu!  
+Hello and welcome to our Rakontu.
+"""
+
+DEFAULT_INVITATION_MESSAGE = \
+u"""
+You have been invited to join our Rakontu. Paste this web address into your browser
+and visit the site to become a member.
+
+Note that you will need to sign in to a Google account
+with this email address in order to join. If you don't have a Google account with this
+email address, please contact me with a different email to use for you.
 """
 
 DEFAULT_ETIQUETTE_STATEMENT = \
@@ -253,7 +263,7 @@ DEFAULT_SEARCH_NAME = "Untitled search filter"
 
 # These describe the locations of the timeline grid views. 
 # They MUST match the order (home, entry, member, character).
-VIEW_OPTION_LOCATIONS_DISPLAY = ["home", "entry", "member", "character"]
+VIEW_OPTION_LOCATIONS_DISPLAY = ["home page", "entry page", "member page", "character page"]
 
 # ============================================================================================ 
 # DISPLAY TERMS
@@ -320,7 +330,7 @@ TERMS = {
 		"term_help_info": "Information about",
 		"term_help_tip": "A tip about",
 		"term_help_caution": "A caution about",
-		"term_entries_contributed_by": "Entries, annotations, answers and links contributed by",
+		"term_entries_contributed_by": "Contribution timeline", 
 		"term_yes": "yes",
 		"term_no": "no",
 		"term_for": "for", # annotation for entry
@@ -705,6 +715,9 @@ TEMPLATE_TERMS = {
 		"template_add_new_members": "Add new members",
 		"template_send_invitation_email": "Send invitation email",
 		"template_invitation_to_join": "Invitation to join",
+		"template_invite_as_manager": "Invite as manager",
+		# manage/invitation_message
+		"template_send_an_invitation_message_to": "Send an invitation email to",
 		# manage/questions
 		"template_order": "Order",
 		"template_add_new_questions_about": "Add new questions about",
@@ -739,6 +752,7 @@ TEMPLATE_TERMS = {
 		"template_halping_role_texts": "Helping role texts",
 		"template_rakontu_outoing_email": "Outgoing reply-to email address",
 		"template_welcome_message_for_new_members": "Welcome message for new members",
+		"template_invitation_message_for_invitation_email": "Invitation message for email invitation",
 		"template_time_zones_and_time_reporting": "Time zones and time reporting",
 		"template_what_time_zone_should_members_see": "What time zone should members see as the default?",
 		"template_how_should_dates_display": "How should dates be displayed by default?",
@@ -899,7 +913,7 @@ TEMPLATE_TERMS = {
 		# visit/new
 		"template_resources_for_new_members": "You may find these resources helpful for getting started",
 		"template_about_help_icons": "Around the site you will see little icons that provide help. Either hover over them with your mouse or click on them to read them.",
-		"template_how_to_get_to_new_member_page_again": "A tip: You can return to this page later by clicking the link at the bottom of the Help page.",
+		"template_how_to_get_to_new_member_page_again": "You can return to this page later by clicking the link at the bottom of the Help page.",
 		# visit/preview
 		"template_with_reference_to_the": "with reference to the",
 		# visit/previewAnswers
@@ -959,7 +973,7 @@ TEMPLATE_TERMS = {
 		"template_reminding_to": "Reminded someone of",
 		"template_in_response_to_invitation": "Told in response to",
 		"template_included_in_collages": "Included in the collages",
-		"template_annotations_to_this": "Annotations to this", # story, etc
+		"template_annotations_to_this": "Annotation timeline", 
 		"template_hide_versions": "Hide", # right next to button that says History so no need for longer name
 		"template_show_versions": "Show history",
 		"template_no_annotations_for_entry": "This entry has no annotations that match the current selections.",
@@ -1025,8 +1039,9 @@ TEMPLATE_BUTTONS = {
 		"button_inactivate": "Really And Truly Inactivate This Rakontu",
 		"button_export_xml": "Export to XML",
 		"button_export_csv": "Export to CSV",
+		"button_send_invitation_email": "Send invitation email",
 		# visit
-		"button_change_time_range_view": "Change time range view",
+		"button_change_time_range_view": "Change timeline view",
 		"button_change_entry_types_view": "Change entry types view",
 		"button_change_annotation_types_view": "Change annotation types view",
 		"button_change_nudge_view": "Change nudges view",
@@ -1053,6 +1068,7 @@ TEMPLATE_BUTTONS = {
 		"button_compose_message": "Compose message to selected members",
 		"button_send_message": "Send message",
 		"button_send_messages": "Send message to selected members",
+		"button_send_invitation": "Send invitation",
 		"button_refresh": "Refresh",
 		"button_move_choices_to_bottom": "Move Choices to Bottom",
 		"button_move_choices_to_top": "Move Choices to Top",
@@ -1443,6 +1459,7 @@ URLS = {
     "url_settings": "settings",
     "url_export_search": "exportSearch",
     "url_inactivate": "inactivate",
+    "url_invitation_message": "invitation_message",
 	# admin 
 	"url_create1": "create1",
 	"url_create2": "create2",

@@ -677,8 +677,6 @@ Managers only=no
 
 *Bad Request: Your client has issued a malformed or illegal request.* This happens in older browsers. Refreshing the page can help, as can removing cached (temporary) files.
 
-------- This help resource is not yet finished ----------
-
 [Using an external style sheet to style your Rakontu]
 Category=Technical
 Order in category=3
@@ -686,8 +684,69 @@ Interpret as=Wiki markup
 For new members=no
 Help resource=yes
 Managers only=yes
+By using an external style sheet (hosted on a URL somewhere) you can dramatically change the appearance of your Rakontu. Just type a valid CSS URL in the Appearance page for your Rakontu. The standard Rakontu style sheet is loaded _before_ (not instead of) your style sheet, so you can override only those elements you want to change.
 
-------- This help resource is not yet finished ----------
+The best way to change the way things appear on Rakontu pages is simply to look at the page source of any page you like and consider the classes and divisions shown there. You can also look directly at the style sheet Rakontu uses, which is called "base.css" and is located in the directory "stylesheets" under your Rakontu's main URL. 
+
+=== Basic elements, classes and divisions
+
+The element classes defined for a Rakontu page (all of which are self-explanatory) are:
+
+  * img.bordered
+  * table.fullwidth (used only in the menus table)
+  * table.noborder (used in lots of places where borderless tables are wanted)
+  * td.noborder (same as borderless table)
+  * ul li.nobullet
+
+In addition, some non-element classes (<div class="">) are:
+
+  * .rightalign (used to put things off to the right)
+  * .blurb (used for entry texts and other "inset" things to be read)
+  * .indented (only used in a few places where things should be set off, but not with a special color)
+
+Defined divisions (<div id="">) are as follows:
+
+  * #header (top of page)
+  * #footer (bottom of page)
+  * #content (everything else)
+
+=== Top menus
+ 
+The menus at the top of Rakontu pages use several divisions to create a CSS-only menu (though it does use Javascript for the IE6 condition only). This technique comes by the way from [http://www.cssnewbie.com/easy-css-dropdown-menus (Easy CSS DropdownMenus)] at cssnewbie.com (thanks folks!).
+
+  * #topmenu
+  * #topmenu li
+  * #topmenu li:hover ul, #topmenu li.hover ul 
+  * #topmenu li:hover li, #topmenu li.hover li 
+  * #topmenu li a 
+  * #topmenu li ul
+  * #topmenu li:hover li a, #topmenu li.hover a
+  * #topmenu li li
+  * #topmenu li li a:hover
+
+=== Forms
+
+Forms are handled with one of two classes *.rakontu_form_centered* (used only on the start page and the "create new Rakontu" admin form) and *.rakontu_form* (used on all other forms).
+
+The division "rakontu_form_style" encircles all forms. It includes specifications for the elements *label*, *select*, *input* and *textarea*. There is also a ":hover" style for each of these.
+
+There are two classes of form-input submit styles: *input.button* and *input.button_small*, again each with its ":hover". The smaller buttons are used on the grid pages or any place where an option is being chosen that is not the main point of the page.
+
+=== Image buttons
+
+There are a few image buttons that rely on background images from the CSS, thus:
+
+  * #rakontu_form_style input.flag_red (uses URL/images/flag_red.png)
+  * #rakontu_form_style input.flag_green (uses URL/images/flag_green.png)
+  * #rakontu_form_style input.move_up (uses URL/images/arrow_up.png)
+  * #rakontu_form_style input.move_down (uses URL/images/arrow_down.png)
+  * #rakontu_form_style input.active (uses URL/images/accept.png)
+  * #rakontu_form_style input.inactive (uses URL/images/cancel.png)
+
+If you use a custom style sheet and want to override the styles for these buttons, you should either copy these image files to the place where the style sheet is found, or reference them via the full URL. 
+
+Note that all of these image buttons require a :hover specification of "border:none" because otherwise they get an ugly border around them when you hover over them. (Unless you like that.)
+
 
 
 

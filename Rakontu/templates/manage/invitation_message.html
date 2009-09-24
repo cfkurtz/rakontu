@@ -1,0 +1,22 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+		<div id="content">
+		<div id="rakontu_form_style" class="rakontu_form">
+		<form action="/{{dir_manage}}/{{url_invitation_message}}?{{current_member.urlQuery}}" method="post">
+	
+		<h3>{{template_send_an_invitation_message_to}} {{email}}</h3>
+				
+		<fieldset>
+		<p>{{template_subject}} <input type="text" name="subject" size="80" value="{{subject}}" maxlength="{{maxlength_subject_or_comment}}"/></p>
+		<textarea name="message" rows="8" cols="60">{{body}}</textarea>
+		
+		<p><center><input type="submit" name="message" value="{{button_send_invitation}}" class="button"></center></p>
+
+      </form>
+    </div>
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

@@ -21,17 +21,19 @@
 		</fieldset>
 		<p><center><input type="submit" name="xml_export" value="{{button_export_xml}}" class="button"></center></p>
 		
-		<h3>{{template_export_entries_with_answers}}</b> {{"exporting_entries_with_answers_to_CSV"|info}} </h3>
-		<fieldset>
-		{{template_what_to_export}}
-		<select name="exportWhatToCSV">
-			{% for i in csv_choices|makeRangeFromListLength %}
-				<option value="{{csv_choices|listLookup:i}}">{{display_csv_choices|listLookup:i}}</option>
-			{% endfor %}
-			</select>
-		</fieldset>
-		<p><center><input type="submit" name="csv_export" value="{{button_export_csv}}" class="button"></center></p>
-
+		{% if csv_choices %}
+			<h3>{{template_export_entries_with_answers}}</b> {{"exporting_entries_with_answers_to_CSV"|info}} </h3>
+			<fieldset>
+			{{template_what_to_export}}
+			<select name="exportWhatToCSV">
+				{% for i in csv_choices|makeRangeFromListLength %}
+					<option value="{{csv_choices|listLookup:i}}">{{display_csv_choices|listLookup:i}}</option>
+				{% endfor %}
+				</select>
+			</fieldset>
+			<p><center><input type="submit" name="csv_export" value="{{button_export_csv}}" class="button"></center></p>
+		{% endif %}
+		
       	<p>
 	</form>
 	</div>

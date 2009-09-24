@@ -191,6 +191,8 @@ class Rakontu(db.Model):
 	welcomeMessage_formatted = db.TextProperty()
 	welcomeMessage_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
+	invitationMessage = db.TextProperty(default=DEFAULT_INVITATION_MESSAGE) # inserted by default in invitation email; plain text only
+	
 	roleReadmes = db.ListProperty(db.Text, default=[db.Text(DEFAULT_ROLE_READMES[0]), db.Text(DEFAULT_ROLE_READMES[1]), db.Text(DEFAULT_ROLE_READMES[2])])
 	roleReadmes_formatted = db.ListProperty(db.Text, default=[db.Text(""), db.Text(""), db.Text("")])
 	roleReadmes_formats = db.StringListProperty(default=DEFAULT_ROLE_READMES_FORMATS, indexed=False)
@@ -1561,6 +1563,15 @@ class PendingMember(db.Model):
 			return GOVERNANCE_ROLE_TYPES_DISPLAY[1]
 		elif self.governanceType == "owner":
 			return GOVERNANCE_ROLE_TYPES_DISPLAY[2]
+		
+	def willBeRegularMember(self):
+		return self.governanceType == "member"
+		
+	def willBeManager(self):
+		return self.governanceType == "manager"
+	
+	def willBeOwner(self):
+		return self.governanceType == "owner"
 	
 # ============================================================================================
 # ============================================================================================
@@ -3644,54 +3655,47 @@ def getTimeZone(timeZoneName):
 	return timeZone
 
 def ImageLinkForAnnotationType(type, number):
-	if number >= 0:
-		i = 0
-		for aType in ANNOTATION_TYPES:
-			if aType == type:
-				if number > 1:
-					typeToDisplay = ANNOTATION_TYPES_PLURAL_DISPLAY[i]
-				else:
-					typeToDisplay = ANNOTATION_TYPES_DISPLAY[i]
-				break
-			i += 1
-		tooltip = 'title="%s %s"' % (number, typeToDisplay)
-	else:
-		tooltip = ""
+	i = 0
+	for aType in ANNOTATION_TYPES:
+		if aType == type:
+			if number > 1:
+				typeToDisplay = ANNOTATION_TYPES_PLURAL_DISPLAY[i]
+				tooltip = 'title="%s %s"' % (number, typeToDisplay)
+			elif number == 1:
+				typeToDisplay = ANNOTATION_TYPES_DISPLAY[i]
+				tooltip = 'title="%s %s"' % (number, typeToDisplay)
+			else:
+				typeToDisplay = ANNOTATION_TYPES_DISPLAY[i]
+				tooltip = 'title="%s"' % (typeToDisplay)
+			break
+		i += 1
 	if type == "comment":
-		name = TEMPLATE_TERMS["template_comment"]
-		imageText = '<img src="/images/comments.png" alt="%s" title="%s" %s border="0">' % (name, name, tooltip)
+		imageText = '<img src="/images/comments.png" alt="%s" %s border="0">' % (typeToDisplay, tooltip)
 	elif type == "request":
-		name = TEMPLATE_TERMS["template_request"]
-		imageText = '<img src="/images/requests.png" alt="%s" title="%s" %s border="0">' % (name, name, tooltip)
+		imageText = '<img src="/images/requests.png" alt="%s" %s border="0">' % (typeToDisplay, tooltip)
 	elif type == "tag set":
-		name = TEMPLATE_TERMS["template_tag_set"]
-		imageText = '<img src="/images/tags.png" alt="%s" title="%s" %s border="0">' % (name, name, tooltip)
+		imageText = '<img src="/images/tags.png" alt="%s" %s border="0">' % (typeToDisplay, tooltip)
 	elif type == "nudge":
-		name = TEMPLATE_TERMS["template_nudge"]
-		imageText = '<img src="/images/nudges.png" alt="%s" title="%s" %s border="0">' % (name, name, tooltip)
+		imageText = '<img src="/images/nudges.png" alt="%s" %s border="0">' % (typeToDisplay, tooltip)
 	return imageText
 
 def ImageLinkForAnswer(number):
-	if number >= 0:
-		if number > 1:
-			term = TERMS["term_answers"]
-		else:
-			term = TERMS["term_answer"]
-		tooltip = 'title="%s %s"' % (number, term)
+	if number > 1:
+		tooltip = 'title="%s %s"' % (number, TERMS["term_answers"])
+	elif number == 1:
+		tooltip = 'title="%s %s"' % (number, TERMS["term_answer"])
 	else:
-		tooltip = ""
+		tooltip = 'title="%s"' % (TERMS["term_answer"])
 	return'<img src="/images/answers.png" alt="answer" %s border="0">' % tooltip
 
 def ImageLinkForLink(number):
-	if number >= 0:
-		if number > 1:
-			term = TERMS["term_links"]
-		else:
-			term = TERMS["term_link"]
-		tooltip = 'title="%s %s"' % (number, term)
+	if number > 1:
+		tooltip = 'title="%s %s"' % (number, TERMS["term_links"])
+	elif number == 1:
+		tooltip = 'title="%s %s"' % (number, TERMS["term_link"])
 	else:
-		tooltip = ""
-	return'<img src="/images/link.png" alt="link" title="link" %s border="0">' % tooltip
+		tooltip = 'title="%s"' % (TERMS["term_link"])
+	return'<img src="/images/link.png" alt="link" %s border="0">' % tooltip
 
 HTML_ESCAPES = {
  	"&": "&amp;",
