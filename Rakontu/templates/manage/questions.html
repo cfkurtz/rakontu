@@ -43,6 +43,9 @@
       						{% if question.choices %}
       							- {{question.choices|join:", "}}
       						{% endif %}
+      						{% if question.multiple %}
+      							({{template_multiple}})
+      						{% endif %}
       					{% endif %}
       					</p>
       				</td>

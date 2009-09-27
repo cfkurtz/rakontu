@@ -84,9 +84,9 @@ def CreateMemberFromInfo(rakontu, userId, email, nickname, joinAs, isOnline=True
 			governanceType=joinAs) 
 		member.initialize()
 		member.put() 
-		member.createViewOptions()
 		return member
 	member = db.run_in_transaction(txn, rakontu, userId, email, nickname, joinAs, keyName)
+	member.createViewOptions() # must be done separately as it runs a transaction
 	return member
  
 def CreatePendingMemberFromInfo(rakontu, email, joinAs):
@@ -504,7 +504,13 @@ def GenerateHelps():
 		for row in helpStrings:
 			if len(row[0]) > 0 and row[0][0] != ";":
 				keyName = GenerateSequentialKeyName("help")
-				helps.append(Help(key_name=keyName, type=row[0].strip(), name=row[1].strip(), text=row[2].strip()))
+				help = Help(
+						key_name=keyName, 
+						id=keyName,
+						type=row[0].strip(), 
+						name=row[1].strip(), 
+						text=row[2].strip())
+				helps.append(help)
 		db.put(helps) 
 	finally:
 		file.close()  
@@ -520,7 +526,12 @@ def GenerateSkins():
 			if len(key) > 0 and key[0] != ";":
 				if key == "ELEMENT":
 					for cell in row[2:]: # 2 because 1 is explanation of element
-						skins.append(Skin(name=cell.strip()))
+						keyName = GenerateSequentialKeyName("skin")
+						skin = Skin(
+								key_name=keyName,
+								id=keyName,
+								name=cell.strip())
+						skins.append(skin)
 				else:
 					colIndex = 0
 					for cell in row[2:]: # 2 because 1 is explanation of element
@@ -987,87 +998,6 @@ def MoveItemWithOrderFieldUpOrDownInList(item, list, increment):
 # ============================================================================================
 # ============================================================================================
 
-def GenerateFakeTestingData():
-	user = users.get_current_user()
-	# make rakontu
-	keyName = GenerateSequentialKeyName("rakontu")
-	rakontu = Rakontu(
-					key_name=keyName, 
-					name="Test rakontu", 
-					description="Test description")
-	# initialize rakontu
-	rakontu.initializeFormattedTexts()
-	rakontu.initializeCustomSkinText()
-	rakontu.created = rakontu.created - timedelta(days=30)
-	GenerateDefaultQuestionsForRakontu(rakontu, "neighborhood")
-	rakontu.put()
-	# make member
-	member = CreateMemberFromInfo(rakontu, user.user_id(), user.email(), "Tester", "owner")
-	# make two pending members
-	if user.email() != "test@example.com":
-		email = "test@example.com"
-	else:
-		email = "cfkurtz@cfkurtz.com"
-	CreatePendingMemberFromInfo(rakontu, email, "member")
-	CreatePendingMemberFromInfo(rakontu, "admin@example.com", "member")
-	GenerateDefaultCharactersForRakontu(rakontu)
-	keyName = GenerateSequentialKeyName("entry")
-	entry = Entry(
-				key_name=keyName, 
-				parent=member, 
-				id=keyName, 
-				rakontu=rakontu, 
-				type="story", 
-				creator=member, 
-				title="The dog", 
-				text="The dog sat on a log.")
-	entry.text_formatted = db.Text(InterpretEnteredText(entry.text, "plain text"))
-	entry.publish()
-	entry.put()
-	keyName = GenerateSequentialKeyName("annotation")
-	annotation = Annotation(
-						key_name=keyName, 
-						parent=entry, 
-						id=keyName, 
-						rakontu=rakontu, 
-						type="comment", 
-						creator=member, 
-						entry=entry,
-						shortString="Great!", 
-						longString="Wonderful!")
-	annotation.publish()
-	annotation.put()
-	keyName = GenerateSequentialKeyName("annotation")
-	annotation = Annotation(
-						key_name=keyName, 
-						parent=entry, 
-						id=keyName, 
-						rakontu=rakontu, 
-						type="comment", 
-						creator=member, 
-						entry=entry, 
-						shortString="Dumb", 
-						longString="Silly")
-	annotation.publish()
-	annotation.put()
-	keyName = GenerateSequentialKeyName("entry")
-	entry = Entry(
-				key_name=keyName, 
-				parent=member, 
-				id=keyName, 
-				rakontu=rakontu, 
-				type="story", 
-				creator=member, 
-				title="The circus", 
-				text="I went the the circus. It was great.")
-	entry.text_formatted = db.Text(InterpretEnteredText(entry.text, "plain text"))
-	entry.publish()
-	entry.put()
-	#AddFakeDataToRakontu(rakontu, 10, "members")
-	#AddFakeDataToRakontu(rakontu, 100, "entries")
-	#AddFakeDataToRakontu(rakontu, 200, "annotations")
-	#AddFakeDataToRakontu(rakontu, 400, "nudges") 
-
 LOREM_IPSUM = [
 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla malesuada arcu a lorem interdum euismod aliquet dui vehicula. Integer posuere mollis massa, ac posuere diam vestibulum eget. Quisque gravida arcu non lorem placerat tempus eget in risus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aliquam velit nulla, tempus sit amet gravida vel, gravida sit amet libero. Maecenas bibendum nulla ac leo feugiat egestas. Suspendisse vel dui velit. Duis a velit eget augue pellentesque bibendum in non urna. Nunc vestibulum mi vitae neque pulvinar et feugiat urna auctor. Proin volutpat euismod nunc, adipiscing pharetra leo commodo a. Suspendisse potenti. Vestibulum luctus velit non purus laoreet elementum. Donec euismod, ipsum interdum facilisis porttitor, dui dui suscipit turpis, faucibus imperdiet ante metus tempus elit. Ut vulputate, leo quis tincidunt tincidunt, massa ante fringilla libero, iaculis varius tortor quam tempor ipsum. Praesent cursus consequat tellus, eget molestie dui aliquet vitae.",
 "Cras sagittis nibh tempor orci pellentesque condimentum. Etiam vel ipsum tortor. Phasellus quam erat, aliquet sit amet egestas a, vehicula vitae risus. Nam ac quam sit amet risus imperdiet eleifend. Pellentesque nec arcu ut nunc rutrum posuere. Fusce at elit est, ac auctor sapien. Pellentesque semper enim et turpis euismod tincidunt. Donec nibh nunc, placerat vitae semper et, ullamcorper vel lectus. Praesent ut tellus eros. Ut sit amet odio vel risus auctor mollis. Duis luctus viverra diam, eu tincidunt ante sodales nec. Suspendisse potenti.",
@@ -1082,18 +1012,45 @@ def GenerateRandomDate(start, end):
     randomSeconds = random.randrange(deltaSeconds) 
     return start + timedelta(seconds=randomSeconds)
 	
+def GenerateFakeTestingData():
+	user = users.get_current_user()
+	# make rakontu
+	keyName = GenerateSequentialKeyName("rakontu")
+	rakontu = Rakontu(key_name=keyName, name=keyName)
+	rakontu.initializeFormattedTexts()
+	rakontu.initializeCustomSkinText()
+	# set its creation time back, to simulate entries
+	rakontu.created = rakontu.created - timedelta(days=7)
+	GenerateDefaultQuestionsForRakontu(rakontu, "neighborhood")
+	rakontu.put()
+	GenerateDefaultCharactersForRakontu(rakontu)
+	# make owner
+	member = CreateMemberFromInfo(rakontu, user.user_id(), user.email(), "Tester", "owner")
+	# make two pending members
+	if user.email() != "test@example.com":
+		email = "test@example.com"
+	else:
+		email = "test2@example.com"
+	CreatePendingMemberFromInfo(rakontu, email, "member")
+	CreatePendingMemberFromInfo(rakontu, "admin@example.com", "member")
+	AddFakeDataToRakontu(rakontu, 2, "members")
+	AddFakeDataToRakontu(rakontu, 5, "entries")
+	AddFakeDataToRakontu(rakontu, 5, "annotations")
+	AddFakeDataToRakontu(rakontu, 5, "answers")
+	AddFakeDataToRakontu(rakontu, 5, "nudges") 
+
 def AddFakeDataToRakontu(rakontu, numItems, createWhat): 
 	user = users.get_current_user() 
 	startDate = rakontu.created
 	startDate = startDate.replace(tzinfo=pytz.utc)
-	endDate = datetime.now() 
+	endDate = datetime.now()   
 	endDate = endDate.replace(tzinfo=pytz.utc)
-	
+	   
 	if createWhat == "members":
 		numMembersNow = rakontu.numActiveMembers()
-		for i in range(numItems): 
+		for i in range(numItems):   
 			text = random.choice(LOREM_IPSUM)
-			name = "Member %s" % (numMembersNow + i + 1) + " " + text[:random.randrange(5,40)]
+			name = "Member " + text[:random.randrange(5,40)]
 			member = CreateMemberFromInfo(rakontu, None, None, name, "member")
 			member.joined = startDate
 			member.initialize()
@@ -1169,57 +1126,59 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 		entryKeyNames = [] 
 		memberKeyNames = []
 		questionKeyNames = {}
-		for question in rakontu.getActiveQuestions():
-			if not questionKeyNames.has_key(question.refersTo):
-				questionKeyNames[question.refersTo] = []
-			questionKeyNames[question.refersTo].append(question.getKeyName())
-		for member in rakontu.getActiveMembers(): 
-			memberKeyNames.append(member.getKeyName())  
-		for entry in rakontu.getNonDraftEntries():
-			entryKeyNames.append(entry.getKeyName())
-		for i in range(numItems):
-			member = Member.get_by_key_name(random.choice(memberKeyNames), parent=rakontu)
-			entry = Entry.all().filter("id = ", random.choice(entryKeyNames)).get()
-			questionKeyNamesForThisType = questionKeyNames[entry.type]
-			question = Question.all().filter("id = ", random.choice(questionKeyNamesForThisType)).get()
-			text = random.choice(LOREM_IPSUM)[:random.randrange(5,20)]
-			keyName = GenerateSequentialKeyName("answer")
-			answer = Answer(
-								key_name=keyName, 
-								parent=entry,
-								id=keyName,
-								rakontu=rakontu, 
-								question=question,
-								creator=member,  
-								referent=entry)
-			if question.type == "boolean":
-				if random.randrange(100) > 50:
-					answer.answerIfBoolean = "yes"
-				else: 
-					answer.answerIfBoolean = "no"
-			elif question.type == "text":
-				answer.answerIfText = text
-			elif question.type == "value":
-				answer.answerIfValue = random.randrange(question.minIfValue, question.maxIfValue)
-			elif question.isOrdinalOrNominal():
-				if question.multiple:
-					answer.answerIfMultiple = []
-					for choice in question.choices:
-						if random.randrange(100) > 50:
-							answer.answerIfMultiple.append(choice)
-				else:
-					for choice in question.choices:
-						if random.randrange(100) > 100 // len(question.choices):
-							answer.answerIfText = choice
-							break
-					if not answer.answerIfText:
-						answer.answerIfText = question.choices[0]
-			answer.publish()
-			answer.published = GenerateRandomDate(entry.published, endDate)
-			answer.created = answer.published
-			answer.put()
-			entry.lastAnnotatedOrAnsweredOrLinked = answer.published
-			entry.put()
+		questions =  rakontu.getActiveQuestions()
+		if questions:
+			for question in questions:
+				if not questionKeyNames.has_key(question.refersTo):
+					questionKeyNames[question.refersTo] = []
+				questionKeyNames[question.refersTo].append(question.getKeyName())
+			for member in rakontu.getActiveMembers(): 
+				memberKeyNames.append(member.getKeyName())  
+			for entry in rakontu.getNonDraftEntries():
+				entryKeyNames.append(entry.getKeyName())
+			for i in range(numItems):
+				member = Member.get_by_key_name(random.choice(memberKeyNames), parent=rakontu)
+				entry = Entry.all().filter("id = ", random.choice(entryKeyNames)).get()
+				questionKeyNamesForThisType = questionKeyNames[entry.type]
+				question = Question.all().filter("id = ", random.choice(questionKeyNamesForThisType)).get()
+				text = random.choice(LOREM_IPSUM)[:random.randrange(5,20)]
+				keyName = GenerateSequentialKeyName("answer")
+				answer = Answer(
+									key_name=keyName, 
+									id=keyName,
+									parent=entry,
+									rakontu=rakontu, 
+									question=question,
+									creator=member,  
+									referent=entry)
+				if question.type == "boolean":
+					if random.randrange(100) > 50:
+						answer.answerIfBoolean = "yes"
+					else: 
+						answer.answerIfBoolean = "no"
+				elif question.type == "text":
+					answer.answerIfText = text
+				elif question.type == "value":
+					answer.answerIfValue = random.randrange(question.minIfValue, question.maxIfValue)
+				elif question.isOrdinalOrNominal():
+					if question.multiple:
+						answer.answerIfMultiple = []
+						for choice in question.choices:
+							if random.randrange(100) > 50:
+								answer.answerIfMultiple.append(choice)
+					else:
+						for choice in question.choices:
+							if random.randrange(100) > 100 // len(question.choices):
+								answer.answerIfText = choice
+								break
+						if not answer.answerIfText:
+							answer.answerIfText = question.choices[0]
+				answer.publish()
+				answer.published = GenerateRandomDate(entry.published, endDate)
+				answer.created = answer.published
+				answer.put()
+				entry.lastAnnotatedOrAnsweredOrLinked = answer.published
+				entry.put()
 	elif createWhat == "nudges":
 		entryKeyNames = []
 		memberKeyNames = []

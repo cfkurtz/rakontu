@@ -96,7 +96,8 @@
 	
 	{% if current_member.isOnlineMember %}
 		{% if current_member.isManagerOrOwner %}
-			<p><a href="/{{dir_manage}}/{{url_first}}?{{rakontu.urlQuery}}">{{template_show_new_member_page}}</a></p>
+			<p><a href="/{{dir_manage}}/{{url_first}}?{{rakontu.urlQuery}}">{{template_show_new_manager_page}}</a></p>
+			<p><a href="/{{dir_visit}}/{{url_new}}?{{rakontu.urlQuery}}">{{template_show_new_member_page}}</a></p>
 		{% else %}
 			<p><a href="/{{dir_visit}}/{{url_new}}?{{rakontu.urlQuery}}">{{template_show_new_member_page}}</a></p>
 		{% endif %}

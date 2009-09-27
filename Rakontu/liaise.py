@@ -334,6 +334,7 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 										keyName = GenerateSequentialKeyName("answer")
 										answer = Answer(
 													key_name=keyName, 
+													id=keyName,
 													parent=entry,
 													rakontu=rakontu, 
 													question=question, 

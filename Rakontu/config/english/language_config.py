@@ -208,19 +208,21 @@ DEFAULT_QUESTION_BOOLEAN_RESPONSE = "Yes"
 
 # The default nudge category names that come up in Rakontu settings. 
 # The number of strings in this list MUST match the number of categories (NUM_NUDGE_CATEGORIES) in site_configuration.py.
-DEFAULT_NUDGE_CATEGORIES = [u"appropriate", 
+DEFAULT_NUDGE_CATEGORIES = [
 						u"important", 
-						u"useful to new members", 
-						u"useful for resolving conflicts", 
-						u"useful for understanding"]
+						u"appropriate", 
+						u"for new members", 
+						u"for learning", 
+						u"for understanding"]
 
 # These questions appear next to the category names and give information about how to made nudge decisions.
 # They MUST match up with the nudge category names in order.
-DEFAULT_NUDGE_CATEGORY_QUESTIONS = [u"Is it helpful or harmful to the Rakontu?", 
+DEFAULT_NUDGE_CATEGORY_QUESTIONS = [
 						u"It is earth-shaking or trivial in impact?", 
+						u"Is it helpful or harmful to the Rakontu?", 
 						u"Would new members be especially interested in it?", 
-						u"Would people in conflict be helped by it?", 
-						u"Would it help people to make sense of things in our Rakontu?"]
+						u"Would it be especially helpful for learning from each other?", 
+						u"Would it help us understand each other better?"]
 
 # Event types are names for activities in the system that create activity points for entries and
 # accumulate nudge points for members. (They only appear in the manage-settings screen.)
@@ -457,6 +459,7 @@ TEMPLATE_TERMS = {
 		# things lots of objects have
 		"template_linked_to": "Linked to",
 		"template_name": "Name",
+		"template_url_lookup": "Lookup ID",
 		"template_text": "Text",
 		"template_file": "File",
 		"template_nickname": "Nickname",
@@ -472,6 +475,7 @@ TEMPLATE_TERMS = {
 		"template_subject": "Subject",
 		"template_joined": "Joined",
 		"template_created": "Created",
+		"template_created_by": "Created by",
 		"template_published": "Published",
 		"template_last_published": "Last published",
 		"template_last_changed": "Last changed",
@@ -491,6 +495,7 @@ TEMPLATE_TERMS = {
 		"template_year": "year",
 		"template_month": "month",
 		"template_day": "day",
+		"template_hours": "hours",
 		"template_log_out": "Sign out",
 		"template_help": "Help",
 		"template_newer": "Newer",
@@ -730,6 +735,7 @@ TEMPLATE_TERMS = {
 		"template_if_ordinal_or_nominal": "only applies if question is of the ordinal or nominal type",
 		"template_explanation": "Explanation",
 		"template_choices": "Choices",
+		"template_multiple": "multiple",
 		"template_multiple_answers_allowed": "Multiple answers allowed",
 		"template_choose_csv_question_file": "Choose a CSV file to import questions from",
 		"template_export_questions_to_csv": "Export questions to CSV",
@@ -795,18 +801,21 @@ TEMPLATE_TERMS = {
 		"template_no_character_how_to": "no how-to statement",
 		"template_no_entries_or_annotations_for_character": "No entries or annotations match the current selections for this character.",
 		# visit/drafts
-		"template_name_click_to_edit": "Name (click to edit)",
-		"template_versions_click_to_use": "Previous versions (click to recall)",
+		"template_name_and_information_click_to_edit": "Name and information (click to edit)",
+		"template_versions_click_to_use": "Previous versions (click to revert)",
 		"template_your_saved_drafts": "Your saved drafts",
 		"template_saved_drafts_for": "Saved drafts for",
 		"template_versions": "History",
 		"template_you_have_no_drafts": 'You have no saved drafts. To save a draft, create a story or other entry and click "Save draft" at the bottom of the screen.',
+		"template_add_or_change_editors": "Add or change editors",
+		"template_additional_editors": "Additional editors",
+		"template_other_peoples_drafts_you_can_edit": "Draft entries on which you are an additional editor",
 		# visit/editors
 		"template_change_additional_editors": "Add or change editors of ", # the entry name
 		"template_who_can_edit_this_entry": "Besides yourself, who can change this", # story, etc
 		"template_can_edit": "Can change this entry",
 		# visit/entry
-		"template_restoring_version_from": "Recalling version from",
+		"template_restoring_version_from": "Reverting to version from",
 		"template_tell_new_story": "Please tell your story here.",
 		"template_describe_new_pattern": "Please describe the pattern of stories you want to make note of here.",
 		"template_describe_new_collage": "Please describe your collage here.",
@@ -826,7 +835,7 @@ TEMPLATE_TERMS = {
 		"template_yes_manager_only_resource": "This resource is only appropriate for managers. Hide it from other members.",
 		"template_what_category_should_this_resource_be_in": "If this is a help or new-members resource, in which category should it be displayed?",
 		"template_or_enter_a_new_category_here": "or enter a new category here",
-		"template_load_version": "Recall text version",
+		"template_load_version": "Revert to text version",
 		"template_stories_included_in_collage": "Stories included in this collage",
 		"template_link_comment": "Link comment",
 		"template_add_stories_to_the_collage": "Add stories to the collage",
@@ -835,6 +844,8 @@ TEMPLATE_TERMS = {
 		"template_add_search_filters_to_the_pattern": "Add search filters to the pattern",
 		"template_no_shared_searches_available": "There are no shared searches available.",
 		"template_accepted_file_types": "Accepted file types",
+		"template_add_attachments_to_entry": "You can add some attachments to your", # story, etc
+		"template_change_attachments": "These attachments have been added to the", # story, etc
 		# visit/filter
 		"template_filter_name_and_comment": "Search filter name and comment",
 		"template_filter_should_be_shared": "Should this filter be shared?",
@@ -864,7 +875,8 @@ TEMPLATE_TERMS = {
 		"template_support": "Support request",
 		"template_site_support": "Site support",
 		"template_guide_has_not_entered_intro": "This guide has not yet specified which sorts of questions they can answer.",
-		"template_show_new_member_page": "Visit the new-member page again",
+		"template_show_new_member_page": "Visit the new-member page",
+		"template_show_new_manager_page": "Visit the new-manager page",
 		# visit/home
 		"template_time_range": "Time range",
 		"template_to_time": "to", # between two parts of time range
@@ -957,6 +969,7 @@ TEMPLATE_TERMS = {
 		"template_inline_image_display_choice": "Do you want to see attached images on the same page as the entries they are attached to?",
 		"template_details_text_length_choice": "How many characters (letters) long would you like texts displayed in details views to be?",
 		"template_view_options_on_top": "On which of these timeline views should the options (other than the time range) be shown above the timeline?",
+		"template_view_help_resources_in_timelines": "On which of these timeline views should help resources be shown?",
 		# visit/rakontu
 		"template_rakontu_created_on": "This Rakontu was created on",
 		"template_counts_of_items_in": "Counts of items in", # rakontu name
@@ -979,6 +992,7 @@ TEMPLATE_TERMS = {
 		"template_no_annotations_for_entry": "This entry has no annotations that match the current selections.",
 		"template_add_editors": "Allow others to edit this", # story, etc
 		"template_change_editors": "Change who can edit this", # story, etc
+		"template_shift_by": "Admin only: Shift times by", # this is for admin only, to prepare demos mainly
 		# visit/readAnnotation
 		"template_request_type": "Request type",
 		"template_completion_status": "Status",
@@ -1050,12 +1064,13 @@ TEMPLATE_BUTTONS = {
 		"button_save_changes_and_return": "Save changes and return",
 		"button_preview": "Preview",
 		"button_save_draft": "Save draft",
+		"button_unpublish": "Unpublish (make into draft)",
 		"button_save_as_draft": "Save as draft",
 		"button_edit_draft": "Edit draft",
 		"button_view_all_drafts": "View all drafts",
 		"button_change_entry": "Change entry",
 		"button_publish": "Publish",
-		"button_remove_selected_drafts": "Remove selected drafts",
+		"button_remove_selected_drafts": "Remove selected drafts and versions",
 		"button_save_and_apply": "Save and apply",
 		"button_save_as_new_search_and_apply": "Save as new search and apply",
 		"button_curate": "Curate",
@@ -1086,7 +1101,7 @@ TEMPLATE_BUTTONS = {
 		"button_mark_as_completed": "Mark as completed",
 		"button_mark_as_not_completed": "Mark as not completed",
 		"button_save_new_relations": "Save new relations",
-		"button_load_version": "Recall",
+		"button_load_version": "Revert to version",
 		"button_enter_new_nickname": "Enter New Nickname",
 		}
 

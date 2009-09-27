@@ -169,7 +169,7 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 				rowEntryShouldBeIn = 0
 			entryTimeInSeconds = (timeToCheck - minTime).seconds + (timeToCheck - minTime).days * DAY_SECONDS
 			if timeRangeInSeconds > 0:
-				colEntryShouldBeIn = max(0, min(numCols-1, int(1.0 * numCols * entryTimeInSeconds / timeRangeInSeconds) - 1))
+				colEntryShouldBeIn = max(0, min(numCols-1, int(1.0 * numCols * entryTimeInSeconds / timeRangeInSeconds)))
 			else:
 				colEntryShouldBeIn = 0
 			if not rowColEntries.has_key((rowEntryShouldBeIn, colEntryShouldBeIn)):
@@ -182,7 +182,7 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 				if rowColEntries.has_key((row, col)):
 					entries = rowColEntries[(row, col)]
 					for entry in entries:
-						text =  ItemDisplayStringForGrid(entry, member, "home", curating=curating, showDetails=showDetails, adjustFontSize=True, minActivityPoints=minActivityPoints)
+						text =  ItemDisplayStringForGrid(entry, member, "home", curating=curating, showDetails=showDetails, minActivityPoints=minActivityPoints)
 						textsInThisCell.append(text)
 				haveContent = haveContent or len(textsInThisCell) > 0
 				textsInThisRow.append(textsInThisCell)
@@ -245,6 +245,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
  								   'retold_links_outgoing': entry.getOutgoingLinksOfType("retold"),
  								   'reminded_links_incoming': entry.getIncomingLinksOfType("reminded"),
  								   'reminded_links_outgoing': entry.getOutgoingLinksOfType("reminded"),
+ 								   'responded_links_outgoing': entry.getOutgoingLinksOfType("responded"),
  								   'related_links_both_ways': entry.getLinksOfType("related"),
  								   'included_links_incoming_from_invitations': entry.getIncomingLinksOfType("responded"),
  								   'included_links_incoming_from_collages': entry.getIncomingLinksOfType("included"),
@@ -327,7 +328,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 					rowItemShouldBeIn = 0
 				itemTimeInSeconds = (timeToCheck - minTime).seconds + (timeToCheck - minTime).days * DAY_SECONDS
 				if timeRangeInSeconds > 0:
-					colItemShouldBeIn = max(0, min(numCols-1, int(1.0 * numCols * itemTimeInSeconds / timeRangeInSeconds) - 1))
+					colItemShouldBeIn = max(0, min(numCols-1, int(1.0 * numCols * itemTimeInSeconds / timeRangeInSeconds)))
 				else:
 					colItemShouldBeIn = 0
 				if not rowColItems.has_key((rowItemShouldBeIn, colItemShouldBeIn)):
@@ -340,7 +341,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 					if rowColItems.has_key((row, col)):
 						items = rowColItems[(row, col)]
 						for item in items:
-							text = ItemDisplayStringForGrid(item, member, "entry", curating, showDetails=showDetails)
+							text = ItemDisplayStringForGrid(item, member, "entry", curating, showDetails=showDetails, minActivityPoints=minActivityPoints)
 							textsInThisCell.append(text)
 					haveContent = haveContent or len(textsInThisCell) > 0
 					textsInThisRow.append(textsInThisCell)
@@ -402,7 +403,29 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 		if access:
 			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
-			if "doSomething" in self.request.arguments():
+			if "shiftTime" in self.request.arguments() and users.is_current_user_admin():
+				# this is an admin-only "secret" method of shifting stuff around in preparation for a demo
+				hours = None
+				if self.request.get("shiftHours"):
+					try:
+						hours = int(self.request.get("shiftHours"))
+						delta = timedelta(seconds=hours * 60 * 60)
+						entry.created += delta
+						entry.published += delta
+						entry.edited += delta
+						if entry.collected:
+							entry.collected += delta
+						entry.lastAnnotatedOrAnsweredOrLinked += delta
+						entry.put()
+						dependents = entry.listAllDependents()
+						for dependent in dependents:
+							dependent.created += delta
+							dependent.published += delta
+							dependent.put()
+						self.redirect(rakontu.linkURL())
+					except:
+						self.redirect(rakontu.linkURL())
+			elif "doSomething" in self.request.arguments():
 				self.redirect(self.request.get("nextAction"))
 			elif "showVersions" in self.request.arguments():
 				url = BuildURL("dir_visit", "url_read", "%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_versions"], URL_OPTIONS["url_query_versions"]))
@@ -720,7 +743,7 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 					rowItemShouldBeIn = 0
 				itemTimeInSeconds = (timeToCheck - minTime).seconds + (timeToCheck - minTime).days * DAY_SECONDS
 				if timeRangeInSeconds > 0:
-					colItemShouldBeIn = max(0, min(numCols-1, int(1.0 * numCols * itemTimeInSeconds / timeRangeInSeconds) - 1))
+					colItemShouldBeIn = max(0, min(numCols-1, int(1.0 * numCols * itemTimeInSeconds / timeRangeInSeconds)))
 				else:
 					colItemShouldBeIn = 0
 				if not rowColItems.has_key((rowItemShouldBeIn, colItemShouldBeIn)):
@@ -733,7 +756,7 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 					if rowColItems.has_key((row, col)):
 						items = rowColItems[(row, col)]
 						for item in items:
-							text = ItemDisplayStringForGrid(item, member, "member", curating, showDetails=showDetails)
+							text = ItemDisplayStringForGrid(item, member, "member", curating, showDetails=showDetails, minActivityPoints=minActivityPoints)
 							textsInThisCell.append(text)
 					textsInThisRow.append(textsInThisCell)
 				textsForGrid.append(textsInThisRow)
@@ -883,7 +906,7 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 					rowItemShouldBeIn = 0
 				itemTimeInSeconds = (timeToCheck - minTime).seconds + (timeToCheck - minTime).days * DAY_SECONDS
 				if timeRangeInSeconds > 0:
-					colItemShouldBeIn = max(0, min(numCols-1, int(1.0 * numCols * itemTimeInSeconds / timeRangeInSeconds) - 1))
+					colItemShouldBeIn = max(0, min(numCols-1, int(1.0 * numCols * itemTimeInSeconds / timeRangeInSeconds)))
 				else:
 					colItemShouldBeIn = 0
 				if not rowColItems.has_key((rowItemShouldBeIn, colItemShouldBeIn)):
@@ -896,7 +919,7 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 					if rowColItems.has_key((row, col)):
 						items = rowColItems[(row, col)]
 						for item in items:
-							text = ItemDisplayStringForGrid(item, member, "character", curating, showDetails=showDetails)
+							text = ItemDisplayStringForGrid(item, member, "character", curating, showDetails=showDetails, minActivityPoints=minActivityPoints)
 							textsInThisCell.append(text)
 					textsInThisRow.append(textsInThisCell)
 				textsForGrid.append(textsInThisRow)
@@ -1062,6 +1085,7 @@ class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 							keyName = GenerateSequentialKeyName("answer")
 							answerToEdit = Answer(
 												key_name=keyName, 
+												id=keyName,
 												parent=memberToEdit,
 												rakontu=rakontu, 
 												question=question, 
@@ -1165,6 +1189,7 @@ class ChangeMemberPreferencesPage(ErrorHandlingRequestHander):
 					viewOptions = memberToEdit.getAllViewOptions()
 					for option in viewOptions:
 						option.showOptionsOnTop = self.request.get("showOptionsOnTop|%s" % option.location) == "yes"
+						option.showHelpResourcesInTimelines = self.request.get("showHelpResourcesInTimelines|%s" % option.location) == "yes"
 						option.put()
 				memberToEdit.put()
 				self.redirect(BuildURL("dir_visit", "url_preferences", memberToEdit.urlQuery()))
@@ -1247,11 +1272,13 @@ class ChangeMemberDraftsPage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
-			offlineMember = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
-			if offlineMember:
-				memberToEdit = offlineMember
+			urlMember = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
+			if urlMember and str(urlMember.key()) != str(member.key()):
+				memberToEdit = urlMember
+				editorEntries = None
 			else:
 				memberToEdit = member
+				editorEntries = member.getEntriesOfOtherPeopleICanEdit()
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': TITLES["DRAFTS_FOR"], 
 						   	   'title_extra': memberToEdit.nickname, 
@@ -1262,6 +1289,7 @@ class ChangeMemberDraftsPage(ErrorHandlingRequestHander):
 							   'draft_entries': memberToEdit.getDraftEntries(),
 							   'refer_type': "member",
 							   'refer_type_display': DisplayTypeForQuestionReferType("member"),
+							   'draft_entries_of_other_people_you_can_edit': editorEntries,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/drafts.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -1290,6 +1318,9 @@ class ChangeMemberDraftsPage(ErrorHandlingRequestHander):
 				else:
 					memberToEdit = member
 				for entry in memberToEdit.getDraftEntries():
+					for version in entry.getTextVersions():
+						if self.request.get("remove|%s" % version.key()) == "yes":
+							db.delete(version)
 					if self.request.get("remove|%s" % entry.key()) == "yes":
 						entry.removeAllDependents()
 						db.delete(entry)
@@ -1653,6 +1684,7 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 									keyName = GenerateSequentialKeyName("searchref")
 									ref = SavedSearchQuestionReference(
 												key_name=keyName, 
+												id=keyName,
 												parent=search, 
 												rakontu=rakontu, 
 												search=search, 
@@ -1873,10 +1905,6 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 		else:
 			return defaultURL
 	# other options - all
-	elif "toggleViewHomeOptionsOnTop" in request.arguments():
-		viewOptions.showOptionsOnTop = not viewOptions.showOptionsOnTop
-		viewOptions.put()
-		return defaultURL  
 	elif "toggleShowDetails" in request.arguments():  
 		viewOptions.showDetails = not viewOptions.showDetails
 		viewOptions.put()
@@ -1910,12 +1938,16 @@ def ProcessFlagOrUnFlagCommand(request, itemsThatCanBeCurated):
 			item.put()
 			break # only one thing can be flagged or unflagged at a time
 		
-def ItemDisplayStringForGrid(item, member, location, curating=False, showDetails=False, adjustFontSize=False, minActivityPoints=0):
+def ItemDisplayStringForGrid(item, member, location, curating=False, showDetails=False, adjustFontSize=True, minActivityPoints=0):
 	# font size string (home grid only)
 	fontSizeStartString = ""
 	fontSizeEndString = ""
-	if adjustFontSize and item.__class__.__name__ == "Entry":
-		fontSizePercent = min(200, 90 + item.activityPoints - minActivityPoints)
+	if adjustFontSize:
+		if item.__class__.__name__ == "Entry":
+			activityPoints = item.activityPoints
+		else:
+			activityPoints = item.entryActivityPointsWhenPublished
+		fontSizePercent = min(200, 90 + activityPoints - minActivityPoints)
 		downdrift = member.rakontu.getEntryActivityPointsForEvent("downdrift")
 		if downdrift:
 			daysSinceTouched = 1.0 * (datetime.now(tz=pytz.utc) - item.lastTouched()).seconds / DAY_SECONDS

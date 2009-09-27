@@ -11,27 +11,38 @@
 		
 		<h3>{{template_draft}} {{template_entries|lower}}</h3>
 		{% if draft_entries %}
-	      	<table border="0" cellpadding="4" cellspacing="0">
+	      	<table border="0" cellpadding="4" cellspacing="0" style="width:100%">
 	      	<tr>
-	      		<th>{{template_type}}</th>
-	      		<th>{{template_name_click_to_edit}}</th>
-	      		<th>{{template_created}}</th>
-	      		<th>{{template_last_changed}}</th>
+	      		<th>{{template_name_and_information_click_to_edit}}</th>
 	      		<th>{{template_versions_click_to_use}} {{"text_versions"|info}} {{"text_versions"|tip}}</th>
-	      		<th width="80"a>{{template_remove}}?</th>
+	      		<th width="80">{{template_remove}}?</th>
 	      		</tr>
 	      	{% for entry in draft_entries %}
 		      	<tr>
-		      	<td>{{entry.typeForDisplay}}</td>
-				<td><a href="{{entry.typeAsURL}}?{{entry.urlQuery}}">{{entry.title}}</a></td>
-				<td>{{entry.created|timeZone:member.timeZoneName|time:member.timeFormat}}<br/>{{entry.created|timeZone:member.timeZoneName|date:member.dateFormat}}</td>
-				<td>{{entry.edited|timeZone:member.timeZoneName|time:member.timeFormat}}<br/>{{entry.edited|timeZone:member.timeZoneName|date:member.dateFormat}}</td>
+				<td>
+					<a href="{{entry.typeAsURL}}?{{entry.urlQuery}}" {{entry.getTooltipText}}>{{entry.title}}</a> 
+					({{entry.typeForDisplay}})</p>
+					<p>{{template_created}}: {{entry.created|timeZone:member.timeZoneName|time:member.timeFormat}} 
+						{{entry.created|timeZone:member.timeZoneName|date:member.dateFormat}}</p>
+					<p>{{template_last_changed}}: {{entry.edited|timeZone:member.timeZoneName|time:member.timeFormat}} 
+						{{entry.edited|timeZone:member.timeZoneName|date:member.dateFormat}}</p>
+					<p>{{template_additional_editors}}:
+					{% if entry.additionalEditors %}
+						{{entry.additionalEditorsListWithLinks}}
+						(<a href="/{{dir_visit}}/{{url_editors}}?{{entry.urlQuery}}">{{template_change}}</a>)
+					{% else %}
+						{{template_none}}
+						(<a href="/{{dir_visit}}/{{url_editors}}?{{entry.urlQuery}}">{{template_add_editors}} {{entry.typeForDisplay}}</a>)
+					{% endif %}
+					</p>
+				</td>
 				<td>
 					{% for version in entry.getTextVersionsInTimeOrder %}
-						<p><a href="{{entry.typeAsURL}}?{{entry.urlQuery}}&{{version.urlQuery}}">{{version.title}}</a>
+						<p><input type="checkbox" name="remove|{{version.key}}" value="yes" id="remove|{{ version.key }}"/>
+						<label for="remove|{{ version.key }}">{{template_remove}}</label>
+						<a href="{{entry.typeAsURL}}?{{entry.urlQuery}}&{{version.urlQuery}}" {{version.text|upTo:current_member.shortDisplayLength|orNbsp}}>{{version.title}}</a>
 						{{version.created|timeZone:member.timeZoneName|time:member.timeFormat}}
 						{{version.created|timeZone:member.timeZoneName|date:member.dateFormat}}
-						({{version.text|upTo:current_member.shortDisplayLength|orNbsp}})
 						</p>
 					{% endfor %}
 					&nbsp;
@@ -44,11 +55,44 @@
 		{% else %}
 			<p>{{template_you_have_no_drafts}}</p>
 		{% endif %}
-				
+
     {% if draft_entries  %}
     	<p></p>
     	<p><center><input type="submit" name="changeSettings|{{member.key}}" value="{{button_remove_selected_drafts}}" class="button"></center></p>
     {% endif %}
+				
+		{% if draft_entries_of_other_people_you_can_edit %}
+		<h3>{{template_other_peoples_drafts_you_can_edit}}</h3>
+	      	<table border="0" cellpadding="4" cellspacing="0" style="width:100%">
+	      	<tr>
+	      		<th>{{template_name_and_information_click_to_edit}}</th>
+	      		<th>{{template_versions_click_to_use}} {{"text_versions"|info}} {{"text_versions"|tip}}</th>
+	      		</tr>
+	      	{% for entry in draft_entries_of_other_people_you_can_edit %}
+		      	<tr>
+		      	<td>
+					<a href="{{entry.typeAsURL}}?{{entry.urlQuery}}" {{entry.getTooltipText}}>{{entry.title}}</a> 
+					({{entry.typeForDisplay}})</p>
+					<p>{{template_created_by}}: {{entry.creator.linkString}}</p>
+					<p>{{template_created}}: {{entry.created|timeZone:member.timeZoneName|time:member.timeFormat}} 
+						{{entry.created|timeZone:member.timeZoneName|date:member.dateFormat}}</p>
+					<p>{{template_last_changed}}: {{entry.edited|timeZone:member.timeZoneName|time:member.timeFormat}} 
+						{{entry.edited|timeZone:member.timeZoneName|date:member.dateFormat}}</p>
+					<p>{{template_additional_editors}}: {{entry.additionalEditorsListWithLinks}}</p>
+				</td>
+				<td>
+					{% for version in entry.getTextVersionsInTimeOrder %}
+						<p><a href="{{entry.typeAsURL}}?{{entry.urlQuery}}&{{version.urlQuery}}" {{version.text|upTo:current_member.shortDisplayLength|orNbsp}}>{{version.title}}</a>
+						{{version.created|timeZone:member.timeZoneName|time:member.timeFormat}}
+						{{version.created|timeZone:member.timeZoneName|date:member.dateFormat}}
+						</p>
+					{% endfor %}
+					&nbsp;
+					</td>
+				</tr>
+			{% endfor %}
+			</table>
+		{% endif %}
 	</form>	
 	</div>
 	</div>

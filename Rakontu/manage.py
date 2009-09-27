@@ -755,6 +755,7 @@ class ManageCharacterPage(ErrorHandlingRequestHander):
 								keyName = GenerateSequentialKeyName("answer")
 								answerToEdit = Answer(
 													key_name=keyName, 
+													id=keyName,
 													parent=character,
 													rakontu=rakontu, 
 													question=question, 

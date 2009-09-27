@@ -135,7 +135,6 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 			sortedQuestions.sort(lambda a,b: cmp(a.order, b.order))
 			if type == "resource":
 				categories = rakontu.getResourceCategoryList()
-				DebugPrint(categories)
 			else:
 				categories = None
 			template_values = GetStandardTemplateDictionaryAndAddMore({
@@ -145,6 +144,7 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 							   'rakontu': rakontu, 
 							   'skin': rakontu.getSkinDictionary(),
 							   'entry_type': type,
+							   'entry_type_display': DisplayTypeForEntryType(type),
 							   'entry': entry,
 							   'attachments': attachments,
 							   'attachment_file_types': ACCEPTED_ATTACHMENT_FILE_TYPES,
@@ -215,7 +215,6 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 					self.redirect(url)
 			else:
 				thingsToPublish = []
-				shouldUnpublishEntry = False
 				thingsToPut = []
 				thingsToDelete = []
 				# get attribution info
@@ -248,8 +247,6 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 				entry.edited = datetime.now(tz=pytz.utc)
 				preview = False
 				if "save|%s" % type in self.request.arguments():
-					if not newEntry and not entry.draft: # was published before
-						shouldUnpublishEntry = True
 					entry.draft = True
 				elif "preview|%s" % type in self.request.arguments():
 					entry.draft = True
@@ -293,6 +290,7 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 						keyName = GenerateSequentialKeyName("link")
 						link = Link(
 								key_name=keyName, 
+								id=keyName,
 								parent=itemFrom,
 								rakontu=rakontu,
 								itemFrom=itemFrom, 
@@ -316,7 +314,9 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 						if self.request.get("addLink|%s" % anEntry.key()) == "yes":
 							comment = htmlEscape(self.request.get("linkComment|%s" % anEntry.key()))
 							keyName = GenerateSequentialKeyName("link")
-							link = Link(key_name=keyName, 
+							link = Link(
+								key_name=keyName, 
+								id=keyName,
 								parent=entry,
 								rakontu=rakontu,
 								itemFrom=entry, 
@@ -338,7 +338,10 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 					for aSearch in rakontu.getNonPrivateSavedSearches():
 						comment = htmlEscape(self.request.get("linkComment|%s" % aSearch.key()))
 						if self.request.get("addLink|%s" % aSearch.key()) == "yes":
-							link = Link(key_name=GenerateSequentialKeyName("link"), 
+							keyName = GenerateSequentialKeyName("link")
+							link = Link(
+								key_name=keyName, 
+								id=keyName,
 								parent=entry,
 								rakontu=rakontu,
 								itemFrom=entry, 
@@ -364,6 +367,7 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 							keyName = GenerateSequentialKeyName("answer")
 							answerToEdit = Answer(
 												key_name=keyName,
+												id=keyName,
 												parent=entry,
 												rakontu=rakontu, 
 												question=question, 
@@ -388,20 +392,17 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 							thingsToDelete.append(attachment)
 				thingsToPut.append(entry.creator)
 				# finally, commit all changes to the database, except for new attachments
-				def txn(thingsToPut, thingsToDelete, thingsToPublish, shouldUnpublishEntry):
+				def txn(thingsToPut, thingsToDelete, thingsToPublish):
 					# publishing must be done inside the transaction 
 					# because it updates counters which rely on a consistent state
 					for thing in thingsToPublish:
 						if thing is entry:
-							DebugPrint(isFirstPublish, "publishing entry")
 							thing.publish(isFirstPublish)
 						else:
 							thing.publish()
-					if shouldUnpublishEntry:
-						entry.unPublish()
 					db.put(thingsToPut)
 					db.delete(thingsToDelete)
-				db.run_in_transaction(txn, thingsToPut, thingsToDelete, thingsToPublish, shouldUnpublishEntry)
+				db.run_in_transaction(txn, thingsToPut, thingsToDelete, thingsToPublish)
 				# commit NEW attachments separately, so that SOME might still attach even if one doesn't
 				foundAttachments = entry.getAttachments()
 				for i in range(rakontu.maxNumAttachments):
@@ -493,7 +494,10 @@ class ManageAdditionalEntryEditorsPage(ErrorHandlingRequestHander):
 					if self.request.get("key|%s" % aMember.key()) == "yes":
 						entry.additionalEditors.append(str(aMember.key()))
 				entry.put()
-				self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
+				if entry.draft:
+					self.redirect(BuildURL("dir_visit", "url_drafts", member.urlQuery()))
+				else:
+					self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
@@ -568,6 +572,7 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 							keyName = GenerateSequentialKeyName("answer")
 							answerToEdit = Answer(
 												key_name=keyName, 
+												id=keyName,
 												parent=entry,
 												rakontu=rakontu, 
 												question=question, 
@@ -591,7 +596,7 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 						thing.publish()
 					db.put(thingsToPut)
 					db.delete(thingsToDelete)
-				db.run_in_transaction(txn, thingsToPut, thingsToDelete)
+				db.run_in_transaction(txn, thingsToPut, thingsToDelete, thingsToPublish)
 				if preview:
 					self.redirect(BuildURL("dir_visit", "url_preview_answers", entry.urlQuery()))
 				else:
@@ -986,7 +991,9 @@ class RelateEntryPage(ErrorHandlingRequestHander):
 						if self.request.get("addLink|%s" % anEntry.key()) == "yes":
 							comment = htmlEscape(self.request.get("linkComment|%s" % anEntry.key()))
 							keyName = GenerateSequentialKeyName("link")
-							link = Link(key_name=keyName, 
+							link = Link(
+									key_name=keyName,
+									id=keyName, 
 									parent=entry,
 									rakontu=rakontu,
 									itemFrom=entry, 

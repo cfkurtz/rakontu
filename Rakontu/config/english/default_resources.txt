@@ -161,13 +161,13 @@ Interpret as=Wiki markup
 For new members=no
 Help resource=yes
 Managers only=no
-Rakontu uses a ratings system similar to SlashDot's karma system (with a few elaborations) called the *nudge* system. The idea is that Rakontu members nudge stories and other entries up and down in a sort of matrix or grid of meaning, where things nearer the surface are more important _for one reason or another_. Nudging in Rakontu has more to do with utility for particular purposes than with simple popularity.
+Rakontu uses a ratings system similar to SlashDot's karma system (with a few elaborations) called the *nudge* system. The idea is that Rakontu members nudge stories and other entries up and down in the timeline, making a sort of matrix of meaning where things nearer the surface are more important _for one reason or another_. Nudging in Rakontu has more to do with utility for particular purposes than with simple popularity.
 
-The people who set up your Rakontu also set up from one to five nudge *categories*, or axes of meaning. Anyone can nudge an item up or down in any of the Rakontu categories, and you can shift your view of the grid depending on what you care about at the time. These are similar to moderation categories on SlashDot, except that every small group can set their own meanings. 
+The people who set up your Rakontu also set up from one to five nudge *categories*, or axes of meaning. Anyone can nudge an item up or down in any of the Rakontu categories, and you can shift your view of the timeline depending on what you care about at the time. These are similar to moderation categories on SlashDot, except that every small group can set their own meanings. 
 
 You gain "nudge points" by participating in the Rakontu -- telling stories, adding comments, answering questions, and so on -- which you can use to nudge stories up and down. Exactly how many nudge points you accumulate may have been customized by your Rakontu managers. Some Rakontus might be more interested in having people tell stories while others are more interested in comments and question answering. You can find out what influences nudge point accumulation in your Rakontu by looking at the Visit - About this Rakontu page.
 
-[Grid Displays in Rakontu]
+[Timelines in Rakontu]
 Category=Using Rakontu
 Order in category=2
 Interpret as=Wiki markup
@@ -175,37 +175,53 @@ For new members=no
 Help resource=yes
 Managers only=no
 
-The home page of your Rakontu shows entries (stories, invitations, collages, patterns, resources) in three dimensions of meaning. The dimensions are:
+The home page of your Rakontu, as well as the pages for each entry, member and character, shows things in timelines. Besides the time dimension, which is left to right (most recent to the right), there are two other dimensions:
 
-  * Left-to-right placement shows when each item was created or last changed, with the most recent items appearing towards the right.
-  * Top-to-bottom placement shows how high or low each entry falls on the "nudge" rating system, with the highest-nudged items towards the top: good things "float up."
-  * The size of each item's text shows how much activity has taken place around the item. Things people are paying attention to have "buzz." (This is similar to how words are sized in tag clouds.)
+  # Top-to-bottom placement shows how high or low each entry falls on the "nudge" rating system, with the highest-nudged items towards the top: good things "float up." 
+  # The size of each item's text shows how much activity has taken place around the item. Things people are paying attention to have "buzz." 
 
-You can think of the grid display as sort of like a "stream" of stories and other items that the group is collectively building and talking about. The items most important to the group will usually be recent (toward the right), of high value (toward the top) and big (of high activity). The same grid appears on the page for each entry and for member pages (and character pages, if your Rakontu has characters). 
+You can think of a timeline as sort of like a "stream" of stories and other items that the group is collectively building and talking about. The items most important to the group will usually be recent (toward the right), of high value (toward the top) and big (of high activity). The same timeline appears on the page for each entry and for member pages (and character pages, if your Rakontu has characters). 
+
+Where nudges, tag sets, comments, requests, answers and links are shown on timelines, their height and size show the nudge value and activity level of the entry they are associated with _when they were added to it_, not at the current time. This means that when you are looking at an entry page you can see how it changed in nudge value and activity level as annotations were added to it.
 
 === Changing the horizontal (time) view
 
-In the home page and on member/character pages, you can change what time span you want to see by clicking on the buttons in the "Time range" area of the options below (or above) the grid. To refresh the grid to show new items that might have been recently added, click the ">|" button to set the right side of the grid to the present moment. To go back to the first entries in the Rakontu (or when the member joined the Rakontu), click the "|<" button. 
+In the home page and on member/character pages, you can change what time span you want to see by clicking on the buttons in the options above the timeline. To refresh the timeline to show new items that might have been recently added, click the ">|" button. This will set the right side of the timeline to the present moment. To go back to the first entries in the Rakontu (or when the member joined the Rakontu, or when the entry was created), click the "|<" button. 
 
 === Changing the vertical (nudge) view
 
-In all grid displays you can change the meaning of the vertical dimension by changing which categories are checked in the "Nudges" area of the options below (or above) the grid. For example, if (at the moment) you care more about importance than appropriateness, you can ignore appropriate/inappropriate nudges, and items will shift around accordingly. The managers of your Rakontu should set up nudge categories that are particularly meaningful to your group (and you should feel free to suggest useful categories!). 
+In all timelines you can change the meaning of the vertical dimension by changing which categories are checked in the "Nudges" area of the options below the timeline. For example, if (at the moment) you care more about importance than appropriateness, you can ignore appropriate/inappropriate nudges, and items will shift around accordingly. The managers of your Rakontu should set up nudge categories that are particularly meaningful to your group (and you should feel free to suggest useful categories!). 
 
 You can also set a nudge "floor" so that you can ignore items that have been rated below a certain level. To do this, change the number labeled "Hide entries below" and click Change. (Rakontu will save your preference for the next time you visit.)
 
-[Searching in Your Rakontu]
+[Publishing Entries]
 Category=Using Rakontu
 Order in category=3
 For new members=no
 Help resource=yes
 Interpret as=Wiki markup
 Managers only=no
+When you tell a story in Rakontu, you create an *entry* in the system. Likewise, an invitation, pattern, collage or resource is also an entry. Any type of entry can be *published* so that everyone can read and comment on it, or it can be saved as a *draft* which only you can see. To see your saved drafts, choose My stuff - Drafts. 
 
-All searching in Rakontu is done by creating and using search *filters*. When you search using filters, you don't go to a separate "search results" page with a simple list of matching items. Instead, you _change_ what is shown on the same grids you see on your Rakontu's home page and on each member's page (and character pages if your Rakontu has characters). In this way you can move back and forth through time and see the nudge levels (height) and activity levels (size) of items while you are looking at a subset of items based on your search.
+You can change any entry you have created, forever, whether it is a draft or not. To change a published entry, go to the page that displays entry and find the link that says "Change" just after the entry text. Make your changes, then click Publish again. All changes to entries (draft or not) are visible in the *show history* area of the entry's page, though you can remove old versions through the drafts screen.
 
-Members of your Rakontu can *share* some of the search filters they create. Shared search filters can be used by everyone, but they can only be changed by their creators. Shared filters can also be used as elements in patterns. To use a shared filter, look at the list of filters in the "Search filters" area of the options below (or above) any of the grid displays. If there are no shared search filters, you'll just see something saying there are no filters and that you can make one.
+You can also *unpublish* an entry, meaning that you can remove it from view and put it back into your own drafts list. To unpublish an entry, click the Unpublish button while changing a published entry. Once you do this not only the entry but also all annotations to it will be removed from view. 
 
-To make a new search filter, click on "Make new filter" in the options section below (or above) the grid on the home or member/character pages. You can search on:
+You can also invite other members of your Rakontu to edit your entry with you by adding *additional editors*. You can choose either particular members or groups of members by role (all curators and guides, for example). Shared editing is particularly useful for resources, or if two people want to tell a story together. Any entry you create will always remain linked to you and will show your name only; and you are the only one who can remove it from your drafts.
+
+[Searching in Your Rakontu]
+Category=Using Rakontu
+Order in category=4
+For new members=no
+Help resource=yes
+Interpret as=Wiki markup
+Managers only=no
+
+All searching in Rakontu is done by creating and using search *filters*. When you search using filters, you don't go to a separate "search results" page with a simple list of matching items. Instead, you _change_ what is shown on the same timelines you see on your Rakontu's home page and on each member's page (and character pages if your Rakontu has characters). In this way you can move back and forth through time and see the nudge levels (height) and activity levels (size) of items while you are looking at a subset of items based on your search.
+
+Members of your Rakontu can *share* some of the search filters they create. Shared search filters can be used by everyone, but they can only be changed by their creators. Shared filters can also be used as elements in patterns. To use a shared filter, look at the list of filters in the "Search filters" area of the options below any of the timelines. If there are no shared search filters, you'll just see something saying there are no filters and that you can make one.
+
+To make a new search filter, click on "Make new filter" in the options section below the timeline on the home or member/character pages. You can search on:
 
   * The title and/or text of the entry
   * Texts in annotations such as comments, requests, nudges, or links
@@ -219,7 +235,7 @@ All searches are case insensitive.
 
 [Building a Story Collage]
 Category=Using Rakontu
-Order in category=4
+Order in category=5
 Interpret as=Wiki markup
 For new members=no
 Help resource=yes
@@ -231,7 +247,7 @@ To build a story collage, choose "Build a story collage" from the Create menu. M
 
 [Describing a Pattern]
 Category=Using Rakontu
-Order in category=5
+Order in category=6
 Interpret as=Wiki markup
 For new members=no
 Help resource=yes
@@ -553,7 +569,7 @@ What's a nudge system? It's a way for people in a Rakontu to collectively sort t
 
 Probably the one most important thing you can do as a manager (or you all as managers) is to set up good nudge categories that suit your group. What is your collective goal? Do you want to resolve conflicts? Get to know each other better? Remember old times? Help new people feel more comfortable? Pursue a common goal, like building (or fighting) a planned development? Or just have some fun? You should use some of your nudge categories for marking stories (and other entries) that help with these goals.
 
-Two nudge categories that are almost always useful are *appropriateness* and *importance*. An appropriateness measure will push off-topic and rude/offensive stories to the bottom of the viewing grid (though offensive stories can also be flagged by curators). An importance measure separates "telling" stories that have a big impact, like "The day I found out where my cancer came from" from trivial ones like "The cat did a funny trick today." How important the importance measure is will depend on your group. If your Rakontu is just about being silly together, maybe you don't need an importance measure, and maybe a "silliness" measure will be more useful. You decide what matters.
+Two nudge categories that are almost always useful are *appropriateness* and *importance*. An appropriateness measure will push off-topic and rude/offensive stories to the bottom of the timeline (though offensive stories can also be flagged by curators). An importance measure separates "telling" stories that have a big impact, like "The day I found out where my cancer came from" from trivial ones like "The cat did a funny trick today." How important the importance measure is will depend on your group. If your Rakontu is just about being silly together, maybe you don't need an importance measure, and maybe a "silliness" measure will be more useful. You decide what matters.
 
 Writing good nudge category questions is also important, so that people know what they are rating. Make sure the categories and questions are not confusing!
 
@@ -570,7 +586,7 @@ Interpret as=Wiki markup
 For new members=no
 Help resource=yes
 Managers only=yes
-The activity system of a Rakontu is just a device that makes some titles appear larger than others in the Rakontu home page "grid" of entries. The purpose of this is to show people which entries have more "buzz" around them and provide social awareness.
+The activity system of a Rakontu is just a device that makes some titles appear larger than others in the Rakontu home page timeline. The purpose of this is to show people which entries have more "buzz" around them and provide social awareness.
 
 You can decide what sorts of activities should produce the most "buzz" by changing the numbers in the section under "Activity system" in the Settings page. For example, if you want people to particularly notice invitations, you might put a high number under "adding invitation." This will influence the starting size of every invitation created. Or, if you want people to particularly notice the building of links between entries, you could increase the numbers under each of the link-related items in the list. 
 
@@ -638,7 +654,7 @@ Note that there is not actually any difference between ordinal and nominal quest
 
 The name, text and explanation deserve some extra mention:
 
-  * The question's *name* is what appears in the search-filter page and when details are being hidden in the grid displays. It's basically a description of the question when space is short. These should be brief but tell you what the question is about.
+  * The question's *name* is what appears in the search-filter page and when details are being hidden in the timelines. It's basically a description of the question when space is short. These should be brief but tell you what the question is about.
   * The question's *text* is what people are actually asked when they are typing in a story or other entry, or answering questions about themselves. 
   * The question's *explanation* is an optional extra bit of text that you can use to help people understand a confusing question. Don't overuse it, because if you do your question list will get too long and too boring. But if people tell you a question is hard to understand, you can add clarification here. The explanation appears after the question proper in italics.
 
@@ -665,7 +681,7 @@ Managers only=yes
 As of this writing, Rakontu resides on the Google App Engine, which sets some limitations on the volume of use and speed of operation. Because of this, Rakontu also has limitations. Two are important:
 
   # No Rakontu can have more than 1000 entries (stories + invitations + patterns + collages + resources). For most small groups this limit will not be a problem. If you run up against this limit, you can remove older items to make room for more.
-  # For pages with time-based grids (home, entry, member, character), if the number of items selected exceeds a constant (set at the site level, by default 200), the number of items shown will be truncated (and the page will say so). To reduce the number, make different selections in the time range or types of items.
+  # For pages with timelines (home, entry, member, character), if the number of items selected exceeds a constant (set at the site level, by default 200), the number of items shown will be truncated (and the page will say so). To reduce the number, make different selections in the time range or types of items.
 
 [Rakontu known issues]
 Category=Technical
@@ -730,7 +746,7 @@ Forms are handled with one of two classes *.rakontu_form_centered* (used only on
 
 The division "rakontu_form_style" encircles all forms. It includes specifications for the elements *label*, *select*, *input* and *textarea*. There is also a ":hover" style for each of these.
 
-There are two classes of form-input submit styles: *input.button* and *input.button_small*, again each with its ":hover". The smaller buttons are used on the grid pages or any place where an option is being chosen that is not the main point of the page.
+There are two classes of form-input submit styles: *input.button* and *input.button_small*, again each with its ":hover". The smaller buttons are used on the timelines or any place where an option is being chosen that is not the main point of the page.
 
 === Image buttons
 

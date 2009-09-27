@@ -1,5 +1,5 @@
 application: rakontu
-version: alpha-0-9-2
+version: alpha-0-9-5
 runtime: python
 api_version: 1
 
@@ -14,12 +14,6 @@ handlers:
 - url: /favicon.ico
   static_files: images/favicon.ico
   upload: images/favicon.ico
-
-- url: /rocket/.*
-  script: rocket/rocket.py
-
-- url: /admin/.*
-  script: main.py
 
 - url: /images
   static_dir: images

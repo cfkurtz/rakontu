@@ -6,8 +6,8 @@
 	
 		<h3>{{template_information_about}} {{rakontu.name}}</h3>
 		
-		<p>{{template_rakontu_created_on}} {{rakontu.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.
-		
+		<p>{{template_created}}: {{rakontu.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.
+		{{template_url_lookup}}: {{rakontu.getKeyName}}.
 		</p>
 		
 		<p>{{template_description}}:</p>

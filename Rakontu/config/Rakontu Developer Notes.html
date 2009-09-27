@@ -11,6 +11,13 @@
 
 xxxxx
 
+<h3>Things we need help with</h3>
+
+testing
+code review
+better graphics
+more documentation - tutorials, etc
+
 <h3>Translating Rakontu</h3>
 
 <p>You can translate a Rakontu site to any language you like. The copy you have downloaded may already include
@@ -44,3 +51,13 @@ does not use translations, nor does backup and restore to MySQL.
 However, exports of entries to CSV (with answers) DOES use translations, as does XML export, because these are not "round trip"
 (import <i>and</i> export) functions.</li>
 </ul>
+
+
+<h3>Things I am not happy about</h3>
+
+transactions should be using keys_only queries
+
+always use match fetch number (1000) even when that is not likely (slows it down?)
+
+needs better error handling. no try excepts around puts or transactions.
+

@@ -15,9 +15,9 @@
 		" method="post" enctype="multipart/form-data">
 		
 			{% if entry %}
-			 	<h3>{{entry.title}} ({{entry_type}})</h3>
+			 	<h3>{{entry.title}} ({{entry_type_display}})</h3>
 			{% else %}
-				<h3>{{template_new}} {{entry_type|capfirst}}</h3>
+				<h3>{{template_new}} {{entry_type_display|capfirst}}</h3>
 			{% endif %}
 			<fieldset>
 			{% if not entry %}
@@ -82,7 +82,7 @@
 			{% if entry %}
 				<p>{{template_name}}
 			{% else %}
-				<p>{{template_please_give_name_to_your}} {{entry_type}}.</p><p>
+				<p>{{template_please_give_name_to_your}} {{entry_type_display}}.</p><p>
 			{% endif %}
 			<input type="text" name="title" size="60" value="
 				{% if entry %}
@@ -98,6 +98,9 @@
 				{% include "../common_attribution.html" %}
 			{% else %}
 				{% ifequal entry.creator.key current_member.key %}
+					{% include "../common_attribution.html" %}
+				{% endifequal %}
+				{% ifequal entry.liaisonIfOfflineMember.key current_member.key %}
 					{% include "../common_attribution.html" %}
 				{% endifequal %}
 			{% endif %}
@@ -204,8 +207,11 @@
 			{% if questions %}
 				{% if not entry %}
 					{% include "../common_questions.html" %}
-					{% else %}
+				{% else %}
 						{% ifequal entry.creator.key current_member.key %}
+							{% include "../common_questions.html" %}
+						{% endifequal %}
+						{% ifequal entry.creator.liaisonIfOfflineMember.key current_member.key %}
 							{% include "../common_questions.html" %}
 						{% endifequal %}
 				{% endif %}
@@ -342,7 +348,13 @@
 	  {% endifequal %}
 	  
 			{% if rakontu.allowsAttachments %}
-				<h3>{{template_attachments}} {{"uploading_files"|caution}}</h3>
+				<h3>
+				{% if not attachments %}
+					{{template_add_attachments_to_entry}} {{entry_type_display}}.
+				{% else %}
+					{{template_change_attachments}} {{entry_type_display}}.
+				{% endif %}
+				{{"uploading_files"|caution}}</h3>
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
@@ -354,7 +366,7 @@
 	      		{% for i in rakontu.maxNumAttachments|makeRange %}
 	      			<tr>
 		      		<td>
-		      			<input type="text" name="attachmentName{{i}}" value="{{attachments|listLookup:i|get:"name"|orNothing}}" size="20" maxlength="{{maxlength_name}}"/>
+		      			<input type="text" name="attachmentName{{i}}" value="{{attachments|listLookup:i|get:"name"|orNothing}}" size="40" maxlength="{{maxlength_name}}"/>
 		      		</td>
 					<td>
 						{% if attachments|listLookup:i|get:"fileName" %} 
@@ -364,7 +376,7 @@
 						{% endif %}
 					</td>
 					<td>
-						<input type="file" name="attachment{{i}}" size="20"/>
+						<input type="file" name="attachment{{i}}" size="40"/>
 					</td>
 					<td>
 						{% if attachments|listLookup:i|get:"fileName" %}
@@ -389,9 +401,11 @@
 					<input type="submit" name="save|{{entry_type}}" value="{{button_save_changes_and_return}}" class="button">
 					<input type="submit" name="preview|{{entry_type}}" value="{{button_preview}}" class="button">
 				{% else %}
-					{% ifequal entry.creator.key current_member.key %}
+					{% if entry.draft %}
 						<input type="submit" name="save|{{entry_type}}" value="{{button_save_draft}}" class="button">
-					{% endifequal %}
+					{% else %}
+						<input type="submit" name="save|{{entry_type}}" value="{{button_unpublish}}" class="button">
+					{% endif %}
 					<input type="submit" name="preview|{{entry_type}}" value="{{button_preview}}" class="button">
 					<input type="submit" name="publish|{{entry_type}}" value="{{button_publish}}" class="button">
 				{% endif %}

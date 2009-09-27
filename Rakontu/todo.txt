@@ -10,11 +10,8 @@ put "extra" fields in all objects (not indexable? - strings?) for later use
 
 change all url_options arguments to constants for translation
 
-activity level saved in annotation, so why can't do the font sizes in entry, member, charaacter?
-
 ======== CHECK:
 
-Use a bigger font on main page for older people with worse eyesight.
 
 Put tips next to selection options. DON'T NEED?
 
@@ -25,14 +22,6 @@ Only managers can delete their own items if entered as a name... CFK
 Drafts: "You have no saved drafts. To save a draft, create a story or other entry and click "Save draft" at the bottom of the screen."
 What screen? CFK
 
-Algorithm for placemnt of "how do you feel about this story" etc. checkboxes. Maybe a table? not lined up.
-
-entry.html - Attachments to what?
-
-CFK change help - timeline
-
-Indenting of "A retelling". CFK
-
 On my stuff - filters page, should say what they are. CFK
 
 Picture reloading somehow in upper corner when it should be cached (memcached and cached in the browser). CFK
@@ -41,13 +30,10 @@ Does not put picture in a preview. Or other attachments? By name or path? CFK
 
 Liason enters story -- shows all people, not just yours... OK? (yes but explain better)
 
-"Revert to" instead of "recall" on story text versions
-
 For things that you can't do, provide help or link (ex. batch entry)
 
-check front page for keeping new members; check not in twice?
-
-Still not bigger font on pdf pc. 
+I haven't really thought very much about what happens when people accidentally leave things blank
+in forms. Should some things be required?
 
 
 ======== FLESH OUT:

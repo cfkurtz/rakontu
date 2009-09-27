@@ -345,6 +345,9 @@ class Rakontu(db.Model):
 	def hasNonDraftEntries(self):
 		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).count() > 0
 	
+	def getDraftEntries(self):
+		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", True).fetch(FETCH_NUMBER)
+	
 	def numAnnotations(self):
 		# this is only used in the admin pages - documentation will say could be > 1000
 		return Annotation.all().filter("rakontu = ", self.key()).count()
@@ -926,7 +929,13 @@ class Rakontu(db.Model):
 		exportAlreadyThereForType = self.getExportOfType(type)
 		if exportAlreadyThereForType:
 			db.delete(exportAlreadyThereForType)
-		export = Export(key_name=GenerateSequentialKeyName("export"), rakontu=self, type=type, fileFormat=fileFormat)
+		keyName = GenerateSequentialKeyName("export")
+		export = Export(
+					key_name=keyName, 
+					id=keyName,
+					rakontu=self, 
+					type=type, 
+					fileFormat=fileFormat)
 		exportText = ""
 		if type == "csv_export_search":
 			if member:
@@ -1080,7 +1089,7 @@ class Rakontu(db.Model):
 class Question(db.Model):
 # ============================================================================================
 # thing asked about entry, member or character
-# parent: rakontu; URL lookup: id property
+# parent: rakontu
 # ============================================================================================
 
 	id = db.StringProperty(required=True)
@@ -1160,7 +1169,7 @@ class Question(db.Model):
 class Member(db.Model): 
 # ============================================================================================
 # person in rakontu
-# parent: rakontu; URL lookup: id property
+# parent: rakontu
 # ============================================================================================
 
 	id = db.StringProperty(required=True)
@@ -1197,7 +1206,7 @@ class Member(db.Model):
 	timeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE, indexed=False) # members choose these in their prefs page
 	timeFormat = db.StringProperty(default=DEFAULT_TIME_FORMAT, indexed=False) # how they want to see dates
 	dateFormat = db.StringProperty(default=DEFAULT_DATE_FORMAT, indexed=False) # how they want to see times
-	showAttachedImagesInline = db.BooleanProperty(default=False, indexed=False)
+	showAttachedImagesInline = db.BooleanProperty(default=True, indexed=False)
 	
 	joined = TzDateTimeProperty(auto_now_add=True)
 	firstVisited = db.DateTimeProperty(indexed=False)
@@ -1219,8 +1228,8 @@ class Member(db.Model):
 			db.delete(viewOptionsNow)
 		newObjects = []
 		for location in VIEW_OPTION_LOCATIONS:
-			# because the view options are never used in a URL query, they don't need a key name
-			viewOptions = ViewOptions(parent=self, member=self, rakontu=self.rakontu, location=location)
+			keyName = GenerateSequentialKeyName("viewOptions")
+			viewOptions = ViewOptions(keyName=keyName, id=keyName, parent=self, member=self, rakontu=self.rakontu, location=location)
 			if viewOptions.endTime.tzinfo is None:
 				viewOptions.endTime = viewOptions.endTime.replace(tzinfo=pytz.utc)
 			newObjects.append(viewOptions)
@@ -1459,6 +1468,15 @@ class Member(db.Model):
 			j += 1
 		return countNames, counts
 	
+	def getEntriesOfOtherPeopleICanEdit(self):
+		result = []
+		entries = self.rakontu.getDraftEntries()
+		for entry in entries:
+			if str(entry.creator.key()) != str(self.key()):
+				if entry.memberCanEditMe(self):
+					result.append(entry)
+		return result
+	
 	# DISPLAY
 	
 	def getKeyName(self):
@@ -1495,9 +1513,10 @@ class Member(db.Model):
 class ViewOptions(db.Model): 
 # ============================================================================================
 # options on what to show - four per member (home, entry, member, character)
-# # parent: member; URL lookup: not needed
+# # parent: member; id property not yet used
 # ============================================================================================
 
+	id = db.StringProperty(required=True)
 	member = db.ReferenceProperty(Member, required=True, collection_name="view_options_to_member")
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="view_options_to_rakontu")
 	location = db.StringProperty(choices=VIEW_OPTION_LOCATIONS, default="home") 
@@ -1517,6 +1536,7 @@ class ViewOptions(db.Model):
 	
 	showDetails = db.BooleanProperty(default=True, indexed=False)
 	showOptionsOnTop = db.BooleanProperty(default=False, indexed=False)
+	showHelpResourcesInTimelines = db.BooleanProperty(default=False, indexed=False)
 	
 	def getStartTime(self):
 		return self.endTime - timedelta(seconds=self.timeFrameInSeconds)
@@ -1547,9 +1567,10 @@ class ViewOptions(db.Model):
 class PendingMember(db.Model): 
 # ============================================================================================
 # person invited to join rakontu but not yet logged in
-# parent: rakontu; no lookup required
+# parent: rakontu; id property not yet used
 # ============================================================================================
 
+	id = db.StringProperty(required=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="pending_members_to_rakontu")
 	email = db.StringProperty(required=True) # must match google account
 	invited = TzDateTimeProperty(auto_now_add=True)
@@ -1578,7 +1599,7 @@ class PendingMember(db.Model):
 class Character(db.Model):
 # ============================================================================================
 # optional fictions to anonymize entries but provide some information about intent
-# parent: rakontu; URL lookup: id property
+# parent: rakontu
 # ============================================================================================
 
 	id = db.StringProperty(required=True)
@@ -1708,7 +1729,7 @@ class Character(db.Model):
 class SavedSearch(db.Model): 
 # ============================================================================================
 # search parameters, also called search filter or just filter
-# parent: member; URL lookup: id property
+# parent: member
 # ============================================================================================
 
 	id = db.StringProperty(required=True)
@@ -1759,6 +1780,7 @@ class SavedSearch(db.Model):
 			keyName = GenerateSequentialKeyName("searchref")
 			myRef = SavedSearchQuestionReference(
 												key_name=keyName,
+												id=keyName,
 												parent=self,
 												rakontu=self.rakontu, 
 												creator=self.creator,
@@ -1855,9 +1877,10 @@ class SavedSearch(db.Model):
 class SavedSearchQuestionReference(db.Model): 
 # ============================================================================================
 # reference to the use of a question in the search filter
-# parent: savedsearch; URL lookup: none needed
+# parent: savedsearch; id property not yet used
 # ============================================================================================
 
+	id = db.StringProperty(required=True)
 	created = TzDateTimeProperty(auto_now_add=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="searchrefs_to_rakontu")
 	search = db.ReferenceProperty(SavedSearch, required=True, collection_name="question_refs_to_saved_search")
@@ -1884,9 +1907,10 @@ class SavedSearchQuestionReference(db.Model):
 class Answer(db.Model): 
 # ============================================================================================
 # answer to a question (about entry, character or member)
-# parent: member, character or entry; URL lookup: none needed, never looked up directly
+# parent: member, character or entry; id property not yet used
 # ============================================================================================
 
+	id = db.StringProperty(required=True)
 	rakontu = db.ReferenceProperty(Rakontu, collection_name="answers_to_rakontu")
 	question = db.ReferenceProperty(Question, collection_name="answers_to_questions")
 	referent = db.ReferenceProperty(None, collection_name="answers_to_objects") # entry or member
@@ -1952,6 +1976,9 @@ class Answer(db.Model):
 			self.entryActivityPointsWhenPublished = self.referent.activityPoints
 			self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("answering question")
 		# caller must do puts
+		
+	def lastTouched(self):
+		return self.published
 		
 	# DISPLAY
 		
@@ -2049,7 +2076,7 @@ class Answer(db.Model):
 class Entry(db.Model):
 # ============================================================================================
 # main element of data: story, invitation, collage, pattern, resource
-# parent: member; URL lookup: id property
+# parent: member
 # ============================================================================================
 
 	id = db.StringProperty(required=True)
@@ -2127,6 +2154,27 @@ class Entry(db.Model):
 				result.append(editorTypeOrKey)
 		return result
 	
+	def additionalEditorsListWithLinks(self):
+		result = ""
+		types = self.getAdditionalEditorTypes()
+		displayTypes = []
+		for type in types:
+			i = 0
+			for aType in ADDITIONAL_EDITOR_TYPES:
+				if type == aType:
+					displayTypes.append(ADDITIONAL_EDITOR_TYPES_DISPLAY[i])
+					break
+				i += 1
+		result += ", ".join(displayTypes)
+		keys = self.getAdditionalEditorKeys()
+		editorStrings = []
+		for key in keys:
+			editor = Member.get(key)
+			if editor:
+				editorStrings.append(editor.linkString())
+		result += ", ".join(editorStrings)
+		return result
+	
 	def memberCanEditMe(self, member):
 		if str(member.key()) == str(self.creator.key()):
 			return True
@@ -2164,11 +2212,6 @@ class Entry(db.Model):
 			self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("adding %s" % self.type)
 		# caller must do puts
 					
-	def unPublish(self):
-		if not self.character:
-			self.creator.decrementCount(self.type)
-		# caller must do puts
-		
 	def recordAction(self, action, referent, className):
 		now = datetime.now(pytz.utc)
 		if className == "Entry":
@@ -2862,7 +2905,7 @@ class Entry(db.Model):
 class TextVersion(db.Model): 
 # ============================================================================================
 # version of text portion of entry (for audit trail and for backtracking)
-# parent: entry; URL lookup: id property
+# parent: entry
 # ============================================================================================
 
 	id = db.StringProperty(required=True)
@@ -2886,9 +2929,10 @@ class TextVersion(db.Model):
 class Link(db.Model): 
 # ============================================================================================
 # connection between entries, types: related, retold, reminded, responded, included
-# parent: entry (parent is always entry FROM); URL lookup: none needed, never looked up directly
+# parent: entry (parent is always entry FROM); id property not yet used
 # ============================================================================================
 
+	id = db.StringProperty(required=True)
 	type = db.StringProperty(choices=LINK_TYPES, required=True) 
 	# how links go: 
 	#	related: any entry to any entry
@@ -2928,6 +2972,9 @@ class Link(db.Model):
 		self.entryActivityPointsWhenPublished = self.itemFrom.activityPoints
 		self.creator.nudgePoints = self.itemFrom.rakontu.getMemberNudgePointsForEvent("adding %s link" % self.type)
 		# caller must do puts
+		
+	def lastTouched(self):
+		return self.published
 		
 	# MEMBERS
 		
@@ -2980,7 +3027,7 @@ class Link(db.Model):
 class Attachment(db.Model):	
 # ============================================================================================
 # file attachments to entries
-# parent: entry; URL lookup: id property
+# parent: entry
 # ============================================================================================
 
 	id = db.StringProperty(required=True)
@@ -3022,7 +3069,7 @@ class Attachment(db.Model):
 class Annotation(db.Model):	
 # ============================================================================================
 # things people said about entries, types: tag set, comment, request, nudge
-# parent: entry; URL lookup: id property
+# parent: entry
 # ============================================================================================
 
 	id = db.StringProperty(required=True)
@@ -3068,42 +3115,6 @@ class Annotation(db.Model):
 	def isCommentOrRequest(self):
 		return self.type == "comment" or self.type == "request"
 	
-	def entryKey(self):
-		try:
-			if self.entry:
-				return self.entry.key()
-		except:
-			return None
-		else:
-			return None
-		
-	def entryLinkString(self):
-		try:
-			if self.entry:
-				return self.entry.linkString()
-		except:
-			return None
-		else:
-			return None
-		
-	def entryPublished(self):
-		try:
-			if self.entry:
-				return self.entry.published
-		except:
-			return None
-		else:
-			return None
-		
-	def entryFlaggedForRemoval(self):
-		try:
-			if self.entry:
-				return self.entry.flaggedForRemoval
-		except:
-			return None
-		else:
-			return None
-	
 	# IMPORTANT METHODS
 	
 	def publish(self):
@@ -3116,6 +3127,9 @@ class Annotation(db.Model):
 		self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("adding %s" % self.type)
 		# caller must do puts
 
+	def lastTouched(self):
+		return self.published
+		
 	# TYPE
 	
 	def isComment(self):
@@ -3154,6 +3168,42 @@ class Annotation(db.Model):
 		
 	# DISPLAY
 		
+	def entryKey(self):
+		try:
+			if self.entry:
+				return self.entry.key()
+		except:
+			return None
+		else:
+			return None
+		
+	def entryLinkString(self):
+		try:
+			if self.entry:
+				return self.entry.linkString()
+		except:
+			return None
+		else:
+			return None
+		
+	def entryPublished(self):
+		try:
+			if self.entry:
+				return self.entry.published
+		except:
+			return None
+		else:
+			return None
+		
+	def entryFlaggedForRemoval(self):
+		try:
+			if self.entry:
+				return self.entry.flaggedForRemoval
+		except:
+			return None
+		else:
+			return None
+	
 	def typeAsURL(self):
 		return URLForAnnotationType(self.type)
 	
@@ -3275,9 +3325,10 @@ class Annotation(db.Model):
 class Help(db.Model): 
 # ============================================================================================
 # context-sensitive help string - appears as title hover on icon 
-# no parent
+# no parent; id property not yet used
 # ============================================================================================
 
+	id = db.StringProperty(required=True)
 	type = db.StringProperty() # info, tip, caution
 	name = db.StringProperty() # links to name in template
 	text = db.StringProperty(indexed=False) # text to show user (plain text)
@@ -3290,9 +3341,10 @@ class Help(db.Model):
 class Skin(db.Model): 
 # ============================================================================================
 # style sets to change look of each Rakontu
-# no parent
+# no parent; id property not yet used
 # ============================================================================================
 
+	id = db.StringProperty(required=True)
 	name = db.StringProperty(required=True) 
 	
 	font_general = db.StringProperty(indexed=False) # on everything except buttons and headers
@@ -3366,9 +3418,10 @@ class Skin(db.Model):
 class Export(db.Model):
 # ============================================================================================
 # data prepared for export, in XML or CSV or HTML format
-# no parent
+# no parent; id property not yet used
 # ============================================================================================
 	
+	id = db.StringProperty(required=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="export_to_rakontu")
 	type = db.StringProperty()
 	fileFormat = db.StringProperty(indexed=False)
@@ -3494,6 +3547,17 @@ def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, m
 				itemsWithNudgeFloor.append(item)
 	else:
 		itemsWithNudgeFloor.extend(itemsToStart)
+	# hide help resources
+	itemsWithHelpResourcesHidden = []
+	if not viewOptions.showHelpResourcesInTimelines:
+		for item in itemsWithNudgeFloor:
+			if item.__class__.__name__ == "Entry":
+				if not item.resourceForHelpPage:
+					itemsWithHelpResourcesHidden.append(item)
+			else:
+				itemsWithHelpResourcesHidden.append(item)
+	else:
+		itemsWithHelpResourcesHidden.extend(itemsWithNudgeFloor)
 	# search
 	itemsWithSearch = []
 	if considerSearch:
@@ -3501,16 +3565,16 @@ def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, m
 		if search:
 			entryRefs = search.getEntryQuestionRefs()
 			creatorRefs = search.getCreatorQuestionRefs()
-			for item in itemsWithNudgeFloor:
+			for item in itemsWithHelpResourcesHidden:
 				if item.__class__.__name__ == "Entry":
 					if item.satisfiesSearchCriteria(search, entryRefs, creatorRefs):
 						itemsWithSearch.append(item)
 				else: # if searching in member/character page, no annotations will show
 					pass
 		else:
-			itemsWithSearch.extend(itemsWithNudgeFloor)
+			itemsWithSearch.extend(itemsWithHelpResourcesHidden)
 	else:
-		itemsWithSearch.extend(itemsWithNudgeFloor)
+		itemsWithSearch.extend(itemsWithHelpResourcesHidden)
 	# limit
 	itemsWithLimit = []
 	overLimitWarning = None
@@ -3534,8 +3598,10 @@ def NudgeCategoriesExistAndShouldBeShownInContext(member, location):
 	show = []
 	viewOptions = member.getViewOptionsForLocation(location)
 	for i in range(NUM_NUDGE_CATEGORIES):
-		exist.append(member.rakontu.nudgeCategoryIndexHasContent(i))
-		show.append(viewOptions.nudgeCategories[i])
+		existForThisIndex = member.rakontu.nudgeCategoryIndexHasContent(i)
+		exist.append(existForThisIndex)
+		if existForThisIndex:
+			show.append(viewOptions.nudgeCategories[i])
 	return exist, show
 
 def ShouldKeepAnswer(request, queryText, question):

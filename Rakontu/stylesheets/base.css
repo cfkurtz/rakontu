@@ -2,7 +2,7 @@
 /* ----------- margin: top right bottom left ----------- */
 
 body {
-  	font-size: 13px;
+  	font-size: 0.8em;
 	}
 	
 hr {
@@ -43,24 +43,23 @@ table.noborder {
 	}
 	
 td {
-	font-size: 13px;
 	border-top: 1px solid #000000;
 	border-left: 1px solid #000000;
 	padding: 4px 8px 4px 8px;
+	font-size: 0.8em;
 	}
 	
 td.noborder {
-	font-size: 13px;
 	border: 0;
 	}
 	
 th {
-	font-size: 13px;
 	font-style: plain;
 	font-weight: normal;
 	border-top: 1px solid #000000;
 	border-left: 1px solid #000000;
 	padding: 4px 8px 4px 8px;
+	font-size: 0.8em;
 	}
 	
 fieldset {
@@ -82,7 +81,7 @@ ul li.nobullet {
 
 .rightalign {
 	text-align: right;
-	font-size: 12px;
+	font-size: 0.8em;
 	}
 	
 .blurb {
@@ -100,7 +99,7 @@ ul li.nobullet {
 	
 /* ----------- page areas ----------- */
 #header {
-	font-size: 15px;
+	font-size: 1.2em;
 	}
 	
 #content {
@@ -115,7 +114,7 @@ ul li.nobullet {
 	
 #footer {
 	text-align: center;
-	font-size: 11px;
+	font-size: 0.9em;
 	}
 	
 /* ----------- topmenu ----------- */
@@ -124,7 +123,7 @@ ul li.nobullet {
     margin: 0;
     margin-top: 4px;
     padding: 0;
-    height: 1em; 
+    height: 0.8em; 
     }
     
 #topmenu li {
@@ -195,10 +194,10 @@ ul li.nobullet {
 	}
 	
 #rakontu_form_style select {
-	font-size: 12px;
 	padding: 4px 2px;
 	border: solid 1px #000000;
 	margin: 2px 0px 10px 2px;
+	font-size: 1.1em;
 	}
 	
 #rakontu_form_style select:hover{
@@ -206,10 +205,10 @@ ul li.nobullet {
 	}
 	
 #rakontu_form_style input{
-	font-size: 12px;
 	border: solid 1px #000000;
 	margin: 2px 2px 2px 2px;
 	padding: 4px 4px 4px 4px;
+	font-size: 1.1em;
 	}
 	
 #rakontu_form_style input:hover{
@@ -217,11 +216,11 @@ ul li.nobullet {
 	}
 	
 #rakontu_form_style textarea{
-	font-size: 12px;
 	padding: 4px 2px;
 	border: solid 1px #000000;
 	width: 98%;
 	margin: 2px 0px 10px 2px;
+	font-size: 1.1em;
 	}
 	
 #rakontu_form_style textarea:hover{
@@ -236,7 +235,7 @@ ul li.nobullet {
 	line-height: 32px;
 	background: #CCCCCC;
 	text-align: center;
-	font-size: 16px;
+	font-size: 1.2em;
 	font-weight: bold;
 	border: solid 2px #000000;
 	padding-top: 0;
@@ -255,7 +254,7 @@ ul li.nobullet {
 	line-height: 24px;
 	background: #CCCCCC;
 	text-align: center;
-	font-size: 12px;
+	font-size: 0.9em;
 	border: solid 1px #000000;
 	padding-top: 0;
 	}

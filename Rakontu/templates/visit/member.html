@@ -31,6 +31,7 @@
   			{{member.governanceTypeForDisplayNotShowingOwner}}.
   		{% endif %}
   		{{template_joined}} {{member.joined|timeZone:member.timeZoneName|date:member.dateFormat}}.
+  		{{template_url_lookup}}: {{member.getKeyName}}.
   		
   		</p>
   	  	

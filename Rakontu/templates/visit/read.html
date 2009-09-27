@@ -11,12 +11,11 @@
 	" method="post">
 	
 	{% if things_member_can_do %}
-		<table cellpadding="0" cellspacing="0" style="width:95%;border:none;">
+		<table cellpadding="0" cellspacing="0" style="width:100%;border:none;">
 		<tr>
-		<td width="50" align="right" style="border:none;">
+		<td align="left" valign="center" style="border:none;margin:0;">
 	{% endif %}
-	
-	<img src="/images/{{entry.type}}.png" alt="tags" align="left" border="0">
+	<span style="font-size:1.2em;"><b>{{entry.getImageLinkForType}}
 	{% if curating %}  
 		{% if entry.flaggedForRemoval %}
 			<input type="submit" class="flag_red" value="" name="unflag|{{entry.key}}" title="{{template_click_here_to_unflag}}">
@@ -24,11 +23,10 @@
 			<input type="submit" class="flag_green" value="" name="flag|{{entry.key}}" title="{{template_click_here_to_flag_this_entry}}">
 		{% endif %}
 	{% endif %}
-	
 	{% if things_member_can_do %}
+		{{entry.titleWithCategoryIfResource}}</b></span>
 		</td>
-		<td align="left" valign="center" style="border:none;"><b><font size="+1">{{entry.titleWithCategoryIfResource}}</font></b></td>
-		<td align="right" style="border:none;">
+		<td align="right" style="border:none;margin:0;">
 		<select name="nextAction">
 		{% for key in things_member_can_do.keys|sorted %}
 			<option value="{{things_member_can_do|dictLookup:key}}">{{key}}</option>
@@ -85,11 +83,20 @@
 		{% endfor %}
 		</ul>
 	{% endif %}
+	{% if entry.isInvitation and responded_links_outgoing %}
+		<p>{{template_responses}}:</p>
+		<ul>
+		{% for link in responded_links_outgoing %}
+			<li class="nobullet">{{link.itemTo.linkString}} {% if link.comment %} ({{link.comment}}) {% endif %} </li>
+		{% endfor %}
+		</ul>
+	{% endif %}
 
 	{% ifequal entry.type "story" %}
 		{% if retold_links_incoming %}
+			<p>{{template_retelling_of}}</p>
 			{% for link in retold_links_incoming %}
-				<ul><li class="nobullet">{{template_retelling_of}} {{link.itemFrom.linkString}}.
+				<ul><li class="nobullet">{{link.itemFrom.linkString}}.
 				 {% if link.comment %} ({{template_why|capfirst}}? {{link.comment}}) {% endif %}</li></ul>
 			{% endfor %}
 		{% endif %}
@@ -101,8 +108,9 @@
 			{% endfor %}
 		{% endif %}
 		{% if reminded_links_incoming %}
+			<p>{{template_reminding_from}}</p>
 			{% for link in reminded_links_incoming %}
-				<ul><li class="nobullet">{{template_reminding_from}} {{link.itemFrom.linkString}}.
+				<ul><li class="nobullet">{{link.itemFrom.linkString}}.
 				{% if link.comment %} ({{template_why|capfirst}}? {{link.comment}}) {% endif %}</li></ul>
 			{% endfor %}
 		{% endif %}
@@ -114,9 +122,10 @@
 			{% endfor %}
 		{% endif %}
 		{% if included_links_incoming_from_invitations %}
+			<p>{{template_in_response_to_invitation}}</p>
 			<ul>
 			{% for link in included_links_incoming_from_invitations %}
-				<li class="nobullet">{{template_in_response_to_invitation}} {{link.itemFrom.linkString}}
+				<li class="nobullet">{{link.itemFrom.linkString}}
 				 {% if link.comment %} ({{template_why|capfirst}}? {{link.comment}}) {% endif %}
 				 </li>
 			{% endfor %}
@@ -161,6 +170,7 @@
 		{% endif %}
 	{% endifequal %}
 	</div>
+	
 	</div>
 		
 	{{template_contributed_by}}
@@ -186,13 +196,24 @@
 		{% if entry.liaison %}
 			({{template_entered_by}} {{entry.liaison.linkString}}
 			{{entry.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
-			{{entry.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}})
+			{{entry.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}).
 		{% endif %}
 	{% else %}
 		{{entry.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
-		{{entry.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+		{{entry.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.
 	{% endif %}
+	{{template_url_lookup}}: {{entry.getKeyName}}.
 	</p>
+	
+	{% comment %}
+	{% if user_is_admin %}
+		<div class="rightalign">
+		{{template_shift_by}} 
+			<input type="text" name="shiftHours" size="10" value="1" maxlength="{{maxlength_name}}"/> {{template_hours}}
+			<input type="submit" value="{{template_go}}" name="shiftTime" class="button_small">
+		</div>
+	{% endif %}
+	{% endcomment %}
 	
 	<h3>{{template_annotations_to_this}}</h3>
 	
