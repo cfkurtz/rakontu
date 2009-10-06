@@ -63,6 +63,24 @@ def NotFoundURL(rakontu=None):
 	else:
 		return "/%s" % URLS["url_not_found"]
 	
+def AttachmentTooLargeURL(rakontu=None):
+	if rakontu:
+		return "/%s?%s" % (URLS["url_attachment_too_large"], rakontu.urlQuery())
+	else:
+		return "/%s" % URLS["url_attachment_too_large"]
+	
+def AttachmentNotOfAcceptedFileTypeURL(rakontu=None):
+	if rakontu:
+		return "/%s?%s" % (URLS["url_attachment_wrong_type"], rakontu.urlQuery())
+	else:
+		return "/%s" % URLS["url_attachment_wrong_type"]
+
+def TransactionFailedURL(rakontu=None):
+	if rakontu:
+		return "/%s?%s" % (URLS["url_transaction_failed"], rakontu.urlQuery())
+	else:
+		return "/%s" % URLS["url_transaction_failed"]
+	
 def DatabaseErrorURL(rakontu=None):
 	if rakontu:
 		return "/%s?%s" % (URLS["url_database_error"], rakontu.urlQuery())

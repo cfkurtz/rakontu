@@ -2255,6 +2255,15 @@ class Entry(db.Model):
 		result += ", ".join(editorStrings)
 		return result
 	
+	def attachmentsListWithLinks(self):
+		result = ""
+		attachments = self.getAttachments()
+		attachmentStrings = []
+		for attachment in attachments:
+			attachmentStrings.append(attachment.linkString())
+		result += ", ".join(attachmentStrings)
+		return result
+	
 	def memberCanEditMe(self, member):
 		if str(member.key()) == str(self.creator.key()):
 			return True
@@ -2744,6 +2753,9 @@ class Entry(db.Model):
 	def getAttachments(self):
 		return Attachment.all().filter("entry =", self.key()).fetch(FETCH_NUMBER)
 	
+	def attachmentCount(self):
+		return Attachment.all().filter("entry =", self.key()).count()
+	
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
 	
@@ -3203,7 +3215,7 @@ class Attachment(db.Model):
 		return '%s?%s' % (self.urlWithoutQuery(), self.urlQuery())
 		
 	def urlWithoutQuery(self):
-		return "/%s/%s" % (DIRS["dir_visit"], URLS["url_attachment"])
+		return "/%s" % (URLS["url_attachment"])
 
 	def urlQuery(self):
 		return "%s=%s" % (URL_IDS["url_query_attachment"], self.getKeyName())
@@ -3216,6 +3228,42 @@ class Attachment(db.Model):
 	
 	def attachmentEmbed(self):
 		return '<a href="/%s?%s=%s">%s</a>' %(URLS["url_attachment"], URL_IDS["url_query_attachment"], self.getKeyName(), self.fileName)
+	
+	def entryKey(self):
+		try:
+			if self.entry:
+				return self.entry.key()
+		except:
+			return None
+		else:
+			return None
+		
+	def entryLinkString(self):
+		try:
+			if self.entry:
+				return self.entry.linkString()
+		except:
+			return None
+		else:
+			return None
+		
+	def entryPublished(self):
+		try:
+			if self.entry:
+				return self.entry.published
+		except:
+			return None
+		else:
+			return None
+		
+	def entryFlaggedForRemoval(self):
+		try:
+			if self.entry:
+				return self.entry.flaggedForRemoval
+		except:
+			return None
+		else:
+			return None
 	
 # ============================================================================================
 # ============================================================================================

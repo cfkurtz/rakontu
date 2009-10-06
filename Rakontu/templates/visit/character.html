@@ -18,7 +18,7 @@
 		<p>{{template_about}} {{character.name}}:</p>
 		<div class="blurb">
   		{% if character.description|orNothing %}
-  			{{character.description}}
+  			{{character.description_formatted}}
   		{% else %}
   			({{template_no_character_description}})
   		{% endif %}

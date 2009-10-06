@@ -454,6 +454,127 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 		else: # no rakontu or member
 			self.redirect(NoRakontuAndMemberURL())
 			
+class ManageEntryAttachmentsPage(ErrorHandlingRequestHander):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
+			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
+			if entry and entry.memberCanEditMe(member):
+				attachments = entry.getAttachments()
+				DebugPrint(len(attachments))
+				DebugPrint(rakontu.maxNumAttachments)
+				canAddMoreAttachments = len(attachments) < rakontu.maxNumAttachments
+				DebugPrint(canAddMoreAttachments)
+				template_values = GetStandardTemplateDictionaryAndAddMore({
+							   	   'title': TITLES["ATTACHMENTS_TO"], 
+						   	   	   'title_extra': entry.title, 
+								   'current_member': member,
+								   'rakontu': rakontu, 
+								   'skin': rakontu.getSkinDictionary(),
+								   'entry': entry,
+								   'attachments': attachments,
+								   'can_add_more_attachments': canAddMoreAttachments,
+								   })
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/attachments.html'))
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect(NotFoundURL(rakontu))
+		else:
+			self.redirect(NoRakontuAndMemberURL())
+				
+	@RequireLogin 
+	def post(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
+			if entry:
+				# cannot use transactions in this case because it can create a RequestTooLargeError if you do them all together
+				foundAttachments = entry.getAttachments()
+				for attachment in foundAttachments:
+					attachment.name = self.request.get("attachmentName|%s" % attachment.key())
+					attachment.put()
+				entry.edited = datetime.now(tz=pytz.utc)
+				entry.put()
+				for attachment in foundAttachments:
+					if self.request.get("remove|%s" % attachment.key()):
+						db.delete(attachment)
+				self.redirect(self.request.uri)
+			else:
+				self.redirect(NotFoundURL(rakontu))
+		else:
+			self.redirect(NoRakontuAndMemberURL())
+			
+class AddOneAttachmentPage(ErrorHandlingRequestHander):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
+			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
+			if entry and entry.memberCanEditMe(member):
+				template_values = GetStandardTemplateDictionaryAndAddMore({
+							   	   'title': TITLES["ADD_ATTACHMENT_TO"], 
+						   	   	   'title_extra': entry.title, 
+								   'current_member': member,
+								   'rakontu': rakontu, 
+								   'skin': rakontu.getSkinDictionary(),
+								   'entry': entry,
+								   'attachment_file_types': ACCEPTED_ATTACHMENT_FILE_TYPES,
+								   })
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/attachment.html'))
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect(NotFoundURL(rakontu))
+		else:
+			self.redirect(NoRakontuAndMemberURL())
+				
+	@RequireLogin 
+	def post(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
+			if entry:
+				for name, value in self.request.params.items():
+					if name == "attachment":
+						if value != None and value != "":
+							filename = value.filename
+							keyName = GenerateSequentialKeyName("attachment")
+							newAttachment = Attachment(
+											key_name=keyName, 
+											id=keyName, 
+											parent=entry, 
+											entry=entry, 
+											rakontu=rakontu)
+							j = 0
+							mimeType = None
+							for type in ACCEPTED_ATTACHMENT_FILE_TYPES:
+								if filename.lower().find(".%s" % type.lower()) >= 0:
+									mimeType = ACCEPTED_ATTACHMENT_MIME_TYPES[j]
+								j += 1
+							if mimeType:
+								newAttachment.mimeType = mimeType
+								newAttachment.fileName = filename
+								newAttachment.name = htmlEscape(self.request.get("attachmentName"))
+								blob = db.Blob(self.request.POST.get("attachment").file.read())
+								newAttachment.data = blob
+								try:
+									newAttachment.put()
+									entry.edited = datetime.now(tz=pytz.utc)
+									entry.put()
+								except:
+									self.redirect(AttachmentTooLargeURL(rakontu))
+									return
+							else:
+								self.redirect(AttachmentNotOfAcceptedFileTypeURL(rakontu))
+								return
+				self.redirect(BuildURL("dir_visit", "url_attachments", entry.urlQuery()))
+			else:
+				self.redirect(NotFoundURL(rakontu))
+		else:
+			self.redirect(NoRakontuAndMemberURL())
+			
 class ManageAdditionalEntryEditorsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):

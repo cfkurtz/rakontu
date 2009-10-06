@@ -43,18 +43,26 @@
 	
 	{% include "read_or_preview_entry.html" %}
 	
-	<div class="rightalign">
+	
 	{% if member_can_edit_entry %}
+		<div class="rightalign">
 		(<a href="/{{dir_visit}}/{{entry.typeAsURL}}?{{entry.urlQuery}}">{{template_change}}</a>)
-	{% endif %}
-	{% ifequal entry.creator.key current_member.key %}
-		{% if entry.additionalEditors %}
-			(<a href="/{{dir_visit}}/{{url_editors}}?{{entry.urlQuery}}">{{template_change_editors}} {{entry.typeForDisplay}}</a>)
-		{% else %}
-			(<a href="/{{dir_visit}}/{{url_editors}}?{{entry.urlQuery}}">{{template_add_editors}} {{entry.typeForDisplay}}</a>)
+		{% if rakontu.allowsAttachments %}
+			{% if attachments %}
+				(<a href="/{{dir_visit}}/{{url_attachments}}?{{entry.urlQuery}}">{{template_change_attachments}}</a>)
+			{% else %}
+				(<a href="/{{dir_visit}}/{{url_attachments}}?{{entry.urlQuery}}">{{template_add_attachment}}</a>)
+			{% endif %}
 		{% endif %}
-	{% endifequal %}
-	</div>
+		{% ifequal entry.creator.key current_member.key %}
+			{% if entry.additionalEditors %}
+				(<a href="/{{dir_visit}}/{{url_editors}}?{{entry.urlQuery}}">{{template_change_editors}} {{entry.typeForDisplay}}</a>)
+			{% else %}
+				(<a href="/{{dir_visit}}/{{url_editors}}?{{entry.urlQuery}}">{{template_add_editors}} {{entry.typeForDisplay}}</a>)
+			{% endif %}
+		{% endifequal %}
+		</div>
+	{% endif %}
 	
 	</div>
 		

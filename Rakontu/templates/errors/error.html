@@ -1,14 +1,14 @@
 <html>
-	{% include "common_head.html" %}
+	{% include "../common_head.html" %}
 	<body>
-	{% include "common_menus.html" %}
+	{% include "../common_menus.html" %}
 	<div id="content">
 	
-	<img src="/images/error.jpg"  alt="{{template_an_error_has_occurred_and_admin_notified}}" class="noborder" align="left">
+	<img src="/images/error_bug.jpg"  alt="{{template_an_error_has_occurred_and_admin_notified}}" class="noborder" align="left">
 
 	<h3>{{template_error}}</h3>
 	
-	<div style="margin-left:220px;">
+	<div style="margin-left:220px;width:500px;">
 	
 	<p>{{template_an_error_has_occurred_and_admin_notified}}</p>
 	{% if couldNotEmail %}
@@ -40,6 +40,6 @@
 	</div>
 	
 	</div>
-	{% include "common_footer.html" %}
+	{% include "../common_footer.html" %}
 	</body>
 </html>

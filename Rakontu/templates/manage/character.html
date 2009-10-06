@@ -24,7 +24,7 @@
 		</p><p>{{template_description}}
 			<table style="width:100%; border:none">
 			<tr><td class="noborder">
-			<textarea name="description" rows="10" cols="60">{{character.description}}</textarea>
+			<textarea name="description" rows="10" cols="60">{{character.description|orNothing}}</textarea>
 			</td><td class="noborder" width="80">
 			<p>{{template_interpret_as}} {{"interpreting_texts"|tip}}</p>
 				<select name="description_format">
@@ -40,7 +40,7 @@
 		</p><p>{{template_etiquette_statement}}
 			<table style="width:100%; border:none">
 			<tr><td class="noborder">
-			<textarea name="etiquetteStatement" rows="10" cols="60">{{character.etiquetteStatement}}</textarea>
+			<textarea name="etiquetteStatement" rows="10" cols="60">{{character.etiquetteStatement|orNothing}}</textarea>
 			</td><td class="noborder" width="80">
 			<p>{{template_interpret_as}}</p>
 				<select name="etiquetteStatement_format">

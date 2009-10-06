@@ -5,17 +5,17 @@
 # License: GPL 3.0 
 # Google Code Project: http://code.google.com/p/rakontu/
 # ---------------------------------------------------------------------------------------------
-         
-import os        
-import string             
-import cgi           
-import htmllib          
-          
-from models import *          
-     
-from google.appengine.api import users     
-from google.appengine.ext.webapp import template        
-from google.appengine.ext import webapp    
+		 
+import os		
+import string			 
+import cgi		   
+import htmllib		  
+		  
+from models import *		  
+	 
+from google.appengine.api import users	 
+from google.appengine.ext.webapp import template		
+from google.appengine.ext import webapp	
 from google.appengine.ext.webapp.util import run_wsgi_app   
 from google.appengine.api import images 
 from google.appengine.api import mail
@@ -204,11 +204,11 @@ def GetEntryAndAnnotationFromURLQuery(query):
 	if not entry:
 		annotation = GetObjectOfTypeFromURLQuery(query, "url_query_annotation")
 		if annotation:  
-			entry = annotation.entry     
-	return entry, annotation         
-     
-def GetStandardTemplateDictionaryAndAddMore(newItems):      
-	user = users.get_current_user()    
+			entry = annotation.entry	 
+	return entry, annotation		 
+	 
+def GetStandardTemplateDictionaryAndAddMore(newItems):	  
+	user = users.get_current_user()	
 	if user != None:  
 		email = user.email()   
 	else: 
@@ -287,7 +287,7 @@ def GetBookmarkQueryWithCleanup(queryString):
 		equalsSigns = 2
 	elif queryString[-1] == "=":
 		queryStringToUse = queryString[:-1]
-		equalsSigns = 1
+		equalsSigns = 1 
 	else: 
 		queryStringToUse = queryString  
 		equalsSigns = 0 
@@ -314,8 +314,12 @@ class ErrorHandlingRequestHander(webapp.RequestHandler):
 			# which is probably what you are reporting anyway
 			pass
 		exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
+		logging.info(exceptionType)
 		if exceptionType in ['Timeout', "DeadlineExceededError", "CapabilityDisabledError"]:
 			self.redirect(DatabaseErrorURL(rakontu))
+			return
+		if exceptionType == "TransactionFailedError":
+			self.redirect(TransactionFailedURL(rakontu))
 			return
 		exceptionLines = traceback.format_exception(*sys.exc_info())   
 		tracebackString = '\n'.join(exceptionLines)  
@@ -346,52 +350,116 @@ class ErrorHandlingRequestHander(webapp.RequestHandler):
 						'traceback': tracebackStringForHTML, 
 						'couldNotEmail': couldNotEmailMessage,
 						})
-		path = os.path.join(os.path.dirname(__file__), FindTemplate('error.html'))
+		path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/error.html'))
 		self.response.out.write(template.render(path, template_values))
 		
-class NotFoundPageHandler(ErrorHandlingRequestHander):
-    def get(self): 
-        self.error(404)
-        rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
-        template_values = GetStandardTemplateDictionaryAndAddMore({
+class NotFoundPageHandler(ErrorHandlingRequestHander): 
+	def get(self): 
+		self.error(404)
+		rakontu = None
+		member = None
+		try:
+			rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		except: 
+			pass
+		template_values = GetStandardTemplateDictionaryAndAddMore({
 						'title': TITLES["URL_NOT_FOUND"],
 						'rakontu': rakontu, 
 						'current_member': member,
 						'error_message': TITLES["URL_NOT_FOUND"],
 						'url': self.request.uri})
-        path = os.path.join(os.path.dirname(__file__), FindTemplate('notFound.html'))
-        self.response.out.write(template.render(path, template_values))
-        
+		path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/notFound.html'))
+		self.response.out.write(template.render(path, template_values))
+		
 class DatabaseErrorPageHandler(ErrorHandlingRequestHander):
-    def get(self): 
-        self.error(404)
-        rakontu = None
-        member = None
-        try:
-        	rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
-        except:
-        	pass
-        template_values = GetStandardTemplateDictionaryAndAddMore({
-						'title': TITLES["DATABASE_ERROR"],
+	def get(self): 
+		self.error(404)
+		rakontu = None
+		member = None
+		try:
+			rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		except: 
+			pass
+		template_values = GetStandardTemplateDictionaryAndAddMore({  
+						'title': TITLES["DATABASE_ERROR"], 
 						'rakontu': rakontu, 
 						'current_member': member,
 						'error_message': TITLES["DATABASE_ERROR"],
 						'url': self.request.uri})
-        path = os.path.join(os.path.dirname(__file__), FindTemplate('databaseError.html'))
-        self.response.out.write(template.render(path, template_values))
-        
+		path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/databaseError.html'))
+		self.response.out.write(template.render(path, template_values))
+		 
+class TransactionFailedPageHandler(ErrorHandlingRequestHander):
+	def get(self): 
+		self.error(404)
+		rakontu = None
+		member = None
+		try:
+			rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		except: 
+			pass
+		template_values = GetStandardTemplateDictionaryAndAddMore({
+						'title': TITLES["TRANSACTION_FAILED_ERROR"],
+						'rakontu': rakontu,  
+						'current_member': member,
+						'error_message': TITLES["TRANSACTION_FAILED_ERROR"],
+						'url': self.request.uri})
+		path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/transactionFailedError.html'))
+		self.response.out.write(template.render(path, template_values))
+		
+class AttachmentTooLargePageHandler(ErrorHandlingRequestHander):
+	def get(self): 
+		self.error(404)
+		rakontu = None
+		member = None
+		try:
+			rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		except: 
+			pass
+		template_values = GetStandardTemplateDictionaryAndAddMore({
+						'title': TITLES["ATTACHMENT_TOO_LARGE_ERROR"],
+						'rakontu': rakontu, 
+						'current_member': member,
+						'error_message': TITLES["ATTACHMENT_TOO_LARGE_ERROR"],
+						'url': self.request.uri})
+		path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/attachmentTooLargeError.html'))
+		self.response.out.write(template.render(path, template_values))
+		
+class AttachmentWrongTypeErrorPageHandler(ErrorHandlingRequestHander):
+	def get(self): 
+		self.error(404)
+		rakontu = None
+		member = None
+		try:
+			rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		except: 
+			pass
+		template_values = GetStandardTemplateDictionaryAndAddMore({
+						'title': TITLES["ATTACHMENT_WRONG_TYPE_ERROR"],
+						'rakontu': rakontu, 
+						'current_member': member,
+						'error_message': TITLES["ATTACHMENT_WRONG_TYPE_ERROR"],
+						'url': self.request.uri})
+		path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/attachmentWrongTypeError.html'))
+		self.response.out.write(template.render(path, template_values))
+		
 class NotAuthorizedPageHandler(ErrorHandlingRequestHander):
    def get(self):
-        rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
-        type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_role")
-        typeForDisplay = None
-        i = 0
-        for aType in HELPING_ROLE_TYPES:
-        	if aType == type:
-        		typeForDisplay = HELPING_ROLE_TYPES_DISPLAY[i]
-        		break
-         	i += 1
-        template_values = GetStandardTemplateDictionaryAndAddMore({
+		rakontu = None
+		member = None
+		try:
+			rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		except: 
+			pass
+		type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_role")
+		typeForDisplay = None
+		i = 0
+		for aType in HELPING_ROLE_TYPES:
+			if aType == type:
+				typeForDisplay = HELPING_ROLE_TYPES_DISPLAY[i]
+				break
+		 	i += 1
+		template_values = GetStandardTemplateDictionaryAndAddMore({
 						'title': TITLES["NOT_AUTHORIZED"],
 						'rakontu': rakontu,
 						'current_member': member,
@@ -399,54 +467,69 @@ class NotAuthorizedPageHandler(ErrorHandlingRequestHander):
 						'type_display': typeForDisplay,
 						'error_message': TITLES["NOT_AUTHORIZED"], 
 						'url': self.request.uri})
-        path = os.path.join(os.path.dirname(__file__), FindTemplate('notAuthorized.html'))
-        self.response.out.write(template.render(path, template_values))
+		path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/notAuthorized.html'))
+		self.response.out.write(template.render(path, template_values))
 
 class NoRakontuAndActiveMemberPageHandler(ErrorHandlingRequestHander):
    def get(self):
-        rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
-        template_values = GetStandardTemplateDictionaryAndAddMore({
+		rakontu = None
+		member = None
+		try:
+			rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		except: 
+			pass
+		template_values = GetStandardTemplateDictionaryAndAddMore({
 						'title': TITLES["NO_RAKONTU_AND_MEMBER"],
 						'rakontu': rakontu,
 						'current_member': member,
 						'error_message': TITLES["NO_RAKONTU_AND_MEMBER"],
 						'url': self.request.uri})
-        path = os.path.join(os.path.dirname(__file__), FindTemplate('noRakontuAndMember.html'))
-        self.response.out.write(template.render(path, template_values))
+		path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/noRakontuAndMember.html'))
+		self.response.out.write(template.render(path, template_values))
 
 class ManagersOnlyPageHandler(ErrorHandlingRequestHander):
    def get(self):
-        rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
-        template_values = GetStandardTemplateDictionaryAndAddMore({
+		rakontu = None
+		member = None
+		try:
+			rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		except: 
+			pass
+		template_values = GetStandardTemplateDictionaryAndAddMore({
 						'title': TITLES["MANAGERS_ONLY"],
 						'rakontu': rakontu,
 						'current_member': member,
 						'error_message': TITLES["MANAGERS_ONLY"],
 						'url': self.request.uri})
-        path = os.path.join(os.path.dirname(__file__), FindTemplate('managersOnly.html'))
-        self.response.out.write(template.render(path, template_values))
-        
+		path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/managersOnly.html'))
+		self.response.out.write(template.render(path, template_values))
+		
 class OwnersOnlyPageHandler(ErrorHandlingRequestHander):
    def get(self):
-        rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
-        template_values = GetStandardTemplateDictionaryAndAddMore({
+		rakontu = None
+		member = None
+		try:
+			rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		except: 
+			pass
+		template_values = GetStandardTemplateDictionaryAndAddMore({
 						'title': TITLES["OWNERS_ONLY"],
 						'rakontu': rakontu,
 						'current_member': member,
 						'error_message': TITLES["OWNERS_ONLY"],
 						'url': self.request.uri})
-        path = os.path.join(os.path.dirname(__file__), FindTemplate('ownersOnly.html'))
-        self.response.out.write(template.render(path, template_values))
-        
+		path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/ownersOnly.html'))
+		self.response.out.write(template.render(path, template_values))
+		
 class AdminOnlyPageHandler(ErrorHandlingRequestHander):
    def get(self):
-        template_values = GetStandardTemplateDictionaryAndAddMore({
+		template_values = GetStandardTemplateDictionaryAndAddMore({
 						'title': TITLES["ADMIN_ONLY"],
 						'error_message': TITLES["ADMIN_ONLY"],
 						'url': self.request.uri})
-        path = os.path.join(os.path.dirname(__file__), FindTemplate('adminOnly.html'))
-        self.response.out.write(template.render(path, template_values))
-        
+		path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/adminOnly.html'))
+		self.response.out.write(template.render(path, template_values))
+		
 class ImageHandler(ErrorHandlingRequestHander):
 	def get(self):
 		memberKeyName = self.request.get(URL_IDS["url_query_member"])
@@ -544,18 +627,18 @@ def GenerateHelps():
 			if len(row[0]) > 0 and row[0][0] != ";":
 				keyName = GenerateSequentialKeyName("help")
 				help = Help(
-						key_name=keyName, 
+						key_name=keyName,  
 						id=keyName,
-						type=row[0].strip(), 
+						type=row[0].strip(),  
 						name=row[1].strip(), 
 						translatedName=row[2].strip(),
-						text=row[3].strip())
-				helps.append(help)
+						text=row[3].strip()) 
+				helps.append(help) 
 		db.put(helps) 
-	finally:
-		file.close()  
-		
-def GenerateSkins():
+	finally: 
+		file.close()     
+		   
+def GenerateSkins(): 
 	db.delete(AllSkins())
 	skins = []
 	file = open(SKINS_FILE_NAME)
@@ -689,7 +772,7 @@ def GenerateDefaultCharactersForRakontu(rakontu):
 			description = row[1] 
 			etiquetteStatement = row[2] 
 			imageFileName = row[3]  
-			fullImageFileName = "config/images/%s" % imageFileName    
+			fullImageFileName = "config/images/%s" % imageFileName	
 			imageData = open(fullImageFileName).read()  
 			image = db.Blob(imageData) 
 			keyName = GenerateSequentialKeyName("character")
@@ -719,8 +802,8 @@ def GenerateSystemResources():
 	currentText = "" 
 	currentResource = None
 	for line in lines:   
-		if line[0] == ";":     
-			continue      
+		if line[0] == ";":	 
+			continue	  
 		elif line[0] == "[":   
 			name = stringBetween("[", "]", line) 
 			if currentResource:   
@@ -797,16 +880,16 @@ def CopyDefaultResourcesForNewRakontu(rakontu, member):
 # ============================================================================================
 # ============================================================================================
  
-def HTMLColorToRGB(colorstring):     
-    colorstring = colorstring.strip() 
-    r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:] 
-    r, g, b = [int(n, 16) for n in (r, g, b)]    
-    return (r, g, b)            
-           
-def RGBToHTMLColor(rgb_tuple):       
-    return '%02x%02x%02x' % rgb_tuple 
-           
-def HexColorStringForRowIndex(index, colorDict):    
+def HTMLColorToRGB(colorstring):	 
+	colorstring = colorstring.strip() 
+	r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:] 
+	r, g, b = [int(n, 16) for n in (r, g, b)]	
+	return (r, g, b)			
+		   
+def RGBToHTMLColor(rgb_tuple):	   
+	return '%02x%02x%02x' % rgb_tuple 
+		   
+def HexColorStringForRowIndex(index, colorDict):	
 	if colorDict.has_key("color_background_grid_top"):
 		topColor = colorDict["color_background_grid_top"]  
 	else:
@@ -1047,10 +1130,10 @@ LOREM_IPSUM = [
 ]
 
 def GenerateRandomDate(start, end):
-    delta = end - start
-    deltaSeconds = (delta.days * 24 * 60 * 60) + delta.seconds   
-    randomSeconds = random.randrange(deltaSeconds) 
-    return start + timedelta(seconds=randomSeconds)
+	delta = end - start
+	deltaSeconds = (delta.days * 24 * 60 * 60) + delta.seconds   
+	randomSeconds = random.randrange(deltaSeconds) 
+	return start + timedelta(seconds=randomSeconds)
 	
 def GenerateFakeTestingData():
 	user = users.get_current_user()
@@ -1251,4 +1334,3 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 			entry.lastAnnotatedOrAnsweredOrLinked = annotation.published
 			entry.put()
 		DebugPrint("%s nudges generated" % numItems)
-

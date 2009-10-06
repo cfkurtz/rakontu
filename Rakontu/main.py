@@ -52,6 +52,8 @@ urlInfo = [('/', StartPage),
 	  (BuildURL("dir_visit", URLForEntryType("invitation")), EnterEntryPage),
 	  (BuildURL("dir_visit", URLForEntryType("resource")), EnterEntryPage),
 	  (BuildURL("dir_visit", "url_entry"), EnterEntryPage),
+	  (BuildURL("dir_visit", "url_attachments"), ManageEntryAttachmentsPage),
+	  (BuildURL("dir_visit", "url_attachment"), AddOneAttachmentPage),
 	  (BuildURL("dir_visit", "url_editors"), ManageAdditionalEntryEditorsPage),
 	  # answering questions
 	  (BuildURL("dir_visit", "url_answers"), AnswerQuestionsAboutEntryPage),
@@ -144,7 +146,9 @@ urlInfo = [('/', StartPage),
 	  (BuildURL(None, "url_owners_only"), OwnersOnlyPageHandler),
 	  (BuildURL(None, "url_admin_only"), AdminOnlyPageHandler),
 	  (BuildURL(None, "url_database_error"), DatabaseErrorPageHandler),
-	  ('/.*', NotFoundPageHandler),
+	  (BuildURL(None, "url_attachment_too_large"), AttachmentTooLargePageHandler),
+	  (BuildURL(None, "url_attachment_wrong_type"), AttachmentWrongTypeErrorPageHandler),
+	  (BuildURL(None, "url_transaction_failed"), TransactionFailedPageHandler),
 	  ]
 
 application = webapp.WSGIApplication(urlInfo, debug=True)

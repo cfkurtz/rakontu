@@ -15,10 +15,6 @@ make a user error page for the transactions error.
 
 take age/gender questions out of defaults for characters, and put better char questions in
 
-make "add attachment" link and add one attachment to an entry at a time.
-this will allow for better error handling (telling the user what went wrong) for each one.
-take out attachments on main entry page. will need "manage attachments" page too ? pain
-
 make thing where, if they remove choices for an ordinal or nominal question and there
 are existing answers with those choices,
 it will ask them what they want to rename the existing question choices to.

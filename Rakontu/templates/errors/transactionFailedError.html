@@ -1,18 +1,16 @@
 <html>
-	{% include "common_head.html" %}
+	{% include "../common_head.html" %}
 	<body>
-	{% include "common_menus.html" %}
+	{% include "../common_menus.html" %}
 	<div id="content">
 	
-	<img src="/images/noRoleAccess.jpg"  alt="{{title}}" class="noborder" align="left">
+	<img src="/images/error_transactionFailed.jpg"  alt="{{template_transaction_failed_error}}" class="noborder" align="left">
 
-	<div style="margin-left:220px;">
+	<h3>{{template_transaction_failed_error}}</h3>
 	
-	{% if rakontu %}
-		<h3>{{title}}</h3>
-	{% endif %}
+	<div style="margin-left:220px;width:500px;width:500px;">
 	
-	<p>{{template_to_access_page_take_on_role}}: <b>{{type_display}}</b>. {{template_how_to_take_on_a_role}}</p>
+	<p>{{template_too_many_transactions}}</p>
 		
 	<p>&nbsp; {{template_click_back_button}}</p>
 	<p>&nbsp; &nbsp; ... {{template_or_return_to_home}} 
@@ -30,6 +28,6 @@
 	</div>
 	
 	</div>
-	{% include "common_footer.html" %}
+	{% include "../common_footer.html" %}
 	</body>
 </html>

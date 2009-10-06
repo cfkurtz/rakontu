@@ -351,53 +351,6 @@
 	      	{% endif %}
 	  {% endifequal %}
 	  
-			{% if rakontu.allowsAttachments %}
-				<h3>
-				{% if not attachments %}
-					{{template_add_attachments_to_entry}} {{entry_type_display}}.
-				{% else %}
-					{{template_change_attachments}} {{entry_type_display}}.
-				{% endif %}
-				{{"uploading_files"|caution}}</h3>
-				<fieldset>
-		      	<table border="0" cellpadding="4" cellspacing="0">
-		      	<tr>
-		      		<th>{{template_name}}</th>
-		      		<th>{{template_file_name}}</th>
-		      		<th>{{template_attach_or_replace}} {{"replacing_attachments"|tip}}</th>
-		      		<th>{{template_remove}}?</th>
-		      		</tr>
-	      		{% for i in rakontu.maxNumAttachments|makeRange %}
-	      			<tr>
-		      		<td>
-		      			<input type="text" name="attachmentName{{i}}" value="{{attachments|listLookup:i|get:"name"|orNothing}}" size="40" maxlength="{{maxlength_name}}"/>
-		      		</td>
-					<td>
-						{% if attachments|listLookup:i|get:"fileName" %} 
-							{{attachments|listLookup:i|get:"attachmentEmbed"}} 
-						{% else %} 
-							{{term_none}} 
-						{% endif %}
-					</td>
-					<td>
-						<input type="file" name="attachment{{i}}" size="40"/>
-					</td>
-					<td>
-						{% if attachments|listLookup:i|get:"fileName" %}
-							<input type="checkbox" name="removeAttachment|{{attachments|listLookup:i|get:"key"}}" 
-							value="removeAttachment|{{attachments|listLookup:i|get:"key"}}"  id="{{i}}">
-							<label for="{{i}}">{{template_remove}}</label>
-						{% else %}
-							&nbsp; 
-						{% endif %}
-					</td>
-					</tr>
-	      		{% endfor %}
-				</table>
-				<p><i>{{template_accepted_file_types}}: {{attachment_file_types|join:", "}}.</i></p>
-				</fieldset>
-			{% endif %}
-			
 			<p>
 			<center>
 			{% if entry %}

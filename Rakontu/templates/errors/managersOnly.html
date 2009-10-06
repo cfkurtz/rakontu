@@ -1,14 +1,18 @@
 <html>
-	{% include "common_head.html" %}
+	{% include "../common_head.html" %}
 	<body>
-	{% include "common_menus.html" %}
+	{% include "../common_menus.html" %}
 	<div id="content">
 	
-	<img src="/images/adminOnly.jpg"  alt="{{template_admin_only_page}}" class="noborder" align="left">
+	<img src="/images/error_managersOnly.jpg"  alt="{{title}}" class="noborder" align="left">
 
-	<div style="margin-left:220px;">
+	<div style="margin-left:220px;width:500px;">
 	
-	<p>{{template_admin_only_page}}</p>
+	{% if rakontu %}
+		<h3>{{title}}</h3>
+	{% endif %}
+	
+	<p>{{template_manager_only_page}}</p>
 		
 	<p>&nbsp; {{template_click_back_button}}</p>
 	<p>&nbsp; &nbsp; ... {{template_or_return_to_home}} 
@@ -22,12 +26,10 @@
 	{% endif %}
 	
 	<p>&nbsp;</p>
-	<p>&nbsp;</p>
-	<p>&nbsp;</p>
 	
 	</div>
 	
 	</div>
-	{% include "common_footer.html" %}
+	{% include "../common_footer.html" %}
 	</body>
 </html>

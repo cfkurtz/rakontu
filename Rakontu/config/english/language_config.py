@@ -583,6 +583,9 @@ TEMPLATE_TERMS = {
 		# databaseError
 		"template_database_error": "Bad Google. Bad.",
 		"template_there_was_a_database_error": "Apparently Google is not working very well at the moment. Could you please try what you were doing again?",
+		# transactionFailed
+		"template_transaction_failed_error": "Can't ... handle ... demand ... trying ...",
+		"template_too_many_transactions": "Your transaction was unable to complete because there were lots of people using the site at once. Sorry about that. Could you please try what you were doing again?",
 		# notAuthorized
 		"template_to_access_page_take_on_role": "To access this page you must take on this helping role",
 		"template_how_to_take_on_a_role": "To take on a helping role, see your Preferences page.", 
@@ -594,6 +597,14 @@ TEMPLATE_TERMS = {
 		"template_owners_only_page": "This page is available only to owners of the Rakontu. If you want to become an owner of your Rakontu, talk to a manager.",
 		# adminOnly
 		"template_admin_only_page": "This page is available only to Rakontu site administrators.",
+		# attachmentTooLarge
+		"template_attachment_too_large_error": "Whoa, that's more than I can handle!",
+		"template_the_attachment_was_too_large_and_was_not_saved": "The file you chose was too large, and Rakontu could not upload it. Please try uploading a smaller file.",
+		# attachmentWrongType
+		"template_attachment_wrong_type_error": "What's this, some kind of newfangled contraption? I can't make head or tails of it.",
+		"template_attachment_is_of_wrong_type": "This Rakontu site does not accept the type of attachment you chose. Please check the list of acceptable types on the page where you add an attachment.",
+		# notAuthorized
+		"template_role_not_adequate": "Member role not adequate to access this page",
 		# result
 		"template_or_return_to_home": "or perhaps you would like to return to the",
 		"template_home_page": "Home page",
@@ -834,6 +845,8 @@ TEMPLATE_TERMS = {
 		"template_add_or_change_editors": "Add or change editors",
 		"template_additional_editors": "Additional editors",
 		"template_other_peoples_drafts_you_can_edit": "Draft entries on which you are an additional editor",
+		"template_add_attachments": "Add an attachment",
+		"template_change_attachments": "Change attachments",
 		# visit/editors
 		"template_change_additional_editors": "Add or change editors of ", # the entry name
 		"template_who_can_edit_this_entry": "Besides yourself, who can change this", # story, etc
@@ -870,6 +883,17 @@ TEMPLATE_TERMS = {
 		"template_accepted_file_types": "Accepted file types",
 		"template_add_attachments_to_entry": "You can add some attachments to your", # story, etc
 		"template_change_attachments": "These attachments have been added to the", # story, etc
+		# visit/attachments
+		"template_add_attachment": "Add an attachment",
+		"template_add_another_attachment": "Add another attachment",
+		"template_change_attachments": "Change attachments",
+		"template_change_attachments_for": "Change attachments for", # entry name
+		"template_no_attachments_for_entry": "This entry has no attachments attached to it.",
+		"template_cannot_add_more_attachments": "This entry has the maximum number of attachments allowed for this Rakontu. You cannot add any more attachments to it unless you remove some.",
+		# visit/attachment
+		"template_add_attachment_to": "Add an attachment to", # entry name
+		"template_what_name_for_attachment": "What name would you like to use to refer to the attachment?",
+		"template_click_browse_to_choose_file": "Click the Browse button to choose a file to upload.",
 		# visit/filter
 		"template_filter_name_and_comment": "Search filter name and comment",
 		"template_filter_should_be_shared": "Should this filter be shared?",
@@ -1033,8 +1057,6 @@ TEMPLATE_TERMS = {
 		"template_add_link": "Add link",
 		"template_entry_has_no_related_links": "This entry has not yet been marked as related to other entries.",
 		"template_no_entries_of_this_type_to_relate_to": "There are no entries of the selected type available for this entry to relate to.",
-		# error pages
-		"template_role_not_adequate": "Member role not adequate to access this page",
 		}
 
 # ============================================================================================ 
@@ -1096,6 +1118,7 @@ TEMPLATE_BUTTONS = {
 		"button_save_draft": "Save draft",
 		"button_unpublish": "Unpublish (make into draft)",
 		"button_save_as_draft": "Save as draft",
+		"button_save_attachment": "Save attachment",
 		"button_edit_draft": "Edit draft",
 		"button_view_all_drafts": "View all drafts",
 		"button_change_entry": "Change entry",
@@ -1410,6 +1433,8 @@ TITLES = {
         "PREVIEW_OF": "Preview of", # entry name
         "ADDITIONAL_EDITORS_FOR": "Additional editors for", # entry name
         "RELATE_TO": "Relate to", # entry name
+        "ADD_ATTACHMENT_TO": "Add attachment to", # entry name
+        "ATTACHMENTS_TO": "Attachments for", # entry name
         "COUNTS": "Counts for", # rakontu name or member nickname or character name
         "REVIEW_FLAGS": "Review flags",
         "REVIEW_GAPS": "Review gaps",
@@ -1457,6 +1482,9 @@ TITLES = {
         "MANAGERS_ONLY": "For managers only",
         "OWNERS_ONLY": "For Rakontu owners only",
         "ADMIN_ONLY": "For site administrators only",
+        "TRANSACTION_FAILED_ERROR": "Transaction failed",
+        "ATTACHMENT_TOO_LARGE_ERROR": "Attachment too large",
+        "ATTACHMENT_WRONG_TYPE_ERROR": "Attachment is of the wrong type",
 		}
 
 # ============================================================================================ 
@@ -1485,6 +1513,7 @@ URLS = {
 	"url_home": "home",
     "url_new": "new",
     "url_entry": "entry",
+    "url_attachment": "attachment",
     "url_annotation": "annotation",
     "url_preview": "preview",
     "url_drafts": "drafts",
@@ -1559,6 +1588,7 @@ URLS = {
     "url_result": "result",
     "url_image": "img",
     "url_attachment": "attachment",
+    # errors
     "url_not_found": "notFound",
     "url_not_authorized": "notAuthorized",
     "url_no_rakontu_and_member": "noRakontuAndMember",
@@ -1566,6 +1596,9 @@ URLS = {
     "url_owners_only": "ownersOnly",
     "url_admin_only": "adminOnly",
     "url_database_error": "databaseError",
+    "url_attachment_too_large": "attachmentTooLarge",
+    "url_transaction_failed": "transactionFailed",
+    "url_attachment_wrong_type": "attachmentWrongType",
     }
 
 # ============================================================================================ 

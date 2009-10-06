@@ -1,0 +1,66 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+		<div id="content">
+		
+		<div id="rakontu_form_style" class="rakontu_form">
+		<form action="/{{dir_visit}}/{{url_attachments}}?{{entry.urlQuery}}" method="post" enctype="multipart/form-data">
+		
+		<h3>{{template_change_attachments_for}} {{entry.linkString}} ({{entry.typeForDisplay}}).</h3>
+		
+		{% if attachments %}
+			<fieldset>
+	      	<table border="0" cellpadding="4" cellspacing="0">
+	      	<tr>
+	      		<th>{{template_name}}</th>
+	      		<th>{{template_file_name}}</th>
+	      		<th>{{template_remove}}?</th>
+	      		</tr>
+	  		{% for attachment in attachments %}
+	  			<tr>
+	      		<td>
+	      			<input type="text" name="attachmentName|{{attachment.key}}" value="{{attachment.name|orNothing}}" size="40" maxlength="{{maxlength_name}}"/>
+	      		</td>
+				<td>
+					{% if attachment.fileName %} 
+						{{attachment.attachmentEmbed}} 
+					{% else %} 
+						{{term_none}} 
+					{% endif %}
+				</td>
+				<td>
+					{% if attachment.fileName %}
+						<input type="checkbox" name="remove|{{attachment.key}}" 
+						value="remove|{{attachment.key}}"  id="remove|{{attachment.key}}">
+						<label for="remove|{{attachment.key}}">{{template_remove}}</label>
+					{% else %}
+						&nbsp; 
+					{% endif %}
+				</td>
+				</tr>
+	  		{% endfor %}
+			</table>
+			</fieldset>
+		{% else %}
+			<p>&nbsp; &nbsp; <i>{{template_no_attachments_for_entry}}</i></p>
+		{% endif %}
+
+		{% if attachments %}
+			{% if can_add_more_attachments %}
+				<p>&nbsp; &nbsp; <a href="/{{dir_visit}}/{{url_attachment}}?{{entry.urlQuery}}">{{template_add_another_attachment}}</a></p>
+			{% else %}
+				<p>{{template_cannot_add_more_attachments}}</p>
+			{% endif %}
+		{% else %}
+			<p>&nbsp; &nbsp; <a href="/{{dir_visit}}/{{url_attachment}}?{{entry.urlQuery}}">{{template_add_attachment}}</a></p>
+		{% endif %}
+		
+		<p><center><input type="submit" name="save|{{entry_type}}" value="{{button_save_changes}}" class="button"></p>
+			
+		</form>
+		</div>
+		</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

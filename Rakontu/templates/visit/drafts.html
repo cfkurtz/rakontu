@@ -35,6 +35,17 @@
 						(<a href="/{{dir_visit}}/{{url_editors}}?{{entry.urlQuery}}">{{template_add_editors}} {{entry.typeForDisplay}}</a>)
 					{% endif %}
 					</p>
+					{% if rakontu.allowsAttachments %}
+						<p>{{template_attachments}}: 
+						{% if entry.getAttachments %}
+							{{entry.attachmentsListWithLinks}}
+							(<a href="/{{dir_visit}}/{{url_attachments}}?{{entry.urlQuery}}">{{template_change_attachments}}</a>)
+						{% else %}
+							{{template_none}}
+							(<a href="/{{dir_visit}}/{{url_attachments}}?{{entry.urlQuery}}">{{template_add_attachments}}</a>)
+						{% endif %}
+					{% endif %}
+					</p>
 				</td>
 				<td>
 					{% for version in entry.getTextVersionsInTimeOrder %}
@@ -79,6 +90,13 @@
 					<p>{{template_last_changed}}: {{entry.edited|timeZone:member.timeZoneName|time:member.timeFormat}} 
 						{{entry.edited|timeZone:member.timeZoneName|date:member.dateFormat}}</p>
 					<p>{{template_additional_editors}}: {{entry.additionalEditorsListWithLinks}}</p>
+					{% if rakontu.allowsAttachments %}
+						{% if entry.getAttachments %}
+							(<a href="/{{dir_visit}}/{{url_attachments}}?{{entry.urlQuery}}">{{template_change_attachments}}</a>)
+						{% else %}
+							(<a href="/{{dir_visit}}/{{url_attachments}}?{{entry.urlQuery}}">{{template_add_attachments}}</a>)
+						{% endif %}
+					{% endif %}
 				</td>
 				<td>
 					{% for version in entry.getTextVersionsInTimeOrder %}

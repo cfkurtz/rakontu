@@ -1,14 +1,14 @@
 <html>
-	{% include "common_head.html" %}
+	{% include "../common_head.html" %}
 	<body>
-	{% include "common_menus.html" %}
+	{% include "../common_menus.html" %}
 	<div id="content">
 	
-	<img src="/images/notFound.jpg"  alt="{{template_URL_not_found}}" class="noborder" align="left">
+	<img src="/images/error_notFound.jpg"  alt="{{template_URL_not_found}}" class="noborder" align="left">
 
 	<h3>{{template_URL_not_found}}</h3>
 	
-	<div style="margin-left:220px;">
+	<div style="margin-left:220px;width:500px;">
 	
 	<p>{{template_the_page_could_not_be_found}}</p>
 		
@@ -28,6 +28,6 @@
 	</div>
 	
 	</div>
-	{% include "common_footer.html" %}
+	{% include "../common_footer.html" %}
 	</body>
 </html>

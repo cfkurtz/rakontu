@@ -235,8 +235,6 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 				textsForGrid, rowColors, minNudgePoints, maxNudgePoints = self.buildGrid(items, entry, member, rakontu, curating)
 				thingsUserCanDo = self.buildThingsUserCanDo(entry, member, rakontu, curating)
 				viewOptions = member.getViewOptionsForLocation("entry")
-				
-				
 				if entry.isCollage():
 					includedLinksOutgoing = entry.getOutgoingLinksOfType("included")
 				else:
@@ -256,6 +254,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 								   'current_member_key': member.key(),
 								   'curating': curating,
 								   'entry': entry,
+								   'attachments': entry.getAttachments(),
 								   'member_can_edit_entry': memberCanEditEntry,
 								   # grid
 								   'rows_cols': textsForGrid, 

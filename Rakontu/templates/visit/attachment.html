@@ -1,0 +1,27 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+		<div id="content">
+		
+		<div id="rakontu_form_style" class="rakontu_form">
+		<form action="/{{dir_visit}}/{{url_attachment}}?{{entry.urlQuery}}" method="post" enctype="multipart/form-data">
+		
+		<h3>{{template_add_attachment_to}} {{entry.linkString}} ({{entry.typeForDisplay}}) {{"uploading_files"|caution}}</h3>
+		
+		<fieldset>
+		<p>{{template_what_name_for_attachment}}</p>
+		<p>&nbsp; &nbsp; <input type="text" name="attachmentName" value="" size="40" maxlength="{{maxlength_name}}"/></p>
+		<p>{{template_click_browse_to_choose_file}}</p>
+		<p>&nbsp; &nbsp; <input type="file" name="attachment" size="40"/></p>
+		<p><i>{{template_accepted_file_types}}: {{attachment_file_types|join:", "}}.</i></p>
+		</fieldset>
+		
+		<p><center><input type="submit" name="save" value="{{button_save_attachment}}" class="button"></center></p>
+				
+		</form>
+		</div>
+		</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>
