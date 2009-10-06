@@ -4,11 +4,13 @@
 	{% include "common_menus.html" %}
 	<div id="content">
 	
-	<img src="/images/adminOnly.jpg"  alt="{{template_admin_only_page}}" class="noborder" align="left">
+	<img src="/images/databaseError.jpg"  alt="{{template_database_error}}" class="noborder" align="left">
 
+	<h3>{{template_database_error}}</h3>
+	
 	<div style="margin-left:220px;">
 	
-	<p>{{template_admin_only_page}}</p>
+	<p>{{template_there_was_a_database_error}}</p>
 		
 	<p>&nbsp; {{template_click_back_button}}</p>
 	<p>&nbsp; &nbsp; ... {{template_or_return_to_home}} 
@@ -21,8 +23,6 @@
 		<b><a href="/">{{template_site_start_page}}</a></b>?</p>
 	{% endif %}
 	
-	<p>&nbsp;</p>
-	<p>&nbsp;</p>
 	<p>&nbsp;</p>
 	
 	</div>

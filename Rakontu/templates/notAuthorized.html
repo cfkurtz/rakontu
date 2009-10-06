@@ -4,7 +4,7 @@
 	{% include "common_menus.html" %}
 	<div id="content">
 	
-	<img src="/images/noRoleAccess.jpg"  alt="Member role not adequate to access this page" class="noborder" align="left">
+	<img src="/images/noRoleAccess.jpg"  alt="{{title}}" class="noborder" align="left">
 
 	<div style="margin-left:220px;">
 	
@@ -12,7 +12,7 @@
 		<h3>{{title}}</h3>
 	{% endif %}
 	
-	<p>{{template_to_access_page_take_on_role}}: <b>{{type}}</b>. {{template_how_to_take_on_a_role}}</p>
+	<p>{{template_to_access_page_take_on_role}}: <b>{{type_display}}</b>. {{template_how_to_take_on_a_role}}</p>
 		
 	<p>&nbsp; {{template_click_back_button}}</p>
 	<p>&nbsp; &nbsp; ... {{template_or_return_to_home}} 

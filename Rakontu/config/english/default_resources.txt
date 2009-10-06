@@ -379,15 +379,13 @@ by helping *liaisons* use Rakontu in a special way.
 
 = Managing off-line members
 
-Each off-line member of a Rakontu has a liaison assigned to them. A member's liaison can change their their picture and description, keep and save their drafts, and relay messages to them via email.  To make changes to off-line members, choose "Manage off-line members" from the Liaise menu. You can add new members, inactivate existing members (for whom you have responsibility), and transfer responsibility to another liaison.
+Each off-line member of a Rakontu has a liaison assigned to them. A member's liaison can change their their picture and description, enter stories and other things for them, keep and save their drafts, and relay messages to them via email.  To make changes to off-line members, choose "Manage off-line members" from the Liaise menu. You can add new members, inactivate existing members (for whom you have responsibility), and transfer responsibility for any off-line member to another liaison.
 
 Be aware that when you assume responsibility for an off-line member, any message an on-line member sends to them will come through you. You will be responsible for showing (or reading) the message to the off-line member and sending back their response.
 
 = Adding stories collected off-line
 
-You can enter up to ten stories at a time in a "batch" mode. This is primarily for the situation in which you have interviewed several people at, say, a retirement home, aid shelter, conference, or other place where people are not going to be using the system as on-line members. Liaisons who are not also managers can enter stories told by any of their assigned off-line members. 
-
-Managers have the option of entering stories for *any* members of the Rakontu, including on-line members. This option is primarily meant to help people "seed" the Rakontu by entering some stories collected in a workshop or via interviews. 
+You can enter up to ten stories at a time in a "batch" mode. This is primarily for the situation in which you have interviewed several people at, say, a retirement home, aid shelter, conference, or other place where people are not going to be using the system as on-line members. Liaisons who are not also managers can enter stories told by any of their assigned off-line members. (Managers have the option of entering stories for *any* members of the Rakontu, including on-line members. This option is primarily meant to help people "seed" the Rakontu by entering some stories collected in a workshop or via interviews.)
 
 To enter stories, choose "Add a batch of stories" from the Liaise menu. Enter each story, along with an optional comment and tag set. Or, you can type your stories into a spreadsheet, save the file in CSV format (with Unicode text encoding) and choose the file in the batch screen. The CSV story entry format is:
 

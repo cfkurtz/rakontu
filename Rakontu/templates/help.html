@@ -4,17 +4,17 @@
 	{% include "common_menus.html" %}
 	<div id="content">
 		
-	<h3>{{top_message}} {{help.name|spacify|lower}}</h3>
+	<h3>{{top_message}} {{help_short_name}}</h3>
 	
 	<div class="blurb">
 	
 	{% ifequal help.type "info" %}
-		<img src="../images/info.png" alt="help" border="0" valign="center"/>
+		<img src="../images/info.png" alt="{{template_information}}" border="0" valign="center"/>
 	{% else %}
 		{% ifequal help.type "tip" %}
-			<img src="../images/tip.png" alt="help" border="0" valign="center"/>
+			<img src="../images/tip.png" alt="{{template_tip}}" border="0" valign="center"/>
 		{% else %}
-			<img src="../images/caution.png" alt="help" border="0" valign="center"/>
+			<img src="../images/caution.png" alt="{{template_caution}}" border="0" valign="center"/>
 		{% endifequal %}
 	{% endifequal %}
 	

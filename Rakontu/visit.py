@@ -19,6 +19,8 @@ class StartPage(ErrorHandlingRequestHander):
 			for pendingMember in PendingMember.all().filter("email = ", user.email()):
 				if pendingMember.rakontu:
 					rakontusTheyAreInvitedTo.append(pendingMember.rakontu)
+			rakontusTheyAreAMemberOf.sort(lambda a,b: cmp(a.name, b.name))
+			rakontusTheyAreInvitedTo.sort(lambda a,b: cmp(a.name, b.name))
 		template_values = GetStandardTemplateDictionaryAndAddMore({
 						   'title': None,
 						   'user': user, 
@@ -90,9 +92,14 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 			if member.googleAccountID == user.user_id() and member.googleAccountEmail != user.email():
 				member.googleAccountEmail = user.email()
 				member.put()
-			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
+			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTION_NAMES["url_option_yes"]
 			viewOptions = member.getViewOptionsForLocation("home")
-			currentSearch = viewOptions.search
+			try:
+				currentSearch = viewOptions.search
+			except:
+				viewOptions.search = None
+				viewOptions.put()
+				currentSearch = None
 			querySearch = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_search_filter")
 			if querySearch:
 				currentSearch = querySearch
@@ -100,7 +107,7 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 				viewOptions.put()
 			skinDict = rakontu.getSkinDictionary()
 			(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
-			textsForGrid, rowColors = self.buildGrid(entries, member, skinDict, viewOptions.showDetails, curating)
+			textsForGrid, rowColors, minNudgePoints, maxNudgePoints = self.buildGrid(entries, member, skinDict, curating)
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': TITLES["HOME"],
 							'rakontu': rakontu, 
@@ -113,6 +120,7 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 							'max_num_items': MAX_ITEMS_PER_GRID_PAGE,
 							'too_many_items_warning': overLimitWarning,
 							'show_details': viewOptions.showDetails,
+							'show_activity_levels': viewOptions.showActivityLevels,
 							'grid_options_on_top': viewOptions.showOptionsOnTop,
 							'curating': curating,
 							# grid options
@@ -126,9 +134,11 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 							'include_annotation_types': False,
 							
 							'include_nudges': True,
+								'nudge_categories_to_show': viewOptions.nudgeCategories,
 							'include_nudge_floor': True,
-							'nudge_categories_to_show': viewOptions.nudgeCategories,
-							'nudge_floor': viewOptions.nudgeFloor,
+								'nudge_floor': viewOptions.nudgeFloor,
+								'min_nudge': minNudgePoints,
+								'max_nudge': maxNudgePoints,
 							
 							'include_search': True,
 							'shared_searches': rakontu.getNonPrivateSavedSearches(),
@@ -144,58 +154,62 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 		else:
 			self.redirect(NoRakontuAndMemberURL())
 			
-	def buildGrid(self, entries, member, skinDict, showDetails, curating):
+	def buildGrid(self, entries, member, skinDict, curating):
 		haveContent = False
-		textsForGrid = []
-		minNudgePoints, maxNudgePoints, minActivityPoints, maxActivityPoints = GetMinMaxNudgeAndActivityPointsFromListOfItems(entries, member, "home")
 		numRows = BROWSE_NUM_ROWS
 		rowColors = []
 		for row in range(numRows):
 			rowColors.append(HexColorStringForRowIndex(row, skinDict))
-		numCols = BROWSE_NUM_COLS
-		rowColEntries = {}
-		nudgePointRange = maxNudgePoints - minNudgePoints
-		viewOptions = member.getViewOptionsForLocation("home")
-		minTime = viewOptions.getStartTime()
-		maxTime = viewOptions.endTime
-		timeRangeInSeconds = (maxTime - minTime).seconds + (maxTime - minTime).days * DAY_SECONDS
-		exist, show = NudgeCategoriesExistAndShouldBeShownInContext(member, "home")
-		for entry in entries:
-			nudgePoints = entry.nudgePointsForExistAndShowOptions(exist, show)
-			timeToCheck = entry.lastPublishedOrAnnotated()
-			if nudgePointRange != 0:
-				rowEntryShouldBeIn = max(0, min(numRows-1, int(1.0 * numRows * (nudgePoints - minNudgePoints) / nudgePointRange) - 1))
-			else:
-				rowEntryShouldBeIn = 0
-			entryTimeInSeconds = (timeToCheck - minTime).seconds + (timeToCheck - minTime).days * DAY_SECONDS
-			if timeRangeInSeconds > 0:
-				colEntryShouldBeIn = max(0, min(numCols-1, int(1.0 * numCols * entryTimeInSeconds / timeRangeInSeconds)))
-			else:
-				colEntryShouldBeIn = 0
-			if not rowColEntries.has_key((rowEntryShouldBeIn, colEntryShouldBeIn)):
-				rowColEntries[(rowEntryShouldBeIn, colEntryShouldBeIn)] = []
-			rowColEntries[(rowEntryShouldBeIn, colEntryShouldBeIn)].append(entry)
-		for row in range(numRows):
-			textsInThisRow = []
-			for col in range(numCols): 
-				textsInThisCell = []
-				if rowColEntries.has_key((row, col)):
-					entries = rowColEntries[(row, col)]
-					for entry in entries:
-						text =  ItemDisplayStringForGrid(entry, member, "home", curating=curating, showDetails=showDetails, minActivityPoints=minActivityPoints)
-						textsInThisCell.append(text)
-				haveContent = haveContent or len(textsInThisCell) > 0
-				textsInThisRow.append(textsInThisCell)
-			textsForGrid.append(textsInThisRow)
-		textsForGrid.reverse()
+		minNudgePoints = 0
+		maxNudgePoints = 0
+		if entries:
+			minNudgePoints, maxNudgePoints, minActivityPoints, maxActivityPoints = GetMinMaxNudgeAndActivityPointsFromListOfItems(entries, member, "home")
+			textsForGrid = []
+			numCols = BROWSE_NUM_COLS
+			rowColEntries = {}
+			nudgePointRange = maxNudgePoints - minNudgePoints
+			viewOptions = member.getViewOptionsForLocation("home")
+			showDetails = viewOptions.showDetails
+			minTime = viewOptions.getStartTime()
+			maxTime = viewOptions.endTime
+			timeRangeInSeconds = (maxTime - minTime).seconds + (maxTime - minTime).days * DAY_SECONDS
+			exist, show = NudgeCategoriesExistAndShouldBeShownInContext(member, "home")
+			for entry in entries:
+				nudgePoints = entry.nudgePointsForExistAndShowOptions(exist, show)
+				timeToCheck = entry.lastPublishedOrAnnotated()
+				if nudgePointRange != 0:
+					rowEntryShouldBeIn = max(0, min(numRows-1, int(1.0 * numRows * (nudgePoints - minNudgePoints) / nudgePointRange) - 1))
+				else:
+					rowEntryShouldBeIn = 0
+				entryTimeInSeconds = (timeToCheck - minTime).seconds + (timeToCheck - minTime).days * DAY_SECONDS
+				if timeRangeInSeconds > 0:
+					colEntryShouldBeIn = max(0, min(numCols-1, int(1.0 * numCols * entryTimeInSeconds / timeRangeInSeconds)))
+				else:
+					colEntryShouldBeIn = 0
+				if not rowColEntries.has_key((rowEntryShouldBeIn, colEntryShouldBeIn)):
+					rowColEntries[(rowEntryShouldBeIn, colEntryShouldBeIn)] = []
+				rowColEntries[(rowEntryShouldBeIn, colEntryShouldBeIn)].append(entry)
+			for row in range(numRows):
+				textsInThisRow = []
+				for col in range(numCols): 
+					textsInThisCell = []
+					if rowColEntries.has_key((row, col)):
+						entries = rowColEntries[(row, col)]
+						for entry in entries:
+							text =  ItemDisplayStringForGrid(entry, member, "home", curating=curating, showDetails=showDetails, adjustFontSize=viewOptions.showActivityLevels, minActivityPoints=minActivityPoints)
+							textsInThisCell.append(text)
+					haveContent = haveContent or len(textsInThisCell) > 0
+					textsInThisRow.append(textsInThisCell)
+				textsForGrid.append(textsInThisRow)
+			textsForGrid.reverse()
 		if not haveContent:
 			textsForGrid = None
-		return textsForGrid, rowColors
+		return textsForGrid, rowColors, minNudgePoints, maxNudgePoints
 	
 	@RequireLogin 
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
-		curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
+		curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTION_NAMES["url_option_yes"]
 		if access:
 			if curating and not "stopCurating" in self.request.arguments():
 				(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
@@ -215,12 +229,14 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 			if entry:
-				curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
-				showVersions = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_versions") == URL_OPTIONS["url_query_versions"]
+				curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTION_NAMES["url_option_yes"]
+				showVersions = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_versions") == URL_OPTION_NAMES["url_option_yes"]
 				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "entry", entry=entry)
-				textsForGrid, rowColors = self.buildGrid(items, entry, member, rakontu, curating)
+				textsForGrid, rowColors, minNudgePoints, maxNudgePoints = self.buildGrid(items, entry, member, rakontu, curating)
 				thingsUserCanDo = self.buildThingsUserCanDo(entry, member, rakontu, curating)
 				viewOptions = member.getViewOptionsForLocation("entry")
+				
+				
 				if entry.isCollage():
 					includedLinksOutgoing = entry.getOutgoingLinksOfType("included")
 				else:
@@ -231,6 +247,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 					referencedLinksOutgoing = None
 				entryHasLinks = entry.hasLinks()
 				memberCanEditEntry = entry.memberCanEditMe(member)
+				countNames, counts = entry.getCounts()
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': entry.title, 
 								   'rakontu': rakontu, 
@@ -239,19 +256,6 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 								   'current_member_key': member.key(),
 								   'curating': curating,
 								   'entry': entry,
-								   # to show above grid
-								   'attachments': entry.getAttachments(),
- 								   'retold_links_incoming': entry.getIncomingLinksOfType("retold"),
- 								   'retold_links_outgoing': entry.getOutgoingLinksOfType("retold"),
- 								   'reminded_links_incoming': entry.getIncomingLinksOfType("reminded"),
- 								   'reminded_links_outgoing': entry.getOutgoingLinksOfType("reminded"),
- 								   'responded_links_outgoing': entry.getOutgoingLinksOfType("responded"),
- 								   'related_links_both_ways': entry.getLinksOfType("related"),
- 								   'included_links_incoming_from_invitations': entry.getIncomingLinksOfType("responded"),
- 								   'included_links_incoming_from_collages': entry.getIncomingLinksOfType("included"),
-								   'included_links_outgoing': includedLinksOutgoing,
-								   'referenced_links_outgoing': referencedLinksOutgoing,
-								   'any_links_at_all': entryHasLinks,
 								   'member_can_edit_entry': memberCanEditEntry,
 								   # grid
 								   'rows_cols': textsForGrid, 
@@ -262,6 +266,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 									'max_num_items': MAX_ITEMS_PER_GRID_PAGE,
 									'too_many_items_warning': overLimitWarning,
 									'show_details': viewOptions.showDetails,
+									'show_activity_levels': viewOptions.showActivityLevels,
 									'grid_options_on_top': viewOptions.showOptionsOnTop,
 									'no_content_warning': TEMPLATE_TERMS["template_no_annotations_for_entry"],
 								   # grid options
@@ -275,7 +280,10 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 												'annotation_types_to_show': viewOptions.annotationAnswerLinkTypes,
 									'include_nudges': True,
 										'nudge_categories_to_show': viewOptions.nudgeCategories,
-										'include_nudge_floor': False,
+										'include_nudge_floor': True,
+											'nudge_floor': viewOptions.nudgeFloor,
+											'min_nudge': minNudgePoints,
+											'max_nudge': maxNudgePoints,
 									'include_search': False,
 									'include_curate': member.isCurator(),
 									'include_print': True,
@@ -285,7 +293,10 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 								   # versions
 								   'show_versions': showVersions,
 								   'versions': entry.getTextVersionsInReverseTimeOrder(),
+					   		   'count_names': countNames,
+					   		   'counts': counts,
 								   })
+				template_values.update(entry.getLinksAsDictionaryWithTemplateReferenceNames())
 				def txn(member, entry):
 					member.lastReadAnything = datetime.now(tz=pytz.utc)
 					member.nudgePoints += rakontu.getMemberNudgePointsForEvent("reading")
@@ -305,6 +316,8 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 		rowColors = []
 		for row in range(numRows):
 			rowColors.append(HexColorStringForRowIndex(row, skinDict))
+		minNudgePoints = 0
+		maxNudgePoints = 0
 		haveContent = False
 		if allItems:
 			minNudgePoints, maxNudgePoints, minActivityPoints, maxActivityPoints = GetMinMaxNudgeAndActivityPointsFromListOfItems(allItems, member, "entry")
@@ -341,7 +354,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 					if rowColItems.has_key((row, col)):
 						items = rowColItems[(row, col)]
 						for item in items:
-							text = ItemDisplayStringForGrid(item, member, "entry", curating, showDetails=showDetails, minActivityPoints=minActivityPoints)
+							text = ItemDisplayStringForGrid(item, member, "entry", curating, showDetails=showDetails, adjustFontSize=viewOptions.showActivityLevels, minActivityPoints=minActivityPoints)
 							textsInThisCell.append(text)
 					haveContent = haveContent or len(textsInThisCell) > 0
 					textsInThisRow.append(textsInThisCell)
@@ -351,7 +364,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 			textsForGrid = None
 		if not haveContent:
 			textsForGrid = None
-		return textsForGrid, rowColors
+		return textsForGrid, rowColors, minNudgePoints, maxNudgePoints
 			
 	def buildThingsUserCanDo(self, entry, member, rakontu, curating):
 		thingsUserCanDo = {}
@@ -402,7 +415,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
-			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
+			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTION_NAMES["url_option_yes"]
 			if "shiftTime" in self.request.arguments() and users.is_current_user_admin():
 				# this is an admin-only "secret" method of shifting stuff around in preparation for a demo
 				hours = None
@@ -428,10 +441,11 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 			elif "doSomething" in self.request.arguments():
 				self.redirect(self.request.get("nextAction"))
 			elif "showVersions" in self.request.arguments():
-				url = BuildURL("dir_visit", "url_read", "%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_versions"], URL_OPTIONS["url_query_versions"]))
+				url = BuildURL("dir_visit", "url_read", "%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_versions"], URL_OPTION_NAMES["url_option_yes"]))
 				self.redirect(url)
 			elif "hideVersions" in self.request.arguments():
-				url = BuildURL("dir_visit", "url_read", "%s" % (entry.urlQuery()))
+				url = BuildURL("dir_visit", "url_read", entry.urlQuery(), rakontu=rakontu)
+				DebugPrint(url)
 				self.redirect(url)
 			elif curating and not "stopCurating" in self.request.arguments():
 				itemsThatCanBeCurated = [entry]
@@ -606,6 +620,11 @@ class SendMessagePage(ErrorHandlingRequestHander):
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
+			# make sure we have the correct email for them
+			user = users.get_current_user()
+			if member.googleAccountID == user.user_id() and member.googleAccountEmail != user.email():
+				member.googleAccountEmail = user.email()
+				member.put()
 			try:
 				membersToSendMessagesTo = memcache.get("sendMessage:%s" % member.key())
 			except:
@@ -620,10 +639,6 @@ class SendMessagePage(ErrorHandlingRequestHander):
 						if aMember.liaisonIfOfflineMember and  aMember.liaisonIfOfflineMember.active:
 							if aMember.liaisonIfOfflineMember.aMember.googleAccountEmail:
 								emailAddresses.append(aMember.liaisonIfOfflineMember.googleAccountEmail)
-				if self.request.get("messageReplyToEmail") != None and self.request.get("messageReplyToEmail") != "":
-					replyTo = self.request.get("messageReplyToEmail")
-				else:
-					replyTo = rakontu.contactEmail
 				foundGoodSendEmail = False
 				for email in emailAddresses:
 					if mail.is_email_valid(email):
@@ -632,7 +647,7 @@ class SendMessagePage(ErrorHandlingRequestHander):
 				if emailAddresses and foundGoodSendEmail:
 					message = mail.EmailMessage()
 					message.sender = member.googleAccountEmail
-					message.reply_to = replyTo
+					message.reply_to = member.googleAccountEmail
 					message.subject = htmlEscape(self.request.get("subject"))
 					message.to = emailAddresses 
 					message.body = htmlEscape(self.request.get("message"))
@@ -656,10 +671,10 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			memberToSee = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
-			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
+			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTION_NAMES["url_option_yes"]
 			if memberToSee:
 				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "member", memberToSee=memberToSee)
-				textsForGrid, rowColors = self.buildGrid(items, member, memberToSee, rakontu, curating)
+				textsForGrid, rowColors, minNudgePoints, maxNudgePoints = self.buildGrid(items, member, memberToSee, rakontu, curating)
 				countNames, counts = memberToSee.getCounts()
 				viewOptions = member.getViewOptionsForLocation("member")
 				currentSearch = viewOptions.search
@@ -684,6 +699,7 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 					   		   'counts': counts,
 					   		   'curating': curating,
 					   		   'show_details': viewOptions.showDetails,
+					   		   'show_activity_levels': viewOptions.showActivityLevels,
 								'grid_options_on_top': viewOptions.showOptionsOnTop,
 								'no_content_warning': TEMPLATE_TERMS["template_no_entries_or_annotations_for_member"],
 							   # grid options
@@ -696,8 +712,12 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 											'entry_types_to_show': viewOptions.entryTypes,
 								'include_annotation_types': True,
 											'annotation_types_to_show': viewOptions.annotationAnswerLinkTypes,
-								'include_nudges': False,
-								'include_nudge_floor': False,
+								'include_nudges': True,
+									'nudge_categories_to_show': viewOptions.nudgeCategories,
+								'include_nudge_floor': True,
+									'nudge_floor': viewOptions.nudgeFloor,
+									'min_nudge': minNudgePoints,
+									'max_nudge': maxNudgePoints,
 								'include_search': True,
 												'shared_searches': rakontu.getNonPrivateSavedSearches(),
 												'member_searches': member.getPrivateSavedSearches(),
@@ -719,6 +739,8 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 		rowColors = []
 		for row in range(numRows):
 			rowColors.append(HexColorStringForRowIndex(row, skinDict))
+		minNudgePoints = 0
+		maxNudgePoints = 0
 		if allItems:
 			viewOptions = member.getViewOptionsForLocation("member")
 			minTime = viewOptions.getStartTime()
@@ -756,21 +778,21 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 					if rowColItems.has_key((row, col)):
 						items = rowColItems[(row, col)]
 						for item in items:
-							text = ItemDisplayStringForGrid(item, member, "member", curating, showDetails=showDetails, minActivityPoints=minActivityPoints)
+							text = ItemDisplayStringForGrid(item, member, "member", curating, showDetails=showDetails, adjustFontSize=viewOptions.showActivityLevels, minActivityPoints=minActivityPoints)
 							textsInThisCell.append(text)
 					textsInThisRow.append(textsInThisCell)
 				textsForGrid.append(textsInThisRow)
 			textsForGrid.reverse()
 		else:
 			textsForGrid = None
-		return textsForGrid, rowColors
+		return textsForGrid, rowColors, minNudgePoints, maxNudgePoints
 	
 	@RequireLogin 
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			memberToSee = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
-			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
+			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTION_NAMES["url_option_yes"]
 			if memberToSee:
 				if curating and not "stopCurating" in self.request.arguments():
 					ProcessFlagOrUnFlagCommand(self.request, memberToSee.getAllItemsAttributedToMember())
@@ -821,10 +843,10 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			character = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_character")
-			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
+			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTION_NAMES["url_option_yes"]
 			if character:
 				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "character", character=character)
-				textsForGrid, rowColors = self.buildGrid(items, member, character, rakontu, curating)
+				textsForGrid, rowColors, minNudgePoints, maxNudgePoints = self.buildGrid(items, member, character, rakontu, curating)
 				viewOptions = member.getViewOptionsForLocation("character")
 				currentSearch = viewOptions.search
 				countNames, counts = character.getCounts()
@@ -847,6 +869,7 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 								'max_num_items': MAX_ITEMS_PER_GRID_PAGE,
 								'too_many_items_warning': overLimitWarning,
 					   		   'show_details': viewOptions.showDetails,
+					   		   'show_activity_levels': viewOptions.showActivityLevels,
 								'grid_options_on_top': viewOptions.showOptionsOnTop,
 								'no_content_warning': TEMPLATE_TERMS["template_no_entries_or_annotations_for_character"],
 							   # grid options
@@ -859,8 +882,12 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 											'entry_types_to_show': viewOptions.entryTypes,
 								'include_annotation_types': True,
 											'annotation_types_to_show': viewOptions.annotationAnswerLinkTypes,
-								'include_nudges': False,
-								'include_nudge_floor': False,
+								'include_nudges': True,
+									'nudge_categories_to_show': viewOptions.nudgeCategories,
+								'include_nudge_floor': True,
+									'nudge_floor': viewOptions.nudgeFloor,
+									'min_nudge': minNudgePoints,
+									'max_nudge': maxNudgePoints,
 								'include_search': True,
 												'shared_searches': rakontu.getNonPrivateSavedSearches(),
 												'member_searches': member.getPrivateSavedSearches(),
@@ -882,6 +909,8 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 		rowColors = []
 		for row in range(numRows):
 			rowColors.append(HexColorStringForRowIndex(row, skinDict))
+		minNudgePoints = 0
+		maxNudgePoints = 0
 		if allItems:
 			viewOptions = member.getViewOptionsForLocation("character")
 			minTime = viewOptions.getStartTime()
@@ -919,21 +948,21 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 					if rowColItems.has_key((row, col)):
 						items = rowColItems[(row, col)]
 						for item in items:
-							text = ItemDisplayStringForGrid(item, member, "character", curating, showDetails=showDetails, minActivityPoints=minActivityPoints)
+							text = ItemDisplayStringForGrid(item, member, "character", curating, showDetails=showDetails, adjustFontSize=viewOptions.showActivityLevels, minActivityPoints=minActivityPoints)
 							textsInThisCell.append(text)
 					textsInThisRow.append(textsInThisCell)
 				textsForGrid.append(textsInThisRow)
 			textsForGrid.reverse()
 		else:
 			textsForGrid = None
-		return textsForGrid, rowColors
+		return textsForGrid, rowColors, minNudgePoints, maxNudgePoints
 
 	@RequireLogin 
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			character = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_character")
-			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTIONS["url_query_curate"]
+			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTION_NAMES["url_option_yes"]
 			if character:
 				if curating and not "stopCurating" in self.request.arguments():
 					ProcessFlagOrUnFlagCommand(self.request, character.getAllItemsAttributedToCharacter())
@@ -974,6 +1003,11 @@ class AskGuidePage(ErrorHandlingRequestHander):
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
+			# make sure we have the correct email for them
+			user = users.get_current_user()
+			if member.googleAccountID == user.user_id() and member.googleAccountEmail != user.email():
+				member.googleAccountEmail = user.email()
+				member.put()
 			messageMember = None
 			goAhead = True
 			for argument in self.request.arguments():
@@ -986,15 +1020,11 @@ class AskGuidePage(ErrorHandlingRequestHander):
 								messageMember = None
 								goAhead = False
 							break
-				if self.request.get("messageReplyToEmail") != None and self.request.get("messageReplyToEmail") != "":
-					replyTo = self.request.get("messageReplyToEmail")
-				else:
-					replyTo = rakontu.contactEmail
 				if goAhead and messageMember and mail.is_email_valid(messageMember.googleAccountEmail):
 					message = mail.EmailMessage()
-					message.sender = SITE_SUPPORT_EMAIL
+					message.sender = member.googleAccountEmail
+					message.reply_to = member.googleAccountEmail
 					message.to = messageMember.googleAccountEmail
-					message.reply_to = replyTo
 					message.subject = "Rakontu %s - %s" % (TERMS["term_question"], htmlEscape(self.request.get("subject")))
 					message.body = htmlEscape(self.request.get("message"))
 					try:
@@ -1161,10 +1191,10 @@ class ChangeMemberPreferencesPage(ErrorHandlingRequestHander):
 				else:
 					memberToEdit = member
 				memberToEdit.acceptsMessages = self.request.get("acceptsMessages") == "yes"
-				memberToEdit.messageReplyToEmail = self.request.get("messageReplyToEmail")
 				memberToEdit.timeZoneName = self.request.get("timeZoneName")
 				memberToEdit.dateFormat = self.request.get("dateFormat")
 				memberToEdit.timeFormat = self.request.get("timeFormat")
+				memberToEdit.showButtonTooltips = self.request.get("showButtonTooltips") == "yes"
 				if memberToEdit.isOnlineMember:
 					wasLiaison = memberToEdit.isLiaison()
 					for i in range(3):
@@ -1209,7 +1239,7 @@ class ChangeMemberNicknamePage(ErrorHandlingRequestHander):
 				memberToEdit = offlineMember
 			else:
 				memberToEdit = member
-			nameTaken = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_name_taken") == URL_OPTIONS["url_query_name_taken"]
+			nameTaken = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_name_taken") == URL_OPTION_NAMES["url_option_yes"]
 			try:
 				nickname = memcache.get("nickname:%s" % memberToEdit.key())
 			except:
@@ -1252,9 +1282,9 @@ class ChangeMemberNicknamePage(ErrorHandlingRequestHander):
 					memberToEdit = member
 				nickname = htmlEscape(self.request.get("nickname")).strip()
 				memberUsingNickname = rakontu.memberWithNickname(nickname)
-				if memberUsingNickname and memberUsingNickname.key() != memberToEdit.key():
+				if memberUsingNickname and str(memberUsingNickname.key()) != str(memberToEdit.key()):
 					memcache.add("nickname:%s" % memberToEdit.key(), nickname, HOUR_SECONDS)
-					query = "%s&%s=%s" % (memberToEdit.urlQuery(), URL_OPTIONS["url_query_name_taken"], URL_OPTIONS["url_query_name_taken"])
+					query = "%s&%s=%s" % (memberToEdit.urlQuery(), URL_OPTIONS["url_query_name_taken"], URL_OPTION_NAMES["url_option_yes"])
 					self.redirect(BuildURL("dir_visit", "url_nickname", query))
 				else:
 					memberToEdit.nickname = nickname
@@ -1290,6 +1320,7 @@ class ChangeMemberDraftsPage(ErrorHandlingRequestHander):
 							   'refer_type': "member",
 							   'refer_type_display': DisplayTypeForQuestionReferType("member"),
 							   'draft_entries_of_other_people_you_can_edit': editorEntries,
+							   'blurbs': BLURBS,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/drafts.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -1356,6 +1387,7 @@ class ChangeMemberFiltersPage(ErrorHandlingRequestHander):
 							   'refer_type_display': DisplayTypeForQuestionReferType("member"),
 							   'search_locations': SEARCH_LOCATIONS,
 							   'search_locations_display': SEARCH_LOCATIONS_DISPLAY,
+							   'blurbs': BLURBS,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/filters.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -1578,7 +1610,8 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			location = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_location")
+			locationURL = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_location")
+			location = CorrespondingItemFromMatchedOrderList(locationURL, VIEW_OPTION_LOCATIONS_URLS, VIEW_OPTION_LOCATIONS)
 			if location == "home":
 				defaultURL = rakontu.linkURL()
 			elif location == "entry":
@@ -1587,7 +1620,7 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 				defaultURL = memberToSee.linkURL()
 			elif location == "character":
 				defaultURL = character.linkURL()
-			defaultURL += "&%s=%s" % (URL_OPTIONS["url_query_location"], location)
+			defaultURL += "&%s=%s" % (URL_OPTIONS["url_query_location"], locationURL)
 			viewOptions = member.getViewOptionsForLocation(location)
 			search = viewOptions.search
 			if "deleteSearchByCreator" in self.request.arguments():
@@ -1600,7 +1633,7 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 				if search:
 					search.flaggedForRemoval = not search.flaggedForRemoval
 					search.put()
-					query = "%s=%s" % (URL_OPTIONS["url_query_location"], location)
+					query = "%s=%s" % (URL_OPTIONS["url_query_location"], locationURL)
 					self.redirect(BuildURL("dir_visit", "url_search_filter", query, rakontu=rakontu))
 				else:
 					self.redirect(defaultURL)
@@ -1730,9 +1763,10 @@ class ContextualHelpPage(ErrorHandlingRequestHander):
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		# don't require access to rakontu, since administrator may be calling this from the admin or create pages
-		name = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_help")
-		type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_help_type")
-		help = helpLookup(name, type)
+		translatedName = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_help")
+		typeURL = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_help_type")
+		type = CorrespondingItemFromMatchedOrderList(typeURL, HELP_TYPES_URLS, HELP_TYPES)
+		help = helpLookupByTranslatedName(translatedName, type)
 		if type == "info":
 			message = TERMS["term_help_info"]
 		elif type == "tip": 
@@ -1740,10 +1774,13 @@ class ContextualHelpPage(ErrorHandlingRequestHander):
 		elif type == "caution": 
 			message = TERMS["term_help_caution"]
 		if help:
-			helpShortName = help.name.replace("_", " ").capitalize()
+			helpShortName = translatedName.replace("_", " ")
+			helpShortName = helpShortName.replace("rakontu", "Rakontu")
+			helpShortName = helpShortName[0].capitalize() + helpShortName[1:]
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 						   	   'title': TITLES["HELP_ON"], 
 					   	   	   'title_extra': helpShortName,
+					   	   	   'help_short_name': helpShortName,
 					   	   	   'system_message': TERMS["term_help"], 
 							   'top_message': message,
 							   'help': help,
@@ -1760,6 +1797,8 @@ class GeneralHelpPage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
+			guides = rakontu.getGuides()
+			currentMemberIsOnlyGuide = len(guides) == 1 and str(guides[0].key()) == str(member.key())
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': TITLES["HELP"],
 							'rakontu': rakontu, 
@@ -1767,8 +1806,9 @@ class GeneralHelpPage(ErrorHandlingRequestHander):
 							'current_member': member,
 							'non_manager_resources': rakontu.getNonDraftHelpResourcesAsDictionaryByCategory(),
 							'manager_resources': rakontu.getNonDraftManagerOnlyHelpResourcesAsDictionaryByCategory(),
-							'guides': rakontu.getGuides(),
+							'guides': guides,
 							'have_system_resources': HaveSystemResources(),
+							'current_member_is_only_guide': currentMemberIsOnlyGuide,
 							})
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/help.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -1786,12 +1826,13 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 		defaultURL = memberToSee.linkURL()
 	elif location == "character":
 		defaultURL = character.linkURL()
-	defaultURL += "&%s=%s" % (URL_OPTIONS["url_query_location"], location)
+	locationURL = CorrespondingItemFromMatchedOrderList(location, VIEW_OPTION_LOCATIONS, VIEW_OPTION_LOCATIONS_URLS)
+	defaultURL += "&%s=%s" % (URL_OPTIONS["url_query_location"], locationURL)
 	delta = timedelta(seconds=viewOptions.timeFrameInSeconds)
 	now = datetime.now(tz=pytz.utc)
 	# turn on or off curating
 	if "startCurating" in request.arguments():
-		return defaultURL + "&%s=%s" % (URL_OPTIONS["url_query_curate"], URL_OPTIONS["url_query_curate"])
+		return defaultURL + "&%s=%s" % (URL_OPTIONS["url_query_curate"], URL_OPTION_NAMES["url_option_yes"])
 	elif "stopCurating" in request.arguments():
 		return defaultURL
 	# time frame - home, member, character. entry
@@ -1842,7 +1883,7 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 		viewOptions.annotationAnswerLinkTypes.extend(newAnnotationAnswerLinkTypes)
 		viewOptions.put()
 		return defaultURL
-	# nudges - home, entry 
+	# nudges - all
 	elif "changeNudgeCategoriesShowing" in request.arguments():
 		newNudgeCategories = []
 		for i in range(NUM_NUDGE_CATEGORIES):
@@ -1878,29 +1919,28 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 	elif "makeNewSavedSearch" in request.arguments():
 			viewOptions.search = None
 			viewOptions.put()
-			query ="%s=%s" % (URL_OPTIONS["url_query_location"], location)
+			query ="%s=%s" % (URL_OPTIONS["url_query_location"], locationURL)
 			return BuildURL("dir_visit", "url_search_filter", query, rakontu=rakontu)
 	elif "changeSearch"  in request.arguments():
 		if search:
-			query = "%s&%s=%s" % (search.urlQuery(), URL_OPTIONS["url_query_location"], location)
+			query = "%s&%s=%s" % (search.urlQuery(), URL_OPTIONS["url_query_location"], locationURL)
 			return BuildURL("dir_visit", "url_search_filter", query, rakontu=rakontu)
 		else:
 			viewOptions.search = None
 			viewOptions.put()
-			query ="%s=%s" % (URL_OPTIONS["url_query_location"], location)
+			query ="%s=%s" % (URL_OPTIONS["url_query_location"], locationURL)
 			return BuildURL("dir_visit", "url_search_filter", query, rakontu=rakontu)
 	elif "copySearch"  in request.arguments():
 		if search:
-			keyName = GenerateSequentialKeyName("filter")
 			refs = search.getQuestionReferences()
-			def txn(keyName, member, rakontu, search, refs):
-				newSearch = SavedSearch(key_name=keyName, parent=member, id=keyName, rakontu=rakontu, creator=member)
-				newSearch.copyDataFromOtherSearchAndPut(search, refs)
-				viewOptions.search = newSearch
-				viewOptions.put()
-				return newSearch
-			db.run_in_transaction(txn, keyName, member, rakontu, search, refs)
-			query = "%s&%s=%s" % (newSearch.urlQuery(), URL_OPTIONS["url_query_location"], location)
+			keyName = GenerateSequentialKeyName("filter")
+			newSearch = SavedSearch(key_name=keyName, parent=member, id=keyName, rakontu=rakontu, creator=member)
+			newSearch.put()
+			# cannot run this line in transaction because it calls the counter transaction
+			newSearch.copyDataFromOtherSearch(search, refs)
+			viewOptions.search = newSearch
+			viewOptions.put()
+			query = "%s&%s=%s" % (newSearch.urlQuery(), URL_OPTIONS["url_query_location"], locationURL)
 			return BuildURL("dir_visit", "url_search_filter", query, rakontu=rakontu)
 		else:
 			return defaultURL
@@ -1908,7 +1948,11 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 	elif "toggleShowDetails" in request.arguments():  
 		viewOptions.showDetails = not viewOptions.showDetails
 		viewOptions.put()
-		return defaultURL   
+		return defaultURL
+	elif "toggleShowActivityLevels" in request.arguments():  
+		viewOptions.showActivityLevels = not viewOptions.showActivityLevels
+		viewOptions.put()
+		return defaultURL
 	elif "printSearchResults"  in request.arguments(): 
 		if location == "home": 
 			return BuildURL("dir_liaise", "url_print_search", rakontu=rakontu)

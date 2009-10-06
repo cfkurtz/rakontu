@@ -63,11 +63,17 @@ def NotFoundURL(rakontu=None):
 	else:
 		return "/%s" % URLS["url_not_found"]
 	
+def DatabaseErrorURL(rakontu=None):
+	if rakontu:
+		return "/%s?%s" % (URLS["url_database_error"], rakontu.urlQuery())
+	else:
+		return "/%s" % URLS["url_database_error"]
+	
 def NotAuthorizedURL(role, rakontu=None):
 	if rakontu:
-		return "/%s?%s&%s=%s" % (URLS["url_not_authorized"], rakontu.urlQuery(), URL_OPTIONS["url_query_type"], role)
+		return "/%s?%s&%s=%s" % (URLS["url_not_authorized"], rakontu.urlQuery(), URL_OPTIONS["url_query_role"], role)
 	else:
-		return "/%s?%s=%s" % (URLS["url_not_authorized"], URL_OPTIONS["url_query_type"], role)
+		return "/%s?%s=%s" % (URLS["url_not_authorized"], URL_OPTIONS["url_query_role"], role)
 	
 def NoRakontuAndMemberURL(rakontu=None):
 	if rakontu:

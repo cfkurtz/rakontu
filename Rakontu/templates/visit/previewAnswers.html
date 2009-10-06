@@ -23,7 +23,8 @@
 	{% endif %}
 	
 	<p>{{entry.linkString}} ({{entry.typeForDisplay}})</p>
-	<div class="blurb">{{entry.text}}</div>
+	{% include "read_or_preview_entry.html" %}
+	</div>
 	
 	<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_preview_answers}}?{{entry.urlQuery}}" method="post" enctype="multipart/form-data">

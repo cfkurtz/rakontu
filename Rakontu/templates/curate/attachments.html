@@ -30,8 +30,12 @@
 					{% endif %}
 	      			 {{attachment.entryLinkString}}</td>
 	      			 <td>
-	      			 {{attachment.entryPublished|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
-					 {{attachment.entryPublished|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+	      			 {% if attachment.entryPublished %}
+	      			 	{{attachment.entryPublished|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					 	{{attachment.entryPublished|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+					 {% else %}
+					 	&nbsp;
+					 {% endif %}
 	      			 </td>
 	      			 </tr>
 	      		{% endfor %}

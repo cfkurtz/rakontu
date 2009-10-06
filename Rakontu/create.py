@@ -77,11 +77,12 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 					includedLinksOutgoing = entry.getOutgoingLinksOfType("included")
 				else:
 					includedLinksOutgoing = []
-				prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging("story", bookmark)
+				typeURL = ENTRY_TYPES_URLS[ENTRY_TYPE_INDEX_STORY]
+				prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging(typeURL, bookmark)
 				entriesThatCanBeIncluded = self.reduceStoriesThatCanBeIncludedInCollage(entry, includedLinksOutgoing, entries)
 				# if the list is reduced so far that there is nothing to show, make one attempt to add more entries
 				if len(entries) > 0 and len(entriesThatCanBeIncluded) == 0:
-					prev, moreEntries, next = entry.rakontu.getNonDraftEntriesOfType_WithPaging("story", next)
+					prev, moreEntries, next = entry.rakontu.getNonDraftEntriesOfType_WithPaging(typeURL, next)
 					moreEntriesThatCanBeIncluded = self.reduceStoriesThatCanBeIncludedInCollage(entry, includedLinksOutgoing, moreEntries)
 					entriesThatCanBeIncluded.extend(moreEntriesThatCanBeIncluded)
 			else:
@@ -100,7 +101,7 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 				for aSearch in searches:
 					found = False
 					for link in referencedLinksOutgoing:
-						if entry and link.itemTo.key() == aSearch.key():
+						if entry and str(link.itemTo.key()) == str(aSearch.key()):
 							found = True
 							break
 					if not found:
@@ -126,7 +127,7 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 			else:
 				versions = None
 			if member.isLiaison() and not member.isManagerOrOwner():
-				offlineOrAllMembers = rakontu.getActiveOfflineMembers()
+				offlineOrAllMembers = rakontu.getActiveOfflineMembersForLiaison(member)
 			elif member.isManagerOrOwner():
 				offlineOrAllMembers = rakontu.getActiveMembers()
 			else:
@@ -179,6 +180,8 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 							    # for a resource
 							    'categories_in_use': categories,
 							   })
+			if entry:
+				template_values.update(entry.getLinksAsDictionaryWithTemplateReferenceNames())
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/entry.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
@@ -189,7 +192,7 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 		for anEntry in entries:
 			found = False
 			for link in includedLinksOutgoing:
-				if entry and link.itemTo.key() == anEntry.key():
+				if entry and str(link.itemTo.key()) == str(anEntry.key()):
 					found = True
 					break
 			if not found:
@@ -309,7 +312,7 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 						thingsToPut.append(link)
 						if self.request.get("removeLink|%s" % link.key()) == "yes":
 							thingsToDelete.append(link)
-					prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging("story", bookmark)
+					prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging(ENTRY_TYPES_URLS[ENTRY_TYPE_INDEX_STORY], bookmark)
 					for anEntry in entries:
 						if self.request.get("addLink|%s" % anEntry.key()) == "yes":
 							comment = htmlEscape(self.request.get("linkComment|%s" % anEntry.key()))
@@ -535,6 +538,7 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 								   'offline_members': rakontu.getOfflineMembers(),
 								   'character_allowed': rakontu.allowCharacter[ANSWERS_ENTRY_TYPE_INDEX],
 								   })
+				template_values.update(entry.getLinksAsDictionaryWithTemplateReferenceNames())
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/answers.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
@@ -631,6 +635,7 @@ class PreviewAnswersPage(ErrorHandlingRequestHander):
 								   'questions': sortedQuestions,
 								   'answers': answers,
 								   })
+				template_values.update(entry.getLinksAsDictionaryWithTemplateReferenceNames())
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/previewAnswers.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
@@ -705,9 +710,9 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 								   'nudge_categories': rakontu.nudgeCategories,
 								   'nudge_points_member_can_assign': nudgePointsMemberCanAssign,
 								   'character_allowed': rakontu.allowCharacter[entryTypeIndex],
-								   'included_links_outgoing': entry.getOutgoingLinksOfType("included"),
 								   'already_there_tags': rakontu.getTags(),
 								   })
+				template_values.update(entry.getLinksAsDictionaryWithTemplateReferenceNames())
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/annotation.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
@@ -845,12 +850,12 @@ class PreviewPage(ErrorHandlingRequestHander):
 								   'skin': rakontu.getSkinDictionary(),
 								   'annotation': annotation,
 								   'entry': entry,
-								   'included_links_outgoing': entry.getOutgoingLinksOfType("included"),
 								   'rakontu_has_questions_for_this_entry_type': len(rakontu.getActiveQuestionsOfType(entry.type)) > 0,
 								   'questions': sortedQuestions,
 								   'answers_with_entry': entry.getAnswersForMember(member),
 								   'nudge_categories': rakontu.nudgeCategories,
 								   })
+				template_values.update(entry.getLinksAsDictionaryWithTemplateReferenceNames())
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/preview.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
@@ -919,7 +924,7 @@ class RelateEntryPage(ErrorHandlingRequestHander):
 			bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
 			type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_type")
 			if not type:
-				type = "story"
+				type = ENTRY_TYPES_URLS[0] # story
 			if entry:
 				prev, entries, next = entry.rakontu.getNonDraftEntriesOfType_WithPaging(type, bookmark)
 				links = entry.getLinksOfType("related")
@@ -958,9 +963,9 @@ class RelateEntryPage(ErrorHandlingRequestHander):
 		for anEntry in entries:
 			found = False
 			for link in links:
-				if link.itemTo.key() == anEntry.key() or link.itemFrom.key() == anEntry.key():
+				if str(link.itemTo.key()) == str(anEntry.key()) or str(link.itemFrom.key()) == str(anEntry.key()):
 					found = True
-			if not found and anEntry.key() != entry.key():
+			if not found and str(anEntry.key()) != str(entry.key()):
 				entriesThatCanBeRelated.append(anEntry)
 		return entriesThatCanBeRelated
 					
@@ -970,10 +975,10 @@ class RelateEntryPage(ErrorHandlingRequestHander):
 		if access:
 			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 			bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
-			type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_type")
+			typeURL = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_type")
 			if entry:
 				if "changeSelections" in self.request.arguments():
-					type = self.request.get("entry_type")
+					typeURL = self.request.get("entry_type")
 					bookmark = None
 				else:
 					thingsToPublish = []
@@ -985,7 +990,7 @@ class RelateEntryPage(ErrorHandlingRequestHander):
 							thingsToPut.append(link)
 						if self.request.get("removeLink|%s" % link.key()) == "yes":
 							thingsToDelete.append(link)
-					prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging(type, bookmark)
+					prev, entries, next = rakontu.getNonDraftEntriesOfType_WithPaging(typeURL, bookmark)
 					atLeastOneLinkCreated = False
 					for anEntry in entries:
 						if self.request.get("addLink|%s" % anEntry.key()) == "yes":
@@ -1016,9 +1021,9 @@ class RelateEntryPage(ErrorHandlingRequestHander):
 					db.run_in_transaction(txn, thingsToPut, thingsToDelete, thingsToPublish)
 				if bookmark:
 					# bookmark must be last, because of the extra == the PageQuery puts on it
-					query = "%s&%s=%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_type"], type, URL_OPTIONS["url_query_bookmark"], bookmark)
+					query = "%s&%s=%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_type"], typeURL, URL_OPTIONS["url_query_bookmark"], bookmark)
 				else:
-					query = "%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_type"], type)
+					query = "%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_type"], typeURL)
 				self.redirect(BuildURL("dir_visit", "url_relate", query))
 			else:
 				self.redirect(NotFoundURL(rakontu))

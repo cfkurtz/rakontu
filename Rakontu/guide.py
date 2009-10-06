@@ -17,7 +17,7 @@ class ReviewResourcesPage(ErrorHandlingRequestHander):
 				managersOnlyType = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_managers_only") 
 				if not managersOnlyType:
 					managersOnlyType = URL_OPTION_NAMES["url_option_all"]
-				type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_type")
+				type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_resource_type")
 				if not type:
 					type = URL_OPTION_NAMES["url_option_all"]
 				resources = rakontu.getNonDraftEntriesOfType("resource")
@@ -73,13 +73,13 @@ class ReviewResourcesPage(ErrorHandlingRequestHander):
 				managersOnlyType = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_managers_only") 
 				if not managersOnlyType:
 					managersOnlyType = URL_OPTION_NAMES["url_option_all"]
-				type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_type")
+				type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_resource_type")
 				if not type:
 					type = URL_OPTION_NAMES["url_option_all"]
 				if "changeSelections" in self.request.arguments():
 					resourceGroupChoice = self.request.get("show_resource_group")
 					managersOnlyChoice = self.request.get("show_managers_only")
-					query = "%s&%s=%s&%s=%s" % (rakontu.urlQuery(), URL_OPTIONS["url_query_type"], resourceGroupChoice, 
+					query = "%s&%s=%s&%s=%s" % (rakontu.urlQuery(), URL_OPTIONS["url_query_resource_type"], resourceGroupChoice, 
 									URL_OPTIONS["url_query_managers_only"], managersOnlyChoice)
 					self.redirect(BuildURL("dir_guide", "url_resources", query))
 				else:
@@ -103,7 +103,7 @@ class ReviewResourcesPage(ErrorHandlingRequestHander):
 								resourcesToPut.append(resource)
 						db.put(resourcesToPut)
 					db.run_in_transaction(txn, resources)
-					query = "%s&%s=%s&%s=%s" % (rakontu.urlQuery(), URL_OPTIONS["url_query_type"], type, 
+					query = "%s&%s=%s&%s=%s" % (rakontu.urlQuery(), URL_OPTIONS["url_query_resource_type"], type, 
 									URL_OPTIONS["url_query_managers_only"], managersOnlyType)
 					self.redirect(BuildURL("dir_guide", "url_resources", query))
 			else:
@@ -130,15 +130,11 @@ class ReviewRequestsPage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isGuide():
-				uncompletedOnly = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_uncompleted") == URL_OPTIONS["url_query_uncompleted"]
-				type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_type")
+				uncompletedOnly = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_uncompleted") == URL_OPTION_NAMES["url_option_yes"]
+				type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_request_type")
 				if not type:
 					type = REQUEST_TYPES_URLS[-1]
-				typeForLookup = None
-				for i in range(len(REQUEST_TYPES_URLS)):
-					if type == REQUEST_TYPES_URLS[i]:
-						typeForLookup = REQUEST_TYPES[i]
-						break
+				typeForLookup = CorrespondingItemFromMatchedOrderList(type, REQUEST_TYPES_URLS, REQUEST_TYPES)
 				if uncompletedOnly:
 					requests = rakontu.getAllUncompletedRequestsOfType(typeForLookup)
 				else:
@@ -168,11 +164,11 @@ class ReviewRequestsPage(ErrorHandlingRequestHander):
 			if member.isGuide():
 				if "changeSelections" in self.request.arguments():
 					uncompletedOnly = self.request.get("all_or_uncompleted") == "showOnlyUncompledRequests"
-					type = self.request.get("request_type")
+					type = self.request.get("request_type_choice")
 					if uncompletedOnly:
-						query = "%s=%s&%s=%s" % (URL_OPTIONS["url_query_type"], type, URL_OPTIONS["url_query_uncompleted"], URL_OPTIONS["url_query_uncompleted"])
+						query = "%s=%s&%s=%s" % (URL_OPTIONS["url_query_request_type"], type, URL_OPTIONS["url_query_uncompleted"], URL_OPTION_NAMES["url_option_yes"])
 					else:
-						query = "%s=%s" % (URL_OPTIONS["url_query_type"], type)
+						query = "%s=%s" % (URL_OPTIONS["url_query_request_type"], type)
 					self.redirect(BuildURL("dir_guide", "url_requests", query, rakontu=rakontu))
 				else:
 					requests = rakontu.getAllRequests()
@@ -203,14 +199,14 @@ class ReviewInvitationsPage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isGuide():
-				noResponsesOnly = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_no_responses") == URL_OPTIONS["url_query_no_responses"]
+				noResponsesOnly = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_no_responses") == URL_OPTION_NAMES["url_option_yes"]
 				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
-				prev, invitations, next = rakontu.getNonDraftEntriesOfType_WithPaging("invitation", bookmark)
+				prev, invitations, next = rakontu.getNonDraftEntriesOfType_WithPaging(ENTRY_TYPES_URLS[ENTRY_TYPE_INDEX_INVITATION], bookmark) 
 				if noResponsesOnly:
 					unrespondedInvitations = self.reduceInvitationsByOnlyUnresponded(invitations)
 					# if the list is reduced so far that there is nothing to show, make one attempt to add more entries
 					if len(invitations) > 0 and len(unrespondedInvitations) == 0:
-						prev, moreInvitations, next = rakontu.getNonDraftEntriesOfType_WithPaging("invitation", next)
+						prev, moreInvitations, next = rakontu.getNonDraftEntriesOfType_WithPaging(ENTRY_TYPES_URLS[ENTRY_TYPE_INDEX_INVITATION], next)
 						moreUnrespondedInvitations = self.reduceInvitationsByOnlyUnresponded(moreInvitations)
 						unrespondedInvitations.extend(moreUnrespondedInvitations)
 					invitations = unrespondedInvitations
@@ -249,11 +245,11 @@ class ReviewInvitationsPage(ErrorHandlingRequestHander):
 					if self.request.get("all_or_unresponded") == "showOnlyUnrespondedInvitations":
 						if bookmark:
 							query = "%s&%s=%s&%s=%s" % (rakontu.urlQuery(), 
-													URL_OPTIONS["url_query_no_responses"], URL_OPTIONS["url_query_no_responses"],
+													URL_OPTIONS["url_query_no_responses"], URL_OPTION_NAMES["url_option_yes"],
 													URL_OPTIONS["url_query_bookmark"], bookmark)
 						else:
 							query = "%s&%s=%s" % (rakontu.urlQuery(), 
-													URL_OPTIONS["url_query_no_responses"], URL_OPTIONS["url_query_no_responses"])
+													URL_OPTIONS["url_query_no_responses"], URL_OPTION_NAMES["url_option_yes"])
 						self.redirect(BuildURL("dir_guide", "url_invitations", query))
 					else:
 						if bookmark:

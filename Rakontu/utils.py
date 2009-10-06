@@ -4,14 +4,14 @@
 # Version: pre-0.1
 # License: GPL 3.0 
 # Google Code Project: http://code.google.com/p/rakontu/
-# -------------------------------------------------------------------------- -------- ---------- 
+# ---------------------------------------------------------------------------------------------
          
-import os       
+import os        
 import string             
-import cgi          
+import cgi           
 import htmllib          
           
-from models import *         
+from models import *          
      
 from google.appengine.api import users     
 from google.appengine.ext.webapp import template        
@@ -32,17 +32,17 @@ import pytz
 # ============================================================================================
 # ============================================================================================
 
-def FindTemplate(template):  
+def FindTemplate(template):   
 	return "templates/%s" % template   
-	
-def RequireLogin(func):
+	 
+def RequireLogin(func):  
 	def check_login(request):   
-		if not users.get_current_user():  
+		if not users.get_current_user():   
 			loginURL = users.create_login_url("/") 
-			request.redirect(loginURL)
+			request.redirect(loginURL) 
 			return
 		func(request)
-	return check_login 
+	return check_login  
 
 def GetCurrentRakontuAndMemberFromRequest(request):
 	rakontu = GetRakontuFromURLQuery(request.query_string)
@@ -206,7 +206,7 @@ def GetEntryAndAnnotationFromURLQuery(query):
 		if annotation:  
 			entry = annotation.entry     
 	return entry, annotation         
-    
+     
 def GetStandardTemplateDictionaryAndAddMore(newItems):      
 	user = users.get_current_user()    
 	if user != None:  
@@ -245,11 +245,11 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'current_user': user, 
 	   'user_is_admin': users.is_current_user_admin(),
 	   'user_email': email,
-	   'logout_url': users.create_logout_url("/"),
+	   'logout_url': users.create_logout_url("/"), 
 	   'site_language': SITE_LANGUAGE, 
 	   'site_support_email': SITE_SUPPORT_EMAIL,
 	   'max_possible_attachments': MAX_POSSIBLE_ATTACHMENTS,
-	   'development': DEVELOPMENT,
+	   'development': DEVELOPMENT, 
 	   }
 	for key in DIRS.keys():				items[key] = DIRS[key]
 	for key in URLS.keys():				items[key] = URLS[key] 
@@ -266,12 +266,12 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	items["url_pattern"] = URLForEntryType("pattern")
 	items["url_resource"] = URLForEntryType("resource") 
 	for key in newItems.keys():
-		items[key] = newItems[key]
+		items[key] = newItems[key]   
 	return items
  
 def GetKeyFromQueryString(queryString, keyname):
 	if queryString:
-		nameAndKey = queryString.split("=")
+		nameAndKey = queryString.split("=") 
 		if len(nameAndKey) > 1:
 			return nameAndKey[1]
 		else:  
@@ -288,26 +288,36 @@ def GetBookmarkQueryWithCleanup(queryString):
 	elif queryString[-1] == "=":
 		queryStringToUse = queryString[:-1]
 		equalsSigns = 1
-	else:
-		queryStringToUse = queryString
-		equalsSigns = 0
+	else: 
+		queryStringToUse = queryString  
+		equalsSigns = 0 
 	bookmark = GetStringOfTypeFromURLQuery(queryStringToUse, "url_query_bookmark") 
 	# put them back on again for PagerQuery 
 	if bookmark:
-		bookmark += "=" * equalsSigns
-	return bookmark
+		bookmark += "=" * equalsSigns 
+	return bookmark 
 
 # ============================================================================================
 # ============================================================================================
-# HANDLERS 
+# HANDLERS   
 # ============================================================================================
 # ============================================================================================
  
 class ErrorHandlingRequestHander(webapp.RequestHandler):
 	def handle_exception(self, exception, debug_mode):
-		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		rakontu = None
+		member = None
+		try:
+			rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		except:
+			# if you get an exception reporting an exception, it's likely a database error
+			# which is probably what you are reporting anyway
+			pass
 		exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
-		exceptionLines = traceback.format_exception(*sys.exc_info())
+		if exceptionType in ['Timeout', "DeadlineExceededError", "CapabilityDisabledError"]:
+			self.redirect(DatabaseErrorURL(rakontu))
+			return
+		exceptionLines = traceback.format_exception(*sys.exc_info())   
 		tracebackString = '\n'.join(exceptionLines)  
 		tracebackStringForHTML = "<p>" + '</p></p>'.join(exceptionLines) + "</p>"
 		tracebackStringPlusIdentifyingInfo = ""
@@ -317,7 +327,10 @@ class ErrorHandlingRequestHander(webapp.RequestHandler):
 			tracebackStringPlusIdentifyingInfo += "Member: %s (%s)\n\n" % (member.nickname, member.getKeyName())
 		tracebackStringPlusIdentifyingInfo += "URL: %s\n\n" % (self.request.uri)
 		tracebackStringPlusIdentifyingInfo += "\n----------------------------\n\n" + tracebackString
-		exceptionValueWithRakontuName = str(exceptionValue)
+		if exceptionValue is None:
+			exceptionValueWithRakontuName = str(exceptionValue)
+		else:
+			exceptionValueWithRakontuName = str(exceptionType)
 		if rakontu:  
 			exceptionValueWithRakontuName += " (%s)" % (rakontu.name)
 		logging.error(tracebackStringPlusIdentifyingInfo) 
@@ -344,20 +357,46 @@ class NotFoundPageHandler(ErrorHandlingRequestHander):
 						'title': TITLES["URL_NOT_FOUND"],
 						'rakontu': rakontu, 
 						'current_member': member,
-						'error_message': "Page not found",
+						'error_message': TITLES["URL_NOT_FOUND"],
 						'url': self.request.uri})
         path = os.path.join(os.path.dirname(__file__), FindTemplate('notFound.html'))
+        self.response.out.write(template.render(path, template_values))
+        
+class DatabaseErrorPageHandler(ErrorHandlingRequestHander):
+    def get(self): 
+        self.error(404)
+        rakontu = None
+        member = None
+        try:
+        	rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+        except:
+        	pass
+        template_values = GetStandardTemplateDictionaryAndAddMore({
+						'title': TITLES["DATABASE_ERROR"],
+						'rakontu': rakontu, 
+						'current_member': member,
+						'error_message': TITLES["DATABASE_ERROR"],
+						'url': self.request.uri})
+        path = os.path.join(os.path.dirname(__file__), FindTemplate('databaseError.html'))
         self.response.out.write(template.render(path, template_values))
         
 class NotAuthorizedPageHandler(ErrorHandlingRequestHander):
    def get(self):
         rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
-        type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_type")
+        type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_role")
+        typeForDisplay = None
+        i = 0
+        for aType in HELPING_ROLE_TYPES:
+        	if aType == type:
+        		typeForDisplay = HELPING_ROLE_TYPES_DISPLAY[i]
+        		break
+         	i += 1
         template_values = GetStandardTemplateDictionaryAndAddMore({
 						'title': TITLES["NOT_AUTHORIZED"],
 						'rakontu': rakontu,
 						'current_member': member,
 						'type': type,
+						'type_display': typeForDisplay,
 						'error_message': TITLES["NOT_AUTHORIZED"], 
 						'url': self.request.uri})
         path = os.path.join(os.path.dirname(__file__), FindTemplate('notAuthorized.html'))
@@ -488,7 +527,7 @@ class ExportHandler(ErrorHandlingRequestHander):
 				self.response.out.write(export.data)
 			else:
 				self.error(404)
-				
+				 
 # ============================================================================================
 # ============================================================================================
 # SITE-LEVEL DEFAULTS AND SAMPLES
@@ -498,7 +537,7 @@ class ExportHandler(ErrorHandlingRequestHander):
 def GenerateHelps():
 	db.delete(AllHelps()) 
 	helps = [] 
-	file = open(HELP_FILE_NAME)
+	file = open(HELP_FILE_NAME) 
 	try:
 		helpStrings = csv.reader(file)
 		for row in helpStrings:
@@ -509,7 +548,8 @@ def GenerateHelps():
 						id=keyName,
 						type=row[0].strip(), 
 						name=row[1].strip(), 
-						text=row[2].strip())
+						translatedName=row[2].strip(),
+						text=row[3].strip())
 				helps.append(help)
 		db.put(helps) 
 	finally:

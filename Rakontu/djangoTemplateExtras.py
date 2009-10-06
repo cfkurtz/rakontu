@@ -11,8 +11,9 @@ import logging
 from pytz import timezone
 import pytz
 
-import utils
 from translationLookup import *
+import models
+import utils
 import site_configuration
 
 register = webapp.template.create_template_register()
@@ -62,11 +63,19 @@ def contains(item, list):
 register.filter(contains)
 
 def isLastInSeries(list, object):
-	return list.index(object) == len(list) - 1
+	try:
+		isLast = list.index(object) == len(list) - 1
+		return isLast
+	except:
+		return False 
 register.filter(isLastInSeries)
 
 def isFirstInSeries(list, object):
-	return list.index(object) == 0
+	try:
+		isFirst = list.index(object) == 0
+		return isFirst
+	except:
+		return False
 register.filter(isFirstInSeries)
 
 def isInList(object, list):
@@ -94,6 +103,14 @@ def sorted(value):
 	return result
 register.filter(sorted)
 
+def sortedReversed(value):
+	result = []
+	value.sort()
+	value.reverse()
+	result.extend(value)
+	return result
+register.filter(sortedReversed)
+
 # --------------------------------------------------------------------------------------------
 # calculations
 # --------------------------------------------------------------------------------------------
@@ -109,6 +126,12 @@ def notEqualTest(value, otherValue):
 		return True
 	return False
 register.filter(notEqualTest)
+
+def strEqualTest(value, otherValue):
+	if str(value) == str(otherValue):
+		return True
+	return False
+register.filter(strEqualTest)
 
 def add(numberString, addString):
 	try:
@@ -264,11 +287,12 @@ register.filter(isCommentOrRequest)
 # help
 # --------------------------------------------------------------------------------------------
 	
-def infoTipCaution(value, type):
-	helpText = utils.helpTextLookup(value, type)
+def infoTipCaution(name, typeURL):
+	type = models.CorrespondingItemFromMatchedOrderList(typeURL, HELP_TYPES_URLS, HELP_TYPES)
+	helpText, translatedName = models.helpTextLookup(name, type)
 	if helpText:
 		return '<a href="/%s?%s=%s&%s=%s"><img src="../images/%s.png" alt="help" border="0" valign="center" title="%s"/></a>' % \
-			(URLS["url_help"], URL_OPTIONS["url_query_help"], value, URL_OPTIONS["url_query_help_type"], type, type, helpText)
+			(URLS["url_help"], URL_OPTIONS["url_query_help"], translatedName, URL_OPTIONS["url_query_help_type"], typeURL, type, helpText)
 	else:
 		return ""
 
@@ -283,5 +307,14 @@ register.filter(tip)
 def caution(value):
 	return infoTipCaution(value, "caution")
 register.filter(caution)
+
+def buttonTooltip(name):
+	helpText, translatedName = models.helpTextLookup(name, "button")
+	if helpText:
+		return helpText
+	else:
+		return ""
+register.filter(buttonTooltip)
+	
 
 

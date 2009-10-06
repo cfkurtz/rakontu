@@ -31,34 +31,14 @@
 				<p>{{template_comment}}: </p><ul><li class="nobullet">{{annotation.shortString}}</li></ul>
 			{% endif %}
 		{% endifequal %}
+		<h2>{{entry.linkString}} ({{entry.typeForDisplay}})</h2>
+		{% include "read_or_preview_entry.html" %}
+		</div>
 	{% endif %}
 	
 	{% if entry and not annotation %}
-		<h2>{{entry.title}} ({{entry.typeForDisplay}})</h2>
-		{% if entry.isCollage %}
-			<div class="blurb">{{entry.text_formatted}}
-			{% if included_links_outgoing %}
-				<ul>
-				{% for link in included_links_outgoing %}
-					<li class="nobullet">{{link.itemTo.linkString}}</a>
-					{% if link.comment %} ({{link.comment}}) {% endif %}
-					</li>
-				{% endfor %}
-				</ul>
-			{% endif %}
-			</div>
-		{% else %}
-			<div class="blurb">{{entry.text_formatted}}
-		{% endif %}
-		{% if attachments %}
-			{% for attachment in attachments %}
-				<p>&nbsp; &nbsp; 
-				{% if attachment.name %}
-					{{attachment.name}} -
-				{% endif %}
-				{{attachment.linkString}}<p>
-			{% endfor %}
-		{% endif %}
+		<h2>{{entry.linkString}} ({{entry.typeForDisplay}})</h2>
+		{% include "read_or_preview_entry.html" %}
 		{% if answers_with_entry %}
 			{% if rakontu_has_questions_for_this_entry_type %}
 				<h4>{{template_answers}}</h4>
@@ -75,8 +55,8 @@
 				</ul>
 			{% endif %}
 		{% endif %}
+		</div>
 	{% endif %}
-	</div>
 	
 	<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_preview}}

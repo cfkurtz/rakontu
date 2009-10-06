@@ -199,7 +199,11 @@
 						</option>
 				{% endfor %}
 				</select>
-				<input type="submit" name="loadVersion" value="{{button_load_version}}" class="button_small">
+				<input type="submit" name="loadVersion" value="{{button_load_version}}" class="button_small"
+						{% if current_member.showButtonTooltips %}
+							title="{{"loading_versions"|buttonTooltip}}"
+						{% endif %}
+				>
 				{{"text_versions"|info}}</p>
 			{% endif %}
 			

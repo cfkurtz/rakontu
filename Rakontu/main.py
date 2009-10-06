@@ -143,6 +143,7 @@ urlInfo = [('/', StartPage),
 	  (BuildURL(None, "url_managers_only"), ManagersOnlyPageHandler),
 	  (BuildURL(None, "url_owners_only"), OwnersOnlyPageHandler),
 	  (BuildURL(None, "url_admin_only"), AdminOnlyPageHandler),
+	  (BuildURL(None, "url_database_error"), DatabaseErrorPageHandler),
 	  ('/.*', NotFoundPageHandler),
 	  ]
 

@@ -5,7 +5,7 @@
 		{% for i in rows_cols|makeRangeFromListLength %}
 			<tr>
 			{% for col_list in rows_cols|listLookup:i %}
-				<td class="noborder" style="border-right:solid 1px #{{skin|dictLookup:"color_background_general"}};background-color:#{{row_colors|listLookup:i}};color:#{{skin|dictLookup:"color_text_grid"}};">
+				<td class="grid" style="background-color:#{{row_colors|listLookup:i}};">
 				{% if col_list %}
 					{% for text in col_list %}
 						{{text}}
@@ -28,7 +28,7 @@
 				{% for j in num_grid_cols|makeRange %}
 					{% ifequal i middle_grid_row %}
 						{% ifequal j middle_grid_col %}
-							<td class="noborder" align="center" style="background-color:#{{row_colors|listLookup:i}};color:#{{skin|dictLookup:"color_text_grid"}}">
+							<td align="center" class="noborder" style="background-color:#{{row_colors|listLookup:i}};">
 							{% if current_search %}
 								{{template_no_search_results_message}}
 							{% else %}
@@ -39,11 +39,11 @@
 								{% endif %}
 							{% endif %}
 						{% else %}
-							<td class="noborder" style="background-color:#{{row_colors|listLookup:i}};color:#{{skin|dictLookup:"color_text_grid"}}">
+							<td class="noborder" style="background-color:#{{row_colors|listLookup:i}};">
 							&nbsp;
 						{% endifequal %}
 					{% else %}
-						<td class="noborder" style="background-color:#{{row_colors|listLookup:i}};color:#{{skin|dictLookup:"color_text_grid"}}">
+						<td class="noborder" style="background-color:#{{row_colors|listLookup:i}};">
 						&nbsp;
 					{% endifequal %}
 					</td>

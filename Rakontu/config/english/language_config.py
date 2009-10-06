@@ -35,6 +35,11 @@ from constants_base import *
 # For example, this list must translate to (plain text, simple HTML, Wiki markup).
 TEXT_FORMATS_DISPLAY = ["plain text", "simple HTML", "Wiki markup"]
 
+# This is what shows in the URL when looking up a short help (tooltip) text.
+# These MUST match the order (info, tip, caution).
+# Because these are used in URLs they can have no spaces or special characters.
+HELP_TYPES_URLS = ["info", "tip", "caution"]
+
 # ============================================================================================ 
 # AT THE RAKONTU LEVEL
 # ============================================================================================ 
@@ -147,6 +152,18 @@ LINK_TYPES_DISPLAY = ["retold from", "reminded by", "responded to", "related to"
 # Note that these are always plural (except the last).
 ADDITIONAL_EDITOR_TYPES_DISPLAY = ["all curators", "all guides", "all liaisons", "all managers", "all members", "members in the following list"]
 
+# These are shown in the curate-gaps page as things entries can be sorted by.
+# They MUST match the order (date, annotations, activity, nudges).
+GAPS_SORT_BY_CHOICES_DISPLAY = ["most recent", "most annotated", "highest activity", "highest nudged"]
+# And now a set to use for translated URLS (no spaces, no special characters)
+GAPS_SORT_BY_CHOICES_URLS = ["date", "annotated", "activity", "nudged"]
+
+# Also for the gaps page, these are types of gaps to show.
+# They MUST match the order (no tags, no links, no comments, no answers, no story links).
+GAPS_SHOW_CHOICES_DISPLAY = ["with no tags", "with no links", "with no comments", "with no answers to questions", "with no story links (collages only)"]
+# And now a set to use for translated URLS (no spaces, no special characters)
+GAPS_SHOW_CHOICES_URLS = ["no_tags", "no_links", "no_comments", "no_answers", "no_story_links"]
+
 # ============================================================================================ 
 # ANNOTATIONS
 # ============================================================================================ 
@@ -243,15 +260,18 @@ EVENT_TYPES_DISPLAY = [
 
 # These are the time frames shown in the Rakontu home page.
 # These names must match the time frames described in site_configuration.py.
-TIMEFRAME_10MINUTES = u"10 minutes" # used for testing only
 TIMEFRAME_HOUR = u"an hour"
-TIMEFRAME_6HOURS = u"6 hours"
-TIMEFRAME_12HOURS = u"12 hours"
+TIMEFRAME_6HOURS = u"six hours"
+TIMEFRAME_12HOURS = u"twelve hours"
 TIMEFRAME_DAY = u"a day"
-TIMEFRAME_3DAYS = u"3 days"
+TIMEFRAME_3DAYS = u"three days"
 TIMEFRAME_WEEK = u"a week"
-TIMEFRAME_2WEEKS = u"2 weeks"
+TIMEFRAME_10DAYS = u"ten days"
+TIMEFRAME_2WEEKS = u"two weeks"
+TIMEFRAME_3WEEKS = u"three weeks"
 TIMEFRAME_MONTH = u"a month"
+TIMEFRAME_2MONTHS = u"two months"
+TIMEFRAME_3MONTHS = u"three months"
 
 # For search filters, whether any or all of selections are required for a match. These MUST match the order (any, all).
 ANY_ALL_DISPLAY = ["any", "all"]
@@ -266,6 +286,8 @@ DEFAULT_SEARCH_NAME = "Untitled search filter"
 # These describe the locations of the timeline grid views. 
 # They MUST match the order (home, entry, member, character).
 VIEW_OPTION_LOCATIONS_DISPLAY = ["home page", "entry page", "member page", "character page"]
+# Same but for URLs. No spaces, no special characters.
+VIEW_OPTION_LOCATIONS_URLS = ["home", "entry", "member", "character"]
 
 # ============================================================================================ 
 # DISPLAY TERMS
@@ -303,6 +325,8 @@ TERMS = {
 		"term_link": "link",
 		"term_links": "links",
 		"term_question": "question",
+		"term_online": "on-line",
+		"term_offline": "off-line",
 		# used to describe search filters
 		"term_of_the_words": "of the words",
 		"term_of_the_tags": "of the tags",
@@ -329,9 +353,9 @@ TERMS = {
 		"term_none": "none",
 		"term_result": "A message from Rakontu",
 		"term_help": "Rakontu help",
-		"term_help_info": "Information about",
-		"term_help_tip": "A tip about",
-		"term_help_caution": "A caution about",
+		"term_help_info": "Information:",
+		"term_help_tip": "Tip:",
+		"term_help_caution": "Caution:",
 		"term_entries_contributed_by": "Contribution timeline", 
 		"term_yes": "yes",
 		"term_no": "no",
@@ -455,6 +479,7 @@ TEMPLATE_TERMS = {
 		"template_email": "Email",
 		"template_skin": "Skin",
 		"template_skins": "Skins",
+		"template_range": "Range",
 		
 		# things lots of objects have
 		"template_linked_to": "Linked to",
@@ -516,6 +541,10 @@ TEMPLATE_TERMS = {
 		"template_previous": "Previous",
 		"template_next": "Next",
 		
+		# things on alt tags for pictures
+		"template_rakontu_logo": "Rakontu logo",
+		"template_powered_by_GAE": "Powered by Google App Engine",
+		
 		# things used in specific template files
 		
 		# common_attribution (template file name)
@@ -551,6 +580,9 @@ TEMPLATE_TERMS = {
 		# notFound
 		"template_URL_not_found": "Oops! Can't find it!",
 		"template_the_page_could_not_be_found": "We can't find the page you asked for.",
+		# databaseError
+		"template_database_error": "Bad Google. Bad.",
+		"template_there_was_a_database_error": "Apparently Google is not working very well at the moment. Could you please try what you were doing again?",
 		# notAuthorized
 		"template_to_access_page_take_on_role": "To access this page you must take on this helping role",
 		"template_how_to_take_on_a_role": "To take on a helping role, see your Preferences page.", 
@@ -631,15 +663,6 @@ TEMPLATE_TERMS = {
 		# curate/gaps
 		"template_gaps": "Gaps",
 		"template_sort_by": "sorted by",
-		"template_most_recent": "most recent",
-		"template_most_annotated": "most annotated",
-		"template_highest_activity": "highest activity",
-		"template_highest_nudged": "highest nudged",
-		"template_entries_with_no_tags": "with no tags",
-		"template_entries_with_no_links": "with no links",
-		"template_entries_with_no_comments": "with no comments",
-		"template_entries_with_no_answers_to_questions": "with no answers to questions",
-		"template_collages_with_no_story_links": "with no story links (collages only)",
 		# curate/tags
 		"template_change_entry_tags": "Change entry tags",
 		"template_no_tags": "There are no tags to review.",
@@ -728,15 +751,6 @@ TEMPLATE_TERMS = {
 		"template_add_new_questions_about": "Add new questions about",
 		"template_change_questions_about": "Change questions about",
 		"template_import_export_questions_about": "Import and export questions about",
-		"template_name_question_explanation": "Name, question, and explanation",
-		"template_min_max": "Minimum and maximum",
-		"template_if_value": "only applies if question is of the value type",
-		"template_if_boolean": "only applies if question is of the boolean type",
-		"template_if_ordinal_or_nominal": "only applies if question is of the ordinal or nominal type",
-		"template_explanation": "Explanation",
-		"template_choices": "Choices",
-		"template_multiple": "multiple",
-		"template_multiple_answers_allowed": "Multiple answers allowed",
 		"template_choose_csv_question_file": "Choose a CSV file to import questions from",
 		"template_export_questions_to_csv": "Export questions to CSV",
 		"template_copy_sample_questions_about": "Copy sample questions about",
@@ -749,6 +763,17 @@ TEMPLATE_TERMS = {
 		"template_inactive_questions": "Inactive questions",
 		# manage/questionsList
 		"template_questions_and_response_counts_about": "Responses to questions about",
+		# manage/question
+		"template_name_question_explanation": "Name, question, and explanation",
+		"template_min_max": "Minimum and maximum",
+		"template_if_value": "only applies if question is of the value type",
+		"template_if_boolean": "only applies if question is of the boolean type",
+		"template_if_ordinal_or_nominal": "only applies if question is of the ordinal or nominal type",
+		"template_explanation": "Explanation",
+		"template_choices": "Choices",
+		"template_multiple": "multiple",
+		"template_multiple_answers_allowed": "Multiple answers allowed",
+		"template_answer_counts_by_choice": "How many responses have been recorded for each choice?",
 		# manage/appearance
 		"template_visual_appearance": "Visual appearance",
 		"template_tag_line": "Tag line",
@@ -756,7 +781,6 @@ TEMPLATE_TERMS = {
 		"template_custom": "custom",
 		"template_external_style_sheet": "Enter a valid CSS URL to use as an external style sheet",
 		"template_halping_role_texts": "Helping role texts",
-		"template_rakontu_outoing_email": "Outgoing reply-to email address",
 		"template_welcome_message_for_new_members": "Welcome message for new members",
 		"template_invitation_message_for_invitation_email": "Invitation message for email invitation",
 		"template_time_zones_and_time_reporting": "Time zones and time reporting",
@@ -791,6 +815,7 @@ TEMPLATE_TERMS = {
 		"template_ask_this_guide": "Ask a guide",
 		"template_ask_subject": "Please summarize your question in a few words for the email subject line.",
 		"template_ask_body": "What question would you like to ask?",
+		"template_ask_question_your_own_real_email_warning": "Warning: The Google App Engine only allows Rakontu to send an email if it uses the real email you have associated with your Google account. That means the guide you are sending this question to will see your email address. If you don't want them to see it, don't send the question.",
 		# visit/character
 		"template_about": "About",
 		"template_how_to_be_character": "How to be",
@@ -806,7 +831,6 @@ TEMPLATE_TERMS = {
 		"template_your_saved_drafts": "Your saved drafts",
 		"template_saved_drafts_for": "Saved drafts for",
 		"template_versions": "History",
-		"template_you_have_no_drafts": 'You have no saved drafts. To save a draft, create a story or other entry and click "Save draft" at the bottom of the screen.',
 		"template_add_or_change_editors": "Add or change editors",
 		"template_additional_editors": "Additional editors",
 		"template_other_peoples_drafts_you_can_edit": "Draft entries on which you are an additional editor",
@@ -862,7 +886,6 @@ TEMPLATE_TERMS = {
 		"template_apply_to_home_page": "Apply to home page",
 		"template_questions_about_entries": "Questions about entries",
 		"template_questions_about_members_or_characters": "Questions about members or characters",
-		"template_you_have_no_filters": 'You have no saved search filters. To create a search filter, go to your Rakontu home page and click "Make new filter" in the options shown.',
 		# visit/help
 		"template_help_resources": "Help! Read about using Rakontu",
 		"template_ask_a_guide": "Help! Ask a guide about your Rakontu",
@@ -889,7 +912,7 @@ TEMPLATE_TERMS = {
 		"template_my_filters": "My filters",
 		"template_shared_filters": "Shared filters",
 		"template_other_options": "Other options",
-		"template_nudge_floor": "Hide entries below",
+		"template_nudge_floor": "Hide items nudged below",
 		# visit/home_grid
 		"template_no_search_results_header": "No search results",
 		"template_no_search_results_message": "The applied search filter resulted in no entries being shown. To see entries in this space, either stop applying the search or change it so that some entries meet the search criteria.",
@@ -921,7 +944,7 @@ TEMPLATE_TERMS = {
 		"template_make_changes_to_members": "Make changes to memberships",
 		"template_send_message": "Send message",
 		# visit/message
-		"template_what_should_reply_to_be": "What email address should be given as the reply-to address? (To use the Rakontu address, leave this blank.)",
+		"template_send_message_your_own_real_email_warning": "Warning: The Google App Engine only allows Rakontu to send an email if it uses the real email you have associated with your Google account. That means the people you are sending this message to will see your email address. If you don't want them to see it, don't send the message.",
 		# visit/new
 		"template_resources_for_new_members": "You may find these resources helpful for getting started",
 		"template_about_help_icons": "Around the site you will see little icons that provide help. Either hover over them with your mouse or click on them to read them.",
@@ -953,7 +976,6 @@ TEMPLATE_TERMS = {
 		"template_offline_member_accept_messages": "Do you want other Rakontu members to be able to send this member messages via email? (You, as the member's liaison, will get the messages.)",
 		"template_yes_people_can_send_me_messages": "Yes, people can send me messages",
 		"template_yes_people_can_send_messages_through_me": "Yes, people can send this off-line member messages through me",
-		"template_email_for_reply_to_in_messages": "What reply-to email address would you like to use by default for messages sent from you?",
 		"template_please_add_a_picture": "Please upload a picture of yourself.",
 		"template_please_add_a_picture_of_offline_member": "Please upload a picture of this off-line member.",
 		"template_leave_rakontu": "I want to stop being a member of this Rakontu",
@@ -970,6 +992,8 @@ TEMPLATE_TERMS = {
 		"template_details_text_length_choice": "How many characters (letters) long would you like texts displayed in details views to be?",
 		"template_view_options_on_top": "On which of these timeline views should the options (other than the time range) be shown above the timeline?",
 		"template_view_help_resources_in_timelines": "On which of these timeline views should help resources be shown?",
+		"template_show_button_tooltips": "Should tooltips with information appear when you hover the mouse over small option buttons?",
+		"template_show_button_tooltips_yes": "Yes, show tooltips on buttons",
 		# visit/rakontu
 		"template_rakontu_created_on": "This Rakontu was created on",
 		"template_counts_of_items_in": "Counts of items in", # rakontu name
@@ -992,6 +1016,7 @@ TEMPLATE_TERMS = {
 		"template_no_annotations_for_entry": "This entry has no annotations that match the current selections.",
 		"template_add_editors": "Allow others to edit this", # story, etc
 		"template_change_editors": "Change who can edit this", # story, etc
+		"template_counts_of_annotations_to": "Counts of annotations to", # entry title
 		"template_shift_by": "Admin only: Shift times by", # this is for admin only, to prepare demos mainly
 		# visit/readAnnotation
 		"template_request_type": "Request type",
@@ -1008,6 +1033,8 @@ TEMPLATE_TERMS = {
 		"template_add_link": "Add link",
 		"template_entry_has_no_related_links": "This entry has not yet been marked as related to other entries.",
 		"template_no_entries_of_this_type_to_relate_to": "There are no entries of the selected type available for this entry to relate to.",
+		# error pages
+		"template_role_not_adequate": "Member role not adequate to access this page",
 		}
 
 # ============================================================================================ 
@@ -1047,8 +1074,9 @@ TEMPLATE_BUTTONS = {
 		"button_set_request_completed": "Set to completed",
 		# liaise
 		"button_add_stories": "Add stories",
+		"button_add_a_batch_ofstories": "Add a batch of stories",
 		"button_add_more_stories": "Add more stories",
-		"button_import_or_remove_selected_stories": "Import or Remove selected stories",
+		"button_import_or_remove_selected_stories": "Import or remove selected stories",
 		# manage
 		"button_inactivate": "Really And Truly Inactivate This Rakontu",
 		"button_export_xml": "Export to XML",
@@ -1061,6 +1089,8 @@ TEMPLATE_BUTTONS = {
 		"button_change_nudge_view": "Change nudges view",
 		"button_hide_details": "Hide details",
 		"button_show_details": "Show details",
+		"button_hide_activity_levels": "Hide activity levels",
+		"button_show_activity_levels": "Show activity levels",
 		"button_save_changes_and_return": "Save changes and return",
 		"button_preview": "Preview",
 		"button_save_draft": "Save draft",
@@ -1211,7 +1241,7 @@ RESULTS = {
 		"offlineMemberNotFound": ("offlineMemberNotFound", "That off-line member was not found."),
 		"helpNotFound": ("helpNotFound", "No help message was found for that item. You may want to let your site administrator know there is a problem."),
 
-		"noEntriesToRelate": ("noEntriesToRelate", "There are no entries to which this entry can be related."),
+		"noEntriesToRelate": ("noEntriesToRelate", "There are no entries of the selected type to which this entry can be related."),
 		"noSearchResultForPrinting": ("noSearchResultForPrinting", "There is no search filter result to print. You need to apply a search filter then come back to the print page."),
 		"noQuestionsToExport": ("noQuestionsToExport", " are no questions of that type to export."),
 		"noSearchResultForExport": ("noSearchResultForExport", "There is no search filter result to export. You need to apply a search filter then come back to the export page."),
@@ -1329,7 +1359,43 @@ BLURBS = {
 	<p>If you do, you will have to ask your site administrator if you want to either reinstate the Rakontu or
 	remove its content.</p>
 	""",
-
+"no_filters":
+	"""
+	<h2>No saved search filters</h2>
+	<p>You have no saved search filters. Filters are search selections that reduce the items showing in the timelines on the 
+	home page or on member or character pages. For example, you might want to see only items with the word "planning" in them, or 
+	whose answer to the question "Why was this story told?" is "to persuade." To create a search filter, go to the home 
+	page (Visit-Home page) and click "Make new filter" in the options shown.</p>
+	""",
+"no_drafts":
+	"""
+	<h2>No drafts</h2>
+	<p>You have no saved drafts. Drafts are entries (stories, invitations, collages, patterns, resources) 
+	that you are working on and that nobody but you can see. To save a draft, create a story (or other entry) 
+	and click "Save draft" instead of "Publish." You can then review them on this page.
+	</p>
+	<p>Other people can also invite you to edit their entries. If they do so, you will see those drafts on this
+	page as well.</p>
+	""",
+"cannot_enter_batch":
+	"""
+	<h2>Cannot add batch stories: no off-line members</h2>
+	<p>You cannot add stories in batches because you have no off-line members assigned to you. 
+	To add a batch of stories, choose Liaise - Manage off-line members and either create new off-line members
+	or transfer them to you (as their liaison). Once you do that you can return here and add batches of stories for them.
+	</p>
+	""",
+"no_entry_batches":
+	"""
+	<h2>No story batches to review</h2>
+	<p>There are no batches of stories to review. Batch story entry is a two-step process. 
+	First you choose Liaise - Add a batch of stories and fill out the batch-story-entry form. 
+	After that you come to this screen to review the entries you are about to add to the Rakontu. This two-step process is to give
+	you an opportunity to make changes to stories before you import them to the Rakontu.
+	To add some stories, first make sure you have some off-line members assigned to you,
+	then add a batch of stories, then come back here to review the stories and import them to the Rakontu.
+	</p>
+	""",
 }
 
 # ============================================================================================ 
@@ -1385,6 +1451,7 @@ TITLES = {
         "INITIALIZE_SITE": "Initialize site",
         "ERROR": "Error",
         "URL_NOT_FOUND": "URL not found",
+        "DATABASE_ERROR": "Google database temporarily unreachable",
         "NOT_AUTHORIZED": "Required role missing",
         "NO_RAKONTU_AND_MEMBER": "Rakontu and member not found",
         "MANAGERS_ONLY": "For managers only",
@@ -1498,6 +1565,7 @@ URLS = {
     "url_managers_only": "managersOnly",
     "url_owners_only": "ownersOnly",
     "url_admin_only": "adminOnly",
+    "url_database_error": "databaseError",
     }
 
 # ============================================================================================ 
@@ -1536,10 +1604,12 @@ URL_IDS = {
 URL_OPTIONS = {
 	# used to send options or strings
 	"url_query_export_type": "exporttype",
-	"url_query_link_type": "linktype",
 	"url_query_sort_by": "sortby",
 	"url_query_show": "show",
 	'url_query_type': "type",
+	'url_query_resource_type': "resource_type",
+	'url_query_request_type': "request_type",
+	"url_query_role": "role",
 	"url_query_location": "location",
 	"url_query_uncompleted": "uncompleted",
 	"url_query_no_responses": "noresponses",
@@ -1568,5 +1638,7 @@ URL_OPTION_NAMES = {
 	"url_option_remind": "remind",
 	"url_option_managers_only": "managers",
 	"url_option_not_managers_only": "not_managers",
+	"url_option_yes": "yes",
+	
 	}
 

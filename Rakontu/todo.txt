@@ -4,47 +4,32 @@ Things to do before v0.9 is complete
 
 in IE menus are grey - CANNOT FIX!!
 
-======== ADD:
+======== IRRITATING THINGS THAT WILL NOT GO AWAY:
 
-put "extra" fields in all objects (not indexable? - strings?) for later use
+test backup/restore on second testing site.
+write instructions for it.
 
-change all url_options arguments to constants for translation
+what to do about that keys_only problem? put it in known issues? yes
 
-======== CHECK:
+make a user error page for the transactions error.
 
+take age/gender questions out of defaults for characters, and put better char questions in
 
-Put tips next to selection options. DON'T NEED?
+make "add attachment" link and add one attachment to an entry at a time.
+this will allow for better error handling (telling the user what went wrong) for each one.
+take out attachments on main entry page. will need "manage attachments" page too ? pain
 
-If you add a comment and comments view turned off, won't see your comment. Maybe should show it?
+make thing where, if they remove choices for an ordinal or nominal question and there
+are existing answers with those choices,
+it will ask them what they want to rename the existing question choices to.
 
-Only managers can delete their own items if entered as a name... CFK
-
-Drafts: "You have no saved drafts. To save a draft, create a story or other entry and click "Save draft" at the bottom of the screen."
-What screen? CFK
-
-On my stuff - filters page, should say what they are. CFK
-
-Picture reloading somehow in upper corner when it should be cached (memcached and cached in the browser). CFK
-
-Does not put picture in a preview. Or other attachments? By name or path? CFK
-
-Liason enters story -- shows all people, not just yours... OK? (yes but explain better)
-
-For things that you can't do, provide help or link (ex. batch entry)
-
-I haven't really thought very much about what happens when people accidentally leave things blank
-in forms. Should some things be required?
-
+really need to find some way of moving information from one Rakontu to another,
+ie to another site. may need to finally implement that from_xml stuff. what a pain.
+google should help more with this.
 
 ======== FLESH OUT:
 
 finish admin manual, developer notes
-
-web site
-
-white papers
-
-architecture document
 
 ======== PRETTIFY:
 

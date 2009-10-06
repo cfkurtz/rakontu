@@ -235,7 +235,6 @@ class ManageRakontuAppearancePage(ErrorHandlingRequestHander):
 				rakontu.etiquetteStatement = text
 				rakontu.etiquetteStatement_formatted = db.Text(InterpretEnteredText(text, format))
 				rakontu.etiquetteStatement_format = format
-				rakontu.contactEmail = self.request.get("contactEmail")
 				rakontu.defaultTimeZoneName = self.request.get("defaultTimeZoneName")
 				rakontu.defaultDateFormat = self.request.get("defaultDateFormat")
 				rakontu.defaultTimeFormat = self.request.get("defaultTimeFormat")
@@ -533,6 +532,8 @@ class ManageOneQuestionPage(ErrorHandlingRequestHander):
 			if member.isManagerOrOwner():
 				question = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_question")
 				if question:
+					answerCounts = question.getAnswerChoiceCounts()
+					#answerCounts.sort(lambda a,b: cmp(b[1], a[1])) # descending order
 					template_values = GetStandardTemplateDictionaryAndAddMore({
 									   'title': TITLES["MANAGE_QUESTION"], 
 								   	   'title_extra': question.name,
@@ -542,6 +543,7 @@ class ManageOneQuestionPage(ErrorHandlingRequestHander):
 									   'question': question,
 									   'question_types': QUESTION_TYPES,
 									   'question_types_display': QUESTION_TYPES_DISPLAY,
+									   'answer_counts': answerCounts,
 									   })
 					path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/question.html'))
 					self.response.out.write(template.render(path, template_values))
@@ -606,8 +608,15 @@ class WriteQuestionsToCSVPage(ErrorHandlingRequestHander):
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			if member.isManagerOrOwner():
-				type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_export_type")
-				if type in QUESTION_REFERS_TO:
+				displayType = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_export_type")
+				type = None
+				i = 0
+				for aDisplayType in QUESTION_REFERS_TO_PLURAL_DISPLAY:
+					if displayType == aDisplayType:
+						type = QUESTION_REFERS_TO[i]
+						break
+					i += 1
+				if type:
 					export = rakontu.createOrRefreshExport("exportQuestions", "questions", member=member, questionType=type, fileFormat="csv")
 					self.redirect(BuildURL(None, "url_export", export.urlQuery()))
 				else:
@@ -877,7 +886,7 @@ class ExportRakontuDataPage(ErrorHandlingRequestHander):
 					else:
 						startNumber = None
 						endNumber = None
-					export = rakontu.createOrRefreshExport(type="csv_export_all", subtype=subtype, startNumber=startNumber, endNumber=endNumber, fileFormat="csv")
+					export = rakontu.createOrRefreshExport(type="csv_export_all", member=member, subtype=subtype, startNumber=startNumber, endNumber=endNumber, fileFormat="csv")
 					self.redirect(BuildURL(None, "url_export", export.urlQuery()))
 				elif "xml_export" in self.request.arguments():
 					subtypeAndRange = self.request.get("exportWhatToXML")
@@ -890,7 +899,7 @@ class ExportRakontuDataPage(ErrorHandlingRequestHander):
 					else:
 						startNumber = None
 						endNumber = None
-					export = rakontu.createOrRefreshExport(type="xml_export", subtype=subtype, startNumber=startNumber, endNumber=endNumber, fileFormat="xml")
+					export = rakontu.createOrRefreshExport(type="xml_export", member=member, subtype=subtype, startNumber=startNumber, endNumber=endNumber, fileFormat="xml")
 					self.redirect(BuildURL(None, "url_export", export.urlQuery()))
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))

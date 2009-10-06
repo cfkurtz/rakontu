@@ -7,30 +7,45 @@
 	<center>
 	<h1>Rakontu</h1>
 	<p><i>{{template_rakontu_motto}}</i></p>
-	<p><img src="/images/Rakontu.jpg" alt="Rakontu logo"></p>
+	<p><img src="/images/Rakontu.jpg" alt="{{template_rakontu_logo}}"></p>
 	
 	{% if user %}
 		<div id="rakontu_form_style" class="rakontu_form_centered">
 		<form action="/" method="post">
 		{% if rakontus_member_of %}
 			<p>{{template_you_are_member_of}}</p>
-			<select name="rakontu_key_name_visit">
+			<table cellpadding=4 cellspacing=0 style="border:none;">
+			<tr>
 			{% for rakontu in rakontus_member_of %}
-				<option value="{{ rakontu.getKeyName }}">{{rakontu.name}}</option>
+				<td align="center" style="border:none;">
+				{% if rakontu.image %}
+					<a href="{{rakontu.linkURL}}">{{rakontu.imageEmbed}}</a>
+				{% else %}
+					<a href="{{rakontu.linkURL}}"><img src="/images/Rakontu.jpg" width="100" height="64" alt="{{template_rakontu_logo}}" class="bordered"></a>
+				{% endif %}
+				<br/>{{rakontu.linkString}}
+				</td>
 			{% endfor %}
-			</select>
-			&nbsp; <input type="submit" name="visitRakontu" value="{{button_visit}}" class="button"></p>
+			</tr></table>
 		{% endif %}
 		{% if rakontus_invited_to %}
 			<p>{{template_you_are_invited_to}}</p>
-			<select name="rakontu_key_name_join">
+			<table cellpadding=4 cellspacing=0 style="border:none;">
+			<tr>
 			{% for rakontu in rakontus_invited_to %}
-				<option value="{{ rakontu.getKeyName }}">{{rakontu.name}}</option>
+				<td align="center" style="border:none;">
+				{% if rakontu.image %}
+					<a href="{{rakontu.linkURL}}">{{rakontu.imageEmbed}}</a>
+				{% else %}
+					<a href="{{rakontu.linkURL}}"><img src="/images/Rakontu.jpg" width="100" height="64" alt="{{template_rakontu_logo}}" class="bordered"></a>
+				{% endif %}
+				<br/>{{rakontu.linkString}}
+				</td>
 			{% endfor %}
-			</select>
-			&nbsp; <input type="submit" name="joinRakontu" value="{{button_join}}" class="button"></p>
+			</tr></table>
 		{% endif %}
-		<p>{{template_google_account}}: {{user.nickname}} | <a href="{{logout_url}}">{{template_log_out}}</a></p>
+		<p>&nbsp;</p>
+		<p>{{template_google_account}}: {{user.nickname}} - <a href="{{logout_url}}">{{template_log_out}}</a></p>
 		
 		{% if user_is_admin %}
 			<p><a href="/{{dir_admin}}/{{url_admin}}">{{template_site_administration}}</a></p>
@@ -40,8 +55,9 @@
 		</div>
 
 	{% else %}
-		<div class="blurb" style="width:400;">
-		<p>{{template_must_be_logged_in}}</p><p><a href="{{login_url}}">{{template_login}}</a> {{template_at_google}}</p>
+		<div class="blurb" style="width:200;">
+		<p>{{template_must_be_logged_in}}</p>
+		<p><a href="{{login_url}}">{{template_login}}</a> {{template_at_google}}</p>
 		</div>
 	{% endif %}
 	
@@ -53,6 +69,6 @@
 		{% endif %}
 	</td></tr></table>
 	
-	<center><img src="http://code.google.com/appengine/images/appengine-silver-120x30.gif" alt="Powered by Google App Engine" /></center>
+	<center><img src="http://code.google.com/appengine/images/appengine-silver-120x30.gif" alt="{{template_powered_by_GAE}}" /></center>
 	</body>
 </html>

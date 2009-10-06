@@ -84,8 +84,7 @@
 				{% endfor %}
 				</table>
 		{% else %}
-			<h4>{{template_saved_search_filters}}</h4>
-			<p>{{template_you_have_no_filters}}</p>
+			{{blurbs|dictLookup:"no_filters"}}
 		{% endif %}
 		
       	<p>

@@ -6,9 +6,9 @@
 	{% if current_member.isLiaisonOrManagerOrOwner %}
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_liaise}}/{{url_review}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
-			<h3>{{template_batch_entered_stories}} {{"reviewing_batch_entered_stories"|tip}}</h3>
-			<p></p>
+			
 			{% if batch_entries %}
+				<h3>{{template_batch_entered_stories}} {{"reviewing_batch_entered_stories"|tip}}</h3>
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
@@ -84,9 +84,9 @@
 			    <center><input type="submit" name="finalizeBatchEntry" value="{{button_import_or_remove_selected_stories}}" class="button">
 			    <input type="submit" name="addMore" value="{{button_add_more_stories}}" class="button"></center>
 			{% else %}
-				<p><i>{{template_no_stories_entered}}</i></p>
+				{{blurbs|dictLookup:"no_entry_batches"}}
 		      	<p>
-			    <center><input type="submit" name="addMore" value="{{button_add_stories}}" class="button"></center>
+			    <center><input type="submit" name="addMore" value="{{button_add_a_batch_ofstories}}" class="button"></center>
 			{% endif %}
 		</form>	
 		</div>

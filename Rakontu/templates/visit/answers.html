@@ -23,22 +23,8 @@
 			</center>
 			
 		<p>{{entry.linkString}} ({{entry.typeForDisplay}})</p>
-		{% if entry.isCollage %}
-			<div class="blurb">
-			{{entry.text_formatted}}
-			{% if included_links_outgoing %}
-				<ul>
-				{% for link in included_links_outgoing %}
-					<li class="nobullet">{{link.itemTo.linkString}}</a>
-					{% if link.comment %} ({{link.comment}}) {% endif %}
-					</li>
-				{% endfor %}
-				</ul>
-			{% endif %}
-			</div>
-		{% else %}
-			<div class="blurb">{{entry.text_formatted}}</div>
-		{% endif %}
+		{% include "read_or_preview_entry.html" %}
+		</div>
 
 		</form>
 		</div>

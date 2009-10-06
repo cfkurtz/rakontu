@@ -6,7 +6,7 @@
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_character}}?{{character.urlQuery}}
 		{% if curating %}
-			&{{url_query_curate}}={{url_query_curate}}
+			&{{url_query_curate}}={{url_option_yes}}
 		{% endif %}
 		" method="post">
 	
@@ -48,24 +48,25 @@
 		{% endif %}
 
 		
-    <h3>{{template_counts_of_items_contributed_by}} {{character.name}}</h3>
-		
-		<p></p>
-    	<table cellspacing=0 cellpadding=0 style="width:100%;">
- 			{% for name in count_names %}
-				<th>{{name|capfirst}}</th>
+	{% if counts %}
+	    <h3>{{template_counts_of_items_contributed_by}} {{character.name}}</h3>
+			<p></p>
+	    	<table cellspacing=0 cellpadding=0 style="width:100%;">
+	 			{% for name in count_names %}
+					<th>{{name|capfirst}}</th>
+				{% endfor %}
+	      	</tr>
+			{% for count in counts %}
+				<td>{% if count %}
+						{{count}}
+					{% else %}
+						&nbsp;
+					{% endif %}
+				</td>
 			{% endfor %}
-      	</tr>
-		{% for count in counts %}
-			<td>{% if count %}
-					{{count}}
-				{% else %}
-					&nbsp;
-				{% endif %}
-			</td>
-		{% endfor %}
-		</tr>
-		</table>
+			</tr>
+			</table>
+	{% endif %}
 
   	</form>
   	</div>

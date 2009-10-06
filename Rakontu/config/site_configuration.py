@@ -32,6 +32,7 @@ SITE_LANGUAGE = "english"
 
 # You MUST replace this with an email address connected to a site administrator (as defined by Google).
 # This MUST be the email address you are using for the Google account you use to administer the Rakontu site.
+# If it is not a valid email, you will not be able to get error messages.
 SITE_SUPPORT_EMAIL = "cynthia.f.kurtz@gmail.com"
 
 # Don't touch this
@@ -66,11 +67,6 @@ RAKONTU_TYPES = [
 # MUST be (exactly) one of FORMAT_PLAIN_TEXT, FORMAT_SIMPLE_HTM, FORMAT_WIKI_MARKUP
 DEFAULT_TEXT_FORMAT = FORMAT_PLAIN_TEXT
 
-# The Rakontu contact email is the email address used as the SENDER in all email sent FROM the Rakontu.
-# This appears as the default in the Rakontu settings.
-# It MUST be a valid email address.
-DEFAULT_CONTACT_EMAIL = "support@rakontu.org"
- 
 # How many nudge points members should get when they join.
 # Giving people something to start with is encouraging.
 DEFAULT_START_NUDGE_POINTS = 50
@@ -91,30 +87,20 @@ MAX_ITEMS_PER_LIST_PAGE = 100
 # These are the time frames shown in the Rakontu home page.
 # The names can be anything you like, but the number of seconds must match the time frame stated.
 # These must match constants in the language_config file.
-# These should not go beyond a month, to avoid excessive CPU limits on GAE.
-if DEVELOPMENT:
-	TIME_FRAMES = [
-				 (TIMEFRAME_10MINUTES, MINUTE_SECONDS * 10),
-				 (TIMEFRAME_HOUR, HOUR_SECONDS),
-				 (TIMEFRAME_6HOURS, HOUR_SECONDS * 6),
-				 (TIMEFRAME_12HOURS, HOUR_SECONDS * 12),
-				 (TIMEFRAME_DAY, DAY_SECONDS),
-				 (TIMEFRAME_3DAYS, DAY_SECONDS * 3),
-				 (TIMEFRAME_WEEK, WEEK_SECONDS),
-				 (TIMEFRAME_2WEEKS, WEEK_SECONDS * 2),
-				 (TIMEFRAME_MONTH, MONTH_SECONDS),
-				 ]
-else:
-	TIME_FRAMES = [
-				 (TIMEFRAME_HOUR, HOUR_SECONDS),
-				 (TIMEFRAME_6HOURS, HOUR_SECONDS * 6),
-				 (TIMEFRAME_12HOURS, HOUR_SECONDS * 12),
-				 (TIMEFRAME_DAY, DAY_SECONDS),
-				 (TIMEFRAME_3DAYS, DAY_SECONDS * 3),
-				 (TIMEFRAME_WEEK, WEEK_SECONDS),
-				 (TIMEFRAME_2WEEKS, WEEK_SECONDS * 2),
-				 (TIMEFRAME_MONTH, MONTH_SECONDS),
-				 ]
+TIME_FRAMES = [
+			 (TIMEFRAME_HOUR, HOUR_SECONDS),
+			 (TIMEFRAME_6HOURS, HOUR_SECONDS * 6),
+			 (TIMEFRAME_12HOURS, HOUR_SECONDS * 12),
+			 (TIMEFRAME_DAY, DAY_SECONDS),
+			 (TIMEFRAME_3DAYS, DAY_SECONDS * 3),
+			 (TIMEFRAME_WEEK, WEEK_SECONDS),
+			 (TIMEFRAME_10DAYS, DAY_SECONDS * 10),
+			 (TIMEFRAME_2WEEKS, WEEK_SECONDS * 2),
+			 (TIMEFRAME_3WEEKS, WEEK_SECONDS * 3),
+			 (TIMEFRAME_MONTH, MONTH_SECONDS),
+			 (TIMEFRAME_2MONTHS, MONTH_SECONDS * 2),
+			 (TIMEFRAME_3MONTHS, MONTH_SECONDS * 3),
+			 ]
 
 # These are the available date and time formats. They affect all places where the date or time is displayed.
 # The key in each dictionary (before the colon) is the django template format string.

@@ -1,0 +1,121 @@
+	
+	<div class="blurb">{{entry.displayTextWithInlineAttachmentLinks}}
+	
+	{% if attachments %}
+		<p><b>{{template_attachments}}</b></p>
+		<ul>
+		{% for attachment in attachments %}
+			<li class="nobullet">
+			{% if attachment.isImage %}
+				{% if attachment.name %}
+					<p>{{attachment.name}} ({{attachment.attachmentEmbed}})</p>
+				{% else %}
+					<p>{{attachment.attachmentEmbed}}</p>
+				{% endif %}
+				{% if current_member.showAttachedImagesInline %}
+					{{attachment.imageEmbed}}
+				{% endif %}
+			{% else %}
+				{% if attachment.name %}
+					{{attachment.name}} -
+				{% endif %}
+				{{attachment.attachmentEmbed}}
+			{% endif %}
+			</li>
+		{% endfor %}
+		</ul>
+	{% endif %}
+
+	{% if any_links_at_all %} <hr> {% endif %}
+	
+	{% if entry.isCollage and included_links_outgoing %}
+		<p>{{template_stories}}:</p>
+		<ul>
+		{% for link in included_links_outgoing %}
+			<li class="nobullet">{{link.itemTo.linkString}} {% if link.comment %} ({{link.comment}}){% endif %} </li>
+		{% endfor %}
+		</ul>
+	{% endif %}
+	{% if entry.isPattern and referenced_links_outgoing %}
+		<p>{{template_search_filters}}:</p>
+		<ul>
+		{% for link in referenced_links_outgoing %}
+			<li class="nobullet">{{link.itemTo.linkString}} {% if link.comment %} ({{link.comment}}) {% endif %} </li>
+		{% endfor %}
+		</ul>
+	{% endif %}
+	{% if entry.isInvitation and responded_links_outgoing %}
+		<p>{{template_responses}}:</p>
+		<ul>
+		{% for link in responded_links_outgoing %}
+			<li class="nobullet">{{link.itemTo.linkString}} {% if link.comment %} ({{link.comment}}) {% endif %} </li>
+		{% endfor %}
+		</ul>
+	{% endif %}
+
+	{% ifequal entry.type "story" %}
+		{% if retold_links_incoming %}
+			<p>{{template_retelling_of}}</p>
+			{% for link in retold_links_incoming %}
+				<ul><li class="nobullet">{{link.itemFrom.linkString}}.
+				 {% if link.comment %} ({{template_why|capfirst}}? {{link.comment}}) {% endif %}</li></ul>
+			{% endfor %}
+		{% endif %}
+		{% if retold_links_outgoing %}
+			<p>{{template_retold_as}}</p>
+			{% for link in retold_links_outgoing %}
+				<ul><li class="nobullet">{{link.itemTo.linkString}}.
+				 {% if link.comment %} ({{template_why|capfirst}}? {{link.comment}}) {% endif %}</li></ul>
+			{% endfor %}
+		{% endif %}
+		{% if reminded_links_incoming %}
+			<p>{{template_reminding_from}}</p>
+			{% for link in reminded_links_incoming %}
+				<ul><li class="nobullet">{{link.itemFrom.linkString}}.
+				{% if link.comment %} ({{template_why|capfirst}}? {{link.comment}}) {% endif %}</li></ul>
+			{% endfor %}
+		{% endif %}
+		{% if reminded_links_outgoing %}
+			<p>{{template_reminding_to}}</p>
+			{% for link in reminded_links_outgoing %}
+				<ul><li class="nobullet">{{link.itemTo.linkString}}.
+				 {% if link.comment %} ({{template_why|capfirst}}? {{link.comment}}) {% endif %}</li></ul>
+			{% endfor %}
+		{% endif %}
+		{% if responded_links_incoming %}
+			<p>{{template_in_response_to_invitation}}</p>
+			<ul>
+			{% for link in responded_links_incoming %}
+				<li class="nobullet">{{link.itemFrom.linkString}}
+				 {% if link.comment %} ({{template_why|capfirst}}? {{link.comment}}) {% endif %}
+				 </li>
+			{% endfor %}
+			</ul>
+		{% endif %}
+		{% if included_links_incoming %}
+			<p>{{template_included_in_collages}}</p>
+			<ul>
+			{% for link in included_links_incoming %}
+				<li class="nobullet">{{link.itemFrom.linkString}}
+				 {% if link.comment %} ({{template_why|capfirst}}? {{link.comment}}) {% endif %}</li>
+			{% endfor %}
+			</ul>
+		{% endif %}
+	{% endifequal %}
+	
+	{% if related_links_both_ways %}
+		<p>{{template_related_to}}</p>
+		<ul>
+		{% for link in related_links_both_ways %}
+			<li class="nobullet">
+			{% ifequal link.itemTo.key entry.key %}
+				{{link.itemFrom.linkString}}
+			{% else %}
+				{{link.itemTo.linkString}}
+			{% endifequal %}
+			{% if link.comment %} ({{template_why|capfirst}}? {{link.comment}}) {% endif %}
+			</li>
+		{% endfor %}
+		</ul>
+	{% endif %}
+			

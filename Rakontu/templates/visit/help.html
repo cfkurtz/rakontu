@@ -61,7 +61,7 @@
 	{% endif %}
 	
 	
-	{% if guides %}
+	{% if guides and not current_member_is_only_guide %}
 		<h3>{{template_ask_a_guide}} {{"asking_a_guide_a_question"|info}}</h3>
       		<hr>
       		{% for guide in guides %}

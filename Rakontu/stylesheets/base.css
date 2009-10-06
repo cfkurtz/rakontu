@@ -53,6 +53,12 @@ td.noborder {
 	border: 0;
 	}
 	
+td.grid {
+	border: none;
+	border-right: 1px solid #FFFFFF;
+	color: #000000;
+	}
+	
 th {
 	font-style: plain;
 	font-weight: normal;
@@ -85,9 +91,9 @@ ul li.nobullet {
 	}
 	
 .blurb {
-	background: #CCCCCC;
 	width: auto;
-	border: 1px solid #000000;
+	border: solid 1px #666666;
+	background: #EEEEEE;
 	padding: 4px 8px 4px 8px;
 	margin-left: 0px;
 	margin-bottom: 8px;
@@ -171,9 +177,9 @@ ul li.nobullet {
 
 .rakontu_form_centered {
 	margin: 0 auto;
-	width: 400px;
+	width: 500px;
 	padding: 14px;
-	border: solid 1px #000000;
+	border: solid 1px #666666;
 	background: #EEEEEE;
 	}
 	

@@ -12,7 +12,7 @@
 		{% if rakontu.image %}
 			<a href="{{rakontu.linkURL}}">{{rakontu.imageEmbed}}</a>
 		{% else %}
-			<a href="{{rakontu.linkURL}}"><img src="/images/Rakontu.jpg" width="100" height="64" alt="Rakontu logo" class="bordered"></a>
+			<a href="{{rakontu.linkURL}}"><img src="/images/Rakontu.jpg" width="100" height="64" alt="{{template_rakontu_logo}}" class="bordered"></a>
 		{% endif %}
 		
 		</td><td align="left" valign="center" class="noborder">
@@ -103,18 +103,19 @@
 		{% else %}
 			{% if system_message or error_message %}
 				<td class="noborder">
-				<h1><i>
+				<center><h3>
 				{% if system_message %}
 					{{system_message}}
 				{% endif %}
 				{% if error_message %}
 					{{error_message}}
 				{% endif %}
-				</i></h1>
+				</h3></center>
+				<hr>
 			{% else %}
 				{% if user_is_admin %}
 					<td class="noborder">
-					<h1>{{menu_site_administration}}</h1>
+					<center><h3>{{menu_site_administration}}</h3></center>
 					<hr>
 				{% endif %}
 			{% endif %}

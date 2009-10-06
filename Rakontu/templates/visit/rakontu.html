@@ -17,23 +17,25 @@
 			<div class="blurb">{{rakontu.etiquetteStatement_formatted}}</div>
 		{% endif %}
 		
-     <h3>{{template_counts_of_items_in}} {{rakontu.name}}</h3>
- 		<p></p>
-    	<table cellspacing=0 cellpadding=0 style="width:100%;">
- 			{% for name in count_names %}
-				<th>{{name|capfirst}}</th>
+	{% if counts %}
+	     <h3>{{template_counts_of_items_in}} {{rakontu.name}}</h3>
+	 		<p></p>
+	    	<table cellspacing=0 cellpadding=0 style="width:100%;">
+	 			{% for name in count_names %}
+					<th>{{name|capfirst}}</th>
+				{% endfor %}
+	      	</tr>
+			{% for count in counts %}
+				<td>{% if count %}
+						{{count}}
+					{% else %}
+						0
+					{% endif %}
+				</td>
 			{% endfor %}
-      	</tr>
-		{% for count in counts %}
-			<td>{% if count %}
-					{{count}}
-				{% else %}
-					0
-				{% endif %}
-			</td>
-		{% endfor %}
-		</tr>
-		</table>
+			</tr>
+			</table>
+	{% endif %}
 
 		{% if rakontu.getActiveCharacters %}
 			<h3>{{template_characters}} {{"what_characters_are_for"|info}}</h3>

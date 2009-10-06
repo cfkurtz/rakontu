@@ -155,6 +155,7 @@ class ReviewBatchEntriesPage(ErrorHandlingRequestHander):
 								   'batch_tagsets': rakontu.getTagsetsInImportBufferForLiaison(member),
 								   'offline_members': rakontu.getActiveOfflineMembers(),
 								   'current_member': member,
+								   'blurbs': BLURBS,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('liaise/review.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -177,7 +178,10 @@ class ReviewBatchEntriesPage(ErrorHandlingRequestHander):
 						entriesToDelete = []
 						itemsToPut = []
 						for entry in entries:
-							date = parseDate(self.request.get("year|%s" % entry.key()), self.request.get("month|%s" % entry.key()), self.request.get("day|%s" % entry.key()))
+							yearString = self.request.get("year|%s" % entry.key())
+							monthString = self.request.get("month|%s" % entry.key())
+							dayString = self.request.get("day|%s" % entry.key())
+							date = parseDate(yearString, monthString, dayString, datetime.now(tz=pytz.utc))
 							if entry.collected != date:
 								entry.collected = date
 								itemsToPut.append(entry)
@@ -237,6 +241,7 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 								   'offline_members': rakontu.getActiveOfflineMembers(),
 								   'online_members': rakontu.getActiveOnlineMembers(),
 								   'current_member': member,
+								   'blurbs': BLURBS,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('liaise/batch.html'))
 				self.response.out.write(template.render(path, template_values))

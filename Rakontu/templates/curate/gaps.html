@@ -15,9 +15,9 @@
 		
 		<p>{{template_show}}
 		<select name="show_type">
-			{% for i in entry_types|makeRangeFromListLength %}
-				<option value="{{entry_types|listLookup:i}}" 
-				{% if entry_types|listLookup:i|equalTest:type %} 
+			{% for i in entry_types_urls|makeRangeFromListLength %}
+				<option value="{{entry_types_urls|listLookup:i}}" 
+				{% if entry_types_urls|listLookup:i|equalTest:type %} 
 					selected="selected" 
 				{% endif %}
 				>{{entry_types_plural_display|listLookup:i}}</option>
@@ -25,21 +25,24 @@
 			</select>
 				
 		<select name="show">
-			<option value="entries_no_tags" {% ifequal show "entries_no_tags" %} selected="selected" {% endifequal %}>{{template_entries_with_no_tags}}</option>
-			<option value="entries_no_links" {% ifequal show "entries_no_links" %} selected="selected" {% endifequal %}>{{template_entries_with_no_links}}</option>
-			<option value="entries_no_comments" {% ifequal show "entries_no_comments" %} selected="selected" {% endifequal %}>{{template_entries_with_no_comments}}</option>
-			{% if rakontu.hasActiveNonMemberQuestions %} 
-				<option value="entries_no_answers" {% ifequal show "entries_no_answers" %} selected="selected" {% endifequal %}>{{template_entries_with_no_answers_to_questions}}</option>
-			{% endif %}
-			<option value="collages_no_links" {% ifequal show "collages_no_links" %} selected="selected" {% endifequal %}>{{template_collages_with_no_story_links}}</option>
+			{% for i in show_choices_urls|makeRangeFromListLength %}
+				<option value="{{show_choices_urls|listLookup:i}}" 
+				{% if show_choices_urls|listLookup:i|equalTest:show %} 
+					selected="selected" 
+				{% endif %}>
+				{{show_choices_display|listLookup:i}}</option>
+			{% endfor %}
 			</select>
 
 		{{template_sort_by}}
 		<select name="sortBy">
-			<option value="date" {% ifequal sort_by "date" %} selected="selected" {% endifequal %}>{{template_most_recent}}</option>
-			<option value="annotations" {% ifequal sort_by "annotations" %} selected="selected" {% endifequal %}>{{template_most_annotated}}</option>
-			<option value="activity" {% ifequal sort_by "activity" %} selected="selected" {% endifequal %}>{{template_highest_activity}}</option>
-			<option value="nudges" {% ifequal sort_by "nudges" %} selected="selected" {% endifequal %}>{{template_highest_nudged}}</option>
+			{% for i in sort_by_choices_urls|makeRangeFromListLength %}
+				<option value="{{sort_by_choices_urls|listLookup:i}}" 
+				{% if sort_by_choices_urls|listLookup:i|equalTest:sort_by %} 
+					selected="selected" 
+				{% endif %}>
+				{{sort_by_choices_display|listLookup:i}}</option>
+			{% endfor %}
 			</select>
 		<input type="submit" name="changeSelections" value="{{button_change}}" class="button_small">
 		

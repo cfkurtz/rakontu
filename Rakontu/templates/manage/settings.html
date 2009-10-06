@@ -53,8 +53,8 @@
 			<tr><th>{{template_name}} {{"nudge_category_names"|tip}}</th><th>{{template_question}} {{"nudge_category_questions"|tip}}</th></tr>
 			{% for i in num_nudge_categories|makeRange %}
 				<tr>
-				<td><input type="text" name="nudgeCategory{{i}}" size="30" value="{{rakontu.nudgeCategories|listLookup:i}}" maxlength="{{maxlength_name}}"/>
-				</td><td><input type="text" name="nudgeCategoryQuestion{{i}}" size="80" value="{{rakontu.nudgeCategoryQuestions|listLookup:i}}" maxlength="{{maxlength_subject_or_comment}}"/>
+				<td><input type="text" name="nudgeCategory{{i}}" size="16" value="{{rakontu.nudgeCategories|listLookup:i}}" maxlength="{{maxlength_name}}"/>
+				</td><td><input type="text" name="nudgeCategoryQuestion{{i}}" size="70" value="{{rakontu.nudgeCategoryQuestions|listLookup:i}}" maxlength="{{maxlength_subject_or_comment}}"/>
 				</tr>
 			{% endfor %}
 			</table>

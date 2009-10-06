@@ -139,7 +139,11 @@
 		  				<tr>
 		  				<td>
 		  				<input type="text" name="email|{{pending_member.key}}" size="20" value="{{pending_member.email}}" maxlength="{{maxlength_name}}"/>
-		  				<input type="submit" name="sendInvitationEmail|{{pending_member.key}}" value="{{button_send_invitation_email}}" class="button_small">
+		  				<input type="submit" name="sendInvitationEmail|{{pending_member.key}}" value="{{button_send_invitation_email}}" class="button_small"
+						{% if current_member.showButtonTooltips %}
+							title="{{"sending_invitation_emails"|buttonTooltip}}"
+						{% endif %}
+		  				>
 		  				</td>
 		  				<td>{{pending_member.invited.date}}<br/>
 		  				</td>

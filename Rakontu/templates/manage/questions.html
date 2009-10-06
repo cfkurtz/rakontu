@@ -60,7 +60,7 @@
 	    <p>{{template_choose_csv_question_file}}:
 	    <input type="file" name="import" size="40" accept="csv"/></p>
 	    {% if questions %}
-	    	<p><a href="/{{dir_manage}}/{{url_questionsToCSV}}?{{url_query_export_type}}={{refer_type}}&{{rakontu.urlQuery}}">{{template_export_questions_to_csv}}</a></p>
+	    	<p><a href="/{{dir_manage}}/{{url_questions_to_csv}}?{{url_query_export_type}}={{refer_type_plural_display}}&{{rakontu.urlQuery}}">{{template_export_questions_to_csv}}</a></p>
 	    {% endif %}
 	    </fieldset>
 

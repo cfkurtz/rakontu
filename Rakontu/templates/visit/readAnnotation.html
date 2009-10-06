@@ -56,9 +56,17 @@
 		</p>
 		<p>&nbsp; 
 		{% if not annotation.completedIfRequest %}
-			<input type="submit" name="toggleRequestCompleted" value="{{button_mark_as_completed}}" class="button_small">
+			<input type="submit" name="toggleRequestCompleted" value="{{button_mark_as_completed}}" class="button_small"
+			{% if current_member.showButtonTooltips %}
+				title="{{"marking_request_completed"|buttonTooltip}}"
+			{% endif %}
+			>
 		{% else %}
-			<input type="submit" name="toggleRequestCompleted" value="{{button_mark_as_not_completed}}" class="button_small">
+			<input type="submit" name="toggleRequestCompleted" value="{{button_mark_as_not_completed}}" class="button_small"
+			{% if current_member.showButtonTooltips %}
+				title="{{"marking_request_uncompleted"|buttonTooltip}}"
+			{% endif %}
+			>
 		{% endif %}
 		{{template_change_comment}}: 
 		<input type="text" name="request_comment" value="{{annotation.completionCommentIfRequest|orNothing}}" size="20" maxlength="{{maxlength_subject_or_comment}}">

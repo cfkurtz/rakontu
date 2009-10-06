@@ -7,6 +7,15 @@
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_manage}}/{{url_question}}?{{question.urlQuery}}" method="post" enctype="multipart/form-data">
 		<h3>{{template_change}} {{template_question|lower}} "{{question.name}}"</h3>
+		
+		{% if answer_counts %}
+			<div class="blurb">
+			<p><b>{{template_answer_counts_by_choice}} {{"changing_answer_choices"|tip}}</b></p>
+			{% for count in answer_counts|dictKeys|sortedReversed %}
+				<p>&nbsp; {{count}} - {{answer_counts|dictLookup:count|join:", "}}</p>
+			{% endfor %}
+			</div>
+		{% endif %}
 
 		<fieldset>
 		

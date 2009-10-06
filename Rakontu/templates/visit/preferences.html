@@ -68,7 +68,7 @@
 			{% if member.isGuide %}
 				<i>({{template_guides_must_accept_messages}})</i>
 			{% endif %}
-			{{"getting_messages"|tip}} </p>
+			</p>
 		{% else %}
 			<p>{{template_offline_member_accept_messages}}</p>
 		{% endif %}
@@ -90,8 +90,6 @@
 					{% endif %}
 					><label for="acceptsMessages">{{template_yes_people_can_send_me_messages}}</label></p>
 			{% endif %}
-			<p>{{template_email_for_reply_to_in_messages}} {{"reply_to_email"|tip}} </p>
-			<p>&nbsp; <input type="text" name="messageReplyToEmail" value="{{member.messageReplyToEmail}}" size="20" maxlength="{{maxlength_tag_or_choice}}"/></p>
 		{% endif %}
 		
 		</fieldset>
@@ -181,7 +179,13 @@
 						{% endif %}
 						><label for="showHelpResourcesInTimelines|{{option.location}}">{{option.displayNameForLocation}}</label></p>
 				{% endfor %}
-				</select></p>
+			<p>{{template_show_button_tooltips}}</p>
+					<p>&nbsp; 
+					<input type="checkbox" name="showButtonTooltips" value="yes" id="showButtonTooltips"
+						{% if current_member.showButtonTooltips %}
+							checked
+						{% endif %}
+						><label for="showButtonTooltips">{{template_show_button_tooltips_yes}}</label></p>
 			{% endif %}
 		</fieldset>
 		

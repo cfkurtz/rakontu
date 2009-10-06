@@ -6,7 +6,7 @@
 		
 		{% if current_member.isGuideOrManagerOrOwner %}
 			<div id="rakontu_form_style" class="rakontu_form">
-			<form action="/{{dir_guide}}/{{url_resources}}?{{rakontu.urlQuery}}&{{url_query_type}}={{resource_group}}&{{url_query_managers_only}}={{managers_only}}" method="post">
+			<form action="/{{dir_guide}}/{{url_resources}}?{{rakontu.urlQuery}}&{{url_query_resource_type}}={{resource_group}}&{{url_query_managers_only}}={{managers_only}}" method="post">
 			
 			<p>{{template_show}}
 			<select name="show_resource_group">

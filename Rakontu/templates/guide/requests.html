@@ -6,7 +6,7 @@
 	
 	{% if current_member.isGuide %}
 		<div id="rakontu_form_style" class="rakontu_form">
-		<form action="/{{dir_guide}}/{{url_requests}}?{{rakontu.urlQuery}}{% if request_type %}&{{url_query_type}}={{request_type}}{% endif %}{% if not showing_all_requests %}&{{url_query_uncompleted}}={{url_query_uncompleted}}{% endif %}" method="post" enctype="multipart/form-data">
+		<form action="/{{dir_guide}}/{{url_requests}}?{{rakontu.urlQuery}}{% if request_type %}&{{url_query_request_type}}={{request_type}}{% endif %}{% if not showing_all_requests %}&{{url_query_uncompleted}}={{url_option_yes}}{% endif %}" method="post" enctype="multipart/form-data">
 		
 		<p>{{template_show}}
 		<select name="all_or_uncompleted">
@@ -22,7 +22,7 @@
 			>{{template_only_uncompleted_requests}}</option>
 			</select>
 		{{template_requests_of_the_type}}
-		<select name="request_type">
+		<select name="request_type_choice">
 			{% for i in request_types|makeRangeFromListLength %}
 				<option value="{{request_types_urls|listLookup:i}}"
 				{% if request_types_urls|listLookup:i|equalTest:request_type %}

@@ -7,6 +7,7 @@
 	{% if current_member.isGuide %}
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_guide}}/{{url_invitations}}?{{rakontu.urlQuery}}
+		{% if not showing_all_invitations %}&{{url_query_no_responses}}={{url_option_yes}}{% endif %}
 		{% if bookmark %}&{{url_query_bookmark}}={{bookmark}}{% endif %}
 		" method="post" enctype="multipart/form-data">
 		

@@ -39,6 +39,7 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
+			user = users.get_current_user()
 			items = rakontu.getAllFlaggedItemsAsOneList()
 			def txn(items):
 				itemsToPut = []
@@ -79,6 +80,10 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 				db.run_in_transaction(txn, itemsToPut, itemsToDelete)
 				self.redirect(BuildURL("dir_curate", "url_flags", rakontu=rakontu))
 			elif member.isCurator():
+				# make sure we have the correct email for them
+				if member.googleAccountID == user.user_id() and member.googleAccountEmail != user.email():
+					member.googleAccountEmail = user.email()
+					member.put()
 				itemsToSendMessageAbout = []
 				for item in items:
 					if self.request.get("notify|%s" % item.key()) == "yes":
@@ -129,8 +134,8 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 							messageLines.insert(0, "% %s:\n" % TERMS["term_dear_manager"], ownerOrManager.nickname)
 							messageBody = "\n".join(messageLines)
 							message = mail.EmailMessage()
-							message.sender = SITE_SUPPORT_EMAIL
-							message.reply_to = rakontu.contactEmail
+							message.sender = member.googleAccountEmail 
+							message.reply_to = member.googleAccountEmail
 							message.subject = subject
 							message.to = ownerOrManager.googleAccountEmail
 							message.body = messageBody
@@ -155,13 +160,13 @@ class CurateGapsPage(ErrorHandlingRequestHander):
 			if member.isCurator():
 				show = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_show")
 				if not show:
-					show = "entries_no_tags"
+					show = GAPS_SHOW_CHOICES_URLS[0] # no tags
 				type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_type")
 				if not type:
-					type = "story"
+					type = ENTRY_TYPES_URLS[0] # story
 				sortBy = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_sort_by")
 				if not sortBy:
-					sortBy = "date"
+					sortBy = GAPS_SORT_BY_CHOICES_URLS[0] # date
 				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
 				prev, entries, next = rakontu.getNonDraftEntriesLackingMetadata_WithPaging(show, type, sortBy, bookmark)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
@@ -176,6 +181,11 @@ class CurateGapsPage(ErrorHandlingRequestHander):
 								   'bookmark': bookmark,
 								   'previous': prev,
 								   'next': next,
+								   'entry_types_urls': ENTRY_TYPES_URLS,
+								   'sort_by_choices_urls': GAPS_SORT_BY_CHOICES_URLS,
+								   'sort_by_choices_display': GAPS_SORT_BY_CHOICES_DISPLAY,
+								   'show_choices_urls': GAPS_SHOW_CHOICES_URLS,
+								   'show_choices_display': GAPS_SHOW_CHOICES_DISPLAY,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/gaps.html'))
 				self.response.out.write(template.render(path, template_values))

@@ -7,9 +7,9 @@
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_liaise}}/{{url_batch}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
-		<h2>{{template_batch_story_entry}} {{"batch_story_entry"|caution}}</h2>
-		
 		{% if current_member.isManagerOrOwner or my_offline_members %}
+		
+		<h2>{{template_batch_story_entry}} {{"batch_story_entry"|caution}}</h2>
 
 	    <p>{{template_choose_csv_file_for_batch}}:
 	    <input type="file" name="import" size="40" accept="csv"/> 
@@ -163,7 +163,7 @@
 		{% endfor %}
 		
 		{% else %}
-			<p>{{template_you_have_no_offline_members}}</p>
+			{{blurbs|dictLookup:"cannot_enter_batch"}}
 		{% endif %}
 
 		</form>	

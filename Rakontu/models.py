@@ -177,7 +177,6 @@ class Rakontu(db.Model):
 	type = db.StringProperty(choices=RAKONTU_TYPES, default=RAKONTU_TYPES[-1], indexed=False) # only used to determine questions at front, but may be useful later so saving
 	tagline = db.StringProperty(default="", indexed=False) # appears under name, optional
 	image = db.BlobProperty(default=None) # appears on all pages, should be small (100x60 is best)
-	contactEmail = db.StringProperty(default=DEFAULT_CONTACT_EMAIL, indexed=False) # sender address for emails sent from site
 	
 	description = db.TextProperty(default=DEFAULT_RAKONTU_DESCRIPTION) # appears on "about rakontu" page
 	description_formatted = db.TextProperty() # formatted texts kept separate for re-editing original
@@ -204,7 +203,7 @@ class Rakontu(db.Model):
 	skinName = db.StringProperty(default=DEFAULT_SKIN_NAME, indexed=False)
 	customSkin = db.TextProperty(indexed=False)
 	externalStyleSheetURL = db.StringProperty(default=None, indexed=False)
-
+	
 	def initializeFormattedTexts(self):
 		self.description_formatted = db.Text("<p>%s</p>" % self.description)
 		self.etiquetteStatement_formatted = db.Text("<p>%s</p>" % self.etiquetteStatement)
@@ -376,7 +375,7 @@ class Rakontu(db.Model):
 		result = []
 		onlineMembers = Member.all().filter("rakontu = ", self.key()).filter("active = ", True).filter("isOnlineMember = ", True).fetch(FETCH_NUMBER)
 		for aMember in onlineMembers:
-			if aMember.isLiaison() and aMember.key() != member.key():
+			if aMember.isLiaison() and str(aMember.key()) != str(member.key()):
 				result.append(aMember)
 		return result
 	
@@ -433,7 +432,7 @@ class Rakontu(db.Model):
 	
 	def memberIsOnlyOwner(self, member):
 		owners = self.getOwners()
-		if len(owners) == 1 and owners[0].key() == member.key():
+		if len(owners) == 1 and str(owners[0].key()) == str(member.key()):
 			return True
 		return False
 	
@@ -649,11 +648,13 @@ class Rakontu(db.Model):
 	def getCounts(self):
 		countNames = []
 		counts = []
+		hasContent = False
 		i = 0
 		for aType in ENTRY_TYPES:
 			countNames.append(ENTRY_TYPES_PLURAL_DISPLAY[i])
 			count = Entry.all().filter("rakontu = ", self.key()).filter("type = ", aType).count()
 			counts.append(count)
+			hasContent = hasContent or count > 0
 			i += 1
 		i = len(ENTRY_TYPES)
 		j = 0
@@ -662,48 +663,58 @@ class Rakontu(db.Model):
 				countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
 				count = Annotation.all().filter("rakontu = ", self.key()).filter("type = ", aType).count()
 				counts.append(count)
+				hasContent = hasContent or count > 0
 			elif aType == "answer":
 				countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
 				count = Answer.all().filter("rakontu = ", self.key()).count()
 				counts.append(count)
+				hasContent = hasContent or count > 0
 			elif aType == "link":
 				countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
 				count = Link.all().filter("rakontu = ", self.key()).count()
 				counts.append(count)
+				hasContent = hasContent or count > 0
 			i += 1
 			j += 1
+		if not hasContent:
+			counts = None
 		return countNames, counts
 	
 	# QUERIES WITH PAGING
 	
-	def getNonDraftEntriesLackingMetadata_WithPaging(self, show, type, sortBy, bookmark, numToFetch=MAX_ITEMS_PER_LIST_PAGE):
+	def getNonDraftEntriesLackingMetadata_WithPaging(self, show, typeURL, sortBy, bookmark, numToFetch=MAX_ITEMS_PER_LIST_PAGE):
+		type = None
+		i = 0
+		for aTypeURL in ENTRY_TYPES_URLS:
+			if aTypeURL == typeURL:
+				type = ENTRY_TYPES[i]
+				break
+			i += 1
 		query = pager.PagerQuery(Entry).filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).order("-__key__")
 		prev, entries, next = query.fetch(numToFetch, bookmark)
 		result = []
 		for entry in entries:
 			doNotAdd = True
-			if show == "entries_no_tags":
+			if show == GAPS_SHOW_CHOICES_URLS[0]: # no tags
 				doNotAdd = entry.hasTagSets()
-			elif show == "entries_no_links":
+			elif show == GAPS_SHOW_CHOICES_URLS[1]: # no links
 				doNotAdd =  entry.hasLinks()
-			elif show == "entries_no_comments":
+			elif show == GAPS_SHOW_CHOICES_URLS[2]: # no comments
 				doNotAdd =  entry.hasComments()
-			elif show == "entries_no_answers":
+			elif show == GAPS_SHOW_CHOICES_URLS[3]: # no answers
 				doNotAdd =  entry.hasAnswers()
-			elif show == "collages_no_links":
+			elif show == GAPS_SHOW_CHOICES_URLS[4]: # no story links (collages only)
 				doNotAdd =  (not entry.isCollage()) or entry.hasOutgoingLinksOfType("included")
-			elif show == "invitations_no_resopnses":
-				doNotAdd = (not entry.isInvitation()) or entry.hasOutgoingLinksOfType("responded")
 			if not doNotAdd:
 				result.append(entry)
-		if sortBy == "activity":
-			result.sort(lambda a,b: cmp(b.activityPoints, a.activityPoints))
-		elif sortBy == "nudges":
-			result.sort(lambda a,b: cmp(b.nudgePointsCombined(), a.nudgePointsCombined()))
-		elif sortBy == "date":
+		if sortBy == GAPS_SORT_BY_CHOICES_URLS[0]: # date
 			result.sort(lambda a,b: cmp(b.published, a.published))
-		elif sortBy == "annotations":
+		elif sortBy == GAPS_SORT_BY_CHOICES_URLS[1]: # annotations
 			result.sort(lambda a,b: cmp(b.getAnnotationCount(), a.getAnnotationCount()))
+		elif sortBy == GAPS_SORT_BY_CHOICES_URLS[2]: # activity
+			result.sort(lambda a,b: cmp(b.activityPoints, a.activityPoints))
+		elif sortBy == GAPS_SORT_BY_CHOICES_URLS[3]: # nudge value
+			result.sort(lambda a,b: cmp(b.nudgePointsCombined(), a.nudgePointsCombined()))
 		return prev, result, next
 	
 	def getAttachments_WithPaging(self, bookmark, numToFetch=MAX_ITEMS_PER_LIST_PAGE):
@@ -720,7 +731,14 @@ class Rakontu(db.Model):
 		prev, results, next = query.fetch(numToFetch, bookmark)
 		return prev, results, next
 	
-	def getNonDraftEntriesOfType_WithPaging(self, type, bookmark, numToFetch=MAX_ITEMS_PER_LIST_PAGE):
+	def getNonDraftEntriesOfType_WithPaging(self, typeURL, bookmark, numToFetch=MAX_ITEMS_PER_LIST_PAGE):
+		type = None
+		i = 0
+		for aTypeURL in ENTRY_TYPES_URLS:
+			if aTypeURL == typeURL:
+				type = ENTRY_TYPES[i]
+				break
+			i += 1
 		query = pager.PagerQuery(Entry).filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).order("-__key__")
 		return query.fetch(numToFetch, bookmark)
 	
@@ -873,7 +891,7 @@ class Rakontu(db.Model):
 				nickname = row[0].strip()
 				member = self.memberWithNickname(nickname)
 				if member:
-					if liaison.isManagerOrOwner() or member.liaisonIfOfflineMember.key() == liaison.key():
+					if liaison.isManagerOrOwner() or str(member.liaisonIfOfflineMember.key()) == str(liaison.key()):
 						if len(row) >= 1:
 							dateString = row[1].strip()
 						else:
@@ -939,7 +957,7 @@ class Rakontu(db.Model):
 		exportText = ""
 		if type == "csv_export_search":
 			if member:
-				exportText += '"Export of viewed items for member "%s" in Rakontu %s"\n' % (member.nickname, self.name)
+				exportText += 'Export of viewed items for member "%s" in Rakontu "%s"\n' % (member.nickname, self.name)
 				(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
 				if overLimitWarning:
 					exportText += '\n"%s of %s %s\n"' % (MAX_ITEMS_PER_GRID_PAGE, numItemsBeforeLimitTruncation, overLimitWarning)
@@ -955,11 +973,11 @@ class Rakontu(db.Model):
 						questions = self.getActiveQuestionsOfType(type)
 						exportText += '\n%s\nTitle,Date,Text,Contributor,' % ENTRY_TYPES_PLURAL_DISPLAY[typeCount].upper()
 						for question in questions:
-							exportText += question.name + ","
+							exportText += question.name + " (entry),"
 						for question in memberQuestions:
-							exportText += question.name + ","
+							exportText += question.name + " (member),"
 						for question in characterQuestions:
-							exportText += question.name + ","
+							exportText += question.name + " (character),"
 						exportText += '\n'
 						i = 0
 						for entry in entriesOfThisType:
@@ -974,11 +992,11 @@ class Rakontu(db.Model):
 			entries = self.getNonDraftEntriesOfTypeInReverseTimeOrder(subtype)
 			exportText += '\n%s\nTitle,Date,Text,Contributor,' % subtype.upper()
 			for question in questions:
-				exportText += question.name + ","
+				exportText += question.name + " (entry),"
 			for question in memberQuestions:
-				exportText += question.name + ","
+				exportText += question.name + " (member),"
 			for question in characterQuestions:
-				exportText += question.name + ","
+				exportText += question.name + " (character),"
 			exportText += '\n'
 			for i in range(len(entries)):
 				if (not startNumber and not endNumber) or (i >= startNumber and i < endNumber):
@@ -1164,6 +1182,30 @@ class Question(db.Model):
 	def choicesAsLineDelimitedTextString(self):
 		return "\n".join(self.choices)
 	
+	def getAnswerChoiceCounts(self):
+		if self.isOrdinalOrNominal():
+			result = {}
+			answers = Answer.all().filter("question = ", self.key()).fetch(FETCH_NUMBER)
+			if answers:
+				for choice in self.choices:
+					totalForThisChoice = 0
+					if self.multiple:
+						for answer in answers:
+							for answerChoice in answer.answerIfMultiple:
+								if answerChoice == choice:
+									totalForThisChoice += 1
+									break
+					else:
+						for answer in answers:
+							if choice == answer.answerIfText:
+								totalForThisChoice += 1
+					if not result.has_key(totalForThisChoice):
+						result[totalForThisChoice] = []
+					result[totalForThisChoice].append(choice)
+			return result
+		else:
+			return None
+	
 # ============================================================================================
 # ============================================================================================
 class Member(db.Model): 
@@ -1198,9 +1240,9 @@ class Member(db.Model):
 	profileText_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	profileImage = db.BlobProperty(default=None) # optional, resized to 100x60
 	acceptsMessages = db.BooleanProperty(default=True, indexed=False) # other members can send emails to their google email (without seeing it)
-	messageReplyToEmail = db.StringProperty(default="", indexed=False)
 	preferredTextFormat = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	shortDisplayLength = db.IntegerProperty(default=DEFAULT_DETAILS_TEXT_LENGTH) # how long to show texts in details
+	showButtonTooltips = db.BooleanProperty(default=True, indexed=False)
 	
 	viewOptions = db.ListProperty(db.Key)
 	timeZoneName = db.StringProperty(default=DEFAULT_TIME_ZONE, indexed=False) # members choose these in their prefs page
@@ -1443,11 +1485,13 @@ class Member(db.Model):
 	def getCounts(self):
 		countNames = []
 		counts = []
+		hasContent = False
 		i = 0
 		for aType in ENTRY_TYPES:
 			countNames.append(ENTRY_TYPES_PLURAL_DISPLAY[i])
 			count = Entry.all().filter("creator = ", self.key()).filter("character = ", None).filter("type = ", aType).count()
 			counts.append(count)
+			hasContent = hasContent or count > 0
 			i += 1
 		i = len(ENTRY_TYPES)
 		j = 0
@@ -1456,16 +1500,21 @@ class Member(db.Model):
 				countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
 				count = Annotation.all().filter("creator = ", self.key()).filter("character = ", None).filter("type = ", aType).count()
 				counts.append(count)
+				hasContent = hasContent or count > 0
 			elif aType == "answer":
 				countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
 				count = Answer.all().filter("creator = ", self.key()).filter("character = ", None).count()
 				counts.append(count)
+				hasContent = hasContent or count > 0
 			elif aType == "link":
 				countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
 				count = Link.all().filter("creator = ", self.key()).count()
 				counts.append(count)
+				hasContent = hasContent or count > 0
 			i += 1
 			j += 1
+		if not hasContent:
+			counts = None
 		return countNames, counts
 	
 	def getEntriesOfOtherPeopleICanEdit(self):
@@ -1488,7 +1537,25 @@ class Member(db.Model):
 		else:
 			name = TEMPLATE_TERMS["template_offline_member"]
 			offlineImageString = '<img src="/images/offline.png" alt="%s" title="%s"> ' % (name, name)
- 		return '%s<a href="%s?%s">%s</a>' % (offlineImageString, self.urlWithoutQuery(), self.urlQuery(), self.nickname)
+ 		return '%s<a href="%s?%s" %s>%s</a>' % (offlineImageString, self.urlWithoutQuery(), self.urlQuery(), self.getTooltipText(), self.nickname)
+	
+	def getTooltipText(self):
+		result ='title="%s; %s' % (self.onlineOrOffline().capitalize(), self.governanceTypeForDisplayNotShowingOwner().capitalize())
+		roles = self.helpingRolesForDisplay()
+		if len(roles):
+			result += ", " + ", ".join(roles) + "."
+		else:
+			result += "."
+		if self.profileText != NO_PROFILE_TEXT and self.profileText_formatted:
+			result += stripTags(self.profileText_formatted[:TOOLTIP_LENGTH])
+		result += '"'
+		return result
+	
+	def onlineOrOffline(self):
+		if self.isOnlineMember:
+			return TERMS["term_online"]
+		else:
+			return TERMS["term_offline"]
 	
 	def askLinkString(self):
 		return '<a href="%s?%s">%s</a>' % (self.askUrlWithoutQuery(), self.urlQuery(), self.nickname)
@@ -1537,6 +1604,7 @@ class ViewOptions(db.Model):
 	showDetails = db.BooleanProperty(default=True, indexed=False)
 	showOptionsOnTop = db.BooleanProperty(default=False, indexed=False)
 	showHelpResourcesInTimelines = db.BooleanProperty(default=False, indexed=False)
+	showActivityLevels = db.BooleanProperty(default=True, indexed=False)
 	
 	def getStartTime(self):
 		return self.endTime - timedelta(seconds=self.timeFrameInSeconds)
@@ -1668,11 +1736,13 @@ class Character(db.Model):
 	def getCounts(self):
 		countNames = []
 		counts = []
+		hasContent = False
 		i = 0
 		for aType in ENTRY_TYPES:
 			countNames.append(ENTRY_TYPES_PLURAL_DISPLAY[i])
 			count = Entry.all().filter("character = ", self.key()).filter("type = ", aType).count()
 			counts.append(count)
+			hasContent = hasContent or count > 0
 			i += 1
 		i = len(ENTRY_TYPES)
 		j = 0
@@ -1681,14 +1751,18 @@ class Character(db.Model):
 				countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
 				count = Annotation.all().filter("character = ", self.key()).filter("type = ", aType).count()
 				counts.append(count)
+				hasContent = hasContent or count > 0
 			elif aType == "answer":
 				countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[j])
 				count = Answer.all().filter("character = ", self.key()).count()
 				counts.append(count)
+				hasContent = hasContent or count > 0
 			elif aType == "link":
 				pass  # characters can't do links
 			i += 1
 			j += 1
+		if not hasContent:
+			counts = None
 		return countNames, counts
 		
 	def getNonDraftEntriesAttributedToCharacter(self):
@@ -1704,8 +1778,14 @@ class Character(db.Model):
 		return self.key().name()
 	
 	def linkString(self):
-		return '<a href="%s?%s">%s</a>' % (self.urlWithoutQuery(), self.urlQuery(), self.name)
+		return '<a href="%s?%s" %s>%s</a>' % (self.urlWithoutQuery(), self.urlQuery(), self.getTooltipText(), self.name)
 		
+	def getTooltipText(self):
+		if self.description_formatted:
+			return'title="%s"' % stripTags(self.description_formatted[:TOOLTIP_LENGTH])
+		else:
+			return ""
+	
 	def linkURL(self):
 		return '%s?%s' % (self.urlWithoutQuery(), self.urlQuery())
 		
@@ -1759,7 +1839,7 @@ class SavedSearch(db.Model):
 	comment_formatted = db.TextProperty()
 	comment_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 
-	def copyDataFromOtherSearchAndPut(self, search, refs):
+	def copyDataFromOtherSearch(self, search, refs):
 		self.private = True
 		self.name = "%s %s" % (TERMS["term_copy_of"], search.name)
 		self.words_anyOrAll = search.words_anyOrAll
@@ -1775,7 +1855,7 @@ class SavedSearch(db.Model):
 		self.comment = db.Text(search.comment)
 		self.comment_formatted = db.Text(search.comment_formatted)
 		self.comment_format = search.comment_format
-		thingsToPut = []
+		thingsToPut = [self]
 		for ref in refs:
 			keyName = GenerateSequentialKeyName("searchref")
 			myRef = SavedSearchQuestionReference(
@@ -2178,6 +2258,8 @@ class Entry(db.Model):
 	def memberCanEditMe(self, member):
 		if str(member.key()) == str(self.creator.key()):
 			return True
+		if self.liaison and str(member.key()) == str(self.liaison.key()):
+			return True
 		for editorTypeOrKey in self.additionalEditors:
 			if editorTypeOrKey == "curators":
 				if member.isCurator():
@@ -2551,7 +2633,7 @@ class Entry(db.Model):
 		return result
 	
 	def memberCanNudge(self, member):
-		return member.key() != self.creator.key()
+		return str(member.key()) != str(self.creator.key())
 
 	def nudgePointsCombined(self):
 		result = 0
@@ -2563,8 +2645,9 @@ class Entry(db.Model):
 	def nudgePointsForExistAndShowOptions(self, exist, show):
 		result = 0
 		for i in range(NUM_NUDGE_CATEGORIES):
-			if exist[i] and show[i]:
-				result += self.nudgePoints[i]
+			if self.rakontu.nudgeCategoryIndexHasContent(i):
+				if exist[i] and show[i]:
+					result += self.nudgePoints[i]
 		return result
 	
 	# ANNOTATIONS, ANSWERS, LINKS
@@ -2607,6 +2690,32 @@ class Entry(db.Model):
 				if "link" in annotationTypes:
 					result.append(item)
 		return result
+	
+	def getCounts(self):
+		countNames = []
+		counts = []
+		hasContent = False
+		i = 0
+		for aType in ANNOTATION_ANSWER_LINK_TYPES:
+			if aType in ANNOTATION_TYPES:
+				countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[i])
+				count = self.numAnnotations[i]
+				counts.append(count)
+				hasContent = hasContent or count > 0
+			elif aType == "answer":
+				countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[i])
+				count = self.numAnswers
+				counts.append(count)
+				hasContent = hasContent or count > 0
+			elif aType == "link":
+				countNames.append(ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY[i])
+				count = self.numLinks
+				counts.append(count)
+				hasContent = hasContent or count > 0
+			i += 1
+		if not hasContent:
+			counts = None
+		return countNames, counts
 	
 	def getAnnotations(self):
 		return Annotation.all().filter("entry =", self.key()).fetch(FETCH_NUMBER)
@@ -2663,7 +2772,7 @@ class Entry(db.Model):
 					# have to do this silly thing because it won't do an equality test on objects, only on keys
 				 	foundIt = False
 				 	for member in members:
-				 		if answer.creator.key() == member.key():
+				 		if str(answer.creator.key()) == str(member.key()):
 				 			foundIt = True
 				 			break
 				 	if not foundIt:
@@ -2671,7 +2780,7 @@ class Entry(db.Model):
 				else:
 				 	foundIt = False
 				 	for character in characters:
-				 		if answer.creator.key() == character.key():
+				 		if str(answer.creator.key()) == str(character.key()):
 				 			foundIt = True
 				 			break
 				 	if not foundIt:
@@ -2741,6 +2850,22 @@ class Entry(db.Model):
 			if link.itemFrom.type == fromType:
 				result.append(link)
 		return result
+	
+	def getLinksAsDictionaryWithTemplateReferenceNames(self):
+		return {'attachments': self.getAttachments(),
+ 			'retold_links_incoming': self.getIncomingLinksOfType("retold"),
+ 			'retold_links_outgoing': self.getOutgoingLinksOfType("retold"),
+ 			'reminded_links_incoming': self.getIncomingLinksOfType("reminded"),
+ 			'reminded_links_outgoing': self.getOutgoingLinksOfType("reminded"),
+ 			'responded_links_incoming': self.getIncomingLinksOfType("responded"),
+ 			'responded_links_outgoing': self.getOutgoingLinksOfType("responded"),
+ 			'included_links_incoming': self.getIncomingLinksOfType("included"),
+		   'included_links_outgoing': self.getOutgoingLinksOfType("included"),
+		   'referenced_links_outgoing': self.getOutgoingLinksOfType("referenced"),
+		   # no referenced links incoming because those are to search filters
+ 		   'related_links_both_ways': self.getLinksOfType("related"),
+		   'any_links_at_all': self.hasLinks()
+			}
 	
 	def copyCollectedDateToAllAnswersAndAnnotations(self):
 		annotations = self.getAnnotations()
@@ -2826,42 +2951,65 @@ class Entry(db.Model):
 	def csvLineWithAnswers(self, member, questions, memberQuestions, characterQuestions):
 		timeString = TimeDisplay(self.published, member)
 		if self.text_formatted:
-			text = self.text_formatted
+			text = HtmlUnEscape(stripTags(self.text_formatted)).strip()
 		else:
 			text = ""
-		parts = [self.title, timeString, text, self.memberNickNameOrCharacterName()]
+		title = HtmlUnEscape(self.title)
+		parts = [title, timeString, text, self.memberNickNameOrCharacterName()]
 		(members, characters) = self.getMembersAndCharactersWhoHaveAnsweredQuestionsAboutMe()
 		for aMember in members:
-			parts.append("\n%s" % self.title)
+			if str(aMember.key()) == str(self.creator.key()):
+				# questions about entry
+				for question in questions:
+					answer = self.getAnswerForMemberAndQuestion(aMember, question)
+					if answer: 
+						parts.append(HtmlUnEscape(answer.displayStringShort()))
+					else:
+						parts.append("")
+				# about teller
+				for question in memberQuestions:
+					answer = aMember.getAnswerForQuestion(question)
+					if answer:
+						parts.append(HtmlUnEscape(answer.displayStringShort()))
+					else:
+						parts.append("")
+				# pad spaces for character questions
+				for question in characterQuestions:
+					parts.append("")
+				break
+		for aMember in members:
+			if str(aMember.key()) != str(self.creator.key()):
+				parts.append("\n%s" % title)
+				parts.append(timeString)
+				parts.append("") # don't put text in when other members answered questions about entry
+				parts.append(aMember.nickname)
+				# questions about entry
+				for question in questions:
+					answer = self.getAnswerForMemberAndQuestion(aMember, question)
+					if answer: 
+						parts.append(HtmlUnEscape(answer.displayStringShort()))
+					else:
+						parts.append("")
+				# about teller
+				for question in memberQuestions:
+					answer = aMember.getAnswerForQuestion(question)
+					if answer:
+						parts.append(HtmlUnEscape(answer.displayStringShort()))
+					else:
+						parts.append("")
+				# pad spaces for character questions
+				for question in characterQuestions:
+					parts.append("")
+		for character in characters:
+			parts.append("\n%s" % title)
 			parts.append(timeString)
 			parts.append(text)
-			parts.append(aMember.nickname)
-			# questions about entry
-			for question in questions:
-				answer = self.getAnswerForMemberAndQuestion(aMember, question)
-				if answer: 
-					parts.append(answer.displayStringShort())
-				else:
-					parts.append("")
-			# about teller
-			for question in memberQuestions:
-				answer = aMember.getAnswerForQuestion(question)
-				if answer:
-					parts.append(answer.displayStringShort())
-				else:
-					parts.append("")
-			# pad spaces for character questions
-			for question in characterQuestions:
-				parts.append("")
-		for character in characters:
-			parts.append("\n%s" % index)
-			parts.append(self.title)
 			parts.append(character.name)
 			# questions about entry
 			for question in questions:
 				answer = self.getAnswerForCharacterAndQuestion(character, question)
 				if answer: 
-					parts.append(answer.displayStringShort())
+					parts.append(HtmlUnEscape(answer.displayStringShort()))
 				else:
 					parts.append("")
 			# pad spaces for member questions
@@ -2871,11 +3019,10 @@ class Entry(db.Model):
 			for question in characterQuestions:
 				answer = character.getAnswerForQuestion(question)
 				if answer:
-					parts.append(answer.displayStringShort())
+					parts.append(HtmlUnEscape(answer.displayStringShort()))
 				else:
 					parts.append("")
-		parts.append("\n")
-		return CleanUpCSV(parts)
+		return CleanUpCSV(parts) + "\n"
 	
 	def PrintText(self, member):
 		typeToShow = DisplayTypeForEntryType(self.type).capitalize()
@@ -2923,6 +3070,12 @@ class TextVersion(db.Model):
 
 	def getKeyName(self):
 		return self.key().name()
+	
+	def getTooltipText(self):
+		if self.text_formatted:
+			return'title="%s"' % (stripTags(self.text_formatted[:TOOLTIP_LENGTH]))
+		else:
+			return ""		
 	
 # ============================================================================================
 # ============================================================================================
@@ -3115,7 +3268,6 @@ class Annotation(db.Model):
 	def isCommentOrRequest(self):
 		return self.type == "comment" or self.type == "request"
 	
-	# IMPORTANT METHODS
 	
 	def publish(self):
 		self.published = datetime.now(pytz.utc)
@@ -3330,7 +3482,8 @@ class Help(db.Model):
 
 	id = db.StringProperty(required=True)
 	type = db.StringProperty() # info, tip, caution
-	name = db.StringProperty() # links to name in template
+	name = db.StringProperty() # links to name in template; for lookup, not display
+	translatedName = db.StringProperty() # for display
 	text = db.StringProperty(indexed=False) # text to show user (plain text)
 	
 	def cleanedUpName(self):
@@ -3500,12 +3653,15 @@ def pendingMemberForEmailAndRakontu(email, rakontu):
 def helpLookup(name, type):  
 	return Help.all().filter("name = ", name).filter("type = ", type).get()
 
+def helpLookupByTranslatedName(name, type):  
+	return Help.all().filter("translatedName = ", name).filter("type = ", type).get()
+
 def helpTextLookup(name, type):
 	match = Help.all().filter("name = ", name).filter("type = ", type).get()
 	if match:
-		return match.text
+		return match.text, match.translatedName
 	else: 
-		return None
+		return None, None
 	
 def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, memberToSee=None, character=None):
 	rakontu = member.rakontu
@@ -3524,29 +3680,26 @@ def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, m
 			annotationTypes.append(ANNOTATION_ANSWER_LINK_TYPES[i]) 
 	if location == "home":
 		itemsToStart = member.rakontu.browseEntries(startTime, endTime, entryTypes)
-		considerNudgeFloor = True
 		considerSearch = True
 	elif location == "entry":
 		itemsToStart = entry.browseItems(startTime, endTime, annotationTypes)
-		considerNudgeFloor = False
 		considerSearch = False
 	elif location == "member":
 		itemsToStart = memberToSee.browseItems(startTime, endTime, entryTypes, annotationTypes)
-		considerNudgeFloor = False
 		considerSearch = True
 	elif location == "character":
 		itemsToStart = character.browseItems(startTime, endTime, entryTypes, annotationTypes)
-		considerNudgeFloor = False
 		considerSearch = True
 	# nudge floor
 	itemsWithNudgeFloor = []
 	exist, show = NudgeCategoriesExistAndShouldBeShownInContext(member, location)
-	if considerNudgeFloor:
-		for item in itemsToStart:
-			if item.nudgePointsForExistAndShowOptions(exist, show) >= viewOptions.nudgeFloor:
-				itemsWithNudgeFloor.append(item)
-	else:
-		itemsWithNudgeFloor.extend(itemsToStart)
+	for item in itemsToStart:
+		if item.__class__.__name__ == "Entry":
+			nudgePoints = item.nudgePointsForExistAndShowOptions(exist, show)
+		else:
+			nudgePoints = item.getEntryNudgePointsWhenPublishedForExistAndShowOptions(exist, show)
+		if nudgePoints >= viewOptions.nudgeFloor:
+			itemsWithNudgeFloor.append(item)
 	# hide help resources
 	itemsWithHelpResourcesHidden = []
 	if not viewOptions.showHelpResourcesInTimelines:
@@ -3638,7 +3791,7 @@ def ProcessAttributionFromRequest(request, member):
 				creator = aMember
 				break
 		liaison = member
-		dateCollected = parseDate(request.get("year"), request.get("month"), request.get("day"))
+		dateCollected = parseDate(request.get("year"), request.get("month"), request.get("day"), datetime.now(tz=pytz.utc))
 	else:
 		creator = member
 	if collectedOffline:
@@ -3661,7 +3814,7 @@ def ProcessAttributionFromRequest(request, member):
 # ============================================================================================
 # ============================================================================================
 
-def parseDate(yearString, monthString, dayString):
+def parseDate(yearString, monthString, dayString, dateIfError):
 	if yearString and monthString and dayString:
 		try:
 			year = int(yearString)
@@ -3670,8 +3823,8 @@ def parseDate(yearString, monthString, dayString):
 			date = datetime(year, month, day, tzinfo=pytz.utc)
 			return date
 		except:
-			return datetime.now(tz=pytz.utc)
-	return datetime.now(tz=pytz.utc)
+			return dateIfError
+	return dateIfError
 
 def DjangoToPythonDateFormat(format):
 	if DATE_FORMATS.has_key(format):
@@ -3752,7 +3905,7 @@ def ImageLinkForAnswer(number):
 		tooltip = 'title="%s %s"' % (number, TERMS["term_answer"])
 	else:
 		tooltip = 'title="%s"' % (TERMS["term_answer"])
-	return'<img src="/images/answers.png" alt="answer" %s border="0">' % tooltip
+	return'<img src="/images/answers.png" alt="%s" %s border="0">' % (TERMS["term_answer"], tooltip)
 
 def ImageLinkForLink(number):
 	if number > 1:
@@ -3761,13 +3914,13 @@ def ImageLinkForLink(number):
 		tooltip = 'title="%s %s"' % (number, TERMS["term_link"])
 	else:
 		tooltip = 'title="%s"' % (TERMS["term_link"])
-	return'<img src="/images/link.png" alt="link" %s border="0">' % tooltip
+	return'<img src="/images/link.png" alt="%s" %s border="0">' % (TERMS["term_link"], tooltip)
 
 HTML_ESCAPES = {
  	"&": "&amp;",
  	'"': "&quot;",
  	"'": "&apos;",
- 	">": "&gt;",
+ 	">": "&gt;", 
  	"<": "&lt;",  
  	 } 
   
@@ -3776,4 +3929,16 @@ def htmlEscape(text):
 	for character in text:  
 		result.append(HTML_ESCAPES.get(character, character))  
 	return "".join(result)
+
+def HtmlUnEscape(text):
+	result = text
+	for key in HTML_ESCAPES.keys():
+		result = result.replace(HTML_ESCAPES[key], key)
+	return result
+
+def CorrespondingItemFromMatchedOrderList(item, sourceList, destList):
+	for i in range(len(sourceList)):
+		if item == sourceList[i]:
+			return destList[i]
+	return None
  

@@ -33,6 +33,8 @@ EVENT_TYPES = ["downdrift", \
 # entries
 ENTRY_TYPES = ["story", "invitation", "collage", "pattern", "resource"]
 ENTRY_TYPES_PLURAL = ["stories", "invitations", "collages", "patterns", "resources"]
+ENTRY_TYPE_INDEX_STORY = 0
+ENTRY_TYPE_INDEX_INVITATION = 1
 
 # annotations
 ANNOTATION_TYPES = ["tag set", "comment", "request", "nudge"]
@@ -59,6 +61,16 @@ QUESTION_TYPES = ["boolean", "text", "ordinal", "nominal", "value"]
 ANY_ALL = ["any", "all"]
 SEARCH_LOCATIONS = ["in the title", "in the text", "in a comment", "in a request", "in a nudge comment", "in a link comment"]
 ANSWER_COMPARISON_TYPES = ["contains", "is", "is greater than", "is less than"]
+
+# sort by strings for gaps
+GAPS_SORT_BY_CHOICES = ["date", "annotations", "activity", "nudges"]
+
+# things to show in gaps
+GAPS_SHOW_CHOICES = ["no tags", "no links", "no comments", "no answers", "no story links"]
+
+# types of help tooltips
+HELP_TYPES = ["info", "tip", "caution"]
+
 
 
 

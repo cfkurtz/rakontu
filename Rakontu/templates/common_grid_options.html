@@ -16,7 +16,11 @@
 				>
 				<label for="{{entry_types|listLookup:i}}">{{entry_types_plural_display|listLookup:i}}</label>
 			{% endfor %}
-			<input type="submit" name="changeEntryTypesShowing" value="{{button_change_entry_types_view}}" class="button_small">
+			<input type="submit" name="changeEntryTypesShowing" value="{{button_change_entry_types_view}}" class="button_small" 
+				{% if current_member.showButtonTooltips %}
+					title="{{"change_entry_types_view"|buttonTooltip}}"
+				{% endif %}
+				>
 			</td></tr>
 		{% endif %}
 		
@@ -30,12 +34,20 @@
 				>
 				<label for="{{annotation_answer_link_types|listLookup:i}}">{{annotation_answer_link_types_plural_display|listLookup:i}}</label>
 			{% endfor %}
-			<input type="submit" name="changeAnnotationTypesShowing" value="{{button_change_annotation_types_view}}" class="button_small">
+			<input type="submit" name="changeAnnotationTypesShowing" value="{{button_change_annotation_types_view}}" class="button_small"
+				{% if current_member.showButtonTooltips %}
+					title="{{"change_annotation_types_view"|buttonTooltip}}"
+				{% endif %}
+			>
 			</td></tr>
 		{% endif %}
 		
 		{% if include_nudges %}
-			<tr><th align="right">{{template_nudges}}</th><td>
+			<tr><th align="right">{{template_nudges}} 
+				{% if min_nudge or max_nudge %}
+					 <br/>({{template_range}}: {{min_nudge}} {{template_to}} {{max_nudge}})
+				{% endif %}
+			</th><td>
 			<p>
 			{% for i in rakontu.nudgeCategories|makeRangeFromListLength %}
 				{% if rakontu.nudgeCategories|listLookup:i %}
@@ -50,7 +62,11 @@
 			{% if include_nudge_floor %}
 				</p><p>{{template_nudge_floor}}: <input type="text" size="4" value="{{nudge_floor}}" name="nudgeFloor">
 			{% endif %}
-			<input type="submit" name="changeNudgeCategoriesShowing" value="{{button_change_nudge_view}}" class="button_small"></p>
+			<input type="submit" name="changeNudgeCategoriesShowing" value="{{button_change_nudge_view}}" class="button_small"
+				{% if current_member.showButtonTooltips %}
+					title="{{"change_nudge_view"|buttonTooltip}}"
+				{% endif %}
+			></p>
 			</td></tr>
 		{% endif %}
 		
@@ -76,20 +92,48 @@
 						</select>
 					{% endif %}
 				{% if current_search %}
-					<input type="submit" name="stopApplyingSearch" value="{{button_stop_applying}}" class="button_small">
+					<input type="submit" name="stopApplyingSearch" value="{{button_stop_applying}}" class="button_small"
+					{% if current_member.showButtonTooltips %}
+						title="{{"stop_applying_search_filter"|buttonTooltip}}"
+					{% endif %}
+					>
 					{% ifnotequal current_member.key current_search.creator.key %}
-						<input type="submit" name="copySearch" value="{{button_make_copy}}" class="button_small">
+						<input type="submit" name="copySearch" value="{{button_make_copy}}" class="button_small"
+						{% if current_member.showButtonTooltips %}
+							title="{{"make_copy_of_search_filter"|buttonTooltip}}"
+						{% endif %}
+						>
 					{% else %}
-						<input type="submit" name="changeSearch" value="{{button_change}}" class="button_small">
+						<input type="submit" name="changeSearch" value="{{button_change}}" class="button_small"
+						{% if current_member.showButtonTooltips %}
+							title="{{"change_search_filter"|buttonTooltip}}"
+						{% endif %}
+						>
 					{% endifnotequal %}
-					<input type="submit" name="makeNewSavedSearch" value="{{button_make_new_filter}}" class="button_small">
+					<input type="submit" name="makeNewSavedSearch" value="{{button_make_new_filter}}" class="button_small"
+						{% if current_member.showButtonTooltips %}
+							title="{{"make_new_search_filter"|buttonTooltip}}"
+						{% endif %}
+					>
 				{% else %}
-					<input type="submit" name="loadAndApplySavedSearch" value="{{button_apply}}" class="button_small">
-					<input type="submit" name="makeNewSavedSearch" value="{{button_make_new_filter}}" class="button_small">
+					<input type="submit" name="loadAndApplySavedSearch" value="{{button_apply}}" class="button_small"
+						{% if current_member.showButtonTooltips %}
+							title="{{"apply_search_filter"|buttonTooltip}}"
+						{% endif %}
+					>
+					<input type="submit" name="makeNewSavedSearch" value="{{button_make_new_filter}}" class="button_small"
+						{% if current_member.showButtonTooltips %}
+							title="{{"make_new_search_filter"|buttonTooltip}}"
+						{% endif %}
+					>
 				{% endif %}	
 			{% else %}
 				{{template_search_filters}} - {{template_none}}
-				<input type="submit" name="makeNewSavedSearch" value="{{button_make_new_filter}}" class="button_small">
+				<input type="submit" name="makeNewSavedSearch" value="{{button_make_new_filter}}" class="button_small"
+						{% if current_member.showButtonTooltips %}
+							title="{{"make_new_search_filter"|buttonTooltip}}"
+						{% endif %}
+				>
 			{% endif %}
 			{% ifequal location "member" %}
 				{{"searching_for_entries_by_members_or_characters"|tip}}
@@ -107,25 +151,63 @@
 			<th align="right">{{template_other_options}}</th><td>
 			
 			{% if show_details %}
-				<input type="submit" name="toggleShowDetails" value="{{button_hide_details}}" class="button_small">
+				<input type="submit" name="toggleShowDetails" value="{{button_hide_details}}" class="button_small"
+						{% if current_member.showButtonTooltips %}
+							title="{{"hiding_details"|buttonTooltip}}"
+						{% endif %}
+				>
 			{% else %}
-				<input type="submit" name="toggleShowDetails" value="{{button_show_details}}" class="button_small">
+				<input type="submit" name="toggleShowDetails" value="{{button_show_details}}" class="button_small"
+						{% if current_member.showButtonTooltips %}
+							title="{{"showing_details"|buttonTooltip}}"
+						{% endif %}
+				>
+			{% endif %}
+			
+			{% if show_activity_levels %}
+				<input type="submit" name="toggleShowActivityLevels" value="{{button_hide_activity_levels}}" class="button_small"
+						{% if current_member.showButtonTooltips %}
+							title="{{"hiding_activity_levels"|buttonTooltip}}"
+						{% endif %}
+				>
+			{% else %}
+				<input type="submit" name="toggleShowActivityLevels" value="{{button_show_activity_levels}}" class="button_small"
+						{% if current_member.showButtonTooltips %}
+							title="{{"showing_activity_levels"|buttonTooltip}}"
+						{% endif %}
+				>
 			{% endif %}
 			
 			{% if include_curate %}
 				{% if curating %}
-					<input type="submit" name="stopCurating" value="{{button_stop_curating}}" class="button_small">
+					<input type="submit" name="stopCurating" value="{{button_stop_curating}}" class="button_small"
+						{% if current_member.showButtonTooltips %}
+							title="{{"turning_curating_on"|buttonTooltip}}"
+						{% endif %}
+					>
 				{% else %}
-					<input type="submit" name="startCurating" value="{{button_curate}}" class="button_small">
+					<input type="submit" name="startCurating" value="{{button_curate}}" class="button_small"
+						{% if current_member.showButtonTooltips %}
+							title="{{"turning_curating_off"|buttonTooltip}}"
+						{% endif %}
+					>
 				{% endif %}
 			{% endif %}
 	
 			{% if include_print and current_member.isLiaison %}
-				<input type="submit" name="printSearchResults" value="{{button_print_selection}}" class="button_small">
+				<input type="submit" name="printSearchResults" value="{{button_print_selection}}" class="button_small"
+						{% if current_member.showButtonTooltips %}
+							title="{{"printing_selections"|buttonTooltip}}"
+						{% endif %}
+				>
 			{% endif %}
 			
 			{% if include_export and current_member.isManagerOrOwner %}
-				<input type="submit" name="exportSearchResults" value="{{button_export_selection}}" class="button_small">
+				<input type="submit" name="exportSearchResults" value="{{button_export_selection}}" class="button_small"
+						{% if current_member.showButtonTooltips %}
+							title="{{"exporting_selections"|buttonTooltip}}"
+						{% endif %}
+				>
 			{% endif %}
 			
 		{% endif %}

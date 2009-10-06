@@ -9,8 +9,8 @@
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_drafts}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
-		<h3>{{template_draft}} {{template_entries|lower}}</h3>
 		{% if draft_entries %}
+			<h3>{{template_draft}} {{template_entries|lower}}</h3>
 	      	<table border="0" cellpadding="4" cellspacing="0" style="width:100%">
 	      	<tr>
 	      		<th>{{template_name_and_information_click_to_edit}}</th>
@@ -38,11 +38,11 @@
 				</td>
 				<td>
 					{% for version in entry.getTextVersionsInTimeOrder %}
-						<p><input type="checkbox" name="remove|{{version.key}}" value="yes" id="remove|{{ version.key }}"/>
-						<label for="remove|{{ version.key }}">{{template_remove}}</label>
-						<a href="{{entry.typeAsURL}}?{{entry.urlQuery}}&{{version.urlQuery}}" {{version.text|upTo:current_member.shortDisplayLength|orNbsp}}>{{version.title}}</a>
+						<a href="{{entry.typeAsURL}}?{{entry.urlQuery}}&{{version.urlQuery}}" {{version.getTooltipText}}>{{version.title}}</a>
 						{{version.created|timeZone:member.timeZoneName|time:member.timeFormat}}
 						{{version.created|timeZone:member.timeZoneName|date:member.dateFormat}}
+						<input type="checkbox" name="remove|{{version.key}}" value="yes" id="remove|{{ version.key }}"/>
+						<label for="remove|{{ version.key }}">{{template_remove}}</label>
 						</p>
 					{% endfor %}
 					&nbsp;
@@ -53,7 +53,7 @@
 			{% endfor %}
 			</table>
 		{% else %}
-			<p>{{template_you_have_no_drafts}}</p>
+			{{blurbs|dictLookup:"no_drafts"}}
 		{% endif %}
 
     {% if draft_entries  %}
