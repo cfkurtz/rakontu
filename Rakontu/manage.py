@@ -386,14 +386,7 @@ class ManageRakontuQuestionsListPage(ErrorHandlingRequestHander):
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			if member.isManagerOrOwner():
-				counts = []
-				for type in QUESTION_REFERS_TO:
-					questions = rakontu.getActiveQuestionsOfType(type)
-					countsForThisType = []
-					for question in questions:
-						countsForThisType.append((question.text, question.getAnswerCount()))
-					countsForThisType.sort(lambda a,b: cmp(b[1], a[1])) # descending order
-					counts.append(countsForThisType)
+				counts = rakontu.getQuestionCountsForAllTypes()
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["MANAGE_QUESTIONS"], 
 								   'rakontu': rakontu, 
@@ -533,7 +526,6 @@ class ManageOneQuestionPage(ErrorHandlingRequestHander):
 				question = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_question")
 				if question:
 					answerCounts = question.getAnswerChoiceCounts()
-					#answerCounts.sort(lambda a,b: cmp(b[1], a[1])) # descending order
 					template_values = GetStandardTemplateDictionaryAndAddMore({
 									   'title': TITLES["MANAGE_QUESTION"], 
 								   	   'title_extra': question.name,
@@ -566,8 +558,6 @@ class ManageOneQuestionPage(ErrorHandlingRequestHander):
 						typeURL = QUESTION_REFERS_TO_URLS[i]
 						break
 					i += 1
-				DebugPrint(question)
-				DebugPrint(typeURL)
 				if question and typeURL:
 					question.name = htmlEscape(self.request.get("name"))
 					if not question.name:
@@ -575,6 +565,8 @@ class ManageOneQuestionPage(ErrorHandlingRequestHander):
 					question.text = htmlEscape(self.request.get("text"))
 					question.help = htmlEscape(self.request.get("help"))
 					question.type = self.request.get("type")
+					oldChoices = []
+					oldChoices.extend(question.choices)
 					question.choices = []
 					choicesToAdd = htmlEscape(self.request.get("choices")).split('\n')
 					for choice in choicesToAdd:
@@ -593,7 +585,76 @@ class ManageOneQuestionPage(ErrorHandlingRequestHander):
 					question.responseIfBoolean = self.request.get("responseIfBoolean")
 					question.multiple = self.request.get("multiple") == "yes"
 					question.put()
-					self.redirect(self.request.uri)
+					if question.getUnlinkedAnswerChoices():
+						self.redirect(BuildURL("dir_manage", "url_unlinked_answers", question.urlQuery(), rakontu=rakontu))
+					else:
+						self.redirect(self.request.uri)
+				else:
+					self.redirect(NotFoundURL(rakontu))
+			else:
+				self.redirect(ManagersOnlyURL(rakontu))
+		else:
+			self.redirect(NoRakontuAndMemberURL())
+		
+class FixHangingAnswersPage(ErrorHandlingRequestHander):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
+			if member.isManagerOrOwner():
+				question = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_question")
+				if question:
+					unlinkedAnswerChoices = question.getUnlinkedAnswerChoices()
+					template_values = GetStandardTemplateDictionaryAndAddMore({
+									   'title': TITLES["FIX_HANGING_ANSWERS_FOR"], 
+								   	   'title_extra': question.name,
+									   'rakontu': rakontu, 
+									   'skin': rakontu.getSkinDictionary(),
+									   'current_member': member,
+									   'question': question,
+									   'unlinked_answer_choices': unlinkedAnswerChoices,
+									   })
+					path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/question_unlinkedAnswerChoices.html'))
+					self.response.out.write(template.render(path, template_values))
+				else:
+					self.redirect(NotFoundURL(rakontu))
+			else:
+				self.redirect(ManagersOnlyURL(rakontu))
+		else:
+			self.redirect(NoRakontuAndMemberURL())
+	
+	@RequireLogin 
+	def post(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if member.isManagerOrOwner():
+				question = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_question")
+				if question:
+					unlinkedAnswerChoices = question.getUnlinkedAnswerChoices()
+					oldAndNewChoices = []
+					for unlinkedChoice in unlinkedAnswerChoices:
+						response = self.request.get("change|%s" % unlinkedChoice)
+						if response and response != "none":
+							oldAndNewChoices.append((unlinkedChoice, response))
+					if oldAndNewChoices:
+						for oldNewPair in oldAndNewChoices:
+							answers = question.getAnswers()
+							for answer in answers:
+								if question.multiple:
+									newAnswerChoices = {} # dict because there could be duplication caused by renaming
+									for i in range(len(answer.answerIfMultiple)):
+										if answer.answerIfMultiple[i] == oldNewPair[0]:
+											newAnswerChoices[oldNewPair[1]] = 1
+										else:
+											newAnswerChoices[answer.answerIfMultiple[i]] = 1
+									answer.answerIfMultiple = []
+									answer.answerIfMultiple.extend(newAnswerChoices.keys())
+								else:
+									if answer.answerIfText == oldNewPair[0]:
+										answer.answerIfText = oldNewPair[1]
+						db.put(answers)
+					self.redirect(BuildURL("dir_manage", "url_question", question.urlQuery(), rakontu=rakontu))
 				else:
 					self.redirect(NotFoundURL(rakontu))
 			else:

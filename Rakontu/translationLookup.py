@@ -117,7 +117,7 @@ def DisplayTypeForEntryType(type):
 		if aType == type:
 			return ENTRY_TYPES_DISPLAY[i]
 		i += 1
-	raise "No translation for %s" % type
+	raise Exception("No translation for %s" % type)
 
 def URLForEntryType(type):
 	i = 0
@@ -125,7 +125,7 @@ def URLForEntryType(type):
 		if aType == type:
 			return ENTRY_TYPES_URLS[i]
 		i += 1
-	raise "No translation for %s" % type
+	raise Exception("No translation for %s" % type)
 
 def URLForAnnotationType(type):
 	i = 0
@@ -133,7 +133,7 @@ def URLForAnnotationType(type):
 		if aType == type:
 			return ANNOTATION_TYPES_URLS[i]
 		i += 1
-	raise "No translation for %s" % type
+	raise Exception("No translation for %s" % type)
 
 def DisplayTypeForLinkType(type):
 	i = 0
@@ -141,7 +141,15 @@ def DisplayTypeForLinkType(type):
 		if aType == type:
 			return LINK_TYPES_DISPLAY[i]
 		i += 1
-	raise "No translation for %s" % type
+	raise Exception("No translation for %s" % type)
+
+def DisplayTypeForQuestionType(type):
+	i = 0
+	for aType in QUESTION_TYPES:
+		if aType == type:
+			return QUESTION_TYPES_DISPLAY[i]
+		i += 1
+	raise Exception("No translation for %s" % type)
 
 def DisplayTypeForQuestionReferType(type):
 	i = 0
@@ -149,7 +157,7 @@ def DisplayTypeForQuestionReferType(type):
 		if aType == type:
 			return QUESTION_REFERS_TO_DISPLAY[i]
 		i += 1
-	raise "No translation for %s" % type
+	raise Exception("No translation for %s" % type)
 
 def DisplayTypeForAnnotationType(type):
 	i = 0
@@ -157,7 +165,7 @@ def DisplayTypeForAnnotationType(type):
 		if aType == type:
 			return ANNOTATION_TYPES_DISPLAY[i]
 		i += 1
-	raise "No translation for %s" % type
+	raise Exception("No translation for %s" % type)
 
 def URLForQuestionRefersTo(type):
 	i = 0
@@ -165,7 +173,7 @@ def URLForQuestionRefersTo(type):
 		if aType == type:
 			return QUESTION_REFERS_TO_URLS[i]
 		i += 1
-	raise "No translation for %s" % type
+	raise Exception("No translation for %s" % type)
 
 def DisplayTypePluralForQuestionRefersTo(type):
 	i = 0
@@ -173,7 +181,7 @@ def DisplayTypePluralForQuestionRefersTo(type):
 		if aType == type:
 			return QUESTION_REFERS_TO_PLURAL_DISPLAY[i]
 		i += 1
-	raise "No translation for %s" % type
+	raise Exception("No translation for %s" % type)
 
 def stringUpTo(aString, aDelimiter):
     if len(aString) == 0:

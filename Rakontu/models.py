@@ -784,6 +784,20 @@ class Rakontu(db.Model):
 				return True
 		return False
 	
+	def getQuestionCountsForAllTypes(self):
+		counts = []
+		for type in QUESTION_REFERS_TO:
+			counts.append(self.getQuestionCountsForType(type))
+		return counts
+	
+	def getQuestionCountsForType(self, type):
+		questions = self.getActiveQuestionsOfType(type)
+		countsForThisType = []
+		for question in questions:
+			countsForThisType.append((question.text, question.getAnswerCount()))
+		countsForThisType.sort(lambda a,b: cmp(b[1], a[1])) # descending order
+		return countsForThisType
+	
 	def GenerateCopyOfQuestion(self, question):
 		keyName = GenerateSequentialKeyName("question")
 		newQuestion = Question(
@@ -1145,6 +1159,12 @@ class Question(db.Model):
 	def isTextOrValue(self):
 		return self.type == "text" or self.type == "value"
 	
+	def typeForDisplay(self):
+		return DisplayTypeForQuestionType(self.type)
+	
+	def refersToForDisplay(self):
+		return DisplayTypePluralForQuestionRefersTo(self.refersTo)
+	
 	def numChoices(self):
 		return len(self.choices)
 
@@ -1161,6 +1181,9 @@ class Question(db.Model):
 	def keyAsString(self):
 		return "%s" % self.key()
 	
+	def getAnswers(self):
+		return Answer.all().filter("question = ", self.key()).fetch(FETCH_NUMBER)
+			
 	def getAnswerCount(self):
 		return Answer.all().filter("question = ", self.key()).count()
 			
@@ -1185,7 +1208,7 @@ class Question(db.Model):
 	def getAnswerChoiceCounts(self):
 		if self.isOrdinalOrNominal():
 			result = {}
-			answers = Answer.all().filter("question = ", self.key()).fetch(FETCH_NUMBER)
+			answers = self.getAnswers()
 			if answers:
 				for choice in self.choices:
 					totalForThisChoice = 0
@@ -1205,7 +1228,25 @@ class Question(db.Model):
 			return result
 		else:
 			return None
-	
+		
+	def getUnlinkedAnswerChoices(self):
+		if self.isOrdinalOrNominal():
+			result = []
+			answers = self.getAnswers()
+			for answer in answers:
+				if self.multiple:
+					for answerChoice in answer.answerIfMultiple:
+						if not answerChoice in self.choices:
+							if not answerChoice in result:
+								result.append(answerChoice)
+				else:
+					if not answer.answerIfText in self.choices:
+						if not answer.answerIfText in result:
+							result.append(answer.answerIfText)
+			return result
+		else:
+			return None
+		
 # ============================================================================================
 # ============================================================================================
 class Member(db.Model): 

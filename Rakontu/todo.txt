@@ -11,17 +11,15 @@ write instructions for it.
 
 what to do about that keys_only problem? put it in known issues? yes
 
-make a user error page for the transactions error.
-
 take age/gender questions out of defaults for characters, and put better char questions in
-
-make thing where, if they remove choices for an ordinal or nominal question and there
-are existing answers with those choices,
-it will ask them what they want to rename the existing question choices to.
 
 really need to find some way of moving information from one Rakontu to another,
 ie to another site. may need to finally implement that from_xml stuff. what a pain.
 google should help more with this.
+
+remove all that no_access stuff, it's redundant 
+
+go through help.csv and resources looking for stuff that's wrong and out of date
 
 ======== FLESH OUT:
 

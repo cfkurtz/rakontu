@@ -37,7 +37,7 @@
  							&nbsp;
  						{% endif %}
       				<td style="border:none;">
-      					<p><b>{{question.linkString}}</b> </p>
+      					<p><b>{{question.linkString}}</b> ({{term_answers}}: {{question.getAnswerCount}})</p>
       					<p>{{question.name}} - {{question.type}} 
       					{% if question.isOrdinalOrNominal %}
       						{% if question.choices %}

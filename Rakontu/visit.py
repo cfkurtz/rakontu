@@ -444,7 +444,6 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 				self.redirect(url)
 			elif "hideVersions" in self.request.arguments():
 				url = BuildURL("dir_visit", "url_read", entry.urlQuery(), rakontu=rakontu)
-				DebugPrint(url)
 				self.redirect(url)
 			elif curating and not "stopCurating" in self.request.arguments():
 				itemsThatCanBeCurated = [entry]

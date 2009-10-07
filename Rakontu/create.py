@@ -406,39 +406,6 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 					db.put(thingsToPut)
 					db.delete(thingsToDelete)
 				db.run_in_transaction(txn, thingsToPut, thingsToDelete, thingsToPublish)
-				# commit NEW attachments separately, so that SOME might still attach even if one doesn't
-				foundAttachments = entry.getAttachments()
-				for i in range(rakontu.maxNumAttachments):
-					for name, value in self.request.params.items():
-						if name == "attachment%s" % i:
-							if value != None and value != "":
-								filename = value.filename
-								if len(foundAttachments) > i:
-									attachmentToEdit = foundAttachments[i]
-								else:
-									keyName = GenerateSequentialKeyName("attachment")
-									attachmentToEdit = Attachment(
-													key_name=keyName, 
-													id=keyName, 
-													parent=entry, 
-													entry=entry, 
-													rakontu=rakontu)
-								j = 0
-								mimeType = None
-								for type in ACCEPTED_ATTACHMENT_FILE_TYPES:
-									if filename.lower().find(".%s" % type.lower()) >= 0:
-										mimeType = ACCEPTED_ATTACHMENT_MIME_TYPES[j]
-									j += 1
-								if mimeType:
-									attachmentToEdit.mimeType = mimeType
-									attachmentToEdit.fileName = filename
-									attachmentToEdit.name = htmlEscape(self.request.get("attachmentName%s" % i))
-									blob = db.Blob(self.request.POST.get("attachment%s" % i).file.read())
-									attachmentToEdit.data = blob
-									try:
-										attachmentToEdit.put()
-									except:
-										pass # no way to tell user ? the attachment will just not get added
 				if preview:
 					self.redirect(BuildURL("dir_visit", "url_preview", entry.urlQuery()))
 				elif entry.draft:
@@ -463,10 +430,7 @@ class ManageEntryAttachmentsPage(ErrorHandlingRequestHander):
 			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 			if entry and entry.memberCanEditMe(member):
 				attachments = entry.getAttachments()
-				DebugPrint(len(attachments))
-				DebugPrint(rakontu.maxNumAttachments)
 				canAddMoreAttachments = len(attachments) < rakontu.maxNumAttachments
-				DebugPrint(canAddMoreAttachments)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["ATTACHMENTS_TO"], 
 						   	   	   'title_extra': entry.title, 

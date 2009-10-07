@@ -96,7 +96,7 @@
 "caution","changing_question_choices","changing_question_choices","After you remove a choice from a question's list, answers with that choice may remain in the Rakontu, but people will not be able to find them by searching anymore. Be careful to remove only choices you no longer want to see."
 "tip","adding_editors","adding_editors","Check any of these boxes to add either groups of members or individual members to the list of additional editors for this entry. Any of these groups or people will be able to edit the entry, but you will remain its creator and it will appear only on your member page."
 "info","invitation_message","invitation_message","This text is inserted into invitation emails to pending members. You can of course edit the invitations yourself in your email editor; this will just be some text to start with. It should explain a bit about what your Rakontu is about and why the person has been invited."
-"tip","changing_answer_choices","changing_answer_choices","Only choices with no responses can be changed without affecting any searches. If a choice has had answer responses, changing it will mean that the old responses can no longer be found by search filters."
+"tip","changing_answer_choices","changing_answer_choices","If you remove or rename any choices to which existing answers are linked, you will see a second screen that asks you to transfer the existing answers to another choice. If you don't transfer existing answers to another choice, they will be unvailable for searching in the future."
 ,,,
 ,,,
 "; note for buttons - the translated name version is not used as the name is not displayed",,,
@@ -106,7 +106,7 @@
 "button","stop_applying_search_filter",,"Click here to remove the current search filter and show all items again."
 "button","make_copy_of_search_filter",,"Click here to make another copy of the selected search filter."
 "button","change_search_filter",,"Click here to make changes to the selected search filter."
-"button","make_new_search_filter",,"Click here to create a new search filter. Filters reduce the entries shown to only what matches some criteria. (Note that annotations never match search filters and disappear when you apply one.)"
+"button","make_new_search_filter",,"A question's text appears when someone is answering questions, and when they have chosen to show details in a grid display. It should be long enough to be clear, but not so long as to be boring!"
 "button","apply_search_filter",,"Click here to apply the selected search filter to the timeline. Filters reduce the entries shown to only what matches some criteria. (Note that annotations never match search filters and disappear when you apply one.)"
 "button","hiding_details",,"Click here to show only entry or annotation titles and hide all details."
 "button","showing_details",,"Click here to show the titles, contributors, and partial texts of entries and annotations."

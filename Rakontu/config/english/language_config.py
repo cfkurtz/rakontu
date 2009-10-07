@@ -301,6 +301,7 @@ TERMS = {
 		"term_answer_set": "answer set",
 		"term_answer": "answer",
 		"term_answers": "answers",
+		"term_multiple": "multiple", # multiple answers to a question allowed
 		# used to display list of things user can do while viewing story or other entry
 		"term_tell_another_version_of_this_story": "Tell another version of what happened",
 		"term_tell_a_story_this_reminds_you_of": "Tell a story this reminds you of",
@@ -617,6 +618,7 @@ TEMPLATE_TERMS = {
 		"template_must_be_logged_in": "You must be signed in to a Google account to use Rakontu.",
 		"template_login": "Sign in",
 		"template_at_google": "at Google",
+		"template_you_have_no_rakontus_to_visit": "You are not a member of (or invited to) any Rakontus on this site. Rakontus are invitation-only, private spaces. To join a Rakontu, ask one of its managers to invite you to it.",
 		# admin/admin
 		"template_site_initialization_tasks": "Site initialization tasks",
 		"template_must_be_done_before_rakontus": "Must be done before any Rakontus are created",
@@ -785,6 +787,10 @@ TEMPLATE_TERMS = {
 		"template_multiple": "multiple",
 		"template_multiple_answers_allowed": "Multiple answers allowed",
 		"template_answer_counts_by_choice": "How many responses have been recorded for each choice?",
+		# manage/hangingAnswerCounts
+		"template_fix_unlinked_answers_for_question": 'Change unlinked answer choices for question', # question name
+		"template_these_answer_choices_are_unlinked": "These choices have been removed or renamed, but answers remain in the system linked to them. If you don't change those answers to another choice, they will no longer be searchable. Select another choice to remap the existing answers.",
+		"template_change_all_answers_with_choice": "Change all answers with the choice", # choice name
 		# manage/appearance
 		"template_visual_appearance": "Visual appearance",
 		"template_tag_line": "Tag line",
@@ -1452,6 +1458,7 @@ TITLES = {
         "MANAGE_SETTINGS": "Manage settings" ,
         "MANAGE_QUESTIONS": "Manage questions" ,
         "MANAGE_QUESTION": "Manage question", # question name
+        "FIX_HANGING_ANSWERS_FOR": "Change hanging answers for", # question name
         "MANAGE_QUESTIONS_ABOUT": "Manage questions about", # thing referred to
         "MANAGE_CHARACTERS": "Manage characters",
         "MANAGE_CHARACTER": "Manage character", # character name
@@ -1563,6 +1570,7 @@ URLS = {
     "url_questions_list": "questionsList",
     "url_questions": "questions",
     "url_question": "question",
+    "url_unlinked_answers": "hanging_answers",
     "url_questions_to_csv": "questionsToCSV",
     "url_characters": "characters",
     "url_character": "character",

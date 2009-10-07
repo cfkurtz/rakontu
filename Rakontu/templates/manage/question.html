@@ -6,7 +6,7 @@
 	{% if current_member.isManagerOrOwner %}
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_manage}}/{{url_question}}?{{question.urlQuery}}" method="post" enctype="multipart/form-data">
-		<h3>{{template_change}} {{template_question|lower}} "{{question.name}}"</h3>
+		<h3>{{template_change}} {{template_question|lower}} "{{question.name}}" {{template_about|lower}} {{question.refersToForDisplay}}</h3>
 		
 		{% if answer_counts %}
 			<div class="blurb">

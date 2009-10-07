@@ -7,7 +7,7 @@
 # ---------------------------------------------------------------------------------------------
 		 
 import os		
-import string			 
+import string			  
 import cgi		   
 import htmllib		  
 		  
@@ -15,7 +15,7 @@ from models import *
 	 
 from google.appengine.api import users	 
 from google.appengine.ext.webapp import template		
-from google.appengine.ext import webapp	
+from google.appengine.ext import webapp	 
 from google.appengine.ext.webapp.util import run_wsgi_app   
 from google.appengine.api import images 
 from google.appengine.api import mail
@@ -313,14 +313,8 @@ class ErrorHandlingRequestHander(webapp.RequestHandler):
 			# if you get an exception reporting an exception, it's likely a database error
 			# which is probably what you are reporting anyway
 			pass
+		# prepare info for user and admin
 		exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
-		logging.info(exceptionType)
-		if exceptionType in ['Timeout', "DeadlineExceededError", "CapabilityDisabledError"]:
-			self.redirect(DatabaseErrorURL(rakontu))
-			return
-		if exceptionType == "TransactionFailedError":
-			self.redirect(TransactionFailedURL(rakontu))
-			return
 		exceptionLines = traceback.format_exception(*sys.exc_info())   
 		tracebackString = '\n'.join(exceptionLines)  
 		tracebackStringForHTML = "<p>" + '</p></p>'.join(exceptionLines) + "</p>"
@@ -331,27 +325,43 @@ class ErrorHandlingRequestHander(webapp.RequestHandler):
 			tracebackStringPlusIdentifyingInfo += "Member: %s (%s)\n\n" % (member.nickname, member.getKeyName())
 		tracebackStringPlusIdentifyingInfo += "URL: %s\n\n" % (self.request.uri)
 		tracebackStringPlusIdentifyingInfo += "\n----------------------------\n\n" + tracebackString
-		if exceptionValue is None:
+		if exceptionValue != None:
 			exceptionValueWithRakontuName = str(exceptionValue)
 		else:
 			exceptionValueWithRakontuName = str(exceptionType)
-		if rakontu:  
-			exceptionValueWithRakontuName += " (%s)" % (rakontu.name)
+		# log error to admin console
 		logging.error(tracebackStringPlusIdentifyingInfo) 
+		# send email to admins
 		try:
 			mail.send_mail_to_admins(sender=SITE_SUPPORT_EMAIL, subject="Error: %s" % exceptionValueWithRakontuName, body=tracebackStringPlusIdentifyingInfo) 
 			couldNotEmailMessage = ""
 		except:
 			couldNotEmailMessage = TERMS["term_could_not_email_admins"]
-		template_values = GetStandardTemplateDictionaryAndAddMore({
-						'title': TITLES["ERROR"], 
-						'rakontu': rakontu,
-						'current_member': member,
-						'traceback': tracebackStringForHTML, 
-						'couldNotEmail': couldNotEmailMessage,
-						})
-		path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/error.html'))
-		self.response.out.write(template.render(path, template_values))
+		# for database errors, send user to different message page
+		#from google.appengine.ext.db import Timeout
+		#from google.appengine.ext.db import TransactionFailedError
+		#from google.appengine.runtime.apiproxy_errors import CapabilityDisabledError
+		#from google.appengine.runtime import DeadlineExceededError 
+		url = None
+		if exception.__class__.__name__ in [
+					"google.appengine.ext.db.Timeout", 
+					"google.appengine.runtime.DeadlineExceededError", 
+					"google.appengine.runtime.CapabilityDisabledError"]:
+			url = DatabaseErrorURL(rakontu)
+		if exception.__class__.__name__ == "google.appengine.ext.db.TransactionFailedError":
+			url = TransactionFailedURL(rakontu)
+		if url:
+			self.redirect(url)
+		else:
+			template_values = GetStandardTemplateDictionaryAndAddMore({
+							'title': TITLES["ERROR"], 
+							'rakontu': rakontu,
+							'current_member': member,
+							'traceback': tracebackStringForHTML, 
+							'couldNotEmail': couldNotEmailMessage,
+							})
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/error.html'))
+			self.response.out.write(template.render(path, template_values))
 		
 class NotFoundPageHandler(ErrorHandlingRequestHander): 
 	def get(self): 
@@ -1250,9 +1260,9 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 		memberKeyNames = []
 		questionKeyNames = {}
 		questions =  rakontu.getActiveQuestions()
-		if questions:
+		if questions: 
 			for question in questions:
-				if not questionKeyNames.has_key(question.refersTo):
+				if not questionKeyNames.has_key(question.refersTo): 
 					questionKeyNames[question.refersTo] = []
 				questionKeyNames[question.refersTo].append(question.getKeyName())
 			for member in rakontu.getActiveMembers(): 
@@ -1290,8 +1300,10 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 							if random.randrange(100) > 50:
 								answer.answerIfMultiple.append(choice)
 					else:
+						threshold = 100 // len(question.choices)
 						for choice in question.choices:
-							if random.randrange(100) > 100 // len(question.choices):
+							randomNumber = random.randrange(100)
+							if randomNumber <= threshold:
 								answer.answerIfText = choice
 								break
 						if not answer.answerIfText:

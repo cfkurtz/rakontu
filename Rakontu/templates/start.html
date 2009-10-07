@@ -10,7 +10,7 @@
 	<p><img src="/images/Rakontu.jpg" alt="{{template_rakontu_logo}}"></p>
 	
 	{% if user %}
-		<div id="rakontu_form_style" class="rakontu_form_centered">
+		<div id="rakontu_form_style" class="rakontu_form_centered" style="width:450">
 		<form action="/" method="post">
 		{% if rakontus_member_of %}
 			<p>{{template_you_are_member_of}}</p>
@@ -44,15 +44,19 @@
 			{% endfor %}
 			</tr></table>
 		{% endif %}
+		
+		{% if not rakontus_member_of and not rakontus_invited_to %}
+			<p>{{template_you_have_no_rakontus_to_visit}}</p>
+		{% endif %}
 		<p>&nbsp;</p>
 		<p>{{template_google_account}}: {{user.nickname}} - <a href="{{logout_url}}">{{template_log_out}}</a></p>
 		
+		</form>
+		</div>
+
 		{% if user_is_admin %}
 			<p><a href="/{{dir_admin}}/{{url_admin}}">{{template_site_administration}}</a></p>
 		{% endif %}
-		
-		</form>
-		</div>
 
 	{% else %}
 		<div class="blurb" style="width:200;">

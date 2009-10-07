@@ -1,0 +1,39 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+	
+	{% if current_member.isManagerOrOwner %}
+		<div id="rakontu_form_style" class="rakontu_form">
+		<form action="/{{dir_manage}}/{{url_unlinked_answers}}?{{question.urlQuery}}" method="post" enctype="multipart/form-data">
+		<h3>{{template_fix_unlinked_answers_for_question}} "{{question.name}}"</h3>
+		
+		<p>{{template_these_answer_choices_are_unlinked}}</p>
+		
+		<fieldset>
+		
+		{% for hanging_choice in unlinked_answer_choices %}
+			<p>{{template_change_all_answers_with_choice}} <b>{{hanging_choice}}</b> {{template_to}} 
+			<select name="change|{{hanging_choice}}">
+				<option value="none">({{template_choose}})</option>
+				{% for choice in question.choices %}
+					<option value="{{choice}}">{{choice}}</option>
+				{% endfor %}
+			</select></p>
+		{% endfor %}
+		
+		</fieldset>
+		
+		<p></p>
+	
+    <center><input type="submit" name="saveChanges" value="{{button_save_changes}}" class="button"/></center>
+	</form>	
+	</div>
+	{% else %}
+		<p>{{no_access|dictLookup:"questions"}}</p>
+	{% endif %}
+
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>
