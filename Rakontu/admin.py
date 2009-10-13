@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------------------------
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: pre-0.1
+# Version: beta (0.9+)
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ class CreateRakontuPage_PartTwo(ErrorHandlingRequestHander):
 				url = self.request.get('url')
 				name = htmlEscape(self.request.get('name'))
 				type = self.request.get("type")
-				rakontu = Rakontu(key_name=url, name=name, type=type)
+				rakontu = Rakontu(key_name=url, id=url, name=name, type=type)
 				rakontu.initializeFormattedTexts()
 				rakontu.initializeCustomSkinText()
 				rakontu.put()
@@ -134,6 +134,8 @@ class AdministerSitePage(ErrorHandlingRequestHander):
 						   	   'skin_names': skinNamesString,
 						   	   "num_skins": numSkins,
 						   	   'host': self.request.headers["Host"],
+						   	   'rakontu_access_states': RAKONTU_ACCESS_STATES,
+						   	   'rakontu_access_states_display': RAKONTU_ACCESS_STATES_DISPLAY,
 							   # here we do NOT give the current_member or rakontu
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('admin/admin.html'))
@@ -141,14 +143,6 @@ class AdministerSitePage(ErrorHandlingRequestHander):
 		else:
 			self.redirect(AdminOnlyURL())
 			
-	def getText(self, nodelist):
-	    rc = ""
-	    for node in nodelist:
-	    	#DebugPrint(node.nodeType)
-	    	#DebugPrint(node.data)
-	        if node.nodeType == node.TEXT_NODE:
-	            rc = rc + node.data
-	    return rc
 			
 	@RequireLogin 
 	def post(self):
@@ -156,61 +150,87 @@ class AdministerSitePage(ErrorHandlingRequestHander):
 		if users.is_current_user_admin():
 			rakontus = AllRakontus()
 			user = users.get_current_user()
-			if "importRakontu" in self.request.arguments():
-				importedXML = str(self.request.get("import"))
-				importedXML = "<items>\n\n%s</items>" % importedXML
-				from xml.dom import minidom 
-				result = minidom.parseString(importedXML)
-				entities = result.getElementsByTagName("entity")
-				for entity in entities:
-					key = entity.getElementsByTagName("key")
-					DebugPrint(key)
-					keyValue = self.getText(key)
-					#DebugPrint(keyValue, 'KEY ----------')
-					properties = entity.getElementsByTagName("property")
-					for property in properties:
-						name = property.getAttribute("name")
-						type = property.getAttribute("type")
-						#value = self.getText(property.childNodes)
-						#DebugPrint(value, name)
-				self.redirect(BuildURL("dir_admin", "url_admin"))
-			else:
-				for aRakontu in rakontus:
-					if "joinOrLeave|%s" % aRakontu.key() in self.request.arguments():
-						pendingMember = aRakontu.pendingMemberWithGoogleEmail(user.email())
-						if pendingMember:
-							member = CreateMemberFromInfo(aRakontu, user.user_id(), user.email(), user.email(), pendingMember.governanceType)
+			for aRakontu in rakontus:
+				if "joinOrLeave|%s" % aRakontu.key() in self.request.arguments():
+					pendingMember = aRakontu.pendingMemberWithGoogleEmail(user.email())
+					if pendingMember:
+						member = CreateMemberFromInfo(aRakontu, user.user_id(), user.email(), user.email(), pendingMember.governanceType)
+					else:
+						member = aRakontu.memberWithGoogleUserID(user.user_id())
+						joinAs = self.request.get("joinAs|%s" % aRakontu.key())
+						if member and not aRakontu.memberIsOnlyOwner(member):
+							def txn(member, joinAs):
+								member.active = not member.active
+								if member.active:
+									member.governanceType = joinAs
+								member.put()
+							db.run_in_transaction(txn, member, joinAs)
 						else:
-							member = aRakontu.memberWithGoogleUserID(user.user_id())
-							joinAs = self.request.get("joinAs|%s" % aRakontu.key())
-							if member and not aRakontu.memberIsOnlyOwner(member):
-								def txn(member, joinAs):
-									member.active = not member.active
-									if member.active:
-										member.governanceType = joinAs
-									member.put()
-								db.run_in_transaction(txn, member, joinAs)
-							else:
-								member = CreateMemberFromInfo(aRakontu, user.user_id(), user.email(), "administrator", joinAs)
-						self.redirect(BuildURL("dir_admin", "url_admin"))
-					elif "toggleActiveState|%s" % aRakontu.key() in self.request.arguments():
-						aRakontu.active = not aRakontu.active
+							member = CreateMemberFromInfo(aRakontu, user.user_id(), user.email(), "administrator", joinAs)
+					self.redirect(BuildURL("dir_admin", "url_admin"))
+				elif "switchTo|%s" % aRakontu.key() in self.request.arguments():
+					member = aRakontu.memberWithGoogleUserID(user.user_id())
+					switchRole = self.request.get("switch|%s" % aRakontu.key())
+					if member and not aRakontu.memberIsOnlyOwner(member):
+						member.governanceType = switchRole
+						member.put()
+					self.redirect(BuildURL("dir_admin", "url_admin"))
+				elif "changeAccess|%s" % aRakontu.key() in self.request.arguments():
+					newState = self.request.get("access|%s" % aRakontu.key())
+					if newState in RAKONTU_ACCESS_STATES:
+						aRakontu.access = newState
+						aRakontu.accessMessage = self.request.get("accessMessage|%s" % aRakontu.key())
 						aRakontu.put()
-						self.redirect(BuildURL("dir_admin", "url_admin"))
-					elif "addFakeDataTo|%s" % aRakontu.key() in self.request.arguments():
-						# no error checking here
+					self.redirect(BuildURL("dir_admin", "url_admin"))
+				elif "addFakeDataTo|%s" % aRakontu.key() in self.request.arguments():
+					try:
 						numItems = int(self.request.get('numItems|%s' % aRakontu.key()))
-						createWhat = self.request.get('createWhat|%s' % aRakontu.key())
+					except:
+						numItems = 0
+					createWhat = self.request.get('createWhat|%s' % aRakontu.key())
+					if numItems:
 						AddFakeDataToRakontu(aRakontu, numItems, createWhat)
-						self.redirect(BuildURL("dir_admin", "url_admin"))
-					elif "remove|%s" % aRakontu.key() in self.request.arguments():
-						aRakontu.removeAllDependents()
-						db.delete(aRakontu)
-						self.redirect(BuildURL("dir_admin", "url_admin"))
-					elif "export|%s" % aRakontu.key() in self.request.arguments():
-						self.redirect(BuildURL("dir_manage", "url_export", aRakontu.urlQuery()))
+					self.redirect(BuildURL("dir_admin", "url_admin"))
+				elif "remove|%s" % aRakontu.key() in self.request.arguments():
+					url = BuildURL("dir_admin", "url_confirm_remove_rakontu", rakontu=aRakontu)
+					self.redirect(url)
 		else:
 			self.redirect(AdminOnlyURL())
+			
+class ConfirmRemoveRakontuPage(ErrorHandlingRequestHander):
+	@RequireLogin 
+	def get(self):
+		if users.is_current_user_admin():
+			rakontu = GetRakontuFromURLQuery(self.request.query_string)
+			if rakontu:
+				template_values = GetStandardTemplateDictionaryAndAddMore({
+								   'title': TITLES["CONFIRM_REMOVE_RAKONTU"], 
+								   'title_extra': rakontu.name,
+								   'rakontu': rakontu, 
+								   })
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('admin/confirmRemoveRakontu.html'))
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
+		else:
+			self.redirect(AdminOnlyURL())
+			
+	@RequireLogin 
+	def post(self):
+		if users.is_current_user_admin():
+			rakontu = GetRakontuFromURLQuery(self.request.query_string)
+			if rakontu:
+				if "removeRakontu" in self.request.arguments():
+					rakontu.removeAllDependents()
+					db.delete(rakontu)
+					self.redirect(BuildURL("dir_admin", "url_admin"))
+				else:
+					self.redirect(BuildURL("dir_admin", "url_admin"))
+			else:
+				self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
+		else:
+			self.redirect(AdminOnlyURL())
+
 			
 class GenerateSampleQuestionsPage(ErrorHandlingRequestHander):
 	@RequireLogin 

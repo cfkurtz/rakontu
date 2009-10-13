@@ -79,6 +79,7 @@
 		      		<li><a href="/{{dir_manage}}/{{url_characters}}?{{rakontu.urlQuery}}">{{menu_characters}}</a></li>
 		      		<li><a href="/{{dir_curate}}/{{url_flags}}?{{rakontu.urlQuery}}">{{menu_flags}}</a></li>
 			      	<li><a href="/{{dir_manage}}/{{url_export}}?{{rakontu.urlQuery}}">{{menu_export}}</a></li>
+			      	<li><a href="/{{dir_manage}}/{{url_availability}}?{{rakontu.urlQuery}}">{{menu_set_availability}}</a></li>
 		      		</ul>
 		      	</li>
 	    	{% endif %}
@@ -91,8 +92,8 @@
 	      		</ul>
 	      	</li>
 	      	</ul>
-	    </td><td align="right" class="noborder" width="120">
-    	<p>&nbsp; <b>{{ current_member.nickname }}</b></p>
+	    </td><td align="right" class="noborder" width="100">
+    	<p>&nbsp; <b>{{current_member.nickname}}</b></p>
 	    <a href="/{{dir_visit}}/{{url_help}}?{{rakontu.urlQuery}}">{{menu_help}}</a>
 		{% if current_member.profileImage %}
 		</td><td align="center" width="20" class="noborder">

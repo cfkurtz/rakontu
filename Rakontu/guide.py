@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------------------------
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: pre-0.1
+# Version: beta (0.9+)
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
@@ -61,9 +61,9 @@ class ReviewResourcesPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/resources.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(NotAuthorizedURL("guide", rakontu))
+				self.redirect(RoleNotFoundURL("guide", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	@RequireLogin 
 	def post(self):
@@ -107,9 +107,9 @@ class ReviewResourcesPage(ErrorHandlingRequestHander):
 									URL_OPTIONS["url_query_managers_only"], managersOnlyType)
 					self.redirect(BuildURL("dir_guide", "url_resources", query))
 			else:
-				self.redirect(NotAuthorizedURL("guide", rakontu))
+				self.redirect(RoleNotFoundURL("guide", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class CopySystemResourcesPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -120,9 +120,9 @@ class CopySystemResourcesPage(ErrorHandlingRequestHander):
 				CopyDefaultResourcesForNewRakontu(rakontu, member)
 				self.redirect(BuildURL("dir_visit", "url_help", rakontu=rakontu))
 			else:
-				self.redirect(NotAuthorizedURL("guide", rakontu))
+				self.redirect(RoleNotFoundURL("guide", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 						
 class ReviewRequestsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -153,9 +153,9 @@ class ReviewRequestsPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/requests.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(NotAuthorizedURL("guide", rakontu))
+				self.redirect(RoleNotFoundURL("guide", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	@RequireLogin 
 	def post(self):
@@ -189,9 +189,9 @@ class ReviewRequestsPage(ErrorHandlingRequestHander):
 					db.run_in_transaction(txn, requests)
 					self.redirect(self.request.uri)
 			else:
-				self.redirect(NotAuthorizedURL("guide", rakontu))
+				self.redirect(RoleNotFoundURL("guide", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class ReviewInvitationsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -224,9 +224,9 @@ class ReviewInvitationsPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/invitations.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(NotAuthorizedURL("guide", rakontu))
+				self.redirect(RoleNotFoundURL("guide", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	def reduceInvitationsByOnlyUnresponded(self, invitations):
 		unrespondedInvitations = []
@@ -258,7 +258,7 @@ class ReviewInvitationsPage(ErrorHandlingRequestHander):
 							query = rakontu.urlQuery()
 						self.redirect(BuildURL("dir_guide", "url_invitations", query))
 			else:
-				self.redirect(NotAuthorizedURL("guide", rakontu))
+				self.redirect(RoleNotFoundURL("guide", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			

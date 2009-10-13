@@ -1,7 +1,7 @@
 # ============================================================================================
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: pre-0.1
+# Version: beta (0.9+)
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # ============================================================================================

@@ -37,7 +37,7 @@
 		</ul>
 	{% endif %}
 	{% if entry.isPattern and referenced_links_outgoing %}
-		<p>{{template_search_filters}}:</p>
+		<p>{{template_filters}}:</p>
 		<ul>
 		{% for link in referenced_links_outgoing %}
 			<li class="nobullet">{{link.itemTo.linkString}} {% if link.comment %} ({{link.comment}}) {% endif %} </li>

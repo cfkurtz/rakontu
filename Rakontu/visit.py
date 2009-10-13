@@ -44,15 +44,17 @@ class StartPage(ErrorHandlingRequestHander):
 				rakontu = Rakontu.get_by_key_name(rakontuKeyName)
 				if rakontu:
 					member = GetCurrentMemberFromRakontuAndUser(rakontu, user)
-					if rakontu and rakontu.active and member and member.active:
+					admin = users.is_current_user_admin()
+					okayToAccess = rakontu and member and member.active and rakontu.memberCanAccessMe(member, admin)
+					if okayToAccess:
 						if SetFirstThingsAndReturnWhetherMemberIsNew(rakontu, member): 
 							self.redirect(member.firstVisitURL())
 						else:
 							self.redirect(rakontu.linkURL())
 					else:
-						self.redirect(NoRakontuAndMemberURL())
+						self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 				else:
-					self.redirect(NoRakontuAndMemberURL())
+					self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			else:
 				self.redirect(START)
 		else:
@@ -76,7 +78,7 @@ class NewMemberPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/new.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class BrowseEntriesPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -95,15 +97,15 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTION_NAMES["url_option_yes"]
 			viewOptions = member.getViewOptionsForLocation("home")
 			try:
-				currentSearch = viewOptions.search
+				currentFilter = viewOptions.filter
 			except:
-				viewOptions.search = None
+				viewOptions.filter = None
 				viewOptions.put()
-				currentSearch = None
-			querySearch = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_search_filter")
-			if querySearch:
-				currentSearch = querySearch
-				viewOptions.search = currentSearch
+				currentFilter = None
+			queryFilter = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_filter")
+			if queryFilter:
+				currentFilter = queryFilter
+				viewOptions.filter = currentFilter
 				viewOptions.put()
 			skinDict = rakontu.getSkinDictionary()
 			(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
@@ -140,10 +142,10 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 								'min_nudge': minNudgePoints,
 								'max_nudge': maxNudgePoints,
 							
-							'include_search': True,
-							'shared_searches': rakontu.getNonPrivateSavedSearches(),
-							'member_searches': member.getPrivateSavedSearches(),
-							'current_search': currentSearch,
+							'include_filter': True,
+							'shared_filters': rakontu.getNonPrivateFilters(),
+							'member_filters': member.getPrivateFilters(),
+							'current_filter': currentFilter,
 							
 							'include_curate': member.isCurator(),
 							'include_print': True,
@@ -152,7 +154,7 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/home.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	def buildGrid(self, entries, member, skinDict, curating):
 		haveContent = False
@@ -219,7 +221,7 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 				url = ProcessGridOptionsCommand(rakontu, member, self.request, location="home")
 				self.redirect(url)
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class ReadEntryPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -283,7 +285,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 											'nudge_floor': viewOptions.nudgeFloor,
 											'min_nudge': minNudgePoints,
 											'max_nudge': maxNudgePoints,
-									'include_search': False,
+									'include_filter': False,
 									'include_curate': member.isCurator(),
 									'include_print': True,
 									'include_export': False,
@@ -307,7 +309,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	def buildGrid(self, allItems, entry, member, rakontu, curating):
 		skinDict = rakontu.getSkinDictionary()
@@ -455,7 +457,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 				url = ProcessGridOptionsCommand(rakontu, member, self.request, location="entry", entry=entry)
 				self.redirect(url)
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class ReadAnnotationPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -484,7 +486,7 @@ class ReadAnnotationPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	@RequireLogin 
 	def post(self):
@@ -498,7 +500,7 @@ class ReadAnnotationPage(ErrorHandlingRequestHander):
 					annotation.put()
 			self.redirect(self.request.uri)
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 
 class SeeRakontuPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -550,7 +552,7 @@ class SeeRakontuPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/rakontu.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class SeeRakontuMembersPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -569,7 +571,7 @@ class SeeRakontuMembersPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/members.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	@RequireLogin 
 	def post(self):
@@ -587,7 +589,7 @@ class SeeRakontuMembersPage(ErrorHandlingRequestHander):
 				else:
 					self.redirect(BuildURL("dir_visit", "url_members", rakontu=rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class SendMessagePage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -612,7 +614,7 @@ class SendMessagePage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	@RequireLogin 
 	def post(self):
@@ -660,7 +662,7 @@ class SendMessagePage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(BuildResultURL("membersNotFound", rakontu=rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 	
 class SeeMemberPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -675,7 +677,7 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 				textsForGrid, rowColors, minNudgePoints, maxNudgePoints = self.buildGrid(items, member, memberToSee, rakontu, curating)
 				countNames, counts = memberToSee.getCounts()
 				viewOptions = member.getViewOptionsForLocation("member")
-				currentSearch = viewOptions.search
+				currentFilter = viewOptions.filter
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': TITLES["MEMBER"], 
 					   		   'title_extra': memberToSee.nickname, 
@@ -716,10 +718,10 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 									'nudge_floor': viewOptions.nudgeFloor,
 									'min_nudge': minNudgePoints,
 									'max_nudge': maxNudgePoints,
-								'include_search': True,
-												'shared_searches': rakontu.getNonPrivateSavedSearches(),
-												'member_searches': member.getPrivateSavedSearches(),
-												'current_search': currentSearch,
+								'include_filter': True,
+												'shared_filters': rakontu.getNonPrivateFilters(),
+												'member_filters': member.getPrivateFilters(),
+												'current_filter': currentFilter,
 								'include_curate': member.isCurator(),
 								'include_print': True,
 								'include_export': False,
@@ -729,7 +731,7 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	def buildGrid(self, allItems, member, memberToSee, rakontu, curating):
 		skinDict = rakontu.getSkinDictionary()
@@ -801,7 +803,7 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
    
 class SeeCountsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -832,7 +834,7 @@ class SeeCountsPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/counts.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class SeeCharacterPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -846,7 +848,7 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "character", character=character)
 				textsForGrid, rowColors, minNudgePoints, maxNudgePoints = self.buildGrid(items, member, character, rakontu, curating)
 				viewOptions = member.getViewOptionsForLocation("character")
-				currentSearch = viewOptions.search
+				currentFilter = viewOptions.filter
 				countNames, counts = character.getCounts()
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["CHARACTER"], 
@@ -886,10 +888,10 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 									'nudge_floor': viewOptions.nudgeFloor,
 									'min_nudge': minNudgePoints,
 									'max_nudge': maxNudgePoints,
-								'include_search': True,
-												'shared_searches': rakontu.getNonPrivateSavedSearches(),
-												'member_searches': member.getPrivateSavedSearches(),
-												'current_search': currentSearch,
+								'include_filter': True,
+												'shared_filters': rakontu.getNonPrivateFilters(),
+												'member_filters': member.getPrivateFilters(),
+												'current_filter': currentFilter,
 								'include_curate': member.isCurator(),
 								'include_print': True,
 								'include_export': False,
@@ -899,7 +901,7 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	def buildGrid(self, allItems, member, character, rakontu, curating):
 		skinDict = rakontu.getSkinDictionary()
@@ -971,7 +973,7 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
    
 class AskGuidePage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -995,7 +997,7 @@ class AskGuidePage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 
 	@RequireLogin 
 	def post(self):
@@ -1034,7 +1036,7 @@ class AskGuidePage(ErrorHandlingRequestHander):
 				else:
 					self.redirect(BuildResultURL("memberNotFound", rakontu=rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
    
 class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -1065,7 +1067,7 @@ class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/profile.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 							 
 	@RequireLogin  
 	def post(self):
@@ -1110,13 +1112,14 @@ class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 						if foundAnswer:
 							answerToEdit = foundAnswer
 						else:
-							keyName = GenerateSequentialKeyName("answer")
+							keyName = GenerateSequentialKeyName("answer", rakontu)
 							answerToEdit = Answer(
 												key_name=keyName, 
 												id=keyName,
 												parent=memberToEdit,
 												rakontu=rakontu, 
 												question=question, 
+												questionType=question.type,
 												referent=memberToEdit, 
 												referentType="member")
 						answerToEdit.setValueBasedOnResponse(question, self.request, queryText, response)
@@ -1136,7 +1139,7 @@ class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class ChangeMemberPreferencesPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -1165,7 +1168,7 @@ class ChangeMemberPreferencesPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/preferences.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	@RequireLogin  
 	def post(self):
@@ -1224,7 +1227,7 @@ class ChangeMemberPreferencesPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class ChangeMemberNicknamePage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -1257,7 +1260,7 @@ class ChangeMemberNicknamePage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/nickname.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 							 
 	@RequireLogin  
 	def post(self):
@@ -1292,7 +1295,7 @@ class ChangeMemberNicknamePage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class ChangeMemberDraftsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -1323,7 +1326,7 @@ class ChangeMemberDraftsPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/drafts.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 							 
 	@RequireLogin 
 	def post(self):
@@ -1360,7 +1363,7 @@ class ChangeMemberDraftsPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class ChangeMemberFiltersPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -1380,17 +1383,17 @@ class ChangeMemberFiltersPage(ErrorHandlingRequestHander):
 							   'skin': rakontu.getSkinDictionary(),
 							   'member': memberToEdit,
 							   'current_member': member,
-							   'searches': member.getSavedSearches(),
+							   'filters': member.getSavedFilters(),
 							   'refer_type': "member",
 							   'refer_type_display': DisplayTypeForQuestionReferType("member"),
-							   'search_locations': SEARCH_LOCATIONS,
-							   'search_locations_display': SEARCH_LOCATIONS_DISPLAY,
+							   'filter_locations': SEARCH_LOCATIONS,
+							   'filter_locations_display': FILTER_LOCATIONS_DISPLAY,
 							   'blurbs': BLURBS,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/filters.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 							 
 	@RequireLogin 
 	def post(self):
@@ -1413,10 +1416,10 @@ class ChangeMemberFiltersPage(ErrorHandlingRequestHander):
 					memberToEdit = offlineMember
 				else:
 					memberToEdit = member
-				for search in memberToEdit.getSavedSearches():
-					if self.request.get("remove|%s" % search.key()) == "yes":
-						search.removeAllDependents()
-						db.delete(search)
+				for filter in memberToEdit.getSavedFilters():
+					if self.request.get("remove|%s" % filter.key()) == "yes":
+						filter.removeAllDependents()
+						db.delete(filter)
 				if offlineMember:
 					self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
 				else:
@@ -1424,7 +1427,7 @@ class ChangeMemberFiltersPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class LeaveRakontuPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -1443,7 +1446,7 @@ class LeaveRakontuPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/leave.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	@RequireLogin 
 	def post(self):
@@ -1460,22 +1463,23 @@ class LeaveRakontuPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(BuildURL("dir_visit", "url_preferences", member.urlQuery()))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 		
-class SavedSearchEntryPage(ErrorHandlingRequestHander):
+class FilterEntryPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			location = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_location")
-			currentSearch = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_search_filter")
-			
+			currentFilter = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_filter")
+			memberToSee = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
+			character = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_character")
 			questionsInfoList = self.questionsInfoListForType(rakontu, "entry", sort=True)
 			if questionsInfoList:
-				if currentSearch:
-					entryRefs = currentSearch.getQuestionReferencesOfType("entry") 
-					entryQuestions_anyOrAll = currentSearch.answers_anyOrAll
+				if currentFilter:
+					entryRefs = currentFilter.getQuestionReferencesOfType("entry") 
+					entryQuestions_anyOrAll = currentFilter.answers_anyOrAll
 				else:
 					entryRefs = []
 					entryQuestions_anyOrAll = None
@@ -1486,9 +1490,9 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 				
 			questionsInfoList = self.questionsInfoListForType(rakontu, "creator", sort=True)
 			if questionsInfoList:
-				if currentSearch:
-					creatorRefs = currentSearch.getQuestionReferencesOfType("creator") 
-					creatorQuestions_anyOrAll = currentSearch.creatorAnswers_anyOrAll
+				if currentFilter:
+					creatorRefs = currentFilter.getQuestionReferencesOfType("creator") 
+					creatorQuestions_anyOrAll = currentFilter.creatorAnswers_anyOrAll
 				else:
 					creatorRefs = []
 					creatorQuestions_anyOrAll = None
@@ -1502,24 +1506,26 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 							'rakontu': rakontu, 
 							'skin': rakontu.getSkinDictionary(),
 							'current_member': member, 
-							'num_search_fields': NUM_SEARCH_FIELDS,
-							'search_locations': SEARCH_LOCATIONS,
-							'search_locations_display': SEARCH_LOCATIONS_DISPLAY,
+							'num_filter_fields': NUM_SEARCH_FIELDS,
+							'filter_locations': SEARCH_LOCATIONS,
+							'filter_locations_display': FILTER_LOCATIONS_DISPLAY,
 							'any_or_all_choices': ANY_ALL,
 							'any_or_all_choices_display': ANY_ALL_DISPLAY,
 							'answer_comparison_types': ANSWER_COMPARISON_TYPES,
 							'answer_comparison_types_display': ANSWER_COMPARISON_TYPES_DISPLAY,
-							'current_search': currentSearch,
+							'current_filter': currentFilter,
 							'entry_questions_html': entryQuestionsHTML,
 							'entry_questions_any_or_all': entryQuestions_anyOrAll,
 							'creator_questions_html': creatorQuestionsHTML,
 							'creator_questions_any_or_all': creatorQuestions_anyOrAll,
 							'location': location,
+							'member_to_see': memberToSee,
+							'character': character,
 							})
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/filter.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	def questionsInfoListForType(self, rakontu, type, sort=False):
 		# get all unique combinations of question name, text, type and choices in one list
@@ -1610,81 +1616,85 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 		if access:
 			locationURL = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_location")
 			location = CorrespondingItemFromMatchedOrderList(locationURL, VIEW_OPTION_LOCATIONS_URLS, VIEW_OPTION_LOCATIONS)
+			defaultURL = rakontu.linkURL() 
+			locationURLQuery = rakontu.urlQuery() 
 			if location == "home":
-				defaultURL = rakontu.linkURL()
-			elif location == "entry":
-				defaultURL = entry.linkURL()
+				pass
 			elif location == "member": 
-				defaultURL = memberToSee.linkURL()
+				memberToSee = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
+				if memberToSee:
+					defaultURL = memberToSee.linkURL()
 			elif location == "character":
-				defaultURL = character.linkURL()
+				character = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_character")
+				if character:
+					defaultURL = character.linkURL()
 			defaultURL += "&%s=%s" % (URL_OPTIONS["url_query_location"], locationURL)
 			viewOptions = member.getViewOptionsForLocation(location)
-			search = viewOptions.search
-			if "deleteSearchByCreator" in self.request.arguments():
-				if search:
-					db.delete(search)
-					viewOptions.search = None
+			filter = viewOptions.filter
+			if "deleteFilterByCreator" in self.request.arguments():
+				if filter:
+					db.delete(filter)
+					viewOptions.filter = None
 					viewOptions.put()
 				self.redirect(defaultURL)
-			elif "flagSearchByCurator" in self.request.arguments():
-				if search:
-					search.flaggedForRemoval = not search.flaggedForRemoval
-					search.put()
+			elif "flagFilterByCurator" in self.request.arguments():
+				if filter:
+					filter.flaggedForRemoval = not filter.flaggedForRemoval
+					filter.put()
 					query = "%s=%s" % (URL_OPTIONS["url_query_location"], locationURL)
-					self.redirect(BuildURL("dir_visit", "url_search_filter", query, rakontu=rakontu))
+					self.redirect(BuildURL("dir_visit", "url_filter", query, rakontu=rakontu))
 				else:
 					self.redirect(defaultURL)
-			elif "removeSearchByManager" in self.request.arguments():
-				if search:
-					db.delete(search)
-					viewOptions.search = None
+			elif "removeFilterByManager" in self.request.arguments():
+				if filter:
+					db.delete(filter)
+					viewOptions.filter = None
 					viewOptions.put()
 				self.redirect(defaultURL)
 			elif "saveAs" in self.request.arguments() or "save" in self.request.arguments():
-				if not search or "saveAs" in self.request.arguments():
-					keyName = GenerateSequentialKeyName("filter")
-					search = SavedSearch(key_name=keyName, parent=member, id=keyName, rakontu=rakontu, creator=member)
+				if not filter or "saveAs" in self.request.arguments():
+					keyName = GenerateSequentialKeyName("filter", rakontu)
+					filter = SavedFilter(key_name=keyName, parent=member, id=keyName, rakontu=rakontu, creator=member)
 				thingsToPut = []
-				thingsToPut.append(search)
-				search.private = self.request.get("privateOrSharedSearch") == "private"
-				search.name = htmlEscape(self.request.get("searchName"))
-				if not len(search.name.strip()):
-					search.name = TERMS["term_untitled"]
+				thingsToPut.append(filter)
+				filter.private = self.request.get("privateOrSharedFilter") == "private"
+				filter.name = htmlEscape(self.request.get("filterName"))
+				if not len(filter.name.strip()):
+					filter.name = TERMS["term_untitled"]
 				text = self.request.get("comment")
 				format = self.request.get("comment_format").strip()
-				search.comment = text
-				search.comment_formatted = db.Text(InterpretEnteredText(text, format))
-				search.comment_format = format
-				search.entryTypes = []
+				filter.comment = text
+				filter.comment_formatted = db.Text(InterpretEnteredText(text, format))
+				filter.comment_format = format
+				filter.entryTypes = []
 				for i in range(len(ENTRY_TYPES)):
-					search.entryTypes.append(self.request.get(ENTRY_TYPES[i]) == "yes")
-				search.overall_anyOrAll = self.request.get("overall_anyOrAll")
+					filter.entryTypes.append(self.request.get(ENTRY_TYPES[i]) == "yes")
+				filter.overall_anyOrAll = self.request.get("overall_anyOrAll")
 				# words
-				search.words_anyOrAll = self.request.get("words_anyOrAll")
-				search.words_locations = []
+				filter.words_anyOrAll = self.request.get("words_anyOrAll")
+				filter.words_locations = []
 				for i in range(len(SEARCH_LOCATIONS)):
-					search.words_locations.append(self.request.get("location|%s" % i) == "yes")
-				if not search.words_locations:
-					search.words_locations = SEARCH_LOCATIONS[0]
-				search.words = []
+					filter.words_locations.append(self.request.get("location|%s" % i) == "yes")
+				if not filter.words_locations:
+					filter.words_locations = SEARCH_LOCATIONS[0]
+				filter.words = []
 				for i in range(NUM_SEARCH_FIELDS):
 					response = self.request.get("words|%s" % i).strip()
 					if response and response != "None" :
-						search.words.append(response)
+						filter.words.append(response)
 				# tags
-				search.tags_anyOrAll = self.request.get("tags_anyOrAll")
-				search.tags = []
+				filter.tags_anyOrAll = self.request.get("tags_anyOrAll")
+				filter.tags = []
 				for i in range(NUM_SEARCH_FIELDS):
 					if self.request.get("tags|%s" % i) and self.request.get("tags|%s" % i) != "None":
-						search.tags.append(self.request.get("tags|%s" % i))
+						filter.tags.append(self.request.get("tags|%s" % i))
 				# questions
 				for preface in ["entry", "creator"]:
 					if preface == "entry":
-						search.answers_anyOrAll = self.request.get("entryQuestions|anyOrAll")
+						filter.answers_anyOrAll = self.request.get("entryQuestions|anyOrAll")
 						questionsInfoList = self.questionsInfoListForType(rakontu, "entry")
 					else:
-						search.creatorAnswers_anyOrAll = self.request.get("creatorQuestions|anyOrAll")
+						filter.creatorAnswers_anyOrAll = self.request.get("creatorQuestions|anyOrAll")
 						questionsInfoList = self.questionsInfoListForType(rakontu, "creator")
 					for i in range(NUM_SEARCH_FIELDS):
 						response = self.request.get("%s|question|%s" % (preface, i))
@@ -1710,15 +1720,15 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 										answer = choice
 										break
 							if foundQuestion and answer:
-								ref = search.getQuestionReferenceForQuestionNameTypeAndOrder(name, type, i)
+								ref = filter.getQuestionReferenceForQuestionNameTypeAndOrder(name, type, i)
 								if not ref:
-									keyName = GenerateSequentialKeyName("searchref")
-									ref = SavedSearchQuestionReference(
+									keyName = GenerateSequentialKeyName("filterref", rakontu)
+									ref = SavedFilterQuestionReference(
 												key_name=keyName, 
 												id=keyName,
-												parent=search, 
+												parent=filter, 
 												rakontu=rakontu, 
-												search=search, 
+												filter=filter, 
 												questionName=name,
 												questionType=type,
 												)
@@ -1728,7 +1738,7 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 								ref.order = i
 								thingsToPut.append(ref)
 				viewOptions = member.getViewOptionsForLocation(location)
-				viewOptions.search = search
+				viewOptions.filter = filter
 				thingsToPut.append(viewOptions)
 				def txn(thingsToPut):
 					db.put(thingsToPut)
@@ -1737,7 +1747,7 @@ class SavedSearchEntryPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class ResultFeedbackPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -1754,7 +1764,7 @@ class ResultFeedbackPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('result.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 				
 class ContextualHelpPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -1811,19 +1821,22 @@ class GeneralHelpPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/help.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=None, memberToSee=None, character=None):
 	viewOptions = member.getViewOptionsForLocation(location)
-	search = viewOptions.search
+	filter = viewOptions.filter
 	if location == "home":
 		defaultURL = rakontu.linkURL()
+		locationURLQueryForFilter = rakontu.urlQuery()
 	elif location == "entry":
 		defaultURL = entry.linkURL()
 	elif location == "member": 
 		defaultURL = memberToSee.linkURL()
+		locationURLQueryForFilter = memberToSee.urlQuery()
 	elif location == "character":
 		defaultURL = character.linkURL()
+		locationURLQueryForFilter = character.urlQuery()
 	locationURL = CorrespondingItemFromMatchedOrderList(location, VIEW_OPTION_LOCATIONS, VIEW_OPTION_LOCATIONS_URLS)
 	defaultURL += "&%s=%s" % (URL_OPTIONS["url_query_location"], locationURL)
 	delta = timedelta(seconds=viewOptions.timeFrameInSeconds)
@@ -1896,50 +1909,50 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 			viewOptions.nudgeFloor = oldValue
 		viewOptions.put()
 		return defaultURL
-	# search filter - home, member, character
-	elif "loadAndApplySavedSearch" in request.arguments():
-		if request.get("savedSearch") != "(%s)" % TERMS["term_choose"]:
-			searchKey = request.get("savedSearch")
-			if searchKey:
-				search = SavedSearch.get(searchKey)
-				if search:
-					viewOptions.search = search
+	# filter - home, member, character
+	elif "loadAndApplyFilter" in request.arguments():
+		if request.get("savedFilter") != "(%s)" % TERMS["term_choose"]:
+			filterKey = request.get("savedFilter")
+			if filterKey:
+				filter = SavedFilter.get(filterKey)
+				if filter:
+					viewOptions.filter = filter
 					viewOptions.put()
 					return defaultURL
 			else:
 				return defaultURL
 		else:
 			return defaultURL
-	elif "stopApplyingSearch" in request.arguments():
-			viewOptions.search = None
+	elif "stopApplyingFilter" in request.arguments():
+			viewOptions.filter = None
 			viewOptions.put()
 			return defaultURL
-	elif "makeNewSavedSearch" in request.arguments():
-			viewOptions.search = None
+	elif "makeNewFilter" in request.arguments():
+			viewOptions.filter = None
 			viewOptions.put()
-			query ="%s=%s" % (URL_OPTIONS["url_query_location"], locationURL)
-			return BuildURL("dir_visit", "url_search_filter", query, rakontu=rakontu)
-	elif "changeSearch"  in request.arguments():
-		if search:
-			query = "%s&%s=%s" % (search.urlQuery(), URL_OPTIONS["url_query_location"], locationURL)
-			return BuildURL("dir_visit", "url_search_filter", query, rakontu=rakontu)
+			query ="%s=%s&%s" % (URL_OPTIONS["url_query_location"], locationURL, locationURLQueryForFilter)
+			return BuildURL("dir_visit", "url_filter", query)
+	elif "changeFilter"  in request.arguments():
+		if filter:
+			query = "%s&%s=%s&%s" % (filter.urlQuery(), URL_OPTIONS["url_query_location"], locationURL, locationURLQueryForFilter)
+			return BuildURL("dir_visit", "url_filter", query)
 		else:
-			viewOptions.search = None
+			viewOptions.filter = None
 			viewOptions.put()
-			query ="%s=%s" % (URL_OPTIONS["url_query_location"], locationURL)
-			return BuildURL("dir_visit", "url_search_filter", query, rakontu=rakontu)
-	elif "copySearch"  in request.arguments():
-		if search:
-			refs = search.getQuestionReferences()
-			keyName = GenerateSequentialKeyName("filter")
-			newSearch = SavedSearch(key_name=keyName, parent=member, id=keyName, rakontu=rakontu, creator=member)
-			newSearch.put()
+			query ="%s=%s&%s" % (URL_OPTIONS["url_query_location"], locationURL, locationURLQueryForFilter)
+			return BuildURL("dir_visit", "url_filter", query)
+	elif "copyFilter"  in request.arguments():
+		if filter:
+			refs = filter.getQuestionReferences()
+			keyName = GenerateSequentialKeyName("filter", rakontu)
+			newFilter = SavedFilter(key_name=keyName, parent=member, id=keyName, rakontu=rakontu, creator=member)
+			newFilter.put()
 			# cannot run this line in transaction because it calls the counter transaction
-			newSearch.copyDataFromOtherSearch(search, refs)
-			viewOptions.search = newSearch
+			newFilter.copyDataFromOtherFilter(filter, refs)
+			viewOptions.filter = newFilter
 			viewOptions.put()
-			query = "%s&%s=%s" % (newSearch.urlQuery(), URL_OPTIONS["url_query_location"], locationURL)
-			return BuildURL("dir_visit", "url_search_filter", query, rakontu=rakontu)
+			query = "%s&%s=%s&%s" % (newFilter.urlQuery(), URL_OPTIONS["url_query_location"], locationURL, locationURLQueryForFilter)
+			return BuildURL("dir_visit", "url_filter", query)
 		else:
 			return defaultURL
 	# other options - all
@@ -1951,18 +1964,18 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 		viewOptions.showActivityLevels = not viewOptions.showActivityLevels
 		viewOptions.put()
 		return defaultURL
-	elif "printSearchResults"  in request.arguments(): 
+	elif "printFilteredItems"  in request.arguments(): 
 		if location == "home": 
-			return BuildURL("dir_liaise", "url_print_search", rakontu=rakontu)
+			return BuildURL("dir_liaise", "url_print_filter", rakontu=rakontu)
 		elif location == "entry": 
 			return BuildURL("dir_liaise", "url_print_entry", entry.urlQuery())
 		elif location == "member":
 			return BuildURL("dir_liaise", "url_print_member", memberToSee.urlQuery())
 		elif location == "character":
 			return BuildURL("dir_liaise", "url_print_character", character.urlQuery())
-	elif "exportSearchResults"  in request.arguments():
+	elif "exportFilteredItems"  in request.arguments():
 		if location == "home":
-			return BuildURL("dir_manage", "url_export_search", rakontu=rakontu)
+			return BuildURL("dir_manage", "url_export_filter", rakontu=rakontu)
 		else:
 			# no reaction yet for entry or member or character - should add export for that?
 			return defaultURL

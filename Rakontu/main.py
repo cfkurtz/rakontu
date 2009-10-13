@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------------------------
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: pre-0.1
+# Version: beta (0.9+)
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
@@ -17,9 +17,10 @@ from admin import *
 urlInfo = [('/', StartPage),
 	  # looking at objects
 	  (HOME, BrowseEntriesPage),
+	  (BuildURL(None, "url_home"), BrowseEntriesPage),
 	  (BuildURL("dir_visit"), BrowseEntriesPage),
 	  (BuildURL("dir_visit", extraSlash=True), BrowseEntriesPage),
-	  (BuildURL("dir_visit", "url_search_filter"), SavedSearchEntryPage),
+	  (BuildURL("dir_visit", "url_filter"), FilterEntryPage),
 	  (BuildURL("dir_visit", "url_read"), ReadEntryPage),
 	  (BuildURL("dir_visit", "url_read_annotation"), ReadAnnotationPage),
 	  # looking at people
@@ -89,7 +90,7 @@ urlInfo = [('/', StartPage),
 	  (BuildURL("dir_liaise", "url_batch"), BatchEntryPage),
 	  (BuildURL("dir_liaise", "url_review"), ReviewBatchEntriesPage),
 	  (BuildURL("dir_liaise", "url_members"), ReviewOfflineMembersPage),
-	  (BuildURL("dir_liaise", "url_print_search"), PrintSearchPage),
+	  (BuildURL("dir_liaise", "url_print_filter"), PrintFilteredItemsPage),
 	  (BuildURL("dir_liaise", "url_print_entry"), PrintEntryAnnotationsPage),
 	  (BuildURL("dir_liaise", "url_print_member"), PrintMemberEntriesAndAnnotationsPage),
 	  (BuildURL("dir_liaise", "url_print_character"), PrintCharacterEntriesAndAnnotationsPage),
@@ -116,9 +117,9 @@ urlInfo = [('/', StartPage),
 	  (BuildURL("dir_manage", "url_questions_to_csv"), WriteQuestionsToCSVPage),
 	  (BuildURL("dir_manage", "url_characters"), ManageCharactersPage),
 	  (BuildURL("dir_manage", "url_character"), ManageCharacterPage),
-	  (BuildURL("dir_manage", "url_inactivate"), InactivateRakontuPage),
+	  (BuildURL("dir_manage", "url_availability"), SetRakontuAvailabilityPage),
 	  (BuildURL("dir_manage", "url_export"), ExportRakontuDataPage),
-	  (BuildURL("dir_manage", "url_export_search"), ExportSearchPage),
+	  (BuildURL("dir_manage", "url_export_filter"), ExportFilteredItemsPage),
 	  # site admin
 	  (BuildURL("dir_admin"), AdministerSitePage),
 	  (BuildURL("dir_admin", extraSlash=True), AdministerSitePage),
@@ -129,6 +130,7 @@ urlInfo = [('/', StartPage),
 	  (BuildURL("dir_admin", "url_default_resources"), GenerateSystemResourcesPage),
 	  (BuildURL("dir_admin", "url_helps"), GenerateHelpsPage),
 	  (BuildURL("dir_admin", "url_skins"), GenerateSkinsPage),
+	  (BuildURL("dir_admin", "url_confirm_remove_rakontu"), ConfirmRemoveRakontuPage),
 	  # for testing
 	  (BuildURL("dir_admin", "url_make_fake_data"), GenerateFakeDataPage),
 	  (BuildURL("dir_admin", "url_stress_test"), GenerateStressTestPage),
@@ -141,8 +143,10 @@ urlInfo = [('/', StartPage),
 	  (BuildURL(None, "url_export"), ExportHandler),
 	  # errors and other exceptional situations
 	  (BuildURL(None, "url_not_found"), NotFoundPageHandler),
-	  (BuildURL(None, "url_not_authorized"), NotAuthorizedPageHandler),
-	  (BuildURL(None, "url_no_rakontu_and_member"), NoRakontuAndActiveMemberPageHandler),
+	  (BuildURL(None, "url_role_not_found"), RoleNotFoundPageHandler),
+	  (BuildURL(None, "url_no_member"), NoActiveMemberPageHandler),
+	  (BuildURL(None, "url_no_rakontu"), NoRakontuPageHandler),
+	  (BuildURL(None, "url_rakontu_not_available"), RakontuNotAvailablePageHandler),
 	  (BuildURL(None, "url_managers_only"), ManagersOnlyPageHandler),
 	  (BuildURL(None, "url_owners_only"), OwnersOnlyPageHandler),
 	  (BuildURL(None, "url_admin_only"), AdminOnlyPageHandler),

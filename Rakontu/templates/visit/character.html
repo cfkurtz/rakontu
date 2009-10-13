@@ -31,7 +31,6 @@
 	  		({{template_no_character_how_to}})
 	  	{% endif %}
 	  	</div>
-	  	{{template_url_lookup}}: {{character.getKeyName}}.
 	  	
 		<h3>{{term_entries_contributed_by}}</h3>
 		
@@ -71,8 +70,8 @@
   	</form>
   	</div>
   	
-	<h3>{{template_answers_to_questions_about}} {{character.name}}</h3>
 	{% if answers %}
+		<h3>{{template_answers_to_questions_about}} {{character.name}}</h3>
 		<ul>
 		{% for answer in answers %}
 			{% if answer.displayStringShort %}
@@ -80,8 +79,6 @@
 			{% endif %}
 		{% endfor %}
 		</ul>
-	{% else %}
-		<ul><li class="nobullet">({{template_none}})</li></ul>
 	{% endif %}
 		
 

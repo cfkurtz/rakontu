@@ -124,8 +124,11 @@
 								{% endif %}
 							{% endif %}
 							{% ifequal question.type "boolean" %}
-								<p><input type="checkbox" name="{{i}}|{{question.key}}" value="yes" id="{{i}}|{{question.key}}"
-								/><label for="{{i}}|{{question.key}}">{{question.responseIfBoolean}}</label></p>
+								<p><select name="{{i}}|{{question.key}}" id="{{i}}|{{question.key}}">
+								<option value="yes">{{question.positiveResponseIfBoolean}}</option>
+								<option value="no">{{question.negativeResponseIfBoolean}}</option>
+								</select>
+								</p>
 							{% endifequal %}
 							{% ifequal question.type "value" %}
 								<input type="text" size="60" name="{{i}}|{{question.key}}" value="" maxlength="{{maxlength_number}}"/>

@@ -34,11 +34,11 @@
     # pages.
     prev, results, next = query.fetch(10, bookmark)
 
-    # For a searchable query, use:
+    # For a filterable query, use:
     query = SearchablePagerQuery(ModelClass).filter('foo >', 'bar') \
                                             .filter('baz =', 'ding') \
                                             .order('foo') \
-                                            .search('my_string')
+                                            .filter('my_string')
 
     prev, results, next = query.fetch(10, bookmark)
 
@@ -419,19 +419,19 @@ class PagerQuery(object):
 
 class SearchablePagerQuery(PagerQuery):
     class Query(db.Query):
-        """A subclass of db.Query that supports full text search."""
-        _search_query = None
+        """A subclass of db.Query that supports full text filter."""
+        _filter_query = None
 
-        def search(self, search_query):
-            """Adds a full text search to this query.
+        def filter(self, filter_query):
+            """Adds a full text filter to this query.
 
             Args:
-              search_query, a string containing the full text search query.
+              filter_query, a string containing the full text filter query.
 
             Returns:
               self
             """
-            self._search_query = search_query
+            self._filter_query = filter_query
             return self
 
         def _get_query(self):
@@ -439,21 +439,21 @@ class SearchablePagerQuery(PagerQuery):
             query = db.Query._get_query(self,
                                   _query_class=SearchableQuery,
                                   _multi_query_class=SearchableMultiQuery)
-            if self._search_query:
-                query.Search(self._search_query)
+            if self._filter_query:
+                query.Search(self._filter_query)
             return query
 
     query_class = Query
-    _search_query = None
+    _filter_query = None
 
-    def search(self, search_query):
-        self._search_query = search_query
+    def filter(self, filter_query):
+        self._filter_query = filter_query
         return self
 
     def _get_query(self, **kargs):
         query = super(SearchablePagerQuery, self)._get_query(**kargs)
-        if self._search_query:
-            query.search(self._search_query)
+        if self._filter_query:
+            query.filter(self._filter_query)
         return query
 
 

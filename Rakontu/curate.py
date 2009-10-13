@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------------------------
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: pre-0.1
+# Version: beta (0.9+)
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
@@ -14,7 +14,7 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isCuratorOrManagerOrOwner():
-				(entries, annotations, answers, links, searches) = rakontu.getAllFlaggedItems()
+				(entries, annotations, answers, links, filters) = rakontu.getAllFlaggedItems()
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_FLAGS"], 
 						   	   	   'rakontu': rakontu, 
@@ -24,16 +24,16 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 								   'annotations': annotations,
 								   'answers': answers,
 								   'links': links,
-								   'searches': searches,
-								   'search_locations': SEARCH_LOCATIONS,
-								   'search_locations_display': SEARCH_LOCATIONS_DISPLAY,
+								   'filters': filters,
+								   'filter_locations': SEARCH_LOCATIONS,
+								   'filter_locations_display': FILTER_LOCATIONS_DISPLAY,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/flags.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(NotAuthorizedURL("curator", rakontu))
+				self.redirect(RoleNotFoundURL("curator", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 				
 	@RequireLogin 
 	def post(self):
@@ -71,7 +71,7 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 					elif self.request.get("remove|%s" % item.key()) == "yes":
 						if item.__class__.__name__ == "Entry":
 							itemsToDelete.extend(item.listAllDependents())
-						elif item.__class__.__name__ == "SavedSearch":
+						elif item.__class__.__name__ == "SavedFilter":
 							itemsToDelete.extend(item.getQuestionReferences())
 						itemsToDelete.append(item)
 				def txn(itemsToPut, itemsToDelete):
@@ -117,10 +117,10 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 							displayString = '%s %s%s "%s" (%s) --> "%s" (%s)' % \
 								(item.itemFrom.type, TERMS["term_link"], commentString, item.itemFrom.displayString(), \
 								item.itemTo.typeForDisplay(), item.itemTo.displayString(), item.itemTo.typeForDisplay())
-						elif item.__class__.__name__ == "SavedSearch":
+						elif item.__class__.__name__ == "SavedFilter":
 							linkKey = item.key()
 							displayString = item.name
-						if item.__class__.__name__ == "SavedSearch":
+						if item.__class__.__name__ == "SavedFilter":
 							messageLines.append('* %s\n\n	http://%s/%s/%s?%s (%s)\n' % (displayString, URL, DIRS["dir_visit"], URLS["url_home"], linkKey, item.flagComment))
 						else:
 							messageLines.append('* %s\n\n	http://%s/%s/%s?%s (%s)\n' % (displayString, URL, DIRS["dir_visit"], URLS["url_curate"], linkKey, item.flagComment))
@@ -148,9 +148,9 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 				else:
 					self.redirect(BuildURL("dir_curate", "url_flags", rakontu=rakontu))
 			else:
-				self.redirect(NotAuthorizedURL("curator", rakontu))
+				self.redirect(RoleNotFoundURL("curator", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class CurateGapsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -190,9 +190,9 @@ class CurateGapsPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/gaps.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(NotAuthorizedURL("curator", rakontu))
+				self.redirect(RoleNotFoundURL("curator", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	@RequireLogin 
 	def post(self):
@@ -214,9 +214,9 @@ class CurateGapsPage(ErrorHandlingRequestHander):
 					url = BuildURL("dir_curate", "url_gaps", rakontu=rakontu)
 					self.redirect(url)
 			else:
-				self.redirect(NotAuthorizedURL("curator", rakontu))
+				self.redirect(RoleNotFoundURL("curator", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class CurateAttachmentsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -239,9 +239,9 @@ class CurateAttachmentsPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/attachments.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(NotAuthorizedURL("curator", rakontu))
+				self.redirect(RoleNotFoundURL("curator", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	@RequireLogin 
 	def post(self):
@@ -268,9 +268,9 @@ class CurateAttachmentsPage(ErrorHandlingRequestHander):
 					query = "%s=%s" % (URL_IDS["url_query_rakontu"], rakontu.getKeyName())
 				self.redirect(BuildURL("dir_curate", "url_attachments", query))
 			else:
-				self.redirect(NotAuthorizedURL("curator", rakontu))
+				self.redirect(RoleNotFoundURL("curator", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 
 class CurateTagsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -293,9 +293,9 @@ class CurateTagsPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/tags.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(NotAuthorizedURL("curator", rakontu))
+				self.redirect(RoleNotFoundURL("curator", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	@RequireLogin 
 	def post(self):
@@ -332,7 +332,7 @@ class CurateTagsPage(ErrorHandlingRequestHander):
 					query = "%s=%s" % (URL_IDS["url_query_rakontu"], rakontu.getKeyName())
 				self.redirect(BuildURL("dir_curate", "url_tags", query))
 			else:
-				self.redirect(NotAuthorizedURL("curator", rakontu))
+				self.redirect(RoleNotFoundURL("curator", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 

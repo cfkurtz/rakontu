@@ -1,7 +1,7 @@
 # ============================================================================================ 
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: pre-0.1
+# Version: beta (0.9+)
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # ============================================================================================ 
@@ -83,6 +83,9 @@ who is mentioned in the story.
 # It MUST match one of the names in the skins.csv file.
 DEFAULT_SKIN_NAME = "sunset"
 START_CUSTOM_SKIN_NAME = "grayscale"
+
+# Display names for Rakontu access states. The order MUST match (all members, managers only, owners only, admin only).
+RAKONTU_ACCESS_STATES_DISPLAY = ["all members", "managers only", "owners only", "administrators only"]
 
 # ============================================================================================ 
 # MEMBERS
@@ -216,8 +219,9 @@ QUESTION_TYPES_DISPLAY = ["boolean", "text", "ordinal", "nominal", "value"]
 # This is the name given to questions not named by their creators.
 DEFAULT_QUESTION_NAME = u"Unnamed question"
 
-# Default response (label on checkbox) for boolean questions
-DEFAULT_QUESTION_BOOLEAN_RESPONSE = "Yes"
+# Default responses for boolean questions
+DEFAULT_QUESTION_YES_BOOLEAN_RESPONSE = "Yes"
+DEFAULT_QUESTION_NO_BOOLEAN_RESPONSE = "No"
 
 # ============================================================================================ 
 # NUDGE SYSTEM
@@ -273,15 +277,15 @@ TIMEFRAME_MONTH = u"a month"
 TIMEFRAME_2MONTHS = u"two months"
 TIMEFRAME_3MONTHS = u"three months"
 
-# For search filters, whether any or all of selections are required for a match. These MUST match the order (any, all).
+# For filters, whether any or all of selections are required for a match. These MUST match the order (any, all).
 ANY_ALL_DISPLAY = ["any", "all"]
-# Where to look for search words. These MUST match the order 
+# Where to look for filter words. These MUST match the order 
 # (in the title, in the text, in a comment, in a request, in a nudge comment, in a link comment).
-SEARCH_LOCATIONS_DISPLAY = ["in the title", "in the text", "in a comment", "in a request", "in a nudge comment", "in a link comment"]
+FILTER_LOCATIONS_DISPLAY = ["in the title", "in the text", "in a comment", "in a request", "in a nudge comment", "in a link comment"]
 # How to compare answers. These MUST match the order (contains, is, is greater than, is less than).
 ANSWER_COMPARISON_TYPES_DISPLAY = ["contains", "is", "is greater than", "is less than"]
 
-DEFAULT_SEARCH_NAME = "Untitled search filter"
+DEFAULT_SEARCH_NAME = "Untitled filter"
 
 # These describe the locations of the timeline grid views. 
 # They MUST match the order (home, entry, member, character).
@@ -328,7 +332,7 @@ TERMS = {
 		"term_question": "question",
 		"term_online": "on-line",
 		"term_offline": "off-line",
-		# used to describe search filters
+		# used to describe filters
 		"term_of_the_words": "of the words",
 		"term_of_the_tags": "of the tags",
 		"term_of_the_entry_questions": "of the entry questions",
@@ -369,6 +373,7 @@ TERMS = {
 		"term_untitled": "Untitled",
 		"term_no_subject": "No subject", # for a comment or request
 		"term_could_not_email_admins": "Actually, that's not true. Rakontu could NOT send an email about this issue to the site administrator(s) because the saved email address is invalid. Please contact your site administrator for help.",
+		 "term_linked_item_removed": "(linked item removed)",
 		}
 
 # ============================================================================================ 
@@ -471,8 +476,8 @@ TEMPLATE_TERMS = {
 		"template_links": "Links",
 		"template_filter": "Filter",
 		"template_filters": "Filters",
-		"template_search_filter": "Search filter",
-		"template_search_filters": "Search filters",
+		"template_filter": "Filter",
+		"template_filters": "Filters",
 		"template_word": "Word",
 		"template_words": "Words",
 		"template_type": "Type",
@@ -485,7 +490,6 @@ TEMPLATE_TERMS = {
 		# things lots of objects have
 		"template_linked_to": "Linked to",
 		"template_name": "Name",
-		"template_url_lookup": "Lookup ID",
 		"template_text": "Text",
 		"template_file": "File",
 		"template_nickname": "Nickname",
@@ -571,41 +575,53 @@ TEMPLATE_TERMS = {
 		"template_answer_questions_about": "Please answer these questions about this",
 		"template_enter_number": "Please enter a number between",
 		"template_no_questions": "There are no questions for this type of item.",
-		# error
+		# -------- access denied pages
+		# error/notFound
+		"template_URL_not_found": "We've looked everywhere and we just can't find it!",
+		"template_the_page_could_not_be_found": "Rakontu can't find the page you asked for. Please check the web address.",
+		# error/noRakontu
+		"template_could_not_find_rakontu": "Can't see it from here. Sorry.",
+		"template_the_rakontu_could_not_be_found": "The specified Rakontu could not be found. Please check with your system administrator for the link to the Rakontu you want to access.",
+		# error/noMember
+		"template_could_not_find_member": "We have no member by that name.",
+		"template_the_member_could_not_be_found": "The specified member could not be found, or the membership has been inactivated. Please check with a manager of the Rakontu.",
+		# error/roleNotFound
+		"template_role_not_found": "Helpers only, please.",
+		"template_to_access_page_take_on_role": "To access this page you must take on this helping role",
+		"template_how_to_take_on_a_role": "To take on a helping role, see your Preferences page.", 
+		# error/managersOnly
+		"template_not_a_manager": "Rakontu managers only, please.",
+		"template_manager_only_page": "This page is available only to Rakontu managers. If you want to become a manager of your Rakontu, talk to a manager.",
+		# error/ownersOnly
+		"template_not_an_owner": "Rakontu owners only, please.",
+		"template_owners_only_page": "This page is available only to owners of the Rakontu. If you want to become an owner of your Rakontu, talk to a manager.",
+		# error/adminOnly
+		"template_not_admin": "Administrator-class nerds only, please.",
+		"template_admin_only_page": "This page is available only to Rakontu site administrators.",
+		# error/rakontuNotAvailable
+		"template_rakontu_sleeping": "Shh! It's resting.",
+		"template_rakontu_not_available": "This Rakontu is temporarily unavailable due to system maintenance. Please check back again later.",
+		# -------- error pages
+		# error/error
 		"template_error": "Oops! Sorry :(",
 		"template_an_error_has_occurred_and_admin_notified": "Something went wrong. The system administrator has been notified.",
 		"template_error_message": "If you want to talk about this error with the administrator, copy this message and paste it into your email.",
+		# error/databaseError
+		"template_database_error": "Bad Google. Bad.",
+		"template_there_was_a_database_error": "Apparently Google is not working very well at the moment. Could you please try what you were doing again?",
+		# error/transactionFailed
+		"template_transaction_failed_error": "Can't ... handle ... demand ... trying ...",
+		"template_too_many_transactions": "Your transaction was unable to complete because there were lots of people using the site at once. Sorry about that. Could you please try what you were doing again?",
+		# error/attachmentTooLarge
+		"template_attachment_too_large_error": "Whoa, that's more than I can handle!",
+		"template_the_attachment_was_too_large_and_was_not_saved": "The file you chose was too large, and Rakontu could not upload it. Please try uploading a smaller file.",
+		# error/attachmentWrongType
+		"template_attachment_wrong_type_error": "What's this, some kind of newfangled contraption? I can't make head or tails of it.",
+		"template_attachment_is_of_wrong_type": "This Rakontu site does not accept the type of attachment you chose. Please check the list of acceptable types on the page where you add an attachment.",
+		
 		# help 
 		"template_click_back_button": "Click the Back button to return to the page you were on.",
 		"template_or_would_you_like_more": "or would you like more",
-		# notFound
-		"template_URL_not_found": "Oops! Can't find it!",
-		"template_the_page_could_not_be_found": "We can't find the page you asked for.",
-		# databaseError
-		"template_database_error": "Bad Google. Bad.",
-		"template_there_was_a_database_error": "Apparently Google is not working very well at the moment. Could you please try what you were doing again?",
-		# transactionFailed
-		"template_transaction_failed_error": "Can't ... handle ... demand ... trying ...",
-		"template_too_many_transactions": "Your transaction was unable to complete because there were lots of people using the site at once. Sorry about that. Could you please try what you were doing again?",
-		# notAuthorized
-		"template_to_access_page_take_on_role": "To access this page you must take on this helping role",
-		"template_how_to_take_on_a_role": "To take on a helping role, see your Preferences page.", 
-		# noRakontuAndMember
-		"template_the_rakontu_and_member_could_not_be_found": "The specified Rakontu and member could not be found, or the membership (or Rakontu) has become inactive. Please check with your system administrator for the link to the Rakontu you want to access.",
-		# managersOnly
-		"template_manager_only_page": "This page is available only to Rakontu managers. If you want to become a manager of your Rakontu, talk to a manager.",
-		# ownersOnly
-		"template_owners_only_page": "This page is available only to owners of the Rakontu. If you want to become an owner of your Rakontu, talk to a manager.",
-		# adminOnly
-		"template_admin_only_page": "This page is available only to Rakontu site administrators.",
-		# attachmentTooLarge
-		"template_attachment_too_large_error": "Whoa, that's more than I can handle!",
-		"template_the_attachment_was_too_large_and_was_not_saved": "The file you chose was too large, and Rakontu could not upload it. Please try uploading a smaller file.",
-		# attachmentWrongType
-		"template_attachment_wrong_type_error": "What's this, some kind of newfangled contraption? I can't make head or tails of it.",
-		"template_attachment_is_of_wrong_type": "This Rakontu site does not accept the type of attachment you chose. Please check the list of acceptable types on the page where you add an attachment.",
-		# notAuthorized
-		"template_role_not_adequate": "Member role not adequate to access this page",
 		# result
 		"template_or_return_to_home": "or perhaps you would like to return to the",
 		"template_home_page": "Home page",
@@ -634,11 +650,8 @@ TEMPLATE_TERMS = {
 		"template_dates": "Dates",
 		"template_first_publish": "First activity",
 		"template_join_as_a": "Join as a",
-		"template_confirm_inactivate": "Are you sure you want to INACTIVATE the Rakontu",
-		"template_confirm_activate": "Are you sure you want to ACTIVATE the Rakontu",
-		"template_confirm_remove": "Are you REALLY SURE you want to PERMANENTLY REMOVE the Rakontu",
+		"template_rakontu_access_state": "Can be accessed by",
 		"template_create_another": "Create another",
-		"template_admin_warning": "Please remove Rakontus VERY carefully. Deleted Rakontus cannot be recovered. It is best to back up first.",
 		# admin/create rakontu - step one
 		"template_create_rakontu": "Create a new Rakontu",
 		"template_step_one": "Step One",
@@ -652,6 +665,13 @@ TEMPLATE_TERMS = {
 		"template_choose_rakontu_type": "Which of these types best represents this Rakontu?",
 		"template_rakontu_owner_email": "Please enter an email address for the new Rakontu's owner. ",
 		"template_back_to_first_page": "Go back to the first page",
+		# admin/confirmRemoveRakontu
+		"template_confirm_removal_of_rakontu": "Confirm PERMANENT removal of Rakontu", # rakontu name
+		"template_removal_warning1": "Are you really, truly, ABSOLUTELY SURE you want to remove this Rakontu PERMANENTLY?",
+		"template_removal_warning2": "This action CANNOT be undone. The Rakontu and all of its content will be DELETED from the database. Forever and ever.",
+		"template_removal_warning3": "The system does not make backups automatically. Have you backed up this Rakontu?",
+		"template_removal_warning4": "(For more information about backing up Rakontu data, see your Rakontu adminstrator's guide.)",
+		"template_cancel_rakontu_removal": "Cancel removal",
 		# curate/attachments
 		"template_file_name": "File name",
 		"template_no_attachments": "There are no attachments in the data set.",
@@ -745,8 +765,13 @@ TEMPLATE_TERMS = {
 		"template_welcome_to_new": "Welcome to your new Rakontu",
 		"template_here_are_terms": "To get you started, here is a brief explanation of some important terms.",
 		"template_resources_for_new_managers": "Here are some resources that might get you started.",
-		# manage/inactivate
-		"template_or_go_back_to_settings": "or go back to the settings page",
+		# manage/setAvailability
+		"set_rakontu_availability": "Set Rakontu availability",
+		"template_current_rakontu_availability_is": "This Rakontu is currently available to",
+		"template_everyone_else_sees_this_message": "Everyone else sees this message when they attempt to access a Rakontu page",
+		"template_set_rakontu_availability_to": "Change the Rakontu's availability to",
+		"template_edit_access_message": "What message, if any, would you like members to see when they cannot access the Rakontu?",
+		"template_see_what_the_not_available_page_looks_like": "See what the not-available page looks like",
 		# manage/members
 		"template_google_email": "Google account email",
 		"template_membership_type": "Membership type",
@@ -770,6 +795,7 @@ TEMPLATE_TERMS = {
 		"template_is_of_the_type": "is of the type",
 		"template_min_max_are": "Minumum and maximum values are",
 		"template_a_positive_answer_is": "The text of a positive answer is", 
+		"template_a_negative_answer_is": "The text of a negative answer is",
 		"template_choices_are": "Choices are",
 		"template_yes_multiple_answers_allowed": "Yes, allow multiple answers",
 		"template_explanation_is": "The explanation given is", 
@@ -777,7 +803,7 @@ TEMPLATE_TERMS = {
 		# manage/questionsList
 		"template_questions_and_response_counts_about": "Responses to questions about",
 		# manage/question
-		"template_name_question_explanation": "Name, question, and explanation",
+		"template_help_on_using_this_question": "Help in using this question",
 		"template_min_max": "Minimum and maximum",
 		"template_if_value": "only applies if question is of the value type",
 		"template_if_boolean": "only applies if question is of the boolean type",
@@ -786,10 +812,14 @@ TEMPLATE_TERMS = {
 		"template_choices": "Choices",
 		"template_multiple": "multiple",
 		"template_multiple_answers_allowed": "Multiple answers allowed",
-		"template_answer_counts_by_choice": "How many responses have been recorded for each choice?",
+		"template_answer_counts_by_choice": "How many answers have been recorded for each choice?",
+		"template_answer_responses": "Collected answers",
+		"template_no_responses_to_question": "No answers have yet been collected for this question.",
+		"template_positive_response": "Positive response",
+		"template_negative_response": "Negative response",
 		# manage/hangingAnswerCounts
 		"template_fix_unlinked_answers_for_question": 'Change unlinked answer choices for question', # question name
-		"template_these_answer_choices_are_unlinked": "These choices have been removed or renamed, but answers remain in the system linked to them. If you don't change those answers to another choice, they will no longer be searchable. Select another choice to remap the existing answers.",
+		"template_these_answer_choices_are_unlinked": "These choices have been removed or renamed, but answers remain in the system linked to them. If you don't change those answers to another choice, they will no longer be filterable. Select another choice to remap the existing answers.",
 		"template_change_all_answers_with_choice": "Change all answers with the choice", # choice name
 		# manage/appearance
 		"template_visual_appearance": "Visual appearance",
@@ -883,9 +913,9 @@ TEMPLATE_TERMS = {
 		"template_link_comment": "Link comment",
 		"template_add_stories_to_the_collage": "Add stories to the collage",
 		"template_no_stories_to_add_to_collage": "No stories are available to add to this collage.",
-		"template_search_filters_referred_to_by_this_pattern": "Search filters referred to by this pattern",
-		"template_add_search_filters_to_the_pattern": "Add search filters to the pattern",
-		"template_no_shared_searches_available": "There are no shared searches available.",
+		"template_filters_referred_to_by_this_pattern": "Filters referred to by this pattern",
+		"template_add_filters_to_the_pattern": "Add filters to the pattern",
+		"template_no_shared_filters_available": "There are no shared filters available.",
 		"template_accepted_file_types": "Accepted file types",
 		"template_add_attachments_to_entry": "You can add some attachments to your", # story, etc
 		"template_change_attachments": "These attachments have been added to the", # story, etc
@@ -901,7 +931,7 @@ TEMPLATE_TERMS = {
 		"template_what_name_for_attachment": "What name would you like to use to refer to the attachment?",
 		"template_click_browse_to_choose_file": "Click the Browse button to choose a file to upload.",
 		# visit/filter
-		"template_filter_name_and_comment": "Search filter name and comment",
+		"template_filter_name_and_comment": "Filter name and comment",
 		"template_filter_should_be_shared": "Should this filter be shared?",
 		"template_keep_filter_private": "No, keep it private",
 		"template_share_filter": "Yes, share it",
@@ -912,7 +942,7 @@ TEMPLATE_TERMS = {
 		"template_of_these_answers_to_questions_about_entries": "of these answers to questions about entries",
 		"template_of_these_answers_to_questions_about_creators_of_entries": "of these answers about creators of entries",
 		# visit/filters
-		"template_saved_search_filters": "Saved search filters",
+		"template_saved_filters": "Saved filters",
 		"template_apply_to_home_page": "Apply to home page",
 		"template_questions_about_entries": "Questions about entries",
 		"template_questions_about_members_or_characters": "Questions about members or characters",
@@ -944,8 +974,8 @@ TEMPLATE_TERMS = {
 		"template_other_options": "Other options",
 		"template_nudge_floor": "Hide items nudged below",
 		# visit/home_grid
-		"template_no_search_results_header": "No search results",
-		"template_no_search_results_message": "The applied search filter resulted in no entries being shown. To see entries in this space, either stop applying the search or change it so that some entries meet the search criteria.",
+		"template_no_filter_results_header": "No filter results",
+		"template_no_filter_results_message": "The applied filter resulted in no entries being shown. To see entries in this space, either stop applying the filter or change it so that some entries meet the filter criteria.",
 		"template_no_matches_header": "No matching entries",
 		"template_no_match_for_selections": "No entries match the current selections.",
 		"template_empty_rakontu_header": "Nothing here yet!",
@@ -1048,6 +1078,7 @@ TEMPLATE_TERMS = {
 		"template_change_editors": "Change who can edit this", # story, etc
 		"template_counts_of_annotations_to": "Counts of annotations to", # entry title
 		"template_shift_by": "Admin only: Shift times by", # this is for admin only, to prepare demos mainly
+		"template_activity_points": "Activity points",
 		# visit/readAnnotation
 		"template_request_type": "Request type",
 		"template_completion_status": "Status",
@@ -1084,13 +1115,12 @@ TEMPLATE_BUTTONS = {
 		"button_visit": "Visit",
 		# admin
 		"button_join": "Join",
+		"button_switch": "Switch",
 		"button_leave": "Leave",
-		"button_activate": "Activate",
-		"button_inactivate": "Inactivate",
 		"button_remove": "Remove",
 		"button_enter_short_name": "Enter Short Name",
 		"button_create_rakontu": "Create the New Rakontu",
-		"button_inactivate_shorter": "Inactivate",
+		"button_confirm_removal": "Permanently Remove Rakontu",
 		# curate
 		"button_make_selected_changes": "Make selected changes",
 		"button_send_selected_notifications": "Unflag items and send selected notifications",
@@ -1131,21 +1161,24 @@ TEMPLATE_BUTTONS = {
 		"button_publish": "Publish",
 		"button_remove_selected_drafts": "Remove selected drafts and versions",
 		"button_save_and_apply": "Save and apply",
-		"button_save_as_new_search_and_apply": "Save as new search and apply",
+		"button_save_and_apply_to_member": "Save and apply to member page",
+		"button_save_and_apply_to_character": "Save and apply to character page",
+		"button_save_and_apply_to_home_page": "Save and apply to home page",
+		"button_save_as_new_filter_and_apply_to_member": "Save as new copy and apply to member page",
+		"button_save_as_new_filter_and_apply_to_character": "Save as new copy and apply to character page",
+		"button_save_as_new_filter_and_apply_to_home_page": "Save as new copy and apply to home page",
 		"button_curate": "Curate",
 		"button_stop_curating": "Stop curating",
 		"button_flag": "Flag",
 		"button_unflag": "Unflag",
 		"button_delete": "Delete",
-		"button_remove_selected_searches": "Remove selected search filters",
+		"button_remove_selected_filters": "Remove selected filters",
 		"button_send_question": "Send question",
 		"button_compose_message": "Compose message to selected members",
 		"button_send_message": "Send message",
 		"button_send_messages": "Send message to selected members",
 		"button_send_invitation": "Send invitation",
 		"button_refresh": "Refresh",
-		"button_move_choices_to_bottom": "Move Choices to Bottom",
-		"button_move_choices_to_top": "Move Choices to Top",
 		"button_stop_applying": "Stop applying",
 		"button_make_copy": "Make a copy",
 		"button_create_another": "Make another",
@@ -1209,6 +1242,7 @@ TEMPLATE_MENUS = {
 		"menu_questions": "Questions",
 		"menu_characters": "Characters",
 		"menu_export": "Export",
+		"menu_set_availability": "Availability",
 		# review
 		"menu_my_stuff": "My stuff",
 		"menu_profile": "Profile",
@@ -1271,9 +1305,7 @@ RESULTS = {
 		"helpNotFound": ("helpNotFound", "No help message was found for that item. You may want to let your site administrator know there is a problem."),
 
 		"noEntriesToRelate": ("noEntriesToRelate", "There are no entries of the selected type to which this entry can be related."),
-		"noSearchResultForPrinting": ("noSearchResultForPrinting", "There is no search filter result to print. You need to apply a search filter then come back to the print page."),
 		"noQuestionsToExport": ("noQuestionsToExport", " are no questions of that type to export."),
-		"noSearchResultForExport": ("noSearchResultForExport", "There is no search filter result to export. You need to apply a search filter then come back to the export page."),
 
 		"attachmentsTooLarge": ("attachmentsTooLarge", "At least one of the attachment(s) you chose are too large. The entry was saved but (at least some of) the attachments were not."),
 		"offlineMemberAlreadyAnsweredQuestions": ("offlineMemberAlreadyAnsweredQuestions", "That off-line member has already answered questions about this entry."),
@@ -1320,7 +1352,7 @@ BLURBS = {
 	<p>
 	The most important thing you do in a Rakontu is, of course, is <b>tell stories</b>. 
 	But you can do other things as well: <b>invite</b> other people to tell stories about
-	particular subjects; <b>search</b> for stories and find <b>patterns</b> in them;
+	particular subjects; <b>filter</b> for stories and find <b>patterns</b> in them;
 	build story <b>collages</b>; and make <b>comments</b> and other annotations 
 	to the stories you read.
 	</p>
@@ -1357,7 +1389,7 @@ BLURBS = {
 	But there are four other types of <b>entry</b> as well: <b>invitations</b> to tell stories,
 	story <b>collages</b>, <b>patterns</b> people have observed in the stories, and <b>resources</b> that help
 	people remember and understand.
-	All of these things can be commented on, given descriptive tags, rated, asked questions about, and searched. 
+	All of these things can be commented on, given descriptive tags, rated, asked questions about, and filtered. 
 	</p>
 	<hr>
 	<p>Many of the people in your Rakontu will participate as regular members.
@@ -1381,19 +1413,12 @@ BLURBS = {
 	to read a bit of help about the area in which they appear.
 	<i>If you do not see any icons below, your site administrator has not yet generated the help system. Contact them for help.</i></p>
 	""",
-"inactivate": 
-	"""
-	<h2>Are you sure?</h2>
-	<p>Are you <b>absolutely, completely, really, totally certain</b> that you want to inactivate this Rakontu?</p>
-	<p>If you do, you will have to ask your site administrator if you want to either reinstate the Rakontu or
-	remove its content.</p>
-	""",
 "no_filters":
 	"""
-	<h2>No saved search filters</h2>
-	<p>You have no saved search filters. Filters are search selections that reduce the items showing in the timelines on the 
+	<h2>No saved filters</h2>
+	<p>You have no saved filters. Filters are selections that reduce the items showing in the timelines on the 
 	home page or on member or character pages. For example, you might want to see only items with the word "planning" in them, or 
-	whose answer to the question "Why was this story told?" is "to persuade." To create a search filter, go to the home 
+	whose answer to the question "Why was this story told?" is "to persuade." To create a filter, go to the home 
 	page (Visit-Home page) and click "Make new filter" in the options shown.</p>
 	""",
 "no_drafts":
@@ -1463,7 +1488,7 @@ TITLES = {
         "MANAGE_CHARACTERS": "Manage characters",
         "MANAGE_CHARACTER": "Manage character", # character name
         "EXPORT_DATA": "Export data" ,
-        "INACTIVATE": "Inactivate",
+        "SET_RAKONTU_AVAILABILITY": "Set availability of", # rakontu name
         "HELP": "Help",
         "HOME": "Home",
         "ABOUT": "About",
@@ -1477,15 +1502,18 @@ TITLES = {
         "DRAFTS_FOR": "Drafts for", # member nickname
         "SEND_MESSAGE": "Send message",
         "LEAVE_RAKONTU": "Leave" ,
-        "SEARCH_FILTER": "Search filter",
+        "SEARCH_FILTER": "Filter",
         "MESSAGE_TO_USER": "Message", # (on page that tells user something is completed or something is wrong)
         "HELP_ON": "Help on", # help topic
         "INITIALIZE_SITE": "Initialize site",
+        "CONFIRM_REMOVE_RAKONTU": "Confirm removal of", # rakontu name
         "ERROR": "Error",
         "URL_NOT_FOUND": "URL not found",
         "DATABASE_ERROR": "Google database temporarily unreachable",
-        "NOT_AUTHORIZED": "Required role missing",
-        "NO_RAKONTU_AND_MEMBER": "Rakontu and member not found",
+        "ROLE_NOT_FOUND": "Required role missing",
+        "NO_RAKONTU": "Rakontu not found",
+		"NO_MEMBER": "Rakontu member not found",
+		"RAKONTU_NOT_AVAILABLE": "Rakontu temporarily unavailable",
         "MANAGERS_ONLY": "For managers only",
         "OWNERS_ONLY": "For Rakontu owners only",
         "ADMIN_ONLY": "For site administrators only",
@@ -1530,7 +1558,7 @@ URLS = {
     "url_answers": "answers", 
     "url_profile": "profile",
     "url_preferences": "preferences",
-    "url_search_filter": "filter",
+    "url_filter": "filter",
     "url_member": "member",
     "url_ask": "ask",
     "url_rakontu": "rakontu",
@@ -1552,7 +1580,7 @@ URLS = {
     "url_batch": "batch",
     "url_copy_resources": "copySystemResourcesToRakontu",
 	# liaise
-    "url_print_search": "printSearch",
+    "url_print_filter": "printFilteredItems",
     "url_print_entry": "printEntryAndAnnotations",
     "url_print_member": "printMemberContributions",
     "url_print_character": "printCharacterContributions",
@@ -1576,9 +1604,10 @@ URLS = {
     "url_character": "character",
     "url_appearance": "appearance",
     "url_settings": "settings",
-    "url_export_search": "exportSearch",
+    "url_export_filter": "exportFilteredItems",
     "url_inactivate": "inactivate",
     "url_invitation_message": "invitation_message",
+    "url_availability": "availability",
 	# admin 
 	"url_create1": "create1",
 	"url_create2": "create2",
@@ -1588,6 +1617,7 @@ URLS = {
     "url_default_resources": "defaultResources",
     "url_helps": "helps",
     "url_skins": "skins",
+    "url_confirm_remove_rakontu": "confirmRemoval",
     # testing
     "url_make_fake_data": "makeFakeData",
     "url_stress_test": "stressTest",
@@ -1597,9 +1627,11 @@ URLS = {
     "url_image": "img",
     "url_attachment": "attachment",
     # errors
-    "url_not_found": "notFound",
-    "url_not_authorized": "notAuthorized",
-    "url_no_rakontu_and_member": "noRakontuAndMember",
+    "url_not_found": "urlNotFound",
+    "url_role_not_found": "roleNotFound",
+    "url_no_member": "memberNotFound",
+    "url_no_rakontu": "rakontuNotFound",
+    "url_rakontu_not_available": "notAvailable",
     "url_managers_only": "managersOnly",
     "url_owners_only": "ownersOnly",
     "url_admin_only": "adminOnly",
@@ -1626,7 +1658,7 @@ URL_IDS = {
 	"url_query_version": "version",
 	"url_query_member": "member",
 	"url_query_character": "character",
-	"url_query_search_filter": "filter",
+	"url_query_filter": "filter",
 	"url_query_attachment": "attachment",
 	"url_query_export_csv": "csv",
 	"url_query_export_txt": "txt",

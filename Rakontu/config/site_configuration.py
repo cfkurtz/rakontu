@@ -1,7 +1,7 @@
 # ============================================================================================ 
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: pre-0.1
+# Version: beta (0.9+)
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/ 
 # ============================================================================================ 
@@ -140,7 +140,7 @@ BROWSE_NUM_COLS = 7
 # This is the default value for what causes an entry to disappear because it has been nudged too low.
 DEFAULT_NUDGE_FLOOR = -10
 
-# This is how many of things you can search for of each type (texts, tags, answers)
+# This is how many of things you can filter for of each type (texts, tags, answers)
 NUM_SEARCH_FIELDS = 3 
 
 # ============================================================================================ 

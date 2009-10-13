@@ -70,76 +70,76 @@
 			</td></tr>
 		{% endif %}
 		
-		{% if include_search %}
-			<tr><th align="right">{{template_search_filter}}</th><td>
-			{% if shared_searches or member_searches %}
-					{% if current_search %}
-						{{current_search.displayString}}
+		{% if include_filter %}
+			<tr><th align="right">{{template_filters}}</th><td>
+			{% if shared_filters or member_filters %}
+					{% if current_filter %}
+						{{current_filter.displayString}}
 					{% else %}
-						<select name="savedSearch"><option>({{term_choose}})</option>
-						{% if member_searches %}
+						<select name="savedFilter"><option>({{term_choose}})</option>
+						{% if member_filters %}
 							<option value="">-- {{template_my_filters}} --</option>
-							{% for search in member_searches %}
-								<option value="{{search.key}}">{{search.displayString}}</option>
+							{% for filter in member_filters %}
+								<option value="{{filter.key}}">{{filter.displayString}}</option>
 							{% endfor %}
 						{% endif %}
-						{% if shared_searches %}
+						{% if shared_filters %}
 							<option value="">-- {{template_shared_filters}} --</option>
-							{% for search in shared_searches %}
-								<option value="{{search.key}}">{{search.displayString}}</option>
+							{% for filter in shared_filters %}
+								<option value="{{filter.key}}">{{filter.displayString}}</option>
 							{% endfor %}
 						{% endif %}
 						</select>
 					{% endif %}
-				{% if current_search %}
-					<input type="submit" name="stopApplyingSearch" value="{{button_stop_applying}}" class="button_small"
+				{% if current_filter %}
+					<input type="submit" name="stopApplyingFilter" value="{{button_stop_applying}}" class="button_small"
 					{% if current_member.showButtonTooltips %}
-						title="{{"stop_applying_search_filter"|buttonTooltip}}"
+						title="{{"stop_applying_filter"|buttonTooltip}}"
 					{% endif %}
 					>
-					{% ifnotequal current_member.key current_search.creator.key %}
-						<input type="submit" name="copySearch" value="{{button_make_copy}}" class="button_small"
+					{% ifnotequal current_member.key current_filter.creator.key %}
+						<input type="submit" name="copyFilter" value="{{button_make_copy}}" class="button_small"
 						{% if current_member.showButtonTooltips %}
-							title="{{"make_copy_of_search_filter"|buttonTooltip}}"
+							title="{{"make_copy_of_filter"|buttonTooltip}}"
 						{% endif %}
 						>
 					{% else %}
-						<input type="submit" name="changeSearch" value="{{button_change}}" class="button_small"
+						<input type="submit" name="changeFilter" value="{{button_change}}" class="button_small"
 						{% if current_member.showButtonTooltips %}
-							title="{{"change_search_filter"|buttonTooltip}}"
+							title="{{"change_filter"|buttonTooltip}}"
 						{% endif %}
 						>
 					{% endifnotequal %}
-					<input type="submit" name="makeNewSavedSearch" value="{{button_make_new_filter}}" class="button_small"
+					<input type="submit" name="makeNewFilter" value="{{button_make_new_filter}}" class="button_small"
 						{% if current_member.showButtonTooltips %}
-							title="{{"make_new_search_filter"|buttonTooltip}}"
+							title="{{"make_new_filter"|buttonTooltip}}"
 						{% endif %}
 					>
 				{% else %}
-					<input type="submit" name="loadAndApplySavedSearch" value="{{button_apply}}" class="button_small"
+					<input type="submit" name="loadAndApplyFilter" value="{{button_apply}}" class="button_small"
 						{% if current_member.showButtonTooltips %}
-							title="{{"apply_search_filter"|buttonTooltip}}"
+							title="{{"apply_filter"|buttonTooltip}}"
 						{% endif %}
 					>
-					<input type="submit" name="makeNewSavedSearch" value="{{button_make_new_filter}}" class="button_small"
+					<input type="submit" name="makeNewFilter" value="{{button_make_new_filter}}" class="button_small"
 						{% if current_member.showButtonTooltips %}
-							title="{{"make_new_search_filter"|buttonTooltip}}"
+							title="{{"make_new_filter"|buttonTooltip}}"
 						{% endif %}
 					>
 				{% endif %}	
 			{% else %}
-				{{template_search_filters}} - {{template_none}}
-				<input type="submit" name="makeNewSavedSearch" value="{{button_make_new_filter}}" class="button_small"
+				{{template_filters}} - {{template_none}}
+				<input type="submit" name="makeNewFilter" value="{{button_make_new_filter}}" class="button_small"
 						{% if current_member.showButtonTooltips %}
-							title="{{"make_new_search_filter"|buttonTooltip}}"
+							title="{{"make_new_filter"|buttonTooltip}}"
 						{% endif %}
 				>
 			{% endif %}
 			{% ifequal location "member" %}
-				{{"searching_for_entries_by_members_or_characters"|tip}}
+				{{"filtering_for_entries_by_members_or_characters"|tip}}
 			{% endifequal %}
 			{% ifequal location "character" %}
-				{{"searching_for_entries_by_members_or_characters"|tip}}
+				{{"filtering_for_entries_by_members_or_characters"|tip}}
 			{% endifequal %}
 			</td></tr>
 		{% endif %}
@@ -195,7 +195,7 @@
 			{% endif %}
 	
 			{% if include_print and current_member.isLiaison %}
-				<input type="submit" name="printSearchResults" value="{{button_print_selection}}" class="button_small"
+				<input type="submit" name="printFilteredItems" value="{{button_print_selection}}" class="button_small"
 						{% if current_member.showButtonTooltips %}
 							title="{{"printing_selections"|buttonTooltip}}"
 						{% endif %}
@@ -203,7 +203,7 @@
 			{% endif %}
 			
 			{% if include_export and current_member.isManagerOrOwner %}
-				<input type="submit" name="exportSearchResults" value="{{button_export_selection}}" class="button_small"
+				<input type="submit" name="exportFilteredItems" value="{{button_export_selection}}" class="button_small"
 						{% if current_member.showButtonTooltips %}
 							title="{{"exporting_selections"|buttonTooltip}}"
 						{% endif %}

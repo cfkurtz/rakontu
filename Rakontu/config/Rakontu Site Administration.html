@@ -5,29 +5,188 @@
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
 	<title>Rakontu Site Administration</title>
 	<meta name="generator" content="BBEdit 9.1">
+	<style type="text/css">
+	  code {
+	    background-color: #CCCCCC;
+	    padding: 2px 2px 2px 2px;
+	    }
+	  </style>
 </head>
 <body>
 
 <h3>Installing Rakontu</h3>
 
 See the instructions on <a href="http://www.rakontu.org/install.html">rakontu.org</a> for installation.
-Those are the most up to date.
+Those are the most up to date. This guide assumes you have already installed Rakontu.
 
-<h3>Customizing your installation</h3>
+<h3>Looking at the directories and files</h3>
 
-<p>There are a few steps that you MUST do when starting up a Rakontu site. After the software is installed,</p>
+<p>Once you've got the Rakontu source code, take a look at the directories and files. The structure is like this. I've marked things 
+with a color code, thus:
 
-<ol>
-<li>Change the SITE_SUPPORT_EMAIL address in site_configuration.py. This MUST be the email address associated 
-with the Google account of one of the administrators of the application. If it isn't, you won't be
-able to get error emails from the Rakontu. If you don't want to list your personal email
-here, create a Google account with a separate email you use only for this purpose.</li>
-</ol>
+<ul>
+<li><code><font color="green">Green</font></code> means it's easiest to change and many sites will want to customize it.</li>
+<li><code><font color="orange">Orange</font></code> means it's medium-hard to change and few sites will want to customize it.</li>
+<li><code><font color="red">Red</font></code> means don't mess with it! unless you know Python/django/Google App Engine.</li>
+</ul>
 
+<ul>
+<li>directory: <code><font color="green">Rakontu</font></code>
+	<ul>
+	<li>directory: <code><font color="green">config</font></code>. IMPORTANT if you want to change anything about your site.
+		<ul>
+		<li>directory: <code><font color="green">english</font></code>. (Or another language directory if you want to use/create that.)
+			<ul>
+			<li>file: <code><font color="green">default_characters.csv</font></code>. Determines what characters are created 
+				when a new Rakontu is created. 
+				</li>
+			<li>file: <code><font color="green">default_questions.csv</font></code>. Determines what questions appear in a new Rakontu.</li>
+			<li>file: <code><font color="green">sample_questions.csv</font></code>. Appear on question-management screens where people can copy them to use.
+				</li>
+			<li>file: <code><font color="green">default_resources.txt</font></code>. Sets up the help resources that appear when a user
+				clicks on "Help".
+				</li>
+			<li>file: <code><font color="green">help.csv</font></code>. Controls the little icons with tooltip messages that 
+				explain things all through the Rakontu site.</li>
+			<li>file: <code><font color="green">skins.csv</font></code>. Determines what skins (font and color themes)
+				are available to Rakontus on the site. You can change these and add new skins for your site.</li>
+			<li>file: <code><font color="orange">language_config.py</font></code>. Where ALL of the texts that display on the site
+				are found. The source code and templates all refer to 
+				constants found here. You can translate this file, or you can just change
+				any of the texts here if they suit your site better. (E.g., you might add more explanation
+				in some places where you find people get confused.)</li>
+			</ul>
+		<li>directory: <code><font color="green">images</font></code>. Image files referred to by the <code>default_characters.csv</code> file.</li>
+		<li>file: <code><font color="orange">site_configuration.py</font></code>. Contains constants that determine the
+			behavior of your Rakontu site.</li>
+		</ul>
+	<li>directory: <code><font color="green">utilities</font></code>. This contains the backup and restore utilities
+		as well as a utility for checking your template files.</li>
+	<li>files: <code><font color="red">*.py</font></code>. Python source code. Ignore if you don't want to change the program.</li>
+	<li>directory: <code><font color="red">images</font></code>. These are the main image files used by Rakontu to show all of its
+		error messages and icons.</li>
+	<li>directory: <code><font color="red">javascript</font></code>. At the moment this contains only one file which is used to make
+		the top menus work in old versions of IE.</li>
+	<li>directory: <code><font color="red">pytz</font></code>. The python time zone library, with zipped time zone information.</li>
+	<li>directory: <code><font color="red">stylesheets</font></code>. Only one, base.css. Determines how Rakontu looks.</li>
+	<li>directory: <code><font color="red">templates</font></code>. LOTS of files here, essentially one per Rakontu screen.
+		Much of the code logic is in these files, which use the django templating system.</li>
+	</ul>
+</ul>	
 
+<h3>Backing up your Rakontu site</h3>
 
+<p>Even though Google backs up your data, it is a good idea to back up your data yourself as well.
+The way to do this is to use the <code>backup.py</code> script in the <code>utilities</code>
+directory in your Rakontu installation. Here's how to run it.</p>
+<ul>
+<li>First, find the file <code>backup_config.py</code> in the same directory where <code>backup.py</code> is found.</li>
+<li>Open <code>backup_config.py</code> in a code editor or plain-text editor.
+Change the settings there to match your installation.</li>
+<li>Open a terminal window.</li>
+<li>Change the directory (cd) to the directory where the <code>backup.py</code> script is found.</li>
+<li>Type <code>python backup.py</code>.</li>
+<li>The script should put XML files in directories for each Rakontu on your site.
+Note: These files are not encrypted, so make sure the people in the Rakontus on your site know
+that you can see ALL of their data, though it is in an ugly format.</li>
+</ul>
 
+<h3>Restoring data to your Rakontu site</h3>
 
+<p>If for some reason your Rakontu site gets ruined, you can restore from backed-up XML files.
+(You backed it up, right?) To do this, use the <code>restore.py</code> script in the <code>utilities</code>
+directory in your Rakontu installation.</p>
+
+<p>The <code>restore.py</code> script does only a <i>conservative</i> restore, meaning that it will not
+overwrite any object with the same key name identifier. If the Rakontu you want to restore is
+on the site (but say riddled with spam or something), you MUST remove it before you can restore
+a saved copy of it.</p>
+
+<p>This no-overwrites rule goes for EVERY object in the Rakontu. This means that you can restore
+only one object, because all the rest will not be touched.</p>
+
+<p>To restore a Rakontu, or any part of it, follow these steps.</p>
+<ul>
+<li>First, find the file <code>restore_config.py</code> in the same directory where <code>restore.py</code> is found.</li>
+<li>Open <code>restore_config.py</code> in a code editor or plain-text editor.
+Change the settings there to match your installation.</li>
+<li>Open a terminal window.</li>
+<li>Change the directory (cd) to the directory where the <code>restore.py</code> script is found.</li>
+<li>Type <code>python restore.py</code> followed by the name of the file you want to restore from. 
+The file HAS to be in a directory under the one specified as <code>RESTORE_DIR</code>
+in <code>restore_config.py</code>. 
+</li>
+<li>The restore script retries all database connections three times, but if there are 
+</ul>
+
+<h3>Transferring Rakontus to another Rakontu site</h3>
+
+<h3>Changing particular configuration files</h3>
+
+<p>Here is information about changing each file in the config directory.</p>
+
+<h4>default_characters.csv</h4>
+
+<p>Characters (one per line) are defined simply in this file. The columns are:</p>
+	<ul>
+	<li>name</li>
+	<li>description - interpreted as plain text</li>
+	<li>etiquette statement - interpreted as plain text</li>
+	<li>picture file name - put the image in the config/images directory</li>
+	</ul>
+<p>If you don't want any characters to be created by default, simply remove or rename this file.</p>
+
+<h4>default_questions.csv</h4>
+
+<p>The columns that determine a question (one per line) are as follows.</p>
+	<ul>
+	<li>refersTo - one OR MORE of member, character, story, pattern, collage, invitation, resource; use commas if specifying more than one</li>
+	<li>name - the short name displayed in filters and when "show details" is off</li>
+	<li>text - the question itself (should end with a ?) displayed when "show details" is on</li>
+	<li>type - must be ONE of ordinal, nominal, text, boolean, or value</li>
+	<li>the meaning of the next column depends on the question type, thus:
+		<ul>
+		<li>if the type is ordinal or nominal, this is a comma-delimited list of choices (e.g., happy, sad, calm) (note, don't put commas in the choices!)</li>
+		<li>if the type is value, this is the minimum - dash - maximum (e.g., 1-20)</li>
+		<li>if the type is boolean this is the "yes" text, a pipe (|), and then the "no" text (e.g, Okay why not|No way!) (these can have commas)</li>
+		</ul>
+	</li>
+	<li>multiple - whether, if the type is ordinal or nominal, the user can check more than one</li>
+	<li>help - this appears in italics just after the question proper and is used to give more explanation of it</li>
+	<li>useHelp - this is to communicate with other managers about the situations in which a question is useful. It appears
+		in the screen where one is managing the question. Regular members do not see it. You may want to use
+		this area if you are sharing questions with other managers.</li>
+	<li>Rakontu types - This connects to the Rakontu types in site_configuration.py and determines
+		which Rakontus get which questions. If a question should be used in more than one, separate them
+		with commas. If the question should be used in ALL Rakontu types, leave this column blank.</li>
+	</ul>
+
+<h3>About editing CSV files in general</h3>
+
+<p>Several of the options for Rakontu are in CSV files. A few hints about editing these:</p>
+<ul>
+<li>A semicolon at the very start of the first cell in the row will mean that the row contains
+comments and should be ignored.</li>
+<li>Blank lines are ignored.</li>
+<li>Don't put double quotes in cells. Use single quotes instead.</li>
+<li>The top line of each CSV file tells you what to put in each column, and whether you can change it.
+Some things MUST link up to the same texts in the source code or templates, so don't change those.</li>
+
+</ul>
+
+<h3>About changing template files</h3>
+
+<p>You can change the files in the "templates" directory to customize how your Rakontu looks and works.
+However, follow a few guidelines:
+<ul>
+<li>There is <b>no raw text allowed</b> in the template files.
+This allows a person to translate ONLY the constants in language_config.py, and not mess with the
+template files, to translate Rakontu. If you make changes to template files and contribute them
+to Rakontu, PLEASE keep raw texts out of them. A way to check that you have no raw text there
+is to run the <code>showTranslationStringsInTemplates.py</code> script. It will generate a file called 
+"Template texts.txt" which shows you where all the raw strings (texts) are in the templates.
+</li>
+<li>
 
 
 </body>

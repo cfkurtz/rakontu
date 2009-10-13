@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------------------------
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: pre-0.1
+# Version: beta (0.9+)
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
@@ -104,7 +104,7 @@ def main():
 					for tag in tags:
 						text = text.replace("{#%s#}" % tag, SHOWCOMMENTSTATEMENT)
 						
-					# special search for button names (which are inside html tags)
+					# special filter for button names (which are inside html tags)
 					buttonNameExpression = re.compile(r'<input type="submit" name="(.+?)" value="(.+?)"', re.DOTALL)
 					namesAndValues = buttonNameExpression.findall(text)
 					for name, value in namesAndValues:

@@ -1,0 +1,29 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
+			<title>
+			{% if title %}{{title}}{% endif %}
+			{% if title_extra %} {{title_extra}}{% endif %}
+			- Rakontu</title>
+	</head>
+	<body>
+	
+		<div id="rakontu_form_style" class="rakontu_form_centered">
+		<form action="/{{dir_admin}}/{{url_confirm_remove_rakontu}}?{{rakontu.urlQuery}}" method="post"> 
+		<table border="0" width="400" class="noborder"><tr><td class="noborder">
+			<h3>{{template_confirm_removal_of_rakontu}}: <br>&nbsp; &nbsp; <br>&nbsp; &nbsp; {{rakontu.name}} ({{rakontu.id}})</h3>
+			
+			<p>{{template_removal_warning1}}</p>
+			<p>{{template_removal_warning2}}</p>
+			<p>{{template_removal_warning3}}</p>
+			<p>{{template_removal_warning4}}</p>
+			
+			<p><a href="/{{dir_admin}}/{{url_admin}}">{{template_cancel_rakontu_removal}}</a></p>
+					
+			<p>&nbsp;</p>
+			<center><input type="submit" name="removeRakontu" value="{{button_confirm_removal}}" class="button"></center>
+		</td></tr></table>
+		</form>
+		</div>
+	</body>
+</html>

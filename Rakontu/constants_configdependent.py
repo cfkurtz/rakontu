@@ -1,7 +1,7 @@
 # ============================================================================================
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: pre-0.1
+# Version: beta (0.9+)
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # ============================================================================================
@@ -15,6 +15,9 @@ DEFAULT_CHARACTERS_FILE_NAME = "config/%s/default_characters.csv" % SITE_LANGUAG
 DEFAULT_RESOURCES_FILE_NAME = "config/%s/default_resources.txt" % SITE_LANGUAGE
 HELP_FILE_NAME = "config/%s/help.csv" % SITE_LANGUAGE
 SKINS_FILE_NAME = "config/%s/skins.csv" % SITE_LANGUAGE
+
+# rakontus
+RAKONTU_ACCESS_STATES = ["all", "managers", "owners", "administrators"]
 
 # members
 HELPING_ROLE_TYPES = ["curator", "guide", "liaison"]
@@ -57,7 +60,7 @@ QUESTION_REFERS_TO = ["story", "pattern", "collage", "invitation", "resource", "
 QUESTION_REFERS_TO_PLURAL = ["stories", "patterns", "collages", "invitations", "resources", "members", "characters"]
 QUESTION_TYPES = ["boolean", "text", "ordinal", "nominal", "value"]
 
-# search filters
+# filters
 ANY_ALL = ["any", "all"]
 SEARCH_LOCATIONS = ["in the title", "in the text", "in a comment", "in a request", "in a nudge comment", "in a link comment"]
 ANSWER_COMPARISON_TYPES = ["contains", "is", "is greater than", "is less than"]

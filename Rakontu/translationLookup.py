@@ -1,17 +1,29 @@
 # --------------------------------------------------------------------------------------------
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: pre-0.1
+# Version: beta (0.9+)
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
 
 import sys
- 
+from pytz import timezone
+
 from constants_base import *
 sys.path.insert(0,'config') 
 from site_configuration import *
 from constants_configdependent import *
+from google.appengine.api import memcache
+
+def getTimeZone(timeZoneName):
+	try:
+		timeZone = memcache.get("tz:%s" % timeZoneName)
+	except:
+		timeZone = None
+	if timeZone is None:
+		timeZone = timezone(timeZoneName)
+		memcache.add("tz:%s" % timeZoneName, timeZone, DAY_SECONDS)
+	return timeZone
 
 def BuildURL(dir=None, page=None, query=None, extraSlash=False, rakontu=None):
 	if dir:
@@ -87,17 +99,19 @@ def DatabaseErrorURL(rakontu=None):
 	else:
 		return "/%s" % URLS["url_database_error"]
 	
-def NotAuthorizedURL(role, rakontu=None):
+def RoleNotFoundURL(role, rakontu=None):
 	if rakontu:
-		return "/%s?%s&%s=%s" % (URLS["url_not_authorized"], rakontu.urlQuery(), URL_OPTIONS["url_query_role"], role)
+		return "/%s?%s&%s=%s" % (URLS["url_role_not_found"], rakontu.urlQuery(), URL_OPTIONS["url_query_role"], role)
 	else:
-		return "/%s?%s=%s" % (URLS["url_not_authorized"], URL_OPTIONS["url_query_role"], role)
+		return "/%s?%s=%s" % (URLS["url_role_not_found"], URL_OPTIONS["url_query_role"], role)
 	
-def NoRakontuAndMemberURL(rakontu=None):
-	if rakontu:
-		return "/%s?%s" % (URLS["url_no_rakontu_and_member"], rakontu.urlQuery())
-	else:
-		return "/%s" % URLS["url_no_rakontu_and_member"]
+def NoAccessURL(rakontu=None, member=None, admin=False):
+	if rakontu is None:
+		return "/%s" % (URLS["url_no_rakontu"])
+	elif member is None:
+		return "/%s?%s" % (URLS["url_no_member"], rakontu.urlQuery())
+	elif not rakontu.memberCanAccessMe(member, admin):
+		return "/%s?%s" % (URLS["url_rakontu_not_available"], rakontu.urlQuery())
 	
 def ManagersOnlyURL(rakontu=None):
 	if rakontu:
@@ -110,6 +124,14 @@ def OwnersOnlyURL(rakontu):
 
 def AdminOnlyURL():
 	return "/%s" % URLS["url_admin_only"]
+
+def DisplayStateForRakontuAccessState(state):
+	i = 0 
+	for aState in RAKONTU_ACCESS_STATES:
+		if aState == state:
+			return RAKONTU_ACCESS_STATES_DISPLAY[i]
+		i += 1
+	raise Exception("No translation for Rakontu access state %s" % state)
 	
 def DisplayTypeForEntryType(type):
 	i = 0 
@@ -205,7 +227,7 @@ def stringBeyond(aString, aDelimiter):
     elif delimiterPos == len(aString) - 1:
         result = ""
     else:
-        result = aString[delimiterPos + 1:]
+        result = aString[delimiterPos + len(aDelimiter):]
     return result
 
 def stringBetween(startString, endString, wholeString):

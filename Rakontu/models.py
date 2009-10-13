@@ -1,7 +1,7 @@
 ﻿# ============================================================================================
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: pre-0.1
+# Version: beta (0.9+)
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # ============================================================================================
@@ -9,7 +9,6 @@
 import logging, pytz, re, csv, uuid, random
 from datetime import *
 from pytz import timezone
-from google.appengine.api import memcache
 
 VERSION_NUMBER = "0.9"
 
@@ -18,68 +17,96 @@ from translationLookup import *
 from google.appengine.ext import db
 import pager
 
-def GenerateSequentialKeyName(type):
-	IncrementCount(type)
-	return "%s%s" % (type, GetShardCount(type))
+# ============================================================================================
+# COUNTER SHARD FUNCTIONS
+# ============================================================================================
 
-def GetShardCount(type):
+def GenerateSequentialKeyName(type, rakontu=None, amount=1):
+	IncrementCount(type, rakontu, amount)
+	count = GetShardCount(type, rakontu)
+	if rakontu:
+		keyName = "%s_%s_%s" % (rakontu.key().name(), type, count)
+	else:
+		keyName = "system_%s_%s" % (type, count)
+	return keyName
+
+def GetShardCount(type, rakontu=None):
 	result = 0
-	for counter in CounterShard.all().filter("type = ", type).fetch(FETCH_NUMBER):
+	if rakontu:
+		rakontuKey = rakontu.key()
+	else:
+		rakontuKey = None
+	for counter in CounterShard.all().filter("rakontu = ", rakontuKey).filter("type = ", type).fetch(FETCH_NUMBER):
 		result += counter.count
 	return result
 
-def IncrementCount(type):
-	config = CounterShardConfiguration.get_or_insert(type, type=type)
-	def transaction():
+def IncrementCount(type, rakontu=None, amount=1):
+	if rakontu:
+		configKeyName = "%s_countershardconfig_%s" % (rakontu.key().name(), type)
+		numShards = 10
+	else:
+		configKeyName = "system_countershardconfig_%s" % type
+		numShards = 20
+	config = CounterShardConfiguration.get_or_insert(key_name=configKeyName, rakontu=rakontu, type=type, numShards=numShards)
+	def txn(config):
 		i = random.randint(0, config.numShards - 1)
-		shardKeyName = type + str(i)
+		if rakontu:
+			shardKeyName = "%s_countershard_%s_%s" % (rakontu.key().name(), type, i)
+		else:
+			shardKeyName = "system_countershard_%s_%s" % (type, i)
 		counter = CounterShard.get_by_key_name(shardKeyName)
 		if not counter:
-			counter = CounterShard(key_name=shardKeyName, type=type)
-		counter.count += 1
+			counter = CounterShard(key_name=shardKeyName, type=type, rakontu=rakontu)
+		counter.count += amount
 		counter.put()
-	db.run_in_transaction(transaction)
+	db.run_in_transaction(txn, config)
 	
-def IncreaseNumberOfShards(type, number):
-	config = CounterShardConfiguration.get_or_insert(type, type=type)
-	def transaction():
+def IncreaseNumberOfShards(type, number, rakontu=None):
+	if rakontu:
+		configKeyName = "%s_countershardconfig_%s" % (rakontu.key().name(), type)
+		numShards = 10
+	else:
+		configKeyName = "system_countershardconfig_%s" % type
+		numShards = 20
+	config = CounterShardConfiguration.get_or_insert(key_name=configKeyName, rakontu=rakontu, type=type, numShards=numShards)
+	def txn(config):
 		if config.numShards < number:
 			config.numShards = number
 			config.put()
-	db.run_in_transaction(transaction)
+	db.run_in_transaction(txn, config)
 	
-def DebugPrint(text, msg="print"):
-	logging.info(">>>>>>>> %s >>>>>>>> %s" %(msg, text))
+# ============================================================================================
+# ============================================================================================
+class CounterShard(db.Model): 
+# ============================================================================================
+# to shard counters
+# parent: rakontu
+# ============================================================================================
+
+	rakontu = db.ReferenceProperty(collection_name="counter_shards_to_rakontus")
+	type = db.StringProperty(required=True)
+	count = db.IntegerProperty(required=True, default=0, indexed=False)
 	
-def stripTags(text):
-	if text:
-		tags = re.compile(r'\<(.+?)\>').findall(text)
-		for tag in tags:
-			text = text.replace('<%s>' % tag, " ")
-		text = text.replace("  ", " ")
-		return text
-	else:
-		return "none"
-   
-def CleanUpCSV(parts):
-	partsWithCommasQuoted = []
-	for part in parts:
-		if part:
-			cleanPart = part
-			cleanPart = cleanPart.replace('"', '""')
-			if cleanPart.find(",") >= 0:
-				cleanPart = '"%s"' % cleanPart
-			partsWithCommasQuoted.append(cleanPart)
-		else:
-			partsWithCommasQuoted.append("")
-	return ','.join(partsWithCommasQuoted) 
+# ============================================================================================
+# ============================================================================================
+class CounterShardConfiguration(db.Model): 
+# ============================================================================================
+# to define counter sharding
+# parent: rakontu
+# ============================================================================================
 
-def caseInsensitiveFind(text, searchFor):
-	return text.lower().find(searchFor.lower()) >= 0
-
-# from http://www.letsyouandhimfight.com/2008/04/12/time-zones-in-google-app-engine/
-# with a few changes
+	rakontu = db.ReferenceProperty(collection_name="counter_shard_configs_to_rakontus")
+	type = db.StringProperty(required=True, indexed=False)
+	numShards = db.IntegerProperty(required=True, default=10, indexed=False)
+	
+# ============================================================================================
+# ============================================================================================
 class TzDateTimeProperty(db.DateTimeProperty):
+# ============================================================================================
+# Property to handle time zone
+# from http://www.letsyouandhimfight.com/2008/04/12/time-zones-in-google-app-engine (with a few changes)
+# ============================================================================================
+
 	def get_value_for_datastore(self, model_instance):
 		value = super(TzDateTimeProperty, self).get_value_for_datastore(model_instance)
 		if value:
@@ -90,6 +117,7 @@ class TzDateTimeProperty(db.DateTimeProperty):
 			return super(TzDateTimeProperty, self).get_value_for_datastore(model_instance)
 		else:
 			return None
+		
 	def make_value_from_datastore(self, value):
 		value = super(TzDateTimeProperty, self).make_value_from_datastore(value)
 		if value:
@@ -99,55 +127,6 @@ class TzDateTimeProperty(db.DateTimeProperty):
 				value = value.astimezone(pytz.utc)
 		return value
 	
-class IdNumberDictionaryProperty(db.Property):
-	data_type = str
-	def get_value_for_datastore(self, model_instance):
-		# for writing to datastore
-		value = super(IdNumberDictionaryProperty, self).get_value_for_datastore(model_instance)
-		if value is not None:
-			textList = []
-			for key in value:
-				textList.append("%s|%s" % (key, value[key]))
-			text = "@@@".join(textList)
-			return text
-		else:
-			return None
-	def make_value_from_datastore(self, value):
-		# for reading from datastore
-		if value is not None:
-			dictionary = {}
-			valueAsList = value.split("@@@")
-			for listItem in valueAsList:
-				key, content = listItem.split("|")
-				dictionary[key] = int(content)
-			return dictionary
-		else:
-			return {}
-	def empty(self, value):
-		return not value
-	
-# ============================================================================================
-# ============================================================================================
-class CounterShard(db.Model): 
-# ============================================================================================
-# to shard counters
-# no parent
-# ============================================================================================
-
-	type = db.StringProperty(required=True)
-	count = db.IntegerProperty(required=True, default=0, indexed=False)
-	
-# ============================================================================================
-# ============================================================================================
-class CounterShardConfiguration(db.Model): 
-# ============================================================================================
-# to define counter sharding
-# no parent
-# ============================================================================================
-
-	type = db.StringProperty(required=True, indexed=False)
-	numShards = db.IntegerProperty(required=True, default=20, indexed=False)
-	
 # ============================================================================================
 # ============================================================================================
 class Rakontu(db.Model): 
@@ -156,11 +135,10 @@ class Rakontu(db.Model):
 # no parent
 # ============================================================================================
 
-	# identification
 	name = db.StringProperty(required=True) # appears on all pages at top
-	
-	# state
-	active = db.BooleanProperty(default=True)
+	id = db.StringProperty()# CFK put this in later required=True)
+	access = db.StringProperty(default="all")
+	accessMessage = db.StringProperty(default=None) # shows on no-access page when access is not set to "all"
 	created = TzDateTimeProperty(auto_now_add=True, indexed=False) 
 
 	# governance options
@@ -203,6 +181,27 @@ class Rakontu(db.Model):
 	skinName = db.StringProperty(default=DEFAULT_SKIN_NAME, indexed=False)
 	customSkin = db.TextProperty(indexed=False)
 	externalStyleSheetURL = db.StringProperty(default=None, indexed=False)
+	
+	def accessStateForDisplay(self):
+		return DisplayStateForRakontuAccessState(self.access)
+	
+	def memberCanAccessMe(self, member, memberIsAdmin):
+		if self.access == "all":
+			return True
+		elif self.access == "managers":
+			return member.isManagerOrOwner() or memberIsAdmin
+		elif self.access == "owners":
+			return member.isOwner() or memberIsAdmin
+		elif self.access == "administrators":
+			return memberIsAdmin
+		else:
+			raise Exception("Unexpected Rakontu access state: %s" % self.access)
+		
+	def notAccessibleToAll(self):
+		return self.access != "all"
+	
+	def getNameForExport(self):
+		return "%s %s: %s" % (self.__class__.__name__, self.key().name(), HtmlUnEscape(self.name))
 	
 	def initializeFormattedTexts(self):
 		self.description_formatted = db.Text("<p>%s</p>" % self.description)
@@ -275,7 +274,7 @@ class Rakontu(db.Model):
 		return "/%s/%s" % (DIRS["dir_visit"], URLS["url_home"])
 
 	def urlQuery(self):
-		return "%s=%s" % (URL_IDS["url_query_rakontu"], self.key().name())
+		return "%s=%s" % (URL_IDS["url_query_rakontu"], self.getKeyName()) # do NOT use key name index for rakontu!
 
 	# MEMBERS
 	
@@ -572,17 +571,17 @@ class Rakontu(db.Model):
 		annotations = Annotation.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
 		answers = Answer.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
 		links = Link.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
-		searches = SavedSearch.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
-		return (entries, annotations, answers, links, searches)
+		filters = SavedFilter.all().filter("rakontu = ", self.key()).filter("flaggedForRemoval = ", True).fetch(FETCH_NUMBER)
+		return (entries, annotations, answers, links, filters)
 	
 	def getAllFlaggedItemsAsOneList(self):
 		result = []
-		(entries, annotations, answers, links, searches) = self.getAllFlaggedItems()
+		(entries, annotations, answers, links, filters) = self.getAllFlaggedItems()
 		result.extend(links)
 		result.extend(answers)
 		result.extend(annotations)
 		result.extend(entries)
-		result.extend(searches)
+		result.extend(filters)
 		return result
 
 	def getAllItems(self):
@@ -799,7 +798,7 @@ class Rakontu(db.Model):
 		return countsForThisType
 	
 	def GenerateCopyOfQuestion(self, question):
-		keyName = GenerateSequentialKeyName("question")
+		keyName = GenerateSequentialKeyName("question", self.id)
 		newQuestion = Question(
 							   key_name=keyName,
 							   parent=self,
@@ -829,7 +828,8 @@ class Rakontu(db.Model):
 				choices = []
 				minValue = DEFAULT_QUESTION_VALUE_MIN
 				maxValue = DEFAULT_QUESTION_VALUE_MAX
-				responseIfBoolean = DEFAULT_QUESTION_BOOLEAN_RESPONSE
+				positiveResponseIfBoolean = DEFAULT_QUESTION_YES_BOOLEAN_RESPONSE
+				negativeResponseIfBoolean = DEFAULT_QUESTION_NO_BOOLEAN_RESPONSE
 				if type == "ordinal" or type == "nominal":
 					choices = [x.strip() for x in row[4].split(",")]
 				elif type == "value":
@@ -843,11 +843,14 @@ class Rakontu(db.Model):
 					except:
 						pass
 				elif type == "boolean":
-					responseIfBoolean = row[4]
+					posNeg = row[4].split("|")
+					positiveResponseIfBoolean = posNeg[0]
+					if len(posNeg) > 1:
+						negativeResponseIfBoolean = posNeg[1]
 				multiple = row[5] == "yes"
 				help = row[6]
 				useHelp=row[7]
-				keyName = GenerateSequentialKeyName("question")
+				keyName = GenerateSequentialKeyName("question", self.id)
 				question = Question(
 								key_name=keyName,
 								parent=self,
@@ -859,7 +862,8 @@ class Rakontu(db.Model):
 								type=type, 
 								choices=choices, 
 								multiple=multiple,
-								responseIfBoolean=responseIfBoolean, 
+								positiveResponseIfBoolean=positiveResponseIfBoolean, 
+								negativeResponseIfBoolean=negativeResponseIfBoolean,
 								minIfValue=minValue, 
 								maxIfValue=maxValue, 
 								help=help, 
@@ -870,8 +874,8 @@ class Rakontu(db.Model):
 		
 	# SEARCHES
 	
-	def getNonPrivateSavedSearches(self):
-		return SavedSearch.all().filter("rakontu = ", self.key()).filter("private = ", False).fetch(FETCH_NUMBER)
+	def getNonPrivateFilters(self):
+		return SavedFilter.all().filter("rakontu = ", self.key()).filter("private = ", False).fetch(FETCH_NUMBER)
 		
 	# REMOVAL
 	
@@ -887,7 +891,10 @@ class Rakontu(db.Model):
 				db.delete(entries)
 		for member in self.getMembers():
 			member.removeAllDependents()
-		db.delete(SavedSearch.all().filter("rakontu =", self.key()).fetch(FETCH_NUMBER)) # shared searches
+		filters = self.getNonPrivateFilters()
+		for filter in filters:
+			filter.removeAllDependents()
+		db.delete(filters)
 		db.delete(Member.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
 		db.delete(PendingMember.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER))
 		for character in self.getCharacters():
@@ -940,7 +947,7 @@ class Rakontu(db.Model):
 													text = row[4].strip()
 												else:
 													text = "No text imported."
-												keyName = GenerateSequentialKeyName("entry")
+												keyName = GenerateSequentialKeyName("entry", self.id)
 												entry = Entry(key_name=keyName, parent=member, id=keyName, rakontu=self, type=type, title=title) 
 												entry.text = text
 												entry.rakontu = self
@@ -961,15 +968,16 @@ class Rakontu(db.Model):
 		exportAlreadyThereForType = self.getExportOfType(type)
 		if exportAlreadyThereForType:
 			db.delete(exportAlreadyThereForType)
-		keyName = GenerateSequentialKeyName("export")
+		keyName = GenerateSequentialKeyName("export", self.id)
 		export = Export(
 					key_name=keyName, 
 					id=keyName,
 					rakontu=self, 
 					type=type, 
+					subtype=subtype,
 					fileFormat=fileFormat)
 		exportText = ""
-		if type == "csv_export_search":
+		if type == "csv_export_filter":
 			if member:
 				exportText += 'Export of viewed items for member "%s" in Rakontu "%s"\n' % (member.nickname, self.name)
 				(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
@@ -1023,10 +1031,10 @@ class Rakontu(db.Model):
 				for type in QUESTION_REFERS_TO:
 					for question in self.getActiveQuestionsOfType(type):
 						exportText += question.to_xml() + "\n\n"
-				for search in self.getNonPrivateSavedSearches():
-					exportText += search.to_xml() + "\n\n"
-					for searchRef in search.getQuestionReferences():
-						exportText += searchRef.to_xml() + "\n\n"
+				for filter in self.getNonPrivateFilters():
+					exportText += filter.to_xml() + "\n\n"
+					for filterRef in filter.getQuestionReferences():
+						exportText += filterRef.to_xml() + "\n\n"
 			elif subtype == "members":
 				i = 0
 				for member in self.getActiveMembers():
@@ -1053,7 +1061,7 @@ class Rakontu(db.Model):
 		elif type == "liaisonPrint_simple":
 			exportText += '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
 			exportText += '<title>%s</title></head><body>' % TERMS["term_printed_from_rakontu"]
-			if subtype == "search":
+			if subtype == "filter":
 				exportText += "<h3>%s %s</h3>" % (TERMS["term_selections_for"], self.name)
 				(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
 				if overLimitWarning:
@@ -1085,7 +1093,7 @@ class Rakontu(db.Model):
 					exportText += item.PrintText(member)
 			exportText += "</body></html>"
 		elif type == "exportQuestions":
-			exportText += '; refersTo,name,text,type,choices or min-max or boolean "yes" text,multiple,help,help for using\n'
+			exportText += '; refersTo,name,text,type,if ordinal/nominal: choices; if value: min-dash-max; if boolean: yes text, pipe (|), no text,multiple,help,help for using\n'
 			questions = self.getActiveQuestionsOfType(questionType)
 			for question in questions:
 				cells = []
@@ -1102,7 +1110,7 @@ class Rakontu(db.Model):
 				elif question.type == "value":
 					cells.append("%s-%s" % (question.minIfValue, question.maxIfValue))
 				elif question.type == "boolean":
-					cells.append(question.responseIfBoolean)
+					cells.append("%s|%s" % (question.negativeResponseIfBoolean, question.negativeResponseIfBoolean))
 				else:
 					cells.append("")
 				if question.multiple:
@@ -1137,7 +1145,8 @@ class Question(db.Model):
 	
 	minIfValue = db.IntegerProperty(default=DEFAULT_QUESTION_VALUE_MIN, indexed=False)
 	maxIfValue = db.IntegerProperty(default=DEFAULT_QUESTION_VALUE_MAX, indexed=False)
-	responseIfBoolean = db.StringProperty(default=DEFAULT_QUESTION_BOOLEAN_RESPONSE, indexed=False) # what the checkbox label should say
+	positiveResponseIfBoolean = db.StringProperty(default=DEFAULT_QUESTION_YES_BOOLEAN_RESPONSE, indexed=False) 
+	negativeResponseIfBoolean = db.StringProperty(default=DEFAULT_QUESTION_NO_BOOLEAN_RESPONSE, indexed=False) 
 	multiple = db.BooleanProperty(default=False) # whether multiple answers are allowed (for ordinal/nominal only)
 	choices = db.StringListProperty(default=[""] * MAX_NUM_CHOICES_PER_QUESTION, indexed=False) 
 	
@@ -1152,6 +1161,9 @@ class Question(db.Model):
 	created = TzDateTimeProperty(auto_now_add=True)
 	
 	inBatchEntryBuffer = db.BooleanProperty(default=False) # in the process of being imported, not "live" yet
+	
+	def getNameForExport(self):
+		return "%s %s: %s" % (self.__class__.__name__, self.key().name(), HtmlUnEscape("%s (%s)" % (self.name, self.refersTo)))
 	
 	def isOrdinalOrNominal(self):
 		return self.type == "ordinal" or self.type == "nominal"
@@ -1200,16 +1212,17 @@ class Question(db.Model):
 		return "/%s/%s" % (DIRS["dir_manage"], URLS["url_question"])
 
 	def urlQuery(self):
-		return "%s=%s" % (URL_IDS["url_query_question"], self.key().name())
+		return "%s&%s=%s" % (self.rakontu.urlQuery(), URL_IDS["url_query_question"], indexFromKeyName(self.getKeyName()))
 	
 	def choicesAsLineDelimitedTextString(self):
 		return "\n".join(self.choices)
 	
-	def getAnswerChoiceCounts(self):
+	def getAnswersReport(self):
 		if self.isOrdinalOrNominal():
-			result = {}
+			result = None
 			answers = self.getAnswers()
 			if answers:
+				result = {}
 				for choice in self.choices:
 					totalForThisChoice = 0
 					if self.multiple:
@@ -1227,7 +1240,23 @@ class Question(db.Model):
 					result[totalForThisChoice].append(choice)
 			return result
 		else:
-			return None
+			result = None
+			answers = self.getAnswers()
+			if answers:
+				result = []
+				if self.type == "value":
+					for answer in answers:
+						result.append(str(answer.answerIfValue))
+				elif self.type == "boolean":
+					for answer in answers:
+						if answer.answerIfBoolean:
+							result.append(self.positiveResponseIfBoolean)
+						else:
+							result.append(self.negativeResponseIfBoolean)
+				elif self.type == "text":
+					for answer in answers:
+						result.append(answer.answerIfText)
+			return result
 		
 	def getUnlinkedAnswerChoices(self):
 		if self.isOrdinalOrNominal():
@@ -1297,6 +1326,9 @@ class Member(db.Model):
 	
 	# CREATION
 	
+	def getNameForExport(self):
+		return "%s %s: %s" % (self.__class__.__name__, self.key().name(), HtmlUnEscape(self.nickname))
+	
 	def initialize(self):
 		self.timeZoneName = self.rakontu.defaultTimeZoneName
 		self.timeFormat = self.rakontu.defaultTimeFormat
@@ -1311,7 +1343,7 @@ class Member(db.Model):
 			db.delete(viewOptionsNow)
 		newObjects = []
 		for location in VIEW_OPTION_LOCATIONS:
-			keyName = GenerateSequentialKeyName("viewOptions")
+			keyName = GenerateSequentialKeyName("viewOptions", self.rakontu)
 			viewOptions = ViewOptions(keyName=keyName, id=keyName, parent=self, member=self, rakontu=self.rakontu, location=location)
 			if viewOptions.endTime.tzinfo is None:
 				viewOptions.endTime = viewOptions.endTime.replace(tzinfo=pytz.utc)
@@ -1325,10 +1357,10 @@ class Member(db.Model):
 	def removeAllDependents(self):
 		db.delete(ViewOptions.all().filter("member = ", self.key()).fetch(8) )
 		db.delete(Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER))
-		searches = self.getPrivateSavedSearches()
-		for search in searches:
-			search.removeAllDependents()
-		db.delete(searches)
+		filters = self.getPrivateFilters()
+		for filter in filters:
+			filter.removeAllDependents()
+		db.delete(filters)
 	
 	def getAllViewOptions(self):
 		return ViewOptions.all().ancestor(self).fetch(FETCH_NUMBER)
@@ -1517,11 +1549,11 @@ class Member(db.Model):
 	def getDraftEntries(self):
 		return Entry.all().filter("creator = ", self.key()).filter("draft = ", True).fetch(FETCH_NUMBER)
 	
-	def getSavedSearches(self):
-		return SavedSearch.all().filter("creator = ", self.key()).fetch(FETCH_NUMBER)
+	def getSavedFilters(self):
+		return SavedFilter.all().filter("creator = ", self.key()).fetch(FETCH_NUMBER)
 	
-	def getPrivateSavedSearches(self):
-		return SavedSearch.all().filter("creator = ", self.key()).filter("private = ", True).fetch(FETCH_NUMBER)
+	def getPrivateFilters(self):
+		return SavedFilter.all().filter("creator = ", self.key()).filter("private = ", True).fetch(FETCH_NUMBER)
 	
 	def getCounts(self):
 		countNames = []
@@ -1611,10 +1643,10 @@ class Member(db.Model):
 		return "/%s/%s" % (DIRS["dir_visit"], URLS["url_ask"])
 
 	def urlQuery(self):
-		return "%s=%s" % (URL_IDS["url_query_member"], self.getKeyName())
+		return "%s&%s=%s" % (self.rakontu.urlQuery(), URL_IDS["url_query_member"], indexFromKeyName(self.getKeyName()))
 
 	def imageEmbed(self):
-		return '<img src="/%s/%s?%s=%s" class="bordered">' % (DIRS["dir_visit"], URLS["url_image"], URL_IDS["url_query_member"], self.getKeyName())
+		return '<img src="/%s/%s?%s&%s=%s" class="bordered">' % (DIRS["dir_visit"], URLS["url_image"], self.rakontu.urlQuery(), URL_IDS["url_query_member"], self.getKeyName())
 	
 # ============================================================================================
 # ============================================================================================
@@ -1638,7 +1670,7 @@ class ViewOptions(db.Model):
 	nudgeCategories = db.ListProperty(bool, default=[True] * NUM_NUDGE_CATEGORIES, indexed=False)
 	nudgeFloor = db.IntegerProperty(default=DEFAULT_NUDGE_FLOOR, indexed=False)
 	
-	search = db.ReferenceProperty(None, collection_name="view_options_to_search", indexed=False)
+	filter = db.ReferenceProperty(None, collection_name="view_options_to_filter", indexed=False)
 	
 	limitPerPage = db.IntegerProperty(default=MAX_ITEMS_PER_GRID_PAGE, indexed=False) # may want to set this later, just constant for now
 	
@@ -1646,6 +1678,12 @@ class ViewOptions(db.Model):
 	showOptionsOnTop = db.BooleanProperty(default=False, indexed=False)
 	showHelpResourcesInTimelines = db.BooleanProperty(default=False, indexed=False)
 	showActivityLevels = db.BooleanProperty(default=True, indexed=False)
+	
+	def getNameForExport(self):
+		return "%s %s: %s" % (self.__class__.__name__, self.key().name(), self.location)
+	
+	def getKeyName(self):
+		return self.key().name()
 	
 	def getStartTime(self):
 		return self.endTime - timedelta(seconds=self.timeFrameInSeconds)
@@ -1684,6 +1722,9 @@ class PendingMember(db.Model):
 	email = db.StringProperty(required=True) # must match google account
 	invited = TzDateTimeProperty(auto_now_add=True)
 	governanceType = db.StringProperty(default="member")
+	
+	def getNameForExport(self):
+		return "%s %s: %s" % (self.__class__.__name__, self.key().name(), self.email)
 	
 	def governanceTypeForDisplay(self):
 		# GOVERNANCE_ROLE_TYPES_DISPLAY = ["member", "manager", "owner"]
@@ -1726,6 +1767,9 @@ class Character(db.Model):
 	etiquetteStatement_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 	
 	image = db.BlobProperty(default=None) # optional
+	
+	def getNameForExport(self):
+		return "%s %s: %s" % (self.__class__.__name__, self.key().name(), HtmlUnEscape(self.name))
 	
 	def removeAllDependents(self):
 		db.delete(Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER))
@@ -1834,10 +1878,10 @@ class Character(db.Model):
 		return "/%s/%s" % (DIRS["dir_visit"], URLS["url_character"])
 
 	def urlQuery(self):
-		return "%s=%s" % (URL_IDS["url_query_character"], self.key().name())
+		return "%s&%s=%s" % (self.rakontu.urlQuery(), URL_IDS["url_query_character"], indexFromKeyName(self.getKeyName()))
 	
 	def imageEmbed(self):
-		return '<img src="/%s/%s?%s=%s">' % (DIRS["dir_visit"], URLS["url_image"], URL_IDS["url_query_character"], self.getKeyName())
+		return '<img src="/%s/%s?%s&%s=%s">' % (DIRS["dir_visit"], URLS["url_image"], self.rakontu.urlQuery(), URL_IDS["url_query_character"], self.getKeyName())
 		
 	def getAnswers(self):
 		return Answer.all().filter("referent = ", self.key()).fetch(FETCH_NUMBER)
@@ -1847,20 +1891,20 @@ class Character(db.Model):
 		
 # ============================================================================================
 # ============================================================================================
-class SavedSearch(db.Model): 
+class SavedFilter(db.Model): 
 # ============================================================================================
-# search parameters, also called search filter or just filter
+# filter parameters, also called filter or just filter
 # parent: member
 # ============================================================================================
 
 	id = db.StringProperty(required=True)
-	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="searches_to_rakontu")
-	creator = db.ReferenceProperty(Member, required=True, collection_name="searches_to_member")
+	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="filters_to_rakontu")
+	creator = db.ReferenceProperty(Member, required=True, collection_name="filters_to_member")
 	private = db.BooleanProperty(default=True)
 	created = TzDateTimeProperty(auto_now_add=True)
 	name = db.StringProperty(default=DEFAULT_SEARCH_NAME)
 	# the type is mainly to make it display in a list of entries, but it may be useful later anyway
-	type = db.StringProperty(default="search filter", indexed=False) 
+	type = db.StringProperty(default="filter", indexed=False) 
 	
 	flaggedForRemoval = db.BooleanProperty(default=False)
 	flagComment = db.StringProperty(indexed=False)
@@ -1880,32 +1924,35 @@ class SavedSearch(db.Model):
 	comment_formatted = db.TextProperty()
 	comment_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 
-	def copyDataFromOtherSearch(self, search, refs):
+	def getNameForExport(self):
+		return "%s %s: %s" % (self.__class__.__name__, self.key().name(), HtmlUnEscape(self.name))
+	
+	def copyDataFromOtherFilter(self, filter, refs):
 		self.private = True
-		self.name = "%s %s" % (TERMS["term_copy_of"], search.name)
-		self.words_anyOrAll = search.words_anyOrAll
+		self.name = "%s %s" % (TERMS["term_copy_of"], filter.name)
+		self.words_anyOrAll = filter.words_anyOrAll
 		self.words_locations = []
-		self.words_locations.extend(search.words_locations)
+		self.words_locations.extend(filter.words_locations)
 		self.words = []
-		self.words.extend(search.words)
-		self.tags_anyOrAll = search.tags_anyOrAll
+		self.words.extend(filter.words)
+		self.tags_anyOrAll = filter.tags_anyOrAll
 		self.tags = []
-		self.tags.extend(search.tags)
-		self.answers_anyOrAll = search.answers_anyOrAll
-		self.creatorAnswers_anyOrAll = search.creatorAnswers_anyOrAll
-		self.comment = db.Text(search.comment)
-		self.comment_formatted = db.Text(search.comment_formatted)
-		self.comment_format = search.comment_format
+		self.tags.extend(filter.tags)
+		self.answers_anyOrAll = filter.answers_anyOrAll
+		self.creatorAnswers_anyOrAll = filter.creatorAnswers_anyOrAll
+		self.comment = db.Text(filter.comment)
+		self.comment_formatted = db.Text(filter.comment_formatted)
+		self.comment_format = filter.comment_format
 		thingsToPut = [self]
 		for ref in refs:
-			keyName = GenerateSequentialKeyName("searchref")
-			myRef = SavedSearchQuestionReference(
+			keyName = GenerateSequentialKeyName("filterref", self.rakontu)
+			myRef = SavedFilterQuestionReference(
 												key_name=keyName,
 												id=keyName,
 												parent=self,
 												rakontu=self.rakontu, 
 												creator=self.creator,
-												search=self, 
+												filter=self, 
 												questionName=ref.questionName,
 												questionType=ref.questionType,
 												type=ref.type,
@@ -1917,13 +1964,13 @@ class SavedSearch(db.Model):
 		db.put(thingsToPut)
 	
 	def getQuestionReferences(self):
-		return SavedSearchQuestionReference.all().filter("search = ", self.key()).fetch(FETCH_NUMBER)
+		return SavedFilterQuestionReference.all().filter("filter = ", self.key()).fetch(FETCH_NUMBER)
 	
 	def getQuestionReferencesOfType(self, type):
-		return SavedSearchQuestionReference.all().filter("search = ", self.key()).filter("type = ", type).fetch(FETCH_NUMBER)
+		return SavedFilterQuestionReference.all().filter("filter = ", self.key()).filter("type = ", type).fetch(FETCH_NUMBER)
 	
 	def getQuestionReferenceForQuestionNameTypeAndOrder(self, name, type, order):
-		return SavedSearchQuestionReference.all().filter("search = ", self.key()).\
+		return SavedFilterQuestionReference.all().filter("filter = ", self.key()).\
 			filter("questionName = ", name).\
 			filter("questionType = ", type).\
 			filter("order = ", order).get()
@@ -1961,13 +2008,13 @@ class SavedSearch(db.Model):
 		return '%s?%s' % (self.urlWithoutQuery(), self.urlQuery())
 		
 	def editURL(self):
-		return "/%s/%s?%s" % (DIRS["dir_visit"], URLS["url_search_filter"], self.urlQuery())
+		return "/%s/%s?%s" % (DIRS["dir_visit"], URLS["url_filter"], self.urlQuery())
 		
 	def urlWithoutQuery(self):
 		return "/%s/%s" % (DIRS["dir_visit"], URLS["url_home"])
 
 	def urlQuery(self):
-		return "%s=%s" % (URL_IDS["url_query_search_filter"], self.key().name())
+		return "%s&%s=%s" % (self.rakontu.urlQuery(), URL_IDS["url_query_filter"], indexFromKeyName(self.getKeyName()))
 
 	def description(self):
 		result = ""
@@ -1995,16 +2042,16 @@ class SavedSearch(db.Model):
 	
 # ============================================================================================
 # ============================================================================================
-class SavedSearchQuestionReference(db.Model): 
+class SavedFilterQuestionReference(db.Model): 
 # ============================================================================================
-# reference to the use of a question in the search filter
-# parent: savedsearch; id property not yet used
+# reference to the use of a question in the filter
+# parent: savedfilter; id property not yet used
 # ============================================================================================
 
 	id = db.StringProperty(required=True)
+	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="filterrefs_to_rakontu")
+	filter = db.ReferenceProperty(SavedFilter, required=True, collection_name="question_refs_to_saved_filter")
 	created = TzDateTimeProperty(auto_now_add=True)
-	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="searchrefs_to_rakontu")
-	search = db.ReferenceProperty(SavedSearch, required=True, collection_name="question_refs_to_saved_search")
 	
 	questionName = db.StringProperty(required=True)
 	questionType = db.StringProperty(required=True)
@@ -2013,6 +2060,9 @@ class SavedSearchQuestionReference(db.Model):
 	order = db.IntegerProperty()
 	answer = db.StringProperty(indexed=False)
 	comparison = db.StringProperty(indexed=False)
+	
+	def getNameForExport(self):
+		return "%s %s: %s" % (self.__class__.__name__, self.key().name(), HtmlUnEscape(self.questionName))
 	
 	def matchesQuestionInfo(self, name, type, order, answer=None):
 		if answer:
@@ -2035,7 +2085,8 @@ class Answer(db.Model):
 	rakontu = db.ReferenceProperty(Rakontu, collection_name="answers_to_rakontu")
 	question = db.ReferenceProperty(Question, collection_name="answers_to_questions")
 	referent = db.ReferenceProperty(None, collection_name="answers_to_objects") # entry or member
-	referentType = db.StringProperty(default="entry") # entry or member
+	referentType = db.StringProperty(default="entry") # entry or member - safe b/c cannot be changed after question is created
+	questionType = db.StringProperty() # boolean, etc - for convenience when the question is not available - safe b/c cannot be changed if there are answers
 	creator = db.ReferenceProperty(Member, collection_name="answers_to_creators") 
 	
 	collectedOffline = db.BooleanProperty(default=False, indexed=False)
@@ -2058,6 +2109,11 @@ class Answer(db.Model):
 	
 	entryNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES, indexed=False)
 	entryActivityPointsWhenPublished = db.IntegerProperty(default=0, indexed=False)
+	
+	def getNameForExport(self):
+		# cannot call on question.type here because this might be used in a place where that is not yet set
+		text = '%s %s %s %s' % (self.answerIfValue, self.answerIfBoolean, self.answerIfText[:60], " ".join(self.answerIfMultiple))
+		return "%s %s: %s" % (self.__class__.__name__, self.key().name(), HtmlUnEscape(text))
 	
 	def isAnswer(self):
 		return True
@@ -2239,6 +2295,9 @@ class Entry(db.Model):
 	numAnswers = db.IntegerProperty(default=0, indexed=False)
 	numLinks = db.IntegerProperty(default=0, indexed=False)
 	
+	def getNameForExport(self):
+		return "%s %s: %s" % (self.__class__.__name__, self.key().name(), HtmlUnEscape(self.title))
+	
 	def isEntry(self):
 		return True
 	
@@ -2402,7 +2461,7 @@ class Entry(db.Model):
 		self.put()
 		
 	def addCurrentTextToPreviousVersions(self):
-		keyName = GenerateSequentialKeyName("version")
+		keyName = GenerateSequentialKeyName("version", self.rakontu)
 		version = TextVersion(
 							key_name=keyName, 
 							parent=self,
@@ -2459,10 +2518,10 @@ class Entry(db.Model):
 		result.extend(self.getTextVersions())
 		return result
 		
-	def satisfiesSearchCriteria(self, search, entryRefs, creatorRefs):
-		if not search.words and not search.tags and not entryRefs and not creatorRefs: # empty search
+	def satisfiesFilterCriteria(self, filter, entryRefs, creatorRefs):
+		if not filter.words and not filter.tags and not entryRefs and not creatorRefs: # empty filter
 			return True
-		if search.overall_anyOrAll == "any":
+		if filter.overall_anyOrAll == "any":
 			satisfiesWords = False
 			satisfiesTags = False
 			satisfiesEntryQuestions = False
@@ -2472,20 +2531,20 @@ class Entry(db.Model):
 			satisfiesTags = True
 			satisfiesEntryQuestions = True
 			satisfiesCreatorQuestions = True
-		if search.words:
-			satisfiesWords = self.satisfiesWordSearch(search.words_anyOrAll, search.words_locations, search.words)
-		if search.tags:
-			satisfiesTags = self.satisfiesTagSearch(search.tags_anyOrAll, search.tags)
+		if filter.words:
+			satisfiesWords = self.satisfiesWordFilter(filter.words_anyOrAll, filter.words_locations, filter.words)
+		if filter.tags:
+			satisfiesTags = self.satisfiesTagFilter(filter.tags_anyOrAll, filter.tags)
 		if entryRefs:
-			satisfiesEntryQuestions = self.satisfiesQuestionSearch(search.answers_anyOrAll, entryRefs, False)
+			satisfiesEntryQuestions = self.satisfiesQuestionFilter(filter.answers_anyOrAll, entryRefs, False)
 		if creatorRefs:
-			satisfiesCreatorQuestions = self.satisfiesQuestionSearch(search.creatorAnswers_anyOrAll, creatorRefs, True)
-		if search.overall_anyOrAll == "any":
+			satisfiesCreatorQuestions = self.satisfiesQuestionFilter(filter.creatorAnswers_anyOrAll, creatorRefs, True)
+		if filter.overall_anyOrAll == "any":
 			return satisfiesWords or satisfiesTags or satisfiesEntryQuestions or satisfiesCreatorQuestions
 		else:
 			return satisfiesWords and satisfiesTags and satisfiesEntryQuestions and satisfiesCreatorQuestions
 		
-	def satisfiesQuestionSearch(self, anyOrAll, refs, aboutCreator):
+	def satisfiesQuestionFilter(self, anyOrAll, refs, aboutCreator):
 		numAnswerSearchesSatisfied = 0
 		for ref in refs:
 			match = False
@@ -2554,7 +2613,7 @@ class Entry(db.Model):
 		else:
 			return numAnswerSearchesSatisfied >= len(refs)
 	
-	def satisfiesWordSearch(self, anyOrAll, locations, words):
+	def satisfiesWordFilter(self, anyOrAll, locations, words):
 		numWordSearchesSatisfied = 0
 		for word in words:
 			match = False
@@ -2605,7 +2664,7 @@ class Entry(db.Model):
 				return True
 		return False
 	
-	def satisfiesTagSearch(self, anyOrAll, words):
+	def satisfiesTagFilter(self, anyOrAll, words):
 		numWordSearchesSatisfied = 0
 		for word in words:
 			match = False
@@ -2915,7 +2974,7 @@ class Entry(db.Model):
  			'included_links_incoming': self.getIncomingLinksOfType("included"),
 		   'included_links_outgoing': self.getOutgoingLinksOfType("included"),
 		   'referenced_links_outgoing': self.getOutgoingLinksOfType("referenced"),
-		   # no referenced links incoming because those are to search filters
+		   # no referenced links incoming because those are to filters
  		   'related_links_both_ways': self.getLinksOfType("related"),
 		   'any_links_at_all': self.hasLinks()
 			}
@@ -2948,7 +3007,7 @@ class Entry(db.Model):
 		return "/%s/%s" % (DIRS["dir_visit"], URLS["url_read"])
 
 	def urlQuery(self):
-		return "%s=%s" % (URL_IDS["url_query_entry"], self.getKeyName())
+		return "%s&%s=%s" % (self.rakontu.urlQuery(), URL_IDS["url_query_entry"], indexFromKeyName(self.getKeyName()))
 
 	def typeAsURL(self):
 		return URLForEntryType(self.type)
@@ -3095,11 +3154,6 @@ class Entry(db.Model):
 			i += 1
 		return False
 	
-	# SEARCH
-	
-	def satisfiesSearch(self, search, refs):
-		pass
-	
 # ============================================================================================
 # ============================================================================================
 class TextVersion(db.Model): 
@@ -3118,8 +3172,14 @@ class TextVersion(db.Model):
 	text_formatted = db.TextProperty()
 	text_format = db.StringProperty(default=DEFAULT_TEXT_FORMAT, indexed=False)
 
+	def getNameForExport(self):
+		return "%s %s: %s" % (self.__class__.__name__, self.key().name(), HtmlUnEscape(self.title))
+	
 	def urlQuery(self):
-		return "%s=%s" % (URL_IDS["url_query_version"], self.key().name())
+		# because version is never used without entry, you don't need the rakontu (it's redundant)
+		# if you ever look up the version WITHOUT the entry, put the rakontu back in
+		#return "%s&%s=%s" % (self.rakontu.urlQuery(), URL_IDS["url_query_version"], indexFromKeyName(self.getKeyName()))
+		return "%s=%s" % (URL_IDS["url_query_version"], indexFromKeyName(self.getKeyName()))
 
 	def getKeyName(self):
 		return self.key().name()
@@ -3146,7 +3206,7 @@ class Link(db.Model):
 	# 	reminded: story or resource to story
 	#   responded: invitation to story
 	#	included: collage to story
-	#   referenced: pattern to saved search - note, this is the only non-entry link item, and it is ALWAYS itemTo
+	#   referenced: pattern to saved filter - note, this is the only non-entry link item, and it is ALWAYS itemTo
 	itemFrom = db.ReferenceProperty(None, collection_name="links_to_entries_incoming", required=True)
 	itemTo = db.ReferenceProperty(None, collection_name="links_to_entries_outgoing", required=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="links_to_rakontu")
@@ -3164,6 +3224,9 @@ class Link(db.Model):
 	
 	entryNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES, indexed=False)
 	entryActivityPointsWhenPublished = db.IntegerProperty(default=0, indexed=False)
+	
+	def getNameForExport(self):
+		return "%s %s: %s" % (self.__class__.__name__, self.key().name(), self.type)
 	
 	# IMPORTANT METHODS
 	
@@ -3193,7 +3256,21 @@ class Link(db.Model):
 		return ImageLinkForLink(-1) # -1 means don't put a tooltip count
 	
 	def displayString(self):
-		result = '%s &gt; %s &gt; %s' % (self.itemFrom.linkString(), DisplayTypeForLinkType(self.type), self.itemTo.linkString())
+		if self.itemFrom:
+			try:
+				itemFromString = self.itemFrom.linkString()
+			except:
+				itemFromString = TERMS["term_linked_item_removed"]
+		else:
+			itemFromString = TERMS["term_linked_item_removed"]
+		if self.itemTo:
+			try:
+				itemToString = self.itemTo.linkString()
+			except:
+				itemToString = TERMS["term_linked_item_removed"]
+		else:
+			itemToString = TERMS["term_linked_item_removed"]
+		result = '%s &gt; %s &gt; %s' % (itemFromString, DisplayTypeForLinkType(self.type), itemToString)
 		if self.comment:
 			result += ", (%s)" % self.comment
 		return result
@@ -3246,6 +3323,9 @@ class Attachment(db.Model):
 	fileName = db.StringProperty(indexed=False) # as uploaded
 	data = db.BlobProperty() 
 	
+	def getNameForExport(self):
+		return "%s %s: %s" % (self.__class__.__name__, self.key().name(), HtmlUnEscape("%s %s" % (self.name, self.fileName)))
+	
 	def getKeyName(self):
 		return self.key().name()
 	
@@ -3259,16 +3339,16 @@ class Attachment(db.Model):
 		return "/%s" % (URLS["url_attachment"])
 
 	def urlQuery(self):
-		return "%s=%s" % (URL_IDS["url_query_attachment"], self.getKeyName())
+		return "%s&%s=%s" % (self.rakontu.urlQuery(), URL_IDS["url_query_attachment"], indexFromKeyName(self.getKeyName()))
 	
 	def isImage(self):
 		return self.mimeType == "image/jpeg" or self.mimeType == "image/png"
 	
 	def imageEmbed(self):
-		return '<img src="/%s/%s?%s=%s">' % (DIRS["dir_visit"], URLS["url_image"], URL_IDS["url_query_attachment"], self.getKeyName())
+		return '<img src="/%s/%s?%s&%s=%s">' % (DIRS["dir_visit"], URLS["url_image"], self.rakontu.urlQuery(), URL_IDS["url_query_attachment"], self.getKeyName())
 	
 	def attachmentEmbed(self):
-		return '<a href="/%s?%s=%s">%s</a>' %(URLS["url_attachment"], URL_IDS["url_query_attachment"], self.getKeyName(), self.fileName)
+		return '<a href="/%s?%s&%s=%s">%s</a>' %(URLS["url_attachment"], self.rakontu.urlQuery(), URL_IDS["url_query_attachment"], self.getKeyName(), self.fileName)
 	
 	def entryKey(self):
 		try:
@@ -3347,6 +3427,9 @@ class Annotation(db.Model):
 	
 	entryNudgePointsWhenPublished = db.ListProperty(int, default=[0] * NUM_NUDGE_CATEGORIES, indexed=False)
 	entryActivityPointsWhenPublished = db.IntegerProperty(default=0, indexed=False)
+	
+	def getNameForExport(self):
+		return "%s %s: %s" % (self.__class__.__name__, self.key().name(), HtmlUnEscape((self.type)))
 	
 	def isAnnotation(self):
 		return True
@@ -3536,7 +3619,7 @@ class Annotation(db.Model):
 		return "/%s/%s" % (DIRS["dir_visit"], URLS["url_read_annotation"])
 
 	def urlQuery(self):
-		return "%s=%s" % (URL_IDS["url_query_annotation"], self.key().name())
+		return "%s&%s=%s" % (self.rakontu.urlQuery(), URL_IDS["url_query_annotation"], indexFromKeyName(self.getKeyName()))
 		
 	def linkStringWithEntryLink(self, showDetails=True):
 		return "%s %s %s" % (self.linkString(showDetails=showDetails), TERMS["term_for"], self.entry.linkString())
@@ -3666,6 +3749,7 @@ class Export(db.Model):
 	id = db.StringProperty(required=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="export_to_rakontu")
 	type = db.StringProperty()
+	subtype = db.StringProperty()
 	fileFormat = db.StringProperty(indexed=False)
 	created = TzDateTimeProperty(auto_now_add=True, indexed=False)
 	data = db.TextProperty()
@@ -3684,11 +3768,12 @@ class Export(db.Model):
 
 	def urlQuery(self):
 		if self.fileFormat == "csv":
-			return "%s=%s" % (URL_IDS["url_query_export_csv"], self.getKeyName())
+			id = URL_IDS["url_query_export_csv"]
 		elif self.fileFormat == "txt":
-			return "%s=%s" % (URL_IDS["url_query_export_txt"], self.getKeyName())
+			id = URL_IDS["url_query_export_txt"]
 		elif self.fileFormat == "xml":
-			return "%s=%s" % (URL_IDS["url_query_export_xml"], self.getKeyName())
+			id = URL_IDS["url_query_export_xml"]
+		return "%s&%s=%s" % (self.rakontu.urlQuery(), id, indexFromKeyName(self.getKeyName()))
 
 # ============================================================================================
 # ============================================================================================
@@ -3769,16 +3854,16 @@ def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, m
 			annotationTypes.append(ANNOTATION_ANSWER_LINK_TYPES[i]) 
 	if location == "home":
 		itemsToStart = member.rakontu.browseEntries(startTime, endTime, entryTypes)
-		considerSearch = True
+		considerFilter = True
 	elif location == "entry":
 		itemsToStart = entry.browseItems(startTime, endTime, annotationTypes)
-		considerSearch = False
+		considerFilter = False
 	elif location == "member":
 		itemsToStart = memberToSee.browseItems(startTime, endTime, entryTypes, annotationTypes)
-		considerSearch = True
+		considerFilter = True
 	elif location == "character":
 		itemsToStart = character.browseItems(startTime, endTime, entryTypes, annotationTypes)
-		considerSearch = True
+		considerFilter = True
 	# nudge floor
 	itemsWithNudgeFloor = []
 	exist, show = NudgeCategoriesExistAndShouldBeShownInContext(member, location)
@@ -3800,23 +3885,23 @@ def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, m
 				itemsWithHelpResourcesHidden.append(item)
 	else:
 		itemsWithHelpResourcesHidden.extend(itemsWithNudgeFloor)
-	# search
-	itemsWithSearch = []
-	if considerSearch:
-		search = viewOptions.search
-		if search:
-			entryRefs = search.getEntryQuestionRefs()
-			creatorRefs = search.getCreatorQuestionRefs()
+	# filter
+	itemsWithFilter = []
+	if considerFilter:
+		filter = viewOptions.filter
+		if filter:
+			entryRefs = filter.getEntryQuestionRefs()
+			creatorRefs = filter.getCreatorQuestionRefs()
 			for item in itemsWithHelpResourcesHidden:
 				if item.__class__.__name__ == "Entry":
-					if item.satisfiesSearchCriteria(search, entryRefs, creatorRefs):
-						itemsWithSearch.append(item)
-				else: # if searching in member/character page, no annotations will show
+					if item.satisfiesFilterCriteria(filter, entryRefs, creatorRefs):
+						itemsWithFilter.append(item)
+				else: # if filtering in member/character page, no annotations will show
 					pass
 		else:
-			itemsWithSearch.extend(itemsWithHelpResourcesHidden)
+			itemsWithFilter.extend(itemsWithHelpResourcesHidden)
 	else:
-		itemsWithSearch.extend(itemsWithHelpResourcesHidden)
+		itemsWithFilter.extend(itemsWithHelpResourcesHidden)
 	# limit
 	itemsWithLimit = []
 	overLimitWarning = None
@@ -3824,15 +3909,15 @@ def ItemsMatchingViewOptionsForMemberAndLocation(member, location, entry=None, m
 	considerLimit = True # in case of need later
 	if considerLimit:
 		limit = MAX_ITEMS_PER_GRID_PAGE # viewOptions.limitPerPage # in case of need later
-		if len(itemsWithSearch) > limit:
+		if len(itemsWithFilter) > limit:
 			for i in range(limit):
-				itemsWithLimit.append(itemsWithSearch[i])
+				itemsWithLimit.append(itemsWithFilter[i])
 			overLimitWarning = TERMS["term_too_many_items_warning"]
-			numItemsBeforeLimitTruncation = len(itemsWithSearch)
+			numItemsBeforeLimitTruncation = len(itemsWithFilter)
 		else:
-			itemsWithLimit.extend(itemsWithSearch)
+			itemsWithLimit.extend(itemsWithFilter)
 	else:
-		itemsWithLimit.extend(itemsWithSearch)
+		itemsWithLimit.extend(itemsWithFilter)
 	return (itemsWithLimit, overLimitWarning, numItemsBeforeLimitTruncation)
 
 def NudgeCategoriesExistAndShouldBeShownInContext(member, location):
@@ -3952,16 +4037,6 @@ def stripZeroOffStart(text):
 	else:
 		return text
 	
-def getTimeZone(timeZoneName):
-	try:
-		timeZone = memcache.get("tz:%s" % timeZoneName)
-	except:
-		timeZone = None
-	if timeZone is None:
-		timeZone = timezone(timeZoneName)
-		memcache.add("tz:%s" % timeZoneName, timeZone, DAY_SECONDS)
-	return timeZone
-
 def ImageLinkForAnnotationType(type, number):
 	i = 0
 	for aType in ANNOTATION_TYPES:
@@ -4031,3 +4106,35 @@ def CorrespondingItemFromMatchedOrderList(item, sourceList, destList):
 			return destList[i]
 	return None
  
+def DebugPrint(text, msg="print"):
+	logging.info(">>>>>>>> %s >>>>>>>> %s" %(msg, text))
+	
+def stripTags(text):
+	if text:
+		tags = re.compile(r'\<(.+?)\>').findall(text)
+		for tag in tags:
+			text = text.replace('<%s>' % tag, " ")
+		text = text.replace("  ", " ")
+		return text
+	else:
+		return "none"
+   
+def CleanUpCSV(parts):
+	partsWithCommasQuoted = []
+	for part in parts:
+		if part:
+			cleanPart = part
+			cleanPart = cleanPart.replace('"', '""')
+			if cleanPart.find(",") >= 0:
+				cleanPart = '"%s"' % cleanPart
+			partsWithCommasQuoted.append(cleanPart)
+		else:
+			partsWithCommasQuoted.append("")
+	return ','.join(partsWithCommasQuoted) 
+
+def caseInsensitiveFind(text, filterFor):
+	return text.lower().find(filterFor.lower()) >= 0
+
+def indexFromKeyName(keyName):
+	return keyName[keyName.rfind("_") + 1:]
+

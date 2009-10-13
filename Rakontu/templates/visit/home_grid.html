@@ -29,8 +29,8 @@
 					{% ifequal i middle_grid_row %}
 						{% ifequal j middle_grid_col %}
 							<td align="center" class="noborder" style="background-color:#{{row_colors|listLookup:i}};">
-							{% if current_search %}
-								{{template_no_search_results_message}}
+							{% if current_filter %}
+								{{template_no_filter_results_message}}
 							{% else %}
 								{% if rakontu.hasNonDraftEntries %}
 									{{template_no_match_for_selections}}

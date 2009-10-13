@@ -4,31 +4,37 @@
 	{% include "../common_menus.html" %}
 	<div id="content">
 		<div id="rakontu_form_style" class="rakontu_form">
-		<form action="/{{dir_visit}}/{{url_search_filter}}
-		{% if current_search %}
-			?{{current_search.urlQuery}}
+		<form action="/{{dir_visit}}/{{url_filter}}
+		{% if current_filter %}
+			?{{current_filter.urlQuery}}
 		{% else %}
 			?{{rakontu.urlQuery}}
 		{% endif %}
 		{% if location %}
 			&{{url_query_location}}={{location}}
 		{% endif %}
+		{% if member_to_see %}
+			&{{member_to_see.urlQuery}}
+		{% endif %}
+		{% if character %}
+			&{{character.urlQuery}}
+		{% endif %}
 		" method="post">
 	
 		<h3>{{template_filter_name_and_comment}}</h3>
 		<fieldset>
 		<p>{{template_name}} 
-		<input name="searchName" type="text" size="60" maxlength="{{maxlength_name}}" value="{{current_search.name}}">
+		<input name="filterName" type="text" size="60" maxlength="{{maxlength_name}}" value="{{current_filter.name}}">
 		{{"filter_names"|tip}}
 		<p>{{template_filter_should_be_shared}}
-		<select name="privateOrSharedSearch">
+		<select name="privateOrSharedFilter">
 			<option value="private"
-			{% if current_search and current_search.private %}
+			{% if current_filter and current_filter.private %}
 				selected="selected"
 			{% endif %}
 			>{{template_keep_filter_private}}</option>
 			<option value="shared"
-			{% if current_search and current_search.notPrivate %}
+			{% if current_filter and current_filter.notPrivate %}
 				selected="selected"
 			{% endif %}
 			>{{template_share_filter}}</option>
@@ -37,14 +43,14 @@
 		<p>{{template_comment}} {{"filter_comments"|tip}}</p>
 		<table style="width:100%; border:none">
 		<tr><td class="noborder">
-		<textarea name="comment" rows="4" cols="60">{% if current_search %}{{current_search.comment}}{% endif %}</textarea>
+		<textarea name="comment" rows="4" cols="60">{% if current_filter %}{{current_filter.comment}}{% endif %}</textarea>
 		</td><td class="noborder" width="80">
 		<p>{{template_interpret_as}} {{"interpreting_texts"|tip}}</p>
 			<select name="comment_format">
 			{% for i in text_formats|makeRangeFromListLength %}
 				<option value="{{text_formats|listLookup:i}}" 
-				{% if current_search %}
-					{% if text_formats|listLookup:i|equalTest:current_search.comment_format %}
+				{% if current_filter %}
+					{% if text_formats|listLookup:i|equalTest:current_filter.comment_format %}
 						selected="selected"
 					{% endif %}
 				{% else %}
@@ -65,8 +71,8 @@
 		<select name="overall_anyOrAll">
 		{% for i in any_or_all_choices|makeRangeFromListLength %}
 			<option value="{{any_or_all_choices|listLookup:i}}"
-			{% if current_search %}
-				{% if any_or_all_choices|listLookup:i|equalTest:current_search.overall_anyOrAll %}
+			{% if current_filter %}
+				{% if any_or_all_choices|listLookup:i|equalTest:current_filter.overall_anyOrAll %}
 					selected="selected"
 				{% endif %}
 			{% endif %}
@@ -80,8 +86,8 @@
 		<select name="words_anyOrAll">
 		{% for i in any_or_all_choices|makeRangeFromListLength %}
 			<option value="{{any_or_all_choices|listLookup:i}}"
-			{% if current_search %}
-				{% if any_or_all_choices|listLookup:i|equalTest:current_search.words_anyOrAll %}
+			{% if current_filter %}
+				{% if any_or_all_choices|listLookup:i|equalTest:current_filter.words_anyOrAll %}
 					selected="selected"
 				{% endif %}
 			{% endif %}
@@ -89,19 +95,19 @@
 		{% endfor %}
 		</select>
 		{{template_of_these_words_or_phrases}}:
-		{% for i in num_search_fields|makeRange %} 
+		{% for i in num_filter_fields|makeRange %} 
 			<input name="words|{{i}}" type="text" 
-			{% if current_search %}
-				value="{{current_search.words|listLookup:i|orNothing}}"
+			{% if current_filter %}
+				value="{{current_filter.words|listLookup:i|orNothing}}"
 			{% endif %}
 			size="16" maxlength="{{maxlength_tag_or_choice}}"> 
 		{% endfor %}
 		<br/>
 		&nbsp; &nbsp; 
-		{% for i in search_locations|makeRangeFromListLength %}
+		{% for i in filter_locations|makeRangeFromListLength %}
 			<input type="checkbox" name="location|{{i}}" value="yes" id="location|{{i}}"
-			{% if current_search %}
-				{% if current_search.words_locations|listLookup:i %}
+			{% if current_filter %}
+				{% if current_filter.words_locations|listLookup:i %}
 					checked
 				{% endif %}
 			{% else %}
@@ -110,7 +116,7 @@
 				{% endifequal %}
 			{% endif %}
 			>
-			<label for="location|{{i}}">{{search_locations_display|listLookup:i}}</label>&nbsp; &nbsp; 
+			<label for="location|{{i}}">{{filter_locations_display|listLookup:i}}</label>&nbsp; &nbsp; 
 		{% endfor %}
 		{{"filter_word_locations"|tip}}</p>
 		
@@ -119,8 +125,8 @@
 		<select name="tags_anyOrAll">
 		{% for i in any_or_all_choices|makeRangeFromListLength %}
 			<option value="{{any_or_all_choices|listLookup:i}}"
-			{% if current_search %}
-				{% if any_or_all_choices|listLookup:i|equalTest:current_search.tags_anyOrAll %}
+			{% if current_filter %}
+				{% if any_or_all_choices|listLookup:i|equalTest:current_filter.tags_anyOrAll %}
 					selected="selected"
 				{% endif %}
 			{% endif %}
@@ -128,10 +134,10 @@
 		{% endfor %}
 		</select>
 		{{template_of_these_tags}}:
-		{% for i in num_search_fields|makeRange %} 
+		{% for i in num_filter_fields|makeRange %} 
 			<input type="text" name="tags|{{i}}" 
-			{% if current_search %}
-				value="{{current_search.tags|listLookup:i|orNothing}}"
+			{% if current_filter %}
+				value="{{current_filter.tags|listLookup:i|orNothing}}"
 			{% endif %}
 			size="16" maxlength="{{maxlength_tag_or_choice}}"> 
 		{% endfor %}
@@ -142,14 +148,14 @@
 		<select name="entryQuestions|anyOrAll">
 		{% for i in any_or_all_choices|makeRangeFromListLength %}
 			<option value="{{any_or_all_choices|listLookup:i}}"
-			{% if current_search %}
+			{% if current_filter %}
 				{% if any_or_all_choices|listLookup:i|equalTest:entry_questions_any_or_all %}
 					selected="selected"
 				{% endif %}
 			{% endif %}
 			>{{any_or_all_choices_display|listLookup:i}}</option>
 		{% endfor %}
-		</select> {{template_of_these_answers_to_questions_about_entries}} {{"searching_for_questions"|tip}}</p>
+		</select> {{template_of_these_answers_to_questions_about_entries}} {{"filtering_for_questions"|tip}}</p>
 		{{entry_questions_html}}
 		
 		<hr>
@@ -157,7 +163,7 @@
 		<select name="creatorQuestions|anyOrAll">
 		{% for i in any_or_all_choices|makeRangeFromListLength %}
 			<option value="{{any_or_all_choices|listLookup:i}}"
-			{% if current_search %}
+			{% if current_filter %}
 				{% if any_or_all_choices|listLookup:i|equalTest:creator_questions_any_or_all %}
 					selected="selected"
 				{% endif %}
@@ -171,24 +177,46 @@
 		
 		<p></p>
 		<center>
-		<input type="submit" name="save" value="{{button_save_and_apply}}" class="button">&nbsp; 
-		{% if current_search %}
-			{% ifequal current_member.key current_search.creator.key %}
-				<input type="submit" name="saveAs" value="{{button_save_as_new_search_and_apply}}" class="button">&nbsp; 
-				<input type="submit" name="deleteSearchByCreator" value="{{button_delete}}" class="button">&nbsp; 
+		<input type="submit" name="save" value="
+			{% if member_to_see or character or entry %}
+				{% if member_to_see %}
+					{{button_save_and_apply_to_member}}
+				{% endif %}
+				{% if character %}
+					{{button_save_and_apply_to_character}}
+				{% endif %}
+			{% else %}
+				{{button_save_and_apply_to_home_page}}
+			{% endif %}
+			" class="button">&nbsp; 
+		{% if current_filter %}
+			{% ifequal current_member.key current_filter.creator.key %}
+				<input type="submit" name="saveAs" value="
+					{% if member_to_see or character or entry %}
+						{% if member_to_see %}
+							{{button_save_as_new_filter_and_apply_to_member}}
+						{% endif %}
+						{% if character %}
+							{{button_save_as_new_filter_and_apply_to_character}}
+						{% endif %}
+					{% else %}
+						{{button_save_as_new_filter_and_apply_to_home_page}}
+					{% endif %}
+					" class="button">&nbsp; 
+				<input type="submit" name="deleteFilterByCreator" value="{{button_delete}}" class="button">&nbsp; 
 			{% endifequal %}
 		{% endif %}
-		{% if current_search and current_search.notPrivate %}
+		{% if current_filter and current_filter.notPrivate %}
 			{% if current_member.isCuratorOrManagerOrOwner %}
-				{% if current_search.flaggedForRemoval %}
-					<input type="submit" name="flagSearchByCurator" value="{{button_unflag}}" class="button">&nbsp; 
+				{% if current_filter.flaggedForRemoval %}
+					<input type="submit" name="flagFilterByCurator" value="{{button_unflag}}" class="button">&nbsp; 
 				{% else %}
-					<input type="submit" name="flagSearchByCurator" value="{{button_flag}}" class="button">&nbsp; 
+					<input type="submit" name="flagFilterByCurator" value="{{button_flag}}" class="button">&nbsp; 
 				{% endif %}
 			{% endif %}
 			{% if current_member.isManagerOrOwner %}
-				{% ifnotequal current_member.key current_search.creator.key %}
-					<input type="submit" name="removeSearchByManager" value="{{button_delete}}" class="button">&nbsp; 
+				{% ifnotequal current_member.key current_filter.creator.key %}
+					<input type="submit" name="removeFilterByManager" value="{{button_delete}}" class="button">&nbsp; 
 				{% endifnotequal %}
 			{% endif %}
 		{% endif %}	

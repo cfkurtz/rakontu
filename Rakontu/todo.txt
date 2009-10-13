@@ -6,24 +6,25 @@ in IE menus are grey - CANNOT FIX!!
 
 ======== IRRITATING THINGS THAT WILL NOT GO AWAY:
 
-test backup/restore on second testing site.
-write instructions for it.
-
 what to do about that keys_only problem? put it in known issues? yes
 
 take age/gender questions out of defaults for characters, and put better char questions in
-
-really need to find some way of moving information from one Rakontu to another,
-ie to another site. may need to finally implement that from_xml stuff. what a pain.
-google should help more with this.
 
 remove all that no_access stuff, it's redundant 
 
 go through help.csv and resources looking for stuff that's wrong and out of date
 
+put unicode constants in language_config
+
+add ssl to faq
+
+take xml export out of manage-export page (no longer needed) ??????????
+
+manager who is not owner should not be able to make people owners.
+
 ======== FLESH OUT:
 
-finish admin manual, developer notes
+finish admin manual and developer notes
 
 ======== PRETTIFY:
 

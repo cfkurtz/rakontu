@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------------------------
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: pre-0.1
+# Version: beta (0.9+)
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
@@ -96,18 +96,18 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 					referencedLinksOutgoing = entry.getOutgoingLinksOfType("referenced")
 				else:
 					referencedLinksOutgoing = []
-				searches = rakontu.getNonPrivateSavedSearches()
-				searchesThatCanBeIncluded = []
-				for aSearch in searches:
+				filters = rakontu.getNonPrivateFilters()
+				filtersThatCanBeIncluded = []
+				for aFilter in filters:
 					found = False
 					for link in referencedLinksOutgoing:
-						if entry and str(link.itemTo.key()) == str(aSearch.key()):
+						if entry and str(link.itemTo.key()) == str(aFilter.key()):
 							found = True
 							break
 					if not found:
-						searchesThatCanBeIncluded.append(aSearch)
+						filtersThatCanBeIncluded.append(aFilter)
 			else:
-				searchesThatCanBeIncluded = []
+				filtersThatCanBeIncluded = []
 				referencedLinksOutgoing = []
 			if entryName:
 				pageTitleExtra = "- %s" % entryName
@@ -176,7 +176,7 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 							    'next': next,
 								# for a pattern
 								'referenced_links_outgoing': referencedLinksOutgoing,
-							    'searches_that_can_be_added_to_pattern': searchesThatCanBeIncluded,
+							    'filters_that_can_be_added_to_pattern': filtersThatCanBeIncluded,
 							    # for a resource
 							    'categories_in_use': categories,
 							   })
@@ -185,7 +185,7 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/entry.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	def reduceStoriesThatCanBeIncludedInCollage(self, entry, includedLinksOutgoing, entries):
 		entriesThatCanBeIncluded = []
@@ -232,7 +232,8 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 				# if new entry, create
 				newEntry = False  
 				if not entry:
-					keyName = GenerateSequentialKeyName("entry")
+					keyName = GenerateSequentialKeyName("entry", rakontu)
+					DebugPrint(keyName)
 					entry=Entry(
 							key_name=keyName,
 							id=keyName, 
@@ -290,7 +291,7 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 						elif self.request.get("link_type") == "respond":
 							linkType = "responded"
 						comment = htmlEscape(self.request.get("link_comment"))
-						keyName = GenerateSequentialKeyName("link")
+						keyName = GenerateSequentialKeyName("link", rakontu)
 						link = Link(
 								key_name=keyName, 
 								id=keyName,
@@ -316,7 +317,7 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 					for anEntry in entries:
 						if self.request.get("addLink|%s" % anEntry.key()) == "yes":
 							comment = htmlEscape(self.request.get("linkComment|%s" % anEntry.key()))
-							keyName = GenerateSequentialKeyName("link")
+							keyName = GenerateSequentialKeyName("link", rakontu)
 							link = Link(
 								key_name=keyName, 
 								id=keyName,
@@ -338,17 +339,17 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 						thingsToPut.append(link)
 						if self.request.get("removeLink|%s" % link.key()) == "yes":
 							thingsToDelete.append(link)
-					for aSearch in rakontu.getNonPrivateSavedSearches():
-						comment = htmlEscape(self.request.get("linkComment|%s" % aSearch.key()))
-						if self.request.get("addLink|%s" % aSearch.key()) == "yes":
-							keyName = GenerateSequentialKeyName("link")
+					for aFilter in rakontu.getNonPrivateFilters():
+						comment = htmlEscape(self.request.get("linkComment|%s" % aFilter.key()))
+						if self.request.get("addLink|%s" % aFilter.key()) == "yes":
+							keyName = GenerateSequentialKeyName("link", rakontu)
 							link = Link(
 								key_name=keyName, 
 								id=keyName,
 								parent=entry,
 								rakontu=rakontu,
 								itemFrom=entry, 
-								itemTo=aSearch, 
+								itemTo=aFilter, 
 								type="referenced", 
 								comment=comment,
 								creator=creator,
@@ -367,13 +368,14 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 						if foundAnswer:
 							answerToEdit = foundAnswer
 						else:
-							keyName = GenerateSequentialKeyName("answer")
+							keyName = GenerateSequentialKeyName("answer", rakontu)
 							answerToEdit = Answer(
 												key_name=keyName,
 												id=keyName,
 												parent=entry,
 												rakontu=rakontu, 
 												question=question, 
+												questionType=question.type,
 												referent=entry, 
 												referentType="entry")
 						answerToEdit.setValueBasedOnResponse(question, self.request, queryText, response)
@@ -419,7 +421,7 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 				else: # new entry
 					self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
 		else: # no rakontu or member
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class ManageEntryAttachmentsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -446,7 +448,7 @@ class ManageEntryAttachmentsPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 				
 	@RequireLogin 
 	def post(self):
@@ -468,7 +470,7 @@ class ManageEntryAttachmentsPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class AddOneAttachmentPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -492,7 +494,7 @@ class AddOneAttachmentPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 				
 	@RequireLogin 
 	def post(self):
@@ -504,7 +506,7 @@ class AddOneAttachmentPage(ErrorHandlingRequestHander):
 					if name == "attachment":
 						if value != None and value != "":
 							filename = value.filename
-							keyName = GenerateSequentialKeyName("attachment")
+							keyName = GenerateSequentialKeyName("attachment", rakontu)
 							newAttachment = Attachment(
 											key_name=keyName, 
 											id=keyName, 
@@ -537,7 +539,7 @@ class AddOneAttachmentPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class ManageAdditionalEntryEditorsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -566,7 +568,7 @@ class ManageAdditionalEntryEditorsPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 				
 	@RequireLogin 
 	def post(self):
@@ -589,7 +591,7 @@ class ManageAdditionalEntryEditorsPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 		
 class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -629,7 +631,7 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 				
 	@RequireLogin 
 	def post(self):
@@ -658,13 +660,14 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 						if foundAnswer:
 							answerToEdit = foundAnswer
 						else:
-							keyName = GenerateSequentialKeyName("answer")
+							keyName = GenerateSequentialKeyName("answer", rakontu)
 							answerToEdit = Answer(
 												key_name=keyName, 
 												id=keyName,
 												parent=entry,
 												rakontu=rakontu, 
 												question=question, 
+												questionType=question.type,
 												referent=entry, 
 												referentType="entry")
 							newAnswers = True
@@ -693,7 +696,7 @@ class AnswerQuestionsAboutEntryPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class PreviewAnswersPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -726,7 +729,7 @@ class PreviewAnswersPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 		
 	@RequireLogin 
 	def post(self):
@@ -749,7 +752,7 @@ class PreviewAnswersPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 
 class EnterAnnotationPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -803,7 +806,7 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	@RequireLogin 
 	def post(self):
@@ -820,7 +823,7 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 				thingsToPut = []
 				thingsToDelete = []
 				if not annotation:
-					keyName = GenerateSequentialKeyName("annotation")
+					keyName = GenerateSequentialKeyName("annotation", rakontu)
 					annotation = Annotation(key_name=keyName, parent=entry, id=keyName, rakontu=rakontu, type=type, entry=entry)
 					newAnnotation = True
 				preview = False
@@ -915,7 +918,7 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 			else: # new entry
 				self.redirect(rakontu.linkURL())
 		else: # no rakontu or member
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class PreviewPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -946,7 +949,7 @@ class PreviewPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 		
 	@RequireLogin 
 	def post(self):
@@ -997,7 +1000,7 @@ class PreviewPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 					
 class RelateEntryPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -1041,7 +1044,7 @@ class RelateEntryPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	def reduceEntriesForRelationsAlreadyThere(self, entry, links, entries):
 		entriesThatCanBeRelated = []
@@ -1080,7 +1083,7 @@ class RelateEntryPage(ErrorHandlingRequestHander):
 					for anEntry in entries:
 						if self.request.get("addLink|%s" % anEntry.key()) == "yes":
 							comment = htmlEscape(self.request.get("linkComment|%s" % anEntry.key()))
-							keyName = GenerateSequentialKeyName("link")
+							keyName = GenerateSequentialKeyName("link", rakontu)
 							link = Link(
 									key_name=keyName,
 									id=keyName, 
@@ -1113,5 +1116,5 @@ class RelateEntryPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			

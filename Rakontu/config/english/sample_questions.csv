@@ -1,4 +1,4 @@
-"; refersTo","name","text","type","choices or min-max or boolean ""yes"" text","multiple","help","useHelp","use for communities of type(s)"
+"; refersTo","name","text","type","if ordinal/nominal: choices; if value: min-dash-max; if boolean: ""yes"" text, pipe (|), ""no"" text","multiple","help","useHelp","use for communities of type(s)"
 "; ALL COMMUNITIES",,,,,,,,
 "member, character","Generation","Which generation do you fall into?","ordinal","Gen-Y, Gen-X, Baby boomers, Greatest Generation, Even older than that!","no",,,
 ,,,,,,,,
@@ -46,7 +46,7 @@
 "story","When happened","When did this story happen?","ordinal","very recently, recently, a while ago, a long time ago, I don't know, I can't remember","no",,,
 "story","Useful to","Is there anyone you think will find this story especially useful?","text",,,,,
 "story","Common","How common would you say the events in this story are?","ordinal","extremely, very, moderately, not much, not at all","no",,,
-"story","Fictional","Is this story a deliberate fiction?","boolean","Yes, it didn't happen",,,,
+"story","Fictional","Is this story a deliberate fiction?","boolean","Yes, it didn't happen|No, it really did happen",,,,
 "story","Main character","Who would you say is the main character in this story?","text",,,,,
 "story","Multiple main character","Is the main character in this story one person or more than one?","ordinal","one person, more than one person",,,,
 "story","What changed","What changed in this story?","text",,,,,

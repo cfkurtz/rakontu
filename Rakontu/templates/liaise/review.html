@@ -70,7 +70,7 @@
 	      			 <td>&nbsp;
 	      			 	{% for tagset in batch_tagsets %}
 	      			 		{% ifequal tagset.entryKey entry.key %}
-	      			 			<a href="/{{dir_visit}}/{{tagset.typeAsURL}}?{{url_query_annotation}}={{tagset.getKeyName}}">{{tagset.displayString}}</a>
+	      			 			<a href="/{{dir_visit}}/{{tagset.typeAsURL}}?{{tagset.urlQuery}}">{{tagset.displayString}}</a>
 	      			 		{% endifequal %}
 	      			 	{% endfor %}
 	      			 </td>

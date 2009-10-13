@@ -75,15 +75,27 @@
 				{% endif %}
 				
 				{% ifequal question.type "boolean" %}
-					&nbsp; &nbsp; <input type="checkbox" name="{{question.key}}" value="yes" id="{{question.key}}"
+					&nbsp; &nbsp; 
+					<select name="{{question.key}}" id="{{question.key}}">
+					<option value="yes" 
 					{% for answer in answers %}
 						{% ifequal answer.questionKey question.key %}
 							{% if answer.answerIfBoolean %}
-								checked="checked"
+								selected="selected"
 							{% endif %}
 						{% endifequal %}
 					{% endfor %}
-					/><label for="{{question.key}}">{{question.responseIfBoolean}}</label>
+					>{{question.positiveResponseIfBoolean}}</option>
+					<option value="no" 
+					{% for answer in answers %}
+						{% ifequal answer.questionKey question.key %}
+							{% if not answer.answerIfBoolean %}
+								selected="selected"
+							{% endif %}
+						{% endifequal %}
+					{% endfor %}
+					>{{question.negativeResponseIfBoolean}}</option>
+					</select>
 				{% endifequal %}
 				
 				{% ifequal question.type "value" %}

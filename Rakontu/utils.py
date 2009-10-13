@@ -1,19 +1,19 @@
 # --------------------------------------------------------------------------------------------
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: pre-0.1
+# Version: beta (0.9+)
 # License: GPL 3.0 
 # Google Code Project: http://code.google.com/p/rakontu/
 # ---------------------------------------------------------------------------------------------
 		 
-import os		
-import string			  
-import cgi		   
-import htmllib		  
+import os		 
+import string			   
+import cgi		    
+import htmllib		   
 		  
-from models import *		  
+from models import *		   
 	 
-from google.appengine.api import users	 
+from google.appengine.api import users	  
 from google.appengine.ext.webapp import template		
 from google.appengine.ext import webapp	 
 from google.appengine.ext.webapp.util import run_wsgi_app   
@@ -25,7 +25,7 @@ import traceback
 webapp.template.register_template_library('djangoTemplateExtras')
 import csv 
 import pytz
-   
+    
 # ============================================================================================
 # ============================================================================================
 # PREPARING INFO FOR TEMPLATES
@@ -36,23 +36,24 @@ def FindTemplate(template):
 	return "templates/%s" % template   
 	 
 def RequireLogin(func):  
-	def check_login(request):   
-		if not users.get_current_user():   
-			loginURL = users.create_login_url("/") 
-			request.redirect(loginURL) 
-			return
+	def check_login(request):    
+		if not users.get_current_user():    
+			loginURL = users.create_login_url("/")  
+			request.redirect(loginURL)  
+			return 
 		func(request)
-	return check_login  
+	return check_login    
 
-def GetCurrentRakontuAndMemberFromRequest(request):
-	rakontu = GetRakontuFromURLQuery(request.query_string)
+def GetCurrentRakontuAndMemberFromRequest(request): 
+	rakontu = GetRakontuFromURLQuery(request.query_string)  
 	member = GetCurrentMemberFromRakontuAndUser(rakontu, users.get_current_user())
-	okayToAccess = rakontu and rakontu.active and member and member.active
-	if okayToAccess:
+	admin = users.is_current_user_admin()
+	okayToAccess = rakontu and member and member.active and rakontu.memberCanAccessMe(member, admin)
+	if okayToAccess: 
 		isFirstVisit = SetFirstThingsAndReturnWhetherMemberIsNew(rakontu, member)
 	else: 
-		isFirstVisit = False
-	return rakontu, member, okayToAccess, isFirstVisit
+		isFirstVisit = False 
+	return rakontu, member, okayToAccess, isFirstVisit 
 
 def GetCurrentMemberFromRakontuAndUser(rakontu, user):
 	member = None
@@ -68,7 +69,7 @@ def GetCurrentMemberFromRakontuAndUser(rakontu, user):
 	return member
 
 def CreateMemberFromInfo(rakontu, userId, email, nickname, joinAs, isOnline=True, liaison=None):
-	keyName = GenerateSequentialKeyName("member")
+	keyName = GenerateSequentialKeyName("member", rakontu)
 	def txn(rakontu, userId, email, nickname, joinAs, keyName):
 		member = Member(
 			key_name=keyName, 
@@ -90,7 +91,7 @@ def CreateMemberFromInfo(rakontu, userId, email, nickname, joinAs, isOnline=True
 	return member
  
 def CreatePendingMemberFromInfo(rakontu, email, joinAs):
-	keyName = GenerateSequentialKeyName("pendingmember")
+	keyName = GenerateSequentialKeyName("pendingmember", rakontu)
 	pendingMember = PendingMember(
 				key_name=keyName, 
 				id=keyName,
@@ -130,31 +131,7 @@ def GetRakontuFromURLQuery(query):
 		rakontuKeyName = queryAsDictionary[rakontuLookupKey]
 		return Rakontu.get_by_key_name(rakontuKeyName) 
 	else:
-		for lookup, url in URL_IDS.items():
-			if queryAsDictionary.has_key(url):
-				entityKeyName = queryAsDictionary[url] 
-				if lookup == "url_query_member":
-					entity = Member.all().filter("id = ", entityKeyName).get()
-				elif lookup in ["url_query_export_csv", "url_query_export_txt", "url_query_export_xml"]:
-					entity = Export.get_by_key_name(entityKeyName)
-				elif lookup == "url_query_character":
-					entity = Character.all().filter("id = ", entityKeyName).get()
-				elif lookup == "url_query_entry": 
-					entity = Entry.all().filter("id = ", entityKeyName).get()
-				elif lookup == "url_query_attachment": 
-					entity = Attachment.all().filter("id = ", entityKeyName).get()
-				elif lookup == "url_query_annotation":
-					entity = Annotation.all().filter("id = ", entityKeyName).get()
-				elif lookup == "url_query_version": 
-					entity = TextVersion.all().filter("id = ", entityKeyName).get()
-				elif lookup == "url_query_search_filter":
-					entity = SavedSearch.all().filter("id = ", entityKeyName).get()
-				elif lookup == "url_query_question":
-					entity = Question.all().filter("id = ", entityKeyName).get()
-				if entity and entity.rakontu: 
-					return entity.rakontu 
-				else: 
-					return None 
+		return None
 				 
 def GetStringOfTypeFromURLQuery(query, type):
 	dictionary = GetDictionaryFromURLQuery(query) 
@@ -165,30 +142,43 @@ def GetStringOfTypeFromURLQuery(query, type):
 		return None
 
 def GetObjectOfTypeFromURLQuery(query, type): 
-	dictionary = GetDictionaryFromURLQuery(query)
-	lookupKey = URL_IDS[type]
-	if dictionary.has_key(lookupKey):
-		keyName = dictionary[lookupKey]
-		if type == "url_query_rakontu":
-			return Rakontu.get_by_key_name(keyName)
-		elif type == "url_query_member":
-			return Member.all().filter("id = ", keyName).get()
-		elif type == "url_query_character": 
-			return Character.all().filter("id = ", keyName).get()
-		elif type == "url_query_export": 
-			return Export.get_by_key_name(keyName)
-		elif type == "url_query_entry":
-			return Entry.all().filter("id = ", keyName).get()
-		elif type == "url_query_attachment":
-			return Attachment.all().filter("id = ", keyName).get()
-		elif type == "url_query_annotation":
-			return Annotation.all().filter("id = ", keyName).get()
-		elif type == "url_query_version": 
-			return TextVersion.all().filter("id = ", keyName).get()
-		elif type == "url_query_search_filter":
-			return SavedSearch.all().filter("id = ", keyName).get()
-		elif type == "url_query_question":
-			return Question.all().filter("id = ", keyName).get()
+	rakontu = GetRakontuFromURLQuery(query)
+	if rakontu:
+		dictionary = GetDictionaryFromURLQuery(query)
+		lookupKey = URL_IDS[type]
+		if dictionary.has_key(lookupKey):
+			keyIndex = dictionary[lookupKey]
+			if type == "url_query_rakontu":
+				return rakontu
+			elif type == "url_query_member":
+				keyName = '%s_member_%s' % (rakontu.key().name(), keyIndex)
+				return Member.all().filter("id = ", keyName).get()
+			elif type == "url_query_character": 
+				keyName = '%s_character_%s' % (rakontu.key().name(), keyIndex)
+				return Character.all().filter("id = ", keyName).get()
+			elif type == "url_query_export": 
+				keyName = '%s_export_%s' % (rakontu.key().name(), keyIndex)
+				return Export.get_by_key_name(keyName)
+			elif type == "url_query_entry":
+				keyName = '%s_entry_%s' % (rakontu.key().name(), keyIndex)
+				return Entry.all().filter("id = ", keyName).get()
+			elif type == "url_query_attachment":
+				keyName = '%s_attachment_%s' % (rakontu.key().name(), keyIndex)
+				return Attachment.all().filter("id = ", keyName).get()
+			elif type == "url_query_annotation":
+				keyName = '%s_annotation_%s' % (rakontu.key().name(), keyIndex)
+				return Annotation.all().filter("id = ", keyName).get()
+			elif type == "url_query_version": 
+				keyName = '%s_version_%s' % (rakontu.key().name(), keyIndex)
+				return TextVersion.all().filter("id = ", keyName).get()
+			elif type == "url_query_filter":
+				keyName = '%s_filter_%s' % (rakontu.key().name(), keyIndex)
+				return SavedFilter.all().filter("id = ", keyName).get()
+			elif type == "url_query_question":
+				keyName = '%s_question_%s' % (rakontu.key().name(), keyIndex)
+				return Question.all().filter("id = ", keyName).get()
+		else:
+			return None
 	else:
 		return None
 	
@@ -338,15 +328,11 @@ class ErrorHandlingRequestHander(webapp.RequestHandler):
 		except:
 			couldNotEmailMessage = TERMS["term_could_not_email_admins"]
 		# for database errors, send user to different message page
-		#from google.appengine.ext.db import Timeout
-		#from google.appengine.ext.db import TransactionFailedError
-		#from google.appengine.runtime.apiproxy_errors import CapabilityDisabledError
-		#from google.appengine.runtime import DeadlineExceededError 
 		url = None
 		if exception.__class__.__name__ in [
-					"google.appengine.ext.db.Timeout", 
-					"google.appengine.runtime.DeadlineExceededError", 
-					"google.appengine.runtime.CapabilityDisabledError"]:
+					"google.appengine.ext.db.Timeout", "Timeout",
+					"google.appengine.runtime.DeadlineExceededError", "DeadlineExceededError",
+					"google.appengine.runtime.CapabilityDisabledError", "CapabilityDisabledError"]:
 			url = DatabaseErrorURL(rakontu)
 		if exception.__class__.__name__ == "google.appengine.ext.db.TransactionFailedError":
 			url = TransactionFailedURL(rakontu)
@@ -453,7 +439,7 @@ class AttachmentWrongTypeErrorPageHandler(ErrorHandlingRequestHander):
 		path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/attachmentWrongTypeError.html'))
 		self.response.out.write(template.render(path, template_values))
 		
-class NotAuthorizedPageHandler(ErrorHandlingRequestHander):
+class RoleNotFoundPageHandler(ErrorHandlingRequestHander):
    def get(self):
 		rakontu = None
 		member = None
@@ -470,17 +456,17 @@ class NotAuthorizedPageHandler(ErrorHandlingRequestHander):
 				break
 		 	i += 1
 		template_values = GetStandardTemplateDictionaryAndAddMore({
-						'title': TITLES["NOT_AUTHORIZED"],
+						'title': TITLES["ROLE_NOT_FOUND"],
 						'rakontu': rakontu,
 						'current_member': member,
 						'type': type,
 						'type_display': typeForDisplay,
-						'error_message': TITLES["NOT_AUTHORIZED"], 
+						'error_message': TITLES["ROLE_NOT_FOUND"], 
 						'url': self.request.uri})
-		path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/notAuthorized.html'))
+		path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/roleNotFound.html'))
 		self.response.out.write(template.render(path, template_values))
 
-class NoRakontuAndActiveMemberPageHandler(ErrorHandlingRequestHander):
+class NoRakontuPageHandler(ErrorHandlingRequestHander):
    def get(self):
 		rakontu = None
 		member = None
@@ -489,14 +475,48 @@ class NoRakontuAndActiveMemberPageHandler(ErrorHandlingRequestHander):
 		except: 
 			pass
 		template_values = GetStandardTemplateDictionaryAndAddMore({
-						'title': TITLES["NO_RAKONTU_AND_MEMBER"],
+						'title': TITLES["NO_RAKONTU"],
 						'rakontu': rakontu,
 						'current_member': member,
-						'error_message': TITLES["NO_RAKONTU_AND_MEMBER"],
+						'error_message': TITLES["NO_RAKONTU"],
 						'url': self.request.uri})
-		path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/noRakontuAndMember.html'))
+		path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/noRakontu.html'))
 		self.response.out.write(template.render(path, template_values))
-
+		 
+class NoActiveMemberPageHandler(ErrorHandlingRequestHander):
+   def get(self):   
+		rakontu = None    
+		member = None        
+		try:    
+			rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		except:  
+			pass 
+		template_values = GetStandardTemplateDictionaryAndAddMore({
+						'title': TITLES["NO_MEMBER"],
+						'rakontu': rakontu, 
+						'current_member': member,
+						'error_message': TITLES["NO_MEMBER"],
+						'url': self.request.uri})
+		path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/noMember.html'))
+		self.response.out.write(template.render(path, template_values))
+		
+class RakontuNotAvailablePageHandler(ErrorHandlingRequestHander):
+   def get(self):
+		rakontu = None
+		member = None
+		try:
+			rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		except:  
+			pass
+		template_values = GetStandardTemplateDictionaryAndAddMore({
+						'title': TITLES["RAKONTU_NOT_AVAILABLE"],
+						'rakontu': rakontu,
+						'current_member': member,
+						'error_message': TITLES["RAKONTU_NOT_AVAILABLE"],
+						'url': self.request.uri})
+		path = os.path.join(os.path.dirname(__file__), FindTemplate('errors/rakontuNotAvailable.html'))
+		self.response.out.write(template.render(path, template_values))
+		
 class ManagersOnlyPageHandler(ErrorHandlingRequestHander):
    def get(self):
 		rakontu = None
@@ -554,13 +574,6 @@ class ImageHandler(ErrorHandlingRequestHander):
 				self.response.out.write(member.profileImage)
 			else:
 				self.error(404)
-		elif rakontuKeyName:
-			rakontu = Rakontu.get_by_key_name(rakontuKeyName)
-			if rakontu and rakontu.image:
-				self.response.headers['Content-Type'] = "image/jpeg"
-				self.response.out.write(rakontu.image)
-			else:
-				self.error(404)
 		elif entryKeyName:
 			entry = Entry.all().filter("id = ", entryKeyName).get()
 			if entry and entry.type == "pattern" and entry.screenshotIfPattern:
@@ -576,6 +589,13 @@ class ImageHandler(ErrorHandlingRequestHander):
 			if attachment:
 				self.response.headers['Content-Type'] = attachment.mimeType
 				self.response.out.write(attachment.data)
+		elif rakontuKeyName:
+			rakontu = Rakontu.get_by_key_name(rakontuKeyName)
+			if rakontu and rakontu.image:
+				self.response.headers['Content-Type'] = "image/jpeg"
+				self.response.out.write(rakontu.image)
+			else:
+				self.error(404)
 			   
 class AttachmentHandler(ErrorHandlingRequestHander): 
 	def get(self):
@@ -600,7 +620,7 @@ class ExportHandler(ErrorHandlingRequestHander):
 		if csvKeyName:
 			export = Export.get_by_key_name(csvKeyName)
 			if export and export.data:
-				self.response.headers['Content-Disposition'] ='export; filename="%s.%s"' % (TERMS["term_export"], "csv")
+				self.response.headers['Content-Disposition'] ='export; filename="%s_%s.%s"' % (export.type, export.subtype, "csv")
 				self.response.headers['Content-Type'] ="text/csv"
 				self.response.out.write(export.data)
 			else:
@@ -615,7 +635,7 @@ class ExportHandler(ErrorHandlingRequestHander):
 		elif xmlKeyName:
 			export = Export.get_by_key_name(xmlKeyName)
 			if export and export.data:
-				self.response.headers['Content-Disposition'] ='export; filename="%s.%s"' % (TERMS["term_export"], "xml")
+				self.response.headers['Content-Disposition'] ='export; filename="%s_%s.%s"' % (export.type, export.subtype, "xml")
 				self.response.headers['Content-Type'] ="text/xml"
 				self.response.out.write(export.data)
 			else:
@@ -635,7 +655,7 @@ def GenerateHelps():
 		helpStrings = csv.reader(file)
 		for row in helpStrings:
 			if len(row[0]) > 0 and row[0][0] != ";":
-				keyName = GenerateSequentialKeyName("help")
+				keyName = GenerateSequentialKeyName("help") # no rakontu - system level
 				help = Help(
 						key_name=keyName,  
 						id=keyName,
@@ -659,7 +679,7 @@ def GenerateSkins():
 			if len(key) > 0 and key[0] != ";":
 				if key == "ELEMENT":
 					for cell in row[2:]: # 2 because 1 is explanation of element
-						keyName = GenerateSequentialKeyName("skin")
+						keyName = GenerateSequentialKeyName("skin") # no rakontu - system level
 						skin = Skin(
 								key_name=keyName,
 								id=keyName,
@@ -724,11 +744,12 @@ def ReadQuestionsFromFile(fileName, rakontu=None, rakontuType="ALL"):
 						choices = [] 
 						minValue = DEFAULT_QUESTION_VALUE_MIN
 						maxValue = DEFAULT_QUESTION_VALUE_MAX
-						responseIfBoolean = DEFAULT_QUESTION_BOOLEAN_RESPONSE
+						positiveResponseIfBoolean = DEFAULT_QUESTION_YES_BOOLEAN_RESPONSE
+						negativeResponseIfBoolean = DEFAULT_QUESTION_NO_BOOLEAN_RESPONSE
 						if type == "ordinal" or type == "nominal":
 							choices = [x.strip() for x in row[4].split(",")]
 						elif type == "value":
-							minAndMax = row[4].split("-")
+							minAndMax = row[4].split("-") 
 							try:
 								minValue = int(minAndMax[0])
 							except:
@@ -738,12 +759,18 @@ def ReadQuestionsFromFile(fileName, rakontu=None, rakontuType="ALL"):
 							except:
 								pass
 						elif type == "boolean":
-							responseIfBoolean = row[4]
+							posNeg = row[4].split("|")
+							positiveResponseIfBoolean = posNeg[0]
+							if len(posNeg) > 1:
+								negativeResponseIfBoolean = posNeg[1]
 						multiple = row[5] == "yes"
 						help = row[6]
 						useHelp=row[7]
 						typesOfRakontu = [x.strip() for x in row[8].split(",")]
-						keyName = GenerateSequentialKeyName("question")
+						if rakontu:
+							keyName = GenerateSequentialKeyName("question", rakontu)
+						else:
+							keyName = GenerateSequentialKeyName("question") # no rakontu - system level
 						question = Question(
 										key_name=keyName,
 										parent=rakontu,
@@ -756,14 +783,15 @@ def ReadQuestionsFromFile(fileName, rakontu=None, rakontuType="ALL"):
 										type=type, 
 										choices=choices, 
 										multiple=multiple,
-										responseIfBoolean=responseIfBoolean, 
+										positiveResponseIfBoolean=positiveResponseIfBoolean, 
+										negativeResponseIfBoolean=negativeResponseIfBoolean,
 										minIfValue=minValue, 
 										maxIfValue=maxValue, 
 										help=help, 
 										useHelp=useHelp)
 						questionsToPut.append(question)
 		db.put(questionsToPut)
-	finally:
+	finally: 
 		file.close()
 
 def GenerateSampleQuestions():
@@ -773,36 +801,39 @@ def GenerateDefaultQuestionsForRakontu(rakontu, type):
 	ReadQuestionsFromFile(DEFAULT_QUESTIONS_FILE_NAME, rakontu, type)
 	
 def GenerateDefaultCharactersForRakontu(rakontu):
-	file = open(DEFAULT_CHARACTERS_FILE_NAME)
-	questionStrings = csv.reader(file)
-	characters = []
-	for row in questionStrings:
-		if len(row) >= 4 and row[0][0] != ";":
-			name = row[0]
-			description = row[1] 
-			etiquetteStatement = row[2] 
-			imageFileName = row[3]  
-			fullImageFileName = "config/images/%s" % imageFileName	
-			imageData = open(fullImageFileName).read()  
-			image = db.Blob(imageData) 
-			keyName = GenerateSequentialKeyName("character")
-			character = Character( 
-							   key_name=keyName,  
-							   parent=rakontu,
-							   id=keyName, 
-							   rakontu=rakontu,
-							   name=row[0])
-			format = "plain text" 
-			character.description = db.Text(description)
-			character.description_formatted = db.Text(InterpretEnteredText(description, format))
-			character.description_format = format
-			character.etiquetteStatement = db.Text(etiquetteStatement)
-			character.etiquetteStatement_formatted = db.Text(InterpretEnteredText(etiquetteStatement, format))
-			character.etiquetteStatement_format = format
-			character.image = image 
-			characters.append(character)
-	db.put(characters)
-	file.close()
+	if os.path.exists(DEFAULT_CHARACTERS_FILE_NAME):
+		file = open(DEFAULT_CHARACTERS_FILE_NAME)
+		try:
+			questionStrings = csv.reader(file)
+			characters = []
+			for row in questionStrings:
+				if len(row) >= 4 and row[0][0] != ";":
+					name = row[0]
+					description = row[1] 
+					etiquetteStatement = row[2] 
+					imageFileName = row[3]  
+					fullImageFileName = "config/images/%s" % imageFileName	
+					imageData = open(fullImageFileName).read()  
+					image = db.Blob(imageData) 
+					keyName = GenerateSequentialKeyName("character", rakontu)
+					character = Character( 
+									   key_name=keyName,  
+									   parent=rakontu,
+									   id=keyName, 
+									   rakontu=rakontu,
+									   name=row[0])
+					format = "plain text" 
+					character.description = db.Text(description)
+					character.description_formatted = db.Text(InterpretEnteredText(description, format))
+					character.description_format = format
+					character.etiquetteStatement = db.Text(etiquetteStatement)
+					character.etiquetteStatement_formatted = db.Text(InterpretEnteredText(etiquetteStatement, format))
+					character.etiquetteStatement_format = format
+					character.image = image 
+					characters.append(character)
+			db.put(characters)
+		finally:
+			file.close()
 	 
 def GenerateSystemResources(): 
 	db.delete(SystemEntriesOfType("resource"))
@@ -820,7 +851,7 @@ def GenerateSystemResources():
 				currentResource.text = currentText
 				currentResource.text_formatted = db.Text(InterpretEnteredText(currentText, currentResource.text_format))
 				resources.append(currentResource) 
-			keyName = GenerateSequentialKeyName("entry")
+			keyName = GenerateSequentialKeyName("entry") # no rakontu - system level
 			currentResource = Entry(key_name=keyName,  
 							rakontu=None, 
 							id=keyName, 
@@ -860,7 +891,7 @@ def CopyDefaultResourcesForNewRakontu(rakontu, member):
 	for resource in systemResources:
 		alreadyThereResource = rakontu.getResourceWithTitle(resource.title)
 		if not alreadyThereResource: 
-			keyName = GenerateSequentialKeyName("entry")
+			keyName = GenerateSequentialKeyName("entry", rakontu)
 			newResource = Entry(key_name=keyName, 
 							parent=member,
 							id=keyName,
@@ -1148,8 +1179,9 @@ def GenerateRandomDate(start, end):
 def GenerateFakeTestingData():
 	user = users.get_current_user()
 	# make rakontu
-	keyName = GenerateSequentialKeyName("rakontu")
-	rakontu = Rakontu(key_name=keyName, name=keyName)
+	text = random.choice(LOREM_IPSUM)[random.randrange(0,20):random.randrange(30,50)]
+	keyName = text.strip().replace(" ", "").replace(",", "").replace(".", "").replace(";", "").replace(":", "")
+	rakontu = Rakontu(key_name=keyName, id=keyName, name=keyName)
 	rakontu.initializeFormattedTexts()
 	rakontu.initializeCustomSkinText()
 	# set its creation time back, to simulate entries
@@ -1198,7 +1230,7 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 			type = random.choice(ENTRY_TYPES)
 			member = Member.get_by_key_name(random.choice(memberKeyNames), parent=rakontu)
 			text = random.choice(LOREM_IPSUM)
-			keyName = GenerateSequentialKeyName("entry")
+			keyName = GenerateSequentialKeyName("entry", rakontu)
 			entry = Entry( 
 						key_name=keyName, 
 						parent=member,
@@ -1228,7 +1260,7 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 			member = Member.get_by_key_name(random.choice(memberKeyNames), parent=rakontu)
 			entry = Entry.all().filter("id = ", random.choice(entryKeyNames)).get()
 			text = random.choice(LOREM_IPSUM)
-			keyName = GenerateSequentialKeyName("annotation")
+			keyName = GenerateSequentialKeyName("annotation", rakontu)
 			annotation = Annotation(
 								key_name=keyName, 
 								parent=entry,
@@ -1275,13 +1307,14 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 				questionKeyNamesForThisType = questionKeyNames[entry.type]
 				question = Question.all().filter("id = ", random.choice(questionKeyNamesForThisType)).get()
 				text = random.choice(LOREM_IPSUM)[:random.randrange(5,20)]
-				keyName = GenerateSequentialKeyName("answer")
+				keyName = GenerateSequentialKeyName("answer", rakontu)
 				answer = Answer(
 									key_name=keyName, 
 									id=keyName,
 									parent=entry,
 									rakontu=rakontu, 
 									question=question,
+									questionType=question.type,
 									creator=member,  
 									referent=entry)
 				if question.type == "boolean":
@@ -1325,7 +1358,7 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 			member = Member.get_by_key_name(random.choice(memberKeyNames), parent=rakontu)
 			entry = Entry.all().filter("id = ", random.choice(entryKeyNames)).get()
 			text = random.choice(LOREM_IPSUM)
-			keyName = GenerateSequentialKeyName("annotation")
+			keyName = GenerateSequentialKeyName("annotation", rakontu)
 			annotation = Annotation(
 								key_name=keyName, 
 								parent=entry,

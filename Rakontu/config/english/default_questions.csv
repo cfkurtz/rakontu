@@ -1,4 +1,4 @@
-"; refersTo","name","text","type","choices or min-max or boolean ""yes"" text","multiple","help","useHelp","use for communities of type(s)"
+"; refersTo","name","text","type","if ordinal/nominal: choices; if value: min-dash-max; if boolean: ""yes"" text, pipe (|), ""no"" text","multiple","help","useHelp","use for Rakontus of type(s)"
 "; ALL COMMUNITIES EXCEPT WORKGROUP",,,,,,,,
 "member, character","Age","How old are you?","ordinal","20 or younger, 21-40, 41-60, 61-80, 80 or over","no",,,"neighborhood, interest or support group, family"
 "member, character","Gender","What is your gender?","nominal","male, female","no",,,"neighborhood, interest or support group, family"

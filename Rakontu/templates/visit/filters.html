@@ -9,8 +9,8 @@
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_filters}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
-		{% if searches %}
-			<h4>{{template_saved_search_filters}}</h4>
+		{% if filters %}
+			<h4>{{template_saved_filters}}</h4>
 		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
 		      		<th>{{template_name}}<br/></th>
@@ -21,30 +21,30 @@
 		      		<th>{{template_created}}</th>
 		      		<th>{{template_private}}?</th>
 		      		<th>{{template_remove}}?</th>
-		      	{% for search in searches %}
+		      	{% for filter in filters %}
 			      	<tr>
-			      	<td>{{search.name}}<br/>
-			      		<a href="{{search.linkURL}}">{{template_apply_to_home_page}}</a><br/>
-			      		<a href="{{search.editURL}}">{{template_change}}</a>
+			      	<td>{{filter.name}}<br/>
+			      		<a href="{{filter.linkURL}}">{{template_apply_to_home_page}}</a><br/>
+			      		<a href="{{filter.editURL}}">{{template_change}}</a>
 			      		</td>
 			      	<td>
-			      		{% if search.words %}
-			      			{{search.words_anyOrAll}}: <b>{{search.words|join:", "}}</b> <br/>
-				      		{% for i in search_locations|makeRangeFromListLength %}
-				      			{% if search.words_locations|listLookup:i %}
-				      				{{search_locations_display|listLookup:i}}<br/>
+			      		{% if filter.words %}
+			      			{{filter.words_anyOrAll}}: <b>{{filter.words|join:", "}}</b> <br/>
+				      		{% for i in filter_locations|makeRangeFromListLength %}
+				      			{% if filter.words_locations|listLookup:i %}
+				      				{{filter_locations_display|listLookup:i}}<br/>
 				      			{% endif %}
 				      		{% endfor %}
 			      		{% else %}
 			      			&nbsp;
 			      		{% endif %}
 			      		</td>
-			      	<td>{% if search.tags %}
-			      			{{search.tags_anyOrAll}}: {{search.tags|join:", "}}
+			      	<td>{% if filter.tags %}
+			      			{{filter.tags_anyOrAll}}: {{filter.tags|join:", "}}
 			      		{% endif %}&nbsp;
 			      		</td>
 			      	<td>
-			      		{% for ref in search.getEntryQuestionRefs %}
+			      		{% for ref in filter.getEntryQuestionRefs %}
 			      			{{ref.questionName}}: 
 			      			{% if ref.questionType|equalTest:"text" %}
 			      				{{ref.comparison}}
@@ -57,7 +57,7 @@
 			      		&nbsp;
 			      		</td>
 			      	<td>
-			      		{% for ref in search.getCreatorQuestionRefs %}
+			      		{% for ref in filter.getCreatorQuestionRefs %}
 			      			{{ref.questionName}}: 
 			      			{% ifequal ref.questionType "text" %}
 			      				{{ref.comparison}}
@@ -69,16 +69,16 @@
 			      		{% endfor %}
 			      		&nbsp;
 			      		</td>
-					<td>{{search.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}<br/>{{search.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}</td>
+					<td>{{filter.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}<br/>{{filter.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}</td>
 					<td>
-						{% if search.private %} 
+						{% if filter.private %} 
 							{{template_private|lower}} 
 						{% else %} 
 							{{template_shared|lower}} 
 						{% endif %}
 					</td>
-					<td width="80"><input type="checkbox" name="remove|{{ search.key }}" value="yes" id="remove|{{ search.key }}"/>
-						<label for="remove|{{ search.key }}">{{template_remove}}</label>
+					<td width="80"><input type="checkbox" name="remove|{{ filter.key }}" value="yes" id="remove|{{ filter.key }}"/>
+						<label for="remove|{{ filter.key }}">{{template_remove}}</label>
 						</td>
 					</tr>
 				{% endfor %}
@@ -88,8 +88,8 @@
 		{% endif %}
 		
       	<p>
-    {% if searches %}
-    	<center><input type="submit" name="changeSettings|{{member.key}}" value="{{button_remove_selected_searches}}" class="button"></center>
+    {% if filters %}
+    	<center><input type="submit" name="changeSettings|{{member.key}}" value="{{button_remove_selected_filters}}" class="button"></center>
     {% endif %}
 	</form>	
 	</div>

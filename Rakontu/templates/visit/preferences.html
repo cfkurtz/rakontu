@@ -191,7 +191,7 @@
 		
 		{% if member.isOnlineMember %}
 			{% if show_leave_link %}
-				<div class="rightalign"><a href="/{{dir_visit}}/{{url_leave}}?{{url_query_member}}={{member.getKeyName}}">{{template_leave_rakontu}}</a></div>
+				<div class="rightalign"><a href="/{{dir_visit}}/{{url_leave}}?{{member.urlQuery}}">{{template_leave_rakontu}}</a></div>
 			{% endif %}
 		{% endif %}
 		

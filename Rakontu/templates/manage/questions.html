@@ -82,7 +82,8 @@
 						{{template_min_max_are}} {{sys_question.minIfValue}} - {{sys_question.maxIfValue}}. 
 					{% endifequal %}
 					{% ifequal sys_question.type "boolean" %} 
-						{{template_a_positive_answer_is}}: {{sys_question.responseIfBoolean}}.
+						{{template_a_positive_answer_is}}: {{sys_question.positiveResponseIfBoolean}}.
+						{{template_a_negative_answer_is}}: {{sys_question.negativeResponseIfBoolean}}.
 					{% endifequal %}
 					{% ifequal sys_question.type "ordinal" %}
 						{{template_choices_are}}:

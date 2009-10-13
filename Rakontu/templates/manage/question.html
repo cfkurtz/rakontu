@@ -6,15 +6,28 @@
 	{% if current_member.isManagerOrOwner %}
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_manage}}/{{url_question}}?{{question.urlQuery}}" method="post" enctype="multipart/form-data">
-		<h3>{{template_change}} {{template_question|lower}} "{{question.name}}" {{template_about|lower}} {{question.refersToForDisplay}}</h3>
 		
+		<h3>{{template_change}} {{template_question|lower}} "{{question.name}}" {{template_about|lower}} 
+			<a href="/{{dir_manage}}/{{url_questions}}_{{refer_type}}?{{rakontu.urlQuery}}">
+			{{question.refersToForDisplay}}</a>
+			</h3>
 		{% if answer_counts %}
 			<div class="blurb">
-			<p><b>{{template_answer_counts_by_choice}} {{"changing_answer_choices"|tip}}</b></p>
-			{% for count in answer_counts|dictKeys|sortedReversed %}
-				<p>&nbsp; {{count}} - {{answer_counts|dictLookup:count|join:", "}}</p>
-			{% endfor %}
+			{% if question.isOrdinalOrNominal %}
+				<p><b>{{template_answer_counts_by_choice}} {{"changing_answer_choices"|caution}}</b></p>
+				{% for count in answer_counts|dictKeys|sortedReversed %}
+					<p>&nbsp; {{count}} - {{answer_counts|dictLookup:count|join:" | "}}</p>
+				{% endfor %}
+			{% else %}
+				<p><b>{{template_answer_responses}}</b>: {{answer_counts|join:" | "}}</p>
+			{% endif %}
 			</div>
+		{% else %}
+			<div class="blurb"><i>{{template_no_responses_to_question}}</i></div>
+		{% endif %}
+		
+		{% if question.useHelp %}
+			<p><i>{{template_help_on_using_this_question}}: {{question.useHelp}}</i></p>
 		{% endif %}
 
 		<fieldset>
@@ -29,7 +42,10 @@
   		<p>&nbsp; &nbsp;<input type="text" name="help" size="80" value="{{question.help|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></p>
   		
   		<p>{{template_type}}</p> 
-  		<p>&nbsp; &nbsp;<select name="type">
+  		{% if answer_counts %}
+  			<p>&nbsp; &nbsp; {{question.typeForDisplay}} {{"question_types"|caution}}</p>
+  		{% else %}
+  		<p>&nbsp; &nbsp;<select name="type" {% if answer_counts %} disabled {% endif %} >
   				{% for i in question_types|makeRangeFromListLength %}
   			 		<option value="{{question_types|listLookup:i}}"
   			 		{% if question_types|listLookup:i|equalTest:question.type %}
@@ -37,27 +53,36 @@
   			 		{% endif %}
   			 		>{{question_types_display|listLookup:i}}</option>
   			 	{% endfor %}
-  			 	</select> {{"ordinal_and_nominal_questions"|tip}}</p>
+  			 	</select> {{"ordinal_and_nominal_questions"|tip}} {{"question_types"|caution}}</p>
+  		{% endif %}
   		
-  		<p>{{template_min_max}} ({{template_if_value}})</p>
-  		<p>&nbsp; &nbsp;<input type="text" name="minIfValue" size="4" value="{{question.minIfValue}}" maxlength="{{maxlength_number}}">
-  		<input type="text" name="maxIfValue" size="4" value="{{question.maxIfValue}}" maxlength="{{maxlength_number}}">
-		</p>
+  		{% if not answer_counts or question.type|equalTest:"value" %}
+	  		<p>{{template_min_max}} {% if not answer_counts %}({{template_if_value}}){% endif %}</p>
+	  		<p>&nbsp; &nbsp;<input type="text" name="minIfValue" size="4" value="{{question.minIfValue}}" maxlength="{{maxlength_number}}">
+	  		<input type="text" name="maxIfValue" size="4" value="{{question.maxIfValue}}" maxlength="{{maxlength_number}}">
+			</p>
+		{% endif %}
 		
-		<p>{{template_response}} ({{template_if_boolean}})  </p>
-		<p>&nbsp; &nbsp;<input type="text" name="responseIfBoolean" size="10" value="{{question.responseIfBoolean}}" maxlength="{{maxlength_name}}">
-		{{"response_if_boolean"|info}} </p>
+		{% if not answer_counts or question.type|equalTest:"boolean" %}
+			<p>{{template_positive_response}} {% if not answer_counts %}({{template_if_boolean}}){% endif %}  </p>
+			<p>&nbsp; &nbsp;<input type="text" name="positiveResponseIfBoolean" size="40" value="{{question.positiveResponseIfBoolean}}" maxlength="{{maxlength_name}}">
+			{{"positive_response_if_boolean"|info}} </p>
+			<p>{{template_negative_response}} {% if not answer_counts %}({{template_if_boolean}}){% endif %}  </p>
+			<p>&nbsp; &nbsp;<input type="text" name="negativeResponseIfBoolean" size="40" value="{{question.negativeResponseIfBoolean}}" maxlength="{{maxlength_name}}">
+			{{"negative_response_if_boolean"|info}} </p>
+		{% endif %}
 		
-		<p>{{template_choices}} ({{template_if_ordinal_or_nominal}}) {{"entering_question_choices"|tip}} {{"changing_question_choices"|caution}}</p>
-		<textarea name="choices" rows="12" cols="20">{{question.choicesAsLineDelimitedTextString}}</textarea>
-		
-		<p>{{template_multiple_answers_allowed}} ({{template_if_ordinal_or_nominal}})</p>
-		<p>&nbsp; &nbsp;<input type="checkbox" name="multiple" value="yes" id="multiple"
- 			 	{% if question.multiple %}
- 			 		checked="checked"
- 			 	{% endif %}
- 			 	><label for="multiple">{{template_yes_multiple_answers_allowed}}</label>
- 		</p>
+		{% if not answer_counts or question.isOrdinalOrNominal %}
+			<p>{{template_choices}} {% if not answer_counts %}({{template_if_ordinal_or_nominal}}){% endif %} {{"entering_question_choices"|tip}} {{"changing_answer_choices"|caution}}</p>
+			<textarea name="choices" rows="12" cols="20">{{question.choicesAsLineDelimitedTextString}}</textarea>
+			<p>{{template_multiple_answers_allowed}} {% if not answer_counts %}({{template_if_ordinal_or_nominal}}){% endif %}</p>
+			<p>&nbsp; &nbsp;<input type="checkbox" name="multiple" value="yes" id="multiple"
+	 			 	{% if question.multiple %}
+	 			 		checked="checked"
+	 			 	{% endif %}
+	 			 	><label for="multiple">{{template_yes_multiple_answers_allowed}}</label>
+	 		</p>
+		{% endif %}
 	      
 	    </fieldset>
 	<p></p>

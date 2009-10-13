@@ -1,7 +1,10 @@
 <html>
 	<head>
 		<link type="text/css" rel="stylesheet" href="/stylesheets/base.css" />
-		<title>{{template_create_rakontu}}</title>
+			<title>
+			{% if title %}{{title}}{% endif %}
+			{% if title_extra %} {{title_extra}}{% endif %}
+			- Rakontu</title>
 	</head>
 	<body>
 	

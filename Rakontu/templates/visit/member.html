@@ -31,8 +31,6 @@
   			{{member.governanceTypeForDisplayNotShowingOwner}}.
   		{% endif %}
   		{{template_joined}} {{member.joined|timeZone:member.timeZoneName|date:member.dateFormat}}.
-  		{{template_url_lookup}}: {{member.getKeyName}}.
-  		
   		</p>
   	  	
   		{% if member.profileText_formatted|orNothing %}
@@ -78,15 +76,13 @@
 			</table>
 	{% endif %}
 
-	<h3>{{template_member_answers_to_questions}}</h3>
 	{% if answers %}
+		<h3>{{template_member_answers_to_questions}}</h3>
 		<ul>
 		{% for answer in answers %}
 			<li class="nobullet">{{answer.question.text}} &nbsp; {{answer.displayStringShort}}</li>
 		{% endfor %}
 		</ul>
-	{% else %}
-		<ul><li class="nobullet">({{template_none}})</li></ul>
 	{% endif %}
 		
 	</div>

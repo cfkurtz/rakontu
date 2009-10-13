@@ -37,9 +37,6 @@
 				{% endif %}
 				>
 				<label for="allowNonManagerCuratorsToEditTags">{{template_yes_non_manager_curators_can_edit_tags}}</label></p>
-			{% if current_member.isOwner %}
-				<div class="rightalign"><a href="/{{dir_manage}}/{{url_inactivate}}?{{rakontu.urlQuery}}">{{template_inactivate}}</a> Rakontu</div>
-			{% endif %}
 			</fieldset>
 			
 			<h3>{{template_nudge_system}}</h3>

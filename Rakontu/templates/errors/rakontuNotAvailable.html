@@ -4,15 +4,17 @@
 	{% include "../common_menus.html" %}
 	<div id="content">
 	
-	<img src="/images/error_noRakontuAndMember.jpg"  alt="{{title}}" class="noborder" align="left">
+	<img src="/images/error_rakontuNotAvailable.jpg"  alt="{{title}}" class="noborder" align="left">
 
-	<div style="margin-left:220px;width:500px;">
+	<div style="margin-left:280px;width:450px;">
 	
-	{% if rakontu %}
-		<h3>{{title}}</h3>
+	<h3>{{template_rakontu_sleeping}}</h3>
+	
+	{% if rakontu.accessMessage %}
+		<div class="blurb">{{rakontu.accessMessage}}</div>
 	{% endif %}
 	
-	<p>{{template_the_rakontu_and_member_could_not_be_found}}</p>
+	<p>{{template_rakontu_not_available}}</p>
 		
 	<p>&nbsp; {{template_click_back_button}}</p>
 	<p>&nbsp; &nbsp; ... {{template_or_return_to_home}} 

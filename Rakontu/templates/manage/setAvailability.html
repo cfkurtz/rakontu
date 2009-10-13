@@ -1,0 +1,63 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+	
+	<div id="content">
+	
+		<div id="rakontu_form_style" class="rakontu_form">
+		<form action="/{{dir_manage}}/{{url_availability}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
+		
+		<h3>{{set_rakontu_availability}}</h3>
+		
+		<p>{{template_current_rakontu_availability_is}} <b>{{rakontu.accessStateForDisplay}}</b>.</p>
+		
+		{% if rakontu.notAccessibleToAll and rakontu.accessMessage %}
+			<p>{{template_everyone_else_sees_this_message}}:</p>
+			<div class="blurb">{{rakontu.accessMessage|orNbsp}}</div>
+			<p>(<a href="/{{url_rakontu_not_available}}?{{rakontu.urlQuery}}">{{template_see_what_the_not_available_page_looks_like}}</a>)</p>
+		{% endif %}
+		
+		<fieldset>
+		<p>{{template_set_rakontu_availability_to}}</p>
+		
+		<p>&nbsp; &nbsp; <input type="radio" name="access" value="all" id="all"
+			{% ifequal rakontu.access "all" %}
+				checked
+			{% endifequal %}
+		><label for="all">{{rakontu_access_states_display|listLookup:0}}</label></p>
+		
+		<p>&nbsp; &nbsp; <input type="radio" name="access" value="managers" id="managers"
+			{% ifequal rakontu.access "managers" %}
+				checked
+			{% endifequal %}
+		><label for="managers">{{rakontu_access_states_display|listLookup:1}}</label></p>
+				
+		{% if current_member.isOwner %}
+			<p>&nbsp; &nbsp; <input type="radio" name="access" value="owners" id="owners"
+				{% ifequal rakontu.access "owners" %}
+					checked
+				{% endifequal %}
+			><label for="owners">{{rakontu_access_states_display|listLookup:2}}</label></p>
+		{% endif %}
+		
+		{% if user_is_admin %}
+			<p>&nbsp; &nbsp; <input type="radio" name="access" value="administrators" id="administrators"
+				{% ifequal rakontu.access "administrators" %}
+					checked
+				{% endifequal %}
+			><label for="administrators">{{rakontu_access_states_display|listLookup:3}}</label></p>
+		{% endif %}
+		
+		<p>{{template_edit_access_message}} {{"access_messages"|tip}}</p>
+		<p>&nbsp; &nbsp; <input type="text" size="80" name="accessMessage" value="{{rakontu.accessMessage|orNothing}}"  maxlength="{{maxlength_subject_or_comment}}"></p>
+		</fieldset>
+		
+	    <center><p><input type="submit" name="changeAccess" value="{{button_save_changes}}" class="button"></p></center>
+		</form>	
+		</div>
+	
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

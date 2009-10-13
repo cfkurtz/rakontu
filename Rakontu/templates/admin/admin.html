@@ -10,39 +10,26 @@
 	<h2>{{template_site_initialization_tasks}} {{"site_initialization_tasks"|tip}}  {{"site_initialization_tasks"|caution}}</h2>
 	
 	<fieldset>
-	<p>&nbsp; &nbsp; <b>{{template_must_be_done_before_rakontus}}</b></p>
-	
-	<ul>
-	<li class="nobullet"> 
-	<a href="/{{dir_admin}}/{{url_default_resources}}">{{template_generate}}</a> 
+	<ol>
+	<li><a href="/{{dir_admin}}/{{url_default_resources}}">{{template_generate}}</a> 
 	{{template_default_help_resources_from}} <code>config/{{site_language}}/default_resources.txt</code> -
-	<b>{{num_default_resources}}</b> {{template_have_been_created}} ({{site_resource_names}})
+	<b>{{num_default_resources}}</b> {{template_have_been_created}} 
+	{% if site_resource_names %} ({{site_resource_names}}) {% endif %}
 	</li>
-	
-	<li class="nobullet"> 
-	<a href="/{{dir_admin}}/{{url_skins}}">{{template_generate}}</a> 
+	<li><a href="/{{dir_admin}}/{{url_skins}}">{{template_generate}}</a> 
 	{{template_skins_from}} <code>config/{{site_language}}/skins.csv</code> -
-	<b>{{num_skins}}</b> {{template_have_been_created}} ({{skin_names}})
+	<b>{{num_skins}}</b> {{template_have_been_created}} 
+	{% if skin_names %} ({{skin_names}}) {% endif %}
 	</li>
-	</ul>
-	
-	<p>&nbsp; &nbsp; <b>{{template_can_be_done_anytime}}</b></p>
-	
-	<ul>
-	<li class="nobullet"> 
-	<a href="/{{dir_admin}}/{{url_sample_questions}}">{{template_generate}}</a> 
-	{{template_sample_questions_from}} <code>config/{{site_language}}/sample_questions.csv</code> -
-	<b>{{num_sample_questions}}</b> {{template_have_been_created}} 
-	
-	</li>
-	
-	<li class="nobullet"> 
-	<a href="/{{dir_admin}}/{{url_helps}}">{{template_generate}}</a> 
+	<li><a href="/{{dir_admin}}/{{url_helps}}">{{template_generate}}</a> 
 	{{template_help_texts_from}} <code>config/{{site_language}}/help.csv</code> -
 	<b>{{num_helps}}</b> {{template_have_been_created}} 
 	</li>
-	</ul>
-	
+	<li><a href="/{{dir_admin}}/{{url_sample_questions}}">{{template_generate}}</a> 
+	{{template_sample_questions_from}} <code>config/{{site_language}}/sample_questions.csv</code> -
+	<b>{{num_sample_questions}}</b> {{template_have_been_created}} 
+	</li>
+	</ol>
 	</fieldset>
 	
 	<h2>Rakontus</h2>
@@ -50,15 +37,10 @@
 		<fieldset>
 		<table cellpadding="4" cellspacing="0">
 		<tr>
-			<th>{{template_name}}</th>
-			<th>{{template_created}} (UTC)</th>
-			<th>{{template_counts}}</th>
+			<th>{{template_information}}</th>
 			<th>{{template_member}}?</th>
-			<th>{{template_active}}? {{"activating_rakontus"|caution}}</th>
-			<th>{{template_remove}} {{"removing_rakontus"|caution}}</th>
-			{% if development %}
-				<th>Add fake data?</th> 
-			{% endif %}
+			<th>{{template_rakontu_access_state}}</th>
+			<th>{{template_remove}}</th>
 			</tr>
 		
     	{% for rakontu in rakontus %}
@@ -66,25 +48,41 @@
 	    	<td>
 	    		<p>{{rakontu.linkString}}</p>
 	    		<p>({{rakontu.getKeyName}})</p>
-	    		</td>
-	    	<td>
-	    		<p>{{rakontu.created|timeZone:"UTC"|time:"h:i a"}}<br/>{{rakontu.created|timeZone:"UTC"|date:"F j, Y"}}</p>
-		    <td>
-	    		<p>{{template_active_members}}: {{rakontu.numActiveMembers}}</p>
-				<p>{{template_pending_members}}: {{rakontu.numPendingMembers}}</p>
-				<p>{{template_inactive_members}}: {{rakontu.numInactiveMembers}}</p>
-				<p>{{template_entries}}: {{rakontu.numEntries}}</p>
-				<p>{{template_annotations}}: {{rakontu.numAnnotations}}</p>
-				<p>{{template_answers}}: {{rakontu.numAnswers}}</p>
+	    		<p>{{template_created}} {{rakontu.created|timeZone:"UTC"|date:"F j, Y"}}</p>
+	    		<p>{{rakontu.numActiveMembers|pad:3}} {{template_active_members}}</p>
+				<p>{{rakontu.numPendingMembers|pad:3}} {{template_pending_members}}</p>
+				<p>{{rakontu.numInactiveMembers|pad:3}} {{template_inactive_members}}</p>
+				<p>{{rakontu.numEntries|pad:3}} {{template_entries}}</p>
+				<p>{{rakontu.numAnnotations|pad:3}} {{template_annotations}}</p>
+				<p>{{rakontu.numAnswers|pad:3}} {{template_answers}}</p>
 	    	</td>
 	    	<td align="center">
 	    		{% if member_of|dictLookup:rakontu.key %}
-	    			{{template_yes|upper}}, {{member_of|dictLookup:rakontu.key}}
+	    			<p>{{template_yes|upper}}</p>
+		    			<select name="switch|{{rakontu.key}}">
+		    			<option value="member"
+		    			{% if member_of|dictLookup:rakontu.key|equalTest:"member" %}
+		    				selected="selected"
+		    			{% endif %}
+		    			>{{governance_roles_display|listLookup:0}}</option>
+		    			<option value="manager"
+		    			{% if member_of|dictLookup:rakontu.key|equalTest:"manager" %}
+		    				selected="selected"
+		    			{% endif %}
+		    			>{{governance_roles_display|listLookup:1}}</option>
+		    			<option value="owner"
+		    			{% if member_of|dictLookup:rakontu.key|equalTest:"owner" %}
+		    				selected="selected"
+		    			{% endif %}
+		    			>{{governance_roles_display|listLookup:2}}</option>
+		    			</select>
+		    			<input type="submit" name="switchTo|{{rakontu.key}}" value="{{button_switch}}" class="button"><br/>
 	    		{% else %}
-	    			{{template_no}}
+	    			<p>{{template_no}}
 	    			{% if pending_member_of|dictLookup:rakontu.key %}
-	    				({{template_pending_member}})
+	    				({{template_pending_member|lower}})
 	    			{% endif %}
+	    			</p>
 	    		{% endif %}
 	    		<br/>
 	    		{% if member_of|dictLookup:rakontu.key %}
@@ -95,55 +93,67 @@
 	    			{% if pending_member_of|dictLookup:rakontu.key %}
 	    				<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="{{button_join}}" class="button"><br/>
 	    			{% else %}
-		    			<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="{{button_join}}" class="button"><br/>
 		    			{{template_join_as_a}}
 		    			<select name="joinAs|{{rakontu.key}}">
 		    			<option value="member">{{governance_roles_display|listLookup:0}}</option>
 		    			<option value="manager">{{governance_roles_display|listLookup:1}}</option>
 		    			</select>
+		    			<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="{{button_join}}" class="button"><br/>
 		    		{% endif %}
 	    		{% endif %}
 	    	</td>
 			<td align="center">
-  					{% if rakontu.active %}
-  						{{template_active}}<br/>
-  						<input type="submit" name="toggleActiveState|{{rakontu.key}}" value="{{button_inactivate_shorter}}" class="button"
-						onClick="javascript:return confirm('{{template_confirm_inactivate}} {{rakontu.name}}?')">
-  					{% else %}
-  						{{template_inactive}}<br/>
-  						<input type="submit" name="toggleActiveState|{{rakontu.key}}" value="{{button_activate}}" class="button"
-						onClick="javascript:return confirm('{{template_confirm_activate}} {{rakontu.name}}?')">
-  					{% endif %}
+				<select name="access|{{rakontu.key}}">
+					{% for i in rakontu_access_states|makeRangeFromListLength %}
+						<option value="{{rakontu_access_states|listLookup:i}}"
+						{% if rakontu_access_states|listLookup:i|equalTest:rakontu.access %}
+							selected="selected"
+						{% endif %}
+						>{{rakontu_access_states_display|listLookup:i}}</option>
+					{% endfor %}
+				</select>
+				<br/>Access message: {{"access_messages"|tip}}
+				<br/><input type="text" size="40" name="accessMessage|{{rakontu.key}}" value="{{rakontu.accessMessage|orNothing}}" maxlength="{{maxlength_subject_or_comment}}">
+  				<br/><input type="submit" name="changeAccess|{{rakontu.key}}" value="{{button_change}}" class="button">
   			</td>
-			<td>
-			<input type="submit" name="remove|{{rakontu.key}}" value="{{button_remove|allcaps}}" class="button" 
-			onClick="javascript:return confirm('{{template_confirm_remove}} {{rakontu.name}}?')">
-  					</td>
-			{% if development %}
-				<td>
-				<input type="text" size="4" name="numItems|{{rakontu.key}}" value="10"><br/>
-				<select name="createWhat|{{rakontu.key}}">
-					<option value="members">members</option>
-					<option value="entries" selected="selected">entries</option>
-					<option value="annotations">annotations</option>
-					<option value="answers">answers</option>
-					<option value="nudges">nudges</option>
-					</select>
-				<br/><input type="submit" name="addFakeDataTo|{{rakontu.key}}" value="Add" class="button">
-				</td>
-			{% endif %}
-			</td>
+			<td align="center"><input type="submit" name="remove|{{rakontu.key}}" value="{{button_remove|allcaps}}" class="button"></td>
     	{% endfor %}
     	</table>
     	</fieldset>
+    	
 		<p><a href="/{{dir_admin}}/{{url_create1}}">{{template_create_another}} Rakontu</a></p>
-		{% if development %}
-			<p><a href="/{{dir_admin}}/{{url_make_fake_data}}">Generate fake testing Rakontu</a></p>
-		{% endif %}
 		<p></p>
-		<center><p><i><b>{{template_admin_warning}}</b></i></p>
-		</form>
+
+		{% if development %}
+			<h3>Fake data for testing</h3>
+			<fieldset>
+			<p>Add fake data to existing Rakontus</p>
+			<table cellpadding="4" cellspacing="0">
+		   	{% for rakontu in rakontus %}
+			    	<tr>
+			    	<td>{{rakontu.linkString}} ({{rakontu.getKeyName}})</td>
+			    	<td>
+						<input type="text" size="4" name="numItems|{{rakontu.key}}" value="10">
+						<select name="createWhat|{{rakontu.key}}">
+							<option value="members">members</option>
+							<option value="entries" selected="selected">entries</option>
+							<option value="annotations">annotations</option>
+							<option value="answers">answers</option>
+							<option value="nudges">nudges</option>
+							</select>
+						<input type="submit" name="addFakeDataTo|{{rakontu.key}}" value="Add" class="button">
+						</td>
+					</tr>
+		    {% endfor %}
+		    </table>
+			<p><a href="/{{dir_admin}}/{{url_make_fake_data}}">Generate fake testing Rakontu</a></p>
+			 </fieldset>
+	    {% endif %}
+	    
+	   
+	    </form>
 		</div>
+ 
     {% else %}
     	<p>&nbsp; &nbsp; {{template_none}} - <a href="/{{dir_admin}}/{{url_create1}}">{{template_create_one}}</a></p>
 		{% if development %}

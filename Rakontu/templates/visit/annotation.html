@@ -7,9 +7,9 @@
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_annotation}}?
 		{% if annotation %}
-		{{url_query_annotation}}={{annotation.getKeyName}}
+			{{annotation.urlQuery}}
 		{% else %}
-		{{url_query_entry}}={{entry.getKeyName}}
+			{{entry.urlQuery}}
 		{% endif %}
 		" method="post" enctype="multipart/form-data">
 		

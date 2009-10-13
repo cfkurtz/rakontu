@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------------------------
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: pre-0.1
+# Version: beta (0.9+)
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
@@ -26,9 +26,9 @@ class ReviewOfflineMembersPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('liaise/members.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(NotAuthorizedURL("liaison", rakontu))
+				self.redirect(RoleNotFoundURL("liaison", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	@RequireLogin 
 	def post(self):
@@ -68,22 +68,22 @@ class ReviewOfflineMembersPage(ErrorHandlingRequestHander):
 				db.run_in_transaction(txn, membersToPut)
 				self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
 			else:
-				self.redirect(NotAuthorizedURL("liaison", rakontu))
+				self.redirect(RoleNotFoundURL("liaison", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
-class PrintSearchPage(ErrorHandlingRequestHander):
+class PrintFilteredItemsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isLiaison():
-				export = rakontu.createOrRefreshExport("liaisonPrint_simple", "search", member=member, fileFormat="txt")
+				export = rakontu.createOrRefreshExport("liaisonPrint_simple", "filter", member=member, fileFormat="txt")
 				self.redirect(BuildURL(None, "url_export", export.urlQuery()))
 			else:
-				self.redirect(NotAuthorizedURL("liaison", rakontu))
+				self.redirect(RoleNotFoundURL("liaison", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class PrintEntryAnnotationsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -99,9 +99,9 @@ class PrintEntryAnnotationsPage(ErrorHandlingRequestHander):
 				else:
 					self.redirect(NotFoundURL(rakontu))
 			else:
-				self.redirect(NotAuthorizedURL("liaison", rakontu))
+				self.redirect(RoleNotFoundURL("liaison", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class PrintMemberEntriesAndAnnotationsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -117,9 +117,9 @@ class PrintMemberEntriesAndAnnotationsPage(ErrorHandlingRequestHander):
 				else:
 					self.redirect(NotFoundURL(rakontu))
 			else:
-				self.redirect(NotAuthorizedURL("liaison", rakontu))
+				self.redirect(RoleNotFoundURL("liaison", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class PrintCharacterEntriesAndAnnotationsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -135,9 +135,9 @@ class PrintCharacterEntriesAndAnnotationsPage(ErrorHandlingRequestHander):
 				else:
 					self.redirect(NotFoundURL(rakontu))
 			else:
-				self.redirect(NotAuthorizedURL("liaison", rakontu))
+				self.redirect(RoleNotFoundURL("liaison", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class ReviewBatchEntriesPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -160,9 +160,9 @@ class ReviewBatchEntriesPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('liaise/review.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(NotAuthorizedURL("liaison", rakontu))
+				self.redirect(RoleNotFoundURL("liaison", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 
 	@RequireLogin 
 	def post(self):
@@ -215,9 +215,9 @@ class ReviewBatchEntriesPage(ErrorHandlingRequestHander):
 					db.run_in_transaction(txn, entries)
 					self.redirect(BuildURL("dir_liaise", "url_review", rakontu=rakontu))
 			else:
-				self.redirect(NotAuthorizedURL("liaison", rakontu))
+				self.redirect(RoleNotFoundURL("liaison", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 
 class BatchEntryPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -246,9 +246,9 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('liaise/batch.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(NotAuthorizedURL("liaison", rakontu))
+				self.redirect(RoleNotFoundURL("liaison", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	@RequireLogin 
 	def post(self):
@@ -290,7 +290,7 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 										date = datetime(year, month, day, tzinfo=pytz.utc)
 									except:
 										pass
-								keyName = GenerateSequentialKeyName("entry")
+								keyName = GenerateSequentialKeyName("entry", rakontu)
 								entry = Entry(key_name=keyName, parent=memberToAttribute, id=keyName, rakontu=rakontu, type="story", title=title, text=text, text_format=format)
 								entry.creator = memberToAttribute
 								entry.collected = date
@@ -313,7 +313,7 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 										if name == "attachment|%s|%s" % (i, j):
 											if value != None and value != "":
 												filename = value.filename
-												keyName = GenerateSequentialKeyName("attachment")
+												keyName = GenerateSequentialKeyName("attachment", rakontu)
 												attachment = Attachment(key_name=keyName, parent=entry, id=keyName, entry=entry, rakontu=rakontu)
 												k = 0
 												mimeType = None
@@ -336,13 +336,14 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 									response = self.request.get(queryText)
 									keepAnswer = ShouldKeepAnswer(self.request, queryText, question)
 									if keepAnswer:
-										keyName = GenerateSequentialKeyName("answer")
+										keyName = GenerateSequentialKeyName("answer", rakontu)
 										answer = Answer(
 													key_name=keyName, 
 													id=keyName,
 													parent=entry,
 													rakontu=rakontu, 
 													question=question, 
+													questionType=question.type,
 													creator=memberToAttribute, 
 													referent=entry, 
 													referentType="entry")
@@ -359,7 +360,7 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 										subject = TERMS["term_no_subject"]
 									text = self.request.get("comment|%s" % i)
 									format = self.request.get("commentFormat|%s" % i)
-									keyName = GenerateSequentialKeyName("annotation")
+									keyName = GenerateSequentialKeyName("annotation", rakontu)
 									comment = Annotation(key_name=keyName, 
 														parent=entry,
 														id=keyName,
@@ -383,7 +384,7 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 									if self.request.get(queryString):
 										tags.append(self.request.get(queryString))
 								if tags:
-									keyName = GenerateSequentialKeyName("annotation")
+									keyName = GenerateSequentialKeyName("annotation", rakontu)
 									tagset = Annotation(key_name=keyName, 
 													parent=entry,
 													id=keyName,
@@ -404,6 +405,6 @@ class BatchEntryPage(ErrorHandlingRequestHander):
 					db.run_in_transaction(txn, itemsToPut)
 				self.redirect(BuildURL("dir_liaise", "url_review", rakontu=rakontu))
 			else:
-				self.redirect(NotAuthorizedURL("liaison", rakontu))
+				self.redirect(RoleNotFoundURL("liaison", rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))

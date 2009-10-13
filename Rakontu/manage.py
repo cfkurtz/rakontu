@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------------------------
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: pre-0.1
+# Version: beta (0.9+)
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ class FirstOwnerVisitPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 		
 class ManageRakontuMembersPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -51,7 +51,7 @@ class ManageRakontuMembersPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 				
 	@RequireLogin 
 	def post(self):
@@ -117,7 +117,7 @@ class ManageRakontuMembersPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class SendInvitationMessagePage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -151,7 +151,7 @@ class SendInvitationMessagePage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	@RequireLogin 
 	def post(self):
@@ -180,7 +180,7 @@ class SendInvitationMessagePage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 				
 class ManageRakontuAppearancePage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -202,7 +202,7 @@ class ManageRakontuAppearancePage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 	
 	@RequireLogin 
 	def post(self):
@@ -251,7 +251,7 @@ class ManageRakontuAppearancePage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 		
 class ManageRakontuSettingsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -329,7 +329,7 @@ class ManageRakontuSettingsPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 	
 	@RequireLogin 
 	def post(self):
@@ -377,7 +377,7 @@ class ManageRakontuSettingsPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 		
 class ManageRakontuQuestionsListPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -405,7 +405,7 @@ class ManageRakontuQuestionsListPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 				
 class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -449,7 +449,7 @@ class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 	
 	@RequireLogin 
 	def post(self):
@@ -490,7 +490,7 @@ class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 								questionsToPut.append(oldQuestion)
 								break
 						if not foundQuestion:
-							keyName = GenerateSequentialKeyName("question")
+							keyName = GenerateSequentialKeyName("question", rakontu)
 							question = Question(
 											key_name=keyName, 
 											parent=rakontu,
@@ -514,7 +514,7 @@ class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 		
 class ManageOneQuestionPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -525,7 +525,7 @@ class ManageOneQuestionPage(ErrorHandlingRequestHander):
 			if member.isManagerOrOwner():
 				question = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_question")
 				if question:
-					answerCounts = question.getAnswerChoiceCounts()
+					answerCounts = question.getAnswersReport()
 					template_values = GetStandardTemplateDictionaryAndAddMore({
 									   'title': TITLES["MANAGE_QUESTION"], 
 								   	   'title_extra': question.name,
@@ -536,6 +536,7 @@ class ManageOneQuestionPage(ErrorHandlingRequestHander):
 									   'question_types': QUESTION_TYPES,
 									   'question_types_display': QUESTION_TYPES_DISPLAY,
 									   'answer_counts': answerCounts,
+									   'refer_type': CorrespondingItemFromMatchedOrderList(question.refersTo, QUESTION_REFERS_TO, QUESTION_REFERS_TO_URLS)
 									   })
 					path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/question.html'))
 					self.response.out.write(template.render(path, template_values))
@@ -544,7 +545,7 @@ class ManageOneQuestionPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 	
 	@RequireLogin 
 	def post(self):
@@ -564,26 +565,32 @@ class ManageOneQuestionPage(ErrorHandlingRequestHander):
 						question.name = DEFAULT_QUESTION_NAME
 					question.text = htmlEscape(self.request.get("text"))
 					question.help = htmlEscape(self.request.get("help"))
-					question.type = self.request.get("type")
-					oldChoices = []
-					oldChoices.extend(question.choices)
-					question.choices = []
-					choicesToAdd = htmlEscape(self.request.get("choices")).split('\n')
-					for choice in choicesToAdd:
-						if choice.strip():
-							question.choices.append(choice.strip())
-					oldValue = question.minIfValue
-					try:
-						question.minIfValue = int(self.request.get("minIfValue"))
-					except:
-						question.minIfValue = oldValue
-					oldValue = question.maxIfValue
-					try:
-						question.maxIfValue = int(self.request.get("maxIfValue"))
-					except:
-						question.maxIfValue = oldValue
-					question.responseIfBoolean = self.request.get("responseIfBoolean")
-					question.multiple = self.request.get("multiple") == "yes"
+					if self.request.get("type"):
+						question.type = self.request.get("type")
+					if self.request.get("choices"):
+						question.choices = []
+						choicesToAdd = htmlEscape(self.request.get("choices")).split('\n')
+						for choice in choicesToAdd:
+							if choice.strip():
+								question.choices.append(choice.strip())
+					if self.request.get("minIfValue"):
+						oldValue = question.minIfValue
+						try:
+							question.minIfValue = int(self.request.get("minIfValue"))
+						except:
+							question.minIfValue = oldValue
+					if self.request.get("maxIfValue"):
+						oldValue = question.maxIfValue
+						try:
+							question.maxIfValue = int(self.request.get("maxIfValue"))
+						except:
+							question.maxIfValue = oldValue
+					if self.request.get("positiveResponseIfBoolean"):
+						question.positiveResponseIfBoolean = self.request.get("positiveResponseIfBoolean")
+					if self.request.get("negativeResponseIfBoolean"):
+						question.negativeResponseIfBoolean = self.request.get("negativeResponseIfBoolean")
+					if self.request.get("multiple"):
+						question.multiple = self.request.get("multiple") == "yes"
 					question.put()
 					if question.getUnlinkedAnswerChoices():
 						self.redirect(BuildURL("dir_manage", "url_unlinked_answers", question.urlQuery(), rakontu=rakontu))
@@ -594,7 +601,7 @@ class ManageOneQuestionPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 		
 class FixHangingAnswersPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -622,7 +629,7 @@ class FixHangingAnswersPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 	
 	@RequireLogin 
 	def post(self):
@@ -660,7 +667,7 @@ class FixHangingAnswersPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 		
 class WriteQuestionsToCSVPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -685,7 +692,7 @@ class WriteQuestionsToCSVPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 class ManageCharactersPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -707,7 +714,7 @@ class ManageCharactersPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 				
 	@RequireLogin 
 	def post(self):
@@ -730,7 +737,7 @@ class ManageCharactersPage(ErrorHandlingRequestHander):
 								charactersToPut.append(oldCharacter)
 								break
 						if not foundCharacter:
-							keyName = GenerateSequentialKeyName("character")
+							keyName = GenerateSequentialKeyName("character", rakontu)
 							newCharacter = Character(
 													key_name=keyName, 
 													parent=rakontu,
@@ -745,7 +752,7 @@ class ManageCharactersPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 		
 class ManageCharacterPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -774,7 +781,7 @@ class ManageCharacterPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 							 
 	@RequireLogin 
 	def post(self):
@@ -822,13 +829,14 @@ class ManageCharacterPage(ErrorHandlingRequestHander):
 							if foundAnswer:
 								answerToEdit = foundAnswer
 							else:
-								keyName = GenerateSequentialKeyName("answer")
+								keyName = GenerateSequentialKeyName("answer", rakontu)
 								answerToEdit = Answer(
 													key_name=keyName, 
 													id=keyName,
 													parent=character,
 													rakontu=rakontu, 
 													question=question, 
+													questionType=question.type,
 													referent=character, 
 													referentType="character")
 							answerToEdit.setValueBasedOnResponse(question, self.request, queryText, response)
@@ -845,7 +853,7 @@ class ManageCharacterPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 		
 class ExportRakontuDataPage(ErrorHandlingRequestHander):
 	@RequireLogin 
@@ -927,7 +935,7 @@ class ExportRakontuDataPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 				
 	@RequireLogin 
 	def post(self):
@@ -965,53 +973,54 @@ class ExportRakontuDataPage(ErrorHandlingRequestHander):
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 
-class ExportSearchPage(ErrorHandlingRequestHander):
+class ExportFilteredItemsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
-				export = rakontu.createOrRefreshExport("csv_export_search", subtype="search", member=member, fileFormat="csv")
+				export = rakontu.createOrRefreshExport("csv_export_filter", subtype="filter", member=member, fileFormat="csv")
 				self.redirect(BuildURL(None, "url_export", export.urlQuery()))
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 		
-class InactivateRakontuPage(ErrorHandlingRequestHander):
+class SetRakontuAvailabilityPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access: 
-			if member.isOwner():
+			if member.isManagerOrOwner():
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-								   'title': TITLES["INACTIVATE"], 
+								   'title': TITLES["SET_RAKONTU_AVAILABILITY"], 
+								   'title_extra': rakontu.name,
 								   'rakontu': rakontu, 
 								   'skin': rakontu.getSkinDictionary(),
 								   'current_member': member,
-								   "blurbs": BLURBS,
+						   	   	   'rakontu_access_states': RAKONTU_ACCESS_STATES,
+						   	  	   'rakontu_access_states_display': RAKONTU_ACCESS_STATES_DISPLAY,
 								   })
-				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/inactivate.html'))
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/setAvailability.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
-				self.redirect(OwnersOnlyURL(rakontu))
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
 	@RequireLogin 
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
-			if member.isOwner():
-				if "inactivate|%s" % member.key() in self.request.arguments():
-					rakontu.active = False
+			if member.isManagerOrOwner():
+				if "changeAccess" in self.request.arguments():
+					rakontu.access = self.request.get("access")
+					rakontu.accessMessage = self.request.get("accessMessage")
 					rakontu.put()
-					self.redirect(START)
-				else:
-					self.redirect(BuildURL("dir_manage", "url_settings", rakontu=rakontu))
+				self.redirect(self.request.uri)
 			else:
-				self.redirect(OwnersOnlyURL(rakontu))
+				self.redirect(ManagersOnlyURL(rakontu))
 		else:
-			self.redirect(NoRakontuAndMemberURL())
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))

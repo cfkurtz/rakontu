@@ -95,7 +95,6 @@
 		{{entry.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
 		{{entry.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.
 	{% endif %}
-	{{template_url_lookup}}: {{entry.getKeyName}}.
 	</p>
 	
 	{% comment %}
@@ -170,6 +169,7 @@
 		{% endif %}
 		</div>
 	{% endif %}
+	<div class="rightalign">{{template_activity_points}}: {{entry.activityPoints}}</div>
 	
 	</form>
 	</div>

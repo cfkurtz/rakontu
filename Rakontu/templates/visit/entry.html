@@ -298,7 +298,7 @@
 	  
 		{% ifequal entry_type "pattern" %}
 			{% if referenced_links_outgoing %}
-				<h3>{{template_search_filters_referred_to_by_this_pattern}}</h3>
+				<h3>{{template_filters_referred_to_by_this_pattern}}</h3>
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
@@ -321,8 +321,8 @@
 		      	</table>
 		      	</fieldset>
 	      {% endif %}
-			<h3>{{template_add_search_filters_to_the_pattern}}</h3>
-			{% if searches_that_can_be_added_to_pattern %}
+			<h3>{{template_add_filters_to_the_pattern}}</h3>
+			{% if filters_that_can_be_added_to_pattern %}
 				<fieldset>
 		      	<table border="0" cellpadding="4" cellspacing="0">
 		      	<tr>
@@ -332,22 +332,22 @@
 		      		<th width="80">{{template_add_link}}?</th>
 		      		<th>{{template_link_comment}}</th>
 					</tr>
-	      		{% for search in searches_that_can_be_added_to_pattern %}
+	      		{% for filter in filters_that_can_be_added_to_pattern %}
 	      			<tr>
-	      			 <td>{{search.linkString}}</td>
-	      			 <td>{{search.description|orNbsp}}</td>
-	        		 <td>{{search.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}</td>
+	      			 <td>{{filter.linkString}}</td>
+	      			 <td>{{filter.description|orNbsp}}</td>
+	        		 <td>{{filter.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}</td>
 	      			<td>
-	      			<input type="checkbox" name="addLink|{{search.key}}" value="yes" id="addLink|{{search.key}}"/>
-					<label for="addLink|{{search.key}}">{{template_add_link}}</label>
+	      			<input type="checkbox" name="addLink|{{filter.key}}" value="yes" id="addLink|{{filter.key}}"/>
+					<label for="addLink|{{filter.key}}">{{template_add_link}}</label>
 	      			</td>
-	      			<td><input type="text" name="linkComment|{{search.key}}" value="" size="40"/></td>
+	      			<td><input type="text" name="linkComment|{{filter.key}}" value="" size="40"/></td>
 	      			 </tr>
 	      		{% endfor %}
 			    </table>	      	
 	      	</fieldset>
 	      	{% else %}
-	      		<ul><li class="nobullet">{{template_no_shared_searches_available}}</li></ul>
+	      		<ul><li class="nobullet">{{template_no_shared_filters_available}}</li></ul>
 	      	{% endif %}
 	  {% endifequal %}
 	  
