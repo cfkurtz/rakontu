@@ -18,11 +18,11 @@ RESTORE_DIR = "/Users/cfkurtz/Documents/work_new/Rakontu project/test backup res
 APP_ID = "rakontu"
 
 # The server name - localhost:8080 or APP_ID.appspot.com - BE CAREFUL !!
-SERVER_NAME = APP_ID + '.appspot.com'
-#SERVER_NAME = 'localhost:8080'
+#SERVER_NAME = APP_ID + '.appspot.com'
+SERVER_NAME = 'localhost:8080'
 
 # Your authentication details
-USER_NAME = "cfkurtz@cfkurtz.com"
+USER_NAME = "cfkurtz@cfkurtz.com" # CHANGE THESE - THEY WON'T WORK FOR YOU !!!
 USER_EMAIL = 'cfkurtz@cfkurtz.com'
 AUTH_DOMAIN = 'cfkurtz.com' # this is the part of the email after the @
 
@@ -35,11 +35,3 @@ CONFIG_LANGUAGE_DIR = "../config/english"
 
 # How long to wait between database hits - the shorter the faster, but the more impact on a site in use
 SLEEP_TIME_SECONDS = 0.5
-
-# Turn this on (1) if you want to reconstruct the key-name counters (entry1, entry2, etc)
-# in the Rakontu. It should be rarely needed, usually only if you have deleted a LOT of stuff
-# and want to clean things up. 
-# NOTE: THIS WILL CHANGE ALL THE URLS on the Rakontu so that the old ones don't work.
-RESET_COUNTERS = 1
-
- 

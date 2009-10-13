@@ -19,7 +19,7 @@ SERVER_NAME = APP_ID + '.appspot.com'
 #SERVER_NAME = 'localhost:8080'
 
 # Your authentication details
-USER_NAME = "cfkurtz@cfkurtz.com"
+USER_NAME = "cfkurtz@cfkurtz.com" # CHANGE THESE - THEY WON'T WORK FOR YOU !!!
 USER_EMAIL = 'cfkurtz@cfkurtz.com'
 AUTH_DOMAIN = 'cfkurtz.com' # this is the part of the email after the @
 

@@ -94,18 +94,6 @@ def getModelIDAndPropertyNodes(node, rakontu):
 	id = getRequiredProperty(propertyNodes, "id")
 	if rakontu:
 		id = addRakontuIDToObjectID(id, rakontu)
-	if RESET_COUNTERS:
-		kind = node.attributes['kind'].value
-		if kind != "Rakontu":
-			type = kind_type_maxindex[kind][0]
-			retries = 0
-			while retries < 3:
-				try:
-					id = GenerateSequentialKeyName(type, rakontu)
-					break
-				except:
-					retries += 1
-					print 'Could not generate key name for %s; trying again' % type
 	return id, propertyNodes
 
 def saveOldAndNewKeys(node, model):
@@ -446,29 +434,12 @@ def restore(restoreFileName, newRakontuShortName):
 	currentFilter = None
 	objectsAndNodes = []
 	
-	# create rakontu before all other items, so you can reset the counters if necessary
 	for node in dom.getElementsByTagName('entity'):
 		kind = node.attributes['kind'].value
 		if kind == "Rakontu":
 			rakontu = processRakontuNode(node, rakontuID)
 			objectsAndNodes.append((rakontu, node))
-			
-	# RESET_COUNTERS starts all the counter indexes at 1 again (NOT OFTEN USED)
-	# this prevents you accidentally doubling all the items by running it twice (not that I've ever done that, of course ... )
-	if RESET_COUNTERS:
-		if rakontu:
-			for kind in kind_type_maxindex:
-				type = kind_type_maxindex[kind][0]
-				counterShardsForTypeAndRakontu = CounterShard.all().filter("rakontu = ", rakontu.key()).filter("type = ", type).fetch(FETCH_NUMBER)
-				if counterShardsForTypeAndRakontu:
-					db.delete(counterShardsForTypeAndRakontu)
-		else:
-			raise Exception("Could not reset counters: no rakontu created. Check XML for errors.")
-		
-	# now read all the rest of the entities
-	for node in dom.getElementsByTagName('entity'):
-		kind = node.attributes['kind'].value
-		if kind == "Question":
+		elif kind == "Question":
 			question = processQuestionNode(node, rakontu)
 			objectsAndNodes.append((question, node))
 		elif kind == "PendingMember":
@@ -513,8 +484,6 @@ def restore(restoreFileName, newRakontuShortName):
 		elif kind == "TextVersion":
 			version = processTextVersionNode(node, rakontu, currentEntry)
 			objectsAndNodes.append((version, node))
-		elif kind == "Rakontu":
-			pass
 		else:
 			raise Exception("Unexpected entity kind: %s" % kind)
 	print "-------------------- DONE READING XML ENTITIES ---------------------------------------- "
@@ -583,12 +552,6 @@ def restore(restoreFileName, newRakontuShortName):
 			howManyWeNeedToCatchUp = maxIndex - shardCount
 			if howManyWeNeedToCatchUp > 0:
 				throwAway = GenerateSequentialKeyName(type, rakontu=rakontu, amount=howManyWeNeedToCatchUp)
-	if 1:
-		# CFK THIS IS FOR ONE TIME USE - adding informative field
-		for object, node in objectsAndNodes:
-			if object.__class__.__name__ == "Answer":
-				object.questionType = object.question.type
-				object.put()
 	print "-------------------- DONE RESTORING MODELS -------------------------------------------"
 	
 def findRestoreFile(restoreDir, fileName):
