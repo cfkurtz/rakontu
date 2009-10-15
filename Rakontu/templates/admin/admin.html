@@ -34,31 +34,20 @@
 	
 	<h2>Rakontus</h2>
 	{% if rakontus %}
-		<fieldset>
-		<table cellpadding="4" cellspacing="0">
-		<tr>
-			<th>{{template_information}}</th>
-			<th>{{template_member}}?</th>
-			<th>{{template_rakontu_access_state}}</th>
-			<th>{{template_remove}}</th>
-			</tr>
 		
     	{% for rakontu in rakontus %}
-	    	<tr>
-	    	<td>
-	    		<p>{{rakontu.linkString}}</p>
-	    		<p>({{rakontu.getKeyName}})</p>
-	    		<p>{{template_created}} {{rakontu.created|timeZone:"UTC"|date:"F j, Y"}}</p>
-	    		<p>{{rakontu.numActiveMembers|pad:3}} {{template_active_members}}</p>
-				<p>{{rakontu.numPendingMembers|pad:3}} {{template_pending_members}}</p>
-				<p>{{rakontu.numInactiveMembers|pad:3}} {{template_inactive_members}}</p>
-				<p>{{rakontu.numEntries|pad:3}} {{template_entries}}</p>
-				<p>{{rakontu.numAnnotations|pad:3}} {{template_annotations}}</p>
-				<p>{{rakontu.numAnswers|pad:3}} {{template_answers}}</p>
-	    	</td>
-	    	<td align="center">
+		<fieldset>
+	    		<h3>{{rakontu.linkString}} ({{rakontu.getKeyName}})</h3> 
+	    		<p> {{template_created}}: {{rakontu.created|timeZone:"UTC"|date:"F j, Y"}}.
+	    		{{template_last_activity}}: {{rakontu.getDateOfLastActivity|timeZone:"UTC"|date:"F j, Y"}}.
+	    		</p>
+	    		<p>{{rakontu.numActiveMembers}} {{template_active_members}},
+					{{rakontu.numPendingMembers}} {{template_pending_members}},
+					{{rakontu.numEntries}} {{template_entries}}.</p>
+				
+				<p>
+				{{template_membership}}:
 	    		{% if member_of|dictLookup:rakontu.key %}
-	    			<p>{{template_yes|upper}}</p>
 		    			<select name="switch|{{rakontu.key}}">
 		    			<option value="member"
 		    			{% if member_of|dictLookup:rakontu.key|equalTest:"member" %}
@@ -76,34 +65,37 @@
 		    			{% endif %}
 		    			>{{governance_roles_display|listLookup:2}}</option>
 		    			</select>
-		    			<input type="submit" name="switchTo|{{rakontu.key}}" value="{{button_switch}}" class="button"><br/>
+		    			<input type="submit" name="switchTo|{{rakontu.key}}" value="{{button_switch}}" class="button_small">
 	    		{% else %}
-	    			<p>{{template_no}}
 	    			{% if pending_member_of|dictLookup:rakontu.key %}
 	    				({{template_pending_member|lower}})
 	    			{% endif %}
-	    			</p>
+	    			
 	    		{% endif %}
-	    		<br/>
 	    		{% if member_of|dictLookup:rakontu.key %}
-	    			{% if not only_owner_of|dictLookup:rakontu.key %}
-	    				<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="{{button_leave}}" class="button">
+	    			{% if only_owner_of|dictLookup:rakontu.key %}
+	    				<i>{{template_cannot_leave_only_owner}}</i>
+	    			{% else %}
+	    				<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="{{button_leave}}" class="button_small">
 	    			{% endif %}
 	    		{% else %}
 	    			{% if pending_member_of|dictLookup:rakontu.key %}
-	    				<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="{{button_join}}" class="button"><br/>
+	    				({{template_click_rakontu_name_to_join}})
 	    			{% else %}
 		    			{{template_join_as_a}}
 		    			<select name="joinAs|{{rakontu.key}}">
 		    			<option value="member">{{governance_roles_display|listLookup:0}}</option>
 		    			<option value="manager">{{governance_roles_display|listLookup:1}}</option>
+		    			<option value="owner">{{governance_roles_display|listLookup:2}}</option>
 		    			</select>
-		    			<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="{{button_join}}" class="button"><br/>
+		    			<input type="submit" name="joinOrLeave|{{rakontu.key}}" value="{{button_join}}" class="button_small">
 		    		{% endif %}
 	    		{% endif %}
-	    	</td>
-			<td align="center">
-				<select name="access|{{rakontu.key}}">
+	    		</p>
+	    		
+	    		<p>
+	    		{{template_rakontu_access_state}}
+				<select name="access|{{rakontu.key}}" style="background:#{{rakontu.accessColorString}}">
 					{% for i in rakontu_access_states|makeRangeFromListLength %}
 						<option value="{{rakontu_access_states|listLookup:i}}"
 						{% if rakontu_access_states|listLookup:i|equalTest:rakontu.access %}
@@ -112,20 +104,22 @@
 						>{{rakontu_access_states_display|listLookup:i}}</option>
 					{% endfor %}
 				</select>
-				<br/>Access message: {{"access_messages"|tip}}
-				<br/><input type="text" size="40" name="accessMessage|{{rakontu.key}}" value="{{rakontu.accessMessage|orNothing}}" maxlength="{{maxlength_subject_or_comment}}">
-  				<br/><input type="submit" name="changeAccess|{{rakontu.key}}" value="{{button_change}}" class="button">
-  			</td>
-			<td align="center"><input type="submit" name="remove|{{rakontu.key}}" value="{{button_remove|allcaps}}" class="button"></td>
+				&nbsp {{template_access_message}}: {{"access_messages"|tip}}
+				<input type="text" size="30" name="accessMessage|{{rakontu.key}}" value="{{rakontu.accessMessage|orNothing}}" maxlength="{{maxlength_subject_or_comment}}">
+  				<input type="submit" name="changeAccess|{{rakontu.key}}" value="{{button_change}}" class="button_small">
+  				</p>
+			<div class="rightalign">
+			<a href="/{{dir_admin}}/{{url_confirm_remove_rakontu}}?{{rakontu.urlQuery}}">{{template_remove_this_rakontu}}</a>
+			</div>
+			</fieldset>
+			<p>&nbsp;</p>
     	{% endfor %}
-    	</table>
-    	</fieldset>
     	
 		<p><a href="/{{dir_admin}}/{{url_create1}}">{{template_create_another}} Rakontu</a></p>
 		<p></p>
 
 		{% if development %}
-			<h3>Fake data for testing</h3>
+			<h2><i>Development: Fake data for testing</i></h2>
 			<fieldset>
 			<p>Add fake data to existing Rakontus</p>
 			<table cellpadding="4" cellspacing="0">

@@ -54,6 +54,7 @@ class CreateRakontuPage_PartTwo(ErrorHandlingRequestHander):
 							   "title_extra": self.request.query_string,
 							   'rakontu_types': RAKONTU_TYPES,
 							   'url': self.request.query_string,
+							   'user_email': user.email(),
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('admin/create_rakontu_part_two.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -74,7 +75,7 @@ class CreateRakontuPage_PartTwo(ErrorHandlingRequestHander):
 				rakontu.initializeCustomSkinText()
 				rakontu.put()
 				if rakontu.type != RAKONTU_TYPES[-1]: # last type means no default questions
-					GenerateDefaultQuestionsForRakontu(rakontu, rakontu.type)
+					GenerateDefaultQuestionsForRakontu(rakontu)
 				GenerateDefaultCharactersForRakontu(rakontu)
 				CreatePendingMemberFromInfo(rakontu, ownerEmail, "owner")
 				self.redirect(BuildURL("dir_admin", "url_admin"))

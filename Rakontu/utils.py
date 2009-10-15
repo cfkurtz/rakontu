@@ -34,7 +34,7 @@ import pytz
 
 def FindTemplate(template):   
 	return "templates/%s" % template   
-	 
+	  
 def RequireLogin(func):  
 	def check_login(request):    
 		if not users.get_current_user():    
@@ -656,13 +656,17 @@ def GenerateHelps():
 		for row in helpStrings:
 			if len(row[0]) > 0 and row[0][0] != ";":
 				keyName = GenerateSequentialKeyName("help") # no rakontu - system level
+				type = row[0].strip()
+				name = row[1].strip()
+				translatedName = row[2].strip()
+				text = row[3].strip().replace("\n", "")[:500]
 				help = Help(
 						key_name=keyName,  
 						id=keyName,
-						type=row[0].strip(),  
-						name=row[1].strip(), 
-						translatedName=row[2].strip(),
-						text=row[3].strip()) 
+						type=type,  
+						name=name, 
+						translatedName=translatedName,
+						text=text) 
 				helps.append(help) 
 		db.put(helps) 
 	finally: 
@@ -716,40 +720,49 @@ def GetSkinNames():
 	result.sort()
 	return result
 
-def ReadQuestionsFromFile(fileName, rakontu=None, rakontuType="ALL"):
-	if not rakontu:
-		db.delete(AllSystemQuestions()) 
-	file = open(fileName)
+def ReadQuestionsFromFileOrString(rakontu=None, referToType=None, rakontuType="ALL", fileName=None, inputString=None):
+	if fileName:
+		file = open(fileName)
 	try:
-		questionStrings = csv.reader(file) 
+		if fileName:
+			questionStrings = csv.reader(file) 
+		else:
+			questionStrings = csv.reader(inputString.split("\n"))
 		questionsToPut = []
 		referenceCounts = {}
 		for row in questionStrings:
-			if row[0] and row[1] and row[0][0] != ";": 
+			if row[0] and row[0][0] != ";": 
 				if rakontuType != "ALL":
-					if row[8]:  
-						typesOfRakontu = [x.strip() for x in row[8].split(",")]
+					if row[1]:  
+						typesOfRakontu = [x.strip() for x in row[1].split("|")]
 					else: 
-						typesOfRakontu = RAKONTU_TYPES[:-1] # if no entry interpret as all except custom
+						# if nothing in cell, use the whole list of types, except the last custom one
+						typesOfRakontu = RAKONTU_TYPES[:-1] 
+				else:
+					typesOfRakontu = RAKONTU_TYPES[:-1] 
 				if rakontuType == "ALL" or rakontuType in typesOfRakontu:
-					refersTo = [x.strip() for x in row[0].split(",")]  
+					refersTo = [x.strip() for x in row[0].split("|")]  
 					for reference in refersTo: 
+						if not reference in QUESTION_REFERS_TO:
+							continue
+						if referToType and reference != referToType:
+							continue
 						if not referenceCounts.has_key(reference):
 							referenceCounts[reference] = 0 
 						else: 
 							referenceCounts[reference] += 1 
-						name = row[1]
-						text = row[2]
-						type = row[3]
+						name = row[2]
+						text = row[3].replace("\n", "")[:500]
+						type = row[4]
 						choices = [] 
 						minValue = DEFAULT_QUESTION_VALUE_MIN
 						maxValue = DEFAULT_QUESTION_VALUE_MAX
 						positiveResponseIfBoolean = DEFAULT_QUESTION_YES_BOOLEAN_RESPONSE
 						negativeResponseIfBoolean = DEFAULT_QUESTION_NO_BOOLEAN_RESPONSE
 						if type == "ordinal" or type == "nominal":
-							choices = [x.strip() for x in row[4].split(",")]
+							choices = [x.strip() for x in row[5].split("|")]
 						elif type == "value":
-							minAndMax = row[4].split("-") 
+							minAndMax = [x.strip() for x in row[5].split("|")]
 							try:
 								minValue = int(minAndMax[0])
 							except:
@@ -759,14 +772,13 @@ def ReadQuestionsFromFile(fileName, rakontu=None, rakontuType="ALL"):
 							except:
 								pass
 						elif type == "boolean":
-							posNeg = row[4].split("|")
+							posNeg =  [x.strip() for x in row[5].split("|")]
 							positiveResponseIfBoolean = posNeg[0]
 							if len(posNeg) > 1:
 								negativeResponseIfBoolean = posNeg[1]
-						multiple = row[5] == "yes"
-						help = row[6]
-						useHelp=row[7]
-						typesOfRakontu = [x.strip() for x in row[8].split(",")]
+						multiple = row[6] == "yes"
+						help = row[7]
+						useHelp=row[8]
 						if rakontu:
 							keyName = GenerateSequentialKeyName("question", rakontu)
 						else:
@@ -788,17 +800,23 @@ def ReadQuestionsFromFile(fileName, rakontu=None, rakontuType="ALL"):
 										minIfValue=minValue, 
 										maxIfValue=maxValue, 
 										help=help, 
-										useHelp=useHelp)
+										useHelp=useHelp,
+										)
+						question.rakontuTypes = []
+						question.rakontuTypes.extend(typesOfRakontu)
 						questionsToPut.append(question)
-		db.put(questionsToPut)
 	finally: 
 		file.close()
+	return questionsToPut
 
 def GenerateSampleQuestions():
-	ReadQuestionsFromFile(SAMPLE_QUESTIONS_FILE_NAME)
+	db.delete(AllSystemQuestions()) 
+	questionsToPut = ReadQuestionsFromFileOrString(fileName=SAMPLE_QUESTIONS_FILE_NAME)
+	db.put(questionsToPut)
 	
-def GenerateDefaultQuestionsForRakontu(rakontu, type):
-	ReadQuestionsFromFile(DEFAULT_QUESTIONS_FILE_NAME, rakontu, type)
+def GenerateDefaultQuestionsForRakontu(rakontu):
+	questionsToPut = ReadQuestionsFromFileOrString(rakontu=rakontu, rakontuType=rakontu.type, fileName=DEFAULT_QUESTIONS_FILE_NAME)
+	db.put(questionsToPut)
 	
 def GenerateDefaultCharactersForRakontu(rakontu):
 	if os.path.exists(DEFAULT_CHARACTERS_FILE_NAME):
@@ -1176,18 +1194,18 @@ def GenerateRandomDate(start, end):
 	randomSeconds = random.randrange(deltaSeconds) 
 	return start + timedelta(seconds=randomSeconds)
 	
-def GenerateFakeTestingData():
-	user = users.get_current_user()
+def GenerateFakeTestingData(): 
+	user = users.get_current_user() 
 	# make rakontu
 	text = random.choice(LOREM_IPSUM)[random.randrange(0,20):random.randrange(30,50)]
 	keyName = text.strip().replace(" ", "").replace(",", "").replace(".", "").replace(";", "").replace(":", "")
-	rakontu = Rakontu(key_name=keyName, id=keyName, name=keyName)
+	rakontu = Rakontu(key_name=keyName, id=keyName, name=keyName, type="neighborhood")
 	rakontu.initializeFormattedTexts()
-	rakontu.initializeCustomSkinText()
-	# set its creation time back, to simulate entries
-	rakontu.created = rakontu.created - timedelta(days=7)
-	GenerateDefaultQuestionsForRakontu(rakontu, "neighborhood")
-	rakontu.put()
+	rakontu.initializeCustomSkinText() 
+	# set its creation time back, to simulate entries 
+	rakontu.created = rakontu.created - timedelta(days=7) 
+	GenerateDefaultQuestionsForRakontu(rakontu) 
+	rakontu.put() 
 	GenerateDefaultCharactersForRakontu(rakontu)
 	# make owner
 	member = CreateMemberFromInfo(rakontu, user.user_id(), user.email(), "Tester", "owner")

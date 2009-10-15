@@ -224,6 +224,7 @@ class ManageRakontuAppearancePage(ErrorHandlingRequestHander):
 				rakontu.description = text
 				rakontu.description_formatted = db.Text(InterpretEnteredText(text, format))
 				rakontu.description_format = format
+				rakontu.discussionGroupURL = self.request.get("discussionGroupURL")
 				text = self.request.get("welcomeMessage")
 				format = self.request.get("welcomeMessage_format").strip()
 				rakontu.welcomeMessage = text
@@ -426,7 +427,7 @@ class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 					i += 1
 				sortedQuestions = rakontu.getQuestionsOfType(type)
 				sortedQuestions.sort(lambda a,b: cmp(a.order, b.order))
-				systemQuestionsOfType = SystemQuestionsOfType(type)
+				systemQuestionsOfType = SystemQuestionsOfTypeForRakontuType(type, rakontu.type)
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["MANAGE_QUESTIONS_ABOUT"], 
 							   	   'title_extra': DisplayTypePluralForQuestionRefersTo(type), 
@@ -463,7 +464,7 @@ class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 						break
 					i += 1
 				rakontuQuestionsOfType = rakontu.getQuestionsOfType(type)
-				systemQuestionsOfType = SystemQuestionsOfType(type)
+				systemQuestionsOfType = SystemQuestionsOfTypeForRakontuType(type, rakontu.type)
 				questionsToPut = []
 				for question in rakontuQuestionsOfType:
 					if "moveUp|%s" % question.key() in self.request.arguments():
@@ -505,7 +506,11 @@ class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 						newQuestion = rakontu.GenerateCopyOfQuestion(sysQuestion)
 						questionsToPut.append(newQuestion)
 				if self.request.get("import"):
-					newQuestions = rakontu.GenerateQuestionsOfTypeFromCSV(type, str(self.request.get("import")))
+					newQuestions = ReadQuestionsFromFileOrString(
+								rakontu=rakontu, 
+								referToType=type, 
+								rakontuType=rakontu.type, 
+								inputString=str(self.request.get("import")))
 					questionsToPut.extend(newQuestions)
 				def txn(questionsToPut):
 					db.put(questionsToPut)

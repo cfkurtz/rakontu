@@ -226,12 +226,16 @@ def processRakontuNode(node, rakontuID):
 		id = rakontuID
 	name = getRequiredProperty(propertyNodes, "name")
 	if id and name:
-		rakontu = Rakontu(key_name=id, id=id, name=name)
+		rakontu = Rakontu.get_by_key_name(id) # rakontu has no parent
+		if rakontu is None:
+			rakontu = Rakontu(key_name=id, id=id, name=name)
+			processModelProperties(rakontu, propertyNodes) # only do this if created new
 		if rakontu:
-			processModelProperties(rakontu, propertyNodes)
-			saveOldAndNewKeys(node, rakontu)
+			saveOldAndNewKeys(node, rakontu) # save keys in either case
 			print rakontu.getNameForExport()
 			result = rakontu
+		else:
+			raise Exception("Could not find or create rakontu with id %s" % id)
 	return result
 
 def processQuestionNode(node, rakontu):
@@ -241,12 +245,16 @@ def processQuestionNode(node, rakontu):
 	name = getRequiredProperty(propertyNodes, "name")
 	text = getRequiredProperty(propertyNodes, "text")
 	if id and refersTo and name and text:
-		question = Question(key_name=id, parent=rakontu, id=id, refersTo=refersTo, name=name, text=text, rakontu=rakontu)
-		if question:
+		question = Question.get_by_key_name(id, parent=rakontu)
+		if question is None:
+			question = Question(key_name=id, parent=rakontu, id=id, refersTo=refersTo, name=name, text=text, rakontu=rakontu)
 			processModelProperties(question, propertyNodes)
+		if question:
 			saveOldAndNewKeys(node, question)
 			print spacer * 1, question.getNameForExport()
 			result = question
+		else:
+			raise Exception("Could not find or create question with id %s" % id)
 	return result
 
 def processPendingMemberNode(node, rakontu):
@@ -254,48 +262,64 @@ def processPendingMemberNode(node, rakontu):
 	id, propertyNodes = getModelIDAndPropertyNodes(node, rakontu)
 	email = getRequiredProperty(propertyNodes, "email")
 	if id and email:
-		pendingMember = PendingMember(key_name=id, parent=rakontu, id=id, email=email, rakontu=rakontu)
+		pendingMember = PendingMember.get_by_key_name(id, parent=rakontu)
+		if pendingMember is None:
+			pendingMember = PendingMember(key_name=id, parent=rakontu, id=id, email=email, rakontu=rakontu)
 		if pendingMember:
 			processModelProperties(pendingMember, propertyNodes)
 			saveOldAndNewKeys(node, pendingMember)
 			print spacer * 1, pendingMember.getNameForExport()
 			result = pendingMember
+		else:
+			raise Exception("Could not find or create pending member with id %s" % id)
 	return result
 			
 def processMemberNode(node, rakontu):
 	result = None
 	id, propertyNodes = getModelIDAndPropertyNodes(node, rakontu)
 	if id:
-		member = Member(key_name=id, parent=rakontu, id=id, rakontu=rakontu)
-		if member:
+		member = Member.get_by_key_name(id, parent=rakontu)
+		if member is None:
+			member = Member(key_name=id, parent=rakontu, id=id, rakontu=rakontu)
 			processModelProperties(member, propertyNodes)
+		if member:
 			saveOldAndNewKeys(node, member)
 			print spacer * 1, member.getNameForExport()
 			result = member
+		else:
+			raise Exception("Could not find or create member with id %s" % id)
 	return result
 
 def processViewOptionsNode(node, rakontu, member):
 	result = None
 	id, propertyNodes = getModelIDAndPropertyNodes(node, rakontu)
 	if id:
-		options = ViewOptions(key_name=id, parent=member, id=id, rakontu=rakontu, member=member)
-		if options:
+		options = ViewOptions.get_by_key_name(id, parent=member)
+		if options is None:
+			options = ViewOptions(key_name=id, parent=member, id=id, rakontu=rakontu, member=member)
 			processModelProperties(options, propertyNodes)
+		if options:
 			saveOldAndNewKeys(node, options)
 			print spacer * 2, options.getNameForExport()
 			result = options
+		else:
+			raise Exception("Could not find or create view options with id %s" % id)
 	return result
 
 def processFilterNode(node, rakontu, member):
 	result = None
 	id, propertyNodes = getModelIDAndPropertyNodes(node, rakontu)
 	if id:
-		filter = SavedFilter(key_name=id, parent=member, id=id, rakontu=rakontu, creator=member)
-		if filter:
+		filter = SavedFilter.get_by_key_name(id, parent=member)
+		if filter is None:
+			filter = SavedFilter(key_name=id, parent=member, id=id, rakontu=rakontu, creator=member)
 			processModelProperties(filter, propertyNodes)
+		if filter:
 			saveOldAndNewKeys(node, filter)
 			print spacer * 2, filter.getNameForExport()
 			result = filter
+		else:
+			raise Exception("Could not find or create filter with id %s" % id)
 	return result
 
 def processFilterQuestionRefNode(node, rakontu, member, filter):
@@ -304,12 +328,16 @@ def processFilterQuestionRefNode(node, rakontu, member, filter):
 	questionName = getRequiredProperty(propertyNodes, "questionName")
 	questionType = getRequiredProperty(propertyNodes, "questionType")
 	if id and questionName and questionType:
-		ref = SavedFilterQuestionReference(key_name=id, parent=filter, id=id, questionName=questionName, questionType=questionType, rakontu=rakontu, filter=filter)
-		if ref:
+		ref = SavedFilterQuestionReference.get_by_key_name(id, parent=filter)
+		if ref is None:
+			ref = SavedFilterQuestionReference(key_name=id, parent=filter, id=id, questionName=questionName, questionType=questionType, rakontu=rakontu, filter=filter)
 			processModelProperties(ref, propertyNodes)
+		if ref:
 			saveOldAndNewKeys(node, ref)
 			print spacer * 3, ref.getNameForExport()
 			result = ref
+		else:
+			raise Exception("Could not find or create filter-question reference with id %s" % id)
 	return result
 
 def processCharacterNode(node, rakontu):
@@ -317,19 +345,26 @@ def processCharacterNode(node, rakontu):
 	id, propertyNodes = getModelIDAndPropertyNodes(node, rakontu)
 	name = getRequiredProperty(propertyNodes, "name")
 	if id and name:
-		character = Character(key_name=id, parent=rakontu, id=id, name=name, rakontu=rakontu)
-		if character:
+		character = Character.get_by_key_name(id, parent=rakontu)
+		if character is None:
+			character = Character(key_name=id, parent=rakontu, id=id, name=name, rakontu=rakontu)
 			processModelProperties(character, propertyNodes)
+		if character:
 			saveOldAndNewKeys(node, character)
 			print spacer * 1, character.getNameForExport()
 			result = character
+		else:
+			raise Exception("Could not find or create character with id %s" % id)
 	return result
 
 def processAnswerNode(node, rakontu, referent):
 	result = None
 	id, propertyNodes = getModelIDAndPropertyNodes(node, rakontu)
 	if id:
-		answer = Answer(key_name=id, parent=referent, id=id, rakontu=rakontu, referent=referent)
+		answer = Answer.get_by_key_name(id, parent=referent)
+		if answer is None:
+			answer = Answer(key_name=id, parent=referent, id=id, rakontu=rakontu, referent=referent)
+			processModelProperties(answer, propertyNodes)
 		if answer:
 			processModelProperties(answer, propertyNodes)
 			if referent.__class__.__name__ == "Entry":
@@ -339,6 +374,8 @@ def processAnswerNode(node, rakontu, referent):
 			saveOldAndNewKeys(node, answer)
 			print space, answer.getNameForExport()
 			result = answer
+		else:
+			raise Exception("Could not find or create answer with id %s" % id)
 	return result
 
 def processEntryNode(node, rakontu, member):
@@ -347,12 +384,16 @@ def processEntryNode(node, rakontu, member):
 	type = getRequiredProperty(propertyNodes, "type")
 	title = getRequiredProperty(propertyNodes, "title")
 	if id and type and title:
-		entry = Entry(key_name=id, parent=member, id=id, type=type, title=title, rakontu=rakontu, creator=member)
-		if entry:
+		entry = Entry.get_by_key_name(id, parent=member)
+		if entry is None:
+			entry = Entry(key_name=id, parent=member, id=id, type=type, title=title, rakontu=rakontu, creator=member)
 			processModelProperties(entry, propertyNodes)
+		if entry:
 			saveOldAndNewKeys(node, entry)
 			print spacer * 2, entry.getNameForExport()
 			result = entry
+		else:
+			raise Exception("Could not find or create entry with id %s" % id)
 	return result
 
 def processAnnotationNode(node, rakontu, entry):
@@ -360,12 +401,16 @@ def processAnnotationNode(node, rakontu, entry):
 	id, propertyNodes = getModelIDAndPropertyNodes(node, rakontu)
 	type = getRequiredProperty(propertyNodes, "type")
 	if id and type:
-		annotation = Annotation(key_name=id, parent=entry, id=id, type=type, rakontu=rakontu, entry=entry)
-		if annotation:
+		annotation = Annotation.get_by_key_name(id, parent=entry)
+		if annotation is None:
+			annotation = Annotation(key_name=id, parent=entry, id=id, type=type, rakontu=rakontu, entry=entry)
 			processModelProperties(annotation, propertyNodes)
+		if annotation:
 			saveOldAndNewKeys(node, annotation)
 			print spacer * 3, annotation.getNameForExport()
 			result = annotation
+		else:
+			raise Exception("Could not find or create annotation with id %s" % id)
 	return result
 
 def processLinkNode(node, rakontu, entry):
@@ -374,36 +419,48 @@ def processLinkNode(node, rakontu, entry):
 	type = getRequiredProperty(propertyNodes, "type")
 	itemTo = getRequiredProperty(propertyNodes, "itemTo")
 	if id and type and itemTo:
-		link = Link(key_name=id, parent=entry, id=id, type=type, rakontu=rakontu, itemFrom=entry, itemTo=itemTo)
-		if link:
+		link = Link.get_by_key_name(id, parent=entry)
+		if link is None:
+			link = Link(key_name=id, parent=entry, id=id, type=type, rakontu=rakontu, itemFrom=entry, itemTo=itemTo)
 			processModelProperties(link, propertyNodes)
+		if link:
 			saveOldAndNewKeys(node, link)
 			print spacer * 3, link.getNameForExport()
 			result = link
+		else:
+			raise Exception("Could not find or create link with id %s" % id)
 	return result
 
 def processAttachmentNode(node, rakontu, entry):
 	result = None
 	id, propertyNodes = getModelIDAndPropertyNodes(node, rakontu)
 	if id:
-		attachment = Attachment(key_name=id, parent=entry, id=id, rakontu=rakontu, entry=entry)
-		if attachment:
+		attachment = Attachment.get_by_key_name(id, parent=entry)
+		if attachment is None:
+			attachment = Attachment(key_name=id, parent=entry, id=id, rakontu=rakontu, entry=entry)
 			processModelProperties(attachment, propertyNodes)
+		if attachment:
 			saveOldAndNewKeys(node, attachment)
 			print spacer * 3, attachment.getNameForExport()
 			result = attachment
+		else:
+			raise Exception("Could not find or create attachment with id %s" % id)
 	return result
 
 def processTextVersionNode(node, rakontu, entry):
 	result = None
 	id, propertyNodes = getModelIDAndPropertyNodes(node, rakontu)
 	if id:
-		version = TextVersion(key_name=id, parent=entry, id=id, rakontu=rakontu, entry=entry)
-		if version:
+		version = TextVersion.get_by_key_name(id, parent=entry)
+		if version is None:
+			version = TextVersion(key_name=id, parent=entry, id=id, rakontu=rakontu, entry=entry)
 			processModelProperties(version, propertyNodes)
+		if version:
 			saveOldAndNewKeys(node, version)
 			print spacer * 3, version.getNameForExport()
 			result = version
+		else:
+			raise Exception("Could not find or create text version with id %s" % id)
 	return result
 
 # ============================================================================================ 
@@ -523,7 +580,7 @@ def restore(restoreFileName, newRakontuShortName):
 					except:
 						retries += 1
 						print "Problem putting %s %s to database: trying again" % (object.__class__.__name__, object.getNameForExport())
-				print spacer * indentLevel, object.getNameForExport().strip(), " -- restored"
+				print spacer * indentLevel, object.getNameForExport().strip(), " -- RESTORED"
 			else:
 				print spacer * indentLevel, objectWithSameKeyName.getNameForExport().strip(), ' -- exists; not restored'
 				

@@ -16,6 +16,10 @@
 			<div class="blurb">{{rakontu.etiquetteStatement_formatted}}</div>
 		{% endif %}
 		
+		{% if rakontu.discussionGroupURL %}
+			{{template_discussion_group}}: <a href="{{rakontu.discussionGroupURL}}">{{rakontu.discussionGroupURL}}</a>
+		{% endif %}
+		
 	{% if counts %}
 	     <h3>{{template_counts_of_items_in}} {{rakontu.name}}</h3>
 	 		<p></p>

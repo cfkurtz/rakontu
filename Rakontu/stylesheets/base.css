@@ -80,6 +80,10 @@ fieldset {
 	border: 1px solid #000000;
 	padding: 4px 8px 4px 8px;
 	}
+	
+ol li {
+	margin: 4px 4px 4px 4px;
+	}
 		
 ul li.nobullet {
 	display: compact;

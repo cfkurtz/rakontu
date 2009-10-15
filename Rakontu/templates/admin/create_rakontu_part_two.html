@@ -26,9 +26,8 @@
 					<option value="{{type}}">{{type}}</option>
 				{% endfor %}
 			</select>
-			
 			<p>{{template_rakontu_owner_email}} {{"setting_up_an_email_adddress_for_a_new_Rakontu"|caution}}</p>
-			<input type="text" name="ownerEmail" value="" size="40" maxlength="{{maxlength_name}}"/>
+			<input type="text" name="ownerEmail" value="{{user_email}}" size="40" maxlength="{{maxlength_name}}"/>
 			
 			<center>
 			<p><input type="submit" name="create" value="{{button_create_rakontu}}" class="button"></p>

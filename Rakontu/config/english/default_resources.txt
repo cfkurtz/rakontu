@@ -1,8 +1,7 @@
 ; Default resources file for Rakontu site
 ; For the first four lines of each resource, don't change what is on the left of the equals sign (but DO set up what is on the right!)
-; All lines following the "Managers only" line up to the next [Name] line are part of the resource.
+; All lines following the last equals-containing line, and up to the next [Name] line, are part of the resource.
 ; All lines that start with a semicolon are comments and are ignored.
-; Resources will be created (and shown) in the order they appear here.
 
 [About Rakontu]
 Category=Introduction

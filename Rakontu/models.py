@@ -155,6 +155,7 @@ class Rakontu(db.Model):
 	type = db.StringProperty(choices=RAKONTU_TYPES, default=RAKONTU_TYPES[-1], indexed=False) # only used to determine questions at front, but may be useful later so saving
 	tagline = db.StringProperty(default="", indexed=False) # appears under name, optional
 	image = db.BlobProperty(default=None) # appears on all pages, should be small (100x60 is best)
+	discussionGroupURL = db.StringProperty(default=None, indexed=False)
 	
 	description = db.TextProperty(default=DEFAULT_RAKONTU_DESCRIPTION) # appears on "about rakontu" page
 	description_formatted = db.TextProperty() # formatted texts kept separate for re-editing original
@@ -185,6 +186,16 @@ class Rakontu(db.Model):
 	def accessStateForDisplay(self):
 		return DisplayStateForRakontuAccessState(self.access)
 	
+	def accessColorString(self):
+		if self.access == "all":
+			return "93DB70"
+		elif self.access == "managers":
+			return "FFE600"
+		elif self.access == "owners":
+			return "FF6600"
+		elif self.access == "administrators":
+			return "FF3030"
+		
 	def memberCanAccessMe(self, member, memberIsAdmin):
 		if self.access == "all":
 			return True
@@ -679,6 +690,15 @@ class Rakontu(db.Model):
 			counts = None
 		return countNames, counts
 	
+	def getDateOfLastActivity(self):
+		lastDate = None
+		entries = Entry.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
+		for entry in entries:
+			entryDate = entry.lastTouched()
+			if lastDate is None or entryDate > lastDate:
+				lastDate = entryDate
+		return lastDate
+	
 	# QUERIES WITH PAGING
 	
 	def getNonDraftEntriesLackingMetadata_WithPaging(self, show, typeURL, sortBy, bookmark, numToFetch=MAX_ITEMS_PER_LIST_PAGE):
@@ -813,64 +833,6 @@ class Rakontu(db.Model):
 							   help=question.help,
 							   useHelp=question.useHelp)
 		return newQuestion # caller will do the put
-		
-	def GenerateQuestionsOfTypeFromCSV(self, type, input):
-		rows = csv.reader(input.split("\n"))
-		result = []
-		for row in rows:
-			if len(row) >= 4 and row[0] and row[1] and row[0][0] != ";":
-				refersTo = row[0].strip()
-				if not refersTo in QUESTION_REFERS_TO:
-					continue
-				name = row[1]
-				text = row[2]
-				type = row[3]
-				choices = []
-				minValue = DEFAULT_QUESTION_VALUE_MIN
-				maxValue = DEFAULT_QUESTION_VALUE_MAX
-				positiveResponseIfBoolean = DEFAULT_QUESTION_YES_BOOLEAN_RESPONSE
-				negativeResponseIfBoolean = DEFAULT_QUESTION_NO_BOOLEAN_RESPONSE
-				if type == "ordinal" or type == "nominal":
-					choices = [x.strip() for x in row[4].split(",")]
-				elif type == "value":
-					minAndMax = row[4].split("-")
-					try:
-						minValue = int(minAndMax[0])
-					except:
-						pass
-					try:
-						maxValue = int(minAndMax[1])
-					except:
-						pass
-				elif type == "boolean":
-					posNeg = row[4].split("|")
-					positiveResponseIfBoolean = posNeg[0]
-					if len(posNeg) > 1:
-						negativeResponseIfBoolean = posNeg[1]
-				multiple = row[5] == "yes"
-				help = row[6]
-				useHelp=row[7]
-				keyName = GenerateSequentialKeyName("question", self.id)
-				question = Question(
-								key_name=keyName,
-								parent=self,
-								id=keyName,
-								rakontu=self,
-								refersTo=refersTo, 
-								name=name, 
-								text=text, 
-								type=type, 
-								choices=choices, 
-								multiple=multiple,
-								positiveResponseIfBoolean=positiveResponseIfBoolean, 
-								negativeResponseIfBoolean=negativeResponseIfBoolean,
-								minIfValue=minValue, 
-								maxIfValue=maxValue, 
-								help=help, 
-								useHelp=useHelp, 
-								)
-				result.append(question)
-		return result
 		
 	# SEARCHES
 	
@@ -1106,11 +1068,11 @@ class Rakontu(db.Model):
 					for choice in question.choices:
 						if len(choice):
 							choicesToReport.append(choice)
-					cells.append(", ".join(choicesToReport))
+					cells.append(" | ".join(choicesToReport))
 				elif question.type == "value":
-					cells.append("%s-%s" % (question.minIfValue, question.maxIfValue))
+					cells.append("%s | %s" % (question.minIfValue, question.maxIfValue))
 				elif question.type == "boolean":
-					cells.append("%s|%s" % (question.negativeResponseIfBoolean, question.negativeResponseIfBoolean))
+					cells.append("%s | %s" % (question.negativeResponseIfBoolean, question.negativeResponseIfBoolean))
 				else:
 					cells.append("")
 				if question.multiple:
@@ -1135,6 +1097,7 @@ class Question(db.Model):
 	id = db.StringProperty(required=True)
 	rakontu = db.ReferenceProperty(Rakontu, collection_name="questions_to_rakontu") 
 	refersTo = db.StringProperty(choices=QUESTION_REFERS_TO, required=True)
+	rakontuTypes = db.StringListProperty()
 	
 	name = db.StringProperty(required=True, default=DEFAULT_QUESTION_NAME)
 	text = db.StringProperty(required=True, indexed=False)
@@ -3811,6 +3774,14 @@ def NumSystemQuestions():
 
 def SystemQuestionsOfType(type):
 	return Question.all().filter("rakontu = ", None).filter("refersTo = ", type).fetch(FETCH_NUMBER)
+
+def SystemQuestionsOfTypeForRakontuType(type, rakontuType):
+	result = []
+	questionsToStart = SystemQuestionsOfType(type)
+	for question in questionsToStart:
+		if rakontuType in question.rakontuTypes:
+			result.append(question)
+	return result
 
 def SystemEntriesOfType(type):
 	return Entry.all().filter("rakontu = ", None).filter("type = ", type).fetch(FETCH_NUMBER)

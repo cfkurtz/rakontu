@@ -15,8 +15,8 @@
 APP_ID = "rakontu"
 
 # The server name - localhost:8080 or APP_ID.appspot.com - BE CAREFUL !!
-SERVER_NAME = APP_ID + '.appspot.com'
-#SERVER_NAME = 'localhost:8080'
+#SERVER_NAME = APP_ID + '.appspot.com'
+SERVER_NAME = 'localhost:8080'
 
 # Your authentication details
 USER_NAME = "cfkurtz@cfkurtz.com" # CHANGE THESE - THEY WON'T WORK FOR YOU !!!
@@ -29,6 +29,13 @@ BACKUP_DIR = "/Users/cfkurtz/Documents/work_new/Rakontu project/test backup rest
 # ============================================================================================ 
 # HARDLY EVER CHANGED
 # ============================================================================================ 
+
+# Whether to restrict member access to the Rakontu while backing it up. STRONGLY recommended.
+# If this is turned off (zero), people using the Rakontu might change it while you are backing it up.
+RESTRICT_ACCESS_WHILE_BACKING_UP = 1
+
+# The message the backup program sets on your Rakontu when you are backing it up.
+ACCESS_MESSAGE = "Backing up ..."
 
 # Change this if you are using a different language config file than english.
 CONFIG_LANGUAGE_DIR = "../config/english"

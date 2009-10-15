@@ -132,6 +132,12 @@ def backup(rakontuShortNameToBackup):
 		print '-------------------------------------------------------------------------------'
 		file = codecs.open(fileName, "w", "utf-8", "ignore")
 		try:
+			if RESTRICT_ACCESS_WHILE_BACKING_UP:
+				oldAccessValue = rakontu.access
+				rakontu.access = "administrators"
+				oldAccessMessage = rakontu.accessMessage
+				rakontu.accessMessage = ACCESS_MESSAGE
+			rakontu.put()
 			file.write('<?xml version="1.0" encoding="UTF-8"?>\n')
 			file.write("<Entities>\n")
 			# rakontu
@@ -203,6 +209,10 @@ def backup(rakontuShortNameToBackup):
 			file.close()
 			finalFileName = fileName.replace(".partial", ".xml")
 			os.rename(fileName, finalFileName)
+			if RESTRICT_ACCESS_WHILE_BACKING_UP:
+				rakontu.access = oldAccessValue
+				rakontu.accessMessage = oldAccessMessage
+				rakontu.put()
 	print '-------------------- BACKUP COMPLETED -----------------------------------------'
 
 def main():

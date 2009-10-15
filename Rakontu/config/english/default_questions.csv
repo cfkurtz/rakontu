@@ -1,55 +1,41 @@
-"; refersTo","name","text","type","if ordinal/nominal: choices; if value: min-dash-max; if boolean: ""yes"" text, pipe (|), ""no"" text","multiple","help","useHelp","use for Rakontus of type(s)"
-"; ALL COMMUNITIES EXCEPT WORKGROUP",,,,,,,,
-"member, character","Age","How old are you?","ordinal","20 or younger, 21-40, 41-60, 61-80, 80 or over","no",,,"neighborhood, interest or support group, family"
-"member, character","Gender","What is your gender?","nominal","male, female","no",,,"neighborhood, interest or support group, family"
+"; refers to","use for","name","text","type","choices","multiple","help","use help"
+"; one or more of member, character, story, pattern, collage, invitation, resource","use for Rakontus of type(s)","short name for search","question to ask","ONE of ordinal, nominal, text, boolean, value","if ordinal/nominal: pipe delimited choices","whether multiple answers are allowed","optional text user sees as explanation","optional text to explain to managers when question is best to use"
+"; separate with pipe character |","separate with pipe character |","and display",,,"if value: min | max","only applies if the question is ordinal or nominal",,
+";","if applies to all types, leave blank",,,,"if boolean: yes text | no text",,,
 ,,,,,,,,
-"; NEIGHBORHOOD",,,,,,,,
-"member, character","How long lived here","How long have you lived in this community?","ordinal","only a very short time, not very long, a while, a long time, a very long time","no",,,"neighborhood"
-"member","Where live","Where do you live?","text",,,"Enter any sort of location you like, specific or vague.",,"neighborhood"
-"member, character","Feel about community","How do you feel about this community?","ordinal","great, good, okay, not so great, bad, awful","no",,,"neighborhood"
-,,,,,,,,
-"; INTEREST OR SUPPORT GROUP",,,,,,,,
-"member, character","How interested","How interested would you say you are in this topic?","ordinal","extremely, very, moderately, not much, not at all","no",,,"interest or support group"
-"member, character","How long involved","How long have you been involved with this issue?","ordinal","only a very short time, not very long, a while, a long time, a very long time",,,,"interest or support group"
-"member, character","Why interested","What made you want to join this group?","text",,,,,"interest or support group"
-"member, character","Want to get","What do you want to get out of this group?","text",,,,,"interest or support group"
-,,,,,,,,
-"; WORKGROUP",,,,,,,,
-"member, character","How long working","How long have you been working in this group?","ordinal","only a very short time, not very long, a while, a long time, a very long time","no",,,"work group"
-"member, character","Position","What is your position in this work group?","text",,,,,"work group"
-"member, character","Type of work","What sorts of work do you do in the group?","text",,,,,"work group"
-,,,,,,,,
-"; FAMILY",,,,,,,,
-"member, character","Talk to","Who would you say you talk to most often?","text",,,,,"family"
-"member, character","Children","How many children do you have, if any?","ordinal","none, one, two, three, four, five, six, seven, eight, nine, ten, more than ten","no",,,"family"
-"member","Live closest to","Who do you live the closest to?","text",,,,,"family"
-,,,,,,,,
-"; STORIES",,,,,,,,
-"story","How feel about","How do you feel about this story?","nominal","happy, enthused, hopeful, relieved, indifferent, confused, sad, angry, frustrated, hopeless, grateful, amazed, intrigued, amused","yes",,,
-"story","Intensity","How much emotional intensity would you say this story holds for you?","ordinal","an overwhelming amount, a lot, some but not a lot, hardly any, none at all",,,,
-"story","Reason","Why do you think this story was told?","nominal","to inform, to help, to educate, to persuade, to praise, to criticize, to entertain, to reminisce, to get along, for fun","yes",,,
-"story","Happened to","To whom did this story happen?","nominal","to the person who told it, to another person who told it to the storyteller, to someone the storyteller knows, the teller heard it around, everyone knows it, I'm not sure ","yes",,,
-"story","Will remember","How long do you think you will remember the events that happened in this story?","ordinal","for as long as I live, for a very long time, for a while but it will fade, not for very long, only briefly, what story?","no",,,
-,,,,,,,,
-"; PATTERNS",,,,,,,,
-"pattern","How feel about","How do you feel about this pattern?","nominal","happy, enthused, hopeful, relieved, indifferent, confused, sad, angry, frustrated, hopeless, grateful, amazed, intrigued, amused","yes",,,
-"pattern","Strength","How strong would you say this pattern is?","ordinal","overwhelmingly strong, very strong, pretty strong, pretty weak, very weak, barely there","no","How much does the pattern stand out?",,
-"pattern","Interpretations","What do you think this pattern means?","text",,,"Venture an opinion on why the pattern appears the way it does.",,
-"pattern","Implications","What do you think should be done about this pattern?","text",,,"If this pattern represents a problem, what can be done about it? If it represents and opportunity, what can be done to benefit from it?",,
-,,,,,,,,
-"; COLLAGES",,,,,,,,
-"collage","How feel about","How do you feel about this collage?","nominal","happy, enthused, hopeful, relieved, indifferent, confused, sad, angry, frustrated, hopeless, grateful, amazed, intrigued, amused","yes",,,
-"collage","Reason","Why do you think this collage was created?","nominal","to inform, to help, to educate, to persuade, to praise, to criticize, to entertain, to reminisce, to get along, for fun",,,,
-"collage","Useful to","Is there anyone you think will find this collage especially useful?","text",,,,,
-"collage","Refers to","Is this collage in reference to any particular event, person, place, time, or thing?","text",,,"Is there anything this collage is about in particular?",,
-,,,,,,,,
-"; INVITATIONS",,,,,,,,
-"invitation","How feel about","How do you feel about this invitation?","nominal","happy, enthused, hopeful, relieved, indifferent, confused, sad, angry, frustrated, hopeless, grateful, amazed, intrigued, amused","yes",,,
-"invitation","Reason","Why do you think this invitation was created?","nominal","to inform, to help, to educate, to persuade, to praise, to criticize, to entertain, to reminisce, to get along, for fun",,,,
-"invitation","Intensity","How much emotional intensity would you say this invitation holds for you?","ordinal","an overwhelming amount, a lot, some but not a lot, hardly any, none at all",,,,
-"invitation","Who should respond","Who in particular do you think should respond to this invitation?","text",,,"Is there any group of people who would best be able to respond to this invitation?",,
-,,,,,,,,
-"; RESOURCES",,,,,,,,
-"resource","How feel about","How do you feel about this resource?","nominal","happy, enthused, hopeful, relieved, indifferent, confused, sad, angry, frustrated, hopeless, grateful, amazed, intrigued, amused","yes",,,
-"resource","Source","Where did this resource come from?","text",,,,,
-"resource","Further info","Where should people look if they need more information related to this resource?","text",,,,,
+"member","neighborhood | interest or support group | family","Age","How old are you?","ordinal","20 or younger | 21-40 | 41-60 | 61-80 | 80 or over","no",,
+"character","neighborhood | interest or support group | family","Age","How old are you?","ordinal","very young | old enough | not so old | very old | ancient","no",,
+"member","neighborhood | interest or support group | family","Gender","What is your gender?","nominal","male | female","no",,
+"member | character","neighborhood","How long lived here","How long have you lived in this community?","ordinal","only a very short time | not very long | a while | a long time | a very long time","no",,
+"member","neighborhood","Where live","Where do you live?","text",,,"Enter any sort of location you like | specific or vague.",
+"member | character","neighborhood","Feel about community","How do you feel about this community?","ordinal","great | good | okay | not so great | bad | awful","no",,
+"member | character","interest or support group","How interested","How interested would you say you are in this topic?","ordinal","extremely | very | moderately | not much | not at all","no",,
+"member | character","interest or support group","How long involved","How long have you been involved with this issue?","ordinal","only a very short time | not very long | a while | a long time | a very long time",,,
+"member | character","interest or support group","Why interested","What made you want to join this group?","text",,,,
+"member | character","interest or support group","Want to get","What do you want to get out of this group?","text",,,,
+"member | character","work group","How long working","How long have you been working in this group?","ordinal","only a very short time | not very long | a while | a long time | a very long time","no",,
+"member | character","work group","Position","What is your position in this work group?","text",,,,
+"member | character","work group","Type of work","What sorts of work do you do in the group?","text",,,,
+"member | character","family","Talk to","Who would you say you talk to most often?","text",,,,
+"member | character","family","Children","How many children do you have, if any?","ordinal","none | one | two | three | four | five | six | seven | eight | nine | ten | more than ten","no",,
+"member","family","Live closest to","Who do you live the closest to?","text",,,,
+"story",,"How feel about","How do you feel about this story?","nominal","happy | enthused | hopeful | relieved | indifferent | confused | sad | angry | frustrated | hopeless | grateful | amazed | intrigued | amused","yes",,
+"story",,"Intensity","How much emotional intensity would you say this story holds for you?","ordinal","an overwhelming amount | a lot | some but not a lot | hardly any | none at all",,,
+"story",,"Reason","Why do you think this story was told?","nominal","to inform | to help | to educate | to persuade | to praise | to criticize | to entertain | to reminisce | to get along | for fun","yes",,
+"story",,"Happened to","To whom did this story happen?","nominal","to the person who told it | to another person who told it to the storyteller | to someone the storyteller knows | the teller heard it around | everyone knows it | I'm not sure ","yes",,
+"story",,"Will remember","How long do you think you will remember the events that happened in this story?","ordinal","for as long as I live | for a very long time | for a while but it will fade | not for very long | only briefly | what story?","no",,
+"pattern",,"How feel about","How do you feel about this pattern?","nominal","happy | enthused | hopeful | relieved | indifferent | confused | sad | angry | frustrated | hopeless | grateful | amazed | intrigued | amused","yes",,
+"pattern",,"Strength","How strong would you say this pattern is?","ordinal","overwhelmingly strong | very strong | pretty strong | pretty weak | very weak | barely there","no","How much does the pattern stand out?",
+"pattern",,"Interpretations","What do you think this pattern means?","text",,,"Venture an opinion on why the pattern appears the way it does.",
+"pattern",,"Implications","What do you think should be done about this pattern?","text",,,"If this pattern represents a problem, what can be done about it? If it represents and opportunity, what can be done to benefit from it?",
+"collage",,"How feel about","How do you feel about this collage?","nominal","happy | enthused | hopeful | relieved | indifferent | confused | sad | angry | frustrated | hopeless | grateful | amazed | intrigued | amused","yes",,
+"collage",,"Reason","Why do you think this collage was created?","nominal","to inform | to help | to educate | to persuade | to praise | to criticize | to entertain | to reminisce | to get along | for fun",,,
+"collage",,"Useful to","Is there anyone you think will find this collage especially useful?","text",,,,
+"collage",,"Refers to","Is this collage in reference to any particular event, person, place, time, or thing?","text",,,"Is there anything this collage is about in particular?",
+"invitation",,"How feel about","How do you feel about this invitation?","nominal","happy | enthused | hopeful | relieved | indifferent | confused | sad | angry | frustrated | hopeless | grateful | amazed | intrigued | amused","yes",,
+"invitation",,"Reason","Why do you think this invitation was created?","nominal","to inform | to help | to educate | to persuade | to praise | to criticize | to entertain | to reminisce | to get along | for fun",,,
+"invitation",,"Intensity","How much emotional intensity would you say this invitation holds for you?","ordinal","an overwhelming amount | a lot | some but not a lot | hardly any | none at all",,,
+"invitation",,"Who should respond","Who in particular do you think should respond to this invitation?","text",,,"Is there any group of people who would best be able to respond to this invitation?",
+"resource",,"How feel about","How do you feel about this resource?","nominal","happy | enthused | hopeful | relieved | indifferent | confused | sad | angry | frustrated | hopeless | grateful | amazed | intrigued | amused","yes",,
+"resource",,"Source","Where did this resource come from?","text",,,,
+"resource",,"Further info","Where should people look if they need more information related to this resource?","text",,,,

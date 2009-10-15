@@ -5,53 +5,34 @@
 
 <h1>Rakontu Developer Notes</h1>
 
-<p>Last revised by Cynthia Kurtz, September 2009.</p>
+<p>Last revised by Cynthia Kurtz, October 2009.</p>
 
-<h3>Finding your way around</h3>
+<p>These notes are to help any developer of Rakontu get started. They are also for me myself,
+for later on. 
+To write this, I've just sat here and noted here everything I think I <i>might</i> forget (which is a lot)
+and which I think may be important to remember later.</P.
+
+<h3>Where stuff is</h3>
 
 xxxxx
 
-<h3>Things we need help with</h3>
+<h3>Things Rakontu needs done</h3>
 
 testing
 code review
 better graphics
 more documentation - tutorials, etc
 
-<h3>Translating Rakontu</h3>
+<h3>Things that surprised me (and may surprise you, if you don't read this)</h3>
 
-<p>You can translate a Rakontu site to any language you like. The copy you have downloaded may already include
-multiple translations, so check the <code>config</code> directory to see what languages are available.</p>
+- the django ifequal bug
 
-<p>To create a new Rakontu translation:</p>
-<ol>
-<li>Choose a language name that you will use across all files. It should be short and descriptive, like
-"francais" or "espanol." <i>Don't include any spaces or special characters in your language name.</i></li>
-<li>Make copies of all of the files in the <code>config</code> directory that start with <code>english_</code>.
-Substitute your language name for <code>english</code> in the copies. </li>
-<li>Edit each of these <code>yourlanguage_</code> files so that they work for your language. 
-Follow the instructions in each file and section. Always <i>make lots of backups</i> of all files you are changing!</li>
-<li>Open the file <code>config/site_configuration.py</code>.
-Change the line that reads <code>SITE_LANGUAGE = "english"</code> to your language name.
-</li>
-</ol>
 
-<p>Notes on translation:</p>
-<ul>
-<li>There can only be one language working on a Rakontu installation
-at any one time,
-but you can <i>store</i> more than one set of language files on a site and change which are being used by switching one
-constant. In this way you can <i>develop</i> a set of language files and implement them on several sites
-in nearly the same way (except for that one constant). Thus for example if you want to offer multiple
-languages to people whose Rakontus you are supporting, just set up multiple installations and
-direct people to whichever language installation they want to use.</li>
-<li>An important thing to understand about translating Rakontu is that <i>only the things the user sees
-are translated</i>. All <i>internal</i> references are in English. This means that question export and import 
-does not use translations, nor does backup and restore to MySQL.
-However, exports of entries to CSV (with answers) DOES use translations, as does XML export, because these are not "round trip"
-(import <i>and</i> export) functions.</li>
-</ul>
 
+<h3>Things NOT to do</h3>
+
+- don't add any raw text to the templates
+- 
 
 <h3>Things I am not happy about</h3>
 
@@ -59,5 +40,5 @@ transactions should be using keys_only queries
 
 always use match fetch number (1000) even when that is not likely (slows it down?)
 
-needs better error handling. no try excepts around puts or transactions.
+needs better error handling. no try excepts around puts or transactions. have global exception handler
 
