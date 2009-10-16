@@ -4,8 +4,6 @@
 	{% include "../common_menus.html" %}
 	<div id="content">
 	
-	{% if current_member.isManagerOrOwner or user_is_admin %}
-
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_manage}}/{{url_export}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
@@ -37,9 +35,6 @@
       	<p>
 	</form>
 	</div>
-	{% else %}
-		<p>{{no_access|dictLookup:"export"}}</p>
-	{% endif %}
 	
 	</div>
 	{% include "../common_footer.html" %}

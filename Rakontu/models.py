@@ -1249,7 +1249,7 @@ class Member(db.Model):
 
 	id = db.StringProperty(required=True)
 	rakontu = db.ReferenceProperty(Rakontu, required=True, collection_name="members_to_rakontu")
-	nickname = db.StringProperty(default=NO_NICKNAME_SET)
+	nickname = db.StringProperty()
 	isOnlineMember = db.BooleanProperty(default=True)
 	liaisonIfOfflineMember = db.SelfReferenceProperty(default=None, collection_name="offline_members_to_liaisons")
 	googleAccountID = db.StringProperty() # none if off-line member

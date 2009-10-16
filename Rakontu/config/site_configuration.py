@@ -17,7 +17,7 @@
 # There are several dependencies between different settings (e.g., if you change the number of options 
 # you must change the options). These are noted in the comments below.
 #
-# All settings that could vary by language are in the language_config file. To 
+# All settings that could vary by language are in the language_config file. 
 # Warning: This file uses Python syntax. You should be comfortable editing Python code before you edit this file.
 #
 # BACKUP THIS FILE before you make changes! 
@@ -39,6 +39,7 @@ SITE_SUPPORT_EMAIL = "cynthia.f.kurtz@gmail.com"
 import sys
 sys.path.insert(0, "config/%s" % SITE_LANGUAGE) 
 from language_config import *
+# Okay, you can start touching stuff again now
 
 # ============================================================================================ 
 # RAKONTUS
@@ -47,7 +48,7 @@ from language_config import *
 # Rakontu types. These affect which default questions (in default_questions.csv) 
 # are loaded when the Rakontu is created, as well as which sample questions (in config/sample_questions.csv)
 # are available later. The Rakontu creator chooses one of these when they
-# create the Rakontu. This gets saved in the Rakontu object in case of need later (but I am not otherwise using it).
+# create the Rakontu. This gets saved in the Rakontu object and is also used to select sample questions.
 
 # These must EXACTLY match the labels on questions in the config/default_questions.csv and config/sample_questions.csv files.
 # You can add more of these, but they must all have strings attached to them in the language_config file.
@@ -72,6 +73,7 @@ DEFAULT_TEXT_FORMAT = FORMAT_PLAIN_TEXT
 DEFAULT_START_NUDGE_POINTS = 50
 
 # This is the size to which uploaded thumbnail pictures are resized, for the rakontu and for member/character images.
+# If you set this very large the Google App Engine will probably start freaking out.
 THUMBNAIL_WIDTH = 100
 THUMBNAIL_HEIGHT = 60
 
@@ -80,7 +82,7 @@ THUMBNAIL_HEIGHT = 60
 # ============================================================================================ 
 
 # This is the number of items to show on grid (time vs nudge) and list pages.
-# It should not be changed unless you are fairly confident of your server processing capacity and speed.
+# It should not be increased (very much) unless you are fairly confident of your server processing capacity and speed.
 MAX_ITEMS_PER_GRID_PAGE = 100
 MAX_ITEMS_PER_LIST_PAGE = 100
 
@@ -105,7 +107,7 @@ TIME_FRAMES = [
 # These are the available date and time formats. They affect all places where the date or time is displayed.
 # The key in each dictionary (before the colon) is the django template format string.
 # The value in each dictionary (after the colon) is the Python datetime format string.
-# Note that the default (which shows up in all Rakontu settings pages) must )exactly) match one of the django strings.
+# Note that the default (which shows up in all Rakontu settings pages) must EXACTLY match one of the django strings.
 DATE_FORMATS = {
 			"j F Y": "%e %B %Y", # 3 January 2000
 			"F j, Y": "%B %e, %Y", # January 3, 2000
@@ -115,33 +117,29 @@ DATE_FORMATS = {
 			"n/j/Y": "%m/%d/%Y", # 01/03/2000
 			}
 
-DEFAULT_DATE_FORMAT = "F j"
+DEFAULT_DATE_FORMAT = "F j" # January 3
 
 TIME_FORMATS = {
-			"h:i a": "%I:%M %p", #"5:00 pm", 
-			"H:i": "%H:%M", #"17:00",
+			"h:i a": "%I:%M %p", #"5:00 pm"
+			"H:i": "%H:%M", #"17:00"
 			}
 
-DEFAULT_TIME_FORMAT = "h:i a"
+DEFAULT_TIME_FORMAT = "h:i a" #"5:00 pm"
 
 # This time zone will show up in all Rakontu settings pages.
 DEFAULT_TIME_ZONE = "US/Eastern"
 
-# This is the top (hex) color for the browsing tables for the home page and for each entry. 
-GRID_DISPLAY_ROW_COLORS_TOP = "FAEBD7"
-GRID_DISPLAY_ROW_COLORS_BOTTOM = "CD853F"
-
-# This is how many rows there are (nudge values) in the main and entry browse tables.
+# This is how many rows there are (nudge value slices) in the timlines.
 BROWSE_NUM_ROWS = 10
 
-# This is how many columns there are (time slices) in the main and entry browse tables.
+# This is how many columns there are (time slices) in the timelines.
 BROWSE_NUM_COLS = 7
 
 # This is the default value for what causes an entry to disappear because it has been nudged too low.
 DEFAULT_NUDGE_FLOOR = -10
 
 # This is how many of things you can filter for of each type (texts, tags, answers)
-NUM_SEARCH_FIELDS = 3 
+NUM_SEARCH_FIELDS = 4
 
 # ============================================================================================ 
 # ENTRIES
@@ -150,10 +148,13 @@ NUM_SEARCH_FIELDS = 3
 # This is the list of numbers of attachments Rakontus can choose from, and the choice
 # that appears chosen by default.
 # To disallow attachments completely for the site, set NUM_ATTACHMENT_CHOICES to [0] and DEFAULT_MAX_NUM_ATTACHMENTS to 0.
-# MAX_POSSIBLE_ATTACHMENTS should be set to the highest number on the list.
 NUM_ATTACHMENT_CHOICES = [0, 1, 2, 3, 4, 5]
 DEFAULT_MAX_NUM_ATTACHMENTS = 3
+
+# MAX_POSSIBLE_ATTACHMENTS MUST be set to the highest number on the NUM_ATTACHMENT_CHOICES list.
 MAX_POSSIBLE_ATTACHMENTS = 5
+
+# The name of an attachment to which the user didn't give a name.
 UNTITLED_ATTACHMENT_NAME = "Untitled"
 
 # These are the accepted attachment file types. You can add or remove any types here.
@@ -161,7 +162,6 @@ UNTITLED_ATTACHMENT_NAME = "Untitled"
 # Lists of MIME types can be found here:
 # http://www.iana.org/assignments/media-types/
 # http://www.w3schools.com/media/media_mimeref.asp
-# You should make sure your entry in the help.csv file (which tells the user which types are accepted) matches this list.
 ACCEPTED_ATTACHMENT_FILE_TYPES = ["jpg", "png", "pdf", "doc", "txt", "mpg", "mp3", "html", "zip", "py"]
 ACCEPTED_ATTACHMENT_MIME_TYPES = ["image/jpeg", "image/png", "application/pdf", "application/msword", "text/plain", "video/mpeg", "audio/mpeg", "text/html", "application/zip", "text/plain"]
 
@@ -174,6 +174,8 @@ DEFAULT_ALLOW_CHARACTERS = [True, False, False, True, False, True, False, True, 
 # This is the number of stories that can be entered on a batch page (by a liaison or manager/owner)
 # at any one time. Batch entry is mainly for entering the results of off-line story collections
 # into the system.
+# If you set this too high there is a greater possibility of the Google App Engine choking on the upload.
+# Also, more can be confusing.
 NUM_ENTRIES_PER_BATCH_PAGE = 10
 
 # These determine how big and small entry titles can get on the main browse page.
@@ -185,12 +187,12 @@ MAX_BROWSE_FONT_SIZE_PERCENT = 300
 # characters can be entered into a field.) There are two reasons to set these limits: first,
 # because you don't want people to enter really long things; and second (and more importantly)
 # Google App Engine sets an absolute limit of 500 bytes on every model property saved as a string
-# (not the longer Text property which can be of any length). So none of these should be set much higher
-# than 200 characters. However, you may want to set them to smaller numbers if you want to keep things
+# (not the longer Text property which can be of any length). So none of these should be set ANY higher
+# than 500 characters, ever. However, you may want to set them to smaller numbers if you want to keep things
 # less verbose.
 
 # For the subject lines of comments and requests; for link comments, flag comments, etc.
-MAXLENGTH_SUBJECT_OR_COMMENT = 200
+MAXLENGTH_SUBJECT_OR_COMMENT = 400
 
 # For the names of all things that have names (including member nicknames)
 MAXLENGTH_NAME = 100
@@ -201,15 +203,14 @@ MAXLENGTH_TAG_OR_CHOICE = 40
 # For all entered numbers
 MAXLENGTH_NUMBER = 6
 
-# for printing entries
-PRINT_DELIMITER = "=======\n"
-
 # This is the number of entries to export to XML in one request.
+# Probably best to not set this too high (choke choke).
 EXPORT_RANGE_XML = 50
 
 # This is how much text to show where an entry (or comment or request) is being summarized in a details view
 # The user can change this
 DEFAULT_DETAILS_TEXT_LENGTH = 60
+# These are choices to show the user on for that box.
 DETAILS_TEXT_LENGTH_CHOICES = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000]
 
 # This is how much text shows on tooltips over names 
@@ -247,16 +248,13 @@ MAX_NUM_CHOICES_PER_QUESTION = 15
 # ============================================================================================ 
 
 # The number of nudge categories. This MUST be set to at least one.
-# It also MUST match the number of entries in the list of strings given in language_config.
-# If you change this AFTER there are Rakontus using the site, their nudge categories
-# will either get cut off (and not displayed), or new ones called "None" will be displayed.
-# It's best to set it up at the start and not change it after any items have been entered.
+# It also MUST match the number of entries in DEFAULT_NUDGE_CATEGORIES in language_config.
 NUM_NUDGE_CATEGORIES = 5
 
-# How many nudge points can be assigned per entry, by default.
+# How many nudge points can be assigned per entry, by default. Rakontu managers can change it for their Rakontu.
 DEFAULT_MAX_NUDGE_POINTS_PER_ENTRY = 25
 
-# How many nudge points members gain by doing each of these actions.
+# How many nudge points members gain by doing each of these actions, by default.
 DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS = [
 					0,	# downdrift
 					4,	# reading
@@ -278,7 +276,7 @@ DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS = [
 					5,	# adding nudge
 					]
 
-# How many activity points entries gain through each of these events.
+# How many activity points entries gain through each of these events, by default.
 DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS = [
 					-1,	# downdrift
 					4,	# reading

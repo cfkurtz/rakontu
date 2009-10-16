@@ -42,3 +42,21 @@ always use match fetch number (1000) even when that is not likely (slows it down
 
 needs better error handling. no try excepts around puts or transactions. have global exception handler
 
+unit testing, testing suites
+
+<h4>Template (html) files</h4>
+
+<p>You can change the files in the "templates" directory to customize how your Rakontu looks and works.
+However, follow a few guidelines:
+<ul>
+<li>There is <b>no raw text allowed</b> in the template files.
+This allows a person to translate ONLY the constants in language_config.py, and not mess with the
+template files, to translate Rakontu. If you make changes to template files and contribute them
+to Rakontu, PLEASE keep raw texts out of them. A way to check that you have no raw text there
+is to run the <code>showTranslationStringsInTemplates.py</code> script. It will generate a file called 
+"Template texts.txt" which shows you where all the raw strings (texts) are in the templates.
+</li>
+<li>xxxx</li>
+</ul>
+
+

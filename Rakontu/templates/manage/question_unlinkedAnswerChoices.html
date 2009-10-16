@@ -3,7 +3,6 @@
 	<body>
 	{% include "../common_menus.html" %}
 	
-	{% if current_member.isManagerOrOwner %}
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_manage}}/{{url_unlinked_answers}}?{{question.urlQuery}}" method="post" enctype="multipart/form-data">
 		<h3>{{template_fix_unlinked_answers_for_question}} "{{question.name}}"</h3>
@@ -29,9 +28,6 @@
     <center><input type="submit" name="saveChanges" value="{{button_save_changes}}" class="button"/></center>
 	</form>	
 	</div>
-	{% else %}
-		<p>{{no_access|dictLookup:"questions"}}</p>
-	{% endif %}
 
 	</div>
 	{% include "../common_footer.html" %}

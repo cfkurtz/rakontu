@@ -4,7 +4,6 @@
 	{% include "../common_menus.html" %}
 		<div id="content">
 	
-	{% if current_member.isGuide %}
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_guide}}/{{url_invitations}}?{{rakontu.urlQuery}}
 		{% if not showing_all_invitations %}&{{url_query_no_responses}}={{url_option_yes}}{% endif %}
@@ -76,9 +75,6 @@
 
 	</form>
 	</div>
-	{% else %}
-		<p>{{no_access|dictLookup:"invitations"}}</p>
-	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

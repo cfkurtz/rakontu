@@ -4,7 +4,6 @@
 	{% include "../common_menus.html" %}
 		<div id="content">
 	
-		{% if current_member.isManagerOrOwner %}
 			<div id="rakontu_form_style" class="rakontu_form">
 			<form action="/{{dir_manage}}/{{url_characters}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 			<h3>{{template_add_new_characters}} {{"adding_new_characters"|tip}}</h3>
@@ -62,9 +61,6 @@
 	    <center><input type="submit" name="submitChanges" value="{{button_save_changes}}" class="button"></center>
 		</form>
 		</div>	
-	{% else %}
-		<p>{{no_access|dictLookup:"characters"}}</p>
-	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

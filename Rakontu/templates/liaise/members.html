@@ -6,8 +6,6 @@
 	
 	<div id="content">
 	
-		{% if current_member.isLiaisonOrManagerOrOwner %}
-	
 			<div id="rakontu_form_style" class="rakontu_form">
 			<form action="/{{dir_liaise}}/{{url_members}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 			
@@ -94,9 +92,6 @@
 	    <center><input type="submit" name="submitChanges" value="{{button_save_changes}}" class="button"></center>	
 		</form>	
 		</div>
-	{% else %}
-		<p>{{no_access|dictLookup:"offline_members"}}</p>
-	{% endif %}
 
 	</div>
 	{% include "../common_footer.html" %}

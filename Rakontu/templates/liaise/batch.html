@@ -7,8 +7,6 @@
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_liaise}}/{{url_batch}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
-		{% if current_member.isManagerOrOwner or my_offline_members %}
-		
 		<h2>{{template_batch_story_entry}} {{"batch_story_entry"|caution}}</h2>
 
 	    <p>{{template_choose_csv_file_for_batch}}:
@@ -171,9 +169,6 @@
 
 		</form>	
 		</div>
-	{% else %}
-		<p>{{no_access|dictLookup:"batch"}}</p>
-	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

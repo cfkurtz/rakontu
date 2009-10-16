@@ -22,11 +22,25 @@
 </head>
 <body>
 
+<table>
+<tr>
+<td><img src="../images/error_adminOnly.jpg" align="left"></td>
+<td>
 <h1>Rakontu Administrator's Guide</H1>
 
-(put TOC here)
+<h3>Contents</h3>
+<ul>
+<li><a href="#installing">Installing</a></li>
+<li><a href="#watching">Watching</a></li>
+<li><a href="#backup">Backing up, Restoring, Transferring</a></li>
+<li><a href="#configuring">Configuring</a></li>
+<li><a href="#translating">Translating</a></li>
+</ul>
+</td>
+</tr>
+</table>
 
-<h2>Installing Your Rakontu Site</h2>
+<h2><a name="installing">Installing Your Rakontu Site</a></h2>
 
 <p>Rakontu runs on the <a href="http://code.google.com/appengine/">Google App Engine</a>, a web framework. You should
 read at least a few of the introductory articles on the GAE so you know a bit about what Rakontu is doing.
@@ -117,7 +131,12 @@ download and install it. (To find out, go to a command line and type <code>pytho
 		then assigning them as another owner, then leaving the group.</li>
 	</ol>
 	
-<h2>Watching over the site</h3>
+<p>If you want your app to be accessible from an easy-to-remember domain (like www.mysite.org) instead of your
+		GAE appspot domain (myapp.appspot.com), follow the instructions on your admin console "Versions" page (under "Domain setup")
+		to add a Google Apps account and make the connections there. It's not that hard. :)</p>
+
+	
+<h2><a name="watching">Watching over the site</a></h3>
 
 <p>You can use your Site administration screen (http://your_app_id.appspot.com/admin/admin) to look over
 the Rakontus on your site. You can enter or leave any Rakontu when you need to, to fix something
@@ -132,7 +151,7 @@ Be careful not to leave Rakontus unavailable for too long!
 <p>You can set an optional message about why you are making the Rakontus unavailable in the administration screen.
 This will appear in the temporarily-unavailable screen people will see when they visit any page of the Rakontu.</p>
 
-<h2>Backing up, Restoring and Transferring Your Rakontu Site</h2>
+<h2><a name="backup">Backing up, Restoring and Transferring Your Rakontu Site</a></h2>
 
 <h3>Backup</h3>
 
@@ -210,7 +229,7 @@ its own site, but use a different <code>APP_ID</code> in the <code>restore_confi
 <code>restore.py</code> script as a second argument, after the file name to restore from.
 For the right format, type <code>python restore.py help</code>.</p>
 
-<h2>Configuring your Rakontu site</h2>
+<h2><a name="configuring">Configuring your Rakontu site</a></h2>
 
 <h3>Important files</h3>
 
@@ -268,29 +287,39 @@ in <b>bold</b> should only be changed by people who know Python/django/Google Ap
 
 <h4>Characters: default_characters.csv</h4>
 
-<p>Characters (one per line) are defined simply in this file. The columns are:</p>
+<p>Characters (one per line) are defined simply in this file. It determines what
+characters are created in new Rakontus.</p>
+
+<p>The columns in the characters file format are as follows, with one character per line.</p>
 	<ol>
 	<li><code>name</code> - Shows on all references to the character. Should be short.</li>
 	<li><code>description</code> - Interpreted as plain text. May be of any length.</li>
 	<li><code>etiquette statement</code> - Interpreted as plain text. May be of any length.</li>
 	<li><code>picture file name</code> - Put the image in the config/images directory.</li>
 	</ol>
-<p>If you don't want any characters to be created by default, simply remove or rename this file.</p>
-
-<p>The default characters file influences Rakontus as they are being created. Changing this file
+	
+<p>Notes on editing the default characters file:</p>
+<ul>
+<li>If you don't want any characters to be created by default, simply remove or rename this file.</li>
+<li>The default characters file influences Rakontus as they are being created. Changing this file
 after a Rakontu is created will have no effect on it (but you can edit the character information in the Rakontu directly). 
 Because the information is read directly from the file
 (and not saved in the database), you don't to run an initialization task to load any changes.
-</p>
+</li>
+<li>A semicolon at the very start of the first cell in the row will mean that the row contains
+comments and should be ignored. Similarly, blank lines are ignored.</li>
+<li>Don't put double quotes in cells. Use single quotes instead.</li>
+<li>ALways save the file as Unicode-encoded text.</li>
+<</ul>
 
 <h4>Questions: default_questions.csv, sample_questions.csv</h4>
 
 <p>These two files determine the questions that display for any Rakontu on the site. The
-default quetsions file determines what questions appear in every new Rakontu.
-The sample questions file does the same but only for what appears in the "Sample questions"
+<code>default</code> questions file determines what questions appear in every new Rakontu.
+The <code>sample</code> questions file does the same but only for what appears in the "Sample questions"
 section while Rakontu managers are changing questions.</p>
 
-<p>The columns that determine a question (one per line) are as follows.</p>
+<p>The columns in the questions file format are as follows, with one question per line.</p>
 	<ol>
 	<li><code>refers to</code> - One OR MORE of member, character, story, pattern, collage, invitation, resource. 
 		Separate with pipes (|) if specifying more than one.</li>
@@ -320,19 +349,19 @@ section while Rakontu managers are changing questions.</p>
 		this area if you are sharing questions with other managers.</li>
 	</ol>
 	
-<p>Reading the same questions multiple times will create multiple questions with the
-same name, so be careful not to have duplicates in these files.</p>
-	
-<p>Note that the file format for default and sample questions is <i>identical</i> to that
-for questions read from a CSV file (presumably traded by Rakontu managers).</p>
+<p>Notes on editing the questions files:</p>
+<ul>
+<li>Reading the same questions multiple times will create multiple questions with the
+same name, so be careful not to have duplicates in these files.</li>
+<li>The file format for default and sample questions is <i>identical</i> to that
+for questions read from a CSV file (presumably traded by Rakontu managers).</li>
+</ul>
 	
 <h4>Resources: default_resources.txt</h4>
 
 <p>This file specifies the new resources that form by default when a new Rakontu is created.
 You can change these to suit your installation, especially if you find yourself explaining
-the same things over and over. Because resources are copied into each Rakontu on creation,
-editing this file will have NO impact on existing Rakontus.
-For those you will need to edit the resources directly, using the Rakontu interface.</p>
+the same things over and over. </p>
 
 <p>This is a plain-text file (save in Unicode .TXT format) that uses the old 
 <a href="http://en.wikipedia.org/wiki/INI_file">INI-style syntax</a>. The name of each
@@ -340,12 +369,16 @@ resource begins each section, in [Square brackets]. After the name comes several
 these to make new default resources) that determine the options for that resource. For each
 of the option lines, don't change what is on the left of the equals sign, but DO change
 what is on the right.
-</p>
-
-<p>After the equals-sign lines comes the resource proper. All lines up to the next
+After the equals-sign lines comes the resource proper. All lines up to the next
 square bracket (that begins a line) are considered to be in the resource.</p>
 
-<p>Lines that start with a semicolon are considered comments and ignored.</p>
+<p>Notes on editing the resources file:</p>
+<ul>
+<li>Because resources are copied into each Rakontu on creation,
+editing this file will have NO impact on existing Rakontus.
+For those you will need to edit the resources directly, using the Rakontu interface.</li>
+<li>Lines that start with a semicolon are considered comments and ignored.</li>
+</ul>
 
 <h4>Help texts: help.csv</h4>
 
@@ -353,12 +386,7 @@ square bracket (that begins a line) are considered to be in the resource.</p>
 for context-sensitive help. If you find yourself answering a lot of questions about particular
 issues or areas, you may want to improve these.</p>
 
-<p>You can make changes to <code>help.csv</code> and recreate the help texts anytime,
-and all Rakontus on the site will be affected. The help texts are not copied into Rakontus
-(like the default questions or resources) but are centrally looked up, so you can
-change them for existing Rakontus.</p>
-
-<p>The help file format is as follows.</p>
+<p>The columns in the help file format are as follows, with one tooltip per line.</p>
 
 <ol>
 <li><code>type</code> - This MUST be one of info, tip, caution, or button. This determines
@@ -375,59 +403,84 @@ off the remainder of the text. It is SUPPOSED to handle two double quotes ("") a
 but for some reason it doesn't. Just use single quotes as double quotes here.</li>
 </ol>
 
+<p>Notes on editing the help file:</p>
+<ul>
+<li>You can make changes to <code>help.csv</code> and recreate the help texts anytime,
+and all Rakontus on the site will be affected. The help texts are not copied into Rakontus
+(like the default questions or resources) but are centrally looked up, so you can
+change them for existing Rakontus.</li>
+</ul>
+
 <h4>Skins: skins.csv</h4>
 
-<p>The skins file determines what colors and fonts make up the available skins. You can
+<p>The skins file determines what colors and fonts make up the available skins.</p>
+
+<p>The columns in the skins file format are as follows.</p>
+
+<ol>
+<li><code>ELEMENT</code> - These link up with variables in the source code, so don't change these names.</li>
+<li><code>EXPLANATION OF ELEMENT</code> - These describe where the colors/fonts are used and are for your information.</li>
+<li>The rest of the columns in the file are skin definitions, one per column.
+The <code>name</code> of each skin is at the top of the column. It can contain spaces.
+</li>
+<li>
+For font names, write them just as you would for use in a style sheet;
+put quotes around names with spaces in them, and always include a generic
+font type at the end, like "sans-serif".
+</li>
+</ol>
+
+<p>Notes on editing the skins file:</p>
+<ul>
+<li>You can
 change this file after Rakontus are created. Rakontus save only the NAME of their skin,
 so if the definition of the skin with that name changes afterward, they will automatically
-update with the new colors. (Which you may or may not want to happen.)</p>
-
-<p>
+update with the new colors. (Which you may or may not want to happen.)</li>
+<li>For colors, paste them in hex format from a hex color generator or web site
+(<a href="http://www.december.com/html/spec/color.html">this one</a> is good).
+For colors that are ONLY numbers (have no alphabetic content) you will need to
+put them in quotes. Otherwise the CSV reader thinks they are numbers
+and gets confused. Follow the convention in the file.</li>
+<li>The names of skins don't have to be in English; in fact that is the only 
+reason the <code>skins.csv</code> file is in the language directory,
+because you might want to translate the names. (But remember, changing
+the name of a skin will make it no longer match the skin name in any
+existing Rakontus. If they choose a new skin they can fix this.)</li>
+<li>Skin names MUST be unique; you can't have two skins with the same name.</li>
+<li>One of the skin names MUST match the value in the <code>language_config.py</code>
+file, on this line:
+	<ul><li><code>DEFAULT_SKIN_NAME = "sunset"</code></li></ul>
+So, if you rename that skin, make sure to change the corresponding constant.
+</li>
+<li>When Rakontus use a "custom" skin, the system copies the skin information
+from one of the skins in the <code>skins.csv</code> file. This is determined by
+a constant in <code>language_config.py</code>, thus:
+	<ul><li><code>START_CUSTOM_SKIN_NAME = "grayscale"</code></li></ul>
+If you want to change what skin the custom-skin parameters start with,
+you can change the value there.
+</li>
+</ul>
 
 <h4>Language-specific texts: language_config.py</h4>
 
-<p>xxx</p>
+<p>In this file are all of the display texts and options that could possibly vary by language.
+Here also are many terms referred to by the template files. Essentially, every word a user
+can see on a Rakontu site is in this file, unless it has come from the other files
+in the language directory.</p>
+
+<p>If you are not translating Rakontu, you should not have to edit this file. Still,
+you may find yourself wanting to edit this file for your site just to head off frequently-asked
+questions (by putting the answer right on the page).</p>
+
+<p>There are copious notes in this file which you should read before/as you change things.</p>
 
 <h4>Site parameters: site_configuration.py</h4>
 
-<p>xxx</p>
+<p>In this file are all the parameters that can be safely changed without messing up the source code.
+These are things you might want to change from the defaults to make your site work in a slightly
+different way. As with language_config.py, read the copious notes as you change things.</p>
 
-
-<h3>General notes on editing configuration files</h3>
-
-<h4>Spreadsheet (csv) files</h4>
-
-<p>Several of the options for Rakontu are in CSV files. A few hints about editing these:</p>
-<ul>
-<li>A semicolon at the very start of the first cell in the row will mean that the row contains
-comments and should be ignored.</li>
-<li>Blank lines are ignored.</li>
-<li>Don't put double quotes in cells. Use single quotes instead.</li>
-<li>The top line of each CSV file tells you what to put in each column, and whether you can change it.
-Some things MUST link up to the same texts in the source code or templates, so don't change those.</li>
-<li>ALways save CSV files as Unicode-encoded text.</li>
-</ul>
-
-<h4>Text (txt) files</h4>
-
-<h4>Python (py) files</h4>
-
-<h4>Template (html) files</h4>
-
-<p>You can change the files in the "templates" directory to customize how your Rakontu looks and works.
-However, follow a few guidelines:
-<ul>
-<li>There is <b>no raw text allowed</b> in the template files.
-This allows a person to translate ONLY the constants in language_config.py, and not mess with the
-template files, to translate Rakontu. If you make changes to template files and contribute them
-to Rakontu, PLEASE keep raw texts out of them. A way to check that you have no raw text there
-is to run the <code>showTranslationStringsInTemplates.py</code> script. It will generate a file called 
-"Template texts.txt" which shows you where all the raw strings (texts) are in the templates.
-</li>
-<li>xxxx</li>
-</ul>
-
-<h2>Translating Rakontu</h2>
+<h2><a name="translating">Translating Rakontu</a></h2>
 
 <p>You can translate a Rakontu site to any language you like. The copy you have downloaded may already include
 multiple translations, so check the <code>config</code> directory to see what language subdirectories are available.</p>

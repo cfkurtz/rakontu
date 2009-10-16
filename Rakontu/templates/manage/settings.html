@@ -4,7 +4,6 @@
 	{% include "../common_menus.html" %}
 		<div id="content">
 		
-		{% if current_member.isManagerOrOwner %}
 			<div id="rakontu_form_style" class="rakontu_form">
 			<form action="/{{dir_manage}}/{{url_settings}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 			
@@ -78,9 +77,6 @@
 	      	
 		</form>
 		</div>
-	{% else %}
-		<p>{{no_access|dictLookup:"settings"}}</p>
-	{% endif %}
 	
 	</div>	
 	{% include "../common_footer.html" %}

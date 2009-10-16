@@ -3,7 +3,6 @@
 	<body>
 	{% include "../common_menus.html" %}
 	<div id="content">
-	{% if current_member.isLiaisonOrManagerOrOwner %}
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_liaise}}/{{url_review}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 			
@@ -90,9 +89,6 @@
 			{% endif %}
 		</form>	
 		</div>
-	{% else %}
-		<p>{{no_access|dictLookup:"batch_review"}}</p>
-	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

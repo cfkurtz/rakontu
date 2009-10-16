@@ -3,7 +3,6 @@
 	<body>
 	{% include "../common_menus.html" %}
 	<div id="content">
-	{% if current_member.canEditTags %}
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_curate}}/{{url_tags}}?{{rakontu.urlQuery}}{% if bookmark %}&{{url_query_bookmark}}={{bookmark}}{% endif %}" method="post">
 			
@@ -49,13 +48,6 @@
 		{% endif %}
 		</form>	
 		</div>
-	{% else %}
-		{% if rakontu.allowNonManagerCuratorsToEditTags %}
-			<p>{{no_access|dictLookup:"tags_curator"}}</p>
-		{% else %}
-			<p>{{no_access|dictLookup:"tags_manager"}}</p>
-		{% endif %}
-	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

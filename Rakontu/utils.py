@@ -208,7 +208,6 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'text_formats': TEXT_FORMATS,   
 	   'text_formats_display': TEXT_FORMATS_DISPLAY,  
 	   'governance_roles_display': GOVERNANCE_ROLE_TYPES_DISPLAY, 
-	   'no_access': NO_ACCESS,
 	   'num_nudge_categories': NUM_NUDGE_CATEGORIES, 
 	   'num_tags_in_tag_set': NUM_TAGS_IN_TAG_SET,  
 	   'date_formats': DateFormatStrings(), 
@@ -640,7 +639,7 @@ class ExportHandler(ErrorHandlingRequestHander):
 				self.response.out.write(export.data)
 			else:
 				self.error(404)
-				 
+				  
 # ============================================================================================
 # ============================================================================================
 # SITE-LEVEL DEFAULTS AND SAMPLES

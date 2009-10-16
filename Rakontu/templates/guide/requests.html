@@ -4,7 +4,6 @@
 	{% include "../common_menus.html" %}
 		<div id="content">
 	
-	{% if current_member.isGuide %}
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_guide}}/{{url_requests}}?{{rakontu.urlQuery}}{% if request_type %}&{{url_query_request_type}}={{request_type}}{% endif %}{% if not showing_all_requests %}&{{url_query_uncompleted}}={{url_option_yes}}{% endif %}" method="post" enctype="multipart/form-data">
 		
@@ -71,9 +70,6 @@
 		
 	</form>
 	</div>
-	{% else %}
-		<p>{{no_access|dictLookup:"requests"}}</p>
-	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

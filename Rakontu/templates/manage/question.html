@@ -3,7 +3,6 @@
 	<body>
 	{% include "../common_menus.html" %}
 	
-	{% if current_member.isManagerOrOwner %}
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_manage}}/{{url_question}}?{{question.urlQuery}}" method="post" enctype="multipart/form-data">
 		
@@ -90,9 +89,6 @@
     <center><input type="submit" name="changesTo|{{refer_type}}" value="{{button_save_changes}}" class="button"/></center>
 	</form>	
 	</div>
-	{% else %}
-		<p>{{no_access|dictLookup:"questions"}}</p>
-	{% endif %}
 
 	</div>
 	{% include "../common_footer.html" %}

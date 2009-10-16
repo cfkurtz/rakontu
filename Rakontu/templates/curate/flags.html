@@ -3,7 +3,6 @@
 	<body>
 	{% include "../common_menus.html" %}
 	<div id="content">
-	{% if current_member.isCuratorOrManagerOrOwner %}
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_curate}}/{{url_flags}}?{{rakontu.urlQuery}}" method="post">			
 			<h3>{{template_flagged}} {{template_entries|lower}} {{"flagging_items_for_removal"|info}}</h3>
@@ -353,9 +352,6 @@
 		{% endif %}
 		</form>	
 		</div>
-	{% else %}
-		<p>{{no_access|dictLookup:"flags"}}</p>
-	{% endif %}
 	</div>
 	{% include "../common_footer.html" %}
 	</body>

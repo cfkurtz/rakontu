@@ -4,7 +4,6 @@
 	{% include "../common_menus.html" %}
 		<div id="content">
 		
-		{% if current_member.isGuideOrManagerOrOwner %}
 			<div id="rakontu_form_style" class="rakontu_form">
 			<form action="/{{dir_guide}}/{{url_resources}}?{{rakontu.urlQuery}}&{{url_query_resource_type}}={{resource_group}}&{{url_query_managers_only}}={{managers_only}}" method="post">
 			
@@ -157,11 +156,6 @@
 	      		<li class="nobullet"><a href="/{{dir_guide}}/{{url_copy_resources}}?{{rakontu.urlQuery}}">{{template_generate_default_help_resources}}</a></li>
 	      		</ul>
 	      	{% endif %}
-			
-	{% else %}
-		<p>{{no_access|dictLookup:"resources"}}</p>
-	{% endif %}
-
 	</div>
 	{% include "../common_footer.html" %}
 	</body>
