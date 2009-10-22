@@ -9,12 +9,18 @@
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_drafts}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
+		{% if changes_saved %}
+			<div class="message">{{template_changes_saved}}</div>
+		{% endif %}
+		
 		{% if draft_entries %}
 			<h3>{{template_draft}} {{template_entries|lower}}</h3>
 	      	<table border="0" cellpadding="4" cellspacing="0" style="width:100%">
 	      	<tr>
 	      		<th>{{template_name_and_information_click_to_edit}}</th>
-	      		<th>{{template_versions_click_to_use}} {{"text_versions"|info}} {{"text_versions"|tip}}</th>
+	      		<th>{{template_versions_click_to_use}}
+	      			{{"text_versions"|info}} 
+	      			{{"text_versions"|tip}}</th>
 	      		<th width="80">{{template_remove}}?</th>
 	      		</tr>
 	      	{% for entry in draft_entries %}
@@ -77,7 +83,9 @@
 	      	<table border="0" cellpadding="4" cellspacing="0" style="width:100%">
 	      	<tr>
 	      		<th>{{template_name_and_information_click_to_edit}}</th>
-	      		<th>{{template_versions_click_to_use}} {{"text_versions"|info}} {{"text_versions"|tip}}</th>
+	      		<th>{{template_versions_click_to_use}} 
+	      			{{"text_versions"|info}} 
+	      			{{"text_versions"|tip}}</th>
 	      		</tr>
 	      	{% for entry in draft_entries_of_other_people_you_can_edit %}
 		      	<tr>

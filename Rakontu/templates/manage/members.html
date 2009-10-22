@@ -7,6 +7,10 @@
 			<div id="rakontu_form_style" class="rakontu_form">
 			<form action="/{{dir_manage}}/{{url_members}}?{{rakontu.urlQuery}}" method="post">
 			
+			{% if changes_saved %}
+				<div class="message">{{template_changes_saved}}</div>
+			{% endif %}
+
 			<h3>{{template_active_members}}</h3>
 			<fieldset>
 	      	<table border="0" cellpadding="4" cellspacing="0">
@@ -16,105 +20,93 @@
 	      		<th>{{template_google_email}}</th>
 	      		<th>{{template_membership_type}}</th>
 	      		<th>{{template_helping_roles_taken_on}}</th>
-	      		<th>{{template_helping_roles_available}} {{"available_helping_roles"|tip}}</th>
+	      		<th width="160">{{template_helping_roles_available}} {{"available_helping_roles"|tip}}</th>
 	      		<th>{{template_inactivate}}?</th>
 	      		</tr>
 	      		{% for aMember in rakontu_members %}
 	  				<tr>
 	  				<td>{{aMember.linkString}} {% ifequal aMember.key current_member.key %}<br><i>({{template_you}})</i> {% endifequal %} </td>
-	  				<td>
-	  					{% if aMember.isOnlineMember %}
-	  						{{template_online}}
-	  					{% else %}
-	  						{{template_offline}}
-	  					{% endif %}
-	  				</td>
-	  				<td>{{aMember.googleUserEmailOrNotOnline}}</td>
-	  				<td>
-	  					{% if aMember.isOnlineMember %}
-		  					<select name="governanceType" class="select">
-		  						<option value="member|{{aMember.googleAccountID}}"
-		  							{% if aMember.isRegularMember %}
-		  								selected="selected"
-		  							{% endif %}
-		  							>{{template_member}}</option>
-		  						<option value="manager|{{aMember.googleAccountID}}"
-		  							{% if aMember.isManager %}
-		  								selected="selected"
-		  							{% endif %}
-		  							>{{template_manager}}</option>
-		  						<option value="owner|{{aMember.googleAccountID}}"
-		  							{% if aMember.isOwner %}
-		  								selected="selected"
-		  							{% endif %}
-		  							>{{template_owner}}</option>
-							</select>
-						{% else %}
-							&nbsp;
-						{% endif %}
-	  					</td>
-	  				<td>
-	  					{% if aMember.isOnlineMember %}
-		  					<p>{{template_curator}}: 
-		  					{% if aMember.helpingRoles.0 %}
-		  						{{template_yes|upper}}
+	  				{% if not aMember.isOnlineMember %}
+	  				<td colspan="5">{{template_offline}}</td>
+	  				{% else %}
+	  					<td>{{template_online}}</td>
+		  				<td>{{aMember.googleUserEmailOrNotOnline}}</td>
+		  				<td>
+	  						{% if current_member.isOwner %}
+			  					<select name="governanceType">
+			  						<option value="member|{{aMember.key}}"
+			  							{% if aMember.isRegularMember %}
+			  								selected="selected"
+			  							{% endif %}
+			  							>{{template_member}}</option>
+			  						<option value="manager|{{aMember.key}}"
+			  							{% if aMember.isManager %}
+			  								selected="selected"
+			  							{% endif %}
+			  							>{{template_manager}}</option>
+			  						<option value="owner|{{aMember.key}}"
+			  							{% if aMember.isOwner %}
+			  								selected="selected"
+			  							{% endif %}
+			  							>{{template_owner}}</option>
+								</select>
+							{% else %}
+								{% if aMember.isOwner %}
+									{{template_owner}}
+								{% else %}
+				  					<select name="governanceType">
+				  						<option value="member|{{aMember.key}}"
+				  							{% if aMember.isRegularMember %}
+				  								selected="selected"
+				  							{% endif %}
+				  							>{{template_member}}</option>
+				  						<option value="manager|{{aMember.key}}"
+				  							{% if aMember.isManager %}
+				  								selected="selected"
+				  							{% endif %}
+				  							>{{template_manager}}</option>
+									</select>
+								{% endif %}
+							{% endif %}
+		  					</td>
+		  				<td>
+		  					{% if aMember.helpingRolesForDisplay %}
+		  						{{aMember.helpingRolesForDisplay|join:", "}}
 		  					{% else %}
-		  						{{template_no}}
+		  						{{template_none}}
 		  					{% endif %}
-		  					</p>
-		  					<p>{{template_guide}}: 
-		  					{% if aMember.helpingRoles.1 %}
-		  						{{template_yes|upper}}
-		  					{% else %}
-		  						{{template_no}}
-		  					{% endif %}
-		  					</p>
-		  					<p>{{template_liaison}}: 
-		  					{% if aMember.helpingRoles.2 %}
-		  						{{template_yes|upper}}
-		  					{% else %}
-		  						{{template_no}}
-		  					{% endif %}
-		  					</p>
-						{% else %}
-							&nbsp;
-						{% endif %}
-	  					</td>
-	  				<td>
-	  					{% if aMember.isOnlineMember %}
+		  					</td>
+		  				<td>
 	  						{% if not aMember.isManagerOrOwner %}
-		  						<p>{{template_curator}}: 
+		  						<p>
 		      					<input type="checkbox" name="curatorAvailable|{{aMember.key}}" value="yes" id="curatorAvailable|{{aMember.key}}"
 		      					{% if aMember.helpingRolesAvailable.0 %}
 		      						checked="checked"
 		      					{% endif %}
-		      					><label for="curatorAvailable|{{aMember.key}}">{{template_available}}</label>
+		      					><label for="curatorAvailable|{{aMember.key}}">{{template_curator}} {{template_available}}</label>
 		      					</p>
 		  					
-		  						<p>{{template_guide}}: 
+		  						<p>
 		      					<input type="checkbox" name="guideAvailable|{{aMember.key}}" value="yes" id="guideAvailable|{{aMember.key}}"
 		     					{% if aMember.helpingRolesAvailable.1 %}
 		      						checked="checked"
 		      					{% endif %}
-		      					><label for="guideAvailable|{{aMember.key}}">{{template_available}}</label>
+		      					><label for="guideAvailable|{{aMember.key}}">{{template_guide}} {{template_available}}</label>
 								</p>
 							
-		  						<p>{{template_liaison}}: 
+		  						<p> 
 		      					<input type="checkbox" name="liaisonAvailable|{{aMember.key}}" value="yes" id="liaisonAvailable|{{aMember.key}}"
 		     					{% if aMember.helpingRolesAvailable.2 %}
 		      						checked="checked"
 		      					{% endif %}
-		      					><label for="liaisonAvailable|{{aMember.key}}">{{template_available}}</label>
+		      					><label for="liaisonAvailable|{{aMember.key}}">{{template_liaison}} {{template_available}}</label>
 		      					</p>
 		      				{% else %}
 		      					&nbsp;
 		      				{% endif %}
-						{% else %}
-							&nbsp;
-						{% endif %}
-	      				
-	  					</td>
-	  				<td>
+		  					</td>
+		  			{% endif %}
+	  				<td width="100">
 	  					<p><input type="checkbox" name="remove|{{aMember.key}}" value="yes" id="remove|{{aMember.key}}">
 						<label for="remove|{{aMember.key}}">{{template_inactivate}}</label></p>
 	  					</td>

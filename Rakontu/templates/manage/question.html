@@ -6,6 +6,10 @@
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_manage}}/{{url_question}}?{{question.urlQuery}}" method="post" enctype="multipart/form-data">
 		
+		{% if changes_saved %}
+			<div class="message">{{template_changes_saved}}</div>
+		{% endif %}
+		
 		<h3>{{template_change}} {{template_question|lower}} "{{question.name}}" {{template_about|lower}} 
 			<a href="/{{dir_manage}}/{{url_questions}}_{{refer_type}}?{{rakontu.urlQuery}}">
 			{{question.refersToForDisplay}}</a>
@@ -52,7 +56,8 @@
   			 		{% endif %}
   			 		>{{question_types_display|listLookup:i}}</option>
   			 	{% endfor %}
-  			 	</select> {{"ordinal_and_nominal_questions"|tip}} {{"question_types"|caution}}</p>
+  			 	</select> {{"ordinal_and_nominal_questions"|tip}} 
+  			 		{{"question_types"|caution}}</p>
   		{% endif %}
   		
   		{% if not answer_counts or question.type|equalTest:"value" %}
@@ -72,7 +77,9 @@
 		{% endif %}
 		
 		{% if not answer_counts or question.isOrdinalOrNominal %}
-			<p>{{template_choices}} {% if not answer_counts %}({{template_if_ordinal_or_nominal}}){% endif %} {{"entering_question_choices"|tip}} {{"changing_answer_choices"|caution}}</p>
+			<p>{{template_choices}} {% if not answer_counts %}({{template_if_ordinal_or_nominal}}){% endif %} 
+				{{"entering_question_choices"|tip}} 
+				{{"changing_answer_choices"|caution}}</p>
 			<textarea name="choices" rows="12" cols="20">{{question.choicesAsLineDelimitedTextString}}</textarea>
 			<p>{{template_multiple_answers_allowed}} {% if not answer_counts %}({{template_if_ordinal_or_nominal}}){% endif %}</p>
 			<p>&nbsp; &nbsp;<input type="checkbox" name="multiple" value="yes" id="multiple"

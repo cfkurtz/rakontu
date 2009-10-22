@@ -442,6 +442,7 @@ class ManageEntryAttachmentsPage(ErrorHandlingRequestHander):
 								   'entry': entry,
 								   'attachments': attachments,
 								   'can_add_more_attachments': canAddMoreAttachments,
+								   'changes_saved': GetChangesSavedState(member),
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/attachments.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -466,6 +467,7 @@ class ManageEntryAttachmentsPage(ErrorHandlingRequestHander):
 				for attachment in foundAttachments:
 					if self.request.get("remove|%s" % attachment.key()):
 						db.delete(attachment)
+				SetChangesSaved(member)
 				self.redirect(self.request.uri)
 			else:
 				self.redirect(NotFoundURL(rakontu))
@@ -535,6 +537,7 @@ class AddOneAttachmentPage(ErrorHandlingRequestHander):
 							else:
 								self.redirect(AttachmentNotOfAcceptedFileTypeURL(rakontu))
 								return
+				SetChangesSaved(member)
 				self.redirect(BuildURL("dir_visit", "url_attachments", entry.urlQuery()))
 			else:
 				self.redirect(NotFoundURL(rakontu))
@@ -562,6 +565,7 @@ class ManageAdditionalEntryEditorsPage(ErrorHandlingRequestHander):
 								   'editor_keys_included': entry.getAdditionalEditorKeys(),
 								   'rakontu_members': rakontu.getActiveOnlineMembers(),
 								   'max_num_additional_editors': MAX_NUM_ADDITIONAL_EDITORS,
+								   'changes_saved': GetChangesSavedState(member),
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/editors.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -584,10 +588,8 @@ class ManageAdditionalEntryEditorsPage(ErrorHandlingRequestHander):
 					if self.request.get("key|%s" % aMember.key()) == "yes":
 						entry.additionalEditors.append(str(aMember.key()))
 				entry.put()
-				if entry.draft:
-					self.redirect(BuildURL("dir_visit", "url_drafts", member.urlQuery()))
-				else:
-					self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery()))
+				SetChangesSaved(member)
+				self.redirect(self.request.uri)
 			else:
 				self.redirect(NotFoundURL(rakontu))
 		else:
@@ -1036,6 +1038,7 @@ class RelateEntryPage(ErrorHandlingRequestHander):
 								   'previous': prev,
 								   'next': next,
 								   'type': type,
+								   'changes_saved': GetChangesSavedState(member),
 									})
 					path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/relate.html'))
 					self.response.out.write(template.render(path, template_values))
@@ -1107,6 +1110,7 @@ class RelateEntryPage(ErrorHandlingRequestHander):
 						db.put(thingsToPut)
 						db.delete(thingsToDelete)
 					db.run_in_transaction(txn, thingsToPut, thingsToDelete, thingsToPublish)
+					SetChangesSaved(member)
 				if bookmark:
 					# bookmark must be last, because of the extra == the PageQuery puts on it
 					query = "%s&%s=%s&%s=%s" % (entry.urlQuery(), URL_OPTIONS["url_query_type"], typeURL, URL_OPTIONS["url_query_bookmark"], bookmark)

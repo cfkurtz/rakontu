@@ -9,6 +9,10 @@
 			<div id="rakontu_form_style" class="rakontu_form">
 			<form action="/{{dir_liaise}}/{{url_members}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 			
+			{% if changes_saved %}
+				<div class="message">{{template_changes_saved}}</div>
+			{% endif %}
+		
 			<h3>{{template_active_offline_members}}</h3>
 			{% if active_members %}
 				<fieldset>

@@ -22,6 +22,7 @@ class ReviewOfflineMembersPage(ErrorHandlingRequestHander):
 								   'active_members': rakontu.getActiveOfflineMembers(),
 								   'inactive_members': rakontu.getInactiveOfflineMembers(),
 								   'other_liaisons': rakontu.getLiaisonsOtherThanMember(member),
+								   'changes_saved': GetChangesSavedState(member),
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('liaise/members.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -66,6 +67,7 @@ class ReviewOfflineMembersPage(ErrorHandlingRequestHander):
 				def txn(membersToPut):
 					db.put(membersToPut)
 				db.run_in_transaction(txn, membersToPut)
+				SetChangesSaved(member)
 				self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
 			else:
 				self.redirect(RoleNotFoundURL("liaison", rakontu))
@@ -156,6 +158,7 @@ class ReviewBatchEntriesPage(ErrorHandlingRequestHander):
 								   'offline_members': rakontu.getActiveOfflineMembers(),
 								   'current_member': member,
 								   'blurbs': BLURBS,
+								   'changes_saved': GetChangesSavedState(member),
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('liaise/review.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -213,6 +216,7 @@ class ReviewBatchEntriesPage(ErrorHandlingRequestHander):
 						db.put(itemsToPut)
 						db.delete(entriesToDelete)
 					db.run_in_transaction(txn, entries)
+					SetChangesSaved(member)
 					self.redirect(BuildURL("dir_liaise", "url_review", rakontu=rakontu))
 			else:
 				self.redirect(RoleNotFoundURL("liaison", rakontu))

@@ -15,6 +15,10 @@
 		{% if bookmark %}&{{url_query_bookmark}}={{bookmark}}{% endif %}
 		" method="post" enctype="multipart/form-data">
 		
+			{% if changes_saved %}
+				<div class="message">{{template_changes_saved}}</div>
+			{% endif %}
+		
 		<h3>{{template_entries_related_to}} {{entry.linkString}}</h3>
 		{% if related_links %}
 			<fieldset>

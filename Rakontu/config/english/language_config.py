@@ -541,10 +541,10 @@ TEMPLATE_TERMS = {
 		"template_change": u"Change",
 		"template_attach": u"Attach",
 		"template_replace": u"Replace",
-		"template_attach_or_replace": u"Attach or replace",
 		"template_copy": u"Copy",
 		"template_previous": u"Previous",
 		"template_next": u"Next",
+		"template_changes_saved": u"Your changes have been saved.",
 		
 		# things on alt tags for pictures
 		"template_rakontu_logo": u"Rakontu logo",
@@ -603,7 +603,7 @@ TEMPLATE_TERMS = {
 		"template_rakontu_not_available": u"This Rakontu is temporarily unavailable due to system maintenance. Please check back again later.",
 		# -------- error pages
 		# error/error
-		"template_error": u"Oops! Sorry :(u",
+		"template_error": u"Oops! Sorry :(",
 		"template_an_error_has_occurred_and_admin_notified": u"Something went wrong. The system administrator has been notified.",
 		"template_error_message": u"If you want to talk about this error with the administrator, copy this message and paste it into your email.",
 		# error/databaseError
@@ -947,6 +947,13 @@ TEMPLATE_TERMS = {
 		"template_apply_to_home_page": u"Apply to home page",
 		"template_questions_about_entries": u"Questions about entries",
 		"template_questions_about_members_or_characters": u"Questions about members or characters",
+		# visit/find
+		"template_find": u"Find",
+		"template_include_help_resources": u"Include help resources",
+		"template_matching_entries_sorted_by_relevance": u"Matching entries, sorted by relevance",
+		"template_no_entries_match_search": u"No entries match the current search terms.",
+		"template_matching_annotations_answers_and_links_sorted_by_relevance": u"Matching annotations, answers and links, sorted by relevance",
+		"template_no_annotations_answers_or_links_match_search": u"No annotations, answers or links match the current search terms.",
 		# visit/help
 		"template_help_resources": u"Help! Read about using Rakontu",
 		"template_ask_a_guide": u"Help! Ask a guide about your Rakontu",
@@ -1015,7 +1022,7 @@ TEMPLATE_TERMS = {
 		# visit/previewAnswers
 		"template_answers_to_questions_about": u"Answers to questions about",
 		# visit/profile
-		"template_you_profile": u"Your profile",
+		"template_your_profile": u"Your profile",
 		"template_offline_member_profile": u"Off-line member profile",
 		"template_nickname_and_description": u"Nickname and description",
 		"template_your_nickname_is": u"Your nickname is",
@@ -1143,6 +1150,7 @@ TEMPLATE_BUTTONS = {
 		"button_export_csv": u"Export to CSV",
 		"button_send_invitation_email": u"Send invitation email",
 		# visit
+		# timelines
 		"button_change_time_range_view": u"Change timeline view",
 		"button_change_entry_types_view": u"Change entry types view",
 		"button_change_annotation_types_view": u"Change annotation types view",
@@ -1151,6 +1159,8 @@ TEMPLATE_BUTTONS = {
 		"button_show_details": u"Show details",
 		"button_hide_activity_levels": u"Hide activity levels",
 		"button_show_activity_levels": u"Show activity levels",
+		"button_search": "Search",
+		# entering things
 		"button_save_changes_and_return": u"Save changes and return",
 		"button_preview": u"Preview",
 		"button_save_draft": u"Save draft",
@@ -1169,6 +1179,7 @@ TEMPLATE_BUTTONS = {
 		"button_save_as_new_filter_and_apply_to_member": u"Save as new copy and apply to member page",
 		"button_save_as_new_filter_and_apply_to_character": u"Save as new copy and apply to character page",
 		"button_save_as_new_filter_and_apply_to_home_page": u"Save as new copy and apply to home page",
+		# helping roles
 		"button_curate": u"Curate",
 		"button_stop_curating": u"Stop curating",
 		"button_flag": u"Flag",
@@ -1212,7 +1223,6 @@ TEMPLATE_MENUS = {
 		"menu_home_page": u"Home page",
 		"menu_about_this_rakontu": u"About this Rakontu",
 		"menu_about_rakontu_members": u"About the members",
-		"menu_start_page": u"Start page",
 		# create
 		"menu_create": u"Create",
 		"menu_story": u"Tell a story",
@@ -1231,7 +1241,7 @@ TEMPLATE_MENUS = {
 		"menu_requests": u"Requests",
 		"menu_resources": u"Resources",
 		"menu_resource": u"Add a resource",
-		# liaison
+		# liaise
 		"menu_liaise": u"Liaise",
 		"menu_manage_offline_members": u"Manage off-line members",
 		"menu_add_batch": u"Add a batch of stories",
@@ -1245,12 +1255,13 @@ TEMPLATE_MENUS = {
 		"menu_characters": u"Characters",
 		"menu_export": u"Export",
 		"menu_set_availability": u"Availability",
-		# review
+		# my stuff
 		"menu_my_stuff": u"My stuff",
 		"menu_profile": u"Profile",
 		"menu_preferences": u"Preferences",
 		"menu_filters": u"Filters",
 		"menu_drafts": u"Drafts",
+		"menu_search": u"Simple search",
 		"menu_help": u"Help",
 		# this appears when site admin is looking ABOVE the Rakontu level
 		"menu_site_administration": u"Rakontu site administration",
@@ -1426,15 +1437,31 @@ BLURBS = {
 # ============================================================================================ 
 
 TITLES = {
-        "REVIEW_RAKONTUS": u"All Rakontus",
-        "CREATE_RAKONTU": u"Create Rakontu",
+       # visiting
         "ANSWERS_FOR": u"Answers for", # entry name
         "PREVIEW_OF": u"Preview of", # entry name
         "ADDITIONAL_EDITORS_FOR": u"Additional editors for", # entry name
         "RELATE_TO": u"Relate to", # entry name
         "ADD_ATTACHMENT_TO": u"Add attachment to", # entry name
+        "FIND_ENTRY": u"Find entry in", # rakontu name
+ 		"HELP": u"Help",
+		"HOME": u"Home",
+		"ABOUT": u"About",
+		"MEMBERS": u"Members" ,
+		"MEMBER": u"Member", # member nickname
+		"GUIDE": u"Guide", # member nickname
+		"CHARACTER": u"Character", # character name
+		"PREFERENCES_FOR": u"Preferences for", # member nickname
+		"PROFILE_FOR": u"Profile for", # member nickname
+		"CHANGE_NICKNAME_FOR": u"Change nickname for", # member nickname
+		"DRAFTS_FOR": u"Drafts for", # member nickname
+		"SEND_MESSAGE": u"Send message",
+		"LEAVE_RAKONTU": u"Leave" ,
+		"SEARCH_FILTER": u"Filter",
+		"MESSAGE_TO_USER": u"Message", # (on page that tells user something is completed or something is wrong)
+		"HELP_ON": u"Help on", # help topic
+        # helping roles
         "ATTACHMENTS_TO": u"Attachments for", # entry name
-        "COUNTS": u"Counts for", # rakontu name or member nickname or character name
         "REVIEW_FLAGS": u"Review flags",
         "REVIEW_GAPS": u"Review gaps",
         "REVIEW_ATTACHMENTS": u"Review attachments",
@@ -1446,6 +1473,7 @@ TITLES = {
         "REVIEW_BATCH_ENTRIES": u"Review batch entries",
         "BATCH_ENTRY": u"Batch entry",
         "WELCOME": u"Welcome",
+        # managing
         "MANAGE_MEMBERS": u"Manage members" ,
         "MANAGE_APPEARANCE": u"Manage appearance",
         "MANAGE_SETTINGS": u"Manage settings" ,
@@ -1457,24 +1485,11 @@ TITLES = {
         "MANAGE_CHARACTER": u"Manage character", # character name
         "EXPORT_DATA": u"Export data" ,
         "SET_RAKONTU_AVAILABILITY": u"Set availability of", # rakontu name
-        "HELP": u"Help",
-        "HOME": u"Home",
-        "ABOUT": u"About",
-        "MEMBERS": u"Members" ,
-        "MEMBER": u"Member", # member nickname
-        "GUIDE": u"Guide", # member nickname
-        "CHARACTER": u"Character", # character name
-        "PREFERENCES_FOR": u"Preferences for", # member nickname
-        "PROFILE_FOR": u"Profile for", # member nickname
-        "CHANGE_NICKNAME_FOR": u"Change nickname for", # member nickname
-        "DRAFTS_FOR": u"Drafts for", # member nickname
-        "SEND_MESSAGE": u"Send message",
-        "LEAVE_RAKONTU": u"Leave" ,
-        "SEARCH_FILTER": u"Filter",
-        "MESSAGE_TO_USER": u"Message", # (on page that tells user something is completed or something is wrong)
-        "HELP_ON": u"Help on", # help topic
-        "INITIALIZE_SITE": u"Initialize site",
-        "CONFIRM_REMOVE_RAKONTU": u"Confirm removal of", # rakontu name
+ 		 # admin
+        "REVIEW_RAKONTUS": u"All Rakontus",
+        "CREATE_RAKONTU": u"Create Rakontu",
+ 		"CONFIRM_REMOVE_RAKONTU": u"Confirm removal of", # rakontu name
+        # errors
         "ERROR": u"Error",
         "URL_NOT_FOUND": u"URL not found",
         "DATABASE_ERROR": u"Google database temporarily unreachable",
@@ -1530,6 +1545,7 @@ URLS = {
     "url_member": u"member",
     "url_ask": u"ask",
     "url_rakontu": u"rakontu",
+    "url_find": u"find",
     "url_leave": u"leave",
     "url_filters": u"filters",
     "url_nickname": u"nickname",

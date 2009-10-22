@@ -7,6 +7,10 @@
 			<div id="rakontu_form_style" class="rakontu_form">
 			<form action="/{{dir_visit}}/{{url_editors}}?{{entry.urlQuery}}" method="post">
 			
+			{% if changes_saved %}
+				<div class="message">{{template_changes_saved}}</div>
+			{% endif %}
+		
 			<h3>{{template_change_additional_editors}} {{entry.linkString}}</h3>
 			<fieldset>
 			<p>{{template_who_can_edit_this_entry}} {{entry.typeForDisplay}}? {{"adding_editors"|tip}}</p>

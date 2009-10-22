@@ -1,34 +1,10 @@
 Things to do before v0.9 is complete
 
-======== BUGS:
-
-in IE menus are grey - CANNOT FIX!!
-
-======== IRRITATING THINGS THAT WILL NOT GO AWAY:
-
-what to do about that keys_only problem? put it in known issues? yes
-
-take age/gender questions out of defaults for characters, and put better char questions in
-
-remove all that no_access stuff, it's redundant 
-
-go through help.csv and resources looking for stuff that's wrong and out of date
-
-put unicode constants in language_config
-
 add ssl to faq
 
-take xml export out of manage-export page (no longer needed) ??????????
+finish developer notes
 
-manager who is not owner should not be able to make people owners.
 
-======== FLESH OUT:
 
-finish admin manual and developer notes
 
-======== PRETTIFY:
-
-add cancel LINKS on all pages that save things? (links should say where they go to)
-
-problem with CSS and font sizes...
 

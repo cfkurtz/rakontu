@@ -115,7 +115,9 @@
 		{% ifequal annotation_type "nudge" %}
 			<h3>{{template_nudge_for}} {{entry.linkString}}</h3>
 			<fieldset>
-			<p>{{template_nudge_points_can_assign_to_entry}}: <b>{{nudge_points_member_can_assign}}</b>  {{"what_nudge_points_are_for"|info}} {{"nudge_point_allocation"|caution}}</p>
+			<p>{{template_nudge_points_can_assign_to_entry}}: <b>{{nudge_points_member_can_assign}}</b> 
+				{{"what_nudge_points_are_for"|info}} 
+				{{"nudge_point_allocation"|caution}}</p>
 			<table class="noborder">
 			{% for i in num_nudge_categories|makeRange %}
 				{% if rakontu.nudgeCategories|listLookup:i %}

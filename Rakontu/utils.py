@@ -4,16 +4,16 @@
 # Version: beta (0.9+)
 # License: GPL 3.0 
 # Google Code Project: http://code.google.com/p/rakontu/
-# ---------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------- 
 		 
 import os		 
 import string			   
 import cgi		    
-import htmllib		   
+import htmllib		    
 		  
-from models import *		   
-	 
-from google.appengine.api import users	  
+from models import *		     
+	  
+from google.appengine.api import users	   
 from google.appengine.ext.webapp import template		
 from google.appengine.ext import webapp	 
 from google.appengine.ext.webapp.util import run_wsgi_app   
@@ -34,7 +34,7 @@ import pytz
 
 def FindTemplate(template):   
 	return "templates/%s" % template   
-	  
+	   
 def RequireLogin(func):  
 	def check_login(request):    
 		if not users.get_current_user():    
@@ -285,6 +285,19 @@ def GetBookmarkQueryWithCleanup(queryString):
 	if bookmark:
 		bookmark += "=" * equalsSigns 
 	return bookmark 
+
+def GetChangesSavedState(member):
+	try:
+		key = "changes:%s" % member.key()
+		changesSaved = memcache.get(key)
+		memcache.delete(key)
+	except:
+		changesSaved = False
+	return changesSaved
+
+def SetChangesSaved(member):
+	key = "changes:%s" % member.key()
+	memcache.add(key, True)
 
 # ============================================================================================
 # ============================================================================================
@@ -1121,29 +1134,11 @@ def InterpretEnteredText(text, mode="text"):
 			result = result.replace('{%s(%s)}' % (imageLink,alt), '<img src="%s" alt="%s"/>' % (imageLink, alt))
 	return result
 
-def upTo(value, number):
-	if value:
-		result = value[:number]
-		if len(value) > number:
-			result += "..."  
-	else:
-		result = value
-	return result
- 
-def upToWithLink(value, number, link):
-	if value: 
-		result = value[:number]
-		if len(value) > number:
-			result += ' <a href="%s">...</a>' % link
-	else:
-		result = value
-	return result
-
 def checkedBlank(value):
 	if value:
-		return "checked"
+		return "checked" 
 	return "" 
-
+ 
 def MoveItemWithOrderFieldUpOrDownInList(item, list, increment):
 	if increment < 0: # move toward start of list
 		if item.order == 0:

@@ -7,6 +7,10 @@
 			<div id="rakontu_form_style" class="rakontu_form">
 			<form action="/{{dir_manage}}/{{url_appearance}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 
+			{% if changes_saved %}
+				<div class="message">{{template_changes_saved}}</div>
+			{% endif %}
+		
 			<h3>{{template_name_and_description}}</h3>
 			<fieldset>
 			<p>{{template_name}} {{"rakontu_name"|info}}</p>
@@ -74,7 +78,8 @@
 	
 			<h3>{{template_visual_appearance}}</h3>
 			<fieldset>
-			<p>{{template_picture}} {{"rakontu_image"|tip}} {{"uploading_files"|caution}}</p>
+			<p>{{template_picture}} {{"rakontu_image"|tip}} 
+			{{"uploading_files"|caution}}</p>
 			{% if rakontu.image %}
 				{{rakontu.imageEmbed}}
 				<p>&nbsp; <input type="checkbox" name="removeImage" value="removeImage" id="removeImage"><label for="removeImage">{{template_remove}}</label></p>

@@ -37,14 +37,17 @@ class ManageRakontuMembersPage(ErrorHandlingRequestHander):
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			if member.isManagerOrOwner():
+				members = rakontu.getActiveMembers()
+				members.sort(lambda a,b: cmp(b.isOnlineMember, a.isOnlineMember))
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["MANAGE_MEMBERS"], 
 								   'rakontu': rakontu, 
 								   'skin': rakontu.getSkinDictionary(),
 								   'current_member': member,
-								   'rakontu_members': rakontu.getActiveMembers(),
+								   'rakontu_members': members,
 								   'pending_members': rakontu.getPendingMembers(),
 								   'inactive_members': rakontu.getInactiveMembers(),
+								   'changes_saved': GetChangesSavedState(member),
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/members.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -72,7 +75,7 @@ class ManageRakontuMembersPage(ErrorHandlingRequestHander):
 				thingsToDelete = []
 				for aMember in rakontuMembers:
 					for name, value in self.request.params.items():
-						if aMember.googleAccountID and value.find(aMember.googleAccountID) >= 0:
+						if value.find(str(aMember.key())) >= 0:
 							(newType, id) = value.split("|") 
 							okayToSet = False
 							if newType != aMember.governanceType:
@@ -113,6 +116,7 @@ class ManageRakontuMembersPage(ErrorHandlingRequestHander):
 					if email.strip():
 						if not rakontu.hasMemberWithGoogleEmail(email.strip()):
 							CreatePendingMemberFromInfo(rakontu, email.strip(), "member")
+				SetChangesSaved(member)
 				self.redirect(BuildURL("dir_manage", "url_members", rakontu=rakontu))
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
@@ -196,6 +200,7 @@ class ManageRakontuAppearancePage(ErrorHandlingRequestHander):
 								   'current_member': member,
 								   'skin_names': GetSkinNames(),
 								   'time_zone_names': pytz.all_timezones,
+								   'changes_saved': GetChangesSavedState(member),
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/appearance.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -248,6 +253,7 @@ class ManageRakontuAppearancePage(ErrorHandlingRequestHander):
 					rakontu.roleReadmes_formatted[i] = db.Text(InterpretEnteredText(self.request.get("readme%s" % i), self.request.get("roleReadmes_formats%s" % i)))
 					rakontu.roleReadmes_formats[i] = self.request.get("roleReadmes_formats%s" % i)
 				rakontu.put()
+				SetChangesSaved(member)
 				self.redirect(self.request.uri)
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
@@ -324,6 +330,7 @@ class ManageRakontuSettingsPage(ErrorHandlingRequestHander):
 								   'activity_point_includes': activityPointIncludes,
 								   'site_allows_attachments': DEFAULT_MAX_NUM_ATTACHMENTS > 0,
 								   'num_attachment_choices': NUM_ATTACHMENT_CHOICES,
+								   'changes_saved': GetChangesSavedState(member),
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/settings.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -374,6 +381,7 @@ class ManageRakontuSettingsPage(ErrorHandlingRequestHander):
 						rakontu.entryActivityPointsPerEvent[i] = oldValue
 					i += 1
 				rakontu.put()
+				SetChangesSaved(member)
 				self.redirect(self.request.uri)
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
@@ -444,6 +452,7 @@ class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 								   'refer_type_display': typeDisplay,
 								   'refer_type_plural': typePlural,
 								   'refer_type_plural_display': typePluralDisplay,
+								   'changes_saved': GetChangesSavedState(member),
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/questions.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -515,6 +524,7 @@ class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 				def txn(questionsToPut):
 					db.put(questionsToPut)
 				db.run_in_transaction(txn, questionsToPut)
+				SetChangesSaved(member)
 				self.redirect(self.request.uri)
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
@@ -541,7 +551,8 @@ class ManageOneQuestionPage(ErrorHandlingRequestHander):
 									   'question_types': QUESTION_TYPES,
 									   'question_types_display': QUESTION_TYPES_DISPLAY,
 									   'answer_counts': answerCounts,
-									   'refer_type': CorrespondingItemFromMatchedOrderList(question.refersTo, QUESTION_REFERS_TO, QUESTION_REFERS_TO_URLS)
+									   'refer_type': CorrespondingItemFromMatchedOrderList(question.refersTo, QUESTION_REFERS_TO, QUESTION_REFERS_TO_URLS),
+									   'changes_saved': GetChangesSavedState(member),
 									   })
 					path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/question.html'))
 					self.response.out.write(template.render(path, template_values))
@@ -600,6 +611,7 @@ class ManageOneQuestionPage(ErrorHandlingRequestHander):
 					if question.getUnlinkedAnswerChoices():
 						self.redirect(BuildURL("dir_manage", "url_unlinked_answers", question.urlQuery(), rakontu=rakontu))
 					else:
+						SetChangesSaved(member)
 						self.redirect(self.request.uri)
 				else:
 					self.redirect(NotFoundURL(rakontu))
@@ -666,6 +678,7 @@ class FixHangingAnswersPage(ErrorHandlingRequestHander):
 									if answer.answerIfText == oldNewPair[0]:
 										answer.answerIfText = oldNewPair[1]
 						db.put(answers)
+						SetChangesSaved(member)
 					self.redirect(BuildURL("dir_manage", "url_question", question.urlQuery(), rakontu=rakontu))
 				else:
 					self.redirect(NotFoundURL(rakontu))
@@ -713,6 +726,7 @@ class ManageCharactersPage(ErrorHandlingRequestHander):
 								   'current_member': member,
 								   'characters': rakontu.getActiveCharacters(),
 								   'inactive_characters': rakontu.getInactiveCharacters(),
+								   'changes_saved': GetChangesSavedState(member),
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/characters.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -753,6 +767,7 @@ class ManageCharactersPage(ErrorHandlingRequestHander):
 				def txn(charactersToPut):
 					db.put(charactersToPut)
 				db.run_in_transaction(txn, charactersToPut)
+				SetChangesSaved(member)
 				self.redirect(self.request.uri)
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
@@ -780,6 +795,7 @@ class ManageCharacterPage(ErrorHandlingRequestHander):
 								   'answers': character.getAnswers(),
 								   'refer_type': "character",
 								   'refer_type_display': DisplayTypeForQuestionReferType("character"),
+								   'changes_saved': GetChangesSavedState(member),
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/character.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -854,7 +870,8 @@ class ManageCharacterPage(ErrorHandlingRequestHander):
 						db.put(thingsToPut)
 						db.delete(thingsToDelete)
 					db.run_in_transaction(txn, thingsToPut, thingsToDelete)
-					self.redirect(BuildURL("dir_manage", "url_characters", rakontu=rakontu))
+					SetChangesSaved(member)
+					self.redirect(self.request.uri)
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))
 		else:
@@ -1007,6 +1024,7 @@ class SetRakontuAvailabilityPage(ErrorHandlingRequestHander):
 								   'current_member': member,
 						   	   	   'rakontu_access_states': RAKONTU_ACCESS_STATES,
 						   	  	   'rakontu_access_states_display': RAKONTU_ACCESS_STATES_DISPLAY,
+						   	  	   'changes_saved': GetChangesSavedState(member),
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/setAvailability.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -1024,6 +1042,7 @@ class SetRakontuAvailabilityPage(ErrorHandlingRequestHander):
 					rakontu.access = self.request.get("access")
 					rakontu.accessMessage = self.request.get("accessMessage")
 					rakontu.put()
+				SetChangesSaved(member)
 				self.redirect(self.request.uri)
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))

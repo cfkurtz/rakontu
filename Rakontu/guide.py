@@ -57,6 +57,7 @@ class ReviewResourcesPage(ErrorHandlingRequestHander):
 								   'resource_group': type,
 								   'managers_only': managersOnlyType,
 								   'max_resources_per_category': MAX_RESOURCES_PER_CATEGORY,
+								   'changes_saved': GetChangesSavedState(member),
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/resources.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -105,6 +106,7 @@ class ReviewResourcesPage(ErrorHandlingRequestHander):
 					db.run_in_transaction(txn, resources)
 					query = "%s&%s=%s&%s=%s" % (rakontu.urlQuery(), URL_OPTIONS["url_query_resource_type"], type, 
 									URL_OPTIONS["url_query_managers_only"], managersOnlyType)
+					SetChangesSaved(member)
 					self.redirect(BuildURL("dir_guide", "url_resources", query))
 			else:
 				self.redirect(RoleNotFoundURL("guide", rakontu))
@@ -149,6 +151,7 @@ class ReviewRequestsPage(ErrorHandlingRequestHander):
 								   'request_types_urls': REQUEST_TYPES_URLS,
 								   'showing_all_requests': not uncompletedOnly,
 								   'request_type': type,
+								   'changes_saved': GetChangesSavedState(member),
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/requests.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -187,6 +190,7 @@ class ReviewRequestsPage(ErrorHandlingRequestHander):
 								break
 						db.put(requestsToPut)
 					db.run_in_transaction(txn, requests)
+					SetChangesSaved(member)
 					self.redirect(self.request.uri)
 			else:
 				self.redirect(RoleNotFoundURL("guide", rakontu))

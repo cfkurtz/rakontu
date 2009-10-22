@@ -27,6 +27,7 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 								   'filters': filters,
 								   'filter_locations': SEARCH_LOCATIONS,
 								   'filter_locations_display': FILTER_LOCATIONS_DISPLAY,
+								   'changes_saved': GetChangesSavedState(member),
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/flags.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -78,6 +79,7 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 					db.put(itemsToPut)
 					db.delete(itemsToDelete)
 				db.run_in_transaction(txn, itemsToPut, itemsToDelete)
+				SetChangesSaved(member)
 				self.redirect(BuildURL("dir_curate", "url_flags", rakontu=rakontu))
 			elif member.isCurator():
 				# make sure we have the correct email for them
@@ -146,6 +148,7 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 								return
 					self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
 				else:
+					SetChangesSaved(member)
 					self.redirect(BuildURL("dir_curate", "url_flags", rakontu=rakontu))
 			else:
 				self.redirect(RoleNotFoundURL("curator", rakontu))
@@ -289,6 +292,7 @@ class CurateTagsPage(ErrorHandlingRequestHander):
 								   'bookmark': bookmark,
 								   'previous': prev,
 								   'next': next,
+								   'changes_saved': GetChangesSavedState(member),
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/tags.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -330,6 +334,7 @@ class CurateTagsPage(ErrorHandlingRequestHander):
 					query = "%s=%s&%s=%s" % (URL_IDS["url_query_rakontu"], rakontu.getKeyName(), URL_OPTIONS["url_query_bookmark"], bookmark)
 				else:
 					query = "%s=%s" % (URL_IDS["url_query_rakontu"], rakontu.getKeyName())
+				SetChangesSaved(member)
 				self.redirect(BuildURL("dir_curate", "url_tags", query))
 			else:
 				self.redirect(RoleNotFoundURL("curator", rakontu))

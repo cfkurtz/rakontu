@@ -4,7 +4,12 @@
 	{% include "../common_menus.html" %}
 	<div id="content">
 		<div id="rakontu_form_style" class="rakontu_form">
-		<form action="/{{dir_curate}}/{{url_flags}}?{{rakontu.urlQuery}}" method="post">			
+		<form action="/{{dir_curate}}/{{url_flags}}?{{rakontu.urlQuery}}" method="post">
+		
+		{% if changes_saved %}
+			<div class="message">{{template_changes_saved}}</div>
+		{% endif %}
+							
 			<h3>{{template_flagged}} {{template_entries|lower}} {{"flagging_items_for_removal"|info}}</h3>
 			{% if entries %}
 				<fieldset>

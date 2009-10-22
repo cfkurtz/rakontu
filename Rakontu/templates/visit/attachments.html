@@ -7,6 +7,10 @@
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_attachments}}?{{entry.urlQuery}}" method="post" enctype="multipart/form-data">
 		
+		{% if changes_saved %}
+			<div class="message">{{template_changes_saved}}</div>
+		{% endif %}
+		
 		<h3>{{template_change_attachments_for}} {{entry.linkString}} ({{entry.typeForDisplay}}).</h3>
 		
 		{% if attachments %}

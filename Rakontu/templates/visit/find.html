@@ -1,0 +1,68 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+	<div id="content">
+	
+	<p></p>
+	<div id="rakontu_form_style" class="rakontu_form">
+	<form action="/{{dir_visit}}/{{url_find}}?{{rakontu.urlQuery}}" method="post">
+	
+	<p>{{template_find}}:
+	<input type="text" name="findWhat" value="{{find_text|orNothing}}" maxlength="{{maxlength_name}}" size="40"/>
+	
+	<input type="checkbox" name="includeHelpResources" value="yes" id="includeHelpResources"
+	{% if include_help_resources %}
+		checked
+	{% endif %}
+	>
+	<label for="includeHelpResources">{{template_include_help_resources}}</label>
+
+	<input type="submit" name="find" value="{{button_search}}" class="button">
+	{{"simple_search"|tip}}
+	</p>
+	
+	</form>	
+	</div>
+	
+	{% if find_text %}
+		<hr>
+	{% endif %}
+	
+	{% if find_text %}
+		<h3>{{template_matching_entries_sorted_by_relevance}}</h3>
+	{% endif %}
+	{% if entry_texts %}
+		<ul>
+		{% for text in entry_texts %}
+			<li class="nobullet" style="margin:4px 4px 4px 4px;">{{text}}</li>
+		{% endfor %}
+		</ul>
+	{% else %}
+		{% if find_text %}
+			<p>&nbsp; &nbsp; <i>{{template_no_entries_match_search}}</i></p>
+		{% endif %}
+	{% endif %}
+	
+	{% if find_text %}
+		<h3>{{template_matching_annotations_answers_and_links_sorted_by_relevance}}</h3>
+	{% endif %}
+	{% if other_item_texts %}
+		<ul>
+		{% for text in other_item_texts %}
+			<li class="nobullet" style="margin:4px 4px 4px 4px;">{{text}}</li>
+		{% endfor %}
+		</ul>
+	{% else %}
+		{% if find_text %}
+			<p>&nbsp; &nbsp; <i>{{template_no_annotations_answers_or_links_match_search}}</i></p>
+		{% endif %}
+	{% endif %}
+	
+	
+	<p>&nbsp;</p>
+		
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

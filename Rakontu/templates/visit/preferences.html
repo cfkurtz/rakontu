@@ -9,6 +9,10 @@
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_preferences}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
+		{% if changes_saved %}
+			<div class="message">{{template_changes_saved}}</div>
+		{% endif %}
+		
 		{% if member.isOnlineMember %}
 			{% if member.canTakeOnAnyHelpingRole %}
 				<h3>{{template_helping_roles}}</h3>

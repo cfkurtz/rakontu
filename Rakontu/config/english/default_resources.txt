@@ -60,6 +60,7 @@ by other managers. Members must be made members by Rakontu managers or site admi
 
 At least one manager is called an owner. The only additional thing an owner can do is delete the Rakontu 
 (so this person has to be trustworthy!). Usually the owner will be the person who started the Rakontu.
+Owners can make other members owners, but managers can't make people owners.
 
 === Helpers
 
@@ -359,7 +360,7 @@ and so on. As a guide, you will want to
 check on whether there are invitations or requests that have been "orphaned" and need some attention. 
 
 To review invitations or requests, choose one of these items in your Guide menu. You can either look only
-at invitations or requests with no reponses or all of them. For requests, you can mark them as completed
+at invitations or requests with no responses or all of them. For requests, you can mark them as completed
 if you see that they have been satisfied.
 
 [How to Be a Liaison]
@@ -690,6 +691,8 @@ Managers only=no
 
 *Bad Request: Your client has issued a malformed or illegal request.* This happens in older browsers. Refreshing the page can help, as can removing cached (temporary) files.
 
+*Menus and buttons are all gray in Internet Explorer.* This is apparently unchangeable due to the nature of how IE interprets form elements.
+
 [Using an external style sheet to style your Rakontu]
 Category=Technical
 Order in category=3
@@ -715,6 +718,7 @@ In addition, some non-element classes (<div class="">) are:
 
   * .rightalign (used to put things off to the right)
   * .blurb (used for entry texts and other "inset" things to be read)
+  * .message (displays the "Your changes have been saved" message. NOT in skins)
   * .indented (only used in a few places where things should be set off, but not with a special color)
 
 Defined divisions (<div id="">) are as follows:

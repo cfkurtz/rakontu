@@ -6,6 +6,11 @@
 	
 			<div id="rakontu_form_style" class="rakontu_form">
 			<form action="/{{dir_manage}}/{{url_characters}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
+
+			{% if changes_saved %}
+				<div class="message">{{template_changes_saved}}</div>
+			{% endif %}
+		
 			<h3>{{template_add_new_characters}} {{"adding_new_characters"|tip}}</h3>
 			<fieldset>
 			<div><textarea name="newCharacterNames" rows="6" cols="40"></textarea></div>

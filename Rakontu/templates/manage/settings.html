@@ -7,6 +7,10 @@
 			<div id="rakontu_form_style" class="rakontu_form">
 			<form action="/{{dir_manage}}/{{url_settings}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 			
+			{% if changes_saved %}
+				<div class="message">{{template_changes_saved}}</div>
+			{% endif %}
+		
 			<h3>{{template_things_members_can_do}}</h3>
 			<fieldset>
 			{% if site_allows_attachments %}
@@ -41,7 +45,8 @@
 			<h3>{{template_nudge_system}}</h3>
 			<fieldset>
 			<p><i></i></p>
-			<p>{{template_nudge_points_per_entry}} {{"nudge_points"|info}} {{"nudge_points_per_entry"|caution}}</p>
+			<p>{{template_nudge_points_per_entry}} {{"nudge_points"|info}} 
+				{{"nudge_points_per_entry"|caution}}</p>
 			<p>&nbsp; <input type="text" name="maxNudgePointsPerEntry" size="4" value="{{rakontu.maxNudgePointsPerEntry}}" maxlength="4"/></p>
 			
 			<p>{{template_nudge_category_names_and_questions}} {{"nudge_category_names"|caution}}</p>
@@ -65,7 +70,8 @@
 	      	
 			<h3>{{template_activity_system}}</h3>
 			<fieldset>
-			<p>{{template_activity_points_per_activity}} {{"activity_points"|info}}{{"what_downdrift_is_about"|tip}}</p>
+			<p>{{template_activity_points_per_activity}} {{"activity_points"|info}}
+				{{"what_downdrift_is_about"|tip}}</p>
 			<table border="0" cellpadding="4" cellspacing="0">
 			{% for text in activity_point_includes %}
 				{{text}}

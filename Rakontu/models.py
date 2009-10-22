@@ -485,6 +485,52 @@ class Rakontu(db.Model):
 				result.append(entry)
 		return result
 	
+	def getItemsMatchingPlainText(self, text, includeHelpResources):
+		entriesWithCounts = []
+		otherItemsWithCounts = []
+		entries = self.getNonDraftEntries()
+		for entry in entries:
+			numMatches = entry.numMatchesWithPlainText(text)
+			if numMatches > 0:
+				if includeHelpResources:
+					add = True
+				else:
+					add = entry.type != "resource" or not entry.resourceForHelpPage
+				if add:
+					entriesWithCounts.append((entry, numMatches))
+			for annotation in entry.getAnnotations():
+				numMatches = annotation.numMatchesWithPlainText(text)
+				if numMatches > 0:
+					otherItemsWithCounts.append((annotation, numMatches))
+			for answer in entry.getAnswers():
+				numMatches = answer.numMatchesWithPlainText(text)
+				if numMatches > 0:
+					otherItemsWithCounts.append((answer, numMatches))
+			for link in entry.getAllLinks():
+				numMatches = link.numMatchesWithPlainText(text)
+				if numMatches > 0:
+					otherItemsWithCounts.append((link, numMatches))
+		entriesWithCounts.sort(lambda a,b: cmp(b[1], a[1]))
+		otherItemsWithCounts.sort(lambda a,b: cmp(b[1], a[1]))
+		entriesResult = []
+		otherItemsResult = []
+		for entry, count in entriesWithCounts:
+			if entry.text_formatted:
+				text = "%s (%s) <p>%s</p>" % (entry.linkString(), entry.typeForDisplay(), 
+									upToWithLink(stripTags(entry.text_formatted), 300, entry.linkURL()))
+			else:
+				text = "%s (%s)" % (entry.linkString(), entry.typeForDisplay())
+			entriesResult.append(text)
+		for item, count in otherItemsWithCounts:
+			if item.__class__.__name__ == "Annotation":
+				text = "%s (%s)" % (item.linkStringWithEntryLink(showDetails=True), item.typeForDisplay())
+			elif item.__class__.__name__ == "Answer":
+				text = "%s (%s)" % (item.linkStringWithQuestionNameAndReferentLink(), TERMS["term_answer"])
+			elif item.__class__.__name__ == "Link":
+				text = "%s (%s)" % (item.linkStringWithFromItem(), TERMS["term_link"])
+			otherItemsResult.append(text)
+		return entriesResult, otherItemsResult
+	
 	def getNonDraftEntriesOfType(self, type):
 		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(FETCH_NUMBER)
 	
@@ -1336,7 +1382,8 @@ class Member(db.Model):
 	def googleUserEmailOrNotOnline(self):
 		if self.isOnlineMember:
 			return self.googleAccountEmail
-		return "%s (%s)" % (TERMS["term_none"], TEMPLATE_TERMS["template_offline"])
+		#return "%s (%s)" % (TERMS["term_none"], TEMPLATE_TERMS["template_offline"])
+		return TERMS["term_none"]
 	
 	# GOVERNANCE
 	
@@ -2154,6 +2201,23 @@ class Answer(db.Model):
 			result +=  "%s" % self.answerIfValue
 		return result
 	
+	def numMatchesWithPlainText(self, text):
+		matches = 0
+		words = text.split()
+		for word in words:
+			if self.questionType == "text":
+				if caseInsensitiveFind(self.answerIfText, word):
+					matches += 1
+			elif self.question.isOrdinalOrNominal():
+				if self.question.multiple:
+					for choice in self.answerIfMultiple:
+						if caseInsensitiveFind(choice, word):
+							matches += 1
+				else:
+					if caseInsensitiveFind(self.answerIfText, word):
+						matches += 1
+		return matches
+		
 	def getKeyName(self):
 		return self.key().name()
 	
@@ -2480,6 +2544,16 @@ class Entry(db.Model):
 		result.extend(self.getAnnotations())
 		result.extend(self.getTextVersions())
 		return result
+	
+	def numMatchesWithPlainText(self, text):
+		matches = 0
+		words = text.split()
+		for word in words:
+			if caseInsensitiveFind(self.title, word):
+				matches += 1
+			if caseInsensitiveFind(self.text, word):
+				matches += 1
+		return matches
 		
 	def satisfiesFilterCriteria(self, filter, entryRefs, creatorRefs):
 		if not filter.words and not filter.tags and not entryRefs and not creatorRefs: # empty filter
@@ -2610,6 +2684,8 @@ class Entry(db.Model):
 		requests = self.getAnnotationsOfType("request")
 		for request in requests:
 			if caseInsensitiveFind(request.longString, word):
+				return True
+			if caseInsensitiveFind(request.completionCommentIfRequest, word):
 				return True
 		return False
 	
@@ -3238,6 +3314,14 @@ class Link(db.Model):
 			result += ", (%s)" % self.comment
 		return result
 	
+	def numMatchesWithPlainText(self, text):
+		matches = 0
+		words = text.split()
+		for word in words:
+			if caseInsensitiveFind(self.comment, word):
+				matches += 1
+		return matches
+		
 	def getKeyName(self):
 		return self.key().name()
 	
@@ -3530,6 +3614,29 @@ class Annotation(db.Model):
 				resultString += " (%s)" % self.shortString
 			return resultString
 		
+		
+	def numMatchesWithPlainText(self, text):
+		matches = 0
+		words = text.split()
+		for word in words:
+			if self.isCommentOrRequest():
+				if caseInsensitiveFind(self.shortString, word):
+					matches += 1
+				if caseInsensitiveFind(self.longString, word):
+					matches += 1
+				if self.isRequest():
+					if caseInsensitiveFind(self.completionCommentIfRequest, word):
+						matches += 1
+			elif self.type == "tag set":
+				for tag in self.tagsIfTagSet:
+					if len(tag):
+						if caseInsensitiveFind(tag, word):
+							matches += 1
+			elif self.type == "nudge":
+				if caseInsensitiveFind(self.shortString, word):
+					matches += 1
+		return matches
+		
 	def displayStringForNudgeWithoutComment(self, showDetails):
 		result = []
 		for i in range(NUM_NUDGE_CATEGORIES):
@@ -3585,7 +3692,7 @@ class Annotation(db.Model):
 		return "%s&%s=%s" % (self.rakontu.urlQuery(), URL_IDS["url_query_annotation"], indexFromKeyName(self.getKeyName()))
 		
 	def linkStringWithEntryLink(self, showDetails=True):
-		return "%s %s %s" % (self.linkString(showDetails=showDetails), TERMS["term_for"], self.entry.linkString())
+		return "%s %s %s" % (self.linkString(showDetails=showDetails), TERMS["term_for"], self.entryLinkString())
 		
 	def getImageLinkForType(self):
 		return ImageLinkForAnnotationType(self.type, -1) # -1 means don't put a count tooltip
@@ -4108,4 +4215,22 @@ def caseInsensitiveFind(text, filterFor):
 
 def indexFromKeyName(keyName):
 	return keyName[keyName.rfind("_") + 1:]
+
+def upTo(value, number):
+	if value:
+		result = value[:number]
+		if len(value) > number:
+			result += "..."  
+	else:
+		result = value
+	return result
+ 
+def upToWithLink(value, number, link):
+	if value: 
+		result = value[:number]
+		if len(value) > number:
+			result += ' <a href="%s">...</a>' % link
+	else:
+		result = value
+	return result
 

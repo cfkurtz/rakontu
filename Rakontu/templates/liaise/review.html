@@ -6,6 +6,10 @@
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_liaise}}/{{url_review}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 			
+			{% if changes_saved %}
+				<div class="message">{{template_changes_saved}}</div>
+			{% endif %}
+
 			{% if batch_entries %}
 				<h3>{{template_batch_entered_stories}} {{"reviewing_batch_entered_stories"|tip}}</h3>
 				<fieldset>

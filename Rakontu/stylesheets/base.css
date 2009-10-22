@@ -108,11 +108,23 @@ ul li.nobullet {
 	margin-left: 0px;
 	margin-bottom: 8px;
 	}
-	
+
+.message {
+	text-align: center;
+	width: 400px;
+	margin-left: auto;
+  	margin-right: auto;
+	border: solid 1px #000000;
+	color: #000000;
+	background: #FFFFFF;
+	padding: 4px 8px 4px 8px;
+	margin-bottom: 8px;
+	} 
+
 .indented {
 	padding: 4px 30px 4px 30px;
 	}
-	
+
 /* ----------- page areas ----------- */
 #header {
 	font-size: 1.2em;

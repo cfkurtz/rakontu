@@ -8,6 +8,10 @@
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_manage}}/{{url_availability}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		
+		{% if changes_saved %}
+			<div class="message">{{template_changes_saved}}</div>
+		{% endif %}
+		
 		<h3>{{set_rakontu_availability}}</h3>
 		
 		<p>{{template_current_rakontu_availability_is}} <b>{{rakontu.accessStateForDisplay}}</b>.</p>

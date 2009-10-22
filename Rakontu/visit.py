@@ -591,6 +591,52 @@ class SeeRakontuMembersPage(ErrorHandlingRequestHander):
 		else:
 			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
+class FindEntryPage(ErrorHandlingRequestHander):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
+			key = "find:%s" % member.key()
+			try:
+				findWhat, includeHelpResources = memcache.get(key)
+				memcache.delete(key)
+			except:
+				findWhat = None
+				includeHelpResources = False
+			if findWhat:
+				entryTexts, otherItemTexts = rakontu.getItemsMatchingPlainText(findWhat, includeHelpResources)
+			else:
+				entryTexts = None
+				otherItemTexts = None
+			template_values = GetStandardTemplateDictionaryAndAddMore({
+							   'title': TITLES["FIND_ENTRY"], 
+							   'rakontu': rakontu, 
+							   'skin': rakontu.getSkinDictionary(),
+							   'current_member': member,
+							   'find_text': findWhat,
+							   'entry_texts': entryTexts,
+							   'other_item_texts': otherItemTexts,
+							   'include_help_resources': includeHelpResources,
+							   })
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/find.html'))
+			self.response.out.write(template.render(path, template_values))
+		else:
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
+			
+	@RequireLogin 
+	def post(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if "find" in self.request.arguments():
+				findWhat = self.request.get("findWhat")
+				includeHelpResources = self.request.get("includeHelpResources") == "yes"
+				if findWhat:
+					memcache.add("find:%s" % member.key(), (findWhat, includeHelpResources), HOUR_SECONDS)
+				self.redirect(self.request.uri)
+		else:
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
+			
 class SendMessagePage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
@@ -805,37 +851,6 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 		else:
 			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
    
-class SeeCountsPage(ErrorHandlingRequestHander):
-	@RequireLogin 
-	def get(self):
-		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
-		if access:
-			if isFirstVisit: self.redirect(member.firstVisitURL())
-			memberToSee = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
-			character = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_character")
-			if memberToSee:
-				countNames, counts = memberToSee.getCounts()
-				titleExtra = memberToSee.nickname
-			elif character:
-				countNames, counts = chracter.getCounts()
-				titleExtra = character.name
-			else:
-				countNames, counts = rakontu.getCounts()
-				titleExtra = rakontu.name
-			template_values = GetStandardTemplateDictionaryAndAddMore({
-						   'title': TITLES["COUNTS"], 
-				   		   'title_extra': titleExtra, 
-				   		   'rakontu': rakontu, 
-				   		   'skin': rakontu.getSkinDictionary(),
-				   		   'current_member': member,
-				   		   'count_names': countNames,
-				   		   'counts': counts,
-				   		   })
-			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/counts.html'))
-			self.response.out.write(template.render(path, template_values))
-		else:
-			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
-			
 class SeeCharacterPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
@@ -1063,6 +1078,7 @@ class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 							   'answers': memberToEdit.getAnswers(),
 							   'refer_type': "member",
 							   'refer_type_display': DisplayTypeForQuestionReferType("member"),
+							   'changes_saved': GetChangesSavedState(member),
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/profile.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -1132,6 +1148,7 @@ class ChangeMemberProfilePage(ErrorHandlingRequestHander):
 					db.put(thingsToPut)
 					db.delete(thingsToDelete)
 				db.run_in_transaction(txn, thingsToPut, thingsToDelete)
+				SetChangesSaved(member)
 				if offlineMember:
 					self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
 				else:
@@ -1164,6 +1181,7 @@ class ChangeMemberPreferencesPage(ErrorHandlingRequestHander):
 							   'time_zone_names': pytz.all_timezones,    
 							   'details_text_length_choices': DETAILS_TEXT_LENGTH_CHOICES,
 							   'view_options': memberToEdit.getAllViewOptions(),
+							   'changes_saved': GetChangesSavedState(member),
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/preferences.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -1223,6 +1241,7 @@ class ChangeMemberPreferencesPage(ErrorHandlingRequestHander):
 						option.showHelpResourcesInTimelines = self.request.get("showHelpResourcesInTimelines|%s" % option.location) == "yes"
 						option.put()
 				memberToEdit.put()
+				SetChangesSaved(member)
 				self.redirect(BuildURL("dir_visit", "url_preferences", memberToEdit.urlQuery()))
 			else:
 				self.redirect(NotFoundURL(rakontu))
@@ -1291,6 +1310,7 @@ class ChangeMemberNicknamePage(ErrorHandlingRequestHander):
 					memberToEdit.nickname = nickname
 					memberToEdit.put()
 					memcache.delete("nickname:%s" % memberToEdit.key())
+					SetChangesSaved(member)
 					self.redirect(BuildURL("dir_visit", "url_profile", memberToEdit.urlQuery()))
 			else:
 				self.redirect(NotFoundURL(rakontu))
@@ -1322,6 +1342,7 @@ class ChangeMemberDraftsPage(ErrorHandlingRequestHander):
 							   'refer_type_display': DisplayTypeForQuestionReferType("member"),
 							   'draft_entries_of_other_people_you_can_edit': editorEntries,
 							   'blurbs': BLURBS,
+							   'changes_saved': GetChangesSavedState(member),
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/drafts.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -1356,6 +1377,7 @@ class ChangeMemberDraftsPage(ErrorHandlingRequestHander):
 					if self.request.get("remove|%s" % entry.key()) == "yes":
 						entry.removeAllDependents()
 						db.delete(entry)
+				SetChangesSaved(member)
 				if offlineMember:
 					self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
 				else:
@@ -1389,6 +1411,7 @@ class ChangeMemberFiltersPage(ErrorHandlingRequestHander):
 							   'filter_locations': SEARCH_LOCATIONS,
 							   'filter_locations_display': FILTER_LOCATIONS_DISPLAY,
 							   'blurbs': BLURBS,
+							   'changes_saved': GetChangesSavedState(member),
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/filters.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -1420,6 +1443,7 @@ class ChangeMemberFiltersPage(ErrorHandlingRequestHander):
 					if self.request.get("remove|%s" % filter.key()) == "yes":
 						filter.removeAllDependents()
 						db.delete(filter)
+				SetChangesSaved(member)
 				if offlineMember:
 					self.redirect(BuildURL("dir_liaise", "url_members", rakontu=rakontu))
 				else:
