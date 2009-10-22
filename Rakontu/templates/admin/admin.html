@@ -120,9 +120,9 @@
 		<p></p>
 
 		{% if development %}
-			<h2><i>Development: Fake data for testing</i></h2>
+			<h2><i>{{template_fake_data}}</i></h2>
 			<fieldset>
-			<p>Add fake data to existing Rakontus</p>
+			<p>{{template_add_fake_data}}</p>
 			<table cellpadding="4" cellspacing="0">
 		   	{% for rakontu in rakontus %}
 			    	<tr>
@@ -130,18 +130,18 @@
 			    	<td>
 						<input type="text" size="4" name="numItems|{{rakontu.key}}" value="10">
 						<select name="createWhat|{{rakontu.key}}">
-							<option value="members">members</option>
-							<option value="entries" selected="selected">entries</option>
-							<option value="annotations">annotations</option>
-							<option value="answers">answers</option>
-							<option value="nudges">nudges</option>
+							<option value="members">{{template_members}}</option>
+							<option value="entries" selected="selected">{{template_entries}}</option>
+							<option value="annotations">{{template_annotations}}</option>
+							<option value="answers">{{template_answers}}</option>
+							<option value="nudges">{{template_nudges}}</option>
 							</select>
-						<input type="submit" name="addFakeDataTo|{{rakontu.key}}" value="Add" class="button">
+						<input type="submit" name="addFakeDataTo|{{rakontu.key}}" value="{{button_add}}" class="button">
 						</td>
 					</tr>
 		    {% endfor %}
 		    </table>
-			<p><a href="/{{dir_admin}}/{{url_make_fake_data}}">Generate fake testing Rakontu</a></p>
+			<p><a href="/{{dir_admin}}/{{url_make_fake_data}}">{{template_fake_rakontu}}</a></p>
 			 </fieldset>
 	    {% endif %}
 	    
@@ -152,7 +152,7 @@
     {% else %}
     	<p>&nbsp; &nbsp; {{template_none}} - <a href="/{{dir_admin}}/{{url_create1}}">{{template_create_one}}</a></p>
 		{% if development %}
-			<p><a href="/{{dir_admin}}/{{url_make_fake_data}}">Generate fake testing Rakontu</a></p>
+			<p><a href="/{{dir_admin}}/{{url_make_fake_data}}">{{template_fake_rakontu}}</a></p>
 		{% endif %}
     {% endif %}	
     

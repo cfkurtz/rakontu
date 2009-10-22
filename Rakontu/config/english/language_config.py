@@ -652,6 +652,9 @@ TEMPLATE_TERMS = {
 		"template_create_another": u"Create another",
 		"template_remove_this_rakontu": u"Remove this Rakontu",
 		"template_access_message": u"Access message",
+		"template_fake_data": u"Development: Fake data for testing",
+		"template_add_fake_data": u"Add fake data to existing Rakontus",
+		"template_fake_rakontu": u"Generate fake testing Rakontu",
 		# admin/create rakontu - step one
 		"template_create_rakontu": u"Create a new Rakontu",
 		"template_step_one": u"Step One",

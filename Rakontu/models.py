@@ -4211,7 +4211,9 @@ def CleanUpCSV(parts):
 	return ','.join(partsWithCommasQuoted) 
 
 def caseInsensitiveFind(text, filterFor):
-	return text.lower().find(filterFor.lower()) >= 0
+	if text:
+		return text.lower().find(filterFor.lower()) >= 0
+	return False
 
 def indexFromKeyName(keyName):
 	return keyName[keyName.rfind("_") + 1:]
