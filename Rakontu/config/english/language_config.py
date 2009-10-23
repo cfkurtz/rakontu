@@ -953,10 +953,11 @@ TEMPLATE_TERMS = {
 		# visit/find
 		"template_find": u"Find",
 		"template_include_help_resources": u"Include help resources",
-		"template_matching_entries_sorted_by_relevance": u"Matching entries, sorted by relevance",
-		"template_no_entries_match_search": u"No entries match the current search terms.",
-		"template_matching_annotations_answers_and_links_sorted_by_relevance": u"Matching annotations, answers and links, sorted by relevance",
-		"template_no_annotations_answers_or_links_match_search": u"No annotations, answers or links match the current search terms.",
+		"template_matching_entries_for": u"Matching entries for",
+		"template_sorted_by_relevance": u"sorted by relevance",
+		"template_no_entries_match_search": u"No entries match",
+		"template_matching_annotations_answers_and_links": u"Matching annotations, answers and links for",
+		"template_no_annotations_answers_or_links_match_search": u"No annotations, answers or links match",
 		# visit/help
 		"template_help_resources": u"Help! Read about using Rakontu",
 		"template_ask_a_guide": u"Help! Ask a guide about your Rakontu",

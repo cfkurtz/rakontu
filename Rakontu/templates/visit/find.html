@@ -30,7 +30,11 @@
 	{% endif %}
 	
 	{% if find_text %}
-		<h3>{{template_matching_entries_sorted_by_relevance}}</h3>
+		<h3>
+		{% if entry_texts %}
+			{{entry_texts|length}}
+		{% endif %}
+		{{template_matching_entries_for}} "{{find_text}}" ({{template_sorted_by_relevance}})</h3>
 	{% endif %}
 	{% if entry_texts %}
 		<ul>
@@ -40,12 +44,16 @@
 		</ul>
 	{% else %}
 		{% if find_text %}
-			<p>&nbsp; &nbsp; <i>{{template_no_entries_match_search}}</i></p>
+			<p>&nbsp; &nbsp; <i>{{template_no_entries_match_search}} "{{find_text}}"</i></p>
 		{% endif %}
 	{% endif %}
 	
 	{% if find_text %}
-		<h3>{{template_matching_annotations_answers_and_links_sorted_by_relevance}}</h3>
+		<h3>
+		{% if other_item_texts %}
+			{{other_item_texts|length}}
+		{% endif %}
+		{{template_matching_annotations_answers_and_links}} "{{find_text}}" ({{template_sorted_by_relevance}})</h3>
 	{% endif %}
 	{% if other_item_texts %}
 		<ul>
@@ -55,7 +63,7 @@
 		</ul>
 	{% else %}
 		{% if find_text %}
-			<p>&nbsp; &nbsp; <i>{{template_no_annotations_answers_or_links_match_search}}</i></p>
+			<p>&nbsp; &nbsp; <i>{{template_no_annotations_answers_or_links_match_search}} "{{find_text}}"</i></p>
 		{% endif %}
 	{% endif %}
 	

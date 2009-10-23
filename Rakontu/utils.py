@@ -1004,7 +1004,7 @@ SIMPLE_HTML_REPLACEMENTS = [
 							("<hr>", "{{HR}}"),
 							("&nbsp;", "{{NBSP}}")  
 							]
- 
+
 def InterpretEnteredText(text, mode="text"):
 	result = text
 	if mode == "plain text":

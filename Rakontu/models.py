@@ -516,19 +516,19 @@ class Rakontu(db.Model):
 		otherItemsResult = []
 		for entry, count in entriesWithCounts:
 			if entry.text_formatted:
-				text = "%s (%s) <p>%s</p>" % (entry.linkString(), entry.typeForDisplay(), 
-									upToWithLink(stripTags(entry.text_formatted), 300, entry.linkURL()))
+				resultText = "%s (%s) <p>%s</p>" % (entry.linkString(), entry.typeForDisplay(), 
+									upToWithLink(stripTags(entry.text_formatted), 400, entry.linkURL()))
 			else:
-				text = "%s (%s)" % (entry.linkString(), entry.typeForDisplay())
-			entriesResult.append(text)
+				resultText = "%s (%s)" % (entry.linkString(), entry.typeForDisplay())
+			entriesResult.append(resultText)
 		for item, count in otherItemsWithCounts:
 			if item.__class__.__name__ == "Annotation":
-				text = "%s (%s)" % (item.linkStringWithEntryLink(showDetails=True), item.typeForDisplay())
+				resultText = "%s (%s)" % (item.linkStringWithEntryLink(showDetails=True), item.typeForDisplay())
 			elif item.__class__.__name__ == "Answer":
-				text = "%s (%s)" % (item.linkStringWithQuestionNameAndReferentLink(), TERMS["term_answer"])
+				resultText = "%s (%s)" % (item.linkStringWithQuestionNameAndReferentLink(), TERMS["term_answer"])
 			elif item.__class__.__name__ == "Link":
-				text = "%s (%s)" % (item.linkStringWithFromItem(), TERMS["term_link"])
-			otherItemsResult.append(text)
+				resultText = "%s (%s)" % (item.linkStringWithFromItem(), TERMS["term_link"])
+			otherItemsResult.append(resultText)
 		return entriesResult, otherItemsResult
 	
 	def getNonDraftEntriesOfType(self, type):
@@ -4236,3 +4236,10 @@ def upToWithLink(value, number, link):
 		result = value
 	return result
 
+def BoldAWordInText(text, word):
+	result = text
+	wordExpression = re.compile(re.escape(word), re.IGNORECASE)
+	matches = wordExpression.findall(result)
+	for match in matches:
+		result = result.replace(match, '<b>%s</b>' % match)
+	return result
