@@ -1,7 +1,7 @@
 # ============================================================================================ 
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: beta (0.9+)
+
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # ============================================================================================ 
@@ -374,6 +374,7 @@ TERMS = {
 		"term_no_subject": u"No subject", # for a comment or request
 		"term_could_not_email_admins": u"Actually, that's not true. Rakontu could NOT send an email about this issue to the site administrator(s) because the saved email address is invalid. Please contact your site administrator for help.",
 		 "term_linked_item_removed": u"(linked item removed)",
+		 "term_member": "member",
 		}
 
 # ============================================================================================ 
@@ -630,11 +631,12 @@ TEMPLATE_TERMS = {
 		"template_rakontu_motto": u"Helping people take good care of their stories.",
 		"template_you_are_member_of": u"You are a member of these Rakontus.",
 		"template_you_are_invited_to": u"You have been invited to join these Rakontus.",
+		"template_you_can_join": u"You can join these Rakontus.", # << TRANSLATION REQUIRED >>
 		"template_from_google": u"from Google",
 		"template_must_be_logged_in": u"You must be signed in to a Google account to use Rakontu.",
 		"template_login": u"Sign in",
 		"template_at_google": u"at Google",
-		"template_you_have_no_rakontus_to_visit": u"You are not a member of (or invited to) any Rakontus on this site. Rakontus are invitation-only, private spaces. To join a Rakontu, ask one of its managers to invite you to it.",
+		"template_you_have_no_rakontus_to_visit": u"You are not a member of (or invited to join) any Rakontus on this site. Rakontus are invitation-only, private spaces. To join a Rakontu, ask one of its managers to invite you to it.",
 		# admin/admin
 		"template_site_initialization_tasks": u"Site initialization tasks",
 		"template_generate": u"Generate",
@@ -841,6 +843,14 @@ TEMPLATE_TERMS = {
 		"template_discussion_group_url": u"Discussion group link",
 		# manage/settings
 		"template_things_members_can_do": u"Things members can do",
+		
+		"template_accept_non_invited_members": u"Are visitors allowed to join without being explicitly invited?", # << TRANSLATION REQUIRED >>
+		"template_yes_rakontu_accepts_non_invited_members": u"Yes, visitors can join by clicking on a link",  # << TRANSLATION REQUIRED >>
+		"template_show_start_icon_for_non_invited_members": u"If non-invited visitors can join, does the icon show on the site start page?",  # << TRANSLATION REQUIRED >>
+		"template_yes_show_start_icon": u"Yes, show the Rakontu icon on the start page for non-member visitors", # << TRANSLATION REQUIRED >>
+		"template_use_email_as_new_member_nickname": u"Should new member nicknames default to emails?", # << TRANSLATION REQUIRED >>
+		"template_yes_use_email_as_new_member_nickname": u"Yes, use emails for new member nicknames", # << TRANSLATION REQUIRED >>
+		
 		"template_how_many_attachments": u"How many attachments are allowed per entry?",
 		"template_fictional_characters": u"Fictional characters",
 		"template_is_entry_by_character_allowed": u"Is entry via fictional character allowed for each of these entry types?",
@@ -994,7 +1004,7 @@ TEMPLATE_TERMS = {
 		"template_empty_rakontu_message": u"This Rakontu has no entries in it. Use the Create menu to add the first story or invitation.",
 		# visit/leave
 		"template_are_you_sure": u"Are you sure?",
-		"template_leaving_warning": u"Are you absolutely, completely, really, totally certain that you want to leave this Rakontu? If you do, you will have to ask a manager of the Rakontu if you want to rejoin.",
+		"template_leaving_warning": u"Are you absolutely, completely, really, totally certain that you want to leave this Rakontu? If you do, you may have to ask a manager of the Rakontu if you want to rejoin.",
 		# visit/member
 		"template_information_about": u"Information about",
 		"template_information_about_this": u"Information about this",
@@ -1021,6 +1031,7 @@ TEMPLATE_TERMS = {
 		"template_resources_for_new_members": u"You may find these resources helpful for getting started",
 		"template_about_help_icons": u"Around the site you will see little icons that provide help. Either hover over them with your mouse or click on them to read them.",
 		"template_how_to_get_to_new_member_page_again": u"You can return to this page later by clicking the link at the bottom of the Help page.",
+		"template_leave_rakontu_for_new_member_page": u"To cancel joining this Rakontu, click here.", # << TRANSLATION REQUIRED >>
 		# visit/preview
 		"template_with_reference_to_the": u"with reference to the",
 		# visit/previewAnswers

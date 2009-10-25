@@ -1,5 +1,5 @@
 application: rakontu
-version: alpha-0-9-6
+version: 1-0-0-beta-1
 runtime: python
 api_version: 1
 

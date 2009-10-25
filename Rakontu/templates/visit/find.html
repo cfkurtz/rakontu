@@ -8,65 +8,64 @@
 	<div id="rakontu_form_style" class="rakontu_form">
 	<form action="/{{dir_visit}}/{{url_find}}?{{rakontu.urlQuery}}" method="post">
 	
-	<p>{{template_find}}:
-	<input type="text" name="findWhat" value="{{find_text|orNothing}}" maxlength="{{maxlength_name}}" size="40"/>
+	<fieldset>
+	<table style="border:none">
+	<tr><td style="border:none">
+	<p>{{template_find}}</p>
+	<p>&nbsp; &nbsp; <input type="text" name="findWhat" value="{{find_text|orNothing}}" maxlength="{{maxlength_name}}" size="60"/>
+	{{"simple_search"|tip}}</p>
 	
-	<input type="checkbox" name="includeHelpResources" value="yes" id="includeHelpResources"
-	{% if include_help_resources %}
-		checked
-	{% endif %}
-	>
-	<label for="includeHelpResources">{{template_include_help_resources}}</label>
-
-	<input type="submit" name="find" value="{{button_search}}" class="button">
-	{{"simple_search"|tip}}
+	<p>&nbsp; &nbsp; 
+	{% for i in entry_choices|makeRangeFromListLength %}
+		<input type="checkbox" name="{{entry_choices|listLookup:i}}" value="yes" id="{{entry_choices|listLookup:i}}"
+		{% if entry_choices_picked|listLookup:i %}
+			checked
+		{% endif %}
+		>
+		<label for="{{entry_choices|listLookup:i}}">{{entry_choices_display|listLookup:i}}</label>
+	{% endfor %}
 	</p>
 	
+	<p>&nbsp; &nbsp; 
+	{% for i in annotation_choices|makeRangeFromListLength %}
+		<input type="checkbox" name="{{annotation_choices|listLookup:i}}" value="yes" id="{{annotation_choices|listLookup:i}}"
+		{% if annotation_choices_picked|listLookup:i %}
+			checked
+		{% endif %}
+		>
+		<label for="{{annotation_choices|listLookup:i}}">{{annotation_choices_display|listLookup:i}}</label>
+	{% endfor %}
+	</p>
+	
+	</td><td style="border:none">
+	<input type="submit" name="find" value="{{button_search}}" class="button">
+	</td></tr></table>
+	</fieldset>
 	</form>	
 	</div>
 	
 	{% if find_text %}
-		<hr>
-	{% endif %}
-	
-	{% if find_text %}
-		<h3>
-		{% if entry_texts %}
-			{{entry_texts|length}}
-		{% endif %}
-		{{template_matching_entries_for}} "{{find_text}}" ({{template_sorted_by_relevance}})</h3>
-	{% endif %}
-	{% if entry_texts %}
-		<ul>
-		{% for text in entry_texts %}
-			<li class="nobullet" style="margin:4px 4px 4px 4px;">{{text}}</li>
+		{% for key in texts_dict.keys|sorted %}
+			{% if texts_dict|dictLookup:key|length %}
+				<h3> 
+			{% else %}
+				<p><i>
+			{% endif %}
+			{{key|capitalize}} ({{texts_dict|dictLookup:key|length}}) 
+			{% if texts_dict|dictLookup:key|length %}
+				</h3>
+			{% else %}
+				</i></p>
+			{% endif %}
+			{% if texts_dict|dictLookup:key|length %}
+				<ul>
+				{% for text in texts_dict|dictLookup:key %}
+					<li class="nobullet" style="margin:4px 4px 4px 4px;">{{text}}</li>
+				{% endfor %}
+				</ul>
+			{% endif %}
 		{% endfor %}
-		</ul>
-	{% else %}
-		{% if find_text %}
-			<p>&nbsp; &nbsp; <i>{{template_no_entries_match_search}} "{{find_text}}"</i></p>
-		{% endif %}
 	{% endif %}
-	
-	{% if find_text %}
-		<h3>
-		{% if other_item_texts %}
-			{{other_item_texts|length}}
-		{% endif %}
-		{{template_matching_annotations_answers_and_links}} "{{find_text}}" ({{template_sorted_by_relevance}})</h3>
-	{% endif %}
-	{% if other_item_texts %}
-		<ul>
-		{% for text in other_item_texts %}
-			<li class="nobullet" style="margin:4px 4px 4px 4px;">{{text}}</li>
-		{% endfor %}
-		</ul>
-	{% else %}
-		{% if find_text %}
-			<p>&nbsp; &nbsp; <i>{{template_no_annotations_answers_or_links_match_search}} "{{find_text}}"</i></p>
-		{% endif %}
-	{% endif %}
-	
 	
 	<p>&nbsp;</p>
 		

@@ -12,33 +12,81 @@ for later on.
 To write this, I've just sat here and noted here everything I think I <i>might</i> forget (which is a lot)
 and which I think may be important to remember later.</P.
 
-<h3>Where stuff is</h3>
+<h3>Basic information</h3>
+
+<h4>Models</h4>
+
+<pre>
+Rakontu
+	Question
+	Character
+		Answer
+	Member
+		ViewOptions
+		Answer
+		Entry
+			Annotation
+			Answer
+			Link
+			TextVersion
+</pre>
+
+<h4>Where stuff is</h4>
 
 xxxxx
 
-<h3>Things Rakontu needs done</h3>
+<h3>How to do things</h3>
 
+- to upload app to multiple app instances
+1 - start a terminal window
+2 - cd to the directory ABOVE where your Rakontu source code is
+3 - on the mac type
+/usr/local/bin/appcfg.py update Rakontu --no_cookies --email=cynthia.f.kurtz@gmail.com --application=rakontu-sandbox 
+
+then I had to do this:
+/usr/local/bin/appcfg.py update_indexes Rakontu --no_cookies --email=cynthia.f.kurtz@gmail.com --application=rakontu-sandbox
+
+you may need to find appcfg.py on your system. look at the GAE launcher to see.
+
+- to map the new app domain to a google apps domain
+
+1 - get google apps account
+2 - in dashboard for your app, click application settings, then add domain (note the instructions say versions but it is not there)
+3 - put in your google apps domain 
+4 - do the CNAME instructions that follow on your IP provider
+5 - wait a few hours for the DNS changes to propagate
+6 - your url should work
+
+http://code.google.com/appengine/articles/domains.html
+http://www.google.com/support/a/bin/answer.py?answer=91080
+http://www.google.com/support/a/bin/answer.py?hl=en&answer=47283
+
+<h3>Things that need doing</h3>
+
+SMALL THINGS
+add cancel LINKS on all pages that save things? (links should say where they go to)
+
+BIG THINGS
 testing
 code review
 better graphics
 more documentation - tutorials, etc
 
-<h3>Things that surprised me (and may surprise you, if you don't read this)</h3>
+<h3>Rules for changing the Rakontu code</h3>
+
+- don't add any raw text to the templates
+
+
+
+<h3>Things you just need to know</h3>
+
+
+<h4>Things that surprised me (and may surprise you, if you don't read this)</h4>
 
 - the django ifequal bug
 
 
-Things I want to do
-
-add cancel LINKS on all pages that save things? (links should say where they go to)
-
-
-<h3>Things NOT to do</h3>
-
-- don't add any raw text to the templates
-- 
-
-<h3>Things I am not happy about</h3>
+<h4>Things I am not happy about</h4>
 
 transactions should be using keys_only queries
 
@@ -48,7 +96,7 @@ needs better error handling. no try excepts around puts or transactions. have gl
 
 unit testing, testing suites
 
-<h4>Template (html) files</h4>
+<h4>Changing template files</h4>
 
 <p>You can change the files in the "templates" directory to customize how your Rakontu looks and works.
 However, follow a few guidelines:

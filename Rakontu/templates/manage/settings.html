@@ -13,6 +13,31 @@
 		
 			<h3>{{template_things_members_can_do}}</h3>
 			<fieldset>
+			
+			<p>{{template_accept_non_invited_members}} {{"non_invited_members"|info}}</p>
+				<p>&nbsp; <input type="checkbox" name="acceptsNonInvitedMembers" value="yes" id="acceptsNonInvitedMembers"
+				{% if rakontu.acceptsNonInvitedMembers %}
+					checked="checked"
+				{% endif %}
+				>
+				<label for="acceptsNonInvitedMembers">{{template_yes_rakontu_accepts_non_invited_members}}</label></p>
+				
+			<p>{{template_show_start_icon_for_non_invited_members}} {{"start_icons"|info}}</p>
+				<p>&nbsp; <input type="checkbox" name="showStartIconForNonInvitedMembers" value="yes" id="showStartIconForNonInvitedMembers"
+				{% if rakontu.showStartIconForNonInvitedMembers %}
+					checked="checked"
+				{% endif %}
+				>
+				<label for="showStartIconForNonInvitedMembers">{{template_yes_show_start_icon}}</label></p>
+				
+			<p>{{template_use_email_as_new_member_nickname}} {{"new_member_nicknames"|info}}</p>
+				<p>&nbsp; <input type="checkbox" name="useGoogleEmailAsNewMemberNickname" value="yes" id="useGoogleEmailAsNewMemberNickname"
+				{% if rakontu.useGoogleEmailAsNewMemberNickname %}
+					checked="checked"
+				{% endif %}
+				>
+				<label for="useGoogleEmailAsNewMemberNickname">{{template_yes_use_email_as_new_member_nickname}}</label></p>
+				
 			{% if site_allows_attachments %}
 				<p>{{template_how_many_attachments}} {{"allowing_attachments"|tip}}</p>
 					<p>&nbsp; <select name="maxNumAttachments" style="width: 60px;">

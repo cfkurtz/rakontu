@@ -1,7 +1,7 @@
 ﻿# ============================================================================================
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: beta (0.9+)
+
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # ============================================================================================
@@ -142,6 +142,9 @@ class Rakontu(db.Model):
 	created = TzDateTimeProperty(auto_now_add=True, indexed=False) 
 
 	# governance options
+	acceptsNonInvitedMembers = db.BooleanProperty(default=False)
+	showStartIconForNonInvitedMembers = db.BooleanProperty(default=False)
+	useGoogleEmailAsNewMemberNickname = db.BooleanProperty(default=False)
 	maxNumAttachments = db.IntegerProperty(choices=NUM_ATTACHMENT_CHOICES, default=DEFAULT_MAX_NUM_ATTACHMENTS, indexed=False)
 	maxNudgePointsPerEntry = db.IntegerProperty(default=DEFAULT_MAX_NUDGE_POINTS_PER_ENTRY, indexed=False)
 	memberNudgePointsPerEvent = db.ListProperty(int, default=DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS, indexed=False)
@@ -485,51 +488,64 @@ class Rakontu(db.Model):
 				result.append(entry)
 		return result
 	
-	def getItemsMatchingPlainText(self, text, includeHelpResources):
-		entriesWithCounts = []
-		otherItemsWithCounts = []
+	def getItemsMatchingPlainText(self, text, entryTypesToInclude, annotationTypesToInclude):
+		itemsWithCountsDictionary = {}
 		entries = self.getNonDraftEntries()
 		for entry in entries:
-			numMatches = entry.numMatchesWithPlainText(text)
-			if numMatches > 0:
-				if includeHelpResources:
-					add = True
+			if entry.type in entryTypesToInclude:
+				if not itemsWithCountsDictionary.has_key(entry.type):
+					itemsWithCountsDictionary[entry.type] = []
+				numMatches = entry.numMatchesWithPlainText(text)
+				if numMatches > 0:
+					itemsWithCountsDictionary[entry.type].append((entry, numMatches))
+			for annotationType in annotationTypesToInclude:
+				if not itemsWithCountsDictionary.has_key(annotationType):
+					itemsWithCountsDictionary[annotationType] = []
+				if annotationType == "link":
+					for link in entry.getAllLinks():
+						numMatches = link.numMatchesWithPlainText(text)
+						if numMatches > 0:
+							# must check for link already being there from another entry
+							foundLink = False
+							for aLink, aMatchNum in itemsWithCountsDictionary["link"]:
+								if str(aLink.key()) == str(link.key()):
+									foundLink = True
+									break
+							if not foundLink:
+								itemsWithCountsDictionary["link"].append((link, numMatches))
+				elif annotationType == "answer":
+					for answer in entry.getAnswers():
+						numMatches = answer.numMatchesWithPlainText(text)
+						if numMatches > 0:
+							itemsWithCountsDictionary["answer"].append((answer, numMatches))
 				else:
-					add = entry.type != "resource" or not entry.resourceForHelpPage
-				if add:
-					entriesWithCounts.append((entry, numMatches))
-			for annotation in entry.getAnnotations():
-				numMatches = annotation.numMatchesWithPlainText(text)
-				if numMatches > 0:
-					otherItemsWithCounts.append((annotation, numMatches))
-			for answer in entry.getAnswers():
-				numMatches = answer.numMatchesWithPlainText(text)
-				if numMatches > 0:
-					otherItemsWithCounts.append((answer, numMatches))
-			for link in entry.getAllLinks():
-				numMatches = link.numMatchesWithPlainText(text)
-				if numMatches > 0:
-					otherItemsWithCounts.append((link, numMatches))
-		entriesWithCounts.sort(lambda a,b: cmp(b[1], a[1]))
-		otherItemsWithCounts.sort(lambda a,b: cmp(b[1], a[1]))
-		entriesResult = []
-		otherItemsResult = []
-		for entry, count in entriesWithCounts:
-			if entry.text_formatted:
-				resultText = "%s (%s) <p>%s</p>" % (entry.linkString(), entry.typeForDisplay(), 
-									upToWithLink(stripTags(entry.text_formatted), 400, entry.linkURL()))
-			else:
-				resultText = "%s (%s)" % (entry.linkString(), entry.typeForDisplay())
-			entriesResult.append(resultText)
-		for item, count in otherItemsWithCounts:
-			if item.__class__.__name__ == "Annotation":
-				resultText = "%s (%s)" % (item.linkStringWithEntryLink(showDetails=True), item.typeForDisplay())
-			elif item.__class__.__name__ == "Answer":
-				resultText = "%s (%s)" % (item.linkStringWithQuestionNameAndReferentLink(), TERMS["term_answer"])
-			elif item.__class__.__name__ == "Link":
-				resultText = "%s (%s)" % (item.linkStringWithFromItem(), TERMS["term_link"])
-			otherItemsResult.append(resultText)
-		return entriesResult, otherItemsResult
+					for annotation in entry.getAnnotations():
+						if annotation.type == annotationType:
+							numMatches = annotation.numMatchesWithPlainText(text)
+							if numMatches > 0:
+								itemsWithCountsDictionary[annotationType].append((annotation, numMatches))
+		result = {}
+		for key in itemsWithCountsDictionary.keys():
+			if key in ENTRY_TYPES:
+				displayForKey = CorrespondingItemFromMatchedOrderList(key, ENTRY_TYPES, ENTRY_TYPES_PLURAL_DISPLAY)
+			elif key in ANNOTATION_ANSWER_LINK_TYPES:
+				displayForKey = CorrespondingItemFromMatchedOrderList(key, ANNOTATION_ANSWER_LINK_TYPES, ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY)
+			result[displayForKey] = []
+			itemsWithCountsDictionary[key].sort(lambda a,b: cmp(b[1], a[1]))
+			for item, count in itemsWithCountsDictionary[key]:
+				if item.__class__.__name__ == "Annotation":
+					resultText = item.linkStringWithEntryLink(showDetails=True)
+				elif item.__class__.__name__ == "Answer":
+					resultText = item.linkStringWithQuestionNameAndReferentLink()
+				elif item.__class__.__name__ == "Link":
+					resultText = item.linkStringWithFromItem()
+				elif item.__class__.__name__ == "Entry":
+					if item.text_formatted:
+						resultText = "%s <p>%s</p>" % (item.linkString(), upToWithLink(stripTags(item.text_formatted), 400, item.linkURL()))
+					else:
+						resultText = item.linkString()
+				result[displayForKey].append(resultText)
+		return result
 	
 	def getNonDraftEntriesOfType(self, type):
 		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(FETCH_NUMBER)

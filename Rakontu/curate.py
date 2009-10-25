@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------------------------
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: beta (0.9+)
+
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 								   'answers': answers,
 								   'links': links,
 								   'filters': filters,
-								   'filter_locations': SEARCH_LOCATIONS,
+								   'filter_locations': FILTER_LOCATIONS,
 								   'filter_locations_display': FILTER_LOCATIONS_DISPLAY,
 								   'changes_saved': GetChangesSavedState(member),
 								   })

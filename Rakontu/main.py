@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------------------------
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: beta (0.9+)
+
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ urlInfo = [('/', StartPage),
 	  (BuildURL("dir_visit"), BrowseEntriesPage),
 	  (BuildURL("dir_visit", extraSlash=True), BrowseEntriesPage),
 	  (BuildURL("dir_visit", "url_filter"), FilterEntryPage),
-	  (BuildURL("dir_visit", "url_find"), FindEntryPage),
+	  (BuildURL("dir_visit", "url_find"), SimpleSearchPage),
 	  (BuildURL("dir_visit", "url_read"), ReadEntryPage),
 	  (BuildURL("dir_visit", "url_read_annotation"), ReadAnnotationPage),
 	  # looking at people

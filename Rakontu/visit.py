@@ -12,6 +12,7 @@ class StartPage(ErrorHandlingRequestHander):
 		user = users.get_current_user()
 		rakontusTheyAreAMemberOf = []
 		rakontusTheyAreInvitedTo = []
+		rakontusTheyAreNotAMemberOfButCanJoin = []
 		if user:
 			for member in Member.all().filter("googleAccountID = ", user.user_id()):
 				if member.rakontu and member.active:
@@ -19,13 +20,27 @@ class StartPage(ErrorHandlingRequestHander):
 			for pendingMember in PendingMember.all().filter("email = ", user.email()):
 				if pendingMember.rakontu:
 					rakontusTheyAreInvitedTo.append(pendingMember.rakontu)
+			for rakontu in Rakontu.all():
+				if rakontu.acceptsNonInvitedMembers and rakontu.showStartIconForNonInvitedMembers:
+					alreadyIn = False
+					for inRakontu in rakontusTheyAreAMemberOf:
+						if str(inRakontu.key()) == str(rakontu.key()):
+							alreadyIn = True
+					invitedTo = False
+					for invitedToRakontu in rakontusTheyAreInvitedTo:
+						if str(invitedToRakontu.key()) == str(rakontu.key()):
+							invitedTo = True
+					if not alreadyIn and not invitedTo:
+						rakontusTheyAreNotAMemberOfButCanJoin.append(rakontu)
 			rakontusTheyAreAMemberOf.sort(lambda a,b: cmp(a.name, b.name))
 			rakontusTheyAreInvitedTo.sort(lambda a,b: cmp(a.name, b.name))
+			rakontusTheyAreNotAMemberOfButCanJoin.sort(lambda a,b: cmp(a.name, b.name))
 		template_values = GetStandardTemplateDictionaryAndAddMore({
 						   'title': None,
 						   'user': user, 
 						   'rakontus_member_of': rakontusTheyAreAMemberOf,
 						   'rakontus_invited_to': rakontusTheyAreInvitedTo,
+						   'rakontus_can_join': rakontusTheyAreNotAMemberOfButCanJoin,
 						   'login_url': users.create_login_url("/"),
 						   'logout_url': users.create_logout_url("/"),
 						   "blurbs": BLURBS,
@@ -591,7 +606,7 @@ class SeeRakontuMembersPage(ErrorHandlingRequestHander):
 		else:
 			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
-class FindEntryPage(ErrorHandlingRequestHander):
+class SimpleSearchPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -599,25 +614,35 @@ class FindEntryPage(ErrorHandlingRequestHander):
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			key = "find:%s" % member.key()
 			try:
-				findWhat, includeHelpResources = memcache.get(key)
+				findWhat, entryTypesToInclude, annotationTypesToInclude = memcache.get(key)
+				entryTypeBooleans = []
+				for i in range(len(ENTRY_TYPES)):
+					entryTypeBooleans.append(ENTRY_TYPES[i] in entryTypesToInclude)
+				annotationTypeBooleans = []
+				for i in range(len(ANNOTATION_ANSWER_LINK_TYPES)):
+					annotationTypeBooleans.append(ANNOTATION_ANSWER_LINK_TYPES[i] in annotationTypesToInclude)
 				memcache.delete(key)
 			except:
 				findWhat = None
-				includeHelpResources = False
+				entryTypeBooleans = None
+				annotationTypeBooleans = None
 			if findWhat:
-				entryTexts, otherItemTexts = rakontu.getItemsMatchingPlainText(findWhat, includeHelpResources)
+				textsDictionary = rakontu.getItemsMatchingPlainText(findWhat, entryTypesToInclude, annotationTypesToInclude)
 			else:
-				entryTexts = None
-				otherItemTexts = None
+				textsDictionary = None
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': TITLES["FIND_ENTRY"], 
 							   'rakontu': rakontu, 
 							   'skin': rakontu.getSkinDictionary(),
 							   'current_member': member,
 							   'find_text': findWhat,
-							   'entry_texts': entryTexts,
-							   'other_item_texts': otherItemTexts,
-							   'include_help_resources': includeHelpResources,
+							   'texts_dict': textsDictionary,
+							   'entry_choices': ENTRY_TYPES,
+							   'entry_choices_display': ENTRY_TYPES_PLURAL_DISPLAY,
+							   'entry_choices_picked': entryTypeBooleans,
+							   'annotation_choices': ANNOTATION_ANSWER_LINK_TYPES,
+							   'annotation_choices_display': ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY,
+							   'annotation_choices_picked': annotationTypeBooleans,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/find.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -630,9 +655,16 @@ class FindEntryPage(ErrorHandlingRequestHander):
 		if access:
 			if "find" in self.request.arguments():
 				findWhat = self.request.get("findWhat")
-				includeHelpResources = self.request.get("includeHelpResources") == "yes"
+				entryTypesToInclude = []
+				annotationTypesToInclude = []
+				for type in ENTRY_TYPES:
+					if self.request.get(type) == "yes":
+						entryTypesToInclude.append(type)
+				for type in ANNOTATION_ANSWER_LINK_TYPES:
+					if self.request.get(type) == "yes":
+						annotationTypesToInclude.append(type)
 				if findWhat:
-					memcache.add("find:%s" % member.key(), (findWhat, includeHelpResources), HOUR_SECONDS)
+					memcache.add("find:%s" % member.key(), (findWhat, entryTypesToInclude, annotationTypesToInclude), HOUR_SECONDS)
 				self.redirect(self.request.uri)
 		else:
 			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
@@ -1408,7 +1440,7 @@ class ChangeMemberFiltersPage(ErrorHandlingRequestHander):
 							   'filters': member.getSavedFilters(),
 							   'refer_type': "member",
 							   'refer_type_display': DisplayTypeForQuestionReferType("member"),
-							   'filter_locations': SEARCH_LOCATIONS,
+							   'filter_locations': FILTER_LOCATIONS,
 							   'filter_locations_display': FILTER_LOCATIONS_DISPLAY,
 							   'blurbs': BLURBS,
 							   'changes_saved': GetChangesSavedState(member),
@@ -1531,7 +1563,7 @@ class FilterEntryPage(ErrorHandlingRequestHander):
 							'skin': rakontu.getSkinDictionary(),
 							'current_member': member, 
 							'num_filter_fields': NUM_SEARCH_FIELDS,
-							'filter_locations': SEARCH_LOCATIONS,
+							'filter_locations': FILTER_LOCATIONS,
 							'filter_locations_display': FILTER_LOCATIONS_DISPLAY,
 							'any_or_all_choices': ANY_ALL,
 							'any_or_all_choices_display': ANY_ALL_DISPLAY,
@@ -1697,10 +1729,10 @@ class FilterEntryPage(ErrorHandlingRequestHander):
 				# words
 				filter.words_anyOrAll = self.request.get("words_anyOrAll")
 				filter.words_locations = []
-				for i in range(len(SEARCH_LOCATIONS)):
+				for i in range(len(FILTER_LOCATIONS)):
 					filter.words_locations.append(self.request.get("location|%s" % i) == "yes")
 				if not filter.words_locations:
-					filter.words_locations = SEARCH_LOCATIONS[0]
+					filter.words_locations = FILTER_LOCATIONS[0]
 				filter.words = []
 				for i in range(NUM_SEARCH_FIELDS):
 					response = self.request.get("words|%s" % i).strip()

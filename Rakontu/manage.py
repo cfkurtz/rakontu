@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------------------------
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: beta (0.9+)
+
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------
@@ -344,6 +344,9 @@ class ManageRakontuSettingsPage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if member.isManagerOrOwner():
+				rakontu.acceptsNonInvitedMembers = self.request.get("acceptsNonInvitedMembers") == "yes"
+				rakontu.showStartIconForNonInvitedMembers = self.request.get("showStartIconForNonInvitedMembers") == "yes"
+				rakontu.useGoogleEmailAsNewMemberNickname = self.request.get("useGoogleEmailAsNewMemberNickname") == "yes"
 				rakontu.allowNonManagerCuratorsToEditTags = self.request.get("allowNonManagerCuratorsToEditTags") == "yes"
 				i = 0
 				for entryType in ENTRY_AND_ANNOTATION_TYPES:

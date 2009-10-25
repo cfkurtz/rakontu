@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------------------------
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: beta (0.9+)
+
 # License: GPL 3.0 
 # Google Code Project: http://code.google.com/p/rakontu/
 # --------------------------------------------------------------------------------------------- 
@@ -62,20 +62,33 @@ def GetCurrentMemberFromRakontuAndUser(rakontu, user):
 			member = ActiveMemberForUserIDAndRakontu(user.user_id(), rakontu)
 			if not member:
 				pendingMember = pendingMemberForEmailAndRakontu(user.email(), rakontu)
-				if pendingMember:
-					member = CreateMemberFromInfo(rakontu, user.user_id(), user.email(), user.email(), pendingMember.governanceType)
+				if pendingMember or rakontu.acceptsNonInvitedMembers:
+					if rakontu.acceptsNonInvitedMembers:
+						governanceType = "member"
+					else:
+						governanceType = pendingMember.governanceType
+					if rakontu.useGoogleEmailAsNewMemberNickname:
+						nickname = user.email()
+					else:
+						nickname = None 
+					member = CreateMemberFromInfo(rakontu, user.user_id(), user.email(), nickname, governanceType)
 					if member:
-						db.delete(pendingMember)
+						if pendingMember:
+							db.delete(pendingMember)
 	return member
 
 def CreateMemberFromInfo(rakontu, userId, email, nickname, joinAs, isOnline=True, liaison=None):
 	keyName = GenerateSequentialKeyName("member", rakontu)
 	def txn(rakontu, userId, email, nickname, joinAs, keyName):
+		if nickname:
+			nicknameToUse = nickname
+		else:
+			nicknameToUse = "%s %s" % (TERMS["term_member"].capitalize(), indexFromKeyName(keyName))
 		member = Member(
 			key_name=keyName, 
 			id=keyName,
 			parent=rakontu,
-			nickname=nickname,
+			nickname=nicknameToUse,
 			googleAccountID=userId,
 			googleAccountEmail=email,
 			isOnlineMember=isOnline,
@@ -341,12 +354,13 @@ class ErrorHandlingRequestHander(webapp.RequestHandler):
 			couldNotEmailMessage = TERMS["term_could_not_email_admins"]
 		# for database errors, send user to different message page
 		url = None
+		# note: I am no longer catching DeadlineExceededError here
+		# because I want to know if this happens so I can see where things need to be pared down
 		if exception.__class__.__name__ in [
 					"google.appengine.ext.db.Timeout", "Timeout",
-					"google.appengine.runtime.DeadlineExceededError", "DeadlineExceededError",
 					"google.appengine.runtime.CapabilityDisabledError", "CapabilityDisabledError"]:
 			url = DatabaseErrorURL(rakontu)
-		if exception.__class__.__name__ == "google.appengine.ext.db.TransactionFailedError":
+		elif exception.__class__.__name__ in ["google.appengine.ext.db.TransactionFailedError", "TransactionFailedError"]:
 			url = TransactionFailedURL(rakontu)
 		if url:
 			self.redirect(url)
@@ -671,7 +685,9 @@ def GenerateHelps():
 				type = row[0].strip()
 				name = row[1].strip()
 				translatedName = row[2].strip()
-				text = row[3].strip().replace("\n", "")[:500]
+				whereUsed = row[3] # not used
+				needsTranslating = row[4] # not used
+				text = row[5].strip().replace("\n", "")[:500]
 				help = Help(
 						key_name=keyName,  
 						id=keyName,

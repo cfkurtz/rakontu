@@ -44,8 +44,24 @@
 			{% endfor %}
 			</tr></table>
 		{% endif %}
+		{% if rakontus_can_join %}
+			<p>{{template_you_can_join}}</p>
+			<table cellpadding=4 cellspacing=0 style="border:none;">
+			<tr>
+			{% for rakontu in rakontus_can_join %}
+				<td align="center" style="border:none;">
+				{% if rakontu.image %}
+					<a href="{{rakontu.linkURL}}">{{rakontu.imageEmbed}}</a>
+				{% else %}
+					<a href="{{rakontu.linkURL}}"><img src="/images/Rakontu.jpg" width="100" height="64" alt="{{template_rakontu_logo}}" class="bordered"></a>
+				{% endif %}
+				<br/>{{rakontu.linkString}}
+				</td>
+			{% endfor %}
+			</tr></table>
+		{% endif %}
 		
-		{% if not rakontus_member_of and not rakontus_invited_to %}
+		{% if not rakontus_member_of and not rakontus_invited_to and not rakontus_can_join %}
 			<p>{{template_you_have_no_rakontus_to_visit}}</p>
 		{% endif %}
 		<p>&nbsp;</p>

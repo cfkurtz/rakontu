@@ -1,7 +1,7 @@
 # ============================================================================================
 # RAKONTU
 # Description: Rakontu is open source story sharing software.
-# Version: beta (0.9+)
+
 # License: GPL 3.0
 # Google Code Project: http://code.google.com/p/rakontu/
 # ============================================================================================
@@ -62,7 +62,7 @@ QUESTION_TYPES = ["boolean", "text", "ordinal", "nominal", "value"]
 
 # filters
 ANY_ALL = ["any", "all"]
-SEARCH_LOCATIONS = ["in the title", "in the text", "in a comment", "in a request", "in a nudge comment", "in a link comment"]
+FILTER_LOCATIONS = ["in the title", "in the text", "in a comment", "in a request", "in a nudge comment", "in a link comment"]
 ANSWER_COMPARISON_TYPES = ["contains", "is", "is greater than", "is less than"]
 
 # sort by strings for gaps
