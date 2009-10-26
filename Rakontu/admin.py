@@ -250,6 +250,19 @@ class GenerateSystemResourcesPage(ErrorHandlingRequestHander):
 			self.redirect(BuildURL("dir_admin", "url_admin"))
 		else:
 			self.redirect(AdminOnlyURL())
+			
+class RecopySystemResourcePage(ErrorHandlingRequestHander):
+	@RequireLogin 
+	def get(self):
+		if users.is_current_user_admin():
+			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
+			if entry:
+				CopySystemResourceOverThisOneWithSameName(entry)
+				self.redirect(BuildURL("dir_visit", "url_read", entry.urlQuery(), rakontu=entry.rakontu))
+			else:
+				self.redirect(NotFoundURL(rakontu))
+		else:
+			self.redirect(AdminOnlyURL())
 				
 class GenerateHelpsPage(ErrorHandlingRequestHander):
 	@RequireLogin 

@@ -1103,6 +1103,7 @@ TEMPLATE_TERMS = {
 		"template_counts_of_annotations_to": u"Counts of annotations to", # entry title
 		"template_shift_by": u"Admin only: Shift times by", # this is for admin only, to prepare demos mainly
 		"template_activity_points": u"Activity points",
+		"template_recopy_system_resource": u"Recopy this resource from the system - overwrite any changes", # # this is for admin only, to update help resources for changes
 		# visit/readAnnotation
 		"template_request_type": u"Request type",
 		"template_completion_status": u"Status",
@@ -1356,7 +1357,7 @@ BLURBS = {
 	of the page. Stories are shown in a <b>timeline</b> from left to right. Click on a story <b>title</b> to read it.
 	If there aren't any stories yet, why not tell the first one! Choose Create - <b>Tell a story</b>.</p>
 	<hr>
-	<p>You might also like to change your <b>nickname</b> to something nicer than your email address,
+	<p>You might also like to change your <b>nickname</b> to something nicer,
 	and you can add a picture and some details about yourself, if you like. Choose My stuff - <b>Profile</b> 
 	to do that.
 	</p>
@@ -1617,6 +1618,7 @@ URLS = {
     "url_helps": u"helps",
     "url_skins": u"skins",
     "url_confirm_remove_rakontu": u"confirmRemoval",
+    "url_recopy_system_resource": u"recopyResource", # << TRANSLATION REQUIRED >>
     # testing
     "url_make_fake_data": u"makeFakeData",
     "url_stress_test": u"stressTest",

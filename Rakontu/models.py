@@ -10,7 +10,7 @@ import logging, pytz, re, csv, uuid, random
 from datetime import *
 from pytz import timezone
 
-VERSION_NUMBER = "0.9"
+VERSION_NUMBER = "1.0 beta 1"
 
 from translationLookup import *
 
@@ -489,13 +489,14 @@ class Rakontu(db.Model):
 		return result
 	
 	def getItemsMatchingPlainText(self, text, entryTypesToInclude, annotationTypesToInclude):
+		textWords = SplitQueryIntoPartsConsideringQuotedTexts(text)
 		itemsWithCountsDictionary = {}
 		entries = self.getNonDraftEntries()
 		for entry in entries:
 			if entry.type in entryTypesToInclude:
 				if not itemsWithCountsDictionary.has_key(entry.type):
 					itemsWithCountsDictionary[entry.type] = []
-				numMatches = entry.numMatchesWithPlainText(text)
+				numMatches = entry.numMatchesWithPlainText(textWords)
 				if numMatches > 0:
 					itemsWithCountsDictionary[entry.type].append((entry, numMatches))
 			for annotationType in annotationTypesToInclude:
@@ -503,7 +504,7 @@ class Rakontu(db.Model):
 					itemsWithCountsDictionary[annotationType] = []
 				if annotationType == "link":
 					for link in entry.getAllLinks():
-						numMatches = link.numMatchesWithPlainText(text)
+						numMatches = link.numMatchesWithPlainText(textWords)
 						if numMatches > 0:
 							# must check for link already being there from another entry
 							foundLink = False
@@ -515,13 +516,13 @@ class Rakontu(db.Model):
 								itemsWithCountsDictionary["link"].append((link, numMatches))
 				elif annotationType == "answer":
 					for answer in entry.getAnswers():
-						numMatches = answer.numMatchesWithPlainText(text)
+						numMatches = answer.numMatchesWithPlainText(textWords)
 						if numMatches > 0:
 							itemsWithCountsDictionary["answer"].append((answer, numMatches))
 				else:
 					for annotation in entry.getAnnotations():
 						if annotation.type == annotationType:
-							numMatches = annotation.numMatchesWithPlainText(text)
+							numMatches = annotation.numMatchesWithPlainText(textWords)
 							if numMatches > 0:
 								itemsWithCountsDictionary[annotationType].append((annotation, numMatches))
 		result = {}
@@ -2217,10 +2218,9 @@ class Answer(db.Model):
 			result +=  "%s" % self.answerIfValue
 		return result
 	
-	def numMatchesWithPlainText(self, text):
+	def numMatchesWithPlainText(self, textWords):
 		matches = 0
-		words = text.split()
-		for word in words:
+		for word in textWords:
 			if self.questionType == "text":
 				if caseInsensitiveFind(self.answerIfText, word):
 					matches += 1
@@ -2561,10 +2561,9 @@ class Entry(db.Model):
 		result.extend(self.getTextVersions())
 		return result
 	
-	def numMatchesWithPlainText(self, text):
+	def numMatchesWithPlainText(self, textWords):
 		matches = 0
-		words = text.split()
-		for word in words:
+		for word in textWords:
 			if caseInsensitiveFind(self.title, word):
 				matches += 1
 			if caseInsensitiveFind(self.text, word):
@@ -3330,10 +3329,9 @@ class Link(db.Model):
 			result += ", (%s)" % self.comment
 		return result
 	
-	def numMatchesWithPlainText(self, text):
+	def numMatchesWithPlainText(self, textWords):
 		matches = 0
-		words = text.split()
-		for word in words:
+		for word in textWords:
 			if caseInsensitiveFind(self.comment, word):
 				matches += 1
 		return matches
@@ -3631,10 +3629,9 @@ class Annotation(db.Model):
 			return resultString
 		
 		
-	def numMatchesWithPlainText(self, text):
+	def numMatchesWithPlainText(self, textWords):
 		matches = 0
-		words = text.split()
-		for word in words:
+		for word in textWords:
 			if self.isCommentOrRequest():
 				if caseInsensitiveFind(self.shortString, word):
 					matches += 1
@@ -4251,6 +4248,15 @@ def upToWithLink(value, number, link):
 	else:
 		result = value
 	return result
+
+def SplitQueryIntoPartsConsideringQuotedTexts(query):
+	quotedParts = re.compile(r'"(.+?)"').findall(query)
+	queryWithoutQuotedParts = query
+	for part in quotedParts:
+	        queryWithoutQuotedParts = queryWithoutQuotedParts.replace('"%s"' % part, '')
+	words = queryWithoutQuotedParts.split()
+	words.extend(quotedParts)
+	return words
 
 def BoldAWordInText(text, word):
 	result = text

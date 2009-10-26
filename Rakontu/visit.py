@@ -615,6 +615,7 @@ class SimpleSearchPage(ErrorHandlingRequestHander):
 			key = "find:%s" % member.key()
 			try:
 				findWhat, entryTypesToInclude, annotationTypesToInclude = memcache.get(key)
+				findWhatEscaped = htmlEscape(findWhat)
 				entryTypeBooleans = []
 				for i in range(len(ENTRY_TYPES)):
 					entryTypeBooleans.append(ENTRY_TYPES[i] in entryTypesToInclude)
@@ -624,6 +625,7 @@ class SimpleSearchPage(ErrorHandlingRequestHander):
 				memcache.delete(key)
 			except:
 				findWhat = None
+				findWhatEscaped = None
 				entryTypeBooleans = None
 				annotationTypeBooleans = None
 			if findWhat:
@@ -635,7 +637,7 @@ class SimpleSearchPage(ErrorHandlingRequestHander):
 							   'rakontu': rakontu, 
 							   'skin': rakontu.getSkinDictionary(),
 							   'current_member': member,
-							   'find_text': findWhat,
+							   'find_text': findWhatEscaped,
 							   'texts_dict': textsDictionary,
 							   'entry_choices': ENTRY_TYPES,
 							   'entry_choices_display': ENTRY_TYPES_PLURAL_DISPLAY,

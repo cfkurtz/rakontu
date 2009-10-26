@@ -114,7 +114,7 @@ Most entries will be stories; but there are also four other kinds of entry.
   * *Patterns* are observations about stories that have been told, usually together with answers to questions about them. 
   Patterns might be things like "I noticed that people over 60 were more likely to tell stories about hats, while people under 
   30 were more likely to tell stories about cats." While a collage is essentially an annotated list of stories, a pattern is 
-  an annotated list of queries, or search filters.
+  an annotated list of queries, or filters.
 
   * *Resources* are things put into the system to help people participate in the Rakontu, either to help them tell 
   stories or to provide useful information. Resources might include getting started guides as well as information about 
@@ -217,11 +217,15 @@ Help resource=yes
 Interpret as=Wiki markup
 Managers only=no
 
-All searching in Rakontu is done by creating and using search *filters*. When you search using filters, you don't go to a separate "search results" page with a simple list of matching items. Instead, you _change_ what is shown on the same timelines you see on your Rakontu's home page and on each member's page (and character pages if your Rakontu has characters). In this way you can move back and forth through time and see the nudge levels (height) and activity levels (size) of items while you are looking at a subset of items based on your search.
+There are two ways to search in Rakontu: simple search and filtering.
 
-Members of your Rakontu can *share* some of the search filters they create. Shared search filters can be used by everyone, but they can only be changed by their creators. Shared filters can also be used as elements in patterns. To use a shared filter, look at the list of filters in the "Search filters" area of the options below any of the timelines. If there are no shared search filters, you'll just see something saying there are no filters and that you can make one.
+Simple search is looking for words only, and everywhere at once. To do this, choose My stuff - Simple search, type in some words, choose what sorts of things you want to find, and click Search. The simple search works like a Google search - you search for all the words you type in, and the items with the most matches appear at the top of the list. You can include words you want to find together by putting quotes around them, as usual.
 
-To make a new search filter, click on "Make new filter" in the options section below the timeline on the home or member/character pages. You can search on:
+More complex searching is done using *filters*. When you use filters, you don't go to a separate results page with a simple list of matching items. Instead, you _change_ what is shown on the same timelines you see on your Rakontu's home page and on each member's page (and character pages if your Rakontu has characters). In this way you can move back and forth through time and see the nudge levels (height) and activity levels (size) of items while you are looking at a subset of items based on your search.
+
+Members of your Rakontu can *share* some of the filters they create. Shared filters can be used by everyone, but they can only be changed by their creators. Shared filters can also be used as elements in patterns. To use a shared filter, look at the list of filters in the "Filters" area of the options below any of the timelines. If there are no shared filters, you'll just see something saying there are no filters and that you can make one.
+
+To make a new filter, click on "Make new filter" in the options section below the timeline on the home or member/character pages. You can search on:
 
   * The title and/or text of the entry
   * Texts in annotations such as comments, requests, nudges, or links
@@ -253,9 +257,9 @@ For new members=no
 Help resource=yes
 Managers only=no
 
-A pattern is an observation about something you've noticed in your story museum. Perhaps there are fewer stories about crime than you expected, or when you searched for stories about crime you found more than you expected about neighbors helping neighbors. A pattern is a way to talk to each other about the story collection you have built together. Patterns typically link to one or more search filters, possibly contrasting them. For example, you might say: "I noticed that if you show stories where people said they were indifferent, you get a lot about the park, but if you search for stories where people said they felt frustrated, the stories are mostly about the beach. Why is that?" And then people can add comments to discuss it.
+A pattern is an observation about something you've noticed in your story museum. Perhaps there are fewer stories about crime than you expected, or when you searched for stories about crime you found more than you expected about neighbors helping neighbors. A pattern is a way to talk to each other about the story collection you have built together. Patterns typically link to one or more filters, possibly contrasting them. For example, you might say: "I noticed that if you show stories where people said they were indifferent, you get a lot about the park, but if you search for stories where people said they felt frustrated, the stories are mostly about the beach. Why is that?" And then people can add comments to discuss it.
 
-To create a pattern, choose "Describe a pattern" from the Create menu. Type in an explanation of what you noticed, and if you like, choose some shared search filters to include in the pattern. You can only used *shared* filters, so if you noticed something using your private filters you need to change the filter to switch it to sharing. Like stories, patterns can have comments, requests, nudges, and tags added to them; and they can be linked to other patterns (and invitations, etc). 
+To create a pattern, choose "Describe a pattern" from the Create menu. Type in an explanation of what you noticed, and if you like, choose some shared filters to include in the pattern. You can only used *shared* filters, so if you noticed something using your private filters you need to change the filter to switch it to sharing. Like stories, patterns can have comments, requests, nudges, and tags added to them; and they can be linked to other patterns (and invitations, etc). 
 
 [How to Be a Curator]
 Category= Helping
@@ -287,14 +291,14 @@ As a curator you should look around the Rakontu frequently just checking on acti
 === Flagging items
 
 You can flag every type of entry (story, invitation, collage, pattern, resource), annotation (comment, request, tag set,
-nudge) and answer, as well as search filters.
+nudge) and answer, as well as filters.
 
 To flag an entry or any of its annotations or answers, click on the entry on the Rakontu's home
 page, then click the "Curate" button in the Other Options area.
 After you click "Go," the page will redisplay with little green flags next to each item. Click any flag to mark the
 item as inappropriate or unhelpful. 
 
-To flag a search filter, select it on the home page, then click Change. In the page that shows the details
+To flag a filter, select it on the home page, then click Change. In the page that shows the details
 of the filter, click Flag.
 
 To view all of the flags you have marked, choose Flags from the Curate menu at the top of the page. 
@@ -345,10 +349,9 @@ avoid getting questions you can't answer or find boring.
 
 Rakontu guides are in charge of on-line help for Rakontu members. As a guide, you can 
 create and maintain *resources* that help people find their way around and contribute to your Rakontu
-in a positive way. For example,
-maintaining a frequently-asked-questions list about how your group works is a good way to help
+in a positive way. For example, maintaining a frequently-asked-questions list about how your group works is a good way to help
 people who have questions like "What sorts of nicknames are people supposed to use?" and
-"How many shared search filters should I make?" and so on. A "news" resource that highlights the latest activity
+"How many shared filters should I make?" and so on. A "news" resource that highlights the latest activity
 is also helpful. To review your resources, choose Resources from the Guide menu.
 
 === Monitoring responses
@@ -397,7 +400,7 @@ When a batch of stories (or other entries) has been read, either using the batch
 
 = Printing stories for off-line members to read
 
-Entering stories is only half of what liaisons do. The other half is bringing stories from the on-line community to off-line members to read or hear. To do this, you can print stories or other entries and take them to wherever your off-line members are. You don't print stories from the Liaise menu; you print them from the main "home" screen. In the section marked "Other options" there should be a "Print" button (which only appears if you are a liaison). Click that button to print whatever selection of stories or other entries you are looking at in the home screen. Using this in combination with a search filter and other choices, you can print only what you think your off-line members would be most interested in hearing about.
+Entering stories is only half of what liaisons do. The other half is bringing stories from the on-line community to off-line members to read or hear. To do this, you can print stories or other entries and take them to wherever your off-line members are. You don't print stories from the Liaise menu; you print them from the main "home" screen. In the section marked "Other options" there should be a "Print" button (which only appears if you are a liaison). Click that button to print whatever selection of stories or other entries you are looking at in the home screen. Using this in combination with a filter and other choices, you can print only what you think your off-line members would be most interested in hearing about.
 
 You can also print all of the responses to a story -- answers to questions, comments, requests, tag sets, nudges. When you are looking at a story, choose "Print content and annotations for this story". This can be a good way to show people responses to stories they told.
 
@@ -510,7 +513,14 @@ Managers in a Rakontu are responsible for the Rakontu -- for who belongs to it, 
 
 To review and control memberships in your Rakontu, choose "Members" from the Manage menu.
 
-People cannot join Rakontus by clicking on a link; a manager must invite them. To invite new members, type their emails into the "Add new members" area. Each added email *must* be a valid email with a Google account connected to it. When you add a new member, their email will appear in the "Pending members" area until they first visit the group. You can send them a link to the Rakontu which they can click on, at which time they will become a full member.
+People can join your Rakontu in either of two ways. 
+
+  * With *explicit invitation* you add emails directly to the New members area of the Members screen. People have to talk to you and ask you to add them to the group. To choose this option, uncheck the box marked "Are visitors allowed to join without being explicitly invited?" This is the default option.
+  * With *implicit invitation* you send or publish a link to your Rakontu. Any link will do as long as it has the Rakontu's name in it. The home-page link or about-this-Rakontu link are probably the best two to use. Just copy these from your browser and paste them into your email or web post. Anyone who clicks on the link will automatically join the Rakontu. To choose this option, check the box marked "Are visitors allowed to join without being explicitly invited?"
+
+You can change your method of invitation back and forth as your needs change. For example, you may want to use implicit invitation early on when the group is forming, but switch to explicit invitation once the group has formed and you don't want lots of new people coming all the time.
+
+To invite new members explicitly, type their emails into the "Add new members" area. Each added email *must* be a valid email with a Google account connected to it. When you add a new member, their email will appear in the "Pending members" area until they first visit the group. You can send them a link to the Rakontu which they can click on, at which time they will become a full member.
 
 Each member can optionally be a manager or an owner. Any manager can make any other member a manager or owner of the Rakontu. You should only ask people to be managers if you trust them not to abuse the privilege. You can make someone a manager or owner (or remove the role) by changing the "Membership role" area next to their name, then clicking Save changes.
 
@@ -622,7 +632,7 @@ Help resource=yes
 Managers only=yes
 Questions may be the most important part of your Rakontu. Asking people to answer questions about the stories they tell, and about other elements of the system, can help people explain things to each other. Also, looking at patterns across stories and members can help your group find out some amazing things about patterns of collective meaning in the group. For example, say you find out that only members over 50 told stories in which the tag "health care" co-occurred with a positive outcome, or that only members with dogs told stories about nasty cats, or so on. Finding useful patterns together can help you achieve common goals.
 
-You can set up questions about each type of entry (stories, invitations, collages, patterns and resources). You can ask people questions about themselves as well. Combining entry and member questions in search filters is useful, so you should make sure you have at least a few questions about each entry type and about members. Your Rakontu will most likely start out with some default questions (depending on your site installation). There are also some sample questions you can look at or copy for inspiration. You can also trade questions with other Rakontus using CSV import and export.  
+You can set up questions about each type of entry (stories, invitations, collages, patterns and resources). You can ask people questions about themselves as well. Combining entry and member questions in filters is useful, so you should make sure you have at least a few questions about each entry type and about members. Your Rakontu will most likely start out with some default questions (depending on your site installation). There are also some sample questions you can look at or copy for inspiration. You can also trade questions with other Rakontus using CSV import and export.  
 
 === Reviewing your question sets
 
@@ -652,7 +662,7 @@ Note that there is not actually any difference between ordinal and nominal quest
 
 The name, text and explanation deserve some extra mention:
 
-  * The question's *name* is what appears in the search-filter page and when details are being hidden in the timelines. It's basically a description of the question when space is short. These should be brief but tell you what the question is about.
+  * The question's *name* is what appears in the filter page and when details are being hidden in the timelines. It's basically a description of the question when space is short. These should be brief but tell you what the question is about.
   * The question's *text* is what people are actually asked when they are typing in a story or other entry, or answering questions about themselves. 
   * The question's *explanation* is an optional extra bit of text that you can use to help people understand a confusing question. Don't overuse it, because if you do your question list will get too long and too boring. But if people tell you a question is hard to understand, you can add clarification here. The explanation appears after the question proper in italics.
 

@@ -171,6 +171,12 @@
 	{% endif %}
 	<div class="rightalign">{{template_activity_points}}: {{entry.activityPoints}}</div>
 	
+	{% if user_is_admin %}
+		<div class="rightalign">
+		<a href="/{{dir_admin}}/{{url_recopy_system_resource}}?{{entry.urlQuery}}">{{template_recopy_system_resource}}</a>
+		</div>
+	{% endif %}
+	
 	</form>
 	</div>
 	</div>

@@ -960,6 +960,21 @@ def CopyDefaultResourcesForNewRakontu(rakontu, member):
 	 		resourcesToPut.append(newResource)
 	if resourcesToPut:
 		db.put(resourcesToPut)
+		
+def CopySystemResourceOverThisOneWithSameName(resource):
+	# this is an admin only function used when there is a change to the system
+	# and existing help resources have to be overwritten.
+	# it should be used CAREFULLY as it throws away any changes managers/guides might have made
+	systemResources = SystemEntriesOfType("resource")
+	foundResource = None
+	for systemResource in systemResources:
+		if systemResource.title == resource.title:
+			foundResource = systemResource
+			break
+	if foundResource:
+		resource.text = db.Text(foundResource.text)
+		resource.text_formatted = db.Text(InterpretEnteredText(foundResource.text, foundResource.text_format))
+		resource.put()
 
 # ============================================================================================
 # ============================================================================================
