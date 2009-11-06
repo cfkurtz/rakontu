@@ -1,114 +1,316 @@
-<html>
-<head>
-<title>Rakontu Developer Notes</title>
-<head>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Rakontu Developer Notes</TITLE>
+	<META NAME="GENERATOR" CONTENT="NeoOffice 2.1  (Unix)">
+	<META NAME="CREATED" CONTENT="20091104;15361600">
+	<META NAME="CHANGED" CONTENT="20091104;16014600">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Rakontu Developer Notes</H1>
+<P>Last revised by Cynthia Kurtz, October 2009.</P>
+<P>These notes are to help any developer of Rakontu get started. They
+are also for me myself, for later on. To write this, I've just sat
+here and noted here everything I think I <I>might</I> forget (which
+is a lot) and which I think may be important to remember later.Basic
+information</P>
+<H4>Platform</H4>
+<P>For Rakontu I chose the Google App Engine (GAE), Python and
+webapp. I chose the GAE mainly because I thought it would &quot;lower
+the bar&quot; for people to use Rakontu in two ways. 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in">I hoped it would create a low use
+	barrier. Getting and using a GAE account is free, for up to ten apps
+	(meaning, ten Rakontu sites). It is not very hard to upload the code
+	and get a Rakontu app going, to the point where you don't actually
+	have to be a programmer to do it. So I'm hoping more people will be
+	able to start a Rakontu site than if it was done in django or
+	Drupal. 
+	</P>
+	<LI><P>Second, I needed to keep bar to my developing Rakontu low,
+	because I didn't have a lot of time (funding) to get a start on it.
+	I know Python very well, and I've used django before, and the GAE
+	uses both Python and the django templating libraries. I thought
+	about using Java with the GAE, but I'm much less familiar with it,
+	and also it was just barely coming out when I started and seemed not
+	to have much support. 
+	</P>
+</UL>
+<P>Why use webapp with GAE instead of straight django with GAE?
+Mainly just because it seemed simpler and a quicker start. I wonder
+now if that was a bad idea as it makes it harder to port the thing
+away from GAE. Still, a LOT of the code is in the django templates,
+and those should travel. 
+</P>
+<H4>Models</H4>
+<P>The models in Rakontu are just the data object classes which
+determine the parts of the database tables. These are as follows. The
+indenting here is meaningful and shows parentage in the GAE system. 
+</P>
+<PRE>Rakontu
+        Question
+        Character
+                Answer
+        Member
+                ViewOptions
+                Answer
+                SavedFilter
+                        SavedFilterQuestionReference
+                Entry
+                        Annotation
+                        Answer
+                        Link
+                        TextVersion</PRE><P>
+The model classes in more detail:</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in"><B>Rakontu</B>: Information about
+	the group itself. Appearance, settings, options. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>Member</B>: A person who
+	belongs to the Rakontu. Can be online (using the system) or offline
+	(participates through liaison). If online, associated with a Google
+	account. If offline, only associated with a name (and actually need
+	not be real). Note that everything entered by a member (or by a
+	liaison in their interest) is their child in terms of the database
+	definition. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>Character</B>: A fictional
+	attribution device. Similar to a Member but not exactly the same.
+	Rakontus can have any number of characters, including zero. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>Question</B>: Something asked
+	about a member, character or entry. For example, why was this story
+	told? Or, how old are you? Types are text, boolean, value, ordinal,
+	or nomimal. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>ViewOptions</B>: A model to
+	hold a member's viewing preferences for any of four timeline
+	locations within a Rakontu site: the home page, entry pages, member
+	pages, and character pages. For offline members this is not used but
+	is still there. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>SavedFilter</B>: A set of query
+	parameters for showing only some items in the home, member or
+	character timelines. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>SavedFilterQuestionReference</B>:
+	This model exists because one filter might refer to multiple
+	questions. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>Entry</B>: Entries are like
+	articles in Wikipedia. They can be of five types (story, invitation,
+	pattern, collage, or resource) but much of their behavior is
+	consistent. For example, all entries can be edited by their creators
+	(and anyone else their creators allow) forever. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>Story</B>: A entry that is a
+	recounting of experiences. Usually text but can refer to
+	attachment(s). 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in">Invitation: An entry that asks
+	people to tell stories about a particular topic. (Note, do not
+	confuse this with anything inviting people to join the Rakontu.) 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>Pattern</B>: An entry in which
+	somebody makes an observation about the stories that have been told.
+	A pattern can link to one or more filters. For example, a pattern
+	might observe that first-hand stories were more likely to be
+	positive while second-hand stories were more likely to be negative. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>Collage</B>: An entry which is
+	an annotated list of stories (only stories, note). The annotated
+	list is the simple form of a collage, and hopefully someday Rakontu
+	will support more complex forms of collage such as histories and
+	clusters. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>Resource</B>: This can be
+	either a &quot;reminding resource&quot; which is something that is
+	not a story but will remind people of stories - like a picture of
+	something; or it can be a help resource, which is just part of the
+	help system. Rakontu's help system is fully editable by any Rakontu
+	manager; the basic help that comes with Rakontu merely provides the
+	system resource templates. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>Annotation</B>: These are
+	things that &quot;hang off&quot; entries but are not answers
+	(answers have their own system). Types are comment, nudge, tag set,
+	request. Annotations are considered &quot;utterances&quot;, not
+	articles, and as such they cannot be re-entered and edited again.
+	(But they can be flagged and removed.) 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>Comment</B>: Something somebody
+	said in relation to an entry. Note, comments can <I>only</I> refer
+	to entries, not to people or the group. There is no place for &quot;meta&quot;
+	comments or discussion threads in Rakontu. Why? It was just too much
+	complexity to add, and also I was afraid people would gravitate to
+	the discussion (as being more familiar) and avoid the storytelling
+	part. The suggestion is that people have a discussion group URL and
+	people go there for meta discussions. I do wonder sometimes if that
+	was the right thing to do and think about adding a meta section. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>Nudge</B>: An annotation that
+	rates an entry. Note that <I>all</I> entries can be rated, not just
+	stories. So this also works for people to rate help resources as
+	useful or not, to give feedback on utility. (Comments can also be
+	used to add user tips to help resources.) The reason it's called
+	&quot;nudging&quot; instead of &quot;rating&quot; is that I wanted
+	to avoid people rating stories on quality. When you allow that
+	people start thinking everything has to be Hollywood and giving each
+	other advice on story arcs and exposition and such. Nudges are about
+	utility for whatever the Rakontu wants to do, not about quality in
+	an absolute sense. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>Tag set</B>: An annotation that
+	tags an entry with some words or phrases. Tags are kept together in
+	sets because each set represents an interpretation of the entry, and
+	people may want to see the perspectives juxtaposed. For example, if
+	I tag a story with the set &quot;strength, wisdom, beauty&quot; and
+	somebody else tags it with &quot;folly, irritation, nonsense&quot;,
+	you want to be able to contrast those sets instead of just seeing
+	one merged set. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>Request</B>: This is something
+	that somebody is asking other people to <I>with respect to a
+	particular entry</I>. The main goal of requests is to give people a
+	way to keep momentum going by sort of &quot;poking&quot; other
+	people to do stuff. Also, I am envisioning things like people in a
+	neighborhood collecting stories from people speaking two languages
+	and wanting to translate between them together. The request is a way
+	to help people coordinate collective activities related to the
+	stories they collect and use. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>Answer</B>: This is the text or
+	boolean or value entered by a user in response to a question asked
+	about a member, character or entry (of any type). Character answers
+	can be entered only by Rakontu managers. Member answers can be
+	entered only by the member the question is asked about. Answers
+	about entries, however, can be entered by anyone. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>Link</B>: Something that ties
+	together two entries, or an entry and a filter. These can be of six
+	types. They are always annotated. 
+	</P>
+	<UL>
+		<LI><P STYLE="margin-bottom: 0in"><B>Retold</B>: Somebody chose
+		&quot;Tell another version of what happened&quot; when looking at a
+		story. This is used when multiple people are talking about the same
+		event. These can go only from one story to another. 
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><B>Reminded</B>: A looser
+		connection than retold, this is what results when somebody chose
+		&quot;Tell a story this reminds you of&quot;. These can go either
+		from a story or a resource to a story. 
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><B>Responded</B>: Only goes from
+		an invitation to a story. Created when sombody chooses &quot;Respond
+		to this invitation with a story&quot;. 
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><B>Included</B>: Only goes from a
+		collage to a story. Created when somebody is editing a collage and
+		chooses stories to include in it. 
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><B>Referenced</B>: This is the
+		only type of link that is <I>not</I> between entries. It goes from
+		a pattern to a filter. It is created when a user is editing a
+		pattern. 
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><B>Related</B>: Two entries (of
+		any type) are connected for any reason. The user has chosen &quot;Relate
+		this entry to other entries&quot; while looking at the entry. This
+		is a sort of grab-bag for situations where things should be
+		connected but not because of the other reasons. 
+		</P>
+	</UL>
+	<LI><P><B>TextVersion</B>: This is a model to hold a single version
+	of text for an entry. 
+	</P>
+</UL>
+<H4>Files and directories</H4>
 
-<h1>Rakontu Developer Notes</h1>
-
-<p>Last revised by Cynthia Kurtz, October 2009.</p>
-
-<p>These notes are to help any developer of Rakontu get started. They are also for me myself,
-for later on. 
-To write this, I've just sat here and noted here everything I think I <i>might</i> forget (which is a lot)
-and which I think may be important to remember later.</P.
-
-<h3>Basic information</h3>
-
-<h4>Models</h4>
+<p>These are the directories:</p>
 
 <pre>
-Rakontu
-	Question
-	Character
-		Answer
-	Member
-		ViewOptions
-		Answer
-		Entry
-			Annotation
-			Answer
-			Link
-			TextVersion
+Rakontu - most of the Python files are here
+	config - files you can change if you don't want to change the main source
+		english - files you can change to change English texts
+		francais - files you can change to change French texts
+		(etc) - other languages may appear later
+	images - all images called up from the templates are here (icons etc)
+	javascript - all scripts (right now there is only one)
+	pytz - the pytz library and zipped time zone info
+	stylesheets - only one, used by all templates
+	templates - django templates, subdirs here relate to URL dirs
+		admin
+		curate
+		errors
+		guide
+		liaise
+		manage
+		visit
+	testing - may be empty, for your use
+	utilities - backup, restore, test for gaps
 </pre>
 
-<h4>Where stuff is</h4>
 
-xxxxx
-
-<h3>How to do things</h3>
-
-- to upload app to multiple app instances
-1 - start a terminal window
-2 - cd to the directory ABOVE where your Rakontu source code is
-3 - on the mac type
-/usr/local/bin/appcfg.py update Rakontu --no_cookies --email=cynthia.f.kurtz@gmail.com --application=rakontu-sandbox 
-
-then I had to do this:
-/usr/local/bin/appcfg.py update_indexes Rakontu --no_cookies --email=cynthia.f.kurtz@gmail.com --application=rakontu-sandbox
-
-you may need to find appcfg.py on your system. look at the GAE launcher to see.
-
-- to map the new app domain to a google apps domain
-
-1 - get google apps account
-2 - in dashboard for your app, click application settings, then add domain (note the instructions say versions but it is not there)
-3 - put in your google apps domain 
-4 - do the CNAME instructions that follow on your IP provider
-5 - wait a few hours for the DNS changes to propagate
-6 - your url should work
-
+<H3>How to do things</H3>
+<P>- to upload app to multiple app instances 1 - start a terminal
+window 2 - cd to the directory ABOVE where your Rakontu source code
+is 3 - on the mac type /usr/local/bin/appcfg.py update Rakontu
+--no_cookies --email=cynthia.f.kurtz@gmail.com
+--application=rakontu-sandbox then I had to do this:
+/usr/local/bin/appcfg.py update_indexes Rakontu --no_cookies
+--email=cynthia.f.kurtz@gmail.com --application=rakontu-sandbox you
+may need to find appcfg.py on your system. look at the GAE launcher
+to see. - to map the new app domain to a google apps domain 1 - get
+google apps account 2 - in dashboard for your app, click application
+settings, then add domain (note the instructions say versions but it
+is not there) 3 - put in your google apps domain 4 - do the CNAME
+instructions that follow on your IP provider 5 - wait a few hours for
+the DNS changes to propagate 6 - your url should work
 http://code.google.com/appengine/articles/domains.html
 http://www.google.com/support/a/bin/answer.py?answer=91080
-http://www.google.com/support/a/bin/answer.py?hl=en&answer=47283
-
-<h3>Things that need doing</h3>
-
-SMALL THINGS
-add cancel LINKS on all pages that save things? (links should say where they go to)
-
-BIG THINGS
-testing
-code review
-better graphics
-more documentation - tutorials, etc
-
-<h3>Rules for changing the Rakontu code</h3>
-
-- don't add any raw text to the templates
-
-
-
-<h3>Things you just need to know</h3>
-
-
-<h4>Things that surprised me (and may surprise you, if you don't read this)</h4>
-
-- the django ifequal bug
-
-
-<h4>Things I am not happy about</h4>
-
-transactions should be using keys_only queries
-
-always use match fetch number (1000) even when that is not likely (slows it down?)
-
-needs better error handling. no try excepts around puts or transactions. have global exception handler
-
-unit testing, testing suites
-
-<h4>Changing template files</h4>
-
-<p>You can change the files in the "templates" directory to customize how your Rakontu looks and works.
-However, follow a few guidelines:
-<ul>
-<li>There is <b>no raw text allowed</b> in the template files.
-This allows a person to translate ONLY the constants in language_config.py, and not mess with the
-template files, to translate Rakontu. If you make changes to template files and contribute them
-to Rakontu, PLEASE keep raw texts out of them. A way to check that you have no raw text there
-is to run the <code>showTranslationStringsInTemplates.py</code> script. It will generate a file called 
-"Template texts.txt" which shows you where all the raw strings (texts) are in the templates.
-</li>
-<li>xxxx</li>
-</ul>
-
-
+http://www.google.com/support/a/bin/answer.py?hl=en&amp;answer=47283 
+</P>
+<H3>Things that need doing</H3>
+<P>SMALL THINGS add cancel LINKS on all pages that save things?
+(links should say where they go to) BIG THINGS testing code review
+better graphics more documentation - tutorials, etc 
+</P>
+<H3>Rules for changing the Rakontu code</H3>
+<P>- don't add any raw text to the templates 
+</P>
+<H3>Things you just need to know</H3>
+<H4>Things that surprised me (and may surprise you, if you don't read
+this)</H4>
+<P>- the django ifequal bug 
+</P>
+<H4>Things I am not happy about</H4>
+<P>transactions should be using keys_only queries always use match
+fetch number (1000) even when that is not likely (slows it down?)
+needs better error handling. no try excepts around puts or
+transactions. have global exception handler unit testing, testing
+suites 
+</P>
+<H4>Changing template files</H4>
+<P>You can change the files in the &quot;templates&quot; directory to
+customize how your Rakontu looks and works. However, follow a few
+guidelines: 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in">There is <B>no raw text allowed</B>
+	in the template files. This allows a person to translate ONLY the
+	constants in language_config.py, and not mess with the template
+	files, to translate Rakontu. If you make changes to template files
+	and contribute them to Rakontu, PLEASE keep raw texts out of them. A
+	way to check that you have no raw text there is to run the
+	<CODE>showTranslationStringsInTemplates.py</CODE> script. It will
+	generate a file called &quot;Template texts.txt&quot; which shows
+	you where all the raw strings (texts) are in the templates. 
+	</P>
+	<LI><P>xxxx 
+	</P>
+</UL>
+</BODY>
+</HTML>

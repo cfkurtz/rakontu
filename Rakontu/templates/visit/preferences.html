@@ -183,6 +183,15 @@
 						{% endif %}
 						><label for="showHelpResourcesInTimelines|{{option.location}}">{{option.displayNameForLocation}}</label></p>
 				{% endfor %}
+			<p>{{template_keep_timelines_pegged_to_now}}</p>
+				{% for option in view_options %}
+					<p>&nbsp; 
+					<input type="checkbox" name="keepTimelinesPeggedToNow|{{option.location}}" value="yes" id="keepTimelinesPeggedToNow|{{option.location}}"
+						{% if option.keepTimelinesPeggedToNow %}
+							checked
+						{% endif %}
+						><label for="keepTimelinesPeggedToNow|{{option.location}}">{{option.displayNameForLocation}}</label></p>
+				{% endfor %}
 			<p>{{template_show_button_tooltips}}</p>
 					<p>&nbsp; 
 					<input type="checkbox" name="showButtonTooltips" value="yes" id="showButtonTooltips"

@@ -444,11 +444,11 @@ becomes <ol><li>ordered list item continuation of line</li></ol> </p>
 
 <p>To write a horizontal line (hr), put four or more dashes on a line by themselves:</p><p>----</p><p>becomes</p><p><hr></p>
 
-<p>To write a link, put square brackets around it: [http://www.rakontu.org] 
+<p>To write a link, put two square brackets around it: [[http://www.rakontu.org]] 
 becomes <a href="http://www.rakontu.org">http://www.rakontu.org</a></p>
 
 <p>To write a named link, put the name in parentheses after the link but inside the 
-square brackets: [http://www.rakontu.org(Rakontu)] becomes <a href="http://www.rakontu.org">Rakontu</a></p>
+square brackets: [[http://www.rakontu.org(Rakontu)]] becomes <a href="http://www.rakontu.org">Rakontu</a></p>
 
 <p>To include an URL-based inline picture link, place the link in curly brackets, and include an alt tag in 
 parentheses: {http://www.rakontu.org/Rakontu.jpg(Rakontu picture)} 
@@ -739,7 +739,7 @@ Defined divisions (<div id="">) are as follows:
 
 === Top menus
  
-The menus at the top of Rakontu pages use several divisions to create a CSS-only menu (though it does use Javascript for the IE6 condition only). This technique comes by the way from [http://www.cssnewbie.com/easy-css-dropdown-menus (Easy CSS DropdownMenus)] at cssnewbie.com (thanks folks!).
+The menus at the top of Rakontu pages use several divisions to create a CSS-only menu (though it does use Javascript for the IE6 condition only). This technique comes by the way from [[http://www.cssnewbie.com/easy-css-dropdown-menus (Easy CSS DropdownMenus)]] at cssnewbie.com (thanks folks!).
 
   * #topmenu
   * #topmenu li

@@ -900,9 +900,11 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 						adjustedValues = []
 						adjustedValues.extend(nudgeValuesTheyWantToSet)
 					annotation.valuesIfNudge = [0] * NUM_NUDGE_CATEGORIES
+					totalNudgePointsSet = 0
 					for i in range(NUM_NUDGE_CATEGORIES):
 						if rakontu.nudgeCategoryIndexHasContent(i):
 							annotation.valuesIfNudge[i] = adjustedValues[i]
+							totalNudgePointsSet += abs(adjustedValues[i])
 					annotation.shortString = htmlEscape(self.request.get("shortString"))
 				def txn(annotation, entry):
 					annotation.publish()

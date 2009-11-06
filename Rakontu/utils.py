@@ -38,7 +38,7 @@ def FindTemplate(template):
 def RequireLogin(func):  
 	def check_login(request):    
 		if not users.get_current_user():    
-			loginURL = users.create_login_url("/")  
+			loginURL = users.create_login_url(request.request.uri)  
 			request.redirect(loginURL)  
 			return 
 		func(request)
@@ -239,19 +239,19 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'maxlength_name': MAXLENGTH_NAME,
 	   'maxlength_tag_or_choice': MAXLENGTH_TAG_OR_CHOICE, 
 	   'maxlength_number': MAXLENGTH_NUMBER,
-	   'num_grid_rows': BROWSE_NUM_ROWS,
+	   'num_grid_rows': BROWSE_NUM_ROWS, 
 	   'num_grid_cols': BROWSE_NUM_COLS,
 	   'middle_grid_row': BROWSE_NUM_ROWS // 2, # silly
-	   'middle_grid_col': BROWSE_NUM_COLS // 2, 
+	   'middle_grid_col': BROWSE_NUM_COLS // 2,  
 	   'home': HOME,
-	   'current_user': user, 
+	   'current_user': user,   
 	   'user_is_admin': users.is_current_user_admin(),
-	   'user_email': email,
+	   'user_email': email, 
 	   'logout_url': users.create_logout_url("/"), 
 	   'site_language': SITE_LANGUAGE, 
 	   'site_support_email': SITE_SUPPORT_EMAIL,
 	   'max_possible_attachments': MAX_POSSIBLE_ATTACHMENTS,
-	   'development': DEVELOPMENT, 
+	   'development': os.environ['SERVER_SOFTWARE'].startswith('Development'), 
 	   }
 	for key in DIRS.keys():				items[key] = DIRS[key]
 	for key in URLS.keys():				items[key] = URLS[key] 
@@ -377,7 +377,7 @@ class ErrorHandlingRequestHander(webapp.RequestHandler):
 		
 class NotFoundPageHandler(ErrorHandlingRequestHander): 
 	def get(self): 
-		self.error(404)
+		self.error(404) 
 		rakontu = None
 		member = None
 		try:
@@ -1157,10 +1157,10 @@ def InterpretEnteredText(text, mode="text"):
 			result = result.replace('^%s^' % code, '<code>%s</code>' % code)
 		for strike in re.compile(r'\~(.+?)\~').findall(result):
 			result = result.replace('~%s~' % strike, '<span style="text-decoration: line-through">%s</span>' % strike)
-		for link, name in re.compile(r'\[(.+?)\((.+?)\)\]').findall(result):
-			result = result.replace('[%s(%s)]' % (link,name), '<a href="%s">%s</a>' % (link, name))
-		for link in re.compile(r'\[(.+?)\]').findall(result):
-			result = result.replace('[%s]' % link, '<a href="%s">%s</a>' % (link, link))
+		for link, name in re.compile(r'\[\[(.+?)\((.+?)\)\]\]').findall(result):
+			result = result.replace('[[%s(%s)]]' % (link,name), '<a href="%s">%s</a>' % (link, name))
+		for link in re.compile(r'\[\[(.+?)\]\]').findall(result):
+			result = result.replace('[[%s]]' % link, '<a href="%s">%s</a>' % (link, link))
 		for imageLink, alt in re.compile(r'\{(.+?)\((.+?)\)\}').findall(result):
 			result = result.replace('{%s(%s)}' % (imageLink,alt), '<img src="%s" alt="%s"/>' % (imageLink, alt))
 	return result

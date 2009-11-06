@@ -107,6 +107,26 @@
 	{% endif %}
 	{% endcomment %}
 	
+	{% if member_can_nudge_entry %}
+		<fieldset><p>
+		{% for i in num_nudge_categories|makeRange %}
+			{% if rakontu.nudgeCategories|listLookup:i %}
+				{{rakontu.nudgeCategories|listLookup:i}}
+				<select name="nudge{{i}}">
+					{% for aValue in quick_nudge_values %}
+						<option value="{{aValue}}"{% if aValue|equalTest:0 %} selected="yes"{% endif %}>{{aValue}}</option>
+					{% endfor %}
+					</select>
+			{% endif %}
+		{% endfor %}
+		({{template_maximum}} {{nudge_points_member_can_assign}}) <input type="submit" name="quickNudge" value="{{button_quick_nudge}}" class="button_small"
+						{% if current_member.showButtonTooltips %}
+							title="{{"quick_nudge"|buttonTooltip}}"
+						{% endif %}
+		></p>
+		</fieldset>
+	{% endif %}
+	
 	<h3>{{template_annotations_to_this}}</h3>
 	
 	{% include "../common_time_range.html" %}
@@ -172,9 +192,13 @@
 	<div class="rightalign">{{template_activity_points}}: {{entry.activityPoints}}</div>
 	
 	{% if user_is_admin %}
-		<div class="rightalign">
-		<a href="/{{dir_admin}}/{{url_recopy_system_resource}}?{{entry.urlQuery}}">{{template_recopy_system_resource}}</a>
-		</div>
+		{% ifequal entry.type "resource" %}
+			{% if entry.resourceForHelpPage %}
+				<div class="rightalign">
+				<a href="/{{dir_admin}}/{{url_recopy_system_resource}}?{{entry.urlQuery}}">{{template_recopy_system_resource}}</a>
+				</div>
+			{% endif %}
+		{% endifequal %}
 	{% endif %}
 	
 	</form>

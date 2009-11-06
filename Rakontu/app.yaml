@@ -1,5 +1,5 @@
 application: rakontu
-version: 1-0-0-beta-1
+version: 1-0-0-beta-1-2
 runtime: python
 api_version: 1
 
@@ -26,5 +26,6 @@ handlers:
 
 - url: /.*
   script: main.py
+  
   
 

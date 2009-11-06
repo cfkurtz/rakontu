@@ -111,16 +111,25 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 				member.put()
 			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTION_NAMES["url_option_yes"]
 			viewOptions = member.getViewOptionsForLocation("home")
+			changedViewOptions = False
 			try:
 				currentFilter = viewOptions.filter
 			except:
 				viewOptions.filter = None
-				viewOptions.put()
+				changedViewOptions = True
 				currentFilter = None
 			queryFilter = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_filter")
 			if queryFilter:
 				currentFilter = queryFilter
 				viewOptions.filter = currentFilter
+				changedViewOptions = True
+			# if the user is viewing the timeline with any option OTHER than the start, back or forward buttons,
+			# update the timeline so they are seeing the most recent
+			doNotUpdateEndTime = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_do_not_update_time") == URL_OPTION_NAMES["url_option_yes"]
+			if (not doNotUpdateEndTime) and viewOptions.keepTimelinesPeggedToNow:
+				viewOptions.endTime = datetime.now(tz=pytz.utc)
+				changedViewOptions = True
+			if changedViewOptions:
 				viewOptions.put()
 			skinDict = rakontu.getSkinDictionary()
 			(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
@@ -246,12 +255,19 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 			if entry:
+				viewOptions = member.getViewOptionsForLocation("entry")
 				curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTION_NAMES["url_option_yes"]
 				showVersions = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_versions") == URL_OPTION_NAMES["url_option_yes"]
+				# if the user is viewing the timeline with any option OTHER than the start, back or forward buttons,
+				# update the timeline so they are seeing the most recent
+				doNotUpdateEndTime = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_do_not_update_time") == URL_OPTION_NAMES["url_option_yes"]
+				if (not doNotUpdateEndTime) and viewOptions.keepTimelinesPeggedToNow:
+					viewOptions.endTime = datetime.now(tz=pytz.utc)
+					viewOptions.put()
 				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "entry", entry=entry)
 				textsForGrid, rowColors, minNudgePoints, maxNudgePoints = self.buildGrid(items, entry, member, rakontu, curating)
-				thingsUserCanDo = self.buildThingsUserCanDo(entry, member, rakontu, curating)
-				viewOptions = member.getViewOptionsForLocation("entry")
+				thingsUserCanDo, memberCanAddNudgeToThisEntry = self.buildThingsUserCanDo(entry, member, rakontu, curating)
+				nudgePointsMemberCanAssign = entry.nudgePointsMemberCanAddToMe(member)
 				if entry.isCollage():
 					includedLinksOutgoing = entry.getOutgoingLinksOfType("included")
 				else:
@@ -273,6 +289,9 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 								   'entry': entry,
 								   'attachments': entry.getAttachments(),
 								   'member_can_edit_entry': memberCanEditEntry,
+								   'member_can_nudge_entry': memberCanAddNudgeToThisEntry,
+								   'nudge_points_member_can_assign': nudgePointsMemberCanAssign,
+								   'quick_nudge_values': QUICK_NUDGE_VALUES,
 								   # grid
 								   'rows_cols': textsForGrid, 
 								   'row_colors': rowColors,
@@ -424,7 +443,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 		# relating
 		key = TERMS["term_relate_entry_to_others"]
 		thingsUserCanDo[key] = BuildURL("dir_visit", "url_relate", entry.urlQuery())
-		return thingsUserCanDo
+		return thingsUserCanDo, memberCanAddNudgeToThisEntry
 			
 	@RequireLogin 
 	def post(self):
@@ -432,7 +451,55 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 		if access:
 			entry = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_entry")
 			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTION_NAMES["url_option_yes"]
-			if "shiftTime" in self.request.arguments() and users.is_current_user_admin():
+			if 'quickNudge' in self.request.arguments():
+				nudgePointsMemberCanAssign = entry.nudgePointsMemberCanAddToMe(member)
+				if nudgePointsMemberCanAssign > 0:
+					nudgeValuesTheyWantToSet = [0] * NUM_NUDGE_CATEGORIES
+					totalNudgeValuesTheyWantToSet = 0
+					for i in range(NUM_NUDGE_CATEGORIES):
+						if rakontu.nudgeCategoryIndexHasContent(i):
+							try:
+								nudgeValuesTheyWantToSet[i] = int(self.request.get("nudge%s" % i))
+							except:
+								nudgeValuesTheyWantToSet[i] = annotation.valuesIfNudge[i]
+							totalNudgeValuesTheyWantToSet += abs(nudgeValuesTheyWantToSet[i])
+					# if they put in more total values than they could, strip off the last ones
+					adjustedValues = [0] * NUM_NUDGE_CATEGORIES
+					maximumAllowedInThisInstance = min(member.nudgePoints, nudgePointsMemberCanAssign)
+					if totalNudgeValuesTheyWantToSet > maximumAllowedInThisInstance:
+						totalNudgePointsAllocated = 0
+						for i in range(NUM_NUDGE_CATEGORIES):
+							if rakontu.nudgeCategoryIndexHasContent(i):
+								overLimit = totalNudgePointsAllocated + nudgeValuesTheyWantToSet[i] > maximumAllowedInThisInstance
+								if not overLimit:
+									adjustedValues[i] = nudgeValuesTheyWantToSet[i]
+									totalNudgePointsAllocated += abs(nudgeValuesTheyWantToSet[i])
+								else:
+									break
+					else:
+						adjustedValues = []
+						adjustedValues.extend(nudgeValuesTheyWantToSet)
+					totalNudgePointsSet = 0
+					for i in range(NUM_NUDGE_CATEGORIES):
+						if rakontu.nudgeCategoryIndexHasContent(i):
+							totalNudgePointsSet += abs(adjustedValues[i])
+					if totalNudgePointsSet > 0:
+						keyName = GenerateSequentialKeyName("annotation", rakontu)
+						nudge = Annotation(key_name=keyName, parent=entry, id=keyName, rakontu=rakontu, type="nudge", entry=entry)
+						nudge.edited = datetime.now(tz=pytz.utc)
+						nudge.creator = member
+						nudge.valuesIfNudge = [0] * NUM_NUDGE_CATEGORIES
+						for i in range(NUM_NUDGE_CATEGORIES):
+							if rakontu.nudgeCategoryIndexHasContent(i):
+								nudge.valuesIfNudge[i] = adjustedValues[i]
+						def txn(nudge, entry):
+							nudge.publish()
+							nudge.put()
+							entry.put()
+							nudge.creator.put() 
+						db.run_in_transaction(txn, nudge, entry)
+				self.redirect(self.request.uri)
+			elif "shiftTime" in self.request.arguments() and users.is_current_user_admin():
 				# this is an admin-only "secret" method of shifting stuff around in preparation for a demo
 				hours = None
 				if self.request.get("shiftHours"):
@@ -575,13 +642,15 @@ class SeeRakontuMembersPage(ErrorHandlingRequestHander):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
+			activeMembers = rakontu.getActiveMembers()
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': TITLES["MEMBERS"], 
 							   'rakontu': rakontu, 
 							   'skin': rakontu.getSkinDictionary(),
 							   'current_member': member,
-							   'rakontu_members': rakontu.getActiveMembers(),
+							   'rakontu_members': activeMembers,
 							   'no_profile_text': NO_PROFILE_TEXT,
+							   'num_cols_left_over': 5 - len(activeMembers) % 5,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/members.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -753,10 +822,16 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 			memberToSee = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
 			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTION_NAMES["url_option_yes"]
 			if memberToSee:
+				viewOptions = member.getViewOptionsForLocation("member")
+				# if the user is viewing the timeline with any option OTHER than the start, back or forward buttons,
+				# update the timeline so they are seeing the most recent
+				doNotUpdateEndTime = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_do_not_update_time") == URL_OPTION_NAMES["url_option_yes"]
+				if (not doNotUpdateEndTime) and viewOptions.keepTimelinesPeggedToNow:
+					viewOptions.endTime = datetime.now(tz=pytz.utc)
+					viewOptions.put()
 				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "member", memberToSee=memberToSee)
 				textsForGrid, rowColors, minNudgePoints, maxNudgePoints = self.buildGrid(items, member, memberToSee, rakontu, curating)
 				countNames, counts = memberToSee.getCounts()
-				viewOptions = member.getViewOptionsForLocation("member")
 				currentFilter = viewOptions.filter
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': TITLES["MEMBER"], 
@@ -894,9 +969,15 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 			character = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_character")
 			curating = member.isCurator() and GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_curate") == URL_OPTION_NAMES["url_option_yes"]
 			if character:
+				viewOptions = member.getViewOptionsForLocation("character")
+				# if the user is viewing the timeline with any option OTHER than the start, back or forward buttons,
+				# update the timeline so they are seeing the most recent
+				doNotUpdateEndTime = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_do_not_update_time") == URL_OPTION_NAMES["url_option_yes"]
+				if (not doNotUpdateEndTime) and viewOptions.keepTimelinesPeggedToNow:
+					viewOptions.endTime = datetime.now(tz=pytz.utc)
+					viewOptions.put()
 				(items, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "character", character=character)
 				textsForGrid, rowColors, minNudgePoints, maxNudgePoints = self.buildGrid(items, member, character, rakontu, curating)
-				viewOptions = member.getViewOptionsForLocation("character")
 				currentFilter = viewOptions.filter
 				countNames, counts = character.getCounts()
 				template_values = GetStandardTemplateDictionaryAndAddMore({
@@ -1273,6 +1354,7 @@ class ChangeMemberPreferencesPage(ErrorHandlingRequestHander):
 					for option in viewOptions:
 						option.showOptionsOnTop = self.request.get("showOptionsOnTop|%s" % option.location) == "yes"
 						option.showHelpResourcesInTimelines = self.request.get("showHelpResourcesInTimelines|%s" % option.location) == "yes"
+						option.keepTimelinesPeggedToNow = self.request.get("keepTimelinesPeggedToNow|%s" % option.location) == "yes"
 						option.put()
 				memberToEdit.put()
 				SetChangesSaved(member)
@@ -1910,7 +1992,7 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 		viewOptions.put()
 		return defaultURL
 	elif "setToLast" in request.arguments():
-		viewOptions.endTime = datetime.now(tz=pytz.utc)
+		viewOptions.endTime = now
 		viewOptions.put()
 		return defaultURL 
 	elif "setToFirst" in request.arguments():
@@ -1925,7 +2007,8 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 		endTime = startTime + delta
 		viewOptions.endTime = endTime
 		viewOptions.put()
-		return defaultURL
+		query = "&%s=%s" % (URL_OPTIONS["url_query_do_not_update_time"], URL_OPTION_NAMES["url_option_yes"])
+		return defaultURL + query
 	elif "moveTimeBack" in request.arguments() or "moveTimeForward" in request.arguments():
 		if "moveTimeBack" in request.arguments():
 			endTime = viewOptions.endTime - delta
@@ -1933,7 +2016,8 @@ def ProcessGridOptionsCommand(rakontu, member, request, location="home", entry=N
 			endTime = viewOptions.endTime + delta
 		viewOptions.endTime = endTime
 		viewOptions.put()
-		return defaultURL
+		query = "&%s=%s" % (URL_OPTIONS["url_query_do_not_update_time"], URL_OPTION_NAMES["url_option_yes"])
+		return defaultURL + query
 	# entry types - home, member, character 
 	elif "changeEntryTypesShowing" in request.arguments():
 		newEntryTypes = []

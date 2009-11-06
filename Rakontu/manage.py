@@ -67,7 +67,8 @@ class ManageRakontuMembersPage(ErrorHandlingRequestHander):
 						pendingMember.email = htmlEscape(self.request.get("email|%s" % pendingMember.key()))
 						pendingMember.governanceType = self.request.get("pendingMember_governanceType|%s" % pendingMember.key())
 						pendingMember.put()
-						memcache.add("sendInvitationMessage:%s" % member.key(), pendingMember, HOUR_SECONDS)
+						key = "sendInvitationMessage:%s" % member.key()
+						memcache.add(key, pendingMember, HOUR_SECONDS)
 						self.redirect(BuildURL("dir_manage", "url_invitation_message", member.urlQuery()))
 						return
 				rakontuMembers = rakontu.getActiveMembers()
@@ -131,7 +132,8 @@ class SendInvitationMessagePage(ErrorHandlingRequestHander):
 			if member.isManagerOrOwner():
 				if isFirstVisit: self.redirect(member.firstVisitURL())
 				try:
-					pendingMember = memcache.get("sendInvitationMessage:%s" % member.key())
+					key = "sendInvitationMessage:%s" % member.key()
+					pendingMember = memcache.get(key)
 				except:
 					pendingMember = None
 				if pendingMember:
@@ -163,7 +165,9 @@ class SendInvitationMessagePage(ErrorHandlingRequestHander):
 		if access:
 			if member.isManagerOrOwner():
 				try:
-					pendingMember = memcache.get("sendInvitationMessage:%s" % member.key())
+					key = "sendInvitationMessage:%s" % member.key()
+					pendingMember = memcache.get(key)
+					memcache.delete(key)
 				except:
 					pendingMember = None
 				if pendingMember and mail.is_email_valid(pendingMember.email):

@@ -406,6 +406,7 @@ TEMPLATE_TERMS = {
 		"template_choose": u"choose",
 		"template_why": u"why",
 		"template_click_to_change": u"click to change",
+		"template_maximum": u"maximum", # << TRANSLATION REQUIRED >>
 		
 		# types of people (singular and plural)
 		"template_member": u"Member",
@@ -609,7 +610,8 @@ TEMPLATE_TERMS = {
 		"template_error_message": u"If you want to talk about this error with the administrator, copy this message and paste it into your email.",
 		# error/databaseError
 		"template_database_error": u"Bad Google. Bad.",
-		"template_there_was_a_database_error": u"Apparently Google is not working very well at the moment. Could you please try what you were doing again?",
+		# << TRANSLATION REQUIRED >>
+		"template_there_was_a_database_error": u'Apparently Google is not working very well at the moment. Could you please try what you were doing again? For more information see the <a href="http://code.google.com/status/appengine">Google App Engine Status Page</a>.',
 		# error/transactionFailed
 		"template_transaction_failed_error": u"Can't ... handle ... demand ... trying ...",
 		"template_too_many_transactions": u"Your transaction was unable to complete because there were lots of people using the site at once. Sorry about that. Could you please try what you were doing again?",
@@ -652,7 +654,7 @@ TEMPLATE_TERMS = {
 		"template_cannot_leave_only_owner": u"cannot leave - only owner",
 		"template_rakontu_access_state": u"Available to",
 		"template_create_another": u"Create another",
-		"template_remove_this_rakontu": u"Remove this Rakontu",
+		"template_remove_this_rakontu": u"Remove", # << TRANSLATION REQUIRED >>
 		"template_access_message": u"Access message",
 		"template_fake_data": u"Development: Fake data for testing",
 		"template_add_fake_data": u"Add fake data to existing Rakontus",
@@ -1075,6 +1077,7 @@ TEMPLATE_TERMS = {
 		"template_details_text_length_choice": u"How many characters (letters) long would you like texts displayed in details views to be?",
 		"template_view_options_on_top": u"On which of these timeline views should the options (other than the time range) be shown above the timeline?",
 		"template_view_help_resources_in_timelines": u"On which of these timeline views should help resources be shown?",
+		"template_keep_timelines_pegged_to_now": u"On which of these timeline views should the end time stay current (unless you have clicked the first, back or next buttons)?", # << TRANSLATION REQUIRED >>
 		"template_show_button_tooltips": u"Should tooltips with information appear when you hover the mouse over small option buttons?",
 		"template_show_button_tooltips_yes": u"Yes, show tooltips on buttons",
 		# visit/rakontu
@@ -1103,7 +1106,7 @@ TEMPLATE_TERMS = {
 		"template_counts_of_annotations_to": u"Counts of annotations to", # entry title
 		"template_shift_by": u"Admin only: Shift times by", # this is for admin only, to prepare demos mainly
 		"template_activity_points": u"Activity points",
-		"template_recopy_system_resource": u"Recopy this resource from the system - overwrite any changes", # # this is for admin only, to update help resources for changes
+		"template_recopy_system_resource": u"Admin only: recopy this resource from the system", # # this is for admin only, to update help resources for changes
 		# visit/readAnnotation
 		"template_request_type": u"Request type",
 		"template_completion_status": u"Status",
@@ -1175,7 +1178,8 @@ TEMPLATE_BUTTONS = {
 		"button_show_details": u"Show details",
 		"button_hide_activity_levels": u"Hide activity levels",
 		"button_show_activity_levels": u"Show activity levels",
-		"button_search": "Search",
+		"button_search": u"Search",
+		"button_quick_nudge": u"Quick nudge", # << TRANSLATION REQUIRED >>
 		# entering things
 		"button_save_changes_and_return": u"Save changes and return",
 		"button_preview": u"Preview",
@@ -1695,6 +1699,7 @@ URL_OPTIONS = {
 	"url_query_bookmark": u"bookmark",
 	"url_query_name_taken": u"name_taken",
 	"url_query_managers_only": u"managers_only",
+	"url_query_do_not_update_time": u"custom_time", # << TRANSLATION REQUIRED >>
 	}
 
 # ============================================================================================ 

@@ -1,10 +1,12 @@
-Things to do before v0.9 is complete
+To do
 
 add ssl to faq
 
 finish developer notes
 
+with wiki markup, it seems like extra carriage returns are being added. did that happen during backup/restore?
 
+consider putting drop-downs for tags in the filter page.
 
-
+in curate-tags, how can you show entries that have no tags?
 

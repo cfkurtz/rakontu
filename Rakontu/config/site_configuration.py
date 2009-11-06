@@ -231,6 +231,11 @@ MAX_NUM_ADDITIONAL_EDITORS = 10
 # the more likely the counts will be off; but the longer it will take people to load pages.
 UPDATE_ANNOTATION_COUNTS_SECONDS = 60 * 60 * 24
 
+# These values are the choices for "quick" nudges.
+# The order here determines the order they appear in the drop-down boxes,
+# so it is best to have the positive values first.
+QUICK_NUDGE_VALUES = [10, 5, 0, -5, -10]
+
 # ============================================================================================ 
 # QUESTIONS
 # ============================================================================================ 

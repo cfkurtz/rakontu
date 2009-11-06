@@ -129,5 +129,6 @@
 "info","nudge_point_accumulations","nudge_point_accumulations","visit/rakontu",,"These are the settings for how many nudge points you accumulate in this Rakontu by doing each of these activities. You can use nudge points to mark entries as more or less important in different categories."
 "button","hiding_entry_history",,"visit/read",,"Click here to hide this entry's history."
 "button","showing_entry_history",,"visit/read",,"Click here to show all versions of this entry's text that were previously saved."
+"button","quick_nudge",,"visit/read","YES","A quick nudge has fewer values than a complete nudge, has no comment, and is not anonymous. To create a complete nudge with finer control over numbers and comment and attribution, choose 'Nudge this ...' from the Go menu at the top of the screen."
 "button","marking_request_completed",,"visit/readAnnotation",,"Click here to mark this request as uncompleted and needing attention. You can add an optional comment as to how it was completed. If you are a guide, you can review requests by choosing Guide - Requests."
 "button","marking_request_uncompleted",,"visit/readAnnotation",,"Click here to mark this request as no longer needing attention. You can add an optional comment as to how it was completed. If you are a guide, you can review requests by choosing Guide - Requests."

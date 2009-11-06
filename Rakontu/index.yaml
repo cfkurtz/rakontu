@@ -37,6 +37,13 @@ indexes:
   - name: __key__
     direction: desc
     
+- kind: Entry
+  properties:
+  - name: draft
+  - name: rakontu
+  - name: type
+  - name: lastAnnotatedOrAnsweredOrLinked
+    
 - kind: TextVersion
   properties:
   - name: entry

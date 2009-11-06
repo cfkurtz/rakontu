@@ -32,6 +32,12 @@ img.bordered {
 	padding: 0;
 	}
 	
+img.right {
+	border: 1px solid #000000;
+	float: right;
+	margin: 2px;
+	}
+	
 table {
 	width: auto;
 	border-right: 1px solid #000000;

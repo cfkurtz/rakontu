@@ -78,6 +78,15 @@ def isFirstInSeries(list, object):
 		return False
 register.filter(isFirstInSeries)
 
+def isModFiveInSeries(list, object):
+	try:
+		index = list.index(object) + 1
+		isModFive = index % 5 == 0 
+		return isModFive
+	except:
+		return False
+register.filter(isModFiveInSeries)
+
 def isInList(object, list):
 	if list and object:
 		return object in list
@@ -235,8 +244,9 @@ register.filter(orNothing)
 	
 def upTo(value, number):
 	if value:
-		result = value[:number]
-		if len(value) > number:
+		cleanedValue = models.HtmlUnEscape(models.stripTags(value))
+		result = cleanedValue[:number]
+		if len(cleanedValue) > number:
 			result += "..."
 	else:
 		result = value
@@ -278,7 +288,6 @@ register.filter(lower)
 def stringLengthExceeds(value, limit):
 	return len(value) > limit
 register.filter(stringLengthExceeds)
-
 
 def strip(value):
 	return value.strip()

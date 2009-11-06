@@ -8,51 +8,53 @@
 		<form action="/{{dir_visit}}/{{url_members}}?{{rakontu.urlQuery}}" method="post">
 	
 		<h3>{{template_members}}</h3>
-      		<table style="width:100%;border-left:none; border-right:none;border-top:none;" cellpadding=0 cellspacing=0>
+		
+      		<table style="width:100%" cellpadding=0 cellspacing=0>
         		{% for aMember in rakontu_members %}
-  				<tr>
-  				<td width="70" valign="center" align="center" style="border-left:none; border-right:none;">
-			 		{% if aMember.profileImage %}
-			 			<a href="{{aMember.linkURL}}">{{aMember.imageEmbed}}</a>
-					{% else %}
-						&nbsp;
+	        		{% if rakontu_members|isFirstInSeries:aMember %}
+	  					<tr>
+	  				{% endif %}
+	  				<td style="vertical-align:top;">
+				 	{% if aMember.profileImage %}
+				 		<a href="{{aMember.linkURL}}">{{aMember.imageEmbedRight}}</a>
 					{% endif %}
-				</td>
-				<td style="border-left:none; border-right:none;">
-	 				{{aMember.linkString}}  
-	  				{% ifequal aMember.key current_member.key %}<i>({{template_you}})</i> {% endifequal %} 
-			  	</td>
-			  	<td style="border-left:none; border-right:none;">
-			  		{% if aMember.isOnlineMember %}
-			  			{{template_online}};
-			  		{% else %}
-			  			{{template_offline}} ({{template_liaison}}: {{aMember.liaisonIfOfflineMember.linkString}});
+					{% if aMember.isGuide or aMember.acceptsMessages %}
+						<input type="checkbox" name="sendMessage|{{aMember.key}}" value="yes" id="sendMessage|{{aMember.key}}">
+						<label for="sendMessage|{{aMember.key}}">{{aMember.linkString}}</label>
+					{% else %}
+						{{aMember.linkString}}  
+					{% endif %}
+					<br/>
+				  	{% if not aMember.isOnlineMember %}
+			  			{{template_liaison}}: {{aMember.liaisonIfOfflineMember.linkString}}.
 			  		{% endif %}
-					{{template_joined|lower}} {{aMember.joined|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}{% if aMember.isManagerOrOwner %};{% else %}.{% endif %} 
 			  		{% if aMember.hasAnyHelpingRole %}
-			  			{{aMember.governanceTypeForDisplayNotShowingOwner}}, {{aMember.helpingRolesForDisplay|join:", "}}.
+			  			{% if aMember.isManagerOrOwner %}
+			  				{{aMember.governanceTypeForDisplayNotShowingOwner|capitalize}}, {{aMember.helpingRolesForDisplay|join:", "}}.
+			  			{% else %}
+			  				{{aMember.helpingRolesForDisplay|join:", "|capitalize}}.
+			  			{% endif %}
 			  		{% else %}
 			  			{% if aMember.isManagerOrOwner %}
 			  				{{template_manager}}.
 			  			{% endif %}
 			  		{% endif %}
+			  		{% ifequal aMember.key current_member.key %}({{template_you}}) {% endifequal %} 
 			  		{% if aMember.profileText_formatted|orNothing %}
 			  			{% ifnotequal aMember.profileText no_profile_text %}
-			  				<p><i>{{aMember.profileText_formatted|upTo:current_member.shortDisplayLength|orNbsp}}</i></p>
+			  				"{{aMember.profileText_formatted|upTo:current_member.shortDisplayLength|strip}}"
 			  			{% endifnotequal %}
-			  		{% endif %}
-	  				</td>
-	  			<td style="border-left:none; border-right:none;">
-				{% if aMember.isGuide or aMember.acceptsMessages %}
-					<p><input type="checkbox" name="sendMessage|{{aMember.key}}" value="yes" id="sendMessage|{{aMember.key}}">
-					<label for="sendMessage|{{aMember.key}}">{{template_send_message}}</label></p>
-				{% else %}
-					&nbsp;
-				{% endif %}
-	  			</td>
-   				</tr>
+					{% endif %}
+		  				</td>
+   				{% if rakontu_members|isModFiveInSeries:aMember %}
+   					</tr><tr>
+   				{% endif %}
+     		{% endfor %}
+      		{% for i in num_cols_left_over|makeRange %}
+      			<td>&nbsp;</td>
       		{% endfor %}
-      		</table>
+      		</tr>
+       		</table>
  
  		<p><center><input type="submit" name="sendMessage" value="{{button_compose_message}}" class="button"></center></p>
  		</form>

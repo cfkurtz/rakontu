@@ -9,12 +9,13 @@
 		<p>{{template_created}}: {{rakontu.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.
 		</p>
 		
-		<p>{{template_description}}:</p>
-		<div class="blurb">{{rakontu.description_formatted}}</div>
+		<div class="blurb">
+		{{rakontu.description_formatted}}
 		{% if rakontu.etiquetteStatement_formatted %}
-			<p>{{template_etiquette_statement}}:</p>
-			<div class="blurb">{{rakontu.etiquetteStatement_formatted}}</div>
+			<p></p>
+			{{rakontu.etiquetteStatement_formatted}}
 		{% endif %}
+		</div>
 		
 		{% if rakontu.discussionGroupURL %}
 			{{template_discussion_group}}: <a href="{{rakontu.discussionGroupURL}}">{{rakontu.discussionGroupURL}}</a>

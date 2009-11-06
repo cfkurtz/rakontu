@@ -90,16 +90,14 @@
 			<fieldset>
 	      	<table border="0" cellpadding="4" cellspacing="0">
 	      	<tr>
-	      		<th>{{template_name}},<br/>{{template_contributed_by}},<br/>{{template_published}}</th>
-	      		<th width="160">{{template_first_part_of_text}}</th>
+	      		<th>{{template_information|capitalize}}</th>
 	      		<th width="100">{{template_add_link}}?</th>
 	      		<th width="200">{{template_link_comment}}</th>
 				</tr>
       		{% for anEntry in entries %}
       			<tr>
       			 <td>
-      			 	<p>{{anEntry.linkString}}</p>
-	  				<p>
+      			 	{{anEntry.linkString}}
 						{% if anEntry.attributedToMember %}
 								{% if anEntry.creator.active %}
 									{{anEntry.creator.linkString}}
@@ -116,10 +114,10 @@
 								{{template_the_former_character}} "{{anEntry.character.name}}"
 							{% endif %}
 						{% endif %}
-	  				</p>
-	  				<p>{{anEntry.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}</p>
-	  				</td>
-      			 <td>{{anEntry.text_formatted|upTo:current_member.shortDisplayLength|orNbsp}}</td>
+	  				
+	  				{{anEntry.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.
+      			 <i>{{anEntry.text_formatted|upTo:current_member.shortDisplayLength|orNbsp}}</td>
+      			 </td>
       			<td>
       			<input type="checkbox" name="addLink|{{anEntry.key}}" value="yes" id="addLink|{{anEntry.key}}"/>
 				<label for="addLink|{{anEntry.key}}">{{template_add_link}}</label>
@@ -155,6 +153,9 @@
 			
 		</form>
 		</div>
+		
+		<p>{{entry.linkString}} ({{entry.typeForDisplay}})</p>
+		{% include "read_or_preview_entry.html" %}
 		</div>
 	{% include "../common_footer.html" %}
 	</body>

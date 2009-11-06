@@ -478,7 +478,7 @@ class Rakontu(db.Model):
 		return Entry.all().filter("rakontu = ", self.key()).\
 			filter("draft = ", False).\
 			filter("type IN ", entryTypes).\
-			filter("published >= ", minTime).filter("published < ", maxTime).\
+			filter("lastAnnotatedOrAnsweredOrLinked >= ", minTime).filter("lastAnnotatedOrAnsweredOrLinked < ", maxTime).\
 			fetch(FETCH_NUMBER)
 			
 	def selectEntriesFromList(self, entries, minTime, maxTime, entryTypes):
@@ -1515,7 +1515,7 @@ class Member(db.Model):
 		result = []
 		entries = Entry.all().filter("creator = ", self.key()).filter("draft = ", False).filter("character = ", None).\
 			filter("type IN ", entryTypes).\
-			filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
+			filter("lastAnnotatedOrAnsweredOrLinked >= ", minTime).filter("lastAnnotatedOrAnsweredOrLinked < ", maxTime).fetch(FETCH_NUMBER)
 		result.extend(entries)
 		annotations = Annotation.all().filter("creator = ", self.key()).filter("character = ", None).\
 			filter("type IN ", annotationTypes).\
@@ -1656,7 +1656,7 @@ class Member(db.Model):
 			return TERMS["term_online"]
 		else:
 			return TERMS["term_offline"]
-	
+		
 	def askLinkString(self):
 		return '<a href="%s?%s">%s</a>' % (self.askUrlWithoutQuery(), self.urlQuery(), self.nickname)
 	
@@ -1674,6 +1674,9 @@ class Member(db.Model):
 
 	def imageEmbed(self):
 		return '<img src="/%s/%s?%s&%s=%s" class="bordered">' % (DIRS["dir_visit"], URLS["url_image"], self.rakontu.urlQuery(), URL_IDS["url_query_member"], self.getKeyName())
+	
+	def imageEmbedRight(self):
+		return '<img class="right" src="/%s/%s?%s&%s=%s" class="bordered">' % (DIRS["dir_visit"], URLS["url_image"], self.rakontu.urlQuery(), URL_IDS["url_query_member"], self.getKeyName())
 	
 # ============================================================================================
 # ============================================================================================
@@ -1705,6 +1708,7 @@ class ViewOptions(db.Model):
 	showOptionsOnTop = db.BooleanProperty(default=False, indexed=False)
 	showHelpResourcesInTimelines = db.BooleanProperty(default=False, indexed=False)
 	showActivityLevels = db.BooleanProperty(default=True, indexed=False)
+	keepTimelinesPeggedToNow = db.BooleanProperty(default=True, indexed=False)
 	
 	def getNameForExport(self):
 		return "%s %s: %s" % (self.__class__.__name__, self.key().name(), self.location)
@@ -1815,7 +1819,7 @@ class Character(db.Model):
 		result = []
 		entries = Entry.all().filter("character = ", self.key()).filter("draft = ", False).\
 			filter("type IN ", entryTypes).\
-			filter("published >= ", minTime).filter("published < ", maxTime).fetch(FETCH_NUMBER)
+			filter("lastAnnotatedOrAnsweredOrLinked >= ", minTime).filter("lastAnnotatedOrAnsweredOrLinked < ", maxTime).fetch(FETCH_NUMBER)
 		result.extend(entries)
 		annotations = Annotation.all().filter("character = ", self.key()).\
 			filter("type IN ", annotationTypes).\
@@ -2437,6 +2441,10 @@ class Entry(db.Model):
 	def publish(self, isFirstPublish=True):
 		self.draft = False
 		self.published = datetime.now(pytz.utc)
+		# set this to published at first because this is used to show it in the timelines
+		# and you need a starting value
+		if not self.lastAnnotatedOrAnsweredOrLinked:
+			self.lastAnnotatedOrAnsweredOrLinked = self.published
 		# entries, unlike other things, can be published multiple times.
 		# however, they should only update the creator's nudge points once
 		# (espcially since later publishers may be others, if the creator has added additional editors)
@@ -2797,6 +2805,12 @@ class Entry(db.Model):
 	
 	def memberCanNudge(self, member):
 		return str(member.key()) != str(self.creator.key())
+	
+	def nudgePointsMemberCanAddToMe(self, member):
+		if self.memberCanNudge(member):
+			return max(0, self.rakontu.maxNudgePointsPerEntry - self.getTotalNudgePointsForMember(member))
+		else:
+			return 0
 
 	def nudgePointsCombined(self):
 		result = 0
@@ -3293,7 +3307,7 @@ class Link(db.Model):
 			if self.rakontu.nudgeCategoryIndexHasContent(i):
 				self.entryNudgePointsWhenPublished[i] = self.itemFrom.nudgePoints[i]
 		self.entryActivityPointsWhenPublished = self.itemFrom.activityPoints
-		self.creator.nudgePoints = self.itemFrom.rakontu.getMemberNudgePointsForEvent("adding %s link" % self.type)
+		self.creator.nudgePoints += self.itemFrom.rakontu.getMemberNudgePointsForEvent("adding %s link" % self.type)
 		# caller must do puts
 		
 	def lastTouched(self):
@@ -3510,6 +3524,10 @@ class Annotation(db.Model):
 				self.entryNudgePointsWhenPublished[i] = self.entry.nudgePoints[i]
 		self.entryActivityPointsWhenPublished = self.entry.activityPoints
 		self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("adding %s" % self.type)
+		if self.type == "nudge":
+			self.creator.nudgePoints -= self.totalNudgePointsAbsolute()
+			if self.creator.nudgePoints < 0:
+				self.creator.nudgePoints = 0
 		# caller must do puts
 
 	def lastTouched(self):
