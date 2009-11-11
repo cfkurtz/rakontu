@@ -772,6 +772,7 @@ TEMPLATE_TERMS = {
 		"template_welcome_to_new": u"Welcome to your new Rakontu",
 		"template_here_are_terms": u"To get you started, here is a brief explanation of some important terms.",
 		"template_resources_for_new_managers": u"Here are some resources that might get you started.",
+		"template_check_help_system_for_new_manager_page": u"Create or review help resources", # << TRANSLATION REQUIRED >>
 		# manage/setAvailability
 		"set_rakontu_availability": u"Set Rakontu availability",
 		"template_current_rakontu_availability_is": u"This Rakontu is currently available to",
@@ -789,6 +790,7 @@ TEMPLATE_TERMS = {
 		"template_send_invitation_email": u"Send invitation email",
 		"template_invitation_to_join": u"Invitation to join",
 		"template_invite_as_manager": u"Invite as manager",
+		"template_cannot_remove_inactive_member_because_has_items": u"Cannot be removed (has contributed)", # << TRANSLATION REQUIRED >>
 		# manage/invitation_message
 		"template_send_an_invitation_message_to": u"Send an invitation email to",
 		# manage/questions
@@ -843,6 +845,17 @@ TEMPLATE_TERMS = {
 		"template_how_should_times_display": u"How should times be displayed by default?",
 		"template_read_before_text": u"read-before text",
 		"template_discussion_group_url": u"Discussion group link",
+		# manage/skin  # << TRANSLATION REQUIRED >>
+		"template_choose_a_skin": u"Choose a skin",  # << TRANSLATION REQUIRED >>
+		"template_you_are_using_skin": u"You are using",  # << TRANSLATION REQUIRED >>
+		"template_top": u"Top", # << TRANSLATION REQUIRED >>
+		"template_menu": u"Menu", # << TRANSLATION REQUIRED >>
+		"template_header": u"Header", # << TRANSLATION REQUIRED >>
+		"template_story_text_with": u"Story text with", # link # << TRANSLATION REQUIRED >>
+		"template_form": u"Form", # << TRANSLATION REQUIRED >>
+		"template_text_box": u"Text box",  # << TRANSLATION REQUIRED >>
+		"template_button": u"Button", # << TRANSLATION REQUIRED >>
+		"template_custom_skin_settings": u"Custom skin settings",  # << TRANSLATION REQUIRED >>
 		# manage/settings
 		"template_things_members_can_do": u"Things members can do",
 		
@@ -1007,6 +1020,7 @@ TEMPLATE_TERMS = {
 		# visit/leave
 		"template_are_you_sure": u"Are you sure?",
 		"template_leaving_warning": u"Are you absolutely, completely, really, totally certain that you want to leave this Rakontu? If you do, you may have to ask a manager of the Rakontu if you want to rejoin.",
+		"template_canceling_joining_warning": u"Are you sure you want to cancel joining this Rakontu?", # << TRANSLATION REQUIRED >>
 		# visit/member
 		"template_information_about": u"Information about",
 		"template_information_about_this": u"Information about this",
@@ -1033,7 +1047,8 @@ TEMPLATE_TERMS = {
 		"template_resources_for_new_members": u"You may find these resources helpful for getting started",
 		"template_about_help_icons": u"Around the site you will see little icons that provide help. Either hover over them with your mouse or click on them to read them.",
 		"template_how_to_get_to_new_member_page_again": u"You can return to this page later by clicking the link at the bottom of the Help page.",
-		"template_leave_rakontu_for_new_member_page": u"To cancel joining this Rakontu, click here.", # << TRANSLATION REQUIRED >>
+		"template_leave_rakontu_for_new_member_page": u"Cancel joining this Rakontu", # << TRANSLATION REQUIRED >>
+		"template_change_nickname_for_new_member_page": u"Change nickname", # << TRANSLATION REQUIRED >>
 		# visit/preview
 		"template_with_reference_to_the": u"with reference to the",
 		# visit/previewAnswers
@@ -1054,7 +1069,7 @@ TEMPLATE_TERMS = {
 		"template_nickname_chosen_is": u"The nickname you have chosen is",
 		"template_nickname_chosen_for_offline_member_is": u"The nickname you have chosen for this member is",
 		"template_confirm_nickname": u"Please confirm that you want to use this nickname. (This will effect the appearance of all of your contributions, in the past as well as the future.)",
-		"template_cancel_changing_nickname": u"Cancel and return to profile page",
+		#"template_cancel_changing_nickname": u"Cancel and return to profile page", # << TRANSLATION REQUIRED >>
 		# visit/preferences
 		"template_do_you_want_messages": u"Do you want other Rakontu members to be able to send you messages via email?",
 		"template_guides_must_accept_messages": u"Since you are a guide you have to accept messages so you can answer questions.",
@@ -1222,6 +1237,8 @@ TEMPLATE_BUTTONS = {
 		"button_export_selection": u"Export selection",
 		"button_really_and_truly_leave": u"Really and Truly Leave this Rakontu",
 		"button_go_back_to_prefs_page": u"Go Back to My Preferences Page",
+		"button_go_back_to_new_member_page": u"Go Back to New Member Page", # << TRANSLATION REQUIRED >>
+		"button_cancel_joining_rakontu": u"Cancel Joining Rakontu", # << TRANSLATION REQUIRED >>
 		"button_return_to_list": u"Return to list",
 		"button_mark_as_completed": u"Mark as completed",
 		"button_mark_as_not_completed": u"Mark as not completed",
@@ -1270,6 +1287,7 @@ TEMPLATE_MENUS = {
 		"menu_manage": u"Manage",
 		"menu_members": u"Members",
 		"menu_appearance": u"Appearance",
+		"menu_skin": u"Skin", # << TRANSLATION REQUIRED >>
 		"menu_settings": u"Settings",
 		"menu_questions": u"Questions",
 		"menu_characters": u"Characters",
@@ -1496,6 +1514,7 @@ TITLES = {
         # managing
         "MANAGE_MEMBERS": u"Manage members" ,
         "MANAGE_APPEARANCE": u"Manage appearance",
+        "MANAGE_SKIN": u"Manage skin", # << TRANSLATION REQUIRED >>
         "MANAGE_SETTINGS": u"Manage settings" ,
         "MANAGE_QUESTIONS": u"Manage questions" ,
         "MANAGE_QUESTION": u"Manage question", # question name
@@ -1607,6 +1626,7 @@ URLS = {
     "url_characters": u"characters",
     "url_character": u"character",
     "url_appearance": u"appearance",
+    "url_skin": u"skin", # << TRANSLATION REQUIRED >>
     "url_settings": u"settings",
     "url_export_filter": u"exportFilteredItems",
     "url_inactivate": u"inactivate",

@@ -395,7 +395,7 @@ class Rakontu(db.Model):
 	def hasMemberWithGoogleEmail(self, email):
 		members = self.getActiveMembers()
 		for member in members:
-			if member.googleAccountEmail == email:
+			if member.googleAccountEmail and email and (member.googleAccountEmail.lower() == email.lower()):
 				return True
 		return False
 	
@@ -409,7 +409,7 @@ class Rakontu(db.Model):
 	def pendingMemberWithGoogleEmail(self, email):
 		pendingMembers = self.getPendingMembers()
 		for pendingMember in pendingMembers:
-			if pendingMember.email == email:
+			if pendingMember.email and email and (pendingMember.email.lower() == email.lower()):
 				return pendingMember
 		return None
 	
@@ -1318,7 +1318,8 @@ class Member(db.Model):
 	googleAccountID = db.StringProperty() # none if off-line member
 	googleAccountEmail = db.StringProperty() # blank if off-line member
 	
-	# active: members are never removed, just inactivated, so entries can still link to something.
+	# active: members are usually not removed, just inactivated, so entries can still link to something.
+	# (managers can remove inactive members only if they have not contributed anything.)
 	# inactive members do not show up in any display, but they can be "reactivated" by issuing an invitation
 	# to the same google email as before.
 	active = db.BooleanProperty(default=True) 
@@ -1349,6 +1350,9 @@ class Member(db.Model):
 	joined = TzDateTimeProperty(auto_now_add=True)
 	firstVisited = db.DateTimeProperty(indexed=False)
 	nudgePoints = db.IntegerProperty(default=DEFAULT_START_NUDGE_POINTS, indexed=False) # accumulated through participation
+	
+	lastReadAnything = TzDateTimeProperty(default=None)
+	lastAddedOrChangedAnything = TzDateTimeProperty(default=None)
 	
 	# CREATION
 	
@@ -1616,6 +1620,10 @@ class Member(db.Model):
 		if not hasContent:
 			counts = None
 		return countNames, counts
+	
+	def hasContributedAnything(self):
+		items = self.getAllItemsAttributedToMember()
+		return len(items) > 0
 	
 	def getEntriesOfOtherPeopleICanEdit(self):
 		result = []
@@ -2183,6 +2191,7 @@ class Answer(db.Model):
 					self.entryNudgePointsWhenPublished[i] = self.referent.nudgePoints[i]
 			self.entryActivityPointsWhenPublished = self.referent.activityPoints
 			self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("answering question")
+			self.creator.lastAddedOrChangedAnything = datetime.now(tz=pytz.utc)
 		# caller must do puts
 		
 	def lastTouched(self):
@@ -2452,6 +2461,7 @@ class Entry(db.Model):
 		self.recordAction("added", self, "Entry")
 		if isFirstPublish:
 			self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("adding %s" % self.type)
+			self.creator.lastAddedOrChangedAnything = datetime.now(tz=pytz.utc)
 		# caller must do puts
 					
 	def recordAction(self, action, referent, className):
@@ -3308,6 +3318,7 @@ class Link(db.Model):
 				self.entryNudgePointsWhenPublished[i] = self.itemFrom.nudgePoints[i]
 		self.entryActivityPointsWhenPublished = self.itemFrom.activityPoints
 		self.creator.nudgePoints += self.itemFrom.rakontu.getMemberNudgePointsForEvent("adding %s link" % self.type)
+		self.creator.lastAddedOrChangedAnything = datetime.now(tz=pytz.utc)
 		# caller must do puts
 		
 	def lastTouched(self):
@@ -3515,7 +3526,6 @@ class Annotation(db.Model):
 	def isCommentOrRequest(self):
 		return self.type == "comment" or self.type == "request"
 	
-	
 	def publish(self):
 		self.published = datetime.now(pytz.utc)
 		self.entry.recordAction("added", self, "Annotation")
@@ -3524,6 +3534,7 @@ class Annotation(db.Model):
 				self.entryNudgePointsWhenPublished[i] = self.entry.nudgePoints[i]
 		self.entryActivityPointsWhenPublished = self.entry.activityPoints
 		self.creator.nudgePoints += self.rakontu.getMemberNudgePointsForEvent("adding %s" % self.type)
+		self.creator.lastAddedOrChangedAnything = datetime.now(tz=pytz.utc)
 		if self.type == "nudge":
 			self.creator.nudgePoints -= self.totalNudgePointsAbsolute()
 			if self.creator.nudgePoints < 0:
@@ -3838,6 +3849,13 @@ class Skin(db.Model):
 				lines.append("%s=%s" % (key, getattr(self, key)))
 		lines.sort()
 		return "\n".join(lines)
+	
+	def getRowColors(self):
+		myDict = self.getPropertiesAsDictionary()
+		rowColors = []
+		for row in range(BROWSE_NUM_ROWS):
+			rowColors.append(HexColorStringForRowIndex(row, myDict))
+		return rowColors
 
 # ============================================================================================
 # ============================================================================================
@@ -4283,3 +4301,41 @@ def BoldAWordInText(text, word):
 	for match in matches:
 		result = result.replace(match, '<b>%s</b>' % match)
 	return result
+
+# ============================================================================================
+# ============================================================================================
+# COLORS
+# ============================================================================================
+# ============================================================================================
+ 
+def HTMLColorToRGB(colorstring):	 
+	colorstring = colorstring.strip() 
+	r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:] 
+	r, g, b = [int(n, 16) for n in (r, g, b)]	
+	return (r, g, b)			
+		   
+def RGBToHTMLColor(rgb_tuple):	   
+	return '%02x%02x%02x' % rgb_tuple 
+		   
+def HexColorStringForRowIndex(index, colorDict):	
+	if colorDict.has_key("color_background_grid_top"):
+		topColor = colorDict["color_background_grid_top"]  
+	else:
+		topColor = "FFFFFF"
+	if index == 0:   
+		return topColor
+	else:
+		startR, startG, startB = HTMLColorToRGB(topColor)
+		if colorDict.has_key("color_background_grid_bottom"):
+			bottomColor = colorDict["color_background_grid_bottom"]  
+		else:
+			bottomColor = "333333"
+		endR, endG, endB = HTMLColorToRGB(bottomColor)
+		rDecrement = (startR - endR) // BROWSE_NUM_ROWS
+		gDecrement = (startG - endG) // BROWSE_NUM_ROWS 
+		bDecrement = (startB - endB) // BROWSE_NUM_ROWS 
+		r = min(255, max(0, startR - index * rDecrement))
+		g = min(255, max(0, startG - index * gDecrement))
+		b = min(255, max(0, startB - index * bDecrement))
+		return RGBToHTMLColor((r,g,b)) 
+	   

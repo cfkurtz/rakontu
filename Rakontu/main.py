@@ -101,6 +101,7 @@ urlInfo = [('/', StartPage),
 	  (BuildURL("dir_manage", "url_members"), ManageRakontuMembersPage),
 	  (BuildURL("dir_manage", "url_invitation_message"), SendInvitationMessagePage),
 	  (BuildURL("dir_manage", "url_appearance"), ManageRakontuAppearancePage),
+	  (BuildURL("dir_manage", "url_skin"), ManageRakontuSkinPage),
 	  (BuildURL("dir_manage", "url_settings"), ManageRakontuSettingsPage),
 	  (BuildURL("dir_manage", "url_questions_list"), ManageRakontuQuestionsListPage),
 	  # these are special and you can't use BuildURL for them

@@ -10,13 +10,21 @@
 			{% if changes_saved %}
 				<div class="message">{{template_changes_saved}}</div>
 			{% endif %}
-		
+					
 			<h3>{{template_name_and_description}}</h3>
 			<fieldset>
 			<p>{{template_name}} {{"rakontu_name"|info}}</p>
 			<p>&nbsp; <input type="text" name="name" value="{{ rakontu.name }}" size="30" maxlength="{{maxlength_name}}"/></p>
 			<p>{{template_tag_line}} {{"tag_line"|info}}</p>
 			<p>&nbsp; <input type="text" name="tagline" value="{{ rakontu.tagline }}" size="80" maxlength="{{maxlength_subject_or_comment}}"/></p>
+
+			<p>{{template_picture}} {{"rakontu_image"|tip}} 
+			{{"uploading_files"|caution}}</p>
+			{% if rakontu.image %}
+				{{rakontu.imageEmbed}}
+				<p>&nbsp; <input type="checkbox" name="removeImage" value="removeImage" id="removeImage"><label for="removeImage">{{template_remove}}</label></p>
+			{% endif %}
+			<p>&nbsp; <input type="file" name="img" accept="jpg/png"/></p>
 
 			<p>{{template_description}} {{"rakontu_description"|info}}</p>
 				<table style="width:100%; border:none">
@@ -76,48 +84,6 @@
 				</td></tr></table>
 			</fieldset>
 	
-			<h3>{{template_visual_appearance}}</h3>
-			<fieldset>
-			<p>{{template_picture}} {{"rakontu_image"|tip}} 
-			{{"uploading_files"|caution}}</p>
-			{% if rakontu.image %}
-				{{rakontu.imageEmbed}}
-				<p>&nbsp; <input type="checkbox" name="removeImage" value="removeImage" id="removeImage"><label for="removeImage">{{template_remove}}</label></p>
-			{% endif %}
-			<p>&nbsp; <input type="file" name="img" accept="jpg/png"/></p>
-			
-			<p>{{template_skin}} {{"skins"|tip}}</p>
-			<p>&nbsp; <select name="skinName">
-				{% for name in skin_names %}
-					<option value="{{name}}"
-					{% ifequal name rakontu.skinName %}
-						selected="selected">
-					{% else %}
-						>
-					{% endifequal %}
-					{{name}}</option>
-				{% endfor %}
-				<option value="{{template_custom}}"
-				{% ifequal rakontu.skinName template_custom %}
-					selected="selected">
-				{% else %}
-					>
-				{% endifequal %}
-				{{template_custom}}</option>
-				<option value="{{template_none}}"
-				{% ifequal rakontu.skinName template_none %}
-					selected="selected">
-				{% else %}
-					>
-				{% endifequal %}
-				{{template_none}}</option>
-				</select></p>
-			<p>{{template_custom_skin}} {{"custom_skins"|tip}}</p>
-				<p>&nbsp; <textarea name="customSkin" rows="5" cols="60">{{rakontu.customSkin}}</textarea></p>
-			<p>{{template_external_style_sheet}} {{"using_an_external_style_sheet"|info}}</p>
-			<p>&nbsp; <input type="text" name="externalStyleSheetURL" value="{{rakontu.externalStyleSheetURL|orNothing}}" size="80" maxlength="{{maxlength_name}}"/></p>
-			</fieldset>
-	      	
 			<h3>{{template_halping_role_texts}}</h3>
 			<fieldset>
 			<p>{{template_curator}} {{template_read_before_text}} {{"role_read_before_texts"|info}}</p>

@@ -6,15 +6,39 @@
 	
 	<div id="content">
 	
+	<center>
 		<div id="rakontu_form_style" class="rakontu_form">
 		<form action="/{{dir_visit}}/{{url_leave}}?{{rakontu.urlQuery}}" method="post" enctype="multipart/form-data">
 		<h1>{{template_are_you_sure}}</h1>
-		<p>{{template_leaving_warning}}</p>
-		</p>
+		
+		{% if member_is_new %}
+			<div style="width:400">{{template_canceling_joining_warning}}</div>
+		{% else %}
+			<div style="width:400">{{template_leaving_warning}}</div>
+		{% endif %}
 				
-      	<p></p>
-    <center><input type="submit" name="leave|{{current_member.key}}" value="{{button_really_and_truly_leave}}" class="button">
-    <p>{{template_or}}</p><input type="submit" name="return" value="{{button_go_back_to_prefs_page}}" class="button"></center>
+      	<p>&nbsp;</p>
+    
+    <input type="submit" name="leave|{{current_member.key}}" value=
+    {% if member_is_new %}
+    	"{{button_cancel_joining_rakontu}}"
+    {% else %}
+    	"{{button_really_and_truly_leave}}"
+    {% endif %}
+    class="button">
+    
+    <p>{{template_or}}</p>
+    
+    <input type="submit" name="return" value=
+    {% if member_is_new %}
+    	"{{button_go_back_to_new_member_page}}"
+    {% else %}
+    	"{{button_go_back_to_prefs_page}}"
+    {% endif %}
+    class="button">
+    <p>&nbsp;</p>
+    
+    </center>
 	</form>	
 	</div>
 	</div>

@@ -105,8 +105,12 @@ class ManageRakontuMembersPage(ErrorHandlingRequestHander):
 					pendingMember.email = htmlEscape(self.request.get("email|%s" % pendingMember.key()))
 					pendingMember.governanceType = self.request.get("pendingMember_governanceType|%s" % pendingMember.key())
 					thingsToPut.append(pendingMember)
-					if self.request.get("removePendingMember|%s" % pendingMember.key()):
+					if self.request.get("removePendingMember|%s" % pendingMember.key()) == "yes":
 						thingsToDelete.append(pendingMember)
+				inactiveMembers = rakontu.getInactiveMembers()
+				for inactiveMember in inactiveMembers:
+					if self.request.get("removeInactiveMember|%s" % inactiveMember.key()) == "yes":
+						thingsToDelete.append(inactiveMember)
 				def txn(thingsToPut, thingsToDelete):
 					db.put(thingsToPut)
 					db.delete(thingsToDelete)
@@ -205,6 +209,7 @@ class ManageRakontuAppearancePage(ErrorHandlingRequestHander):
 								   'skin_names': GetSkinNames(),
 								   'time_zone_names': pytz.all_timezones,
 								   'changes_saved': GetChangesSavedState(member),
+								   'skins': AllSkins(),
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/appearance.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -258,6 +263,60 @@ class ManageRakontuAppearancePage(ErrorHandlingRequestHander):
 					rakontu.roleReadmes_formats[i] = self.request.get("roleReadmes_formats%s" % i)
 				rakontu.put()
 				SetChangesSaved(member)
+				self.redirect(self.request.uri)
+			else:
+				self.redirect(ManagersOnlyURL(rakontu))
+		else:
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
+			
+class ManageRakontuSkinPage(ErrorHandlingRequestHander):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
+			if member.isManagerOrOwner():
+				skins = AllSkins()
+				template_values = GetStandardTemplateDictionaryAndAddMore({
+								   'title': TITLES["MANAGE_SKIN"], 
+								   'rakontu': rakontu, 
+								   'skin': rakontu.getSkinDictionary(),
+								   'current_member': member,
+								   'changes_saved': GetChangesSavedState(member),
+								   'skin_names': GetSkinNames(),
+								   'skins': skins,
+								   'num_cols_left_over': 4 - len(skins) % 4,
+								   })
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/skin.html'))
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect(ManagersOnlyURL(rakontu))
+		else:
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
+	
+	@RequireLogin 
+	def post(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if member.isManagerOrOwner():
+				for skin in AllSkins():
+					if "chooseSkin|%s" % skin.key() in self.request.arguments():
+						rakontu.skinName = skin.name
+						rakontu.put()
+						SetChangesSaved(member)
+						self.redirect(self.request.uri)
+						break
+				if "changeSettings" in self.request.arguments():
+					rakontu.skinName = self.request.get("skinName")
+					if rakontu.skinName == TERMS["term_custom"]:
+						rakontu.customSkin = db.Text(self.request.get("customSkin"))
+					url = self.request.get("externalStyleSheetURL")
+					if url and url != "None":
+						rakontu.externalStyleSheetURL = url
+					else:
+						rakontu.externalStyleSheetURL = None
+					rakontu.put()
+					SetChangesSaved(member)
 				self.redirect(self.request.uri)
 			else:
 				self.redirect(ManagersOnlyURL(rakontu))

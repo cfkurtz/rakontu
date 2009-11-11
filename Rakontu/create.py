@@ -895,6 +895,10 @@ class EnterAnnotationPage(ErrorHandlingRequestHander):
 									adjustedValues[i] = nudgeValuesTheyWantToSet[i]
 									totalNudgePointsAllocated += abs(nudgeValuesTheyWantToSet[i])
 								else:
+									# allow using amount available even if it's not enough for the whole thing
+									amountCanAdd = maximumAllowedInThisInstance - totalNudgePointsAllocated
+									if amountCanAdd > 0:
+										adjustedValues[i] = amountCanAdd
 									break
 					else:
 						adjustedValues = []

@@ -42,20 +42,20 @@ def RequireLogin(func):
 			request.redirect(loginURL)  
 			return 
 		func(request)
-	return check_login    
+	return check_login     
 
 def GetCurrentRakontuAndMemberFromRequest(request): 
 	rakontu = GetRakontuFromURLQuery(request.query_string)  
-	member = GetCurrentMemberFromRakontuAndUser(rakontu, users.get_current_user())
+	member = GetCurrentMemberFromRakontuAndUser(rakontu, users.get_current_user()) 
 	admin = users.is_current_user_admin()
 	okayToAccess = rakontu and member and member.active and rakontu.memberCanAccessMe(member, admin)
 	if okayToAccess: 
-		isFirstVisit = SetFirstThingsAndReturnWhetherMemberIsNew(rakontu, member)
+		isFirstVisit = SetFirstThingsAndReturnWhetherMemberIsNew(rakontu, member) 
 	else: 
-		isFirstVisit = False 
-	return rakontu, member, okayToAccess, isFirstVisit 
-
-def GetCurrentMemberFromRakontuAndUser(rakontu, user):
+		isFirstVisit = False   
+	return rakontu, member, okayToAccess, isFirstVisit   
+ 
+def GetCurrentMemberFromRakontuAndUser(rakontu, user): 
 	member = None
 	if rakontu:
 		if user:
@@ -102,12 +102,12 @@ def CreateMemberFromInfo(rakontu, userId, email, nickname, joinAs, isOnline=True
 	member = db.run_in_transaction(txn, rakontu, userId, email, nickname, joinAs, keyName)
 	member.createViewOptions() # must be done separately as it runs a transaction
 	return member
- 
+  
 def CreatePendingMemberFromInfo(rakontu, email, joinAs):
 	keyName = GenerateSequentialKeyName("pendingmember", rakontu)
-	pendingMember = PendingMember(
+	pendingMember = PendingMember( 
 				key_name=keyName, 
-				id=keyName,
+				id=keyName,  
 				parent=rakontu,
 				rakontu=rakontu, 
 				email=email,
@@ -120,9 +120,9 @@ def SetFirstThingsAndReturnWhetherMemberIsNew(rakontu, member):
 	if rakontu and member:
 		isFirstVisit = not member.firstVisited
 		if isFirstVisit:
-			if member.governanceType == "owner":
-				CopyDefaultResourcesForNewRakontu(rakontu, member)
-			member.firstVisited = datetime.now(tz=pytz.utc)
+			now = datetime.now(tz=pytz.utc)
+			member.firstVisited = now
+			DebugPrint(member.firstVisited, "SET")
 			member.put()
 	return isFirstVisit
 
@@ -978,43 +978,6 @@ def CopySystemResourceOverThisOneWithSameName(resource):
 
 # ============================================================================================
 # ============================================================================================
-# COLORS
-# ============================================================================================
-# ============================================================================================
- 
-def HTMLColorToRGB(colorstring):	 
-	colorstring = colorstring.strip() 
-	r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:] 
-	r, g, b = [int(n, 16) for n in (r, g, b)]	
-	return (r, g, b)			
-		   
-def RGBToHTMLColor(rgb_tuple):	   
-	return '%02x%02x%02x' % rgb_tuple 
-		   
-def HexColorStringForRowIndex(index, colorDict):	
-	if colorDict.has_key("color_background_grid_top"):
-		topColor = colorDict["color_background_grid_top"]  
-	else:
-		topColor = "FFFFFF"
-	if index == 0:   
-		return topColor
-	else:
-		startR, startG, startB = HTMLColorToRGB(topColor)
-		if colorDict.has_key("color_background_grid_bottom"):
-			bottomColor = colorDict["color_background_grid_bottom"]  
-		else:
-			bottomColor = "333333"
-		endR, endG, endB = HTMLColorToRGB(bottomColor)
-		rDecrement = (startR - endR) // BROWSE_NUM_ROWS
-		gDecrement = (startG - endG) // BROWSE_NUM_ROWS 
-		bDecrement = (startB - endB) // BROWSE_NUM_ROWS 
-		r = min(255, max(0, startR - index * rDecrement))
-		g = min(255, max(0, startG - index * gDecrement))
-		b = min(255, max(0, startB - index * bDecrement))
-		return RGBToHTMLColor((r,g,b)) 
-	   
-# ============================================================================================
-# ============================================================================================
 # TEXT PROCESSING
 # ============================================================================================
 # ============================================================================================
@@ -1027,7 +990,7 @@ SIMPLE_HTML_REPLACEMENTS = [
 							("<code>", "{{startCode}}"), ("</code>", "{{stopCode}}"),
 							("<ul>", "{{startUL}}"), ("</ul>", "{{stopUL}}"),
 							("<ol>", "{{startOL}}"), ("</ol>", "{{stopOL}}"),
-							("<li>", "{{startLI}}"), ("</li>", "{{stopLI}}"),
+							("<li>", "{{startLI}}"), ("</li>", "{{stopLI}}"), 
 							("<h1>", "{{startH1}}"), ("</h1>", "{{stopH1}}"),
 							("<h2>", "{{startH2}}"), ("</h2>", "{{stopH2}}"),
 							("<h3>", "{{startH3}}"), ("</h3>", "{{stopH3}}"),

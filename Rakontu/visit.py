@@ -475,6 +475,10 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 									adjustedValues[i] = nudgeValuesTheyWantToSet[i]
 									totalNudgePointsAllocated += abs(nudgeValuesTheyWantToSet[i])
 								else:
+									# allow using amount available even if it's not enough for the whole thing
+									amountCanAdd = maximumAllowedInThisInstance - totalNudgePointsAllocated
+									if amountCanAdd > 0:
+										adjustedValues[i] = amountCanAdd
 									break
 					else:
 						adjustedValues = []
@@ -631,6 +635,10 @@ class SeeRakontuPage(ErrorHandlingRequestHander):
 					   		   'count_names': countNames,
 					   		   'counts': counts,
 							   })
+			def txn(member):
+				member.lastReadAnything = datetime.now(tz=pytz.utc)
+				member.put()
+			db.run_in_transaction(txn, member)
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/rakontu.html'))
 			self.response.out.write(template.render(path, template_values))
 		else:
@@ -881,6 +889,10 @@ class SeeMemberPage(ErrorHandlingRequestHander):
 								'include_print': True,
 								'include_export': False,
 					   		   })
+				def txn(member):
+					member.lastReadAnything = datetime.now(tz=pytz.utc)
+					member.put()
+				db.run_in_transaction(txn, member)
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/member.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
@@ -1026,6 +1038,10 @@ class SeeCharacterPage(ErrorHandlingRequestHander):
 								'include_print': True,
 								'include_export': False,
 													 })
+				def txn(member):
+					member.lastReadAnything = datetime.now(tz=pytz.utc)
+					member.put()
+				db.run_in_transaction(txn, member)
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/character.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
@@ -1576,12 +1592,14 @@ class LeaveRakontuPage(ErrorHandlingRequestHander):
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			member = GetObjectOfTypeFromURLQuery(self.request.query_string, "url_query_member")
+			newMember = not member.hasContributedAnything()
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 						   	   'title': TITLES["LEAVE_RAKONTU"], 
 							   'rakontu': rakontu, 
 							   'skin': rakontu.getSkinDictionary(),
 							   'message': member.getKeyName(),
 							   'current_member': member,
+							   'member_is_new': newMember,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/leave.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -1591,17 +1609,24 @@ class LeaveRakontuPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def post(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		newMember = not member.hasContributedAnything()
 		if access:
 			if "leave|%s" % member.key() in self.request.arguments():
 				if rakontu.memberIsOnlyOwner(member):
 					self.redirect(BuildResultURL("ownerCannotLeave", rakontu=rakontu))
 					return
 				else:
-					member.active = False
-					member.put()
+					if member.hasContributedAnything():
+						member.active = False
+						member.put()
+					else:
+						db.delete(member)
 					self.redirect(START)
 			else:
-				self.redirect(BuildURL("dir_visit", "url_preferences", member.urlQuery()))
+				if newMember:
+					self.redirect(member.firstVisitURL())
+				else:
+					self.redirect(BuildURL("dir_visit", "url_preferences", member.urlQuery()))
 		else:
 			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 		

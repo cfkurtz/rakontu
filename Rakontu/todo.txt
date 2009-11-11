@@ -10,3 +10,7 @@ consider putting drop-downs for tags in the filter page.
 
 in curate-tags, how can you show entries that have no tags?
 
+manage skin page with tables?
+
+
+

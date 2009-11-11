@@ -87,6 +87,15 @@ def isModFiveInSeries(list, object):
 		return False
 register.filter(isModFiveInSeries)
 
+def isModFourInSeries(list, object):
+	try:
+		index = list.index(object) + 1
+		isModFive = index % 4 == 0 
+		return isModFive
+	except:
+		return False
+register.filter(isModFourInSeries)
+
 def isInList(object, list):
 	if list and object:
 		return object in list
@@ -280,6 +289,10 @@ register.filter(allcaps)
 def capitalize(value):
 	return value.capitalize()
 register.filter(capitalize)
+
+def replaceDoubleWithSingleQuotes(value):
+	return value.replace('"', "'")
+register.filter(replaceDoubleWithSingleQuotes)
 
 def lower(value):
 	return value.lower()

@@ -21,6 +21,7 @@
 	      		<th>{{template_membership_type}}</th>
 	      		<th>{{template_helping_roles_taken_on}}</th>
 	      		<th width="160">{{template_helping_roles_available}} {{"available_helping_roles"|tip}}</th>
+	      		<th>{{template_last_activity}}</th>
 	      		<th>{{template_inactivate}}?</th>
 	      		</tr>
 	      		{% for aMember in rakontu_members %}
@@ -83,7 +84,7 @@
 		      					{% if aMember.helpingRolesAvailable.0 %}
 		      						checked="checked"
 		      					{% endif %}
-		      					><label for="curatorAvailable|{{aMember.key}}">{{template_curator}} {{template_available}}</label>
+		      					><label for="curatorAvailable|{{aMember.key}}">{{template_curator}}</label>
 		      					</p>
 		  					
 		  						<p>
@@ -91,7 +92,7 @@
 		     					{% if aMember.helpingRolesAvailable.1 %}
 		      						checked="checked"
 		      					{% endif %}
-		      					><label for="guideAvailable|{{aMember.key}}">{{template_guide}} {{template_available}}</label>
+		      					><label for="guideAvailable|{{aMember.key}}">{{template_guide}}</label>
 								</p>
 							
 		  						<p> 
@@ -99,13 +100,22 @@
 		     					{% if aMember.helpingRolesAvailable.2 %}
 		      						checked="checked"
 		      					{% endif %}
-		      					><label for="liaisonAvailable|{{aMember.key}}">{{template_liaison}} {{template_available}}</label>
+		      					><label for="liaisonAvailable|{{aMember.key}}">{{template_liaison}}</label>
 		      					</p>
 		      				{% else %}
 		      					&nbsp;
 		      				{% endif %}
 		  					</td>
 		  			{% endif %}
+		  			<td>
+		  				<p>{{template_last_reading}}: </p>
+		  					<p>{{aMember.lastReadAnything|timeZone:current_member.timeZoneName|time:current_member.timeFormat|orNone}}
+							{{aMember.lastReadAnything|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+							</p>
+						<p>{{template_last_entry}}:</p>
+		  					<p>{{aMember.lastAddedOrChangedAnything|timeZone:current_member.timeZoneName|time:current_member.timeFormat|orNone}}
+							{{aMember.lastAddedOrChangedAnything|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+							</p>
 	  				<td width="100">
 	  					<p><input type="checkbox" name="remove|{{aMember.key}}" value="yes" id="remove|{{aMember.key}}">
 						<label for="remove|{{aMember.key}}">{{template_inactivate}}</label></p>
@@ -156,7 +166,7 @@
 	  							>{{template_owner}}</option>
 	  						</select>
 		  				</td>
-		  				<td><input type="checkbox" name="removePendingMember|{{pending_member.key}}" id="removePendingMember|{{pending_member.key}}"/>
+		  				<td><input type="checkbox" name="removePendingMember|{{pending_member.key}}" id="removePendingMember|{{pending_member.key}}" value="yes"/>
 		  				<label for="removePendingMember|{{pending_member.key}}">{{template_remove}}</label></td>
 		  				</tr>
 		      		{% endfor %}
@@ -172,11 +182,36 @@
 			{% if inactive_members %}
 				<h3>{{template_inactive_members}} {{"inactive_online_members"|tip}}</h3>
 				<fieldset>
-				<ul>
-				{% for member in inactive_members %}
-					<li class="nobullet">{{member.googleAccountEmail}}</li>
-				{% endfor %}
-				</ul>
+		      	<table border="0" cellpadding="4" cellspacing="0">
+		      		<tr>
+		      		<th>{{template_nickname}}</th>
+		      		<th>{{template_online}}?</th>
+		      		<th>{{template_google_email}}</th>
+		      		<th>{{template_membership_type}}</th>
+		      		<th>{{template_remove}}? </th>
+		      		</tr>
+		      		{% for member in inactive_members %}
+		  				<tr>
+		  				    <td>{{member.nickname}}</td>
+		  				    <td>{% if member.isOnlineMember %}
+	  								{{template_online}}
+	  							{% else %}
+	  								{{template_offline}}
+	  							{% endif %}
+	  						</td>
+			  				<td>{{member.googleUserEmailOrNotOnline}}</td>
+			  				<td>{{member.governanceTypeForDisplay}}</td>
+			  				<td>
+			  					{% if not member.hasContributedAnything %}
+			  						<input type="checkbox" name="removeInactiveMember|{{member.key}}" id="removeInactiveMember|{{member.key}}" value="yes"/>
+			  						<label for="removeInactiveMember|{{member.key}}">{{template_remove}}</label>
+			  					{% else %}
+			  						{{template_cannot_remove_inactive_member_because_has_items}}
+			  					{% endif %}
+			  				</td>
+		  				</tr>
+					{% endfor %}
+					</table>
 				</fieldset>
 			{% endif %}
 	

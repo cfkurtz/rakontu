@@ -5,12 +5,15 @@
 	<div id="content">
 	
 	<h3>{{template_welcome}}, {{current_member.nickname}}!</h3>
+	<p><center>
+	<a href="/{{dir_visit}}/{{url_nickname}}?{{rakontu.urlQuery}}">{{template_change_nickname_for_new_member_page}}</a>
+	| <a href="/{{dir_visit}}/{{url_leave}}?{{current_member.urlQuery}}">{{template_leave_rakontu_for_new_member_page}}</a></p>
+	</center></p>
 	
 	<div class="indented">{{rakontu.welcomeMessage_formatted}}</div>
 	
-	<p><a href="/{{dir_visit}}/{{url_leave}}?{{current_member.urlQuery}}">{{template_leave_rakontu_for_new_member_page}}</a></p>
-
-	<p>{{template_here_are_terms}}</p>
+	<p>{{template_here_are_terms}}
+	</p>
 	<div class="blurb">
 		{{blurbs|dictLookup:"member_new"}}
 	<ul>

@@ -20,7 +20,7 @@
 					{% endif %}
 					{% if aMember.isGuide or aMember.acceptsMessages %}
 						<input type="checkbox" name="sendMessage|{{aMember.key}}" value="yes" id="sendMessage|{{aMember.key}}">
-						<label for="sendMessage|{{aMember.key}}">{{aMember.linkString}}</label>
+						{{aMember.linkString}}
 					{% else %}
 						{{aMember.linkString}}  
 					{% endif %}

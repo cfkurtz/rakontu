@@ -5,9 +5,12 @@
 	<div id="content">
 	
 	<h3>{{template_welcome_to_new}}, {{current_member.nickname}}!</h3>
+	<p><center>
+	<a href="/{{dir_visit}}/{{url_help}}?{{rakontu.urlQuery}}">{{template_check_help_system_for_new_manager_page}}</a>
+	| <a href="/{{dir_visit}}/{{url_nickname}}?{{rakontu.urlQuery}}">{{template_change_nickname_for_new_member_page}}</a>
+	</center></p>
 	
 	<p>{{template_here_are_terms}}</p>
-	
 	<div class="blurb">
 	{{blurbs|dictLookup:"manager_first"}}
 	<ul>
