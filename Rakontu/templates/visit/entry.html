@@ -40,7 +40,9 @@
 			 
 			{% if entry and version %}
 				<p><b>{{template_restoring_version_from}} 
-				{{version.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}} 
+				{% if current_member.timeFormat %}
+					{{version.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}} 
+				{% endif %}
 				{{version.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}</b></p>
 			{% endif %}
 			<table style="width:100%; border:none">
@@ -193,7 +195,9 @@
 				<option value="none">({{template_choose}})</option>
 				{% for aVersion in versions %}
 					<option value="{{aVersion.getKeyName}}">{{aVersion.title}} - 
-						{{aVersion.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}} 
+						{% if current_member.timeFormat %}
+							{{aVersion.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}} 
+						{% endif %}
 						{{aVersion.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 						({{aVersion.text|upTo:60}})
 						</option>
@@ -212,12 +216,12 @@
 				{% if not entry %}
 					{% include "../common_questions.html" %}
 				{% else %}
-						{% ifequal entry.creator.key current_member.key %}
-							{% include "../common_questions.html" %}
-						{% endifequal %}
-						{% ifequal entry.creator.liaisonIfOfflineMember.key current_member.key %}
-							{% include "../common_questions.html" %}
-						{% endifequal %}
+					{% ifequal entry.creator.key current_member.key %}
+						{% include "../common_questions.html" %}
+					{% endifequal %}
+					{% ifequal entry.creator.liaisonIfOfflineMember.key current_member.key %}
+						{% include "../common_questions.html" %}
+					{% endifequal %}
 				{% endif %}
 			{% endif %}
 			
@@ -351,6 +355,76 @@
 	      	{% endif %}
 	  {% endifequal %}
 	  
+		{% if not entry %}
+			<h3>{{template_would_you_like_to_make_a_comment_on_this}} {{entry_type}}?</h3>
+			<fieldset>
+			<p>{{template_comment_subject}} <input type="text" name="comment_shortString" size="80" value="" maxlength="{{maxlength_subject_or_comment}}"/></p>
+			<table style="width:100%; border:none">
+			<tr><td class="noborder">
+			<textarea name="comment_longString" rows="3" cols="60"></textarea>
+			</td><td class="noborder" width="80">
+			<p>{{template_interpret_as}} {{"interpreting_texts"|tip}}</p>
+				<select name="comment_longString_format">
+				{% for i in text_formats|makeRangeFromListLength %}
+					<option value="{{text_formats|listLookup:i}}" 
+					{% if text_formats|listLookup:i|equalTest:current_member.preferredTextFormatt %}
+						selected="selected"
+					{% endif %}
+					>{{text_formats_display|listLookup:i}}</option>
+				{% endfor %}
+				</select>
+			</td></tr></table>
+			</fieldset>
+	
+			<h3>{{template_would_you_like_to_make_a_request_about_this}} {{entry_type}}?</h3>
+			<fieldset>
+			{{template_request_subject}} <input type="text" name="request_shortString" size="80" value="" maxlength="{{maxlength_subject_or_comment}}"/>
+			<table style="width:100%; border:none">
+			<tr><td class="noborder">
+			<textarea name="request_longString" rows="3" cols="60"></textarea>
+			</td><td class="noborder" width="80">
+			<p>{{template_interpret_as}}</p>
+				<select name="request_longString_format">
+				{% for i in text_formats|makeRangeFromListLength %}
+					<option value="{{text_formats|listLookup:i}}" 
+					{% if text_formats|listLookup:i|equalTest:current_member.preferredTextFormatt %}
+						selected="selected"
+					{% endif %}
+					>{{text_formats_display|listLookup:i}}</option>
+				{% endfor %}
+				</select>
+			</td></tr></table>
+			<p>{{template_what_is_request_type}}
+			<select name="typeIfRequest">
+				<option name="none">({{term_choose}})</option>
+				{% for type in request_types %}
+					<option value="{{type}}">{{type}}</option>
+				{% endfor %}
+				</select></p>
+			</fieldset>
+
+			<h3>{{template_would_you_like_to_add_some_tags_to_this}} {{entry_type}}?</h3>
+			<fieldset>
+			<p>
+			{% for i in num_tags_in_tag_set|makeRange %}
+				{% if already_there_tags %}
+					<select name="alreadyThereTag{{i}}">
+					<option value="none">({{term_choose}})</option>
+					{% for tag in already_there_tags %}
+						{% if tag|orNothing %}
+							<option value="{{tag}}">{{tag}}</option>
+						{% endif %}
+					{% endfor %}
+					</select>
+				{% endif %}
+				<input type="text" name="tag{{i}}" size="15" value="" maxlength="{{maxlength_tag_or_choice}}"/>
+				<br/> 
+			{% endfor %}
+			</p>
+			</fieldset>
+
+		{% endif %}
+			
 			<p>
 			<center>
 			{% if entry %}

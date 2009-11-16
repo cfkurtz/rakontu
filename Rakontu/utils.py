@@ -32,8 +32,8 @@ import pytz
 # ============================================================================================
 # ============================================================================================
 
-def FindTemplate(template):   
-	return "templates/%s" % template   
+def FindTemplate(template):     
+	return "templates/%s" % template    
 	   
 def RequireLogin(func):  
 	def check_login(request):    
@@ -42,7 +42,7 @@ def RequireLogin(func):
 			request.redirect(loginURL)  
 			return 
 		func(request)
-	return check_login     
+	return check_login
 
 def GetCurrentRakontuAndMemberFromRequest(request): 
 	rakontu = GetRakontuFromURLQuery(request.query_string)  
@@ -343,15 +343,15 @@ class ErrorHandlingRequestHander(webapp.RequestHandler):
 		if exceptionValue != None:
 			exceptionValueWithRakontuName = str(exceptionValue)
 		else:
-			exceptionValueWithRakontuName = str(exceptionType)
+			exceptionValueWithRakontuName = str(exceptionType) 
 		# log error to admin console
 		logging.error(tracebackStringPlusIdentifyingInfo) 
-		# send email to admins
-		try:
+		# send email to admins 
+		try:  
 			mail.send_mail_to_admins(sender=SITE_SUPPORT_EMAIL, subject="Error: %s" % exceptionValueWithRakontuName, body=tracebackStringPlusIdentifyingInfo) 
 			couldNotEmailMessage = ""
 		except:
-			couldNotEmailMessage = TERMS["term_could_not_email_admins"]
+			couldNotEmailMessage = TERMS["term_could_not_email_admins"] 
 		# for database errors, send user to different message page
 		url = None
 		# note: I am no longer catching DeadlineExceededError here
@@ -994,15 +994,15 @@ SIMPLE_HTML_REPLACEMENTS = [
 							("<h1>", "{{startH1}}"), ("</h1>", "{{stopH1}}"),
 							("<h2>", "{{startH2}}"), ("</h2>", "{{stopH2}}"),
 							("<h3>", "{{startH3}}"), ("</h3>", "{{stopH3}}"),
-							("<br/>", "{{BR}}"),
-							("<hr>", "{{HR}}"),
-							("&nbsp;", "{{NBSP}}")  
-							]
+							("<br/>", "{{BR}}"), 
+							("<hr>", "{{HR}}"),   
+							("&nbsp;", "{{NBSP}}")    
+							] 
 
-def InterpretEnteredText(text, mode="text"):
+def InterpretEnteredText(text, mode="text"): 
 	result = text
 	if mode == "plain text":
-		""" Plain text format:
+		""" Plain text format: 
 		Blank lines denote paragraphs; all others are merged.
 		"""
 		result = htmlEscape(result)

@@ -15,24 +15,54 @@
 			<fieldset>
 	      	<table border="0" cellpadding="4" cellspacing="0">
 	      	<tr>
-	      		<th>{{template_nickname}}</th>
-	      		<th>{{template_online}}?</th>
-	      		<th>{{template_google_email}}</th>
+	      		<th>{{template_information|capitalize}}</th>
+	      		<th>{{template_last_reading}}</th>
+	      		<th>{{template_last_entry}}</th
+	      		<th width="100">{{template_nudge_points_accumulated}}</th>
+
 	      		<th>{{template_membership_type}}</th>
-	      		<th>{{template_helping_roles_taken_on}}</th>
-	      		<th width="160">{{template_helping_roles_available}} {{"available_helping_roles"|tip}}</th>
-	      		<th>{{template_last_activity}}</th>
+	      		<th width="100">{{template_helping_roles_taken_on}}</th>
+	      		<th width="100">{{template_helping_roles_available}} {{"available_helping_roles"|tip}}</th>
 	      		<th>{{template_inactivate}}?</th>
 	      		</tr>
 	      		{% for aMember in rakontu_members %}
 	  				<tr>
-	  				<td>{{aMember.linkString}} {% ifequal aMember.key current_member.key %}<br><i>({{template_you}})</i> {% endifequal %} </td>
+	  				<td>
+	  				<p>{{aMember.linkString}} {% ifequal aMember.key current_member.key %} <i>({{template_you}})</i> {% endifequal %}
+	  				</p>
+	  				{% if aMember.isOnlineMember %}
+		  				<p>{{aMember.googleUserEmailOrNotOnline|orNothing}}</p>
+		  			{% endif %}
+		  			</td>
+		  			<td>
+		  				{% if aMember.isOnlineMember %}
+		  					{% if aMember.lastReadAnything %}
+			  					{% if current_member.timeFormat %}
+			  						<p>{{aMember.lastReadAnything|timeZone:current_member.timeZoneName|time:current_member.timeFormat|orNothing}}</p>
+								{% endif %}
+								<p>{{aMember.lastReadAnything|timeZone:current_member.timeZoneName|date:current_member.dateFormat|orNone}}</p>
+							{% else %}
+								&nbsp;
+							{% endif %}
+						{% else %}
+							&nbsp;
+						{% endif %}
+					</td>
+					<td>
+						{% if aMember.lastAddedOrChangedAnything %}
+							{% if current_member.timeFormat %}
+								<p>{{aMember.lastAddedOrChangedAnything|timeZone:current_member.timeZoneName|time:current_member.timeFormat|orNothing}}</p>
+							{% endif %}
+							<p>{{aMember.lastAddedOrChangedAnything|timeZone:current_member.timeZoneName|date:current_member.dateFormat|orNone}}</p>
+						{% else %}
+							&nbsp;
+						{% endif %}
+		  			<td align="center">{{aMember.nudgePoints}}</td>
 	  				{% if not aMember.isOnlineMember %}
-	  				<td colspan="5">{{template_offline}}</td>
+	  					<td colspan="3">
+	  					&nbsp;
 	  				{% else %}
-	  					<td>{{template_online}}</td>
-		  				<td>{{aMember.googleUserEmailOrNotOnline}}</td>
-		  				<td>
+	  					<td>
 	  						{% if current_member.isOwner %}
 			  					<select name="governanceType">
 			  						<option value="member|{{aMember.key}}"
@@ -74,7 +104,7 @@
 		  					{% if aMember.helpingRolesForDisplay %}
 		  						{{aMember.helpingRolesForDisplay|join:", "}}
 		  					{% else %}
-		  						{{template_none}}
+		  						&nbsp;
 		  					{% endif %}
 		  					</td>
 		  				<td>
@@ -107,15 +137,6 @@
 		      				{% endif %}
 		  					</td>
 		  			{% endif %}
-		  			<td>
-		  				<p>{{template_last_reading}}: </p>
-		  					<p>{{aMember.lastReadAnything|timeZone:current_member.timeZoneName|time:current_member.timeFormat|orNone}}
-							{{aMember.lastReadAnything|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-							</p>
-						<p>{{template_last_entry}}:</p>
-		  					<p>{{aMember.lastAddedOrChangedAnything|timeZone:current_member.timeZoneName|time:current_member.timeFormat|orNone}}
-							{{aMember.lastAddedOrChangedAnything|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
-							</p>
 	  				<td width="100">
 	  					<p><input type="checkbox" name="remove|{{aMember.key}}" value="yes" id="remove|{{aMember.key}}">
 						<label for="remove|{{aMember.key}}">{{template_inactivate}}</label></p>

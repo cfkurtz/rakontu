@@ -28,9 +28,15 @@
 				<td>
 					<a href="{{entry.typeAsURL}}?{{entry.urlQuery}}" {{entry.getTooltipText}}>{{entry.title}}</a> 
 					({{entry.typeForDisplay}})</p>
-					<p>{{template_created}}: {{entry.created|timeZone:member.timeZoneName|time:member.timeFormat}} 
+					<p>{{template_created}}: 
+						{% if current_member.timeFormat %}
+							{{entry.created|timeZone:member.timeZoneName|time:member.timeFormat}} 
+						{% endif %}
 						{{entry.created|timeZone:member.timeZoneName|date:member.dateFormat}}</p>
-					<p>{{template_last_changed}}: {{entry.edited|timeZone:member.timeZoneName|time:member.timeFormat}} 
+					<p>{{template_last_changed}}: 
+						{% if current_member.timeFormat %}
+							{{entry.edited|timeZone:member.timeZoneName|time:member.timeFormat}} 
+						{% endif %}
 						{{entry.edited|timeZone:member.timeZoneName|date:member.dateFormat}}</p>
 					<p>{{template_additional_editors}}:
 					{% if entry.additionalEditors %}
@@ -56,7 +62,9 @@
 				<td>
 					{% for version in entry.getTextVersionsInTimeOrder %}
 						<a href="{{entry.typeAsURL}}?{{entry.urlQuery}}&{{version.urlQuery}}" {{version.getTooltipText}}>{{version.title}}</a>
-						{{version.created|timeZone:member.timeZoneName|time:member.timeFormat}}
+						{% if current_member.timeFormat %}
+							{{version.created|timeZone:member.timeZoneName|time:member.timeFormat}}
+						{% endif %}
 						{{version.created|timeZone:member.timeZoneName|date:member.dateFormat}}
 						<input type="checkbox" name="remove|{{version.key}}" value="yes" id="remove|{{ version.key }}"/>
 						<label for="remove|{{ version.key }}">{{template_remove}}</label>
@@ -93,9 +101,15 @@
 					<a href="{{entry.typeAsURL}}?{{entry.urlQuery}}" {{entry.getTooltipText}}>{{entry.title}}</a> 
 					({{entry.typeForDisplay}})</p>
 					<p>{{template_created_by}}: {{entry.creator.linkString}}</p>
-					<p>{{template_created}}: {{entry.created|timeZone:member.timeZoneName|time:member.timeFormat}} 
+					<p>{{template_created}}: 
+						{% if current_member.timeFormat %}
+							{{entry.created|timeZone:member.timeZoneName|time:member.timeFormat}} 
+						{% endif %}
 						{{entry.created|timeZone:member.timeZoneName|date:member.dateFormat}}</p>
-					<p>{{template_last_changed}}: {{entry.edited|timeZone:member.timeZoneName|time:member.timeFormat}} 
+					<p>{{template_last_changed}}: 
+						{% if current_member.timeFormat %}
+							{{entry.edited|timeZone:member.timeZoneName|time:member.timeFormat}} 
+						{% endif %}
 						{{entry.edited|timeZone:member.timeZoneName|date:member.dateFormat}}</p>
 					<p>{{template_additional_editors}}: {{entry.additionalEditorsListWithLinks}}</p>
 					{% if rakontu.allowsAttachments %}
@@ -109,7 +123,9 @@
 				<td>
 					{% for version in entry.getTextVersionsInTimeOrder %}
 						<p><a href="{{entry.typeAsURL}}?{{entry.urlQuery}}&{{version.urlQuery}}" {{version.text|upTo:current_member.shortDisplayLength|orNbsp}}>{{version.title}}</a>
-						{{version.created|timeZone:member.timeZoneName|time:member.timeFormat}}
+						{% if current_member.timeFormat %}
+							{{version.created|timeZone:member.timeZoneName|time:member.timeFormat}}
+						{% endif %}
 						{{version.created|timeZone:member.timeZoneName|date:member.dateFormat}}
 						</p>
 					{% endfor %}

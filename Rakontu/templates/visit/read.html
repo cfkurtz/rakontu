@@ -43,7 +43,6 @@
 	
 	{% include "read_or_preview_entry.html" %}
 	
-	
 	{% if member_can_edit_entry %}
 		<div class="rightalign">
 		(<a href="/{{dir_visit}}/{{entry.typeAsURL}}?{{entry.urlQuery}}">{{template_change}}</a>)
@@ -84,15 +83,21 @@
 		{% endif %}
 	{% endif %}
 	{% if entry.collectedOffline %}
-		{{entry.collected|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+		{% if current_member.timeFormat %}
+			{{entry.collected|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+		{% endif %}
 		{{entry.collected|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 		{% if entry.liaison %}
 			({{template_entered_by}} {{entry.liaison.linkString}}
-			{{entry.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+			{% if current_member.timeFormat %}
+				{{entry.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+			{% endif %}
 			{{entry.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}).
 		{% endif %}
 	{% else %}
-		{{entry.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+		{% if current_member.timeFormat %}
+			{{entry.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+		{% endif %}
 		{{entry.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.
 	{% endif %}
 	</p>
@@ -171,8 +176,13 @@
 		<div class="blurb">
 		{% for version in versions %}
 			<p><b>{{version.title}}</b> 
-			({{version.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
-			{{version.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}})</p>
+			{% if current_member.timeFormat %}
+				({{version.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+				{{version.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}})</p>
+			{% else %}
+				({{version.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}})</p>
+			{% endif %}
+			
 			<p>{{version.text_formatted}}</p>
 			{% if not versions|isLastInSeries:version %}
 				<hr>

@@ -4,13 +4,11 @@ add ssl to faq
 
 finish developer notes
 
-with wiki markup, it seems like extra carriage returns are being added. did that happen during backup/restore?
-
 consider putting drop-downs for tags in the filter page.
 
 in curate-tags, how can you show entries that have no tags?
 
-manage skin page with tables?
+put picture buttons in for |< etc
 
-
-
+better support for comment thread - when you are making a comment on an entry, you should see the entire comment thread in order. 
+that is easily done. it is not needed for the other things. (or is it? maybe it should be)

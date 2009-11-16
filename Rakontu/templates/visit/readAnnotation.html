@@ -25,15 +25,21 @@
 		{% endif %}
 	{% endif %}
 	{% if annotation.collectedOffline %}
-		{{annotation.collected|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+		{% if current_member.timeFormat %}
+			{{annotation.collected|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+		{% endif %}
 		{{annotation.collected|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 		{% if annotation.liaison %}
 			({{template_entered_by}} {{annotation.liaison.linkString}}
-			{{annotation.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+			{% if current_member.timeFormat %}
+				{{annotation.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+			{% endif %}
 			{{annotation.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}})
 		{% endif %}
 	{% else %}
-		{{annotation.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+		{% if current_member.timeFormat %}
+			{{annotation.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+		{% endif %}
 		{{annotation.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 	{% endif %}
 

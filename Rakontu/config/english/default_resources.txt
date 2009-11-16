@@ -769,6 +769,10 @@ There are a few image buttons that rely on background images from the CSS, thus:
   * #rakontu_form_style input.move_down (uses URL/images/arrow_down.png)
   * #rakontu_form_style input.active (uses URL/images/accept.png)
   * #rakontu_form_style input.inactive (uses URL/images/cancel.png)
+  * #rakontu_form_style input.time_first (uses URL/images/time_first.png)
+  * #rakontu_form_style input.time_back (uses URL/images/time_back.png)
+  * #rakontu_form_style input.time_forward (uses URL/images/time_forward.png)
+  * #rakontu_form_style input.time_last (uses URL/images/time_last.png)
 
 If you use a custom style sheet and want to override the styles for these buttons, you should either copy these image files to the place where the style sheet is found, or reference them via the full URL. 
 

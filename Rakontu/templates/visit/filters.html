@@ -73,7 +73,11 @@
 			      		{% endfor %}
 			      		&nbsp;
 			      		</td>
-					<td>{{filter.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}<br/>{{filter.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}</td>
+					<td>{% if current_member.timeFormat %}
+							{{filter.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}<br/>
+						{% endif %}
+						{{filter.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+					</td>
 					<td>
 						{% if filter.private %} 
 							{{template_private|lower}} 

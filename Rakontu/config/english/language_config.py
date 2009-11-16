@@ -833,9 +833,6 @@ TEMPLATE_TERMS = {
 		# manage/appearance
 		"template_visual_appearance": u"Visual appearance",
 		"template_tag_line": u"Tag line",
-		"template_custom_skin": u"Custom skin",
-		"template_custom": u"custom",
-		"template_external_style_sheet": u"Enter a valid CSS URL to use as an external style sheet",
 		"template_halping_role_texts": u"Helping role texts",
 		"template_welcome_message_for_new_members": u"Welcome message for new members",
 		"template_invitation_message_for_invitation_email": u"Invitation message for email invitation",
@@ -847,6 +844,7 @@ TEMPLATE_TERMS = {
 		"template_discussion_group_url": u"Discussion group link",
 		# manage/skin  # << TRANSLATION REQUIRED >>
 		"template_choose_a_skin": u"Choose a skin",  # << TRANSLATION REQUIRED >>
+		"template_click_to_use_the_skin": u"Click here to use the skin",  # << TRANSLATION REQUIRED >>
 		"template_you_are_using_skin": u"You are using",  # << TRANSLATION REQUIRED >>
 		"template_top": u"Top", # << TRANSLATION REQUIRED >>
 		"template_menu": u"Menu", # << TRANSLATION REQUIRED >>
@@ -856,6 +854,9 @@ TEMPLATE_TERMS = {
 		"template_text_box": u"Text box",  # << TRANSLATION REQUIRED >>
 		"template_button": u"Button", # << TRANSLATION REQUIRED >>
 		"template_custom_skin_settings": u"Custom skin settings",  # << TRANSLATION REQUIRED >>
+		"template_custom_skin": u"Custom skin",
+		"template_custom": u"custom",
+		"template_external_style_sheet": u"Enter a valid CSS URL to use as an external style sheet",
 		# manage/settings
 		"template_things_members_can_do": u"Things members can do",
 		
@@ -887,6 +888,9 @@ TEMPLATE_TERMS = {
 		"template_what_is_request_type": u"What type of request is this?",
 		"template_nudge_points_can_assign_to_entry": u"Points you can assign to this entry",
 		"template_nudge_points_member_has_left": u"Points you have remaining",
+		"template_comments_on": u"Comments on", #  << TRANSLATION REQUIRED >>
+		"template_tag_sets_for": u"Tags for", #  << TRANSLATION REQUIRED >>
+		"template_requests_for": u"Requests for", #  << TRANSLATION REQUIRED >>
 		# visit/ask
 		"template_ask_this_guide": u"Ask a guide",
 		"template_ask_subject": u"Please summarize your question in a few words for the email subject line.",
@@ -948,6 +952,11 @@ TEMPLATE_TERMS = {
 		"template_accepted_file_types": u"Accepted file types",
 		"template_add_attachments_to_entry": u"You can add some attachments to your", # story, etc
 		"template_change_attachments": u"These attachments have been added to the", # story, etc
+		"template_would_you_like_to_make_a_comment_on_this": u"Would you like to make a comment about this", # story, etc # << TRANSLATION REQUIRED >>
+		"template_would_you_like_to_add_some_tags_to_this": u"Would you like to add some tags to this", # story, etc # << TRANSLATION REQUIRED >>
+		"template_would_you_like_to_make_a_request_about_this": u"Would you like to ask people to do anything with this", # story, etc # << TRANSLATION REQUIRED >>
+		"template_comment_subject": u"Comment subject",  # << TRANSLATION REQUIRED >>
+		"template_request_subject": u"Request subject",  # << TRANSLATION REQUIRED >>
 		# visit/attachments
 		"template_add_attachment": u"Add an attachment",
 		"template_add_another_attachment": u"Add another attachment",
@@ -1025,11 +1034,11 @@ TEMPLATE_TERMS = {
 		"template_information_about": u"Information about",
 		"template_information_about_this": u"Information about this",
 		"template_counts_of_items_contributed_by": u"Counts of items contributed by", # member nickname
-		"template_last_entry": u"Last entry",
+		"template_last_entry": u"Last added", # << TRANSLATION REQUIRED >>
 		"template_last_annotation": u"Last annotation",
 		"template_last_answer": u"Last answer",
 		"template_last_link": u"Last link",
-		"template_last_reading": u"Last reading",
+		"template_last_reading": u"Last read", # << TRANSLATION REQUIRED >>
 		"template_nudge_points_accumulated": u"Nudge points accumulated",
 		"template_member_answers_to_questions": u"Answers to member questions",
 		"template_send_a_message_to": u"Send a message to",
@@ -1085,8 +1094,9 @@ TEMPLATE_TERMS = {
 		"template_guide_intro_question": u"If you are a guide, what would you like to tell members about what sorts of questions you can answer?",
 		"template_choose_member_default_text_format": u"What text format should be chosen by default when a text box is shown?",
 		"template_time_zone_choice": u"What time zone should be displayed?",
-		"template_date_display_choice": u"How should dates be displayed",
+		"template_date_display_choice": u"How should dates be displayed?", # << TRANSLATION REQUIRED >> (added missing question mark)
 		"template_time_display_choice": u"How should times be displayed?",
+		"template_do_not_show_times": u"don't show times", # << TRANSLATION REQUIRED >>
 		"template_rakontu_created_on": u"This Rakontu was created on",
 		"template_inline_image_display_choice": u"Do you want to see attached images on the same page as the entries they are attached to?",
 		"template_details_text_length_choice": u"How many characters (letters) long would you like texts displayed in details views to be?",

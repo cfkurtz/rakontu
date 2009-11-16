@@ -3,7 +3,7 @@
 		{% if include_time_range %}
 			<tr>
 			{% if not grid_options_on_top %}
-				<td colspan="2" style="border:none;align:center;" align="center">
+				<td colspan="2" style="border:none;align:center" align="center">
 			{% else %}
 				<th align="right">{{template_time_range}}</th>
 				<td>
@@ -27,22 +27,22 @@
 
 			{{min_time}} - {{max_time}}
 			&nbsp;
-			<input type="submit" name="setToFirst" value=" |&lt; " class="button_small"
+			<input type="submit" name="setToFirst" value="" class="time_first"
 			{% if current_member.showButtonTooltips %}
 				title="{{"changing_time_to_first"|buttonTooltip}}"
 			{% endif %}
 			>
-			<input type="submit" name="moveTimeBack" value=" &lt; " class="button_small"
+			<input type="submit" name="moveTimeBack" value="" class="time_back"
 			{% if current_member.showButtonTooltips %}
 				title="{{"moving_time_back"|buttonTooltip}}"
 			{% endif %}
 			>
-			<input type="submit" name="moveTimeForward" value=" &gt; " class="button_small"
+			<input type="submit" name="moveTimeForward" value="" class="time_forward"
 			{% if current_member.showButtonTooltips %}
 				title="{{"moving_time_forward"|buttonTooltip}}"
 			{% endif %}
 			>
-			<input type="submit" name="setToLast" value=" &gt;| " class="button_small"
+			<input type="submit" name="setToLast" value="" class="time_last"
 			{% if current_member.showButtonTooltips %}
 				title="{{"changing_time_to_last"|buttonTooltip}}"
 			{% endif %}

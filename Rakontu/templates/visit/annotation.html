@@ -96,9 +96,11 @@
 					{% for tag in already_there_tags %}
 						{% if tag|orNothing %}
 							<option value="{{tag}}"
-							{% ifequal annotation.tagsIfTagSet|listLookup:i tag %}
-								selected="selected"
-							{% endifequal %}
+							{% if annotation %}
+								{% ifequal annotation.tagsIfTagSet|listLookup:i tag %}
+									selected="selected"
+								{% endifequal %}
+							{% endif %}
 							>{{tag}}</option>
 						{% endif %}
 					{% endfor %}
@@ -169,6 +171,100 @@
 		<p>{{entry.linkString}} ({{entry.typeForDisplay}})</p>
 		{% include "read_or_preview_entry.html" %}
 		</div>
+		
+		{% ifequal annotation_type "comment" %}
+			{% if entry.hasComments %}
+				<p>{{template_comments_on}} {{entry.linkString}}</p>
+				{% for comment in entry.getComments %}
+					<div class="blurb"><p><b>{{comment.shortString}}</b> -
+					{% if comment.attributedToMember %}
+							{% if comment.creator.active %}
+								{{comment.creator.linkString}}
+								{% ifequal comment.creator.key current_member.key %}
+									 ({{template_you}})
+								{% endifequal %}
+							{% else %}
+								{{template_the_former_member}} "{{comment.creator.nickname}}"
+							{% endif %}
+					{% else %}
+						{% if comment.character.active %}
+							{{comment.character.linkString}}
+						{% else %}
+							{{template_the_former_character}} "{{comment.character.name}}"
+						{% endif %}
+					{% endif %}
+					{% if current_member.timeFormat %}
+						{{comment.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					{% endif %}
+					{{comment.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+					</p>{{comment.longString_formatted}}</div>
+				{% endfor %}
+			{% endif %}
+		{% endifequal %}
+
+		{% ifequal annotation_type "tag set" %}
+			{% if entry.hasTagSets %}
+				<p>{{template_tag_sets_for}} {{entry.linkString}}</p>
+				{% for tagset in entry.getTagSets %}
+					<div class="blurb"><p>{{tagset.tagsIfTagSet|join:", "}} -
+					{% if tagset.attributedToMember %}
+							{% if tagset.creator.active %}
+								{{tagset.creator.linkString}}
+								{% ifequal tagset.creator.key current_member.key %}
+									 ({{template_you}})
+								{% endifequal %}
+							{% else %}
+								{{template_the_former_member}} "{{tagset.creator.nickname}}"
+							{% endif %}
+					{% else %}
+						{% if tagset.character.active %}
+							{{tagset.character.linkString}}
+						{% else %}
+							{{template_the_former_character}} "{{tagset.character.name}}"
+						{% endif %}
+					{% endif %}
+					{% if current_member.timeFormat %}
+						{{tagset.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					{% endif %}
+					{{tagset.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+					</p>
+					{% if tagset.shortString %}
+						{{comment.shortString}}
+					{% endif %}
+					</div>
+				{% endfor %}
+			{% endif %}
+		{% endifequal %}
+		
+		{% ifequal annotation_type "request" %}
+			{% if entry.hasRequests %}
+				<p>{{template_requests_for}} {{entry.linkString}}</p>
+				{% for request in entry.getRequests %}
+					<div class="blurb"><p><b>{{request.shortString}}</b> -
+					{% if request.attributedToMember %}
+							{% if request.creator.active %}
+								{{request.creator.linkString}}
+								{% ifequal request.creator.key current_member.key %}
+									 ({{template_you}})
+								{% endifequal %}
+							{% else %}
+								{{template_the_former_member}} "{{request.creator.nickname}}"
+							{% endif %}
+					{% else %}
+						{% if request.character.active %}
+							{{request.character.linkString}}
+						{% else %}
+							{{template_the_former_character}} "{{request.character.name}}"
+						{% endif %}
+					{% endif %}
+					{% if current_member.timeFormat %}
+						{{request.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					{% endif %}
+					{{request.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+					</p>{{request.longString_formatted}}</div>
+				{% endfor %}
+			{% endif %}
+		{% endifequal %}
 		
 		</form>
 		</div>

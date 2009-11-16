@@ -2785,13 +2785,6 @@ class Entry(db.Model):
 	
 	# MEMBERS
 		
-	def getPublishDateForMember(self, member):
-		if member:
-			localTime = self.published.astimezone(timezone(member.timeZoneName))
-			return localTime.strftime(str(member.timeFormat))
-		else:
-			return self.published
-	
 	def attributedToMember(self):
 		return self.character == None
 	
@@ -2922,11 +2915,20 @@ class Entry(db.Model):
 	def hasTagSets(self):
 		return Annotation.all().filter("entry =", self.key()).filter("type = ", "tag set").count() > 0
 		
+	def getTagSets(self):
+		return Annotation.all().filter("entry =", self.key()).filter("type = ", "tag set").fetch(FETCH_NUMBER)
+		
 	def hasComments(self):
 		return Annotation.all().filter("entry =", self.key()).filter("type = ", "comment").count() > 0
 		
 	def getComments(self):
 		return Annotation.all().filter("entry =", self.key()).filter("type = ", "comment").fetch(FETCH_NUMBER)
+		
+	def hasRequests(self):
+		return Annotation.all().filter("entry =", self.key()).filter("type = ", "request").count() > 0
+		
+	def getRequests(self):
+		return Annotation.all().filter("entry =", self.key()).filter("type = ", "request").fetch(FETCH_NUMBER)
 		
 	def getAttachments(self):
 		return Attachment.all().filter("entry =", self.key()).fetch(FETCH_NUMBER)
@@ -4153,8 +4155,11 @@ def TimeDisplay(whenUTC, member):
 	if member and member.timeZoneName:
 		timeZone = getTimeZone(member.timeZoneName)
 		when = whenUTC.astimezone(timeZone)
-		return "%s %s" % (stripZeroOffStart(when.strftime(DjangoToPythonTimeFormat(member.timeFormat))),
-						(when.strftime(DjangoToPythonDateFormat(member.dateFormat))))
+		if member.timeFormat:
+			return "%s %s" % (stripZeroOffStart(when.strftime(DjangoToPythonTimeFormat(member.timeFormat))),
+							(when.strftime(DjangoToPythonDateFormat(member.dateFormat))))
+		else:
+			return "%s" % when.strftime(DjangoToPythonDateFormat(member.dateFormat))
 	else:
 		return None
 	

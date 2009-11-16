@@ -389,13 +389,79 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 					else: # not keepAnswer
 						if foundAnswer:
 							thingsToDelete.append(foundAnswer)
-				foundAttachments = entry.getAttachments()
-				for attachment in foundAttachments:
-					for name, value in self.request.params.items():
-						if value == "removeAttachment|%s" % attachment.key():
-							thingsToDelete.append(attachment)
+				if self.request.get("comment_longString"):
+					keyName = GenerateSequentialKeyName("annotation", rakontu)
+					comment = Annotation(
+									key_name=keyName, 
+									parent=entry, 
+									id=keyName, 
+									rakontu=rakontu, type="comment", 
+									entry=entry)
+					comment.shortString = htmlEscape(self.request.get("comment_shortString"))
+					if not len(comment.shortString.strip()):
+						comment.shortString = TERMS["term_no_subject"]
+					comment.longString = self.request.get("comment_longString")
+					comment.longString_format = self.request.get("comment_longString_format")
+					comment.longString_formatted = db.Text(InterpretEnteredText(comment.longString, comment.longString_format))
+					comment.edited = datetime.now(tz=pytz.utc)
+					comment.creator = creator
+					comment.character = character
+					comment.liaison = liaison
+					comment.inBatchEntryBuffer = entry.inBatchEntryBuffer
+					comment.collected = entry.collected
+					if not entry.draft:
+						thingsToPublish.append(comment)
+					thingsToPut.append(comment)
+				if self.request.get("request_longString"):
+					keyName = GenerateSequentialKeyName("annotation", rakontu)
+					request = Annotation(
+									key_name=keyName, 
+									parent=entry, 
+									id=keyName, 
+									rakontu=rakontu, type="request", 
+									entry=entry)
+					request.shortString = htmlEscape(self.request.get("request_shortString"))
+					if not len(request.shortString.strip()):
+						request.shortString = TERMS["term_no_subject"]
+					request.longString = self.request.get("request_longString")
+					request.longString_format = self.request.get("request_longString_format")
+					request.longString_formatted = db.Text(InterpretEnteredText(request.longString, request.longString_format))
+					request.edited = datetime.now(tz=pytz.utc)
+					request.creator = creator
+					request.character = character
+					request.liaison = liaison
+					request.inBatchEntryBuffer = entry.inBatchEntryBuffer
+					request.collected = entry.collected
+					if not entry.draft:
+						thingsToPublish.append(request)
+					thingsToPut.append(request)
+				tags = []
+				for i in range (NUM_TAGS_IN_TAG_SET):
+					if self.request.get("tag%s" % i):
+						tags.append(self.request.get("tag%s" % i))
+					elif self.request.get("alreadyThereTag%i" %i) and self.request.get("alreadyThereTag%i" %i) != "none":
+						tags.append(self.request.get("alreadyThereTag%s" % i))				
+				if tags:
+					keyName = GenerateSequentialKeyName("annotation", rakontu)
+					tagset = Annotation(
+									key_name=keyName, 
+									parent=entry, 
+									id=keyName, 
+									rakontu=rakontu, type="tag set", 
+									entry=entry)
+					tagset.tagsIfTagSet = []
+					tagset.tagsIfTagSet.extend(tags)
+					tagset.edited = datetime.now(tz=pytz.utc)
+					tagset.creator = creator
+					tagset.character = character
+					tagset.liaison = liaison
+					tagset.inBatchEntryBuffer = entry.inBatchEntryBuffer
+					tagset.collected = entry.collected
+					if not entry.draft:
+						thingsToPublish.append(tagset)
+					thingsToPut.append(tagset)
 				thingsToPut.append(entry.creator)
-				# finally, commit all changes to the database, except for new attachments
+				# finally, commit all changes to the database
 				def txn(thingsToPut, thingsToDelete, thingsToPublish):
 					# publishing must be done inside the transaction 
 					# because it updates counters which rely on a consistent state

@@ -129,6 +129,11 @@
 				{% endifequal %}
 				>{{time_formats|dictLookup:format}}</option>
 			{% endfor %}
+			<option value="doNotShowTimes" 
+				{% if not member.timeFormat %} 
+					selected="selected" 
+				{% endif %}
+			>{{template_do_not_show_times}}</option>
 			</select></p>
 		{% if member.isOnlineMember %}
 			<p>{{template_choose_member_default_text_format}}</p>

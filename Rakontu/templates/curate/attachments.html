@@ -30,7 +30,9 @@
 	      			 {{attachment.entryLinkString}}</td>
 	      			 <td>
 	      			 {% if attachment.entryPublished %}
-	      			 	{{attachment.entryPublished|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+	      			 	{% if current_member.timeFormat %}
+	      			 		{{attachment.entryPublished|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+	      			 	{% endif %}
 					 	{{attachment.entryPublished|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 					 {% else %}
 					 	&nbsp;

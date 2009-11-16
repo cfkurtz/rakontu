@@ -11,103 +11,107 @@
 				<div class="message">{{template_changes_saved}}</div>
 			{% endif %}
 			
-			<h3>{{template_choose_a_skin}} {{"skins"|tip}}</h3>
-			<table cellspacing="6" class="noborder" style="width:100%"><tr>
-			{% for aSkin in skins %}
-				<td style="
+			{% if skins %}
+			
+				<h3>{{template_choose_a_skin}} {{"skins"|tip}}</h3>
+				<table cellspacing="8" class="noborder" style="width:100%"><tr>
+				{% for aSkin in skins %}
+					<td style="
+						{% ifequal aSkin.name rakontu.skinName %}
+							border: 6px solid #{{aSkin.color_border_normal}};
+						{% else %}
+							border: 1px dotted #{{aSkin.color_border_normal}};
+						{% endifequal %}
+						background: #{{aSkin.color_background_general}};
+						">
+					
+					<center>
 					{% ifequal aSkin.name rakontu.skinName %}
-						border: 4px solid #{{aSkin.color_border_normal}};
+						{{template_you_are_using_skin}} '<b>{{aSkin.name}}</b>'.
 					{% else %}
-						border: 1px dotted #{{aSkin.color_border_normal}};
+						<input type="submit" 
+							name="chooseSkin|{{aSkin.key}}" 
+							value="{{aSkin.name}}"
+							class="button_small"
+							title="{{template_click_to_use_the_skin}} '{{aSkin.name}}'"
+							style="
+								font-family: {{aSkin.font_buttons|replaceDoubleWithSingleQuotes}};
+								background: #{{aSkin.color_background_button}};
+								border: solid 2px #{{aSkin.color_border_normal}};
+								color: #{{aSkin.color_text_buttons}};">
 					{% endifequal %}
-					background: #{{aSkin.color_background_general}};
-					">
-				
-				<center>
-				{% ifequal aSkin.name rakontu.skinName %}
-					{{template_you_are_using_skin}} '<b>{{aSkin.name}}</b>'.
-				{% else %}
-					<input type="submit" 
-						name="chooseSkin|{{aSkin.key}}" 
-						value="{{aSkin.name}}"
-						class="button_small"
-						style="
-							font-family: {{aSkin.font_buttons|replaceDoubleWithSingleQuotes}};
+					</center>
+					
+					<p><b style="font-family: {{aSkin.font_top|replaceDoubleWithSingleQuotes}};color: #{{aSkin.color_text_plain}}">{{template_top}}</b></p>
+					
+					<div class="blurb" style="
+							font-family: {{aSkin.font_menus|replaceDoubleWithSingleQuotes}};
+							background: #{{aSkin.color_background_menus}};
+							border: 1px solid #{{aSkin.color_border_normal}};
+							color: #{{aSkin.color_text_menus}};"
+					>{{template_menu}}</div>
+					
+					<table style="width:100%;border:none">
+					{% for color in aSkin.getRowColors %}
+						<tr>
+						<td style="
+							border:none;
+							background: #{{color}};
+							font-size:0.2em;
+							">
+						&nbsp;
+						</td>
+						</tr>
+					{% endfor %}
+					</table>
+					<br/>
+		
+					<div class="blurb" style="
+							font-family: {{aSkin.font_general|replaceDoubleWithSingleQuotes}};
+							background: #{{aSkin.color_background_excerpt}};
+							border: 1px solid #{{aSkin.color_border_normal}};
+							color: #{{aSkin.color_text_excerpt}};"
+					>
+					<span style="
+						font-family: {{aSkin.font_headers|replaceDoubleWithSingleQuotes}};
+						color: #{{aSkin.color_text_h1}};
+						">{{template_header}}</span>
+					<br/>
+					&nbsp; &nbsp; {{template_story_text_with}} <a href="http://www.rakontu.org" style="color:#{{aSkin.color_text_link}}">link</a>
+					</div>
+					
+		
+					<fieldset style="
+							font-family: {{aSkin.font_general|replaceDoubleWithSingleQuotes}};
+							background: #{{aSkin.color_background_entry}}; 
+							color: #{{aSkin.color_text_entry}};
+							border: 1px solid #{{aSkin.color_border_normal}};"
+					>{{template_form}}
+					<br/>
+					<input type="text" value="{{template_text_box}}" size="8" style="
+							font-family: {{aSkin.font_inputs|replaceDoubleWithSingleQuotes}};
+							border: solid 1px #{{aSkin.color_border_normal}};
+							background: #{{aSkin.color_background_inputs}}; 
+							color: #{{aSkin.color_text_inputs}};">
+					<input type="submit" disabled value="{{template_button}}" style="
+							font-family: #{{aSkin.font_buttons|replaceDoubleWithSingleQuotes}};
 							background: #{{aSkin.color_background_button}};
 							border: solid 2px #{{aSkin.color_border_normal}};
-							color: #{{aSkin.color_text_buttons}};">
-				{% endifequal %}
-				</center>
-				
-				<p><b style="font-family: {{aSkin.font_top|replaceDoubleWithSingleQuotes}};color: #{{aSkin.color_text_plain}}">{{template_top}}</b></p>
-				
-				<div class="blurb" style="
-						font-family: {{aSkin.font_menus|replaceDoubleWithSingleQuotes}};
-						background: #{{aSkin.color_background_menus}};
-						border: 1px solid #{{aSkin.color_border_normal}};
-						color: #{{aSkin.color_text_menus}};"
-				>{{template_menu}}</div>
-				
-				<table style="width:100%;border:none">
-				{% for color in aSkin.getRowColors %}
-					<tr>
-					<td style="
-						border:none;
-						background: #{{color}};
-						font-size:0.2em;
-						">
-					&nbsp;
+							color: #{{aSkin.color_text_buttons}};"
+							>		
+					</fieldset>
+					
 					</td>
-					</tr>
+					{% if skins|isModFourInSeries:aSkin %}
+						</tr><tr>
+					{% endif %}
 				{% endfor %}
-				</table>
-				<br/>
+	      		{% for i in num_cols_left_over|makeRange %}
+	      			<td class="noborder">&nbsp;</td>
+	      		{% endfor %}
+				</tr></table>
+			{% endif %}
 	
-				<div class="blurb" style="
-						font-family: {{aSkin.font_general|replaceDoubleWithSingleQuotes}};
-						background: #{{aSkin.color_background_excerpt}};
-						border: 1px solid #{{aSkin.color_border_normal}};
-						color: #{{aSkin.color_text_excerpt}};"
-				>
-				<span style="
-					font-family: {{aSkin.font_headers|replaceDoubleWithSingleQuotes}};
-					color: #{{aSkin.color_text_h1}};
-					">{{template_header}}</span>
-				<br/>
-				&nbsp; &nbsp; {{template_story_text_with}} <a href="http://www.rakontu.org" style="color:#{{aSkin.color_text_link}}">link</a>
-				</div>
-				
-	
-				<fieldset style="
-						font-family: {{aSkin.font_general|replaceDoubleWithSingleQuotes}};
-						background: #{{aSkin.color_background_entry}}; 
-						color: #{{aSkin.color_text_entry}};
-						border: 1px solid #{{aSkin.color_border_normal}};"
-				>{{template_form}}
-				<br/>
-				<input type="text" value="{{template_text_box}}" size="8" style="
-						font-family: {{aSkin.font_inputs|replaceDoubleWithSingleQuotes}};
-						border: solid 1px #{{aSkin.color_border_normal}};
-						background: #{{aSkin.color_background_inputs}}; 
-						color: #{{aSkin.color_text_inputs}};">
-				<input type="submit" disabled value="{{template_button}}" style="
-						font-family: #{{aSkin.font_buttons|replaceDoubleWithSingleQuotes}};
-						background: #{{aSkin.color_background_button}};
-						border: solid 2px #{{aSkin.color_border_normal}};
-						color: #{{aSkin.color_text_buttons}};"
-						>		
-				</fieldset>
-				
-				</td>
-				{% if skins|isModFourInSeries:aSkin %}
-					</tr><tr>
-				{% endif %}
-			{% endfor %}
-      		{% for i in num_cols_left_over|makeRange %}
-      			<td class="noborder">&nbsp;</td>
-      		{% endfor %}
-			</tr></table>
-
 			<h3>{{template_custom_skin_settings}}</h3>
 			<fieldset>
 			<p>{{template_skin}} {{"skins"|tip}}</p>

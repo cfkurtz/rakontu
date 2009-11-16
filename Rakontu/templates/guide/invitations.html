@@ -44,7 +44,9 @@
 	      		<tr>
 	      		<td>{{invitation.linkString}}</td>
 	      		<td>
-					{{invitation.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+	      			{% if current_member.timeFormat %}
+						{{invitation.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					{% endif %}
 					{{invitation.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
 				</td>
 	      		<td>

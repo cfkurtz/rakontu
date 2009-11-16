@@ -180,7 +180,8 @@ class SendInvitationMessagePage(ErrorHandlingRequestHander):
 					message.reply_to = member.googleAccountEmail
 					message.subject = self.request.get("subject")
 					message.to = pendingMember.email 
-					message.body = self.request.get("message")
+					messageBody = stripTags(self.request.get("message"))
+					message.body = messageBody
 					try:
 						message.send()
 					except:

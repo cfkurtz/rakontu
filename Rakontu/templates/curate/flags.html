@@ -324,7 +324,10 @@
 			      		{% endfor %}
 			      		&nbsp;
 			      		</td>
-					<td>{{filter.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					<td>
+						{% if current_member.timeFormat %}
+							{{filter.created|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+						{% endif %}
 					    {{filter.created|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}<br/>
 					 </td>
 	  				<td><input type="text" name="flagComment|{{filter.key}}" value="{{filter.flagComment|orNothing}}" maxlength="{{maxlength_subject_or_comment}}"></td>

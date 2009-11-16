@@ -805,9 +805,9 @@ class SendMessagePage(ErrorHandlingRequestHander):
 					message = mail.EmailMessage()
 					message.sender = member.googleAccountEmail
 					message.reply_to = member.googleAccountEmail
-					message.subject = htmlEscape(self.request.get("subject"))
+					message.subject = stripTags(self.request.get("subject"))
 					message.to = emailAddresses 
-					message.body = htmlEscape(self.request.get("message"))
+					message.body = stripTags(self.request.get("message"))
 					try:
 						message.send()
 					except:
@@ -1172,7 +1172,7 @@ class AskGuidePage(ErrorHandlingRequestHander):
 					message.reply_to = member.googleAccountEmail
 					message.to = messageMember.googleAccountEmail
 					message.subject = "Rakontu %s - %s" % (TERMS["term_question"], htmlEscape(self.request.get("subject")))
-					message.body = htmlEscape(self.request.get("message"))
+					message.body = stripTags(self.request.get("message"))
 					try:
 						message.send()
 					except:
@@ -1343,7 +1343,10 @@ class ChangeMemberPreferencesPage(ErrorHandlingRequestHander):
 				memberToEdit.acceptsMessages = self.request.get("acceptsMessages") == "yes"
 				memberToEdit.timeZoneName = self.request.get("timeZoneName")
 				memberToEdit.dateFormat = self.request.get("dateFormat")
-				memberToEdit.timeFormat = self.request.get("timeFormat")
+				if self.request.get("timeFormat") == "doNotShowTimes":
+					memberToEdit.timeFormat = ""
+				else:
+					memberToEdit.timeFormat = self.request.get("timeFormat")
 				memberToEdit.showButtonTooltips = self.request.get("showButtonTooltips") == "yes"
 				if memberToEdit.isOnlineMember:
 					wasLiaison = memberToEdit.isLiaison()

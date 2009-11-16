@@ -369,6 +369,40 @@ ul li.nobullet {
 #rakontu_form_style input.inactive:hover {
 	border:none;
 	}
+
+#rakontu_form_style input.time_first {
+	background: transparent;
+	background-image: url(../images/time_first.png);
+	height:16px;
+	width:16px;
+	border:none;
+	vertical-align: middle;
+	}
+#rakontu_form_style input.time_back {
+	background: transparent;
+	background-image: url(../images/time_back.png);
+	height:16px;
+	width:16px;
+	border:none;
+	vertical-align: middle;
+	}
+#rakontu_form_style input.time_forward {
+	background: transparent;
+	background-image: url(../images/time_forward.png);
+	height:16px;
+	width:16px;
+	border:none;
+	vertical-align: middle;
+	}
+#rakontu_form_style input.time_last {
+	background: transparent;
+	background-image: url(../images/time_last.png);
+	height:16px;
+	width:16px;
+	border:none;
+	vertical-align: middle;
+	}
+
 	
 /* ----------- margin: top right bottom left ----------- */
 
