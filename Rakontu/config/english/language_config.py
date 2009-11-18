@@ -114,7 +114,7 @@ and in general maintain the vitality of the story bank.</p>""",
 
 u"""
 <p>A guide pays attention to people in the Rakontu. Guides answer questions, write tutorials, 
-encourage people to tell and use stories, create patterns, write and respond to invitations,
+encourage people to tell and use stories, create patterns, write and respond to topics,
 and in general maintain the vitality of the on-line member community. Guides must agree to
 receive email messages from the system so that they can answer questions.</p>
 """,
@@ -133,13 +133,13 @@ DEFAULT_ROLE_READMES_FORMATS = [FORMAT_SIMPLE_HTML, FORMAT_SIMPLE_HTML, FORMAT_S
 # ENTRIES
 # ============================================================================================ 
 
-# Types of entry. These MUST match the order (story, invitation, collage, pattern, resource).
-ENTRY_TYPES_DISPLAY = [u"story", u"invitation", u"collage", u"pattern", u"resource"]
+# Types of entry. These MUST match the order (story, topic, collage, pattern, resource).
+ENTRY_TYPES_DISPLAY = [u"story", u"topic", u"collage", u"pattern", u"resource"]
 # Same thing but plural.
-ENTRY_TYPES_PLURAL_DISPLAY = [u"stories", u"invitations", u"collages", u"patterns", u"resources"]
-# URLs for entry types. These MUST match the order (story, invitation, collage, pattern, resource).
+ENTRY_TYPES_PLURAL_DISPLAY = [u"stories", u"topics", u"collages", u"patterns", u"resources"]
+# URLs for entry types. These MUST match the order (story, topic, collage, pattern, resource).
 # Since they will be used for URLs they CANNOT contain special characters or spaces.
-ENTRY_TYPES_URLS = [u"story", u"invitation", u"collage", u"pattern", u"resource"]
+ENTRY_TYPES_URLS = [u"story", u"topic", u"collage", u"pattern", u"resource"]
 
 # This is the title given to entries which are not titled by their creators.
 DEFAULT_UNTITLED_ENTRY_TITLE = u"Untitled"
@@ -185,14 +185,14 @@ ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY = [u"tag sets", u"comments", u"reque
 
 # List of entry AND annotation types. 
 # Used in manage/settings where they are choosing which items can have character attribution.
-# These MUST match the order (story, pattern, collage, invitation, resource, answer, tagset, comment, request, nudge).
-ENTRY_AND_ANNOTATION_TYPES_DISPLAY = [u"story", u"pattern", u"collage", u"invitation", u"resource", u"answer", u"tag set", u"comment", u"request", u"nudge"]
+# These MUST match the order (story, pattern, collage, topic, resource, answer, tagset, comment, request, nudge).
+ENTRY_AND_ANNOTATION_TYPES_DISPLAY = [u"story", u"pattern", u"collage", u"topic", u"resource", u"answer", u"tag set", u"comment", u"request", u"nudge"]
 # Same thing but plural
-ENTRY_AND_ANNOTATION_TYPES_PLURAL_DISPLAY = [u"stories", u"patterns", u"collages", u"invitations", u"resources", u"answers", u"tag sets", u"comments", u"requests", u"nudges"]
+ENTRY_AND_ANNOTATION_TYPES_PLURAL_DISPLAY = [u"stories", u"patterns", u"collages", u"topics", u"resources", u"answers", u"tag sets", u"comments", u"requests", u"nudges"]
 # URLs for entry and annotation types. 
-# These MUST match the order (story, pattern, collage, invitation, resource, answer, tagset, comment, request, nudge).
+# These MUST match the order (story, pattern, collage, topic, resource, answer, tagset, comment, request, nudge).
 # Since they will be used for URLs they CANNOT contain special characters or spaces.
-ENTRY_AND_ANNOTATION_TYPES_URLS = [u"story", u"pattern", u"collage", u"invitation", u"resource", u"answer", u"tagset", u"comment", u"request", u"nudge"]
+ENTRY_AND_ANNOTATION_TYPES_URLS = [u"story", u"pattern", u"collage", u"topic", u"resource", u"answer", u"tagset", u"comment", u"request", u"nudge"]
 
 # These are types of request people can set. They can be set to anything you like (and translated).
 # Everyone can see them, and guides have a "review requests" page where they see all requests by type.
@@ -205,13 +205,13 @@ REQUEST_TYPES_URLS = [u"comment", u"tag", u"answer", u"curate", u"link", u"tellv
 # QUESTIONS
 # ============================================================================================ 
 
-# Things questions refer to. These MUST match the order (story, pattern, collage, invitation, resource, member, character).
-QUESTION_REFERS_TO_DISPLAY = [u"story", u"pattern", u"collage", u"invitation", u"resource", u"member", u"character"]
+# Things questions refer to. These MUST match the order (story, pattern, collage, topic, resource, member, character).
+QUESTION_REFERS_TO_DISPLAY = [u"story", u"pattern", u"collage", u"topic", u"resource", u"member", u"character"]
 # Same thing but for URLs.
 # Since they will be used for URLs they CANNOT contain special characters or spaces.
-QUESTION_REFERS_TO_URLS = [u"story", u"pattern", u"collage", u"invitation", u"resource", u"member", u"character"]
+QUESTION_REFERS_TO_URLS = [u"story", u"pattern", u"collage", u"topic", u"resource", u"member", u"character"]
 # Same thing but plural
-QUESTION_REFERS_TO_PLURAL_DISPLAY = [u"stories", u"patterns", u"collages", u"invitations", u"resources", u"members", u"characters"]
+QUESTION_REFERS_TO_PLURAL_DISPLAY = [u"stories", u"patterns", u"collages", u"topics", u"resources", u"members", u"characters"]
 
 # Types of question. These MUST match the order (boolean, text, ordinal, nominal, value).
 QUESTION_TYPES_DISPLAY = [u"boolean", u"text", u"ordinal", u"nominal", u"value"]
@@ -249,12 +249,12 @@ DEFAULT_NUDGE_CATEGORY_QUESTIONS = [
 # accumulate nudge points for members. (They only appear in the manage-settings screen.)
 # These MUST match the order:
 # (downdrift, 
-# reading, adding story, adding pattern, adding collage, adding invitation, adding resource, 
+# reading, adding story, adding pattern, adding collage, adding topic, adding resource, 
 # adding retold link, adding reminded link, adding related link, adding included link, adding responded link, adding referenced link,
 # answering question, adding tag set, adding comment, adding request, adding nudge).
 EVENT_TYPES_DISPLAY = [
 			"downdrift", \
-			"reading", u"adding story", u"adding pattern", u"adding collage", u"adding invitation", u"adding resource", \
+			"reading", u"adding story", u"adding pattern", u"adding collage", u"adding topic", u"adding resource", \
 			"adding retold link", u"adding reminded link", u"adding related link", u"adding included link", u"adding responded link", u"adding referenced link", \
 			"answering question", u"adding tag set", u"adding comment", u"adding request", u"adding nudge"]
 
@@ -309,17 +309,17 @@ TERMS = {
 		# used to display list of things user can do while viewing story or other entry
 		"term_tell_another_version_of_this_story": u"Tell another version of what happened",
 		"term_tell_a_story_this_reminds_you_of": u"Tell a story this reminds you of",
-		"term_answer_questions_about_this": u"Answer questions about this",  # story, invitation collage, pattern, or resource
-		"term_respond_to_invitation": u"Respond to this invitation with a story",
-		"term_make_a_comment": u"Comment on this",  # story, invitation collage, pattern, or resource
-		"term_tag_this": u"Tag this", # story, invitation collage, pattern, or resource
-		"term_request_something_about_this": u"Request something about this", # story, invitation collage, pattern, or resource
-		"term_relate_entry_to_others": u"Relate this entry to other entries",
-		"term_nudge_this": u"Nudge this", # story, invitation collage, pattern, or resource
-		"term_curate_this": u"Curate this", # story, invitation collage, pattern, or resource
-		"term_stop_curating_this": u"Stop curating this", # story, invitation collage, pattern, or resource
-		"term_change_this": u"Change your", # story, invitation collage, pattern, or resource # YOUR because only the creator can do this
-		"term_print_this": u"Print content and annotations for this", # story, invitation collage, pattern, or resource
+		"term_answer_questions_about_this": u"Answer questions about this",  # story, topic collage, pattern, or resource
+		"term_respond_to_topic": u"Tell a story about this topic", # << TRANSLATION REQUIRED >>
+		"term_make_a_comment": u"Comment on this",  # story, topic collage, pattern, or resource
+		"term_tag_this": u"Tag this", # story, topic collage, pattern, or resource
+		"term_request_something_about_this": u"Request something about this", # story, topic collage, pattern, or resource 
+		"term_relate_entry_to_others": u"Relate this %s to other entries", # %s is story, topic collage, pattern, or resource # << TRANSLATION REQUIRED >>
+		"term_nudge_this": u"Nudge this", # story, topic collage, pattern, or resource
+		"term_curate_this": u"Curate this", # story, topic collage, pattern, or resource
+		"term_stop_curating_this": u"Stop curating this", # story, topic collage, pattern, or resource
+		"term_change_this": u"Change your", # story, topic collage, pattern, or resource # YOUR because only the creator can do this
+		"term_print_this": u"Print content and annotations for this", # story, topic collage, pattern, or resource
 		# used to send a reminder to manager about items flagged by curator
 		"term_dear_manager": u"Dear manager",
 		"term_reminder": u"Reminder about flagged items from", # person who is sending the reminder
@@ -442,8 +442,8 @@ TEMPLATE_TERMS = {
 		"template_entries": u"Entries",
 		"template_story": u"Story",
 		"template_stories": u"Stories",
-		"template_invitation": u"Invitation",
-		"template_invitations": u"Invitations",
+		"template_topic": u"Topic",
+		"template_topics": u"Topics",
 		"template_pattern": u"Pattern",
 		"template_patterns": u"Patterns",
 		"template_collage": u"Collage",
@@ -707,12 +707,16 @@ TEMPLATE_TERMS = {
 		"template_change_entry_tags": u"Change entry tags",
 		"template_no_tags": u"There are no tags to review.",
 		"template_tags_warning": u"Please make changes carefully. Deleted or changed tags cannot be recovered.",
-		# guide/invitations
-		"template_all_invitations": u"all invitations",
-		"template_only_invitations_with_no_responses": u"only invitations with no responses",
-		"template_invitations_with_no_responses": u"Invitations with no responses",
-		"template_no_invitations": u"There are no invitations in the Rakontu.",
-		"template_no_invitations_without_responses": u"There are no invitations without responses.",
+		"template_tag_counts": u"Tag counts", # << TRANSLATION REQUIRED >>
+		# curate/bulkcreatetags
+		"template_bulk_create_tags": u"Create tags for multiple entries", # << TRANSLATION REQUIRED >>
+		"template_new_tags_for_this": u"Tags for this", # story, etc # << TRANSLATION REQUIRED >>
+		# guide/topics
+		"template_all_topics": u"all topics",
+		"template_only_topics_with_no_responses": u"only topics with no responses",
+		"template_topics_with_no_responses": u"Topics with no responses",
+		"template_no_topics": u"There are no topics in the Rakontu.",
+		"template_no_topics_without_responses": u"There are no topics without responses.",
 		# guide/requests
 		"template_all_requests": u"all",
 		"template_only_uncompleted_requests": u"uncompleted",
@@ -925,21 +929,22 @@ TEMPLATE_TERMS = {
 		"template_tell_new_story": u"Please tell your story here.",
 		"template_describe_new_pattern": u"Please describe the pattern of stories you want to make note of here.",
 		"template_describe_new_collage": u"Please describe your collage here.",
-		"template_describe_new_invitation": u"Please describe to other members what you would like them to tell stories about.",
+		"template_describe_new_topic": u"Please describe your topic here.", # << TRANSLATION REQUIRED >>
 		"template_text_for_new_resource": u"Type the text of your resource here.",
 		"template_please_give_name_to_your": u"Please provide a descriptive name for your",
+		"template_please_give_name_to_your_topic": u"What topic would you like to talk about?", # << TRANSLATION REQUIRED >>
 		"template_since_you_retold": u"Since you created this story as your own version of",
 		"template_since_you_reminded": u"Since you created this story because you were reminded of it by",
-		"template_since_you_responded": u"Since you created this story in response to the invitation",
+		"template_since_you_responded": u"Since you created this story in response to the topic",
 		"template_comment_on_retold_link": u"Would you like to comment on why you retold the original story?",
 		"template_comment_on_reminded_link": u"Would you like to comment on what reminded you of this story?",
-		"template_comment_on_responded_link": u"Would you like to comment on why you responded to the invitation?",
+		"template_comment_on_responded_link": u"Would you like to comment on why you responded to the topic?",
 		"template_since_this_is_a_resource": u"Since this is a resource",
 		"template_which_resource_options_apply": u"Which of these display options apply?",
 		"template_yes_is_help_resource": u"This is a help resource. Link to it from the general help page.",
 		"template_yes_is_new_member_resource":"This resource will be helpful to new members. Link to it from the page new members see.",
 		"template_yes_manager_only_resource": u"This resource is only appropriate for managers. Hide it from other members.",
-		"template_what_category_should_this_resource_be_in": u"If this is a help or new-members resource, in which category should it be displayed?",
+		"template_what_category_should_this_resource_be_in": u"In which category should this resource be displayed?",  # << TRANSLATION REQUIRED >>
 		"template_or_enter_a_new_category_here": u"or enter a new category here",
 		"template_load_version": u"Revert to text version",
 		"template_stories_included_in_collage": u"Stories included in this collage",
@@ -1025,7 +1030,7 @@ TEMPLATE_TERMS = {
 		"template_no_matches_header": u"No matching entries",
 		"template_no_match_for_selections": u"No entries match the current selections.",
 		"template_empty_rakontu_header": u"Nothing here yet!",
-		"template_empty_rakontu_message": u"This Rakontu has no entries in it. Use the Create menu to add the first story or invitation.",
+		"template_empty_rakontu_message": u"This Rakontu has no entries in it. Use the Create menu to add the first story or topic.",
 		# visit/leave
 		"template_are_you_sure": u"Are you sure?",
 		"template_leaving_warning": u"Are you absolutely, completely, really, totally certain that you want to leave this Rakontu? If you do, you may have to ask a manager of the Rakontu if you want to rejoin.",
@@ -1052,6 +1057,8 @@ TEMPLATE_TERMS = {
 		"template_send_message": u"Send message",
 		# visit/message
 		"template_send_message_your_own_real_email_warning": u"Warning: The Google App Engine only allows Rakontu to send an email if it uses the real email you have associated with your Google account. That means the people you are sending this message to will see your email address. If you don't want them to see it, don't send the message.",
+		"template_would_you_like_a_copy_of_this_message": u"Would you like a copy of this message sent to your email address?", # << TRANSLATION REQUIRED >>
+		"template_yes_send_a_copy_to": u"Yes, send a copy to", # email address # << TRANSLATION REQUIRED >>
 		# visit/new
 		"template_resources_for_new_members": u"You may find these resources helpful for getting started",
 		"template_about_help_icons": u"Around the site you will see little icons that provide help. Either hover over them with your mouse or click on them to read them.",
@@ -1101,7 +1108,6 @@ TEMPLATE_TERMS = {
 		"template_inline_image_display_choice": u"Do you want to see attached images on the same page as the entries they are attached to?",
 		"template_details_text_length_choice": u"How many characters (letters) long would you like texts displayed in details views to be?",
 		"template_view_options_on_top": u"On which of these timeline views should the options (other than the time range) be shown above the timeline?",
-		"template_view_help_resources_in_timelines": u"On which of these timeline views should help resources be shown?",
 		"template_keep_timelines_pegged_to_now": u"On which of these timeline views should the end time stay current (unless you have clicked the first, back or next buttons)?", # << TRANSLATION REQUIRED >>
 		"template_show_button_tooltips": u"Should tooltips with information appear when you hover the mouse over small option buttons?",
 		"template_show_button_tooltips_yes": u"Yes, show tooltips on buttons",
@@ -1113,6 +1119,7 @@ TEMPLATE_TERMS = {
 		"template_nudge_point_accumulations": u"Nudge point accumulations",
 		"template_activity_point_accumulations": u"Activity point accumulations",
 		"template_rakontu_allows_characters_for": u"This Rakontu allows fictional character attribution for",
+		"template_rakontu_resources": u"For more information about this Rakontu, see these resources.", # << TRANSLATION REQUIRED >>
 		# visit/read
 		"template_contributed_by": u"Contributed by",
 		"template_entered_by": u"entered by",
@@ -1120,7 +1127,7 @@ TEMPLATE_TERMS = {
 		"template_retold_as": u"Retold as",
 		"template_reminding_from": u"Told because of a reminding from",
 		"template_reminding_to": u"Reminded someone of",
-		"template_in_response_to_invitation": u"Told in response to",
+		"template_in_response_to_topic": u"Told in response to",
 		"template_included_in_collages": u"Included in the collages",
 		"template_annotations_to_this": u"Annotation timeline", 
 		"template_hide_versions": u"Hide", # right next to button that says History so no need for longer name
@@ -1178,6 +1185,7 @@ TEMPLATE_BUTTONS = {
 		"button_make_selected_changes": u"Make selected changes",
 		"button_send_selected_notifications": u"Unflag items and send selected notifications",
 		"button_change_tags": u"Change tags",
+		"button_create_bulk_tags": u"Create tags", # << TRANSLATION REQUIRED >>
 		# guide
 		"button_show_uncompleted_requests": u"Show only uncompleted requests",
 		"button_show_all_requests": u"Show all requests",
@@ -1273,7 +1281,7 @@ TEMPLATE_MENUS = {
 		# create
 		"menu_create": u"Create",
 		"menu_story": u"Tell a story",
-		"menu_invitation": u"Invite people to tell stories",
+		"menu_topic": u"Start a topic", # << TRANSLATION REQUIRED >>
 		"menu_collage": u"Build a story collage",
 		"menu_pattern": u"Describe a pattern",
 		# curate
@@ -1281,10 +1289,11 @@ TEMPLATE_MENUS = {
 		"menu_gaps": u"Gaps",
 		"menu_flags": u"Flags",
 		"menu_attachments": u"Attachments",
-		"menu_tags": u"Tags",
+		"menu_tags": u"Tags", 
+		"menu_bulkcreatetags": u"Add new tags", # << TRANSLATION REQUIRED >>
 		# guide
 		"menu_guide": u"Guide",
-		"menu_invitations": u"Invitations",
+		"menu_topics": u"Topics",
 		"menu_requests": u"Requests",
 		"menu_resources": u"Resources",
 		"menu_resource": u"Add a resource",
@@ -1413,7 +1422,7 @@ BLURBS = {
 	u"""
 	<p>
 	The most important thing in a Rakontu is, of course, its <b>stories</b>. 
-	But there are four other types of <b>entry</b> as well: <b>invitations</b> to tell stories,
+	But there are four other types of <b>entry</b> as well: <b>topics</b>,
 	story <b>collages</b>, <b>patterns</b> people have observed in the stories, and <b>resources</b> that help
 	people remember and understand.
 	All of these things can be commented on, given descriptive tags, rated, asked questions about, and filtered. 
@@ -1451,7 +1460,7 @@ BLURBS = {
 "no_drafts":
 	u"""
 	<h2>No drafts</h2>
-	<p>You have no saved drafts. Drafts are entries (stories, invitations, collages, patterns, resources) 
+	<p>You have no saved drafts. Drafts are entries (stories, topics, collages, patterns, resources) 
 	that you are working on and that nobody but you can see. To save a draft, create a story (or other entry) 
 	and click "Save draft" instead of "Publish." You can then review them on this page.
 	</p>
@@ -1514,9 +1523,10 @@ TITLES = {
         "REVIEW_GAPS": u"Review gaps",
         "REVIEW_ATTACHMENTS": u"Review attachments",
         "REVIEW_TAGS": u"Review tags",
+        "CREATE_BULK_TAGS": u"Create bulk tags", # << TRANSLATION REQUIRED >>
         "REVIEW_RESOURCES": u"Review resources",
         "REVIEW_REQUESTS": u"Review requests",
-        "REVIEW_INVITATIONS": u"Review invitations",
+        "REVIEW_TOPICS": u"Review topics",
         "REVIEW_OFFLINE_MEMBERS": u"Review off-line members",
         "REVIEW_BATCH_ENTRIES": u"Review batch entries",
         "BATCH_ENTRY": u"Batch entry",
@@ -1609,7 +1619,7 @@ URLS = {
 	# guide
     "url_resources": u"resources",
     "url_requests": u"requests",
-    "url_invitations": u"invitations",
+    "url_topics": u"topics",
     "url_batch": u"batch",
     "url_copy_resources": u"copySystemResourcesToRakontu",
 	# liaise
@@ -1625,6 +1635,7 @@ URLS = {
     "url_gaps": u"gaps",
     "url_attachments": u"attachments",
     "url_tags": u"tags",
+    "url_bulkcreatetags": u"bulktags", # << TRANSLATION REQUIRED >>
 	# manage
     "url_first": u"first",
     "url_members": u"members",

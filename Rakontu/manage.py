@@ -184,7 +184,8 @@ class SendInvitationMessagePage(ErrorHandlingRequestHander):
 					message.body = messageBody
 					try:
 						message.send()
-					except:
+					except Exception, e:
+						logging.error(e)
 						self.redirect(BuildResultURL("couldNotSendMessage", rakontu=rakontu))
 						return
 					self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
@@ -226,7 +227,6 @@ class ManageRakontuAppearancePage(ErrorHandlingRequestHander):
 			if member.isManagerOrOwner():
 				rakontu.name = htmlEscape(self.request.get("name"))
 				rakontu.tagline = htmlEscape(self.request.get("tagline"))
-				rakontu.skinName = self.request.get("skinName")
 				if rakontu.skinName == TERMS["term_custom"]:
 					rakontu.customSkin = db.Text(self.request.get("customSkin"))
 				url = self.request.get("externalStyleSheetURL")
@@ -278,6 +278,9 @@ class ManageRakontuSkinPage(ErrorHandlingRequestHander):
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			if member.isManagerOrOwner():
 				skins = AllSkins()
+				numColsLeftOver = 4 - len(skins) % 4
+				if numColsLeftOver == 4:
+					numColsLeftOver = 0
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': TITLES["MANAGE_SKIN"], 
 								   'rakontu': rakontu, 
@@ -286,7 +289,7 @@ class ManageRakontuSkinPage(ErrorHandlingRequestHander):
 								   'changes_saved': GetChangesSavedState(member),
 								   'skin_names': GetSkinNames(),
 								   'skins': skins,
-								   'num_cols_left_over': 4 - len(skins) % 4,
+								   'num_cols_left_over': numColsLeftOver,
 								   })
 				path = os.path.join(os.path.dirname(__file__), FindTemplate('manage/skin.html'))
 				self.response.out.write(template.render(path, template_values))
@@ -576,10 +579,12 @@ class ManageRakontuQuestionsPage(ErrorHandlingRequestHander):
 											name=name, 
 											refersTo=type, 
 											text=name)
+							question.order = len(questionsToPut)
 							questionsToPut.append(question)
 				for sysQuestion in systemQuestionsOfType:
 					if self.request.get("copy|%s" % sysQuestion.key()) == "copy|%s" % sysQuestion.key():
 						newQuestion = rakontu.GenerateCopyOfQuestion(sysQuestion)
+						question.order = len(questionsToPut)
 						questionsToPut.append(newQuestion)
 				if self.request.get("import"):
 					newQuestions = ReadQuestionsFromFileOrString(

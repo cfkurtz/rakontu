@@ -166,8 +166,8 @@ ACCEPTED_ATTACHMENT_FILE_TYPES = ["jpg", "png", "pdf", "doc", "txt", "mpg", "mp3
 ACCEPTED_ATTACHMENT_MIME_TYPES = ["image/jpeg", "image/png", "application/pdf", "application/msword", "text/plain", "video/mpeg", "audio/mpeg", "text/html", "application/zip", "text/plain"]
 
 # This is whether fictional character attribution is allowed, by default.
-# One setting for each of these entry types: story, pattern, collage, invitation, resource, answer, tag set, comment, request, nudge
-# The basic recommendation is to allow stories, invitations, answers, comments, and nudges to be anonymous
+# One setting for each of these entry types: story, pattern, collage, topic, resource, answer, tag set, comment, request, nudge
+# The basic recommendation is to allow stories, topics, answers, comments, and nudges to be anonymous
 # since these are most likely to be sensitive.
 DEFAULT_ALLOW_CHARACTERS = [True, False, False, True, False, True, False, True, False, True]
 
@@ -266,7 +266,7 @@ DEFAULT_MEMBER_NUDGE_POINT_ACCUMULATIONS = [
 					40,	# adding story
 					20,	# adding pattern
 					20,	# adding collage
-					30,	# adding invitation
+					30,	# adding topic
 					10,	# adding resource
 					10,	# adding retelling link
 					5,	# adding reminding link
@@ -288,7 +288,7 @@ DEFAULT_ARCTICLE_ACTIVITY_POINT_ACCUMULATIONS = [
 					40,	# adding story
 					20,	# adding pattern
 					20,	# adding collage
-					30,	# adding invitation
+					30,	# adding topic
 					10,	# adding resource
 					10,	# adding retelling link
 					5,	# adding reminding link

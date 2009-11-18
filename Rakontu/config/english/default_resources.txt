@@ -4,7 +4,7 @@
 ; All lines that start with a semicolon are comments and are ignored.
 
 [About Rakontu]
-Category=Introduction
+Category=1. Rakontu Basics
 Order in category=1
 Interpret as=Wiki markup
 Managers only=no
@@ -41,7 +41,7 @@ If you like, you can take on a *helping role* in your Rakontu.
 To get started, click on a story title and start reading!
 
 [People in Rakontu]
-Category=Introduction
+Category=1. Rakontu Basics
 Order in category=2
 Interpret as=Wiki markup
 Managers only=no
@@ -92,7 +92,7 @@ Rakontus may vary on whether they have characters and which types of entries and
 character attribution.
 
 [Terms in Rakontu]
-Category=Introduction
+Category=1. Rakontu Basics
 Order in category=3
 Interpret as=Wiki markup
 For new members=yes
@@ -105,7 +105,8 @@ There are three main types of object in Rakontu: entries, annotations and answer
 Entries are the most important items in Rakontu. They are sort of like Wikipedia articles in that everything "hangs off" them. 
 Most entries will be stories; but there are also four other kinds of entry.
 
-  * *Invitations* are story solicitations. They propose topics for people to tell stories about.
+  * *Topics* can be story solicitations, but they can also be other non-story items such as announcements,
+  plans, articles, reminders, opinions and so on. 
 
   * *Collages* are groupings of stories. People may have many reasons to group stories together and highlight them. 
   In Rakontu 1.0 collages are just simple annotated lists of stories. Future versions are envisioned in which collages 
@@ -126,7 +127,7 @@ Entries, because they are more like documents (things people create) than uttera
 
 Annotations are things that surround entries for the purpose of discussion and collective awareness.
 
-  * *Comments* are just things people wanted to say in reaction to a story (or invitation, collage, pattern, or resource). 
+  * *Comments* are just things people wanted to say in reaction to a story (or topic, collage, pattern, or resource). 
   These will be familiar to people who have used any online community software.
 
   * *Requests* are a special kind of comment that asks other people to do something related to an entry -- translate a story 
@@ -144,7 +145,7 @@ Annotations, because they are more like utterances (things people say) than docu
 
 == Answers
 
-Each type of entry (story, invitation, collage, pattern, resource) has a set of questions you can answer about entries of that type. 
+Each type of entry (story, topic, collage, pattern, resource) has a set of questions you can answer about entries of that type. 
 The creator of the entry _and_ everyone else in the Rakontu can answer the same questions. Looking at differences of 
 opinion about stories can be a useful way to think about issues in the Rakontu. It's also a great way to find stories 
 you are interested in reading.
@@ -155,7 +156,7 @@ interesting queries, like "Show me stories told by members under 20 in which peo
 Answers, like annotations, are utterances that cannot be saved as drafts or changed and have no histories.
 
 [The Rakontu Nudge System]
-Category=Using Rakontu
+Category=2. Using Rakontu
 Order in category=1
 Interpret as=Wiki markup
 For new members=no
@@ -168,7 +169,7 @@ The people who set up your Rakontu also set up from one to five nudge *categorie
 You gain "nudge points" by participating in the Rakontu -- telling stories, adding comments, answering questions, and so on -- which you can use to nudge stories up and down. Exactly how many nudge points you accumulate may have been customized by your Rakontu managers. Some Rakontus might be more interested in having people tell stories while others are more interested in comments and question answering. You can find out what influences nudge point accumulation in your Rakontu by looking at the Visit - About this Rakontu page.
 
 [Timelines in Rakontu]
-Category=Using Rakontu
+Category=2. Using Rakontu
 Order in category=2
 Interpret as=Wiki markup
 For new members=no
@@ -195,13 +196,13 @@ In all timelines you can change the meaning of the vertical dimension by changin
 You can also set a nudge "floor" so that you can ignore items that have been rated below a certain level. To do this, change the number labeled "Hide entries below" and click Change. (Rakontu will save your preference for the next time you visit.)
 
 [Publishing Entries]
-Category=Using Rakontu
+Category=2. Using Rakontu
 Order in category=3
 For new members=no
 Help resource=yes
 Interpret as=Wiki markup
 Managers only=no
-When you tell a story in Rakontu, you create an *entry* in the system. Likewise, an invitation, pattern, collage or resource is also an entry. Any type of entry can be *published* so that everyone can read and comment on it, or it can be saved as a *draft* which only you can see. To see your saved drafts, choose My stuff - Drafts. 
+When you tell a story in Rakontu, you create an *entry* in the system. Likewise, a topic, pattern, collage or resource is also an entry. Any type of entry can be *published* so that everyone can read and comment on it, or it can be saved as a *draft* which only you can see. To see your saved drafts, choose My stuff - Drafts. 
 
 You can change any entry you have created, forever, whether it is a draft or not. To change a published entry, go to the page that displays entry and find the link that says "Change" just after the entry text. Make your changes, then click Publish again. All changes to entries (draft or not) are visible in the *show history* area of the entry's page, though you can remove old versions through the drafts screen.
 
@@ -210,7 +211,7 @@ You can also *unpublish* an entry, meaning that you can remove it from view and 
 You can also invite other members of your Rakontu to edit your entry with you by adding *additional editors*. You can choose either particular members or groups of members by role (all curators and guides, for example). Shared editing is particularly useful for resources, or if two people want to tell a story together. Any entry you create will always remain linked to you and will show your name only; and you are the only one who can remove it from your drafts.
 
 [Searching in Your Rakontu]
-Category=Using Rakontu
+Category=2. Using Rakontu
 Order in category=4
 For new members=no
 Help resource=yes
@@ -238,19 +239,19 @@ And you can combine these search elements in any way you like. For example, you 
 All searches are case insensitive.
 
 [Building a Story Collage]
-Category=Using Rakontu
+Category=2. Using Rakontu
 Order in category=5
 Interpret as=Wiki markup
 For new members=no
 Help resource=yes
 Managers only=no
 
-A story collage is an annotated list of entries that you want to highlight for some reason: top ten stories for new members to read, or five invitations you want people to notice, or the result of an exercise where people chose stories most useful for learning about particular topics. (In future versions of Rakontu we would like to support more elaborate methods of building collages; but for now the simple annotated list is what a collage can be.)
+A story collage is an annotated list of entries that you want to highlight for some reason: top ten stories for new members to read, for example, or the result of an exercise where people chose stories most useful for learning about particular topics. (In future versions of Rakontu we would like to support more elaborate methods of building collages; but for now the simple annotated list of stories is what a collage can be.)
 
-To build a story collage, choose "Build a story collage" from the Create menu. Most of the screen will look the same as that when you enter a story, except that you can choose stories to add, and add a comment as to why you are adding each one. Collages, like stories, patterns, invitations and resources, can have comments, requests, nudges, and tags added to them; and they can be linked to other collages (and invitations, etc). 
+To build a story collage, choose "Build a story collage" from the Create menu. Most of the screen will look the same as that when you enter a story, except that you can choose stories to add, and add a comment as to why you are adding each one. Collages, like stories, patterns and topics, can have comments, requests, nudges, and tags added to them; and they can be linked to other collages (and topics, etc). 
 
 [Describing a Pattern]
-Category=Using Rakontu
+Category=2. Using Rakontu
 Order in category=6
 Interpret as=Wiki markup
 For new members=no
@@ -259,10 +260,10 @@ Managers only=no
 
 A pattern is an observation about something you've noticed in your story museum. Perhaps there are fewer stories about crime than you expected, or when you searched for stories about crime you found more than you expected about neighbors helping neighbors. A pattern is a way to talk to each other about the story collection you have built together. Patterns typically link to one or more filters, possibly contrasting them. For example, you might say: "I noticed that if you show stories where people said they were indifferent, you get a lot about the park, but if you search for stories where people said they felt frustrated, the stories are mostly about the beach. Why is that?" And then people can add comments to discuss it.
 
-To create a pattern, choose "Describe a pattern" from the Create menu. Type in an explanation of what you noticed, and if you like, choose some shared filters to include in the pattern. You can only used *shared* filters, so if you noticed something using your private filters you need to change the filter to switch it to sharing. Like stories, patterns can have comments, requests, nudges, and tags added to them; and they can be linked to other patterns (and invitations, etc). 
+To create a pattern, choose "Describe a pattern" from the Create menu. Type in an explanation of what you noticed, and if you like, choose some shared filters to include in the pattern. You can only used *shared* filters, so if you noticed something using your private filters you need to change the filter to switch it to sharing. Like stories, patterns can have comments, requests, nudges, and tags added to them; and they can be linked to other patterns (and topics, etc). 
 
 [How to Be a Curator]
-Category= Helping
+Category=3. Helping
 Order in category=1
 Interpret as=Wiki markup
 For new members=yes
@@ -290,7 +291,7 @@ As a curator you should look around the Rakontu frequently just checking on acti
 
 === Flagging items
 
-You can flag every type of entry (story, invitation, collage, pattern, resource), annotation (comment, request, tag set,
+You can flag every type of entry (story, topic, collage, pattern, resource), annotation (comment, request, tag set,
 nudge) and answer, as well as filters.
 
 To flag an entry or any of its annotations or answers, click on the entry on the Rakontu's home
@@ -323,7 +324,7 @@ particularly large or widespread your managers may have decided not to allow thi
 to see if there is a Tags option there. If there isn't and you want one, ask a manager about it. 
 
 [How to Be a Guide]
-Category= Helping
+Category=3. Helping
 Order in category=2
 Interpret as=Wiki markup
 For new members=yes
@@ -356,18 +357,17 @@ is also helpful. To review your resources, choose Resources from the Guide menu.
 
 === Monitoring responses
 
-There are two main types of response in Rakontu: telling a story in response to an invitation, and doing something
+There are two main types of response in Rakontu: telling a story in response to a topic, and doing something
 in response to a request about a particular story (or other type of entry). For example, people might ask
 others to transcribe an audio story, read a written story out loud, translate a story into another language,
-and so on. As a guide, you will want to
-check on whether there are invitations or requests that have been "orphaned" and need some attention. 
+and so on. As a guide, you will want to check on whether there are topics or requests that have been "orphaned" and need some attention. 
 
-To review invitations or requests, choose one of these items in your Guide menu. You can either look only
-at invitations or requests with no responses or all of them. For requests, you can mark them as completed
+To review topics or requests, choose one of these items in your Guide menu. You can either look only
+at topics or requests with no responses or all of them. For requests, you can mark them as completed
 if you see that they have been satisfied.
 
 [How to Be a Liaison]
-Category=Helping
+Category=3. Helping
 Order in category=3
 Interpret as=Wiki markup
 For new members=yes
@@ -406,10 +406,10 @@ You can also print all of the responses to a story -- answers to questions, comm
 
 = Entering off-line member responses to stories
 
-You can also enter responses your off-line members have given -- comments, answers, requests, tag sets, nudges -- to stories you have shown or read them. For example, you might take a story to ten different off-line members and ask each of them to answer some questions about it, then enter those answers as annotations to the story. Or people might have a request about a story, or people might want to respond to an invitation. Just start entering things into the system as though you yourself were saying them. The entry form should say "Since you are a liaison" and give you some choices about who said the thing you are entering. Off-line members can even attribute their contributions to characters (if your Rakontu is using them), just as on-line members do. 
+You can also enter responses your off-line members have given -- comments, answers, requests, tag sets, nudges -- to stories you have shown or read them. For example, you might take a story to ten different off-line members and ask each of them to answer some questions about it, then enter those answers as annotations to the story. Or people might have a request about a story, or people might want to respond to a topic. Just start entering things into the system as though you yourself were saying them. The entry form should say "Since you are a liaison" and give you some choices about who said the thing you are entering. Off-line members can even attribute their contributions to characters (if your Rakontu is using them), just as on-line members do. 
 
 [Wiki Markup in Rakontu]
-Category=Texts
+Category=4. Texts
 Order in category=1
 Interpret as=simple HTML
 For new members=no
@@ -462,7 +462,7 @@ kind of file (pdf, etc) a link will appear there that people can click on to dow
 <p>Tables and nested lists are not supported.
 
 [Simple HTML in Rakontu]
-Category=Texts
+Category=4. Texts
 Order in category=2
 Interpret as=Wiki markup
 For new members=no
@@ -503,7 +503,7 @@ image tags <img src="" alt=""/> (these MUST include alt tags)
 Tables and nested lists are not supported.
 
 [Managing Rakontu Members]
-Category=Managing
+Category=1. Managing
 Order in category=1
 Interpret as=Wiki markup
 For new members=yes
@@ -527,7 +527,7 @@ Each member can optionally be a manager or an owner. Any manager can make any ot
 When a member no longer wants to participate in the Rakontu, you can inactivate them (usually at their request). Simply check the "Inactivate" box next to the member and click Save changes. Inactivated members don't disappear completely, but go into an inactivated list. This is so that the stories they told will not have "dead links" to a non-existent member (instead the stories will say they were told by "the former member so-and-so"). Inactivated members can be reinstated simply by copying their (Google-account-related) email and pasting it back into the "Add new members" area. When the email matches (exactly) the former member will regain all of their old preferences.
 
 [Managing Helping Roles in Your Rakontu]
-Category=Managing
+Category=1. Managing
 Order in category=2
 Interpret as=Wiki markup
 For new members=no
@@ -552,7 +552,7 @@ To help people understand the helping roles and their importance in your own par
 Member-contributed tags can help to organize stories for quick finding. However, people sometimes misspell words in tags, or they type "cats" when "cat" is already available, and as a result tag lists tend to get cluttered. Keeping the tag list clean and easy to use is a great way to maintain order in your story museum. For this reason, Rakontu has a screen under the Curate menu in which you can see and edit every single tag in the system in one place. By default, only curators _who are also managers_ can access this screen. If you trust everyone in your group, you can make it so that any curator (meaning, any member, since anyone can become a curator instantly) can change every tag. 
 
 [Managing Your Rakontu's Appearance]
-Category=Managing
+Category=1. Managing
 Order in category=3
 Interpret as=Wiki markup
 For new members=yes
@@ -567,7 +567,7 @@ The text details of a Rakontu are its description, welcome message, etiquette st
 The look of the Rakontu is set by its skin. You can choose from available skins, build your own, or ignore skins entirely and use your own CSS page to change the look of your Rakontu entirely. To build your own skin, simply replace the entries in the "Custom skin" box (on the Settings page) with other fonts and colors. (You can find lists of hex colors on many web sites; type "hex colors" to find them.) To use a separate CSS file, see the help entry on that topic.
 
 [Managing Your Rakontu's Nudge System]
-Category=Managing
+Category=1. Managing
 Order in category=4
 Interpret as=Wiki markup
 For new members=yes
@@ -588,7 +588,7 @@ People gain points for nudging entries by doing things in the Rakontu. The resul
 By the way, if you don't like the nudge point accumulations (too "game-y"?) and you want people to get points just for existing, set a ridiculously high rate on any category you expect people to use often -- say set "reading" to 500. Then everyone will have far more nudge points than they could ever use, and you will have effectively disabled the system.
 
 [Managing Your Rakontu's Activity System]
-Category=Managing
+Category=1. Managing
 Order in category=5
 Interpret as=Wiki markup
 For new members=no
@@ -596,12 +596,12 @@ Help resource=yes
 Managers only=yes
 The activity system of a Rakontu is just a device that makes some titles appear larger than others in the Rakontu home page timeline. The purpose of this is to show people which entries have more "buzz" around them and provide social awareness.
 
-You can decide what sorts of activities should produce the most "buzz" by changing the numbers in the section under "Activity system" in the Settings page. For example, if you want people to particularly notice invitations, you might put a high number under "adding invitation." This will influence the starting size of every invitation created. Or, if you want people to particularly notice the building of links between entries, you could increase the numbers under each of the link-related items in the list. 
+You can decide what sorts of activities should produce the most "buzz" by changing the numbers in the section under "Activity system" in the Settings page. For example, if you want people to particularly notice topics, you might put a high number under "adding topic." This will influence the starting size of every topic created. Or, if you want people to particularly notice the building of links between entries, you could increase the numbers under each of the link-related items in the list. 
 
 If you don't want any entry titles to appear larger than others, set all of the activity numbers to zero. This will effectively disable the activity system.
 
 [Characters in Your Rakontu]
-Category=Managing
+Category=1. Managing
 Order in category=6
 Interpret as=Wiki markup
 For new members=yes
@@ -613,7 +613,7 @@ If you want to use characters, think about what characters are particularly usef
 
 Of course some things about designing characters hold for all groups. The best characters are *extreme* -- encyclopedically smart, ridiculously stupid, monstrously irritating, saintly perfect. Extremes make it clear that people are "putting on" a role for the purpose of saying something they would normally hide, and that the role is artificial, temporary, and purposeful. Good characters are also *funny* (unless it is inappropriate, of course). Humor makes it obvious that the whole character thing is a useful device for bringing up sensitive topics, not a way to cloak obnoxious or offensive speech. Pretend you are listening to a stand-up comedian taking on the persona of a character you'd like to hear from, and write what you hear.
 
-You can set whether to allow character attribution for each type of entry and annotation. For example, it makes sense that people should be able to tell _stories_ as though a character were speaking. Invitations, comments and nudges are also things that people might be afraid to speak out in their own voice on. However, you might want to extend anonymity to collages and patterns, or even tags, if you think those things might also be sensitive. Or you might want to allow anonymity for stories only. 
+You can set whether to allow character attribution for each type of entry and annotation. For example, it makes sense that people should be able to tell _stories_ as though a character were speaking. Topics, comments and nudges are also things that people might be afraid to speak out in their own voice on. However, you might want to extend anonymity to collages and patterns, or even tags, if you think those things might also be sensitive. Or you might want to allow anonymity for stories only. 
 
 If characters will not be useful to your group, the best thing to do is to remove any default characters you see; the whole character system will disappear.
 
@@ -624,7 +624,7 @@ You as a manager should be clear (in case people ask) that nothing in Rakontu is
 If you need _truly_ anonymous entry, you can still get it by creating one or more fake off-line members, perhaps simply called "Anonymous." If you attribute collected stories to these off-line members _without_ keeping track of where the stories actually came from, nobody, including yourself, will be able to track the stories back to their sources. 
 
 [Your Rakontu's Questions]
-Category=Managing
+Category=1. Managing
 Order in category=7
 Interpret as=Wiki markup
 For new members=yes
@@ -632,7 +632,7 @@ Help resource=yes
 Managers only=yes
 Questions may be the most important part of your Rakontu. Asking people to answer questions about the stories they tell, and about other elements of the system, can help people explain things to each other. Also, looking at patterns across stories and members can help your group find out some amazing things about patterns of collective meaning in the group. For example, say you find out that only members over 50 told stories in which the tag "health care" co-occurred with a positive outcome, or that only members with dogs told stories about nasty cats, or so on. Finding useful patterns together can help you achieve common goals.
 
-You can set up questions about each type of entry (stories, invitations, collages, patterns and resources). You can ask people questions about themselves as well. Combining entry and member questions in filters is useful, so you should make sure you have at least a few questions about each entry type and about members. Your Rakontu will most likely start out with some default questions (depending on your site installation). There are also some sample questions you can look at or copy for inspiration. You can also trade questions with other Rakontus using CSV import and export.  
+You can set up questions about each type of entry (stories, topics, collages, patterns and resources). You can ask people questions about themselves as well. Combining entry and member questions in filters is useful, so you should make sure you have at least a few questions about each entry type and about members. Your Rakontu will most likely start out with some default questions (depending on your site installation). There are also some sample questions you can look at or copy for inspiration. You can also trade questions with other Rakontus using CSV import and export.  
 
 === Reviewing your question sets
 
@@ -680,7 +680,7 @@ If you don't want to use a question anymore, check the box to inactivate it. You
   * It's often a good idea to have a "I don't know" or "I can't remember" or "I'm not sure" answer in any list of choices. You don't need an "I don't want to say" answer, because they can just decline to answer the question; but you can have one if you like.
 
 [Limitations in Rakontu]
-Category=Technical
+Category=2. Technical
 Order in category=1
 Interpret as=Wiki markup
 For new members=no
@@ -688,11 +688,11 @@ Help resource=yes
 Managers only=yes
 As of this writing, Rakontu resides on the Google App Engine, which sets some limitations on the volume of use and speed of operation. Because of this, Rakontu also has limitations. Two are important:
 
-  # No Rakontu can have more than 1000 entries (stories + invitations + patterns + collages + resources). For most small groups this limit will not be a problem. If you run up against this limit, you can remove older items to make room for more.
+  # No Rakontu can have more than 1000 entries (stories + topics + patterns + collages + resources). For most small groups this limit will not be a problem. If you run up against this limit, you can remove older items to make room for more.
   # For pages with timelines (home, entry, member, character), if the number of items selected exceeds a constant (set at the site level, by default 200), the number of items shown will be truncated (and the page will say so). To reduce the number, make different selections in the time range or types of items.
 
 [Rakontu known issues]
-Category=Technical
+Category=5. Technical
 Order in category=2
 Interpret as=Wiki markup
 For new members=no
@@ -704,7 +704,7 @@ Managers only=no
 *Menus and buttons are all gray in Internet Explorer.* This is apparently unchangeable due to the nature of how IE interprets form elements.
 
 [Using an external style sheet to style your Rakontu]
-Category=Technical
+Category=2. Technical
 Order in category=3
 Interpret as=Wiki markup
 For new members=no

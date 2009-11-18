@@ -321,7 +321,7 @@ section while Rakontu managers are changing questions.</p>
 
 <p>The columns in the questions file format are as follows, with one question per line.</p>
 	<ol>
-	<li><code>refers to</code> - One OR MORE of member, character, story, pattern, collage, invitation, resource. 
+	<li><code>refers to</code> - One OR MORE of member, character, story, pattern, collage, topic, resource. 
 		Separate with pipes (|) if specifying more than one.</li>
 	<li><code>use for</code> - This connects to the Rakontu types in <code>site_configuration.py</code> and determines
 		which Rakontus get which questions. If a question should be used in more than one, separate them
@@ -378,6 +378,8 @@ square bracket (that begins a line) are considered to be in the resource.</p>
 editing this file will have NO impact on existing Rakontus.
 For those you will need to edit the resources directly, using the Rakontu interface.</li>
 <li>Lines that start with a semicolon are considered comments and ignored.</li>
+<li>The categories are sorted when displayed in alphabetical order. You can 
+control the order they show in by putting numbers in front of them.</li>
 </ul>
 
 <h4>Help texts: help.csv</h4>

@@ -20,6 +20,10 @@
 		<p>{{template_subject}} <input type="text" name="subject" size="80" value="" maxlength="{{maxlength_subject_or_comment}}"/></p>
 		<textarea name="message" rows="8" cols="60"></textarea>
 		
+		<p>{{template_would_you_like_a_copy_of_this_message}}</p>
+		<p><input type="checkbox" name="sendCopy" value="yes" id="sendCopy">
+		<label for="sendCopy">{{template_yes_send_a_copy_to}} {{current_member.googleAccountEmail}}</label></p>
+		
 		<p>{{template_send_message_your_own_real_email_warning}}</p>
 		</fieldset>
 		

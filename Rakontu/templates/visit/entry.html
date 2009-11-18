@@ -20,6 +20,24 @@
 				<h3>{{template_new}} {{entry_type_display|capfirst}}</h3>
 			{% endif %}
 			<fieldset>
+			
+			{% ifequal entry_type "topic" %}
+				{% if entry %}
+					<p>{{template_name}}
+				{% else %}
+					<p>{{template_please_give_name_to_your_topic}}</p><p>
+				{% endif %}
+				&nbsp; <input type="text" name="title" size="60" value="
+					{% if entry %}
+						{% if version_title %}
+							{{version_title}}
+						{% else %}
+							{{entry.title}}
+						{% endif %}
+					{% endif %}
+					" maxlength="{{maxlength_name}}"/></p>
+			{% endifequal %}
+			
 			{% if not entry %}
 				{% ifequal entry_type "story" %}
 					{{template_tell_new_story}} 
@@ -30,8 +48,8 @@
 				{% ifequal entry_type "collage" %}
 					{{template_describe_new_collage}}
 				{% endifequal %}
-				{% ifequal entry_type "invitation" %}
-					{{template_describe_new_invitation}}
+				{% ifequal entry_type "topic" %}
+					{{template_describe_new_topic}}
 				{% endifequal %}
 				{% ifequal entry_type "resource" %}
 					{{template_text_for_new_resource}}
@@ -81,20 +99,22 @@
 				</select>
 			</td></tr></table>
 			
-			{% if entry %}
-				<p>{{template_name}}
-			{% else %}
-				<p>{{template_please_give_name_to_your}} {{entry_type_display}}.</p><p>
-			{% endif %}
-			<input type="text" name="title" size="60" value="
+			{% ifnotequal entry_type "topic" %}
 				{% if entry %}
-					{% if version_title %}
-						{{version_title}}
-					{% else %}
-						{{entry.title}}
-					{% endif %}
+					<p>{{template_name}}
+				{% else %}
+					<p>{{template_please_give_name_to_your}} {{entry_type_display}}.</p><p>
 				{% endif %}
-				" maxlength="{{maxlength_name}}"/></p>
+				&nbsp; <input type="text" name="title" size="60" value="
+					{% if entry %}
+						{% if version_title %}
+							{{version_title}}
+						{% else %}
+							{{entry.title}}
+						{% endif %}
+					{% endif %}
+					" maxlength="{{maxlength_name}}"/></p>
+			{% endifnotequal %}
 			
 			{% if not entry %}
 				{% include "../common_attribution.html" %}

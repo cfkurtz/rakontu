@@ -83,12 +83,7 @@
 						{% endif %}
 	
 		  				{{resource.linkString}}</td>
-		  				<td>{% if resource.resourceForHelpPage or resource.resourceForNewMemberPage %}
-		  						{{resource.categoryIfResource|orNbsp}}
-		  					{% else %}
-		  						&nbsp;
-		  					{% endif %}
-		  					</td>
+		  				<td>{{resource.categoryIfResource|orNbsp}}</td>
 		  				<td>
 		  				{% if resource.resourceForHelpPage or resource.resourceForNewMemberPage %}
 			  				{% if resource.categoryIfResource|orNothing %}

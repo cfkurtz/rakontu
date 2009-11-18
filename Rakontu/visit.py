@@ -134,6 +134,8 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 			skinDict = rakontu.getSkinDictionary()
 			(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
 			textsForGrid, rowColors, minNudgePoints, maxNudgePoints = self.buildGrid(entries, member, skinDict, curating)
+			
+			
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': TITLES["HOME"],
 							'rakontu': rakontu, 
@@ -278,6 +280,11 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 					referencedLinksOutgoing = None
 				entryHasLinks = entry.hasLinks()
 				memberCanEditEntry = entry.memberCanEditMe(member)
+				
+				# CFK TEMP - this is for fixing up problems - don't leave here indefinitely
+				if users.is_current_user_admin():
+					memberCanEditEntry = True
+
 				countNames, counts = entry.getCounts()
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 								   'title': entry.title, 
@@ -408,7 +415,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 		else:
 			nudgePointsMemberCanAssign = max(0, rakontu.maxNudgePointsPerEntry - entry.getTotalNudgePointsForMember(member))
 		rakontuHasQuestionsForThisEntryType = len(rakontu.getActiveQuestionsOfType(entry.type)) > 0
-		memberCanAnswerQuestionsAboutThisEntry = len(entry.getAnswersForMember(member)) == 0
+		memberCanAnswerQuestionsAboutThisEntry = entry.type != "resource" and len(entry.getAnswersForMember(member)) == 0
 		memberCanAddNudgeToThisEntry = nudgePointsMemberCanAssign > 0
 		displayType = DisplayTypeForEntryType(entry.type)
 		# retelling
@@ -416,12 +423,12 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 			key = TERMS["term_tell_another_version_of_this_story"]
 			thingsUserCanDo[key] = BuildURL("dir_visit","url_retell", entry.urlQuery())
 		# reminding
-		if entry.isStory() or entry.isResource():
+		if entry.isStory():
 			key = TERMS["term_tell_a_story_this_reminds_you_of"]
 			thingsUserCanDo[key] = BuildURL("dir_visit", "url_remind", entry.urlQuery())
 		# responding
-		if entry.isInvitation():
-			key = TERMS["term_respond_to_invitation"]
+		if entry.isTopic():
+			key = TERMS["term_respond_to_topic"]
 			thingsUserCanDo[key] = BuildURL("dir_visit", "url_respond", entry.urlQuery())
 		# nudging
 		if memberCanAddNudgeToThisEntry:
@@ -441,7 +448,7 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 		key = "%s %s" % (TERMS["term_request_something_about_this"], displayType)
 		thingsUserCanDo[key] = BuildURL("dir_visit", URLForAnnotationType("request"), entry.urlQuery())
 		# relating
-		key = TERMS["term_relate_entry_to_others"]
+		key = TERMS["term_relate_entry_to_others"] % displayType
 		thingsUserCanDo[key] = BuildURL("dir_visit", "url_relate", entry.urlQuery())
 		return thingsUserCanDo, memberCanAddNudgeToThisEntry
 			
@@ -621,6 +628,7 @@ class SeeRakontuPage(ErrorHandlingRequestHander):
 				i += 1
 			charactersAllowedForString = ", ".join(charactersAllowedFor) + "."
 			countNames, counts = rakontu.getCounts()
+			resources = rakontu.getNonDraftNonHelpResourcesAsDictionaryByCategory()
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': TITLES["ABOUT"], 
 							   'rakontu': rakontu, 
@@ -634,6 +642,7 @@ class SeeRakontuPage(ErrorHandlingRequestHander):
 							   'chars_allowed_string': charactersAllowedForString,
 					   		   'count_names': countNames,
 					   		   'counts': counts,
+					   		   'resources': resources,
 							   })
 			def txn(member):
 				member.lastReadAnything = datetime.now(tz=pytz.utc)
@@ -651,6 +660,9 @@ class SeeRakontuMembersPage(ErrorHandlingRequestHander):
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			activeMembers = rakontu.getActiveMembers()
+			numColsLeftOver = 5 - len(activeMembers) % 5
+			if numColsLeftOver == 5:
+				numColsLeftOver = 0
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							   'title': TITLES["MEMBERS"], 
 							   'rakontu': rakontu, 
@@ -658,7 +670,7 @@ class SeeRakontuMembersPage(ErrorHandlingRequestHander):
 							   'current_member': member,
 							   'rakontu_members': activeMembers,
 							   'no_profile_text': NO_PROFILE_TEXT,
-							   'num_cols_left_over': 5 - len(activeMembers) % 5,
+							   'num_cols_left_over': numColsLeftOver,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/members.html'))
 			self.response.out.write(template.render(path, template_values))
@@ -680,71 +692,6 @@ class SeeRakontuMembersPage(ErrorHandlingRequestHander):
 					self.redirect(BuildURL("dir_visit", "url_message", member.urlQuery()))
 				else:
 					self.redirect(BuildURL("dir_visit", "url_members", rakontu=rakontu))
-		else:
-			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
-			
-class SimpleSearchPage(ErrorHandlingRequestHander):
-	@RequireLogin 
-	def get(self):
-		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
-		if access:
-			if isFirstVisit: self.redirect(member.firstVisitURL())
-			key = "find:%s" % member.key()
-			try:
-				findWhat, entryTypesToInclude, annotationTypesToInclude = memcache.get(key)
-				findWhatEscaped = htmlEscape(findWhat)
-				entryTypeBooleans = []
-				for i in range(len(ENTRY_TYPES)):
-					entryTypeBooleans.append(ENTRY_TYPES[i] in entryTypesToInclude)
-				annotationTypeBooleans = []
-				for i in range(len(ANNOTATION_ANSWER_LINK_TYPES)):
-					annotationTypeBooleans.append(ANNOTATION_ANSWER_LINK_TYPES[i] in annotationTypesToInclude)
-				memcache.delete(key)
-			except:
-				findWhat = None
-				findWhatEscaped = None
-				entryTypeBooleans = None
-				annotationTypeBooleans = None
-			if findWhat:
-				textsDictionary = rakontu.getItemsMatchingPlainText(findWhat, entryTypesToInclude, annotationTypesToInclude)
-			else:
-				textsDictionary = None
-			template_values = GetStandardTemplateDictionaryAndAddMore({
-							   'title': TITLES["FIND_ENTRY"], 
-							   'rakontu': rakontu, 
-							   'skin': rakontu.getSkinDictionary(),
-							   'current_member': member,
-							   'find_text': findWhatEscaped,
-							   'texts_dict': textsDictionary,
-							   'entry_choices': ENTRY_TYPES,
-							   'entry_choices_display': ENTRY_TYPES_PLURAL_DISPLAY,
-							   'entry_choices_picked': entryTypeBooleans,
-							   'annotation_choices': ANNOTATION_ANSWER_LINK_TYPES,
-							   'annotation_choices_display': ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY,
-							   'annotation_choices_picked': annotationTypeBooleans,
-							   })
-			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/find.html'))
-			self.response.out.write(template.render(path, template_values))
-		else:
-			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
-			
-	@RequireLogin 
-	def post(self):
-		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
-		if access:
-			if "find" in self.request.arguments():
-				findWhat = self.request.get("findWhat")
-				entryTypesToInclude = []
-				annotationTypesToInclude = []
-				for type in ENTRY_TYPES:
-					if self.request.get(type) == "yes":
-						entryTypesToInclude.append(type)
-				for type in ANNOTATION_ANSWER_LINK_TYPES:
-					if self.request.get(type) == "yes":
-						annotationTypesToInclude.append(type)
-				if findWhat:
-					memcache.add("find:%s" % member.key(), (findWhat, entryTypesToInclude, annotationTypesToInclude), HOUR_SECONDS)
-				self.redirect(self.request.uri)
 		else:
 			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
@@ -806,11 +753,14 @@ class SendMessagePage(ErrorHandlingRequestHander):
 					message.sender = member.googleAccountEmail
 					message.reply_to = member.googleAccountEmail
 					message.subject = stripTags(self.request.get("subject"))
+					if self.request.get("sendCopy") == "yes":
+						message.cc = member.googleAccountEmail
 					message.to = emailAddresses 
 					message.body = stripTags(self.request.get("message"))
 					try:
 						message.send()
-					except:
+					except Exception, e:
+						logging.error(e)
 						self.redirect(BuildResultURL("couldNotSendMessage", rakontu=rakontu))
 						return
 					self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
@@ -1171,11 +1121,14 @@ class AskGuidePage(ErrorHandlingRequestHander):
 					message.sender = member.googleAccountEmail
 					message.reply_to = member.googleAccountEmail
 					message.to = messageMember.googleAccountEmail
+					if self.request.get("sendCopy") == "yes":
+						message.cc = member.googleAccountEmail
 					message.subject = "Rakontu %s - %s" % (TERMS["term_question"], htmlEscape(self.request.get("subject")))
 					message.body = stripTags(self.request.get("message"))
 					try:
 						message.send()
-					except:
+					except Exception, e:
+						logging.error(e)
 						self.redirect(BuildResultURL("couldNotSendMessage", rakontu=rakontu))
 						return
 					self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
@@ -1588,6 +1541,73 @@ class ChangeMemberFiltersPage(ErrorHandlingRequestHander):
 		else:
 			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
+class SimpleSearchPage(ErrorHandlingRequestHander):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if isFirstVisit: self.redirect(member.firstVisitURL())
+			key = "find:%s" % member.key()
+			try:
+				findWhat, entryTypesToInclude, annotationTypesToInclude = memcache.get(key)
+				findWhat = findWhat.strip()
+				findWhatEscaped = htmlEscape(findWhat)
+				entryTypeBooleans = []
+				for i in range(len(ENTRY_TYPES)):
+					entryTypeBooleans.append(ENTRY_TYPES[i] in entryTypesToInclude)
+				annotationTypeBooleans = []
+				for i in range(len(ANNOTATION_ANSWER_LINK_TYPES)):
+					annotationTypeBooleans.append(ANNOTATION_ANSWER_LINK_TYPES[i] in annotationTypesToInclude)
+				memcache.delete(key)
+			except:
+				findWhat = None
+				findWhatEscaped = None
+				entryTypeBooleans = None
+				annotationTypeBooleans = None
+				entryTypesToInclude = None
+				annotationTypesToInclude = None
+			if (not entryTypesToInclude is None) and (not annotationTypesToInclude is None):
+				textsDictionary = rakontu.getItemsMatchingPlainText(findWhat, entryTypesToInclude, annotationTypesToInclude)
+			else:
+				textsDictionary = None
+			template_values = GetStandardTemplateDictionaryAndAddMore({
+							   'title': TITLES["FIND_ENTRY"], 
+							   'rakontu': rakontu, 
+							   'skin': rakontu.getSkinDictionary(),
+							   'current_member': member,
+							   'find_text': findWhatEscaped,
+							   'texts_dict': textsDictionary,
+							   'entry_choices': ENTRY_TYPES,
+							   'entry_choices_display': ENTRY_TYPES_PLURAL_DISPLAY,
+							   'entry_choices_picked': entryTypeBooleans,
+							   'annotation_choices': ANNOTATION_ANSWER_LINK_TYPES,
+							   'annotation_choices_display': ANNOTATION_ANSWER_LINK_TYPES_PLURAL_DISPLAY,
+							   'annotation_choices_picked': annotationTypeBooleans,
+							   })
+			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/find.html'))
+			self.response.out.write(template.render(path, template_values))
+		else:
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
+			
+	@RequireLogin 
+	def post(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if "find" in self.request.arguments():
+				findWhat = self.request.get("findWhat")
+				entryTypesToInclude = []
+				annotationTypesToInclude = []
+				for type in ENTRY_TYPES:
+					if self.request.get(type) == "yes":
+						entryTypesToInclude.append(type)
+				for type in ANNOTATION_ANSWER_LINK_TYPES:
+					if self.request.get(type) == "yes":
+						annotationTypesToInclude.append(type)
+				memcache.add("find:%s" % member.key(), (findWhat, entryTypesToInclude, annotationTypesToInclude), HOUR_SECONDS)
+				self.redirect(self.request.uri)
+		else:
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
+			
 class LeaveRakontuPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
@@ -1689,6 +1709,7 @@ class FilterEntryPage(ErrorHandlingRequestHander):
 							'location': location,
 							'member_to_see': memberToSee,
 							'character': character,
+							'already_there_tags': rakontu.getTags(),
 							})
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('visit/filter.html'))
 			self.response.out.write(template.render(path, template_values))

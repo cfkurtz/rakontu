@@ -135,11 +135,22 @@
 		</select>
 		{{template_of_these_tags}}:
 		{% for i in num_filter_fields|makeRange %} 
-			<input type="text" name="tags|{{i}}" 
-			{% if current_filter %}
-				value="{{current_filter.tags|listLookup:i|orNothing}}"
-			{% endif %}
-			size="16" maxlength="{{maxlength_tag_or_choice}}"> 
+				{% if already_there_tags %}
+					<select name="tags|{{i}}">
+					<option value="none">({{term_choose}})</option>
+					{% for tag in already_there_tags %}
+						{% if tag|orNothing %}
+							<option value="{{tag}}"
+							{% if current_filter %}
+								{% if current_filter.tags|listLookup:i|equalTest:tag %}
+									selected="selected"
+								{% endif %}
+							{% endif %}
+							>{{tag}}</option>
+						{% endif %}
+					{% endfor %}
+					</select>
+				{% endif %}
 		{% endfor %}
 		</p>
 		

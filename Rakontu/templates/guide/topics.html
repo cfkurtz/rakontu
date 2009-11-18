@@ -1,0 +1,83 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+		<div id="content">
+	
+		<div id="rakontu_form_style" class="rakontu_form">
+		<form action="/{{dir_guide}}/{{url_topics}}?{{rakontu.urlQuery}}
+		{% if not showing_all_topics %}&{{url_query_no_responses}}={{url_option_yes}}{% endif %}
+		{% if bookmark %}&{{url_query_bookmark}}={{bookmark}}{% endif %}
+		" method="post" enctype="multipart/form-data">
+		
+		{% if showing_all_topics %}
+			<h3>{{template_topics}}</h3>
+		{% else %}
+			<h3>{{template_topics_with_no_responses}}</h3>
+		{% endif %}
+		
+		<p></p>
+		{% if topics %}
+		
+			<p>{{template_show}}
+			<select name="all_or_unresponded">
+				<option value="showAllTopics"
+				{% if showing_all_topics %}
+					selected="selected"
+				{% endif %}
+				>{{template_all_topics}}</option>
+				<option value="showOnlyUnrespondedTopics"
+				{% if not showing_all_topics %}
+					selected="selected"
+				{% endif %}
+				>{{template_only_topics_with_no_responses}}</option>
+				</select>
+				<input type="submit" name="changeSelections" value="{{button_change}}" class="button_small">
+				</p>
+		
+			<table cellspacing=0 cellpadding=4 style="margin-left:20px;">
+			<tr>
+				<th>{{template_name}}</th>
+				<th>{{template_published}}</th>
+				<th>{{template_responses}}</th></tr>
+			{% for topic in topics %}
+	      		<tr>
+	      		<td>{{topic.linkString}}</td>
+	      		<td>
+	      			{% if current_member.timeFormat %}
+						{{topic.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+					{% endif %}
+					{{topic.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+				</td>
+	      		<td>
+	      			{% for entry in topic.getResponses %}
+	      				<p>{{entry.linkString}}</p>
+	      			{% endfor %}
+	      			&nbsp;
+	      		</td>
+	      		</tr>
+	        {% endfor %}
+	        </table>
+			<p>
+			{% if previous %}
+				 <a href="/{{dir_guide}}/{{url_topics}}?{{rakontu.urlQuery}}&{{url_query_bookmark}}={{previous}}">{{template_newer}} {{template_topics|lower}}</a>
+			{% endif %}	
+			{% if previous and next %} ... {% endif %}
+			{% if next %}
+				 <a href="/{{dir_guide}}/{{url_topics}}?{{rakontu.urlQuery}}&{{url_query_bookmark}}={{next}}">{{template_older}} {{template_topics|lower}}</a>
+			{% endif %}	
+			</p>
+	    {% else %}
+			{% if showing_all_topics %}
+				<p>{{template_no_topics}} <a href="/{{dir_visit}}/{{url_topic}}?{{rakontu.urlQuery}}">{{template_create_one}}</a></p>
+			{% else %}
+				<p>{{template_no_topics_without_responses}}</p>
+			{% endif %}
+        {% endif %}
+
+	</form>
+	</div>
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>

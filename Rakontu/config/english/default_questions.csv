@@ -1,5 +1,5 @@
 "; refers to","use for","name","text","type","choices","multiple","help","use help"
-"; one or more of member, character, story, pattern, collage, invitation, resource","use for Rakontus of type(s)","short name for search","question to ask","ONE of ordinal, nominal, text, boolean, value","if ordinal/nominal: pipe delimited choices","whether multiple answers are allowed","optional text user sees as explanation","optional text to explain to managers when question is best to use"
+"; one or more of member, character, story, pattern, collage, topic, resource","use for Rakontus of type(s)","short name for search","question to ask","ONE of ordinal, nominal, text, boolean, value","if ordinal/nominal: pipe delimited choices","whether multiple answers are allowed","optional text user sees as explanation","optional text to explain to managers when question is best to use"
 "; separate with pipe character |","separate with pipe character |","and display",,,"if value: min | max","only applies if the question is ordinal or nominal",,
 ";","if applies to all types, leave blank",,,,"if boolean: yes text | no text",,,
 ,,,,,,,,
@@ -32,10 +32,11 @@
 "collage",,"Reason","Why do you think this collage was created?","nominal","to inform | to help | to educate | to persuade | to praise | to criticize | to entertain | to reminisce | to get along | for fun",,,
 "collage",,"Useful to","Is there anyone you think will find this collage especially useful?","text",,,,
 "collage",,"Refers to","Is this collage in reference to any particular event, person, place, time, or thing?","text",,,"Is there anything this collage is about in particular?",
-"invitation",,"How feel about","How do you feel about this invitation?","nominal","happy | enthused | hopeful | relieved | indifferent | confused | sad | angry | frustrated | hopeless | grateful | amazed | intrigued | amused","yes",,
-"invitation",,"Reason","Why do you think this invitation was created?","nominal","to inform | to help | to educate | to persuade | to praise | to criticize | to entertain | to reminisce | to get along | for fun",,,
-"invitation",,"Intensity","How much emotional intensity would you say this invitation holds for you?","ordinal","an overwhelming amount | a lot | some but not a lot | hardly any | none at all",,,
-"invitation",,"Who should respond","Who in particular do you think should respond to this invitation?","text",,,"Is there any group of people who would best be able to respond to this invitation?",
+"topic",,"Type of topic","What type of topic is this?","nominal","story elicitation | announcement | plan | reminder | statement | argument | opinion | article | information | question | complaint | spark | issue | feeling | idea | thought | other","yes",,
+"topic",,"How feel about","How do you feel about this topic?","nominal","happy | enthused | hopeful | relieved | indifferent | confused | sad | angry | frustrated | hopeless | grateful | amazed | intrigued | amused","yes",,
+"topic",,"Reason","Why do you think this topic was created?","nominal","to inform | to help | to educate | to persuade | to praise | to criticize | to entertain | to reminisce | to get along | for fun",,,
+"topic",,"Intensity","How much emotional intensity would you say this topic holds for you?","ordinal","an overwhelming amount | a lot | some but not a lot | hardly any | none at all",,,
+"topic",,"Who should respond","Who in particular do you think should respond to this topic?","text",,,"Is there any group of people who would best be able to respond to this topic?",
 "resource",,"How feel about","How do you feel about this resource?","nominal","happy | enthused | hopeful | relieved | indifferent | confused | sad | angry | frustrated | hopeless | grateful | amazed | intrigued | amused","yes",,
 "resource",,"Source","Where did this resource come from?","text",,,,
 "resource",,"Further info","Where should people look if they need more information related to this resource?","text",,,,

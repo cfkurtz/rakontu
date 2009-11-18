@@ -1,0 +1,85 @@
+<html>
+	{% include "../common_head.html" %}
+	<body>
+	{% include "../common_menus.html" %}
+		<div id="content">
+		
+		{% if changes_saved %}
+			<div class="message">{{template_changes_saved}}</div>
+		{% endif %}
+		
+		<h3>{{template_bulk_create_tags}}</h3>
+		
+		<div id="rakontu_form_style" class="rakontu_form">
+		<form action="/{{dir_curate}}/{{url_bulkcreatetags}}?{{rakontu.urlQuery}}
+		{% if type %}&{{url_query_type}}={{type}}{% endif %}
+		" method="post" enctype="multipart/form-data">
+		
+		<p>{{template_show}}
+		<select name="show_type">
+			{% for i in entry_types_urls|makeRangeFromListLength %}
+				<option value="{{entry_types_urls|listLookup:i}}" 
+				{% if entry_types_urls|listLookup:i|equalTest:type %} 
+					selected="selected" 
+				{% endif %}
+				>{{entry_types_plural_display|listLookup:i}}</option>
+			{% endfor %}
+			</select>
+		<input type="submit" name="changeSelections" value="{{button_change}}" class="button_small">
+				
+     	{% if entries %}
+			{% for entry in entries %}
+				<h3>{{entry.linkString}}</h3>
+				<div class="blurb">{{entry.displayTextWithInlineAttachmentLinks}}</div>
+					<fieldset>
+					<ul>
+					{% for i in num_tags_in_tag_set|makeRange %}
+						<li class="nobullet">
+						<select name="existing_tag|{{i}}|{{entry.key}}">
+						<option value="none">({{term_choose}})</option>
+						{% for tag in already_there_tags %}
+							{% if tag|orNothing %}
+								<option value="{{tag}}">{{tag}}</option>
+							{% endif %}
+						{% endfor %}
+						</select>
+						<input type="text" name="new_tag|{{i}}|{{entry.key}}" size="15" 
+						value="{{tag_set.tagsIfTagSet|listLookup:i|orNothing}}" maxlength="{{maxlength_tag_or_choice}}"/>&nbsp; 
+						</li>
+					{% endfor %}
+				</ul>
+				</fieldset>
+			{% endfor %}
+		{% else %}
+			<ul><li class="nobullet">{{template_none_found}}.</li></ul>
+		{% endif %}
+
+		<p>
+		{% if previous %}
+			 <a href="/{{dir_curate}}/{{url_bulkcreatetags}}?{{rakontu.urlQuery}}&{{url_query_bookmark}}={{previous}}
+			{% if type %}&{{url_query_type}}={{type}}{% endif %}
+			 ">{{template_newer}} {{template_entries|lower}}</a>
+		{% endif %}	
+		{% if previous and next %} ... {% endif %}
+		{% if next %}
+			 <a href="/{{dir_curate}}/{{url_bulkcreatetags}}?{{rakontu.urlQuery}}&{{url_query_bookmark}}={{next}}
+			{% if type %}&{{url_query_type}}={{type}}{% endif %}
+			 ">{{template_older}}  {{template_entries|lower}}</a>
+		{% endif %}	
+		</p>
+
+     	{% if entries %}
+			<p>&nbsp; </p>
+		    <center>
+		    <input type="submit" name="submitChanges" value="{{button_create_bulk_tags}}" class="button"></center>
+		{% endif %}
+
+		</form>
+		</div>
+
+	</div>
+	{% include "../common_footer.html" %}
+	</body>
+</html>
+
+

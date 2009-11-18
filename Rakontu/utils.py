@@ -116,13 +116,12 @@ def CreatePendingMemberFromInfo(rakontu, email, joinAs):
 	return pendingMember
 
 def SetFirstThingsAndReturnWhetherMemberIsNew(rakontu, member):
-	isFirstVisit = False
+	isFirstVisit = False  
 	if rakontu and member:
 		isFirstVisit = not member.firstVisited
 		if isFirstVisit:
 			now = datetime.now(tz=pytz.utc)
 			member.firstVisited = now
-			DebugPrint(member.firstVisited, "SET")
 			member.put()
 	return isFirstVisit
 
@@ -142,13 +141,13 @@ def GetRakontuFromURLQuery(query):
 	rakontuLookupKey = URL_IDS["url_query_rakontu"]
 	if queryAsDictionary.has_key(rakontuLookupKey):
 		rakontuKeyName = queryAsDictionary[rakontuLookupKey]
-		return Rakontu.get_by_key_name(rakontuKeyName) 
-	else:
+		return Rakontu.get_by_key_name(rakontuKeyName)  
+	else: 
 		return None
 				 
 def GetStringOfTypeFromURLQuery(query, type):
 	dictionary = GetDictionaryFromURLQuery(query) 
-	lookupKey = URL_OPTIONS[type]
+	lookupKey = URL_OPTIONS[type] 
 	if dictionary.has_key(lookupKey):
 		return dictionary[lookupKey]
 	else:
@@ -214,9 +213,9 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	user = users.get_current_user()	
 	if user != None:  
 		email = user.email()   
-	else: 
+	else:  
 		email = None  
-	items = { 
+	items = {  
 	   'version_number': VERSION_NUMBER, 
 	   'text_formats': TEXT_FORMATS,   
 	   'text_formats_display': TEXT_FORMATS_DISPLAY,  
@@ -242,32 +241,32 @@ def GetStandardTemplateDictionaryAndAddMore(newItems):
 	   'num_grid_rows': BROWSE_NUM_ROWS, 
 	   'num_grid_cols': BROWSE_NUM_COLS,
 	   'middle_grid_row': BROWSE_NUM_ROWS // 2, # silly
-	   'middle_grid_col': BROWSE_NUM_COLS // 2,  
+	   'middle_grid_col': BROWSE_NUM_COLS // 2,   
 	   'home': HOME,
 	   'current_user': user,   
 	   'user_is_admin': users.is_current_user_admin(),
-	   'user_email': email, 
+	   'user_email': email,  
 	   'logout_url': users.create_logout_url("/"), 
 	   'site_language': SITE_LANGUAGE, 
-	   'site_support_email': SITE_SUPPORT_EMAIL,
+	   'site_support_email': SITE_SUPPORT_EMAIL,  
 	   'max_possible_attachments': MAX_POSSIBLE_ATTACHMENTS,
 	   'development': os.environ['SERVER_SOFTWARE'].startswith('Development'), 
 	   }
 	for key in DIRS.keys():				items[key] = DIRS[key]
 	for key in URLS.keys():				items[key] = URLS[key] 
 	for key in URL_IDS.keys():			items[key] = URL_IDS[key] 
-	for key in URL_OPTIONS.keys():		items[key] = URL_OPTIONS[key] 
+	for key in URL_OPTIONS.keys():		items[key] = URL_OPTIONS[key]  
 	for key in URL_OPTION_NAMES.keys(): items[key] = URL_OPTION_NAMES[key]
 	for key in TERMS.keys():			items[key] = TERMS[key]
-	for key in TEMPLATE_TERMS.keys(): 	items[key] = TEMPLATE_TERMS[key]
+	for key in TEMPLATE_TERMS.keys(): 	items[key] = TEMPLATE_TERMS[key] 
 	for key in TEMPLATE_BUTTONS.keys(): items[key] = TEMPLATE_BUTTONS[key] 
 	for key in TEMPLATE_MENUS.keys():	items[key] = TEMPLATE_MENUS[key]
 	items["url_story"] = URLForEntryType("story")
-	items["url_invitation"] = URLForEntryType("invitation")
-	items["url_collage"] = URLForEntryType("collage")
+	items["url_topic"] = URLForEntryType("topic")
+	items["url_collage"] = URLForEntryType("collage")  
 	items["url_pattern"] = URLForEntryType("pattern")
-	items["url_resource"] = URLForEntryType("resource") 
-	for key in newItems.keys():
+	items["url_resource"] = URLForEntryType("resource")    
+	for key in newItems.keys(): 
 		items[key] = newItems[key]   
 	return items
  
@@ -1003,15 +1002,13 @@ def InterpretEnteredText(text, mode="text"):
 	result = text
 	if mode == "plain text":
 		""" Plain text format: 
-		Blank lines denote paragraphs; all others are merged.
 		"""
 		result = htmlEscape(result)
 		lines = result.split("\n")
 		changedLines = []
 		changedLines.append("<p>")
 		for line in lines:
-			if len(line.strip()) == 0:
-				changedLines.append("</p>\n<p>")
+			changedLines.append("</p>\n<p>")
 			changedLines.append(line)
 		changedLines.append("</p>")
 		result = "\n".join(changedLines)

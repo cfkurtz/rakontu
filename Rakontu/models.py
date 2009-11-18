@@ -496,7 +496,10 @@ class Rakontu(db.Model):
 			if entry.type in entryTypesToInclude:
 				if not itemsWithCountsDictionary.has_key(entry.type):
 					itemsWithCountsDictionary[entry.type] = []
-				numMatches = entry.numMatchesWithPlainText(textWords)
+				if text:
+					numMatches = entry.numMatchesWithPlainText(textWords)
+				else:
+					numMatches = 1
 				if numMatches > 0:
 					itemsWithCountsDictionary[entry.type].append((entry, numMatches))
 			for annotationType in annotationTypesToInclude:
@@ -504,7 +507,10 @@ class Rakontu(db.Model):
 					itemsWithCountsDictionary[annotationType] = []
 				if annotationType == "link":
 					for link in entry.getAllLinks():
-						numMatches = link.numMatchesWithPlainText(textWords)
+						if text:
+							numMatches = link.numMatchesWithPlainText(textWords)
+						else:
+							numMatches = 1
 						if numMatches > 0:
 							# must check for link already being there from another entry
 							foundLink = False
@@ -516,13 +522,19 @@ class Rakontu(db.Model):
 								itemsWithCountsDictionary["link"].append((link, numMatches))
 				elif annotationType == "answer":
 					for answer in entry.getAnswers():
-						numMatches = answer.numMatchesWithPlainText(textWords)
+						if text:
+							numMatches = answer.numMatchesWithPlainText(textWords)
+						else:
+							numMatches = 1
 						if numMatches > 0:
 							itemsWithCountsDictionary["answer"].append((answer, numMatches))
 				else:
 					for annotation in entry.getAnnotations():
 						if annotation.type == annotationType:
-							numMatches = annotation.numMatchesWithPlainText(textWords)
+							if text:
+								numMatches = annotation.numMatchesWithPlainText(textWords)
+							else:
+								numMatches = 1
 							if numMatches > 0:
 								itemsWithCountsDictionary[annotationType].append((annotation, numMatches))
 		result = {}
@@ -613,6 +625,21 @@ class Rakontu(db.Model):
 			filter("draft = ", False). \
 			filter("type = ", "resource"). \
 			filter("resourceForManagersAndOwnersOnly = ", True). \
+			fetch(FETCH_NUMBER)
+		for resource in resources:
+			if not result.has_key(resource.categoryIfResource):
+				result[resource.categoryIfResource] = []
+			result[resource.categoryIfResource].append(resource)
+		for key in result.keys():
+			result[key].sort(lambda a,b: cmp(a.orderIfResource, b.orderIfResource))
+		return result
+	
+	def getNonDraftNonHelpResourcesAsDictionaryByCategory(self):
+		result = {}
+		resources = Entry.all().filter("rakontu = ", self.key()). \
+			filter("draft = ", False). \
+			filter("type = ", "resource"). \
+			filter("resourceForHelpPage =", False). \
 			fetch(FETCH_NUMBER)
 		for resource in resources:
 			if not result.has_key(resource.categoryIfResource):
@@ -717,6 +744,21 @@ class Rakontu(db.Model):
 		tagsSorted.extend(tags.keys())
 		tagsSorted.sort()
 		return tagsSorted
+			
+	def getTagsWithCountsSorted(self):
+		tags = {}
+		tagsets = self.getTagSets()
+		for tagset in tagsets:
+			for tag in tagset.tagsIfTagSet:
+				if not tags.has_key(tag):
+					tags[tag] = 0
+				tags[tag] += 1
+		tagsByNumber = {}
+		for tag in tags.keys():
+			if not tagsByNumber.has_key(tags[tag]):
+				tagsByNumber[tags[tag]] = []
+			tagsByNumber[tags[tag]].append(tag)
+		return tagsByNumber
 			
 	def getCounts(self):
 		countNames = []
@@ -1210,7 +1252,7 @@ class Question(db.Model):
 		return self.refersTo == "story" \
 			or self.refersTo == "pattern" \
 			or self.refersTo == "collage" \
-			or self.refersTo == "invitation" \
+			or self.refersTo == "topic" \
 			or self.refersTo == "resource" 
 			
 	def refersToMemberOrCharacter(self):
@@ -1298,7 +1340,10 @@ class Question(db.Model):
 					if not answer.answerIfText in self.choices:
 						if not answer.answerIfText in result:
 							result.append(answer.answerIfText)
-			return result
+			if len(result) > 0:
+				return result
+			else:
+				return None
 		else:
 			return None
 		
@@ -1702,8 +1747,8 @@ class ViewOptions(db.Model):
 	endTime = TzDateTimeProperty(auto_now_add=True, indexed=False)
 	timeFrameInSeconds = db.IntegerProperty(default=WEEK_SECONDS, indexed=False)
 
-	entryTypes = db.ListProperty(bool, default=[True, True, False, False, False], indexed=False) # stories and invitations on by default
-	annotationAnswerLinkTypes = db.ListProperty(bool, default=[False, True, True, False, False, False], indexed=False) # "tag set", "comment", "request", "nudge", "answer", "link"
+	entryTypes = db.ListProperty(bool, default=[True, True, True, True, False], indexed=False)
+	annotationAnswerLinkTypes = db.ListProperty(bool, default=[True, True, True, True, False, False], indexed=False) 
 	
 	nudgeCategories = db.ListProperty(bool, default=[True] * NUM_NUDGE_CATEGORIES, indexed=False)
 	nudgeFloor = db.IntegerProperty(default=DEFAULT_NUDGE_FLOOR, indexed=False)
@@ -1714,7 +1759,7 @@ class ViewOptions(db.Model):
 	
 	showDetails = db.BooleanProperty(default=True, indexed=False)
 	showOptionsOnTop = db.BooleanProperty(default=False, indexed=False)
-	showHelpResourcesInTimelines = db.BooleanProperty(default=False, indexed=False)
+	showHelpResourcesInTimelines = db.BooleanProperty(default=False, indexed=False) # CFK NO LONGER USING
 	showActivityLevels = db.BooleanProperty(default=True, indexed=False)
 	keepTimelinesPeggedToNow = db.BooleanProperty(default=True, indexed=False)
 	
@@ -2308,7 +2353,7 @@ class Answer(db.Model):
 # ============================================================================================
 class Entry(db.Model):
 # ============================================================================================
-# main element of data: story, invitation, collage, pattern, resource
+# main element of data: story, topic, collage, pattern, resource
 # parent: member
 # ============================================================================================
 
@@ -2765,8 +2810,8 @@ class Entry(db.Model):
 	def isStory(self):
 		return self.type == "story"
 	
-	def isInvitation(self):
-		return self.type == "invitation"
+	def isTopic(self):
+		return self.type == "topic"
 	
 	def isCollage(self):
 		return self.type == "collage"
@@ -3112,9 +3157,9 @@ class Entry(db.Model):
 		elif self.type == "collage":
 			name = TEMPLATE_TERMS["template_collage"]
 			imageText = '<img src="/images/collage.png" alt="%s" title="%s" border="0" %s\>' % (name, name, text)
-		elif self.type == "invitation":
-			name = TEMPLATE_TERMS["template_invitation"]
-			imageText = '<img src="/images/invitation.png" alt="%s" title="%s" border="0" %s\>' % (name, name, text)
+		elif self.type == "topic":
+			name = TEMPLATE_TERMS["template_topic"]
+			imageText = '<img src="/images/topic.png" alt="%s" title="%s" border="0" %s\>' % (name, name, text)
 		elif self.type == "resource":
 			name = TEMPLATE_TERMS["template_resource"]
 			imageText = '<img src="/images/resource.png" alt="%s" title="%s" border="0" %s\>' % (name, name, text)
@@ -3284,7 +3329,7 @@ class Link(db.Model):
 	#	related: any entry to any entry
 	#	retold: story to story
 	# 	reminded: story or resource to story
-	#   responded: invitation to story
+	#   responded: topic to story
 	#	included: collage to story
 	#   referenced: pattern to saved filter - note, this is the only non-entry link item, and it is ALWAYS itemTo
 	itemFrom = db.ReferenceProperty(None, collection_name="links_to_entries_incoming", required=True)

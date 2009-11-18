@@ -143,7 +143,8 @@ class CurateFlagsPage(ErrorHandlingRequestHander):
 							message.body = messageBody
 							try:
 								message.send()
-							except:
+							except Exception, e:
+								logging.error(e)
 								self.redirect(BuildResultURL("couldNotSendMessage", rakontu=rakontu))
 								return
 					self.redirect(BuildResultURL("messagesent", rakontu=rakontu))
@@ -283,11 +284,26 @@ class CurateTagsPage(ErrorHandlingRequestHander):
 			if member.isCurator():
 				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
 				prev, tagSets, next = rakontu.getTagSets_WithPaging(bookmark)
+				entryDictionaryWithTagSets = {}
+				# note, i'm trying to aggregate all tag sets per entry here, 
+				# but for some reason it won't aggregate by the object itself. i have to use the index instead
+				# so the object (entry) is the first in the series, the rest are tag sets
+				for tagSet in tagSets:
+					entry = tagSet.entry
+					index = indexFromKeyName(entry.getKeyName())
+					if not entryDictionaryWithTagSets.has_key(index):
+						entryDictionaryWithTagSets[index] = [entry]
+					entryDictionaryWithTagSets[index].append(tagSet)
+				alreadyThereTags = rakontu.getTags()
+				tagCounts = rakontu.getTagsWithCountsSorted()
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_TAGS"], 
 								   'rakontu': rakontu, 
 								   'skin': rakontu.getSkinDictionary(),
 								   'tag_sets': tagSets,
+								   'entries_with_tag_sets_dict': entryDictionaryWithTagSets,
+								   'already_there_tags': alreadyThereTags,
+								   'tag_counts': tagCounts,
 								   'current_member': member,
 								   'bookmark': bookmark,
 								   'previous': prev,
@@ -320,14 +336,20 @@ class CurateTagsPage(ErrorHandlingRequestHander):
 							tagsetsToPut.append(tagset)
 							break
 						else:
-							tagsetsToPut.append(tagset)
-							tagset.tagsIfTagSet = []
+							tags = []
 							for i in range(NUM_TAGS_IN_TAG_SET):
-								if self.request.get("tag%s|%s" % (i, tagset.key())):
-									tagset.tagsIfTagSet.append(self.request.get("tag%s|%s" % (i, tagset.key())))
-								else:
-									tagset.tagsIfTagSet.append("")
-					db.put(tagsetsToPut)
+								response = self.request.get("new_tag|%s|%s" % (i, tagset.key()))
+								if not response:
+									response = self.request.get("existing_tag|%s|%s" % (i, tagset.key()))
+								if response.strip() and response != "none":
+									tags.append(response)
+							if tags:
+								tagset.tagsIfTagSet = []
+								tagset.tagsIfTagSet.extend(tags)
+								tagset.edited = datetime.now(tz=pytz.utc)
+								tagsetsToPut.append(tagset)
+					if tagsetsToPut:
+						db.put(tagsetsToPut)
 				db.run_in_transaction(txn, tagSets)
 				if bookmark:
 					# bookmark must be last, because of the extra == the PageQuery puts on it
@@ -336,6 +358,112 @@ class CurateTagsPage(ErrorHandlingRequestHander):
 					query = "%s=%s" % (URL_IDS["url_query_rakontu"], rakontu.getKeyName())
 				SetChangesSaved(member)
 				self.redirect(BuildURL("dir_curate", "url_tags", query))
+			else:
+				self.redirect(RoleNotFoundURL("curator", rakontu))
+		else:
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
+
+class CurateBulkCreateTagsPage(ErrorHandlingRequestHander):
+	@RequireLogin 
+	def get(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if member.isCurator():
+				show = GAPS_SHOW_CHOICES_URLS[0] # no tags
+				sortBy = GAPS_SORT_BY_CHOICES_URLS[0] # date
+				type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_type")
+				if not type:
+					type = ENTRY_TYPES_URLS[0] # story
+				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
+				prev, entries, next = rakontu.getNonDraftEntriesLackingMetadata_WithPaging(show, type, sortBy, bookmark)
+				template_values = GetStandardTemplateDictionaryAndAddMore({
+							   	   'title': TITLES["CREATE_BULK_TAGS"], 
+								   'rakontu': rakontu, 
+								   'skin': rakontu.getSkinDictionary(),
+								   'current_member': member,
+								   'bookmark': bookmark,
+								   'previous': prev,
+								   'next': next,
+								   'changes_saved': GetChangesSavedState(member),
+								   'entries': entries,
+								   'entry_types_urls': ENTRY_TYPES_URLS,
+								   'already_there_tags': rakontu.getTags(),
+								   'type': type,
+								   })
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('curate/bulkcreatetags.html'))
+				self.response.out.write(template.render(path, template_values))
+			else:
+				self.redirect(RoleNotFoundURL("curator", rakontu))
+		else:
+			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
+			
+	@RequireLogin 
+	def post(self):
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		if access:
+			if member.isCurator():
+				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
+				if "changeSelections" in self.request.arguments():
+					query = "%s=%s&%s" % (
+							URL_OPTIONS["url_query_type"], self.request.get("show_type"),
+							rakontu.urlQuery())
+					if bookmark:
+						query += "&%s=%s" % (URL_OPTIONS["url_query_bookmark"], bookmark)
+					url = BuildURL("dir_curate", "url_bulkcreatetags", query)
+					self.redirect(url)
+				else:
+					show = GAPS_SHOW_CHOICES_URLS[0] # no tags
+					sortBy = GAPS_SORT_BY_CHOICES_URLS[0] # date
+					type = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_type")
+					if not type:
+						type = ENTRY_TYPES_URLS[0] # story
+					prev, entries, next = rakontu.getNonDraftEntriesLackingMetadata_WithPaging(show, type, sortBy, bookmark)
+					thingsToPut = []
+					tagsetsToPublish = []
+					for entry in entries:
+						tags = []
+						for i in range(NUM_TAGS_IN_TAG_SET):
+							response = self.request.get("new_tag|%s|%s" % (i, entry.key()))
+							if not response:
+								response = self.request.get("existing_tag|%s|%s" % (i, entry.key()))
+							if response and response != "none":
+								tags.append(response)
+						if tags:
+							keyName = GenerateSequentialKeyName("annotation", rakontu)
+							tagset = Annotation(
+											key_name=keyName, 
+											parent=entry, 
+											id=keyName, 
+											rakontu=rakontu, type="tag set", 
+											entry=entry)
+							tagset.tagsIfTagSet = []
+							tagset.tagsIfTagSet.extend(tags)
+							tagset.edited = datetime.now(tz=pytz.utc)
+							tagset.creator = member
+							tagset.character = None
+							tagset.liaison = None
+							tagset.inBatchEntryBuffer = False
+							tagset.collected = entry.collected
+							tagsetsToPublish.append(tagset)
+							thingsToPut.append(tagset)
+							thingsToPut.append(entry)
+					if len(thingsToPut):
+						thingsToPut.append(member)
+					# finally, commit all changes to the database
+					def txn(thingsToPut, tagsetsToPublish):
+						# publishing must be done inside the transaction 
+						# because it updates counters which rely on a consistent state
+						for tagset in tagsetsToPublish:
+							tagset.publish()
+						db.put(thingsToPut)
+					db.run_in_transaction(txn, thingsToPut, tagsetsToPublish)
+					if bookmark:
+						# bookmark must be last, because of the extra == the PageQuery puts on it
+						query = "%s=%s&%s=%s&%s=%s" % (URL_OPTIONS["url_query_type"], type, URL_IDS["url_query_rakontu"], rakontu.getKeyName(), URL_OPTIONS["url_query_bookmark"], bookmark)
+					else:
+						query = "%s=%s&%s=%s" % (URL_OPTIONS["url_query_type"], type, URL_IDS["url_query_rakontu"], rakontu.getKeyName())
+					SetChangesSaved(member)
+					self.redirect(BuildURL("dir_curate", "url_bulkcreatetags", query))
 			else:
 				self.redirect(RoleNotFoundURL("curator", rakontu))
 		else:

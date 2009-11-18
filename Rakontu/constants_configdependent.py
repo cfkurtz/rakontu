@@ -29,13 +29,13 @@ ADDITIONAL_EDITOR_TYPES = ["curators", "guides", "liaisons", "managers", "member
 
 # events
 EVENT_TYPES = ["downdrift", \
-			"reading", "adding story", "adding pattern", "adding collage", "adding invitation", "adding resource", \
+			"reading", "adding story", "adding pattern", "adding collage", "adding topic", "adding resource", \
 			"adding retold link", "adding reminded link", "adding related link", "adding included link", "adding responded link", "adding referenced link", \
 			"answering question", "adding tag set", "adding comment", "adding request", "adding nudge"]
 
 # entries
-ENTRY_TYPES = ["story", "invitation", "collage", "pattern", "resource"]
-ENTRY_TYPES_PLURAL = ["stories", "invitations", "collages", "patterns", "resources"]
+ENTRY_TYPES = ["story", "topic", "collage", "pattern", "resource"]
+ENTRY_TYPES_PLURAL = ["stories", "topics", "collages", "patterns", "resources"]
 ENTRY_TYPE_INDEX_STORY = 0
 ENTRY_TYPE_INDEX_INVITATION = 1
 
@@ -48,7 +48,7 @@ ANNOTATION_ANSWER_LINK_TYPES_ANSWER_INDEX = 4
 ANNOTATION_ANSWER_LINK_TYPES_LINK_INDEX = 5
 
 # entries and annotations
-ENTRY_AND_ANNOTATION_TYPES = ["story", "pattern", "collage", "invitation", "resource", "answer", "tag set", "comment", "request", "nudge"]
+ENTRY_AND_ANNOTATION_TYPES = ["story", "pattern", "collage", "topic", "resource", "answer", "tag set", "comment", "request", "nudge"]
 STORY_ENTRY_TYPE_INDEX = 0
 ANSWERS_ENTRY_TYPE_INDEX = 5
 
@@ -56,8 +56,8 @@ ANSWERS_ENTRY_TYPE_INDEX = 5
 LINK_TYPES = ["retold", "reminded", "responded", "related", "included", "referenced"]
 
 # questions
-QUESTION_REFERS_TO = ["story", "pattern", "collage", "invitation", "resource", "member", "character"]
-QUESTION_REFERS_TO_PLURAL = ["stories", "patterns", "collages", "invitations", "resources", "members", "characters"]
+QUESTION_REFERS_TO = ["story", "pattern", "collage", "topic", "resource", "member", "character"]
+QUESTION_REFERS_TO_PLURAL = ["stories", "patterns", "collages", "topics", "resources", "members", "characters"]
 QUESTION_TYPES = ["boolean", "text", "ordinal", "nominal", "value"]
 
 # filters

@@ -179,15 +179,6 @@
 						><label for="showOptionsOnTop|{{option.location}}">{{option.displayNameForLocation}}</label></p>
 				{% endfor %}
 				</select></p>
-			<p>{{template_view_help_resources_in_timelines}}</p>
-				{% for option in view_options %}
-					<p>&nbsp; 
-					<input type="checkbox" name="showHelpResourcesInTimelines|{{option.location}}" value="yes" id="showHelpResourcesInTimelines|{{option.location}}"
-						{% if option.showHelpResourcesInTimelines %}
-							checked
-						{% endif %}
-						><label for="showHelpResourcesInTimelines|{{option.location}}">{{option.displayNameForLocation}}</label></p>
-				{% endfor %}
 			<p>{{template_keep_timelines_pegged_to_now}}</p>
 				{% for option in view_options %}
 					<p>&nbsp; 

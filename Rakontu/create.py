@@ -179,6 +179,8 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 							    'filters_that_can_be_added_to_pattern': filtersThatCanBeIncluded,
 							    # for a resource
 							    'categories_in_use': categories,
+							    # if adding tags
+							    'already_there_tags': rakontu.getTags(),
 							   })
 			if entry:
 				template_values.update(entry.getLinksAsDictionaryWithTemplateReferenceNames())

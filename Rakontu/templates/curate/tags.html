@@ -10,26 +10,98 @@
 			<div class="message">{{template_changes_saved}}</div>
 		{% endif %}
 		
+		{% if tag_counts %}
+			<h3>{{template_tag_counts}}</h3>
+			<ul>
+			{% for numberOfTags in tag_counts|dictKeys|sortedReversed %}
+				<li class="nobullet">{{numberOfTags}}: {{tag_counts|dictLookup:numberOfTags|join:", "}}</li>
+			{% endfor %}
+			</ul>
+		{% endif %}
+		
 			<h3>{{template_change_entry_tags}} {{"changing_tags_on_entries"|caution}}</h3>
-			{% if tag_sets %}
-				<fieldset>
-				{% for tag_set in tag_sets %}
-					<p>
-					{{tag_set.entryLinkString}}</p>
-					<p>
-						{% if tag_set.flaggedForRemoval %}
-							<input type="submit" class="flag_red" value="" name="unflag|{{tag_set.key}}" title="{{template_click_here_to_unflag}}">
+			{% if entries_with_tag_sets_dict %}
+				{% for index in entries_with_tag_sets_dict|dictKeys|sorted %}
+					{% for item in entries_with_tag_sets_dict|dictLookup:index %}
+						{% if item.isEntry %}
+							<h3>{{item.linkString}}</h3>
+							<div class="blurb">{{item.displayTextWithInlineAttachmentLinks}}</div>
+							<fieldset>
 						{% else %}
-							<input type="submit" class="flag_green" value="" name="flag|{{tag_set.key}}" title="{{template_click_here_to_flag_this_set_of_tags}}">
-						{% endif %}
-					{% for i in num_tags_in_tag_set|makeRange %}
-						<input type="text" name="tag{{i}}|{{tag_set.key}}" size="15" 
-						value="{{tag_set.tagsIfTagSet|listLookup:i|orNothing}}" maxlength="{{maxlength_tag_or_choice}}"/>&nbsp; 
+							<p>
+							{% if item.flaggedForRemoval %}
+								<input type="submit" class="flag_red" value="" name="unflag|{{item.key}}" title="{{template_click_here_to_unflag}}">
+							{% else %}
+								<input type="submit" class="flag_green" value="" name="flag|{{item.key}}" title="{{template_click_here_to_flag_this_set_of_tags}}">
+							{% endif %}
+
+							<b>{{item.tagsIfTagSet|join:" | "}}</b>
+							{{template_contributed_by}}
+							{% if item.attributedToMember %}
+									{% if item.creator.active %}
+										{{item.creator.linkString}}
+										{% ifequal item.creator.key current_member.key %}
+											 ({{template_you}})
+										{% endifequal %}
+									{% else %}
+										{{template_the_former_member}} "{{item.creator.nickname}}"
+									{% endif %}
+							{% else %}
+								{% if item.character.active %}
+									{{item.character.linkString}}
+								{% else %}
+									{{template_the_former_character}} "{{item.character.name}}"
+								{% endif %}
+							{% endif %}
+							{% if item.collectedOffline %}
+								{% if current_member.timeFormat %}
+									{{item.collected|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+								{% endif %}
+								{{item.collected|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}
+								{% if item.liaison %}
+									({{template_entered_by}} {{item.liaison.linkString}}
+									{% if current_member.timeFormat %}
+										{{item.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+									{% endif %}
+									{{item.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}).
+								{% endif %}
+							{% else %}
+								{% if current_member.timeFormat %}
+									{{item.published|timeZone:current_member.timeZoneName|time:current_member.timeFormat}}
+								{% endif %}
+								{{item.published|timeZone:current_member.timeZoneName|date:current_member.dateFormat}}.
+							{% endif %}
+
+
+							<ul>
+							{% for i in num_tags_in_tag_set|makeRange %}
+								<li class="nobullet">
+								<select name="existing_tag|{{i}}|{{item.key}}">
+								<option value="none">({{term_choose}})</option>
+								{% for tag in already_there_tags %}
+									{% if tag|orNothing %}
+										<option value="{{tag}}"
+										{% if item.tagsIfTagSet|listLookup:i|equalTest:tag %}
+											selected="selected"
+										{% endif %}
+										>{{tag}}</option>
+									{% endif %}
+								{% endfor %}
+								</select>
+								<input type="text" name="new_tag|{{i}}|{{item.key}}" size="15" 
+								{% if not item.tagsIfTagSet|listLookup:i|contains:already_there_tags %}
+									value="{{item.tagsIfTagSet|listLookup:i|orNothing}}" 
+								{% else %}
+									value =""
+								{% endif %}
+								maxlength="{{maxlength_tag_or_choice}}"/>
+								</li>
+							{% endfor %}
+							</ul>
+						{% endif %}	
 					{% endfor %}
-					
-					</p>
+					</fieldset>
 				{% endfor %}
-				</fieldset>
 			{% else %}
 				<p>{{template_no_tags}}</p>
 			{% endif %}

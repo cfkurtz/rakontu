@@ -4,11 +4,11 @@ add ssl to faq
 
 finish developer notes
 
-consider putting drop-downs for tags in the filter page.
+bug - sent to rename answers screen when no answers to question - fixed ??
 
-in curate-tags, how can you show entries that have no tags?
+consider promote button - comment to topic or story
 
-put picture buttons in for |< etc
+problem - when tell story with remind/retell, story shows character but link shows person - how fix??? links don't have characters!
 
-better support for comment thread - when you are making a comment on an entry, you should see the entire comment thread in order. 
-that is easily done. it is not needed for the other things. (or is it? maybe it should be)
+bug - if _text_ in links replaces with italics. needs to do that AFTER link search.
+

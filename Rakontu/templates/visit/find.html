@@ -44,7 +44,7 @@
 	</form>	
 	</div>
 	
-	{% if find_text %}
+	{% if texts_dict %}
 		{% for key in texts_dict.keys|sorted %}
 			{% if texts_dict|dictLookup:key|length %}
 				<h3> 

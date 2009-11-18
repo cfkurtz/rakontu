@@ -31,7 +31,7 @@
 			<li><a href="/{{dir_visit}}/{{url_story}}?{{rakontu.urlQuery}}">{{menu_create}}</a>
 				<ul>
 				<li><a href="/{{dir_visit}}/{{url_story}}?{{rakontu.urlQuery}}">{{menu_story}}</a></li>
-	  			<li><a href="/{{dir_visit}}/{{url_invitation}}?{{rakontu.urlQuery}}">Suggest a topic</a></li>
+	  			<li><a href="/{{dir_visit}}/{{url_topic}}?{{rakontu.urlQuery}}">{{menu_topic}}</a></li>
   				<li><a href="/{{dir_visit}}/{{url_collage}}?{{rakontu.urlQuery}}">{{menu_collage}}</a></li>
   				<li><a href="/{{dir_visit}}/{{url_pattern}}?{{rakontu.urlQuery}}">{{menu_pattern}}</a> </li>
 	  			</ul>
@@ -46,14 +46,15 @@
 					{% endif %}
 					{% if current_member.canEditTags %}
 						<li><a href="/{{dir_curate}}/{{url_tags}}?{{rakontu.urlQuery}}">{{menu_tags}}</a></li>
+						<li><a href="/{{dir_curate}}/{{url_bulkcreatetags}}?{{rakontu.urlQuery}}">{{menu_bulkcreatetags}}</a></li>
 					{% endif %}
 				</ul>
 				</li>
 			{% endif %}
 			{% if current_member.isGuide %}
-				<li><a href="/{{dir_guide}}/{{url_invitations}}?{{rakontu.urlQuery}}">{{menu_guide}}</a>
+				<li><a href="/{{dir_guide}}/{{url_topics}}?{{rakontu.urlQuery}}">{{menu_guide}}</a>
 				<ul>
-					<li><a href="/{{dir_guide}}/{{url_invitations}}?{{rakontu.urlQuery}}">{{menu_invitations}}</a></li>
+					<li><a href="/{{dir_guide}}/{{url_topics}}?{{rakontu.urlQuery}}">{{menu_topics}}</a></li>
 					<li><a href="/{{dir_guide}}/{{url_requests}}?{{rakontu.urlQuery}}">{{menu_requests}}</a></li>
 					<li><a href="/{{dir_guide}}/{{url_resources}}?{{rakontu.urlQuery}}">{{menu_resources}}</a>
 					<li><a href="/{{dir_guide}}/{{url_resource}}?{{rakontu.urlQuery}}">{{menu_resource}}</a></li>

@@ -9,12 +9,14 @@
 		{% if include_entry_types %}
 			<tr><th align="right">{{template_entry_types}}</th><td>
 			{% for i in entry_types|makeRangeFromListLength %}
-				<input type="checkbox" name="showEntryType|{{i}}" value="yes" id="{{entry_types|listLookup:i}}"
-				{% if entry_types_to_show|listLookup:i %}
-					checked
+				{% if entry_types|listLookup:i|notEqualTest:"resource" %}
+					<input type="checkbox" name="showEntryType|{{i}}" value="yes" id="{{entry_types|listLookup:i}}"
+					{% if entry_types_to_show|listLookup:i %}
+						checked
+					{% endif %}
+					>
+					<label for="{{entry_types|listLookup:i}}">{{entry_types_plural_display|listLookup:i}}</label>
 				{% endif %}
-				>
-				<label for="{{entry_types|listLookup:i}}">{{entry_types_plural_display|listLookup:i}}</label>
 			{% endfor %}
 			<input type="submit" name="changeEntryTypesShowing" value="{{button_change_entry_types_view}}" class="button_small" 
 				{% if current_member.showButtonTooltips %}

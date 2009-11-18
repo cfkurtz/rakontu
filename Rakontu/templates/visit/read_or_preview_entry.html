@@ -44,7 +44,7 @@
 		{% endfor %}
 		</ul>
 	{% endif %}
-	{% if entry.isInvitation and responded_links_outgoing %}
+	{% if entry.isTopic and responded_links_outgoing %}
 		<p>{{template_responses}}:</p>
 		<ul>
 		{% for link in responded_links_outgoing %}
@@ -83,7 +83,7 @@
 			{% endfor %}
 		{% endif %}
 		{% if responded_links_incoming %}
-			<p>{{template_in_response_to_invitation}}</p>
+			<p>{{template_in_response_to_topic}}</p>
 			<ul>
 			{% for link in responded_links_incoming %}
 				<li class="nobullet">{{link.itemFrom.linkString}}

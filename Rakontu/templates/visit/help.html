@@ -32,7 +32,7 @@
 	
 	{% if non_manager_resources %}
 		<ul>
-		{% for category in non_manager_resources|dictKeys %}
+		{% for category in non_manager_resources|dictKeys|sorted %}
 			<li class="nobullet"><b>{{category}}</b>
 			<ul>
 			{% for resource in non_manager_resources|dictLookup:category %}
@@ -46,7 +46,7 @@
 			{% if manager_resources %}
 				<h3>{{template_for_managers_only}}</h3>
 				<ul>
-				{% for category in manager_resources|dictKeys %}
+				{% for category in manager_resources|dictKeys|sorted %}
 					<li class="nobullet"><b>{{category}}</b>
 					<ul>
 					{% for resource in manager_resources|dictLookup:category %}

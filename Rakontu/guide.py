@@ -197,7 +197,7 @@ class ReviewRequestsPage(ErrorHandlingRequestHander):
 		else:
 			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
-class ReviewInvitationsPage(ErrorHandlingRequestHander):
+class ReviewTopicsPage(ErrorHandlingRequestHander):
 	@RequireLogin 
 	def get(self):
 		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
@@ -205,39 +205,39 @@ class ReviewInvitationsPage(ErrorHandlingRequestHander):
 			if member.isGuide():
 				noResponsesOnly = GetStringOfTypeFromURLQuery(self.request.query_string, "url_query_no_responses") == URL_OPTION_NAMES["url_option_yes"]
 				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
-				prev, invitations, next = rakontu.getNonDraftEntriesOfType_WithPaging(ENTRY_TYPES_URLS[ENTRY_TYPE_INDEX_INVITATION], bookmark) 
+				prev, topics, next = rakontu.getNonDraftEntriesOfType_WithPaging(ENTRY_TYPES_URLS[ENTRY_TYPE_INDEX_INVITATION], bookmark) 
 				if noResponsesOnly:
-					unrespondedInvitations = self.reduceInvitationsByOnlyUnresponded(invitations)
+					unrespondedTopics = self.reduceTopicsByOnlyUnresponded(topics)
 					# if the list is reduced so far that there is nothing to show, make one attempt to add more entries
-					if len(invitations) > 0 and len(unrespondedInvitations) == 0:
-						prev, moreInvitations, next = rakontu.getNonDraftEntriesOfType_WithPaging(ENTRY_TYPES_URLS[ENTRY_TYPE_INDEX_INVITATION], next)
-						moreUnrespondedInvitations = self.reduceInvitationsByOnlyUnresponded(moreInvitations)
-						unrespondedInvitations.extend(moreUnrespondedInvitations)
-					invitations = unrespondedInvitations
+					if len(topics) > 0 and len(unrespondedTopics) == 0:
+						prev, moreTopics, next = rakontu.getNonDraftEntriesOfType_WithPaging(ENTRY_TYPES_URLS[ENTRY_TYPE_INDEX_INVITATION], next)
+						moreUnrespondedTopics = self.reduceTopicsByOnlyUnresponded(moreTopics)
+						unrespondedTopics.extend(moreUnrespondedTopics)
+					topics = unrespondedTopics
 				template_values = GetStandardTemplateDictionaryAndAddMore({
 							   	   'title': TITLES["REVIEW_INVITATIONS"], 
 								   'rakontu': rakontu, 
 								   'skin': rakontu.getSkinDictionary(),
 								   'current_member': member,
-								   'invitations': invitations,
-								   'showing_all_invitations': not noResponsesOnly,
+								   'topics': topics,
+								   'showing_all_topics': not noResponsesOnly,
 								   'bookmark': bookmark,
 								   'previous': prev,
 								   'next': next,
 								   })
-				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/invitations.html'))
+				path = os.path.join(os.path.dirname(__file__), FindTemplate('guide/topics.html'))
 				self.response.out.write(template.render(path, template_values))
 			else:
 				self.redirect(RoleNotFoundURL("guide", rakontu))
 		else:
 			self.redirect(NoAccessURL(rakontu, member, users.is_current_user_admin()))
 			
-	def reduceInvitationsByOnlyUnresponded(self, invitations):
-		unrespondedInvitations = []
-		for invitation in invitations:
-			if not invitation.hasOutgoingLinksOfType("responded"):
-				unrespondedInvitations.append(invitation)
-		return unrespondedInvitations
+	def reduceTopicsByOnlyUnresponded(self, topics):
+		unrespondedTopics = []
+		for topic in topics:
+			if not topic.hasOutgoingLinksOfType("responded"):
+				unrespondedTopics.append(topic)
+		return unrespondedTopics
 			
 	@RequireLogin 
 	def post(self):
@@ -246,7 +246,7 @@ class ReviewInvitationsPage(ErrorHandlingRequestHander):
 			if member.isGuide():
 				bookmark = GetBookmarkQueryWithCleanup(self.request.query_string)
 				if "changeSelections" in self.request.arguments():
-					if self.request.get("all_or_unresponded") == "showOnlyUnrespondedInvitations":
+					if self.request.get("all_or_unresponded") == "showOnlyUnrespondedTopics":
 						if bookmark:
 							query = "%s&%s=%s&%s=%s" % (rakontu.urlQuery(), 
 													URL_OPTIONS["url_query_no_responses"], URL_OPTION_NAMES["url_option_yes"],
@@ -254,13 +254,13 @@ class ReviewInvitationsPage(ErrorHandlingRequestHander):
 						else:
 							query = "%s&%s=%s" % (rakontu.urlQuery(), 
 													URL_OPTIONS["url_query_no_responses"], URL_OPTION_NAMES["url_option_yes"])
-						self.redirect(BuildURL("dir_guide", "url_invitations", query))
+						self.redirect(BuildURL("dir_guide", "url_topics", query))
 					else:
 						if bookmark:
 							query = "%s&%s=%s" % (rakontu.urlQuery(), URL_OPTIONS["url_query_bookmark"], bookmark)
 						else:
 							query = rakontu.urlQuery()
-						self.redirect(BuildURL("dir_guide", "url_invitations", query))
+						self.redirect(BuildURL("dir_guide", "url_topics", query))
 			else:
 				self.redirect(RoleNotFoundURL("guide", rakontu))
 		else:

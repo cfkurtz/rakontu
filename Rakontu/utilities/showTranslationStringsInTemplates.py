@@ -35,7 +35,7 @@ DONELIST = []
 		"../templates/english/curate/flags.html",
 		"../templates/english/curate/gaps.html",
 		"../templates/english/curate/tags.html",
-		"../templates/english/guide/invitations.html",
+		"../templates/english/guide/topics.html",
 		"../templates/english/guide/requests.html",
 		"../templates/english/guide/resources.html",
 		"../templates/english/liaise/batch.html",
