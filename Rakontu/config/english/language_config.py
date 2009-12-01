@@ -310,11 +310,11 @@ TERMS = {
 		"term_tell_another_version_of_this_story": u"Tell another version of what happened",
 		"term_tell_a_story_this_reminds_you_of": u"Tell a story this reminds you of",
 		"term_answer_questions_about_this": u"Answer questions about this",  # story, topic collage, pattern, or resource
-		"term_respond_to_topic": u"Tell a story about this topic", # << TRANSLATION REQUIRED >>
+		"term_respond_to_topic": u"Tell a story about this topic", 
 		"term_make_a_comment": u"Comment on this",  # story, topic collage, pattern, or resource
 		"term_tag_this": u"Tag this", # story, topic collage, pattern, or resource
 		"term_request_something_about_this": u"Request something about this", # story, topic collage, pattern, or resource 
-		"term_relate_entry_to_others": u"Relate this %s to other entries", # %s is story, topic collage, pattern, or resource # << TRANSLATION REQUIRED >>
+		"term_relate_entry_to_others": u"Relate this %s to other entries", # %s is story, topic collage, pattern, or resource 
 		"term_nudge_this": u"Nudge this", # story, topic collage, pattern, or resource
 		"term_curate_this": u"Curate this", # story, topic collage, pattern, or resource
 		"term_stop_curating_this": u"Stop curating this", # story, topic collage, pattern, or resource
@@ -406,7 +406,7 @@ TEMPLATE_TERMS = {
 		"template_choose": u"choose",
 		"template_why": u"why",
 		"template_click_to_change": u"click to change",
-		"template_maximum": u"maximum", # << TRANSLATION REQUIRED >>
+		"template_maximum": u"maximum", 
 		
 		# types of people (singular and plural)
 		"template_member": u"Member",
@@ -610,7 +610,7 @@ TEMPLATE_TERMS = {
 		"template_error_message": u"If you want to talk about this error with the administrator, copy this message and paste it into your email.",
 		# error/databaseError
 		"template_database_error": u"Bad Google. Bad.",
-		# << TRANSLATION REQUIRED >>
+		
 		"template_there_was_a_database_error": u'Apparently Google is not working very well at the moment. Could you please try what you were doing again? For more information see the <a href="http://code.google.com/status/appengine">Google App Engine Status Page</a>.',
 		# error/transactionFailed
 		"template_transaction_failed_error": u"Can't ... handle ... demand ... trying ...",
@@ -633,7 +633,7 @@ TEMPLATE_TERMS = {
 		"template_rakontu_motto": u"Helping people take good care of their stories.",
 		"template_you_are_member_of": u"You are a member of these Rakontus.",
 		"template_you_are_invited_to": u"You have been invited to join these Rakontus.",
-		"template_you_can_join": u"You can join these Rakontus.", # << TRANSLATION REQUIRED >>
+		"template_you_can_join": u"You can join these Rakontus.", 
 		"template_from_google": u"from Google",
 		"template_must_be_logged_in": u"You must be signed in to a Google account to use Rakontu.",
 		"template_login": u"Sign in",
@@ -654,7 +654,7 @@ TEMPLATE_TERMS = {
 		"template_cannot_leave_only_owner": u"cannot leave - only owner",
 		"template_rakontu_access_state": u"Available to",
 		"template_create_another": u"Create another",
-		"template_remove_this_rakontu": u"Remove", # << TRANSLATION REQUIRED >>
+		"template_remove_this_rakontu": u"Remove", 
 		"template_access_message": u"Access message",
 		"template_fake_data": u"Development: Fake data for testing",
 		"template_add_fake_data": u"Add fake data to existing Rakontus",
@@ -707,10 +707,10 @@ TEMPLATE_TERMS = {
 		"template_change_entry_tags": u"Change entry tags",
 		"template_no_tags": u"There are no tags to review.",
 		"template_tags_warning": u"Please make changes carefully. Deleted or changed tags cannot be recovered.",
-		"template_tag_counts": u"Tag counts", # << TRANSLATION REQUIRED >>
+		"template_tag_counts": u"Tag counts", 
 		# curate/bulkcreatetags
-		"template_bulk_create_tags": u"Create tags for multiple entries", # << TRANSLATION REQUIRED >>
-		"template_new_tags_for_this": u"Tags for this", # story, etc # << TRANSLATION REQUIRED >>
+		"template_bulk_create_tags": u"Create tags for multiple entries", 
+		"template_new_tags_for_this": u"Tags for this", # story, etc 
 		# guide/topics
 		"template_all_topics": u"all topics",
 		"template_only_topics_with_no_responses": u"only topics with no responses",
@@ -776,7 +776,7 @@ TEMPLATE_TERMS = {
 		"template_welcome_to_new": u"Welcome to your new Rakontu",
 		"template_here_are_terms": u"To get you started, here is a brief explanation of some important terms.",
 		"template_resources_for_new_managers": u"Here are some resources that might get you started.",
-		"template_check_help_system_for_new_manager_page": u"Create or review help resources", # << TRANSLATION REQUIRED >>
+		"template_check_help_system_for_new_manager_page": u"Create or review help resources", 
 		# manage/setAvailability
 		"set_rakontu_availability": u"Set Rakontu availability",
 		"template_current_rakontu_availability_is": u"This Rakontu is currently available to",
@@ -794,7 +794,7 @@ TEMPLATE_TERMS = {
 		"template_send_invitation_email": u"Send invitation email",
 		"template_invitation_to_join": u"Invitation to join",
 		"template_invite_as_manager": u"Invite as manager",
-		"template_cannot_remove_inactive_member_because_has_items": u"Cannot be removed (has contributed)", # << TRANSLATION REQUIRED >>
+		"template_cannot_remove_inactive_member_because_has_items": u"Cannot be removed (has contributed)", 
 		# manage/invitation_message
 		"template_send_an_invitation_message_to": u"Send an invitation email to",
 		# manage/questions
@@ -846,30 +846,30 @@ TEMPLATE_TERMS = {
 		"template_how_should_times_display": u"How should times be displayed by default?",
 		"template_read_before_text": u"read-before text",
 		"template_discussion_group_url": u"Discussion group link",
-		# manage/skin  # << TRANSLATION REQUIRED >>
-		"template_choose_a_skin": u"Choose a skin",  # << TRANSLATION REQUIRED >>
-		"template_click_to_use_the_skin": u"Click here to use the skin",  # << TRANSLATION REQUIRED >>
-		"template_you_are_using_skin": u"You are using",  # << TRANSLATION REQUIRED >>
-		"template_top": u"Top", # << TRANSLATION REQUIRED >>
-		"template_menu": u"Menu", # << TRANSLATION REQUIRED >>
-		"template_header": u"Header", # << TRANSLATION REQUIRED >>
-		"template_story_text_with": u"Story text with", # link # << TRANSLATION REQUIRED >>
-		"template_form": u"Form", # << TRANSLATION REQUIRED >>
-		"template_text_box": u"Text box",  # << TRANSLATION REQUIRED >>
-		"template_button": u"Button", # << TRANSLATION REQUIRED >>
-		"template_custom_skin_settings": u"Custom skin settings",  # << TRANSLATION REQUIRED >>
+		# manage/skin  
+		"template_choose_a_skin": u"Choose a skin",  
+		"template_click_to_use_the_skin": u"Click here to use the skin",  
+		"template_you_are_using_skin": u"You are using",  
+		"template_top": u"Top", 
+		"template_menu": u"Menu", 
+		"template_header": u"Header", 
+		"template_story_text_with": u"Story text with", # link 
+		"template_form": u"Form", 
+		"template_text_box": u"Text box",  
+		"template_button": u"Button", 
+		"template_custom_skin_settings": u"Custom skin settings",  
 		"template_custom_skin": u"Custom skin",
 		"template_custom": u"custom",
 		"template_external_style_sheet": u"Enter a valid CSS URL to use as an external style sheet",
 		# manage/settings
 		"template_things_members_can_do": u"Things members can do",
 		
-		"template_accept_non_invited_members": u"Are visitors allowed to join without being explicitly invited?", # << TRANSLATION REQUIRED >>
-		"template_yes_rakontu_accepts_non_invited_members": u"Yes, visitors can join by clicking on a link",  # << TRANSLATION REQUIRED >>
-		"template_show_start_icon_for_non_invited_members": u"If non-invited visitors can join, does the icon show on the site start page?",  # << TRANSLATION REQUIRED >>
-		"template_yes_show_start_icon": u"Yes, show the Rakontu icon on the start page for non-member visitors", # << TRANSLATION REQUIRED >>
-		"template_use_email_as_new_member_nickname": u"Should new member nicknames default to emails?", # << TRANSLATION REQUIRED >>
-		"template_yes_use_email_as_new_member_nickname": u"Yes, use emails for new member nicknames", # << TRANSLATION REQUIRED >>
+		"template_accept_non_invited_members": u"Are visitors allowed to join without being explicitly invited?", 
+		"template_yes_rakontu_accepts_non_invited_members": u"Yes, visitors can join by clicking on a link",  
+		"template_show_start_icon_for_non_invited_members": u"If non-invited visitors can join, does the icon show on the site start page?",  
+		"template_yes_show_start_icon": u"Yes, show the Rakontu icon on the start page for non-member visitors", 
+		"template_use_email_as_new_member_nickname": u"Should new member nicknames default to emails?", 
+		"template_yes_use_email_as_new_member_nickname": u"Yes, use emails for new member nicknames", 
 		
 		"template_how_many_attachments": u"How many attachments are allowed per entry?",
 		"template_fictional_characters": u"Fictional characters",
@@ -892,9 +892,9 @@ TEMPLATE_TERMS = {
 		"template_what_is_request_type": u"What type of request is this?",
 		"template_nudge_points_can_assign_to_entry": u"Points you can assign to this entry",
 		"template_nudge_points_member_has_left": u"Points you have remaining",
-		"template_comments_on": u"Comments on", #  << TRANSLATION REQUIRED >>
-		"template_tag_sets_for": u"Tags for", #  << TRANSLATION REQUIRED >>
-		"template_requests_for": u"Requests for", #  << TRANSLATION REQUIRED >>
+		"template_comments_on": u"Comments on", 
+		"template_tag_sets_for": u"Tags for", 
+		"template_requests_for": u"Requests for", 
 		# visit/ask
 		"template_ask_this_guide": u"Ask a guide",
 		"template_ask_subject": u"Please summarize your question in a few words for the email subject line.",
@@ -929,10 +929,10 @@ TEMPLATE_TERMS = {
 		"template_tell_new_story": u"Please tell your story here.",
 		"template_describe_new_pattern": u"Please describe the pattern of stories you want to make note of here.",
 		"template_describe_new_collage": u"Please describe your collage here.",
-		"template_describe_new_topic": u"Please describe your topic here.", # << TRANSLATION REQUIRED >>
+		"template_describe_new_topic": u"Please describe your topic here.", 
 		"template_text_for_new_resource": u"Type the text of your resource here.",
 		"template_please_give_name_to_your": u"Please provide a descriptive name for your",
-		"template_please_give_name_to_your_topic": u"What topic would you like to talk about?", # << TRANSLATION REQUIRED >>
+		"template_please_give_name_to_your_topic": u"What topic would you like to talk about?", 
 		"template_since_you_retold": u"Since you created this story as your own version of",
 		"template_since_you_reminded": u"Since you created this story because you were reminded of it by",
 		"template_since_you_responded": u"Since you created this story in response to the topic",
@@ -944,7 +944,7 @@ TEMPLATE_TERMS = {
 		"template_yes_is_help_resource": u"This is a help resource. Link to it from the general help page.",
 		"template_yes_is_new_member_resource":"This resource will be helpful to new members. Link to it from the page new members see.",
 		"template_yes_manager_only_resource": u"This resource is only appropriate for managers. Hide it from other members.",
-		"template_what_category_should_this_resource_be_in": u"In which category should this resource be displayed?",  # << TRANSLATION REQUIRED >>
+		"template_what_category_should_this_resource_be_in": u"In which category should this resource be displayed?",  
 		"template_or_enter_a_new_category_here": u"or enter a new category here",
 		"template_load_version": u"Revert to text version",
 		"template_stories_included_in_collage": u"Stories included in this collage",
@@ -957,11 +957,11 @@ TEMPLATE_TERMS = {
 		"template_accepted_file_types": u"Accepted file types",
 		"template_add_attachments_to_entry": u"You can add some attachments to your", # story, etc
 		"template_change_attachments": u"These attachments have been added to the", # story, etc
-		"template_would_you_like_to_make_a_comment_on_this": u"Would you like to make a comment about this", # story, etc # << TRANSLATION REQUIRED >>
-		"template_would_you_like_to_add_some_tags_to_this": u"Would you like to add some tags to this", # story, etc # << TRANSLATION REQUIRED >>
-		"template_would_you_like_to_make_a_request_about_this": u"Would you like to ask people to do anything with this", # story, etc # << TRANSLATION REQUIRED >>
-		"template_comment_subject": u"Comment subject",  # << TRANSLATION REQUIRED >>
-		"template_request_subject": u"Request subject",  # << TRANSLATION REQUIRED >>
+		"template_would_you_like_to_make_a_comment_on_this": u"Would you like to make a comment about this", # story, etc 
+		"template_would_you_like_to_add_some_tags_to_this": u"Would you like to add some tags to this", # story, etc 
+		"template_would_you_like_to_make_a_request_about_this": u"Would you like to ask people to do anything with this", # story, etc 
+		"template_comment_subject": u"Comment subject",  
+		"template_request_subject": u"Request subject",  
 		# visit/attachments
 		"template_add_attachment": u"Add an attachment",
 		"template_add_another_attachment": u"Add another attachment",
@@ -1034,16 +1034,16 @@ TEMPLATE_TERMS = {
 		# visit/leave
 		"template_are_you_sure": u"Are you sure?",
 		"template_leaving_warning": u"Are you absolutely, completely, really, totally certain that you want to leave this Rakontu? If you do, you may have to ask a manager of the Rakontu if you want to rejoin.",
-		"template_canceling_joining_warning": u"Are you sure you want to cancel joining this Rakontu?", # << TRANSLATION REQUIRED >>
+		"template_canceling_joining_warning": u"Are you sure you want to cancel joining this Rakontu?", 
 		# visit/member
 		"template_information_about": u"Information about",
 		"template_information_about_this": u"Information about this",
 		"template_counts_of_items_contributed_by": u"Counts of items contributed by", # member nickname
-		"template_last_entry": u"Last added", # << TRANSLATION REQUIRED >>
+		"template_last_entry": u"Last added", 
 		"template_last_annotation": u"Last annotation",
 		"template_last_answer": u"Last answer",
 		"template_last_link": u"Last link",
-		"template_last_reading": u"Last read", # << TRANSLATION REQUIRED >>
+		"template_last_reading": u"Last read", 
 		"template_nudge_points_accumulated": u"Nudge points accumulated",
 		"template_member_answers_to_questions": u"Answers to member questions",
 		"template_send_a_message_to": u"Send a message to",
@@ -1057,14 +1057,14 @@ TEMPLATE_TERMS = {
 		"template_send_message": u"Send message",
 		# visit/message
 		"template_send_message_your_own_real_email_warning": u"Warning: The Google App Engine only allows Rakontu to send an email if it uses the real email you have associated with your Google account. That means the people you are sending this message to will see your email address. If you don't want them to see it, don't send the message.",
-		"template_would_you_like_a_copy_of_this_message": u"Would you like a copy of this message sent to your email address?", # << TRANSLATION REQUIRED >>
-		"template_yes_send_a_copy_to": u"Yes, send a copy to", # email address # << TRANSLATION REQUIRED >>
+		"template_would_you_like_a_copy_of_this_message": u"Would you like a copy of this message sent to your email address?", 
+		"template_yes_send_a_copy_to": u"Yes, send a copy to", # email address 
 		# visit/new
 		"template_resources_for_new_members": u"You may find these resources helpful for getting started",
 		"template_about_help_icons": u"Around the site you will see little icons that provide help. Either hover over them with your mouse or click on them to read them.",
 		"template_how_to_get_to_new_member_page_again": u"You can return to this page later by clicking the link at the bottom of the Help page.",
-		"template_leave_rakontu_for_new_member_page": u"Cancel joining this Rakontu", # << TRANSLATION REQUIRED >>
-		"template_change_nickname_for_new_member_page": u"Change nickname", # << TRANSLATION REQUIRED >>
+		"template_leave_rakontu_for_new_member_page": u"Cancel joining this Rakontu", 
+		"template_change_nickname_for_new_member_page": u"Change nickname", 
 		# visit/preview
 		"template_with_reference_to_the": u"with reference to the",
 		# visit/previewAnswers
@@ -1085,7 +1085,7 @@ TEMPLATE_TERMS = {
 		"template_nickname_chosen_is": u"The nickname you have chosen is",
 		"template_nickname_chosen_for_offline_member_is": u"The nickname you have chosen for this member is",
 		"template_confirm_nickname": u"Please confirm that you want to use this nickname. (This will effect the appearance of all of your contributions, in the past as well as the future.)",
-		#"template_cancel_changing_nickname": u"Cancel and return to profile page", # << TRANSLATION REQUIRED >>
+		#"template_cancel_changing_nickname": u"Cancel and return to profile page", 
 		# visit/preferences
 		"template_do_you_want_messages": u"Do you want other Rakontu members to be able to send you messages via email?",
 		"template_guides_must_accept_messages": u"Since you are a guide you have to accept messages so you can answer questions.",
@@ -1101,14 +1101,14 @@ TEMPLATE_TERMS = {
 		"template_guide_intro_question": u"If you are a guide, what would you like to tell members about what sorts of questions you can answer?",
 		"template_choose_member_default_text_format": u"What text format should be chosen by default when a text box is shown?",
 		"template_time_zone_choice": u"What time zone should be displayed?",
-		"template_date_display_choice": u"How should dates be displayed?", # << TRANSLATION REQUIRED >> (added missing question mark)
+		"template_date_display_choice": u"How should dates be displayed?",  
 		"template_time_display_choice": u"How should times be displayed?",
-		"template_do_not_show_times": u"don't show times", # << TRANSLATION REQUIRED >>
+		"template_do_not_show_times": u"don't show times", 
 		"template_rakontu_created_on": u"This Rakontu was created on",
 		"template_inline_image_display_choice": u"Do you want to see attached images on the same page as the entries they are attached to?",
 		"template_details_text_length_choice": u"How many characters (letters) long would you like texts displayed in details views to be?",
 		"template_view_options_on_top": u"On which of these timeline views should the options (other than the time range) be shown above the timeline?",
-		"template_keep_timelines_pegged_to_now": u"On which of these timeline views should the end time stay current (unless you have clicked the first, back or next buttons)?", # << TRANSLATION REQUIRED >>
+		"template_keep_timelines_pegged_to_now": u"On which of these timeline views should the end time stay current (unless you have clicked the first, back or next buttons)?", 
 		"template_show_button_tooltips": u"Should tooltips with information appear when you hover the mouse over small option buttons?",
 		"template_show_button_tooltips_yes": u"Yes, show tooltips on buttons",
 		# visit/rakontu
@@ -1119,7 +1119,7 @@ TEMPLATE_TERMS = {
 		"template_nudge_point_accumulations": u"Nudge point accumulations",
 		"template_activity_point_accumulations": u"Activity point accumulations",
 		"template_rakontu_allows_characters_for": u"This Rakontu allows fictional character attribution for",
-		"template_rakontu_resources": u"For more information about this Rakontu, see these resources.", # << TRANSLATION REQUIRED >>
+		"template_rakontu_resources": u"For more information about this Rakontu, see these resources.", 
 		# visit/read
 		"template_contributed_by": u"Contributed by",
 		"template_entered_by": u"entered by",
@@ -1185,7 +1185,7 @@ TEMPLATE_BUTTONS = {
 		"button_make_selected_changes": u"Make selected changes",
 		"button_send_selected_notifications": u"Unflag items and send selected notifications",
 		"button_change_tags": u"Change tags",
-		"button_create_bulk_tags": u"Create tags", # << TRANSLATION REQUIRED >>
+		"button_create_bulk_tags": u"Create tags", 
 		# guide
 		"button_show_uncompleted_requests": u"Show only uncompleted requests",
 		"button_show_all_requests": u"Show all requests",
@@ -1212,7 +1212,7 @@ TEMPLATE_BUTTONS = {
 		"button_hide_activity_levels": u"Hide activity levels",
 		"button_show_activity_levels": u"Show activity levels",
 		"button_search": u"Search",
-		"button_quick_nudge": u"Quick nudge", # << TRANSLATION REQUIRED >>
+		"button_quick_nudge": u"Quick nudge", 
 		# entering things
 		"button_save_changes_and_return": u"Save changes and return",
 		"button_preview": u"Preview",
@@ -1255,8 +1255,8 @@ TEMPLATE_BUTTONS = {
 		"button_export_selection": u"Export selection",
 		"button_really_and_truly_leave": u"Really and Truly Leave this Rakontu",
 		"button_go_back_to_prefs_page": u"Go Back to My Preferences Page",
-		"button_go_back_to_new_member_page": u"Go Back to New Member Page", # << TRANSLATION REQUIRED >>
-		"button_cancel_joining_rakontu": u"Cancel Joining Rakontu", # << TRANSLATION REQUIRED >>
+		"button_go_back_to_new_member_page": u"Go Back to New Member Page", 
+		"button_cancel_joining_rakontu": u"Cancel Joining Rakontu", 
 		"button_return_to_list": u"Return to list",
 		"button_mark_as_completed": u"Mark as completed",
 		"button_mark_as_not_completed": u"Mark as not completed",
@@ -1281,7 +1281,7 @@ TEMPLATE_MENUS = {
 		# create
 		"menu_create": u"Create",
 		"menu_story": u"Tell a story",
-		"menu_topic": u"Start a topic", # << TRANSLATION REQUIRED >>
+		"menu_topic": u"Start a topic", 
 		"menu_collage": u"Build a story collage",
 		"menu_pattern": u"Describe a pattern",
 		# curate
@@ -1290,7 +1290,7 @@ TEMPLATE_MENUS = {
 		"menu_flags": u"Flags",
 		"menu_attachments": u"Attachments",
 		"menu_tags": u"Tags", 
-		"menu_bulkcreatetags": u"Add new tags", # << TRANSLATION REQUIRED >>
+		"menu_bulkcreatetags": u"Add new tags", 
 		# guide
 		"menu_guide": u"Guide",
 		"menu_topics": u"Topics",
@@ -1306,7 +1306,7 @@ TEMPLATE_MENUS = {
 		"menu_manage": u"Manage",
 		"menu_members": u"Members",
 		"menu_appearance": u"Appearance",
-		"menu_skin": u"Skin", # << TRANSLATION REQUIRED >>
+		"menu_skin": u"Skin", 
 		"menu_settings": u"Settings",
 		"menu_questions": u"Questions",
 		"menu_characters": u"Characters",
@@ -1523,7 +1523,7 @@ TITLES = {
         "REVIEW_GAPS": u"Review gaps",
         "REVIEW_ATTACHMENTS": u"Review attachments",
         "REVIEW_TAGS": u"Review tags",
-        "CREATE_BULK_TAGS": u"Create bulk tags", # << TRANSLATION REQUIRED >>
+        "CREATE_BULK_TAGS": u"Create bulk tags", 
         "REVIEW_RESOURCES": u"Review resources",
         "REVIEW_REQUESTS": u"Review requests",
         "REVIEW_TOPICS": u"Review topics",
@@ -1534,7 +1534,7 @@ TITLES = {
         # managing
         "MANAGE_MEMBERS": u"Manage members" ,
         "MANAGE_APPEARANCE": u"Manage appearance",
-        "MANAGE_SKIN": u"Manage skin", # << TRANSLATION REQUIRED >>
+        "MANAGE_SKIN": u"Manage skin", 
         "MANAGE_SETTINGS": u"Manage settings" ,
         "MANAGE_QUESTIONS": u"Manage questions" ,
         "MANAGE_QUESTION": u"Manage question", # question name
@@ -1635,7 +1635,7 @@ URLS = {
     "url_gaps": u"gaps",
     "url_attachments": u"attachments",
     "url_tags": u"tags",
-    "url_bulkcreatetags": u"bulktags", # << TRANSLATION REQUIRED >>
+    "url_bulkcreatetags": u"bulktags", 
 	# manage
     "url_first": u"first",
     "url_members": u"members",
@@ -1647,7 +1647,7 @@ URLS = {
     "url_characters": u"characters",
     "url_character": u"character",
     "url_appearance": u"appearance",
-    "url_skin": u"skin", # << TRANSLATION REQUIRED >>
+    "url_skin": u"skin", 
     "url_settings": u"settings",
     "url_export_filter": u"exportFilteredItems",
     "url_inactivate": u"inactivate",
@@ -1663,7 +1663,7 @@ URLS = {
     "url_helps": u"helps",
     "url_skins": u"skins",
     "url_confirm_remove_rakontu": u"confirmRemoval",
-    "url_recopy_system_resource": u"recopyResource", # << TRANSLATION REQUIRED >>
+    "url_recopy_system_resource": u"recopyResource", 
     # testing
     "url_make_fake_data": u"makeFakeData",
     "url_stress_test": u"stressTest",
@@ -1740,7 +1740,7 @@ URL_OPTIONS = {
 	"url_query_bookmark": u"bookmark",
 	"url_query_name_taken": u"name_taken",
 	"url_query_managers_only": u"managers_only",
-	"url_query_do_not_update_time": u"custom_time", # << TRANSLATION REQUIRED >>
+	"url_query_do_not_update_time": u"custom_time", 
 	}
 
 # ============================================================================================ 

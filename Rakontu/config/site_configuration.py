@@ -28,7 +28,17 @@
 # ============================================================================================ 
 
 # Which language files to load. This must match the directory name (under config) under which the language dependent files are stored.
-SITE_LANGUAGE = "english" 
+from os import environ
+app_id = environ["APPLICATION_ID"]
+if app_id == "rakontu" or app_id == "rakontu-sandbox":
+	SITE_LANGUAGE = "english" 
+elif app_id == "rakontu-francais":
+	SITE_LANGUAGE = "francais" 
+
+# This is the language to use for files that are missing.
+# Having this fallback allows the system to work with partial (usually in-progress) translations
+# where only some of the files are available.
+SITE_LANGUAGE_FALLBACK_FOR_MISSING_CONFIG_FILES = "english"
 
 # You MUST replace this with an email address connected to a site administrator (as defined by Google).
 # This MUST be the email address you are using for the Google account you use to administer the Rakontu site.
@@ -36,8 +46,11 @@ SITE_LANGUAGE = "english"
 SITE_SUPPORT_EMAIL = "cynthia.f.kurtz@gmail.com"
 
 # Don't touch this
-import sys
-sys.path.insert(0, "config/%s" % SITE_LANGUAGE) 
+import sys, os
+if os.path.exists("config/%s/language_config.py" % SITE_LANGUAGE):
+	sys.path.insert(0, "config/%s" % SITE_LANGUAGE) 
+else:
+	sys.path.insert(0, "config/%s" % SITE_LANGUAGE_FALLBACK_FOR_MISSING_CONFIG_FILES) 
 from language_config import *
 # Okay, you can start touching stuff again now
 

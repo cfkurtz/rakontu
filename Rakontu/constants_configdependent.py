@@ -9,12 +9,38 @@
 from constants_base import *
 from site_configuration import *
 
-DEFAULT_QUESTIONS_FILE_NAME = "config/%s/default_questions.csv" % SITE_LANGUAGE
-SAMPLE_QUESTIONS_FILE_NAME = "config/%s/sample_questions.csv" % SITE_LANGUAGE
-DEFAULT_CHARACTERS_FILE_NAME = "config/%s/default_characters.csv" % SITE_LANGUAGE
-DEFAULT_RESOURCES_FILE_NAME = "config/%s/default_resources.txt" % SITE_LANGUAGE
-HELP_FILE_NAME = "config/%s/help.csv" % SITE_LANGUAGE
-SKINS_FILE_NAME = "config/%s/skins.csv" % SITE_LANGUAGE
+# All language-dependent files are only loaded if they exist; otherwise the fallback language
+# (usually English, but specified in site_configuration.py) is used.
+
+if os.path.exists("config/%s/default_questions.csv" % SITE_LANGUAGE):
+	DEFAULT_QUESTIONS_FILE_NAME = "config/%s/default_questions.csv" % SITE_LANGUAGE
+else:
+	DEFAULT_QUESTIONS_FILE_NAME = "config/%s/default_questions.csv" % SITE_LANGUAGE_FALLBACK_FOR_MISSING_CONFIG_FILES
+
+if os.path.exists("config/%s/sample_questions.csv" % SITE_LANGUAGE):
+	SAMPLE_QUESTIONS_FILE_NAME = "config/%s/sample_questions.csv" % SITE_LANGUAGE
+else:
+	SAMPLE_QUESTIONS_FILE_NAME = "config/%s/sample_questions.csv" % SITE_LANGUAGE_FALLBACK_FOR_MISSING_CONFIG_FILES
+
+if os.path.exists("config/%s/default_characters.csv" % SITE_LANGUAGE):
+	DEFAULT_CHARACTERS_FILE_NAME = "config/%s/default_characters.csv" % SITE_LANGUAGE
+else:
+	DEFAULT_CHARACTERS_FILE_NAME = "config/%s/default_characters.csv" % SITE_LANGUAGE_FALLBACK_FOR_MISSING_CONFIG_FILES
+
+if os.path.exists("config/%s/default_resources.txt" % SITE_LANGUAGE):
+	DEFAULT_RESOURCES_FILE_NAME = "config/%s/default_resources.txt" % SITE_LANGUAGE
+else:
+	DEFAULT_RESOURCES_FILE_NAME = "config/%s/default_resources.txt" % SITE_LANGUAGE_FALLBACK_FOR_MISSING_CONFIG_FILES
+
+if os.path.exists("config/%s/help.csv" % SITE_LANGUAGE):
+	HELP_FILE_NAME = "config/%s/help.csv" % SITE_LANGUAGE
+else:
+	HELP_FILE_NAME = "config/%s/help.csv" % SITE_LANGUAGE_FALLBACK_FOR_MISSING_CONFIG_FILES
+
+if os.path.exists("config/%s/skins.csv" % SITE_LANGUAGE):
+	SKINS_FILE_NAME = "config/%s/skins.csv" % SITE_LANGUAGE
+else:
+	SKINS_FILE_NAME = "config/%s/skins.csv" % SITE_LANGUAGE_FALLBACK_FOR_MISSING_CONFIG_FILES
 
 # rakontus
 RAKONTU_ACCESS_STATES = ["all", "managers", "owners", "administrators"]

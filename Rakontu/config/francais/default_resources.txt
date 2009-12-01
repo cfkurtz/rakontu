@@ -1,0 +1,693 @@
+﻿; Fichier ressources par défaut pour le site Rakontu
+; Pour les quatre premières lignes de chaque ressource, ne modifiez pas ce qui se trouve à gauche du signe égal (mais agencez librement ce qui se trouve sur la partie droite !)
+; Toutes les lignes qui suivent la dernière ligne contenant le signe égal, et ce jusqu'à la ligne [Nom] suivante, sont des éléments de la ressource.
+; Toutes les lignes qui débutent par une demi-colonne sont des commentaires et ne sont pas prises en compte.
+
+[A propos de Rakontu]
+Category=1.Bases de Rakontu
+Order in category=1
+Interpret as=Wiki markup
+Managers only=no
+For new members=yes
+Help resource=yes
+Rakontu est une application web qui aide les groupes, les communautés et les familles à partager et travailler avec des histoires. 
+
+Rakontu est conçu pour de petits groupes (en général moins de 50 personnes) qui ont en commun une thématique sur laquelle ils souhaitent partager des expériences : quelque chose qu'ils font ensemble, l'endroit où ils vivent, une histoire commune. Un Rakontu est 
+à la fois un musée vivant constitué d'histoires et le lieu où partager les événements qui se produisent. 
+
+Voici ce que vous pouvez faire dans un Rakontu :
+
+  * Vous pouvez raconter des histoires, d'autres personnes peuvent les commenter, répondre à des questions les concernant, les décrire à l'aide de tags, poser des questions sur elles, et les évaluer en les rapportant à des enjeux importants du Rakontu. 
+  * Vous pouvez demander à d'autres personnes de raconter des histoires sur des sujets qui vous intéressent.
+  * Vous pouvez rechercher des histoires de différentes façons. Si vous identifiez une tendance intéressante, commune aux différentes histoires, vous pouvez la sauvegarder et demander à ce qu'elle soit commentée. 
+  * Vous pouvez bâtir des collages d'histoires, qui sont des assemblages d'histoires dont vous souhaitez vous souvenir ou que vous voulez présenter pour une raison particulière.
+
+Si vous le souhaitez, vous pouvez occuper une *fonction d'aide* dans votre Rakontu.
+
+  * *Les conservateurs* veillent sur le musée vivant d'histoires, en s'assurant qu'elles soient exemptes de vices et bien connectée entre elles.
+  * *Les guides* aident les autres membres à utiliser l'application et les encouragent à participer au Rakontu.
+  * *Les liaisons* établissent des liens entre les membres en ligne du Rakontu (les personnes qui utilisent le site web) 
+    et les membres offline (les personnes associées au processus, qui racontent et écoutent des histoires mais n'utilisent pas le site web).
+
+Pour démarrer, cliquez sur le titre d'une histoire et débutez votre lecture !
+
+[Membres du Rakontu]
+Category=1.Bases de Rakontu
+Order in category=2
+Interpret as=Wiki markup
+Managers only=no
+Toute personne ayant accès à un site Rakontu est *membre* du Rakontu. Tous les membres peuvent raconter des histoires, demander à d'autres personnes de raconter des histoires, bâtir des collages et identifier des tendances. Tous les membres peuvent tagger des histoires, déposer des commentaires, ajouter une requête, et promouvoir des histoires et d'autres contenus.
+
+Certains membres du Rakontu sont gestionnaires. Ils peuvent changer tous les paramètres d'administration 
+du Rakontu, tels que les questions pouvant être demandées sur les entrées de contenus et les membres. Les gestionnaires ne peuvent le devenir que 
+par décision de membres qui le sont déjà. Seuls les gestionnaires et administrateurs du site peuvent accorder le statut de membre du Rakontu.
+
+Au moins un gestionnaire sera le propriétaire. La seule faculté supplémentaire du propriétaire est de pouvoir supprimer le Rakontu 
+(cette personne devra donc être digne de confiance !). Habituellement, le propriétaire est le créateur du Rakontu.
+Les propriétaires peuvent désigner d'autres propriétaires parmi les membres, mais les gestionnaires ne peuvent pas nommer des propriétaires.
+
+Il y a trois types de "fonctions d'aide" dans un Rakontu. Elles sont toujours assurées à titre volontaire, et tout membre peut les occuper 
+simplement en cochant l'option prévue à cet effet. (Cependant, les gestionnaires peuvent supprimer les droits d'un membre, par exemple en cas d'abus de la part de ce dernier.)
+
+  * *Les conservateurs* sont les gardiens des histoires et des autres informations. Ils ont le droit de parcourir le site pour identifier 
+  les items inappropriés, en vue de leur suppression. Ils disposent d'écrans récapitulatifs pour regrouper les liens manquants et les autres anomalies 
+  dans les données.
+
+  * *Les guides* sont des ressources d'aide. Ils peuvent créer des ressources, et peuvent examiner les requêtes attachées
+  aux entrées, au contenu, tels que ceux qui nécessitent une transcription. Quand une personne a besoin d'aide, elle peut s'adresser à un guide.
+
+  * *Les liaisons* sont des passerelles entre les membres online et offline d'un rakontu. Les membres offline peuvent raconter des histoires,
+  lire et écouter des histoires, faire des commentaires et d'autres annotations. Les liaisons entrent toutes ces informations pour eux
+  et extraient pour eux du contenu à lire et écouter. 
+
+Il est parfois difficile de raconter une histoire qui doit pourtant être racontée. Les Rakontus peuvent, en option, créer des personnages, qui fonctionnent 
+comme des masques que les personnes peuvent revêtir pour raconter une histoire qu'ils préfèrent ne pas se voir attribuer. L'information sur l'identité 
+de l'auteur de l'histoire reste toujours dans le système, mais personne dans le Rakontu (y compris les gestionnaires) ne peut la voir. Seul un 
+administrateur peut avoir accès aux informations d'identification, et uniquement via une procédure. Les personnages répondent aux questions, 
+vous pouvez donc faire des recherches du type "Montrez-moi les histoires racontées par des personnages qui se décrivent eux-mêmes comme étant 'forts' alors que 
+le narrateur avait indiqué que l'histoire l'avait fait se sentir 'faible'."
+
+La présence de personnages et les types d'entrées de contenus et d'annotations susceptibles d'utiliser les attributs de personnages  
+varient suivant les Rakontus.
+
+[Termes utilisés dans le Rakontu]
+Category=1.Bases de Rakontu
+Order in category=3
+Interpret as=Wiki markup
+For new members=yes
+Help resource=yes
+Managers only=no
+Un Rakontu comprend trois types d'objets principaux : les entrées de contenu, les annotations et les réponses.
+
+Les entrées de contenu sont les items les plus importants d'un Rakontu. Ce sont des genres d'articles Wikipedia auxquels tout "s'accroche". 
+La plupart des entrées de contenu seront des histoires ; mais il y a aussi quatre autres types d'entrées.
+
+  * *Les sujets* sont des sollicitations pour raconter des histoires. Elles proposent des thèmes pour raconter des histoires s'y rapportant.
+
+  * *Les collages* sont des regroupements d'histoires. On peut avoir de nombreuses raisons de regrouper des histoires et de les mettre en évidence. 
+  Dans la version 1.0 de Rakontu, les collages sont de simples listes d'histoires annotées. Dans les versions futures, les collages 
+  pourraient être des frises temporelles, des histoires composées, et d'autres regroupements plus complexes.
+
+  * *Les tendances* sont des observations sur les histoires qui ont été racontées, habituellement rassemblées avec les réponses aux questions posées sur elles. 
+  Les tendances peuvent être des éléments tels que "J'ai remarqué que les personnes de plus de 60 ans avaient davantage tendance à raconter des histoires concernant des chapeaux, alors que les personnes de moins 
+  de 30 ans étaient plus prédisposées à raconter des histoires de chats." Alors qu'un collage est essentiellement une liste d'histoires annotée, une tendance est 
+  une liste annotée de requêtes ou de filtres.
+
+  * *Les ressources* sont des éléments intégrés au système afin d'aider les membres à participer au Rakontu, soit en les aidant à raconter 
+  des ,soit en fournissant des informations utiles. Les ressources peuvent comprendre des guides d'aide au démarrage tout comme des informations sur 
+  une communauté géographique ou des images liées à un sujet particulier.
+
+Entrées : parce qu'il s'agit plus de documents (des éléments que l'on crée) que de propos (des choses que l'on dit), qui peuvent être sauvegardés comme brouillons (privés) ou publiés avec accès pour tout le groupe. Toutes les entrées peuvent (toujours) être modifiées par leurs créateurs, et les histoires peuvent être vues par tout le monde.
+
+Les annotations sont des éléments qui entourent les entrées pour faciliter la discussion et des effets de prise de conscience collective.
+
+  * *Les commentaires* sont seulement des choses que des personnes souhaitaient dire en réaction à une histoire (ou une sujet, un collage, une tendance, une ressource). 
+  Ils apparaîtront familiers à toute personne ayant déjà utilisé une application communautaire en ligne.
+
+  * *Les requêtes* forment une catégorie de commentaires particulière qui demande à d'autres personnes de faire quelque chose en rapport avec une entrée -- traduire une histoire 
+  dans une autre langue, lire une histoire à voix haute, retranscrire une histoire audio, ou juste ajouter des commentaires.
+
+  * *Les mises en avant* sont des évaluations. Quand un membre d'un Rakontu met en avant une histoire ou une autre entrée, positivement ou négativement, tout le monde peut voir l'entrée
+  plus haut ou plus bas sur sa page d'accueil dans le Rakontu. Le système de mise en avant est similaire au système de karma de SlashDot ou Tape Moi !: 
+  les points de mise en avant sont gagnés en fonction de la participation au Rakontu et on peut les utiliser pour mettre en avant des entrées, positivement ou négativement. La principale différence entre 
+  le système d'évaluation de Rakontu et d'autres systèmes est que tout Rakontu peut définir jusqu'à cinq _catégories_ de mises en avant. Cela aide 
+  les participants à distinguer parmi les entrées celles qui sont utiles, et les différentes raisons pour lesquelles elles le sont.
+
+  * *Les tags* sur les entrées peuvent être utilisés pour bâtir un ensemble ouvert et évolutif d'éléments descriptifs permettant de trouver des choses utiles.
+
+Annotations : parce qu'il s'agit plus de propos (des éléments que l'on dit) que de documents (des choses que l'on crée), qui ne peuvent jamais être sauvegardés comme brouillon ou être modifiés, et elles n'ont pas d'historique.
+
+Chaque type d'entrée (histoire, sujet, collage, tendance, ressource) comporte une série de questions sur les entrées de ce type, auxquelles vous pouvez répondre. 
+Le créateur de l'entrée _et_ tout le monde dans le Rakontu, peuvent répondre  aux mêmes questions. Examiner les différences d' 
+opinion à propos des histoires peut être un moyen utile pour réfléchir sur la thématique des enjeux dans le Rakontu. C'est aussi un moyen important de trouver des histoires 
+dont la lecture vous intéresse.
+
+Les membres peuvent aussi avoir leurs propres questions, auxquelles ils répondent. Ces réponses Ces réponses peuvent être combinées avec des questions sur les histoires, pour produire 
+d'intéressantes requêtes, comme par exemple "Montrez-moi des histoires racontées par des membres âgés de moins de 20 ans, dans lesquelles les personnes ont dit qu'elles se sentaient tristes."
+
+Les réponses, tout comme les annotations, sont des propos qui ne peuvent pas être sauvagardés comme brouillons ou être modifiées et n'ont pas d'historiqu.
+
+[Le système de mise en avant de Rakontu]
+Category=2.Utiliser Rakontu
+Order in category=1
+Interpret as=Wiki markup
+For new members=no
+Help resource=yes
+Managers only=no
+Rakontu utilise un système d'évaluation similaire au système de karma de SlashDot (en un peu plus élaboré) : le système de *mise en avant*. L'idée est que les membres mettent en avant des histoires et d'autres entrées, positivement et négativement dans une frise chronologique, construisant une sorte de matrice de signification, de sens où les éléments les plus proches de la surface sont le plus importants _pour une raison ou une autrer_. Mettre en avant, dans Rakontu, se fait davantage dans une optique d'utilité pour des objectifs précis, que dans une simple logique de popularité.
+
+Les personnes qui ont créé votre Rakontu ont également créé d'une à cinq *catégories* de mise en avant, ou axes de sens. Tout le monde peut mettre en avant, positivement ou négativement, un item dans n'importe quelle catégorie du Rakontu, et vous pouvez changer votre point de vue sur une frise temporelle en fonction de ce qui vous intéresse à tout moment. C'est similaire aux catégories de modération sur SlashDot, mis à part que n'importe quel petit groupe peut établir ses propres significations. 
+
+Vous gagnez des "points de mise en avant" en participant au Rakontu -- raconter des histoires, ajouter des commentaires, répondre à des questions, etc. -- que vous pouvez utiliser pour mettre en avant des histoires, positivement ou négativement. Le nombre exact de points que vous accumulez peut avoir été customisé par les gestionnaires de votre Rakontu. Ceratins Rakontus peuvent être davantage focalisés sur la narration d'histoires alors que d'autres sont plus axés sur les commentaires et les réponses aux questions. Vous pouvez trouver ce qui influence l'accumulation de points de mise en avant dans votre Rakontu en regardant la page Visitez - A propos du Rakontu.
+
+[Les frises temporelles dans le Rakontu]
+Category=2.Utiliser Rakontu
+Order in category=2
+Interpret as=Wiki markup
+For new members=no
+Help resource=yes
+Managers only=no
+
+La page d'accueil de votre Rakontu, tout comme les pages pour chaque entrée, membre et personnage, fournit des éléments à regarder sur les frises temporelles. A côté de la dimension temporelle, qui fonctionne de gauche à droite (l'élément le plus récent à droite), il y a deux autres dimensions :
+
+  # Une disposition de haut en bas montre à quel niveau chaque entrée se place dans le système de "mise en avant", avec les items les plus promus situés vers le sommet : les bonnes choses "flottent à la surface." 
+  # La taille du texte de chaque item montre le niveau d'activité qui s'est développé autour de l'item. Les choses auxquels les gens s'intéressent font le "buzz." 
+
+Vous pouvez considérer la frise temporelle comme une sorte de "flot" d'histoires et d'autres items que le groupe construit et au sujet desquels il échange collectivement. Les items les plus importants pour le groupe seront habituellement récents (vers la droite), de grande valeur (vers le sommet) et de grande taille (d'une grande activité). La même frise temporelle apparaît sur la page pour chaque entrée et pour les pages de membres (et les pages de personnages, si votre Rakontu possède des personnages). 
+
+Là où les mises en avant, les ensembles de tags, les commentaires, les requêtes, les réponses les liens sont déployés sur les frises temporelles, leur hauteur et leur taille montrent la valeur de la mise en avant et le niveau d'activité de l'entrée à laquelle ils sont associés _lorsqu'ils lui ont été ajoutés_, pas au moment présent. Cela signifie que quand vous examinez une page d'entrée pouvez voir comment elle a changé en termes de valeur de mise en avant et de niveau d'activité après que des annotations aient été ajoutées.
+
+Sur la page d'accueil et sur les pages de membres/personnages, vous pouvez modifier la portion de temps que vous voulez regarder en cliquant sur les boutons dans les options au-dessus de la frise temporelle. Pour rafraîchir la frise afin de montrer de nouveaux items qui auraient été récemment ajoutés, cliquez sur le bouton ">|". Cela positionnera le côté droit de la frise temporelle a moment présent. Pour retourner vers les premières entrées du Rakontu (ou au moment où le membre a rejoint le Rakontu, ou lorsque l'entrée a été créé), cliquez sur le bouton "|<". 
+
+Dans toutes les frises temporelles, vous pouvez modifier la signification de la dimension verticale en modifiant le choix des catégories qui sont monitorées dans la zone de "mise en avant" des options sous la frise. Par exemple, si à un moment donné vous vous intéressez plus à un critère d'importance que de justesse, vous pouvez choisir d'ignorer les mises en avant de type "approprié / inapproprié", et les items seront modifiés en conséquence. Les gestionnaires de votre Rakontu sont censés créer des catégories de mise en avant qui soient particulièrement pertinentes pour votre groupe (et n'éqtiez pas pa à suggérer des catégories qui vous semblent utiles !).
+Vous pouvez aussi créer une mise en avant "plancher" afin de pouvoir ignorer les items qui ont été classés en dessous d'un certain niveau. Pour cela, modifier le nombre identifié au niveau de "Cacher les entrées inférieures" et cliquez sur Modifier. (Le Rakontu sauvegardera vos préférences pour votre prochaine visite).
+
+[Publier des entrées]
+Category=2.Utiliser Rakontu
+Order in category=3
+For new members=no
+Help resource=yes
+Interpret as=Wiki markup
+Managers only=no
+Quand vous racontez une histoire dans le Rakontu, vous créez une *entrée* dans le système. Un sujet, une tendance, un collage ou une ressource sont également des entrées. N'importe quelle entrée peut être *publiée* afin que chacun puisse la lire et la commenter, ou elle peut être sauvegardée comme *brouillon* que vous seul pouvez voir. Pour visualiser vos brouillons sauvegardés, choisissez Mes éléments - Brouillons. 
+
+Vous pouvez toujours modifier une entrée que vous avez créée, qu'il s'agisse d'un brouillon ou non. Pour modifier une entrée publiée, allez sur la page d'affichage de l'entrée et trouvez le lien qui indique "Modifier" juste après le texte d'entrée. Effectuez vos modifications et cliquez à nouveau sur Publier. Toutes les modifications des entrées (brouillons ou non) sont visibles dans la zone *Montrer l'historique* de la page d'entrée, bien que vous puissiez supprimer les anciennes versions sur l'écran des brouillons.
+
+Vous pouvez aussi *annuler la publication* d'une entrée, c'est-à-dire qu'elle ne sera plus visible et sera replacée dans votre liste de brouillons. Pour annuler la publication d'une entrée, cliquez sur le bouton Annuler la publication lorsque vous modifiez une entrée publiée. Une fois que vous avez fait cela, non seulement l'entrée mais aussi toutes les annotations ne seront plus visibles. 
+
+Vous pouvez aussi inviter d'autres membres de votre Rakontu à éditer votre entrée avec vous en ajoutant *éditeurs supplémentaires*. Vous pouvez soit choisir des membres en particulier ou des groupes de membres sélectionnés en fonction de leur rôle (tous les conservateurs et les guides par exemple). L'édition partagée est particulièrement utile pour les ressources, ou si deux personnes souhaitent raconter une histoire ensemble. Toutes les entrées que vous créez vous demeureront liées et seront présentées sous votre nom ; et vous seul pouvez les retirer de vos brouillons.
+
+[Faire des recherches dans le Rakontu]
+Category=2.Utiliser Rakontu
+Order in category=4
+For new members=no
+Help resource=yes
+Interpret as=Wiki markup
+Managers only=no
+
+Il y a deux façons d'effectuer des recherches dans Rakontu : la recherche simple et le filtrage.
+
+La recherche simple se fait uniquement sur des mots, et partout en même temps. Pour cela, choisissez Mes éléments - Recherche simple, saisissez des mots, choisissez les types d'éléments que vous voulez trouver, et cliquez sur Rechercher. La recherche simple fonctionne comme une recherche Google - elle porte sur tous les mots que vous avez saisis, et les items les plus pertinents apparaissent en haut de la liste. Vous pouvez grouper les mots que vous voulez trouver ensemble en les entourant de guillemets, comme cela se fait communément.
+
+Les recherches plus complexes s'effectuent en utilisant des *filtres*. Lorsque vous utilisez des filtres, vous n'accédez pas à une nouvelle page de résultats avec une simple liste d'items correspondant aux critères. Au lieu de cela, vous _modifiez_ ce qui est présenté sur les mêmes frises temporelles que vous pouvez voir sur la page d'accueil de votre Rakontu et sur la page de chaque membre (et les pages des personnages si votre Rakontu inclut des personnages). De cette façon, vous pouvez vous déplacer en aant et en arrière dans le temps et observer les niveaux de mise en niveau (hauteur) et d'activité (taille) tout en regardant un sous-ensemble d'items résultant de votre recherche.
+
+Les membres de votre Rakontu peuvent *partager* certains des filtres qu'ils ont créés. Les filtres partagés peuvent être utlisés par tout le monde, mais ils peuvent uniquement être modifiés par leurs créateurs. Les filtres partagés peuvent aussi être utilisés comme éléments de tendances. Pour utiliser un filtre partagé, regardez la liste des filtres dans la zone "Filtres" des options situées sous toutes les frises temporelles. S'il n'y a aucun filtre partagé, vous verrez juste un message indiquant qu'il n'y a pas de filtre partagé et que vous pouvez en créer un.
+
+Pour créer un nouveau filtre, cliquez sur "Créer un nouveau filtre" dans les options situées sous la frise temporelle sur la page d'accueil ou les pages de membre/personnage. Vous pouvez effectuer des recherches sur :You can search on:
+
+  * Le titre et/ou le texte de l'entrée
+  * Les textes dans les annotations telles que les commentaires, les requêtes, les mises en avant ou les liens
+  * Les tags 
+  * Les réponses aux questions sur les histoires et sur les autres entrées
+  * Les réponses aux questions sur les personnes (ou personnages) qui ont raconté les histoires
+
+Et vous pouvez combiner ces éléments de recherche comme bon vous semble. Par exemple, vous pourriez vouloir trouver des histoires dans lesquelles des personnes avaient dit qu'elles étaient heureuses du résultat atteint, avaient plus de 60 ans, et avaient prononcé le mot "bureaucratie" dans leur histoire. 
+
+Les recherches sont insensibles à la casse (majuscules - minuscules).
+
+[Construire un collage d'histoire]
+Category=2.Utiliser Rakontu
+Order in category=5
+Interpret as=Wiki markup
+For new members=no
+Help resource=yes
+Managers only=no
+
+Un collage d'histoire est une liste d'entrées annotée que vous souhaitez mettre en valeur pour une raison ou une autre : le top dix des histoires à lire pour les nouveaux membres, ou les cinq sujets que vous voulez que les gens remarquent, ou le résultat d'un exercice dans lequel les gens ont choisi les histoires les plus utiles pour en tirer des enseignements sur des sujets particuliers. (Dans les futures versions de Rakontu, nous souhaitons permettre la construction de collages de manière plus élaborée ; mais pour le moment, un collage ne peut être qu'une simple liste annotée).
+
+Pour construire un collage d'histoire, choisissez "Construire un collage d'histoire" depuis le menu Créer. La plus grande partie de l'écran ressemblera à celui que vous obtenez lorsque vous entrez une histoire, sauf que vous pouvez choisir les histoires que vous ajoutez, et ajouter un commentaire expliquant pourquoi vous ajoutez chacune d'entre elles. Les collages, comme les histoires, les tendances, les sujets et les ressources, peuvent être associées à des commentaires, des requêtes, des mises en avant, et des tags qui leur sont adjoints ; et ils peuvent être reliés à d'autres collages (et des sujets, etc). 
+
+[Décrire une tendance]
+Category=2.Utiliser Rakontu
+Interpret as=Wiki markup
+For new members=no
+Help resource=yes
+Managers only=no
+
+Une tendance est une observation à propos de quelque chose que vous avez remarqué dans votre musée d'histoires. Peut-être y'a-t-il moins d'histoires de crimes que vous ne le pensiez, ou bien, quand vous avez recherché des histoires de crimes, vous en avez trouvé plus que vous n'espériez concernant des voisins venant en aide à d'autres voisins. Une tendance est un moyen de parler avec d'autres de la collection d'histoires que vous avez bâtie ensemble. Les tendances sont traditionnellement liées à un ou plusieurs filtres, avec une possibilité de les contraster. Par exemple, vous pourriez dire : "J'ai remarqué que si on montre des histoires dans lesquelles les gens disent qu'ils ressentaient un sentiment d'indifférence, beaucoup font référence à un parc, mais si vous cherchez des histoires marquées par des sentiments de frustration, les histoires concernent principalement la plage. Pourquoi donc ?" Et alors, les gens peuvent ajouter des commentaires pour en discuter.
+
+Pour créer une tendance, choisissez "Décrire une tendance" depuis le menu Créer. Saisissez une explication sur ce que vous avez remarqué, et si vous le souhaitez, choisissez des filtres partagés à inclure dans la tendance. Vous pouvez uniquement utiliser des flitres *partagés*, aussi si vous avez remarqué quelque chose via vos filtres privés, il vous faudra modifier le filtre pour le transformer en mode partagé. Tout comme les histoires, les tendances peuvent être assorties de commentaires, de requêtes, de mises en avant, et de tags qui leur sont ajoutés ; et elles peuvent être reliées à d'autres tendances (et à des sujets, etc). 
+
+[Comment devenir un conservateur]
+Category=3.Aider
+Order in category=1
+Interpret as=Wiki markup
+For new members=yes
+Help resource=yes
+Managers only=no
+
+Etre conservateur dans un Rakontu consiste à contribuer à veiller sur le musée d'histoires (et les éléments qui l'entourent). Est-ce que les histoires
+et les autres informations sont bien ordonnées ? Est-ce qu'un niveau d'utilité maximale a été atteint ? Les gens peuvent-ils trouver ce dont ils ont besoin au moment où ils en ont besoin ?
+Y'a-t-il des impasses, des liens morts, des choses inutiles ?  Les gens qui aiment organiser les choses font de bons conservateurs. 
+
+Il y a trois activités principales que vous pourriez accomplir enntant que conservateur : combler les trous, repérer les choses qui devraient être supprimées, et 
+maintenir une consistence.
+
+En tant que conservateur, vous devez parcourir le Rakontu régulièrement pour contrôler l'activité. La page Trous (Organiser->Trous) peut vous aider à trouver des secteurs qui nécessitent une attention. Voici les éléments listés sur la page Trous.
+
+  # *Entrées non taggées*. Les entrées sans tags ont moins de chances d'être trouvées quand des recherhces sont effectuées sur la base de tags. Les remplir, particulièrement
+  pour des items avec de hautes valeurs de mise en avant (et donc importants ou utiles) ou de hauts niveaux d'activité, 
+  contribuera à rendre l'ensemble des entrées plus utiles.
+  # *Entrées non liées*. Les liens entre les entrées aident les gens à naviguer d'une histoire à l'autre enntrouvant des choses utiles de différentes
+  façons. L'une des choses les plus utiles que les conservateurs peuvent faire est de repérer des similitudes entre les histoires et les relier ensemble
+  pour pouvoir se déplacer de l'une à l'autre. 
+  # *Entrées sans réponses aux questions*. Comme pour les tags, les entrées sans réponses aux questions sont plus difficiles à trouver. Si le narrateur de l'histoire n'a répondu à aucune question sur elle, vous pouvez toujours répondre à certaines questions en qualité de conservateur. 
+  # *Collages sans liens avec des histoires*. Les collages sans liens avec des histoires peuvent avoir été connectés à des histoires qui ont été supprimées du système. Ils doivent soit être supprimés soit être actualisés.
+
+Vous pouvez marquer tout type d'entrée (histoire, sujet, collage, tendance, ressource), annotation (commentaire, requête, ensemble de tags,
+mise en avant) et répondre, y compris lorsqu'il s'agit des filtres.
+
+Pour marquer une entrée ou l'une de ses annotations ou réponses, cliquez sur l'entrée sur la page d'accueil du Rakontu, 
+et cliquez sur le bouton "Organiser" dans la zone Autres Options.
+Après voir cliqué "Aller à," la page s'affichera avec de petits drapeaux verts à côté de chaque item. Cliquez sur un drapeau pour marquer l'
+item comme étant inapproprié ou inutile. 
+
+Pour marquer un filtre, selectionnez-le sur la page d'accueil, et cliquez sur Modifier. Sur la page qui montre les détails
+du filtre, cliquez sur Marquer.
+
+Pour voir tous les drapeaux que vous avez marqués, choisissez Drapeaux depuis le menu Organiser en haut de la page. 
+  * Si vous êtes un gestionnaire du Rakontu, vous pouvez soit supprimer le marquage d'un item ou les supprimer complètement du Rakontu. 
+  * Si vous n'êtes pas un gestionnaire, vous pouvez supprimer le marquage d'items ou notifier le(s) gestionnaire(s) que les items devraient être supprimés. 
+  La notification est principalement destinée à permettre aux gestionnaires de savoir si des items en particulier doivent être supprimés (paroles obscènes ou haineuses, par exemple). 
+  Il vaut mieux ne pas abuser des notifications sous peine de ne pas obtenir l'attention nécessaire des gestionnaires lorsque vous avez _vraiment_ besoin de leur attention.
+  
+*Marquer des items par des pièces jointes*
+
+Parce que les entrées peuvent avoir des pièces jointes (comme les emails) il est parfois difficile de voir si quelqu'un a ajouté quelque chose
+de pertinent ou uniquement volumineux et inutile. (Des pièces jointes volumineuses peuvent ralentir l'accès au Rakontu). C'est une bonne
+idée que de garder un oeil sur les pièces jointes placées dans une liste séparée. Pour passer en revue les pièces jointes, choisissez Organiser->Pièces jointes. Vous pouvez alors
+marquer l'entrée qui va avec la pièce jointe en fonction des nécessités du passage en revue.
+
+Les gestionnaires du Rakontu peuvent décider s'ils veulent des conservateurs (c'est-à-dire tout le monde) habilités à modifier les tags sur
+des entrées existantes. C'est particulièrement utile si vous voulez maintenir de la consistence dans vos tags, par exemple en arrangeant des fautes d'orthographe
+et en modifiant des pluriels (comme "chats" modifié en "chat") pour que les tags offrent des résultats concordants lors des recherches. Cependant, si votre Rakontu est
+particulièrement grand ou étendu, vos gestionnaires peuvent avoir décidé de ne pas autoriser cela. Vérifiez votre menu Organiser
+pour voir s'il y a une option Tags. S'il n'y en a pas et que vous en souhaitez un, demandez à un gestionnaire d'en créer un. 
+
+[Coment être un guide]
+Category=3.Aider
+Order in category=2
+Interpret as=Wiki markup
+For new members=yes
+Help resource=yes
+Managers only=no
+Etre un guide Rakontu signifie : aborder les choses du point de vue des utilisateurs. Est-ce que le système leur apporte ce qu'ils attendent ?
+Sont-ils perdus dans le système ? Sont-ils intéressés ? Motivés ? Contribuent-ils ? Les gens qui s'intéressent beaucoup à leurs semblables font de bons guides.
+
+Les guides ont trois tâches principales : répondre aux questions, aider les gens à s'orienter, et contrôler ls réponses.
+
+En premier lieu : tous les guides devront accepter de recevoir des emails du Rakontu et d'être répertoriés sur la page Aide pour répondre
+aux questions des utilisateurs sur le Rakontu.
+
+Lorsque vous devenez un guide, il vous faut intégrer un paragraphe, quelques mots sur votre page Préférences qui indique aux utilisateurs
+le type de questions auxquelles vous pouvez répondre de manière satisfaisante. Il se peut que vous en sachiez long sur l'histoire de votre communauté,
+ou peut-être êtes-vous versés dans la technique et que vous pouvez apporter une aide pour des problèmes liés au système, ou alors, vous pouvez peut-être les aider à écrire de bonnes histoires.
+Ecrire une bonne *introduction au guide* peut aider les gens à trouver les réponses dont ils ont besoin, et cela peut vous aider
+à éviter d'avoir des questions auxquelles vous ne pouvez répondre ou que vous trouverez ennuyeuses. 
+
+Les guides Rakontu sont chargés de l'aide en ligne aux membres. En tant que guide, vous pouvez 
+créer et conserver à jour des *ressources* qui aident les gens à s'orienter et contribuer ainsi à votre Rakontu 
+d'une manière positive. Par exemple, maintenir à jour une liste de FAQ sur la façon dont voytre groupe fonctionne est un bon moyen d'aider
+les gens qui ont des questions du type "Quels sortes de surnoms les gens sont-ils sensés utiliser ?" et
+"Combien de filtres partagés devrais-je créer ?" etc. Une ressource "Actualités" qui met en valeur l'activité récente
+est également utile. Pour passer en revue vos ressources, choisissez Ressources depuis le menu Guide.
+
+Il y a deux sortes principales de réponses dans Rakontu : raconter une histoire en réponse à un sujet, et faire quelque chose
+en réponse à une demande concernant une histoire particulière (ou un autre type d'entrée). Par exemple, les gens pourraient demander 
+à d'autres personnes de retranscrire une histoire audio, lire une histoire écrite à voix haute, traduire une histoire dans une autre langue,
+etc. En tant que guide, vous voudrez
+vérifier s'il y a des sujets ou des requêtes qui sont restées "orphelines" et nécessitent de l'attention. 
+
+Pour passer en revue les sujets ou les requêtes, choisissez l'un de ces items dans votre menu Guide. Vous pouvez soit uniquement regarder
+les sujets ou les requêtes sans réponses soit l'ensemble des éléments. Pour les requêtes, vous pouvez les marquer comme étant complétées
+si vous voyez qu'elles ont été satisfaites.
+
+[Comment être une Liaison]
+Category=3.Aider
+Order in category=3
+Interpret as=Wiki markup
+For new members=yes
+Help resource=yes
+Managers only=no
+Dans certaines communautés ou certains groupes, tout le monde n'a pas les compétences ou l'envie d'utiliser l'internet. Pour bâtir et maintenir une 
+collection d'histoires, cette particularité a un impact plus important que par exemple pour du conseil commercial. En particulier, les personnes les plus âgées
+racontent les meilleures et les plus précieuses histoires mais ne sont pas des plus actifs sur l'internet. D'une manière similaire, les membres d'une communauté
+que l'on a le plus de chances de retrouver en ligne sont ceux qui ont les moyens et les compétences pour utiliser un ordinateur. L'un des objectifs du Rakontu
+est d'aider les gens à établir un pont entre les groupes sociaux lors de la construction des collections d'histoires. Le moyen primordial de favoriser cela est
+d'aider les *liaisons* à utiliser Rakontu d'une manière spéciale.
+
+Chaque membre hors ligne d'un Rakontu a une liaison qui lui est assignée. La liaison d'un membre peut changer sa photo et description, entrer des histoires et d'autres choses pour eux, conserver et sauvegarder leurs brouillons, et leur relayer les messages par email.  Pour effectuer des modifications pour des membres hors ligne, choisissez "Gérer les membres hors ligne" depuis le menu Lier. Vous pouvez ajouter de nouveaux membres, désactiver des membres existants (dont vous avez la responsabilité), et transférer la responsabilité d'un membre hors ligne vers une autre liaison.
+
+Soyez conscient que lorsque vous assumez la responsabilité d'un membre hors ligne, tout message qu'un membre en ligne lui adresse transitera par vous. Vous aurez la responsabilité de montrer (ou lire) le message au membre hors ligne et d'envoyer sa réponse.
+
+Vous pouvez entrer jusqu'à dix histoires en même temps dans un mode "lot". Ceci, de manière primordiale pour le cas où vous avez interviewé plusieurs personnes, par exemple dans une maison de retraite, un refuge pour sans-abris, une conférence, ou tout autre endroit où les gens n'utiliseront pas le système en qualité de membres en ligne. Les liaisons qui ne sont pas également gestionnaires peuvent entrer des histoires racontées par n'importe lequel des membres hors ligne qui leur ont été assignés. (Les gestionnaires ont la possibilité d'entrer des histoires pour *tout* membre du Rakontu, y compris des membres en ligne. Cette option est destinée de manière primordiale à aider les gens à "semer les graines" du Rakontu en entrant des histoires collectées dans un atelier ou via des interviews).
+
+Pour entrer des histoires, choisissez "Ajouter un lot d'histoires" depuis le menu Lier. Entrez chaque histoire, assortie d'une option commentaire et tag. Ou alors, vous pouvez saisir votre histoire dans un tableur, sauvegarder le fichier en format CSV (avec encodage texte Unicode) et chosir le fichier dans l'écran lot. Le format d'entrée d'une histoire en CSV est :
+
+Vous pouvez aussi entrer les réponses que vos membres hors ligne ont données -- commentaires, réponses, requêtes, tag sets, mises en avant -- aux histoires que vous leur avez montrées ou lues. Par exemple, vous pourriez présenter une histoire à dix membres hors ligne différents et demander à chacun d'entre eux de répondre à certaines questions la concernant, puis entrer ces réponses en tant qu'annotations à l'histoire. Ou alors, les gens pourraient avoir une requête relative à une histoire, ou ils pourraient vouloir répondre à un sujet. Entrez les éléments dans le système de la façon dont vous le leur avez annoncé. Le formulaire d'entrée doit indiquer "En votre qualité de liaison" et vous donner des choix sur l'identité de la personne qui vous a raconté ce que vous entrez. Les membres hors ligne peuvent même attribuer leurs contributions à des personnages (si votre Rakontu en utilise), tout comme les membres en ligne peuvent le faire. 
+
+[Balise de wiki dans Rakontu]
+Category=4.Textes
+Order in category=1
+Considérer comme=HTML simple
+For new members=no
+Help resource=yes
+Managers only=no
+<p>Vous pouvez utiliser une balise de type wiki dans la plupart des boîtes textes dans Rakontu (toutes celles qui ont un choix "considérer comme").</p>
+
+<p>Séparer les paragraphes par des sauts de ligne.</p>
+
+<p>Pour écrire du texte en gras, mettez des astérisques autour : *texte en gras* devient <b>texte en gras</b>.</p>
+
+<p>Pour écrire du texte en italique, mettez des underscores autour : _texte en italique text_ devient <i>texte en italique</i>.</p>
+
+<p>Pour écrire du texte de largeur fixe, mettez ces petits caractères en forme de chapeau autour : ^code texte^ devient <code>code texte</code>.</p>
+
+<p>Pour écrire du texte barré, mettez des tildes autour : ~texte barré~ devient <del> texte barré</del>.</p>
+
+<p>Pour écrire un titre, mettez un signe égal au début de la ligne, suivi d'un espace : </p><p>= texte titre 1</p><p>
+devient <h1>&nbsp; &nbsp; texte titre 1</h1><p>
+
+<p>Pour écrire un sous-titre, mettez deux signes égal : </p><p>== texte titre 2</p><p>devient <h2>&nbsp; &nbsp; texte titre 2</h2></p>
+
+<p>Pour écrire un titre de troisième niveau, mettez trois signes égal : </p><p>=== texte titre 3</p><p>devient <h3>&nbsp; &nbsp; texte titre 3</h3></p>
+
+<p>Pour écrire une liste non ordonnée d'items (puce), mettez un astérisque avec deux espaces avant le texte de la liste. Gardez deux espaces devant chaque ligne
+de chaque item (s'ils débordent), donc :</p><p>&nbsp; * liste d'items non ordonnée</p><p>&nbsp; continuation de la ligne</p><p>
+devient <ul><li>liste non ordonnée d'items continuation de ligne</li></ul> </p>
+
+<p>Pour écrire une liste d'items ordonnée (numérotée), mettez un signe dièse avec deux espaces devant le texte de la liste. Gardez deux espaces devant chaque ligne
+dans chaque liste d'items (s'ils débordent), donc :</p><p>&nbsp; # liste ordonnée d'items</p><p>&nbsp; continuation de ligne</p><p>
+devient <ol><li>liste ordonnée d'items continuation de ligne</li></ol> </p>
+
+<p>Pour écrire une ligne horizontale (hr), mettez quatre ou plus de tirets sur une ligne :</p><p>----</p><p>devient</p><p><hr></p>
+
+<p>Pour écrire un lien, mettez des crochets autour : [http://www.rakontu.org] 
+devient <a href="http://www.rakontu.org">http://www.rakontu.org</a></p>
+
+<p>Pour écrire un lien assorti d'un nom, mettez le nom entre parenthèses après le lien mais à l'intérieur  
+des crochets : [http://www.rakontu.org(Rakontu)] devient <a href="http://www.rakontu.org">Rakontu</a></p>
+
+<p>Pour inclure un lien vers une image avec une adresse URL dans le Rakontu, placez le lien dans des accolades, et incluez un alt tag (texte alternatif) dans 
+les parenthèses : {http://www.rakontu.org/Rakontu.jpg(Rakontu picture)} 
+devient <img src="http://www.rakontu.org/Rakontu.jpg" alt="Rakontu picture"/>
+
+<p>Pour faire référence à une pièce jointe dans le texte d'une entrée, mettez des signes dièse autour du numéro de la pièce jointe, comme ceci : #1# or #2#. 
+Si la pièce jointe est une image, elle sera présentée dans le document dans lequel vous avez placé les signes dièse. Si la pièce jointe est un autre
+type de fichier (pdf, etc.), un lien apparaîtra, sur lequel on peut cliquer pour télécharger le fichier.</p>
+
+<p>&nbsp; </p>
+<p>Les tables et les listes imbriquées (dans d'autres listes) ne sont pas gérées par le système.
+
+[HTML simple dans le Rakontu]
+Category=4.Textes
+Order in category=2
+Interpret as=Wiki markup
+For new members=no
+Help resource=yes
+Managers only=no
+Vous pouvez entrer ces éléments en HTML simple dans n'importe quelle boîte texte du Rakontu :
+
+<p>paragraphe</p>
+
+<b>gras</b>
+
+<i>italique</i>
+
+<del>barré</del>
+
+<code>code</code>
+
+<ul> <li>...<li> </ul>
+
+<ol> <li>...<li> </ol>
+
+<h1>titre 1</h1>
+
+<h2>titre 2</h2>
+
+<h3>titre 3</h3>
+
+Fin de ligne <br/>
+
+<hr>
+
+Espace insécable &nbsp; 
+
+liens <a href=""></a>
+
+tags images <img src="" alt=""/> (ils DOIVENT inclure des alt tags - textes alternatifs)
+
+Les tables et les listes imbriquées (dans d'autres listes) lists ne sont pas gérées par le système.
+
+[Gérer les membres du Rakontu]
+Category=1.Gérer
+Order in category=1
+Interpret as=Wiki markup
+For new members=yes
+Help resource=yes
+Managers only=yes
+Les gestionnaires d'un Rakontu ont la responsabilité du Rakontu -- de ceux qui en sont membres, de ce qui est (et n'est pas) autorisé dans le Rakontu, et de la manière dont il se présente aux membres. Habituellement, deux ou trois personnes se partageront la gestion d'un Rakontu, mais il pourra parfois ne s'agir que d'une seule personne. Si vous êtes le seul gestionnaire de votre Rakontu, vous en êtes également le propriétaire, ce qui signifie que vous êtes la seule personne (autre que l'administrateur du site) qui puisse le désactiver.
+
+Pour passer en revue et contrôler les membres dans votre Rakontu, choisissez "Membres" depuis le menu Gérer.
+
+Les gens peuvent rejoindre votre Rakontu de deux manières. 
+
+  * Avec *invitation explicite* vous ajoutez des emails directement dans la zone Nouveaux membres de l'écran Membres. Les gens doivent s'adresser à vous et vous demander de les ajouter au groupe. Pour choisir cette option, décochez la boîte "Les visiteurs sont-ils autorisés à rejoindre le groupe sans avoir été explicitement invités ?" Il s'agit de l'option par défaut.
+  * Avec *invitation implicite* vous envoyez ou publiez un lien vers votre Rakontu. Le lien se fera tant qu'il contiendra le nom du Rakontu. Le lien vers la page d'accueil ou la page A propos de ce Rakontu sont les plus adéquats. Copiez-les depuis votre navigateur et collez les dans votre email ou votre billet web. Quiconque clique sur le lien rejoindra automatiquement le Rakontu. Pour choisir cette option, cochez la boîte marquée "Les visiteurs sont-ils autorisés à rejoindre le Rakontu sans avoir été explicitement invités ?"
+
+Vous pouvez modifier votre méthode d'invitation dans n'importe quel sens en fonction de vos besoins. Par exemple, vous voudrez peut-être utiliser des invitations implicites lorsque le groupe se forme, mais basculer sur des invitations explicites une fois que le groupe s'est formé, alors que vous ne souhaitez pas avoir des afflux incessants de nouveaux membres.
+
+Pour inviter des nouveaux membres de manière explicite, saisissez leurs emails dans la zone "Ajouter de nouveaux membres". Chaque email ajouté *doit* être un email valide associé à un compte Google. Quand vous ajoutez un nouveau membre, son email apparaîtra dans la zone "Membres en attente" jusqu'à sa première visite. Vous pouvez lui envoyer un lien vers le Rakontu sur lequel il peut cliquer, et il deviendra membre du Rakontu à partir de ce moment.
+
+Chaque membre peut être à titre optionnel gestionnaire ou propriétaire. Chaque gestionnaire peut faire d'un autre membre un gestionnaire ou un propriétaire du Rakontu. Vous devez uniquement demander à des personnes de devenir gestionnaires si vous avez confiance en eux avec la certitude qu'ils n'abuseront pas de ce privilège. Vous pouvez nommer quelqu'un gestionnaire (ou lui retirer cette focntion) en modifiant la zone "Rôle du membre" à côté de son nom, cliquez ensuite sur Sauvegarder les modifications.
+
+Quand un membre ne veut plus participer au Rakontu, vous pouvez le désactiver (d'ordinaire à sa demande). Cochez tout simplement la boîte "Désactiver" à côté du membre et cliquez sur Sauvegarder les modifications. Les membres désactivés ne disparaissent pas complètement, ils se retrouvent dans une liste désactivée. De cette manière, les histoires n'auront pas de "liens morts" vers un membre qui n'existe pas (au lieu de cela, les histoires indiqueront qu'elles ont été racontées par "l'ancien membre untel"). Les membres désactivés peuvent être réactivés en copiant simplement leur email (relié à un compte Google) et en le collant à nouveau dans la zone "Ajoutez de nouveaux membres". Lorsque l'email correspond (exactement), l'ancien membre retrouvera toutes ses préférences.
+
+[Gérer les fonctions d'aide dans votre Rakontu]
+Category=1.Gérer
+Order in category=2
+Interpret as=Wiki markup
+Pour les nouveaux membre=no
+Help resource=yes
+Managers only=yes
+Tous les Rakontu comportent trois fonctions d'aide : conservateur, guide et liaison. Les conservateurs et les guides sont là pour répondre à la dichotomie de la façon dont les gens s'imliquent dans les groupes en ligne : certains s'occupent des "choses" (billets, métadonnées, pages wiki) et certains prennent soin des gens (en menant des discussions, répondant à des questions, en écrivant des FAQs). Alors, pourquoi ne pas créer deux fonctions contrastées et laisser les gens graviter autour pour les utiliser ?
+
+La fonction de liaison existe uniquement pour servir l'un desprincipaux objectifs du Rakontu, qui est de créer un pont entre les groupes sociaux en ligne et hors ligne. Pour reprendre une phrase du document de présentation de Rakontu : "La coupure physique - digitale signifie que les personnes les plus âgées racontent des histoires au centre communautaire alors que les plus jeunes les racontent sur Facebook." Si votre Rakontu n'établit pas de pont entre les mondes en ligne et hors ligne, vous pouvez ignorer la fonction de liaison.
+
+Pourquoi avoir des fonctions d'aide ? Parce que souvent, dans un groupe, les gens ne veulent pas prendre la _responsabilité_ de prendre des décisions importantes pour le groupe (le gérer) mais _veulent_ donner du temps et de l'énergie pour aider. Par essence, Rakontu permet de diffuser la responsabilité dans le groupe -- et même jusqu'au point où chacun, dans le groupe, peut faire _quelque chose_ de plus.
+
+Toutes les fonctions d'aide sont purement exercées à titre volontaire. N'importe quel membre du groupe peut en exercer une ou y renoncer à tout moment. D'ordinaire, cela fonctionne bien ; mais si quiconque dans le groupe abuse de ces fonctions (par exemple en devenant un conservateur pour ennuyer une personne en marquant toutes ses entrées) vous pouvez supprimer leurs prérogatives. Modifiez simplement ce qui est coché dans la zone "Fonctions d'aide disponibles" dans la table "Membres actifs". (Notez que vous ne pouvez pas empêcher les gestionnaires de prendre en charge une fonction d'aide. On suppose que s'il est un gestionnaire, il est suffisamment digne de confiance pour prendre en charge les moindres fonctions d'aide).
+
+Pour aider les gens à comprendre les fonctions d'aide et leur importance dans votre propre Rakontu, vous pouvez mettre en place vos propres messages "Lisez-moi" sur chaque fonction (trouvez-les dans la section "Textes des fonctions d'aide" de la page Apparence). Ils apparaîtront sur la page Préférences des membres s'ils décident de prendre en charge les fonctions. S'il y a des choses spéciales que vous voulez que les gens fassent, vous pouvez les placer à cet endroit.
+
+Les tags qui sont des contributions de membres peuvent aider à organiser les histoires pour pouvoir les trouver rapidement. Cependant, les gens écrivent parfois mal les mots dans les tags ou alors ils saisissent "chats" alors que "chat" est disponible, et de ce fait, les listes de tags ont tendance à être encombrées. Maintenir la liste de tags propre et facile à utiliser est un très bon moyen de maintenir l'ordre dans votre musée d'histoires. Pour cette raison, Rakontu dispose d'un écran sous le menu Conserver dans lequel vous pouvez voir et éditer chaque tag dans le système en un seul endroit. Par défaut, seuls les conservateurs _qui sont également gestionnaires_ peuvent accéder à cet écran. Si vous avez confiance en tout le monde dans votre groupe, vous pouvez faire en sorte que chaque conservateur (c'est-à-dire, chaque membre, étant donné que tout le monde peut devenir unn conservateur instantanément) puisse changer chaque tag. 
+
+[Gérer votre apparence Rakontu]
+Category=1.Gérer
+Order in category=3
+Interpret as=Wiki markup
+Interpret as=Wiki markup
+For new members=yes
+Help resource=yes
+Managers only=yes
+Pour passer en revue et contrôler votre apparence Rakontu, choisissez "Apparence" depuis le menu Gérer.
+
+Il y a trois zones principales dans votre apparence Rakontu, et vous pouvez customiser chacune d'entre elles : son identité, les détails de texte, et l'aspect. L'identité du Rakontu tient dans son nom, son image et sa signature (court texte descriptif). Tous apparaissent en haut de chaque page du Rakontu.
+
+Les détails de texte du sont sa description, le message de bienvenue, la présentation des règles, et les textes de fonction d'aide. En utilisant soit le format wiki ou l'HTML simple, vous pouvez inclure des liens et des images dans ces textes et les rendre aussi courts ou longs que vous voulez. Vous pouvez les utiliser pour raconter aux gens à qui sert le Rakontu, où ils doivent chercher d'autres informations (site web ? groupede discussion ?), et comment ils doivent se comporter en l'utilisant.
+
+L'apparence du Rakontu est déterminé par son habillage (skin). Vous pouvez choisir parmi les habillages disponibles, créer le vôtre, ou ignorer les habillages complètement et utiliser votre propre page CSS pour modifier totalement l'apparence de votre Rakontu. Pour créer votre propre habillage, remplacez simplement les entrées  dans la boîte ?????? "Custom skin" box (sur la page Attributs ????? Settings) par d'autres polices et couleurs. (Vous pouvez trouver des listes de ???? hex colors sur de nombreux sites web ; saisissez ????? "hex colors" pour les trouver). Pour utiliser un fichier CSS séparé, allez dans l'entrée aide de ce sujet.
+
+[Gérer le système de mise en avant de votre Rakontu]
+Category=1.Gérer
+Order in category=4
+Interpret as=Wiki markup
+For new members=yes
+Help resource=yes
+Managers only=yes
+Qu'est-ce qu'un système de mise en avant ? C'est un moyen pour les gens dans un Rakontu de trier collectivement leur histoires et de déterminer ce qui est important et ce qui ne l'est pas. Cela ressemble aux systèmes de popularité / vote des sites web sociaux, avec cependant une différence majeure. Quand les gens racontent des histoires, les évaluations abstraites de la "qualité" -- comme par exemple, qu'est-ce qu'un "bonne histoire" -- ont moins d'importance que l'évaluation de l'utilité -- comme par exemple quelle histoire est utile pour quel usage. En fait, établir une mesure de la qualité est un moyen sûr de tuer le storytelling, parce que, quand vous faites cela, deux choses se passent : certaines personnes ne racontent pas d'histoires parce qu'ils ont peur qu'elles ne soient pas "assez bonnes," et d'autres s'empareront du storytelling parce qu'ils sont persuadés qu'ils sont d'exceptionnels conteurs. Pour la plupart des groupes, Rakontu ne consistera pas à surpasser la narration des autres ; il s'agira 
+de bâtir quelque chose d'utile ensemble. 
+
+L'une des choses les plus importantes que vous puissiez faire en tant que gestionnaire (et tous les gestionnaires) est de créer de bonnes catégories de mise en avant, adaptées à votre groupe. Quel est votre objectif commun ? Voulez-vous résoudre des conflits ? Mieux vous connaître les uns les autres ? Vous souvenir du bon vieux temps ? Aider des nouveaux à se sentir plus à l'aise ? Poursuivre un but commun, comme bâtir (ou combattre) un développement planifié ? Ou juste se faire plaisir ? Vous devriez utiliser l'une de vos catégories de mise en avant pour signaler les histoires (et les autres entrées) qui contribuent à ces objectifs.
+
+Deux catégories de mise en avant qui sont presque toujours utiles sont *l'adéquation* et *l'importance*. Une mesure de l'adéquation déplacera les histoires hors sujet et brutales/offensives vers le fond de la frise temporelle (bien que les histoires offensives puissent également être marquées par les conservateurs). Une mesure de l'importance sépare les histoires "narratives" qui ont un fort impact, comme "Le jour où j'ai trouvé d'où venait mon cancer" de celles qui sont plus triviales comme "Le chat a fait quelque chose de drôle aujourd'hui." L'importance de la mesure de l'importance dépendra de votre groupe. Si votre Rakontu a juste pour objet de vous amuser à plusieurs, vous n'avez peut-être pas besoin d'une mesure de l'importance, et peut-être qu'une mesure de "l'amusement" sera plus utile. C'est vous qui décidez.
+
+Ecrire de bonnes questions sur les catégories de mise en avant est également important, pour que les gens sachent ce qu'ils notent. Assurez-vous que les catégories et les questions ne prêtent pas à confusion !
+
+Notez que les catégories de mise en avant sont liées à des histoires _par ordre, pas par nom_ ; donc si vous modifiez les noms (et même le sens) de vos catégories de mise en avant, les vieilles mises en avant  se connecteront aux nouveaux noms. Pour cette raison, décider de vos catégories de mise en avant très tôt est une bonne tactique, en faisant uniquement de petites modifications de clarification ultérieurement. Sinon, vous risquez de rendre les mises en avant existantes vides de sens ou même sources de contresens.
+
+Les gens gagnent des points pour mettre en avant des entrées en faisant des choses dans le Rakontu. Le résultat est que ceux qui participent le plus ont davantage voix au chapitre pour dire ce qui est important et ce qui ne l'est pas. C'est une incitation à participer, mais plus important encore, cela signifie que les gens ne peuvent pas avoir une part de voix disproportionnée basée sur d'autres caractéristiques (ue position élevée par exemple). En fonction de ce que les gens veulent faire, on peut pondérer différentes activités, bas ou haut en terme d'accumulation de points de mise en avant. Par exemple, si vous souhaitez vraiment que les gens répondent à des questions sur les histoires, vous pouvez donner un nombre de points d'accumulation élevé au critère "Répondre à une question" -- par exemple 10 points par question. Ou alors, vous souhaitez vraiment plus que tout que les gens racontent des histoires -- attribuez juste un nomre élevé à "ajouter une histoire". 
+
+De la même façon, si vous n'appréciez pas le système d'accumulation de points de mise en avant, attribuez un niveau ridiculement élevé aux catégories que vous pensez que les gens utiliseront le plus -- par exemple 500 pour "lire". Alors, tout le monde aura beaucoup plus de points que ce qu'ils pourront jamais utiliser, et vous aurez mis le système effectivement hors d'état de "nuire".
+
+[Gérer le système d'activité de votre Rakontu]
+Category=1.Gérer
+Order in category=5
+Interpret as=Wiki markup
+For new members=no
+Help resource=yes
+Managers only=yes
+Le système d'activité d'un Rakontu est juste un procédé qui fait apparaître des titres plus larges que les autres sur la page d'accueil de la frise temporelle. L'objectif est de montrer aux gens quelles entrées font le plus le "buzz" autour d'elles et apportent le plus de conscience sociale.
+
+Vous pouvez décider quel genre d'activité produira le plus de "buzz" en modifiant les chiffres dans la section "Activité système" dans la page Paramètres. Par exemple, si vous voulez que les gens remarquent certains thèmes en particulier, vous pouvez attribuer un chiffre élevé à "ajouter un sujet." Cela influera sur la taille de départ de chaque sujet créé. Ou alors, si vous voulez que les gens remarquent plus particulièrement l'architecture des liens entre les entrées, vous pouvez augmenter les chiffres sous chacun items reliés à des liens dans la liste. 
+
+Si vous ne voulez pas que des titres d'entrées apparaissent de manière plus large que d'autres, positionnez tous les chiffres d'activité à zéro. Cela rendra le système d'activité inopérant.
+
+[Les personnages dans votre Rakontu]
+Category=1.Gérer
+Order in category=6
+Interpret as=Wiki markup
+For new members=yes
+Help resource=yes
+Managers only=yes
+Les gens trouvent souvent plus facile de raconter des histoires, en particulier des histoires sensibles mais importantes, lorsqu'ils n'ont pas à admettre ouvertement qui les racontent. C'est particulièrement vrai si l'histoire fait apparaître le narrateur comme quelqu'un de ridicule ou stupide, ou rend le narrateur vulnérable à toutes sortes d'attentions discriminatoires. Utiliser des personnages est un moyen d'aider les gens à raconter les histoires qui doivent être racontées, d'une manière sécurisée. Par exemple, si j'ai tout juste accsé quelque chose et que je veux avertir les autres de ne pas faire de même, je pourrais vouloir davantage raconter mon message d'avertissement si je peux dire que "Le Gros Fred" l'a fait plutôt que d'admettre ma faute. Les histoires d'échecs et d'erreurs sont souvent plus utiles que les histoires de vantardise, si vous voulez apprendre quelque chose les uns des autres.
+
+Si vous voulez utiliser des personnages, réfléchissez aux personnages qui sont particulièrement utiles à votre communauté ou groupe. Quelles sortes d'histoires voulez-vous émettre ? Par exemple, si voulez aider les uns et les autres à apprendre à faire quelque chose, avoir des personnages aux points extrêmes de la connaissance -- celui qui sait tout et le petit nouveau, par exemple -- peut apporter quelque chose. Ou alors, disons que vous vouliez unir les gens de tous les côtés d'un enjeu conflictuel ; vous pouvez créer des personnages qui ont des visions extrêmes sur les enjeux. Le personnage "petit oiseau" peut être utile si vous souhaitez que les gens puissent parler de rumeurs sans avoir à dire où ils les ont entendues.
+
+Bien-sûr, certaines caractéristiques des personnages valent pour tous les groupes. Les meilleurs personnages sont *extrêmes* -- encyclopédiquement élégants, ridiculement stupides, monstrueusement irritants, parfaits en toute sainteté. Les extrêmes établissent clairement que les gens "endossent" un rôle en vue de dire quelque chose qu'ils cacheraient normalement, et que le rôle est artificiel, temporaire et lié à un objectif. Les bons personnages sont aussi *drôles* (à moins que ce soit inapproprié, bien-sûr). L'humour rend évident que le principe des personnages dans son ensemble est utile pour mettre en avant des sujets sensibles, pas un moyen de couvrir des paroles offensives ou odieuses. Faites semblant d'écouter un comédien prenant le rôle d'un personnage que vous voudriez bien entendre, et écrivez ce que vous entendez.
+
+Vous pouvez choisir d'autoriser l'attribution de personnages pour chaque type d'entrée et d'annotation. Par exemple, pour des histoires. Des thèmes, des commentaires et des mises en avant sont également des choses dont les gens pourraient avoir peur d'évoquer en leur nom propre. Cependant, vous pourriez vouloir étendre l'anonymat aux collages et aux tendances, ou même aux tags, si vous pensez que ces choses pourraient aussi être sensibles. Ou alors, vous pourriez ne vouloir autoriser l'anonymat que pour les histoires. 
+
+Si les personnages ne sont pas utiles pour votre groupe, la meilleure des choses à faire est de supprimer tous les personnages par défaut que vous rencontrez ; tout le système des personnages disparaîtra.
+
+En tant que gestionnaire, vous devez être clair (au cas où les gens demanderaient) sur le fait que rien dans le Rakontu n'est complètement anonyme, étant donné qu'un administrateur du système Rakontu peut toujours faire des recherches dans la base de données et trouver quel membre a ajouté la matière. Cependant, pour laplus grande partie, et sans effort supplémentaire, l'attribution de personnages est anonyme. 
+
+Si vous avez besoin _réellement_ d'entrées anonymes, vous pouvez toujours en obtenir en créant un ou plusieurs faux membres hors ligne, peut-être simplement nommés "Anonyme." Si vous attribuez des histoires collectées à ces membres hors ligne _sans_ conserver la trace de la provenance de ces histoires, personne, y compris vous-même, ne sera capable de retrouver la source de ces histoires. 
+
+[Les questions de votre Rakontu]
+Category=1.Gérer
+Order in category=7
+Interpret as=Wiki markup
+For new members=yes
+Help resource=yes
+Managers only=yes
+Les questions peuvent être la partie la plus importante de votre Rakontu. Demander aux gens de répondre à des questions à propos des histoires qu'ils racontent, et à propos d'autres éléments du système, peut les aider à expliquer des choses les uns aux autres. Aussi, examiner des tendances à travers les histoires et les membres peut aider votre groupe à trouver des choses étonnantes sur les tendances de signification collective qui sont opérantes. Par exemple, disons que vous trouvez que seuls les membres de plus de 50 ans ont raconté des histoires dans lesquelles le tag "soins de santé" étaient couplé avec un résultat positif, ou que seuls les membres propriétaires de chiens ont raconté des histoires sur des chats méchants, etc. Trouver des tendances utiles ensemble peut vous aider à atteindre certains objectifs.
+
+Vous pouvez établir des questions sur chaque type d'entrée (histoires, thèmes, collages, tendances et ressources). Vous pouvez aussi poser des questions sur les gens. Combiner des questions sur les gens et sur les entrées dans des filtres est utile, à vous de vous assurer que vous avez au moins quelques questions sur chaque type d'entrée et sur les membres. Votre Rakontu débutera probablement avec des questions par défaut (en fonction de la configuration de votre site). Il y a aussi des exemples de questions que vous pouvez regarder ou copier pour vous inspirer. Vous pouvez aussi échanger des questions avec d'autres Rakontus en utilisant l'importantion et l'exportation en CSV.  
+
+Pour modifier les questions de votre Rakontu, choisissez "Questions" depuis le menu Gérer. Vous pouvez utiliser la page liste de questions pour voir comment vos questions sont efficaces, parce que le nombre de personnes qui ont répondu à chacune de vos questions compte pour vous. Si vous voyez par exemple qu'une question sur cinq ne reçoit aucune réponse, il se peut que vous vouliez demander à des personnes pourquoi elles n'ont pas répondu et ensuite reformuler les questions. Pour modifier un ensemble de questions, cliquez sur le lien Modifier sur la page liste de questions. 
+
+Pour ajouter de nouvelles questions, saisissez-les dans la boîte en haut de la page des questions de ce type. Placez chaque nom de question sur une ligne séparée, et cliquez sur "Sauvegarder les modifications". Vous pouvez ajouter des détails ultérieurement.
+
+Vous pouvez désactiver les questions en cliquant sur la coche (qui se transformera en croix rouge). Cliquez à nouveau pour rétablir la question. Vous pouvez établir l'ordre des questions dans une catégorie en cliquant sur les flêches ascendantes et descendantes.
+
+Notez que que ne pouvez (jamais) supprimer complètement une question. Ceci, parce que les réponses conservent des liens avec les questions pour identifier où elles se trouvent. Des questions désactivées n'apparaissent pas dans les écrans de recherche et ne sont pas posées ; mais vous pouvez les rappeler (et effectuer à nouveau des recherches sur elles) à tout moment.
+
+Pour modifier les questions que vous avez déjà créées, cliquez sur le nom de la question lorsque vous regardez l'ensemble de questions. 
+
+Les types de questions possibles sont :
+
+  * booléennes : oui ou non (boîte à cocher)
+  * texte : mots de texte libres (une boîte texte)
+  * ordinales : choix dans un ordre (boîtes à cocher si choix multiples, liste déroulante si choix unique)
+  * nominales : choix sans ordre particulier (boîtes à cocher si choix multiples, liste déroulante si choix unique)
+  * valeur : un nombre (une boîte texte)
+
+Notez qu'il n'y a pas pour le moment de différence entre les questions ordinales et nominales. La distinction est un espace réservé au cas où nous voudrions ajouter une distinction dans de futures versions de Rakontu. Notez également que l'entrée valeur est une simple boîte texte -- ce sera peut-être un jour un curseur.
+
+Le nom, le texte et l'explication méritent une précision supplémentaire :
+
+  * Le *nom* de la question est ce qui apparaît dans la page de flitre et quand les détails sont masqués dans les frises temporelles. C'est basiquement une description de la question quand il y a peu d'espace. Ils doivent être courts mais parler de ce sur quoi porte la question.
+  * Le *texte* de la question est ce qui est demandé aux gens quand ils saisissent une histoire ou une autre entrée, ou lorsqu'ils répondent à des questions sur eux-mêmes. 
+  * L'*explication* des questions est un champ de texte optionnel dont vous pouvez vous servir pour aider les gens à comprendre une question qui peut prêter à confusion. Utilisez-la modérément, pour que votre liste de questions ne soit pas trop longue et ennuyeuse. L'explication apparapit après la question, en italique.
+
+Si une question est assortie de choix, vous pouvez modifier les choix à tout moment. Cependant, si vous supprimez un choix disponible, les gens ne pourront plus effectuer de recherches sur lui, et les réponses comportant ce choix ne pourront plus être trouvées. (Cela peut ou ne pas être ce que vous souhaitez).
+
+Si vous ne voulez plus utiliser une question, cochez la boîte pour la désactiver. Vous ne pouvez cependant pas supprimer complètement une question. Ceci, parce que les réponses des gens sont des objets dans la base de données, et sont liées aux objets questions. Si vous supprimez un objet question, les réponses ne seront plus liées à rien, et vous ne pourrez plus les lier à nouveau Les questions désactivées vont dans une zone d'où vous pouvez les rappeler si vous avez besoin de faire une recherche sur elles. Si vous n'aimez pas la formulation d'une question, il vaut mieux modifier le texte de la question plutôt que de la désactiver, _à moins que_ vous ayez besoin de changer le _sens_ de la question. 
+
+  * Faites attention à formuler la question de manière à ce que tout le monde, auteurs et lecteurs d'histoires, puissent en tirer du sens. Par exemple, n'incluez pas une question "Que ressentez-vous à propos de l'histoire que vous venez de raconter ?" -- parce que certaines personnes vont regarder les histoires _d'autres personnes_. (C'est l'un des meilleurs aspects de Rakontu, que les gens puissent enregistrer leurs opinions concernant les histoires d'autres personnes.)
+  * Les gens ont rarement envie de répondre à de nombreuses questions sur un peu tout. Plus vous posez des questions, plus vous _aurez l'impression_ d'avoir des informations, mais faites attention :la _qualité_ de l'information déclinera. Les gens sont connus pour "cliquer à côté" des choses qui les ennuient. Le nombre optimal de questions pour une entrée est : pas moins de trois, et pas plus de cinq, ou sept si vous pensez que les gens sont suffisamment engagés dans un processus de contribution. 
+  * Toute réponse aux questions est optionnelle dans le Rakontu ; vous ne pouvez pas _exiger_ que les gens répondent à une question. (Pourtquoi ? Parce que cela augmente la qualité de la réponse que vous vous obtenez).
+  * Avoir une réponse "Je ne sais pas" ou "Je ne m'en souviens pas" dans une liste de choix est souvent une bonne tactique. Vous n'avez pas besoin d'une réponse "Je ne veux pas le dire", parce que les gens peuvent simplement décliner la question ; mais vous le pouvez si vous le souhaitez.
+
+[Les limites du Rakontu]
+Category=2.Technique
+Order in category=1
+Interpret as=Wiki markup
+For new members=no
+Help resource=yes
+Managers only=yes
+Au moment où ce texte est rédigé, Rakontu est hébergé sur Google App Engine, qui établit des limitations de volume d'utilisation et de rapidité. De ce fait, Rakontu a également des limites. Deux d'entre elles sont importantes :
+
+  # Un Rakontu ne peut pas avoir plus de 1000 entrées (histoires + thèmes + tendances + collages + ressources). Pour laplupart des petits groupes, cete limite ne posera pas de problème. Si vous voulez aller au-delà de cette limite, vous pouvez supprimer de vieux items pour laisser de la place pour les nouveaux.
+  # Pour les pages avec des frises temporelles (accueil, entrée, membre, personnage), si le nombre d'items excède une constante (établie au niveau du site, par défaut 200), le nombre d'items affiché sera troncaturé (et la page le signalera). Pour en réduire le nombre, faites des sélections différentes d'unités de temps ou de types d'items.
+
+[Problèmes connus de Rakontu]
+Category=5.Technique
+Order in category=2
+Interpret as=Wiki markup
+For new members=no
+Help resource=yes
+Managers only=no
+
+*Mauvaise requête : votre client a émis une requête malformée ou illégale.* Cela arrive avec des navigateurs anciens. Rafraîchir la page peut aider à remédier au problème, tout comme la suppression des fichiers cachés (temporaires).
+
+*Les menus et les boutons sont tout gris dans Internet Explorer.* Cela ne peut apparemment pas être modifié, du fait de la façon dont IE interprète les éléments de forme.
+
+[Utiliser une feuille de style externe pour votre Rakontu]
+Category=2.Technique
+Order in category=3
+Interpret as=Wiki markup
+For new members=no
+Help resource=yes
+Managers only=yes
+En utilisant une feuille de style externe (hébergée sur une URL quelque part) vous pouvez radicalement modifier l'apparence de votre Rakontu. Saisissez simplement une URL CSS valide dans la page Apparence pour votre Rakontu. La feuille de style standard du Rakontu est chargée _avant_ (et non à la place de) votre feuille de style, vous pouvez donc remplacer uniquement les éléments que vous souhaitez modifier.
+
+Le meilleur moyen de modifier la façon dont les choses apparaissent sur les pages du Rakontu est de simplement regarder la page source d'une page que vous aimez et d'examiner les classes et divisions qui y sont déployées. Vous pouvez aussi directement regarder la feuille de style qu'utilise le Rakontu, nommée "base.css", située dans le répertoire "feuilles de style" sous l'URL principale de votre Rakontu. 
+
+Les classes d'éléments définies pour une page Rakontu (chacune d'entre elles parle pour elle-même) sont :
+
+  * img.bordered (avec bordure)
+  * table.fullwidth (pleine largeur, uniquement utilisée dans la table des menus)
+  * table.noborder (sans bordure, utilisée dans beaucoup d'endroits où les tables sans bordure sont recherchées)
+  * td.noborder (la même chose qu'une table sans bordure)
+  * ul li.nobullet (sans puce)
+
+Additionnellement, certaines classes sans lien avec des éléments (<div class="">):
+
+  * .rightalign (alignement à droite, utilisée pour placer des choses sur la droite)
+  * .blurb (texte de présentation, utilisé pour les textes d'entrée et d'autres choses à lire "en médaillon")
+  * .message (affiche le message "Vos modifications ont été sauvegardées". PAS dans les habillages/skins)
+  * .indented (défonce, uniquement utilisée à certains endroits où les choses doivent être mises en lumière, mais pas avec une couleur spéciale)
+
+Les divisions définies (<div id="">) sont les suivantes :
+
+  * #header (haut de page)
+  * #footer (bas de page)
+  * #content (tout le reste)
+
+Les menus en haut des pages du Rakontu utilisent plusieurs divisions pour créerun menu CSS-uniquement (bien que Javascript soit utilisé pour IE6 uniquement). Cette technique provient de [[http://www.cssnewbie.com/easy-css-dropdown-menus (Easy CSS DropdownMenus)]] sur cssnewbie.com (merci à eux !).
+
+  * #topmenu
+  * #topmenu li
+  * #topmenu li:hover ul, #topmenu li.hover ul 
+  * #topmenu li:hover li, #topmenu li.hover li 
+  * #topmenu li a 
+  * #topmenu li ul
+  * #topmenu li:hover li a, #topmenu li.hover a
+  * #topmenu li li
+  * #topmenu li li a:hover
+
+Les formulaires sont gérés par l'une des deux classes *.rakontu_form_centered* (utilisée unqiuement sur la page de démarrage et le formulaire d'administration "créer un nouveau Rakontu") et *.rakontu_form* (utilisée pour tous les autres formulaires).
+
+La division "rakontu_form_style" entoure tous les formulaires. Elle inclut des spécifications pour les éléments *étiquetter*, *sélectionner*, *contribution* et *zonedetexte*. Il y a aussi un style ":hover" pour chacun.
+
+Il y a deux classes de styles pour les soumissions de formulaire-contribution : *input.button* et *input.button_small*, encore une fois avec ":hover". Les boutons les plus petits sont utilisés sur les frises temporelles ou à tout autre endroit où une option est choisie sans toutefois être l'élément principal de la page.
+
+Il y a quelques boutons images relatifs à des images de fond du CSS :
+
+  * #rakontu_form_style input.flag_red (uses URL/images/flag_red.png)
+  * #rakontu_form_style input.flag_green (uses URL/images/flag_green.png)
+  * #rakontu_form_style input.move_up (uses URL/images/arrow_up.png)
+  * #rakontu_form_style input.move_down (uses URL/images/arrow_down.png)
+  * #rakontu_form_style input.active (uses URL/images/accept.png)
+  * #rakontu_form_style input.inactive (uses URL/images/cancel.png)
+  * #rakontu_form_style input.time_first (uses URL/images/time_first.png)
+  * #rakontu_form_style input.time_back (uses URL/images/time_back.png)
+  * #rakontu_form_style input.time_forward (uses URL/images/time_forward.png)
+  * #rakontu_form_style input.time_last (uses URL/images/time_last.png)
+
+Si vous utilisez une feuille de style spécifiques et souhaitez passer outre les styles de ces boutons, il vous faudra soit copier ces fichiers image là où la feuille de style se trouve, où les référencer avec une URL complète. 
+
+Notez que tous ces boutons image nécessitent une spécification :hover de "border:none" sous peine d'apparaître avec une bordure inesthétique lorsque vous les parcourerez. (A moins que vous aimiez cela).

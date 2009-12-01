@@ -215,7 +215,7 @@ class ReviewTopicsPage(ErrorHandlingRequestHander):
 						unrespondedTopics.extend(moreUnrespondedTopics)
 					topics = unrespondedTopics
 				template_values = GetStandardTemplateDictionaryAndAddMore({
-							   	   'title': TITLES["REVIEW_INVITATIONS"], 
+							   	   'title': TITLES["REVIEW_TOPICS"], 
 								   'rakontu': rakontu, 
 								   'skin': rakontu.getSkinDictionary(),
 								   'current_member': member,

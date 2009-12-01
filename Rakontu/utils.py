@@ -9,7 +9,8 @@
 import os		 
 import string			   
 import cgi		    
-import htmllib		    
+import htmllib		
+import codecs    
 		  
 from models import *		     
 	  
@@ -675,7 +676,7 @@ class ExportHandler(ErrorHandlingRequestHander):
 def GenerateHelps():
 	db.delete(AllHelps()) 
 	helps = [] 
-	file = open(HELP_FILE_NAME) 
+	file = codecs.open(HELP_FILE_NAME, "r", "utf-8")
 	try:
 		helpStrings = csv.reader(file)
 		for row in helpStrings:
@@ -702,7 +703,7 @@ def GenerateHelps():
 def GenerateSkins(): 
 	db.delete(AllSkins())
 	skins = []
-	file = open(SKINS_FILE_NAME)
+	file = codecs.open(SKINS_FILE_NAME, "r", "utf-8")
 	try: 
 		rows = csv.reader(file)
 		for row in rows:
@@ -749,7 +750,7 @@ def GetSkinNames():
 
 def ReadQuestionsFromFileOrString(rakontu=None, referToType=None, rakontuType="ALL", fileName=None, inputString=None):
 	if fileName:
-		file = open(fileName)
+		file = codecs.open(fileName, "r", "utf-8")
 	try:
 		if fileName:
 			questionStrings = csv.reader(file) 
@@ -847,7 +848,7 @@ def GenerateDefaultQuestionsForRakontu(rakontu):
 	
 def GenerateDefaultCharactersForRakontu(rakontu):
 	if os.path.exists(DEFAULT_CHARACTERS_FILE_NAME):
-		file = open(DEFAULT_CHARACTERS_FILE_NAME)
+		file = codecs.open(DEFAULT_CHARACTERS_FILE_NAME, "r", "utf-8")
 		try:
 			questionStrings = csv.reader(file)
 			characters = []
@@ -882,7 +883,7 @@ def GenerateDefaultCharactersForRakontu(rakontu):
 	 
 def GenerateSystemResources(): 
 	db.delete(SystemEntriesOfType("resource"))
-	file = open(DEFAULT_RESOURCES_FILE_NAME) 
+	file = codecs.open(DEFAULT_RESOURCES_FILE_NAME, "r", "utf-8")
 	lines = file.readlines()
 	resources = []
 	currentText = "" 
