@@ -475,6 +475,8 @@ class EnterEntryPage(ErrorHandlingRequestHander):
 					db.put(thingsToPut)
 					db.delete(thingsToDelete)
 				db.run_in_transaction(txn, thingsToPut, thingsToDelete, thingsToPublish)
+				if isFirstPublish:
+					SendEmailNotificationsForEvent(EMAIL_EVENTS["entry created"], entry)
 				if preview:
 					self.redirect(BuildURL("dir_visit", "url_preview", entry.urlQuery()))
 				elif entry.draft:

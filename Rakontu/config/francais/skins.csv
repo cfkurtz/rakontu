@@ -1,0 +1,60 @@
+"; HABILLAGES DU RAKONTU (SKINS)",,,,,,,,,,,,
+"; Pour ajouter un habillage, ajoutez une colonne et remplissez-la.",,,,,,,,,,,,
+"; Exceptés les noms des polices, les noms sont des codes couleur hex.",,,,,,,,,,,,
+"; Toutes les couleurs numériques hex doivent être entourées de guillemets.",,,,,,,,,,,,
+"; Ne modifiez pas la première colonne - les noms doivent correspondre dans le code source !",,,,,,,,,,,,
+"; Les noms des habillages (qui apparaissent à l'utilisateur) peuvent être traduits.",,,,,,,,,,,,
+"; Les noms des habillages doivent être uniques (pas deux fois le même).",,,,,,,,,,,,
+"; Dans le fichier ""language_config.py"" il y a un paramètre DEFAULT_SKIN_NAME. ",,,,,,,,,,,,
+"; Sa valeur DOIT correspondre à l'un de ces noms.",,,,,,,,,,,,
+"; Il s'agit de l'habillage utilisé avant que les gestionnaires du Rakontu n'en aient sélectionné un.",,,,,,,,,,,,
+"; Laissez la cellule vierge pour utiliser le blanc pour les fonds, le noir pour les textes, le gris pour les bordures et trames hovers ???.",,,,,,,,,,,,
+,,,,,,,,,,,,
+"ELEMENT","EXPLICATION DE L'ELEMENT","niveaux de gris","coucher de soleil","rose pourpre","choses qui grandissent","funky","toast","terminal","camion de pompier","paysages marins","business important","tournesols"
+"font_general","sur le contenu général","Georgia, serif","Verdana, Geneva, Arial, Helvetica, sans-serif","Garamond, Baskerville, Caslon, Georgia, ""Times New Roman"", Times, serif","""Trebuchet MS"", ""Palatino Linotype"", ""Book Antiqua"", Palatino6, serif","Gadget, fantasy, sans-serif","Verdana, Arial, Helvetica, sans-serif","""Andale Mono"", ""Lucida Console"", Monaco, monospace","""Arial Black"", Gadget, sans-serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif","Tahoma, Geneva, sans-serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif"
+"font_top","sur la zone de la bannière supérieure","Verdana, Arial, Helvetica, sans-serif","Verdana, Geneva, Arial, Helvetica, sans-serif","Garamond, Baskerville, Caslon, Georgia, ""Times New Roman"", Times, serif","Verdana, Arial, Helvetica, sans-serif","Gadget, fantasy, sans-serif","Verdana, Arial, Helvetica, sans-serif","""Andale Mono"", ""Lucida Console"", Monaco, monospace","""Arial Black"", Gadget, sans-serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif","""MS Serif"", ""New York"", ""Arial"", serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif"
+"font_menus","sur les menus","Verdana, Arial, Helvetica, sans-serif","Verdana, Geneva, Arial, Helvetica, sans-serif","Garamond, Baskerville, Caslon, Georgia, ""Times New Roman"", Times, serif","Verdana, Arial, Helvetica, sans-serif","Gadget, fantasy, sans-serif","Verdana, Arial, Helvetica, sans-serif","""Andale Mono"", ""Lucida Console"", Monaco, monospace","""Arial Black"", Gadget, sans-serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif","""MS Serif"", ""New York"", ""Arial"", serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif"
+"font_buttons","sur les boutons","sans-serif","Verdana, Geneva, Arial, Helvetica, sans-serif","Garamond, Baskerville, Caslon, Georgia, ""Times New Roman"", Times, serif","Verdana, Arial, Helvetica, sans-serif","Gadget, fantasy, sans-serif","Verdana, Arial, Helvetica, sans-serif","""Andale Mono"", ""Lucida Console"", Monaco, monospace","""Arial Black"", Gadget, sans-serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif","""MS Serif"", ""New York"", ""Arial"", serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif"
+"font_headers","sur les titres h1, h2, h3 dans le texte","sans-serif","Verdana, Geneva, Arial, Helvetica, sans-serif","Garamond, Baskerville, Caslon, Georgia, ""Times New Roman"", Times, serif","Verdana, Arial, Helvetica, sans-serif","Gadget, fantasy, sans-serif","Verdana, Arial, Helvetica, sans-serif","""Andale Mono"", ""Lucida Console"", Monaco, monospace","""Arial Black"", Gadget, sans-serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif","Tahoma, Geneva, sans-serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif"
+"font_inputs","sur les boîtes d'entrée de texte (les listes déroulantes utilisent la police des boutons)",,"Verdana, Geneva, Arial, Helvetica, sans-serif","Garamond, Baskerville, Caslon, Georgia, ""Times New Roman"", Times, serif","Verdana, Arial, Helvetica, sans-serif","Gadget, fantasy, sans-serif","Verdana, Arial, Helvetica, sans-serif","""Andale Mono"", ""Lucida Console"", Monaco, monospace","""Arial Black"", Gadget, sans-serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif","Tahoma, Geneva, sans-serif","""Lucida Sans Unicode"", ""Lucida Grande"", sans-serif"
+,,,,,,,,,,,,
+"color_text_h1","h1 text",,,"9A32CD","""215E21""","DDDDDD","B13E0F","7CFC00",,"00688B","236B8E","8B6508"
+"color_text_h2","h2 text",,,"9A32CD","""215E21""","DDDDDD","""993300""","7CFC00",,"00688B","236B8E","8B6508"
+"color_text_h3","h3 text",,,"9A32CD","""215E21""","DDDDDD","8A360F","7CFC00",,"00688B","236B8E","8B6508"
+,,,,,,,,,,,,
+"color_background_general","sur toutes les pages",,"FAEBD7","FFE1FF","F0FFF0","00688B","FEE8D6","""111111""","CD0000","67E6EC","F8F8FF","FEF1B5"
+"color_text_link","liens dans le texte",,"8B4500","551A8B","2C5D3F",,"A68064","7CFC00",,"324F17","283A90",
+"color_text_link_hover","effet mouse-over pour les liens","FFFFFF","FFFFFF","FFFFFF","FFFFFF","DDDDDD","FAF0E6",,,"FFFFFF","FFFFFF",
+"color_background_link_hover","effet mouse-over pour les liens","""666666""","EECBAD","FF00FF","2F4F2F","00B2EE","8B5A2B","7CFC00",,"00688B","35586C","FFFF00"
+"color_text_plain","texte intégral - habituellement noir",,,"551A8B","""000000""","DDDDDD","5C3317","7CFC00",,"324F17",,
+,,,,,,,,,,,,
+"color_background_excerpt","derrière le texte de l'histoire et d'autres items mis en évidence",,"FFEECC","F6A4D5","DEB887","00FA9A","FAF0E6","""111111""","D98719","C6E2FF","F8F8FF","DFFFA5"
+"color_text_excerpt","dans les extraits - avec color_background_excerpt",,,"551A8B","""000000""",,"733D1A","7CFC00",,"00688B",,
+,,,,,,,,,,,,
+"color_background_entry","pour indiquer que l'utilisateur entre des données","CCCCCC","EECBAD","FF92BB","D2B48C","00B2EE","CD853F","""666666""","FF9912","7FFFD4","ADD8E6","8BA446"
+"color_text_entry","dans les zones d'entrée - avec color_background_entry",,,"551A8B",,,,"7CFC00",,"00688B",,
+,,,,,,,,,,,,
+"color_background_table_header","pour faire en sorte que les en-têtes de table ressortent un peu","EEEEEE","FFEECC","F6A4D5","A6D785","00FF66","AA6600","""111111""","FFE600","0FDDAF","B0C4DE","BEE554"
+"color_text_table_header","dans les en-têtes de table - avec color_background_table_header",,,"551A8B","""000000""",,"FFDEAD","7CFC00",,"00688B",,
+,,,,,,,,,,,,
+"color_background_menus","sur les menus","DDDDDD","FFEECC","F6A4D5","A6D785","00FF66","EDC393","""111111""","FFE600","62B1F6","F8F8FF","CD950C"
+"color_background_menus_hover","sur les menus quand on les survolent","""999999""","FF7F00","EE82EE","3EA055","FFCC99","8B5A00","""666666""","FF0000","548B54","B0C4DE","FCD116"
+"color_text_menus","dans les menus - avec color_background_menus",,,"551A8B","""000000""","007FFF",,"7CFC00",,"00688B",,
+"color_text_menus_hover","dans les menus - avec color_background_menus_hover","FFFFFF",,"FFFFFF","""000000""","104E8B","FFFFFF","7CFC00",,"FFFFFF",,
+,,,,,,,,,,,,
+"color_background_grid_top","grille d'entrée sur la page d'accueil, grille d'annotation sur la page d'entrée",,"FAEBD7","EEAEEE","CCFFCC","FFCC99","FFEFDB","""666666""","8B8989","90FEFB","CAE1FF","FFE303"
+"color_background_grid_bottom","bas de la même grille (doit être effacé du haut)","""666666""","CD853F","9C6B98","548B54","7CFC00","EDC393","""111111""","EE7621","0FDDAF","88ACE0","CD950C"
+"color_text_grid","textes (pas les liens) dans la grille principale",,,"551A8B",,,,"7CFC00",,"00688B",,
+,,,,,,,,,,,,
+"color_background_inputs","couleur de fond dans les boîtes de texte et les boîtes déroulantes",,"FFFAF0","E6E6FA","CCFFCC","FFCC99","FAF0E6","CCCCCC","FFE600","FFF5EE",,"BEE554"
+"color_text_inputs","dans les boîtes de texte - avec color_background_inputs",,,"7D26CD",,,,,,"00688B",,
+"color_border_input_hover","effet mouse-over pour les boîtes d'entrée",,"""993300""","862A51","""003300""","FF2400","AA6600","0000FF","1D7CF2","1E90FF","FF0000","83F52C"
+"color_text_label_hover","vignettes telles que les noms de boîtes à cocher","""666666""","""666666""","0000CD","4D6B50",,"CDC5BF","FF0000",,"F08080",,"CD661D"
+,,,,,,,,,,,,
+"color_background_button","tous les boutons",,"FFD39B","DA70D6","CD8500","EE5C42","8B5A00","""666666""",,"62B1F6","9BC4E2","CD950C"
+"color_background_button_hover","effet mouse-over pour les boutons","DDDDDD","CD6839","FF00FF","0AC92B","E3170D","CDAA7D","""999999""","1D7CF2","548B54","5D92B1","FCD116"
+"color_text_buttons","dans les boutons - avec color_background_button",,,"551A8B","""000000""","104E8B","FFFFFF","7CFC00",,"00688B",,
+"color_text_buttons_hover","dans les boutons - avec color_background_button _hover",,,,,,,,"FFFFFF","FFFFFF","FFFFFF",
+,,,,,,,,,,,,
+"color_border_normal","autour de tous les éléments","""999999""","FF7F00","""9E0508""","3EA055","7FFF00","""603311""","FF0000","FFFFFF","00688B","003F87","8B6508"
+"color_border_image","autour des images",,"FF7F00","9A32CD","""003300""","7FFF00","""603311""","FF0000",,"00688B","003F87","8B6508"

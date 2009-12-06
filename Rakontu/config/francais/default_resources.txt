@@ -1,4 +1,4 @@
-﻿; Fichier ressources par défaut pour le site Rakontu
+; Fichier ressources par défaut pour le site Rakontu
 ; Pour les quatre premières lignes de chaque ressource, ne modifiez pas ce qui se trouve à gauche du signe égal (mais agencez librement ce qui se trouve sur la partie droite !)
 ; Toutes les lignes qui suivent la dernière ligne contenant le signe égal, et ce jusqu'à la ligne [Nom] suivante, sont des éléments de la ressource.
 ; Toutes les lignes qui débutent par une demi-colonne sont des commentaires et ne sont pas prises en compte.
@@ -349,7 +349,7 @@ Vous pouvez aussi entrer les réponses que vos membres hors ligne ont données -
 [Balise de wiki dans Rakontu]
 Category=4.Textes
 Order in category=1
-Considérer comme=HTML simple
+Interpret as=Simple HTML
 For new members=no
 Help resource=yes
 Managers only=no

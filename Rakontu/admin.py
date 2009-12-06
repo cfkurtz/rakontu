@@ -138,6 +138,10 @@ class AdministerSitePage(ErrorHandlingRequestHander):
 						   	   'rakontu_access_states': RAKONTU_ACCESS_STATES,
 						   	   'rakontu_access_states_display': RAKONTU_ACCESS_STATES_DISPLAY,
 							   # here we do NOT give the current_member or rakontu
+							   'DEFAULT_RESOURCES_FILE_NAME': DEFAULT_RESOURCES_FILE_NAME,
+							   'SKINS_FILE_NAME': SKINS_FILE_NAME,
+							   'HELP_FILE_NAME': HELP_FILE_NAME,
+							   'SAMPLE_QUESTIONS_FILE_NAME': SAMPLE_QUESTIONS_FILE_NAME,
 							   })
 			path = os.path.join(os.path.dirname(__file__), FindTemplate('admin/admin.html'))
 			self.response.out.write(template.render(path, template_values))

@@ -13,21 +13,21 @@
 	<fieldset>
 	<ol>
 	<li><a href="/{{dir_admin}}/{{url_default_resources}}">{{template_generate}}</a> 
-	{{template_default_help_resources_from}} <code>config/{{site_language}}/default_resources.txt</code> -
+	{{template_default_help_resources_from}} <code>{{DEFAULT_RESOURCES_FILE_NAME}}</code> -
 	<b>{{num_default_resources}}</b> {{template_have_been_created}} 
 	{% if site_resource_names %} ({{site_resource_names}}) {% endif %}
 	</li>
 	<li><a href="/{{dir_admin}}/{{url_skins}}">{{template_generate}}</a> 
-	{{template_skins_from}} <code>config/{{site_language}}/skins.csv</code> -
+	{{template_skins_from}} <code>{{SKINS_FILE_NAME}}</code> -
 	<b>{{num_skins}}</b> {{template_have_been_created}} 
 	{% if skin_names %} ({{skin_names}}) {% endif %}
 	</li>
 	<li><a href="/{{dir_admin}}/{{url_helps}}">{{template_generate}}</a> 
-	{{template_help_texts_from}} <code>config/{{site_language}}/help.csv</code> -
+	{{template_help_texts_from}} <code>{{HELP_FILE_NAME}}</code> -
 	<b>{{num_helps}}</b> {{template_have_been_created}} 
 	</li>
 	<li><a href="/{{dir_admin}}/{{url_sample_questions}}">{{template_generate}}</a> 
-	{{template_sample_questions_from}} <code>config/{{site_language}}/sample_questions.csv</code> -
+	{{template_sample_questions_from}} <code>{{SAMPLE_QUESTIONS_FILE_NAME}}</code> -
 	<b>{{num_sample_questions}}</b> {{template_have_been_created}} 
 	</li>
 	</ol>

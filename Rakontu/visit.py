@@ -134,8 +134,6 @@ class BrowseEntriesPage(ErrorHandlingRequestHander):
 			skinDict = rakontu.getSkinDictionary()
 			(entries, overLimitWarning, numItemsBeforeLimitTruncation) = ItemsMatchingViewOptionsForMemberAndLocation(member, "home")
 			textsForGrid, rowColors, minNudgePoints, maxNudgePoints = self.buildGrid(entries, member, skinDict, curating)
-			
-			
 			template_values = GetStandardTemplateDictionaryAndAddMore({
 							'title': TITLES["HOME"],
 							'rakontu': rakontu, 
@@ -281,9 +279,9 @@ class ReadEntryPage(ErrorHandlingRequestHander):
 				entryHasLinks = entry.hasLinks()
 				memberCanEditEntry = entry.memberCanEditMe(member)
 				
-				# CFK TEMP - this is for fixing up problems - don't leave here indefinitely
-				if users.is_current_user_admin():
-					memberCanEditEntry = True
+				# CFK TEMP - this is for fixing up problems
+				#if users.is_current_user_admin():
+				#	memberCanEditEntry = True
 
 				countNames, counts = entry.getCounts()
 				template_values = GetStandardTemplateDictionaryAndAddMore({
@@ -702,7 +700,9 @@ class SendMessagePage(ErrorHandlingRequestHander):
 		if access:
 			if isFirstVisit: self.redirect(member.firstVisitURL())
 			try:
+				key = "sendMessage:%s" % member.key()
 				membersToSendMessagesTo = memcache.get("sendMessage:%s" % member.key())
+				memcache.delete(key)
 			except:
 				membersToSendMessagesTo = None
 			if membersToSendMessagesTo:
@@ -729,10 +729,16 @@ class SendMessagePage(ErrorHandlingRequestHander):
 			if member.googleAccountID == user.user_id() and member.googleAccountEmail != user.email():
 				member.googleAccountEmail = user.email()
 				member.put()
-			try:
-				membersToSendMessagesTo = memcache.get("sendMessage:%s" % member.key())
-			except:
-				membersToSendMessagesTo = None
+			# get recipient keys passed through form
+			keys = []
+			for name, value in self.request.params.items():
+					if name.find("membersToSendTo") >= 0:
+						keys.append(value)
+			membersToSendMessagesTo = []
+			for key in keys:
+				aMember = Member.get(key)
+				if aMember:
+					membersToSendMessagesTo.append(aMember)
 			if membersToSendMessagesTo:
 				emailAddresses = []
 				for aMember in membersToSendMessagesTo:
@@ -749,14 +755,16 @@ class SendMessagePage(ErrorHandlingRequestHander):
 						foundGoodSendEmail = True
 						break
 				if emailAddresses and foundGoodSendEmail:
+					subject = stripTags(self.request.get("subject"))
+					body = stripTags(self.request.get("message"))
 					message = mail.EmailMessage()
 					message.sender = member.googleAccountEmail
 					message.reply_to = member.googleAccountEmail
-					message.subject = stripTags(self.request.get("subject"))
+					message.subject = subject
 					if self.request.get("sendCopy") == "yes":
 						message.cc = member.googleAccountEmail
 					message.to = emailAddresses 
-					message.body = stripTags(self.request.get("message"))
+					message.body = body
 					try:
 						message.send()
 					except Exception, e:
@@ -2202,6 +2210,28 @@ def ItemDisplayStringForGrid(item, member, location, curating=False, showDetails
 			fontSizePercent = int(max(MIN_BROWSE_FONT_SIZE_PERCENT, min(fontSizePercent, MAX_BROWSE_FONT_SIZE_PERCENT)))
 		fontSizeStartString = '<span style="font-size:%s%%">' % fontSizePercent
 		fontSizeEndString = "</span>"
+	# last annotation string if entry
+	if item.__class__.__name__ == "Entry":
+		if item.lastAnnotationAnswerOrLinkString:
+			lastAnnotationString = item.lastAnnotationAnswerOrLinkString
+		else:
+			items = item.getAnnotationsAnswersAndLinks()
+			if items:
+				items.sort(lambda a,b: cmp(b.created, a.created))
+				lastItem = items[0]
+				if lastItem.__class__.__name__ == "Annotation":
+					imageString = ImageLinkForAnnotationType(lastItem.type, 0, lastItem.displayString()[:400])
+				if lastItem.__class__.__name__ == "Answer":
+					imageString = ImageLinkForAnswer(0, lastItem.displayString().replace("\n", " ")[:400])
+				if lastItem.__class__.__name__ == "Link":
+					imageString = ImageLinkForLink(0, lastItem.displayStringForTooltip()[:400])
+				lastAnnotationString = imageString 
+			else:
+				lastAnnotationString = ""
+			item.lastAnnotationAnswerOrLinkString = lastAnnotationString
+			item.put()
+	else:
+		lastAnnotationString = ""
 	# link string
 	if item.__class__.__name__ == "Answer":
 		if showDetails: 
@@ -2223,17 +2253,28 @@ def ItemDisplayStringForGrid(item, member, location, curating=False, showDetails
 		linkString = item.linkString()
 	# name 
 	if showDetails and location != "member":
-		if item.attributedToMember(): 
-			if item.creator.active:
-				nameString = ' (%s' % (item.creator.linkString())
-			else: 
-				nameString = ' (%s' % item.creator.nickname
+		if item.__class__.__name__ == "Link":
+			if (item.itemFrom.isEntry() and item.itemFrom.attributedToMember()) and \
+				(item.itemTo.isEntry() and item.itemTo.attributedToMember()):
+				if item.creator.active:
+					nameString = ' (%s' % (item.creator.linkString())
+				else: 
+					nameString = ' (%s' % item.creator.nickname
+				nameString += ", "
+			else:
+				nameString = ""
 		else:
-			if item.character.active: 
-				nameString = ' (%s' % (item.character.linkString())
-			else: 
-				nameString = ' (%s' % item.character.name
-		nameString += ", "
+			if item.attributedToMember(): 
+				if item.creator.active:
+					nameString = ' (%s' % (item.creator.linkString())
+				else: 
+					nameString = ' (%s' % item.creator.nickname
+			else:
+				if item.character.active: 
+					nameString = ' (%s' % (item.character.linkString())
+				else: 
+					nameString = ' (%s' % item.character.name
+			nameString += ", "
 	else:
 		nameString = ""
 	# curating flag 
@@ -2249,22 +2290,6 @@ def ItemDisplayStringForGrid(item, member, location, curating=False, showDetails
 		dateTimeString = " %s)" % TimeDisplay(item.published, member)
 	else:
 		dateTimeString = ""
-	# annotations count string if entry and showing details
-	annotationsCountString = ""
-	if showDetails and item.__class__.__name__ == "Entry":
-		if datetime.now(tz=pytz.utc) - item.lastTouched() > timedelta(seconds=UPDATE_ANNOTATION_COUNTS_SECONDS):
-			if random.randrange(100) < 20: # spread it out
-				item.updateAnnotationAnswerLinkCounts()
-		annotationsCountString += " "
-		i = 0
-		for type in ANNOTATION_TYPES:
-			if item.numAnnotations[i] > 0:
-				annotationsCountString += ImageLinkForAnnotationType(type, item.numAnnotations[i]) 
-			i += 1
-		if item.numAnswers > 0:
-			annotationsCountString += ImageLinkForAnswer(item.numAnswers) 
-		if item.numLinks > 0:
-			annotationsCountString += ImageLinkForLink(item.numLinks) 
 	# longer text if showing details
 	if showDetails:
 		if item.__class__.__name__ == "Annotation":
@@ -2284,7 +2309,7 @@ def ItemDisplayStringForGrid(item, member, location, curating=False, showDetails
 			textString = ""
 	else:
 		textString = ""
-	return '<p>%s %s %s %s%s%s%s%s%s</p>' % (item.getImageLinkForType(), fontSizeStartString, curateString, linkString, fontSizeEndString, annotationsCountString, nameString, dateTimeString, textString)
+	return '<p>%s%s %s %s %s%s%s%s%s</p>' % (item.getImageLinkForType(), lastAnnotationString, fontSizeStartString, curateString, linkString, fontSizeEndString, nameString, dateTimeString, textString)
 
 def GetMinMaxNudgeAndActivityPointsFromListOfItems(items, member, location):
 		maxNudgePoints = -9999999

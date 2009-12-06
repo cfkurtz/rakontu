@@ -674,71 +674,69 @@ class ExportHandler(ErrorHandlingRequestHander):
 # ============================================================================================
 
 def GenerateHelps():
-	db.delete(AllHelps()) 
+	db.delete(AllHelps())  
 	helps = [] 
-	file = codecs.open(HELP_FILE_NAME, "r", "utf-8")
-	try:
-		helpStrings = csv.reader(file)
-		for row in helpStrings:
-			if len(row[0]) > 0 and row[0][0] != ";":
-				keyName = GenerateSequentialKeyName("help") # no rakontu - system level
-				type = row[0].strip()
-				name = row[1].strip()
-				translatedName = row[2].strip()
-				whereUsed = row[3] # not used
-				needsTranslating = row[4] # not used
-				text = row[5].strip().replace("\n", "")[:500]
-				help = Help(
-						key_name=keyName,  
-						id=keyName,
-						type=type,  
-						name=name, 
-						translatedName=translatedName,
-						text=text) 
-				helps.append(help) 
-		db.put(helps) 
-	finally: 
-		file.close()     
-		   
+	helpStrings = unicode_csv_reader(open(HELP_FILE_NAME))
+	for row in helpStrings:
+		if len(row[0]) > 0 and row[0][0] != ";":
+			keyName = GenerateSequentialKeyName("help") # no rakontu - system level
+			type = row[0].strip()
+			name = row[1].strip()
+			translatedName = row[2].strip()
+			whereUsed = row[3] # not used
+			needsTranslating = row[4] # not used
+			text = row[5].strip().replace("\n", "")[:500] 
+			help = Help(
+					key_name=keyName,  
+					id=keyName,
+					type=type,  
+					name=name, 
+					translatedName=translatedName,
+					text=text) 
+			helps.append(help) 
+	db.put(helps) 
+		
+# from http://stackoverflow.com/questions/904041/reading-a-utf8-csv-file-with-python
+def unicode_csv_reader(utf8_data, dialect=csv.excel, **kwargs):
+    csv_reader = csv.reader(utf8_data, dialect=dialect, **kwargs)
+    for row in csv_reader:
+        yield [unicode(cell, 'utf-8') for cell in row]
+		
 def GenerateSkins(): 
 	db.delete(AllSkins())
 	skins = []
-	file = codecs.open(SKINS_FILE_NAME, "r", "utf-8")
-	try: 
-		rows = csv.reader(file)
-		for row in rows:
-			key = row[0].strip()
-			if len(key) > 0 and key[0] != ";":
-				if key == "ELEMENT":
-					for cell in row[2:]: # 2 because 1 is explanation of element
-						keyName = GenerateSequentialKeyName("skin") # no rakontu - system level
-						skin = Skin(
-								key_name=keyName,
-								id=keyName,
-								name=cell.strip())
-						skins.append(skin)
-				else:
-					colIndex = 0
-					for cell in row[2:]: # 2 because 1 is explanation of element
-						textToUse = cell.strip()
-						if textToUse == "":
-							if key.find("color_text") >= 0:
-								textToUse = "000000"
-							elif key.find("_hover") >= 0: # put after text, so hover texts stay black
-								textToUse = "CCCCCC"
-							elif key.find("color_border") >= 0:
-								textToUse = "666666"
-							elif key.find("color_background") >= 0:
-								textToUse = "FFFFFF"
-						# this is because for numerical hex entries there needs to be quotes around it
-						if textToUse and textToUse[0] == '"' and textToUse[-1] == '"': 
-							textToUse = textToUse[1:]
-							textToUse = textToUse[:-1]
-						setattr(skins[colIndex], key, textToUse)
-						colIndex += 1
-		db.put(skins)
-	finally:	
-		file.close()
+	rows = unicode_csv_reader(open(SKINS_FILE_NAME))
+	for row in rows:
+		key = row[0].strip()
+		if len(key) > 0 and key[0] != ";":
+			if key == "ELEMENT":
+				for cell in row[2:]: # 2 because 1 is explanation of element
+					keyName = GenerateSequentialKeyName("skin") # no rakontu - system level
+					skin = Skin(
+							key_name=keyName,
+							id=keyName,
+							name=cell.strip())
+					skins.append(skin)
+			else:
+				colIndex = 0
+				for cell in row[2:]: # 2 because 1 is explanation of element
+					textToUse = cell.strip()
+					if textToUse == "":
+						if key.find("color_text") >= 0:
+							textToUse = "000000"
+						elif key.find("_hover") >= 0: # put after text, so hover texts stay black
+							textToUse = "CCCCCC"
+						elif key.find("color_border") >= 0:
+							textToUse = "666666"
+						elif key.find("color_background") >= 0:
+							textToUse = "FFFFFF"
+					# this is because for numerical hex entries there needs to be quotes around it
+					if textToUse and textToUse[0] == '"' and textToUse[-1] == '"': 
+						textToUse = textToUse[1:]
+						textToUse = textToUse[:-1]
+					setattr(skins[colIndex], key, textToUse)
+					colIndex += 1
+	db.put(skins)
 				
 def GetSkinNames():  
 	skins = AllSkins()
@@ -750,91 +748,86 @@ def GetSkinNames():
 
 def ReadQuestionsFromFileOrString(rakontu=None, referToType=None, rakontuType="ALL", fileName=None, inputString=None):
 	if fileName:
-		file = codecs.open(fileName, "r", "utf-8")
-	try:
-		if fileName:
-			questionStrings = csv.reader(file) 
-		else:
-			questionStrings = csv.reader(inputString.split("\n"))
-		questionsToPut = []
-		referenceCounts = {}
-		for row in questionStrings:
-			if row[0] and row[0][0] != ";": 
-				if rakontuType != "ALL":
-					if row[1]:  
-						typesOfRakontu = [x.strip() for x in row[1].split("|")]
-					else: 
-						# if nothing in cell, use the whole list of types, except the last custom one
-						typesOfRakontu = RAKONTU_TYPES[:-1] 
-				else:
+		questionStrings = unicode_csv_reader(open(fileName))
+	else:
+		questionStrings = csv.reader(inputString.split("\n"))
+	questionsToPut = []
+	referenceCounts = {}
+	for row in questionStrings:
+		if row[0] and row[0][0] != ";": 
+			if rakontuType != "ALL":
+				if row[1]:  
+					typesOfRakontu = [x.strip() for x in row[1].split("|")]
+				else: 
+					# if nothing in cell, use the whole list of types, except the last custom one
 					typesOfRakontu = RAKONTU_TYPES[:-1] 
-				if rakontuType == "ALL" or rakontuType in typesOfRakontu:
-					refersTo = [x.strip() for x in row[0].split("|")]  
-					for reference in refersTo: 
-						if not reference in QUESTION_REFERS_TO:
-							continue
-						if referToType and reference != referToType:
-							continue
-						if not referenceCounts.has_key(reference):
-							referenceCounts[reference] = 0 
-						else: 
-							referenceCounts[reference] += 1 
-						name = row[2]
-						text = row[3].replace("\n", "")[:500]
-						type = row[4]
-						choices = [] 
-						minValue = DEFAULT_QUESTION_VALUE_MIN
-						maxValue = DEFAULT_QUESTION_VALUE_MAX
-						positiveResponseIfBoolean = DEFAULT_QUESTION_YES_BOOLEAN_RESPONSE
-						negativeResponseIfBoolean = DEFAULT_QUESTION_NO_BOOLEAN_RESPONSE
-						if type == "ordinal" or type == "nominal":
-							choices = [x.strip() for x in row[5].split("|")]
-						elif type == "value":
-							minAndMax = [x.strip() for x in row[5].split("|")]
-							try:
-								minValue = int(minAndMax[0])
-							except:
-								pass
-							try:
-								maxValue = int(minAndMax[1])
-							except:
-								pass
-						elif type == "boolean":
-							posNeg =  [x.strip() for x in row[5].split("|")]
-							positiveResponseIfBoolean = posNeg[0]
-							if len(posNeg) > 1:
-								negativeResponseIfBoolean = posNeg[1]
-						multiple = row[6] == "yes"
-						help = row[7]
-						useHelp=row[8]
-						if rakontu:
-							keyName = GenerateSequentialKeyName("question", rakontu)
-						else:
-							keyName = GenerateSequentialKeyName("question") # no rakontu - system level
-						question = Question(
-										key_name=keyName,
-										parent=rakontu,
-										id=keyName,
-										rakontu=rakontu,
-										refersTo=reference, 
-										order=referenceCounts[reference],
-										name=name, 
-										text=text, 
-										type=type, 
-										choices=choices, 
-										multiple=multiple,
-										positiveResponseIfBoolean=positiveResponseIfBoolean, 
-										negativeResponseIfBoolean=negativeResponseIfBoolean,
-										minIfValue=minValue, 
-										maxIfValue=maxValue, 
-										help=help, 
-										useHelp=useHelp,
-										)
-						question.rakontuTypes = []
-						question.rakontuTypes.extend(typesOfRakontu)
-						questionsToPut.append(question)
-	finally: 
-		file.close()
+			else:
+				typesOfRakontu = RAKONTU_TYPES[:-1] 
+			if rakontuType == "ALL" or rakontuType in typesOfRakontu:
+				refersTo = [x.strip() for x in row[0].split("|")]  
+				for reference in refersTo: 
+					if not reference in QUESTION_REFERS_TO:
+						continue
+					if referToType and reference != referToType:
+						continue
+					if not referenceCounts.has_key(reference):
+						referenceCounts[reference] = 0 
+					else: 
+						referenceCounts[reference] += 1 
+					name = row[2]
+					text = row[3].replace("\n", "")[:500]
+					type = row[4]
+					choices = [] 
+					minValue = DEFAULT_QUESTION_VALUE_MIN
+					maxValue = DEFAULT_QUESTION_VALUE_MAX
+					positiveResponseIfBoolean = DEFAULT_QUESTION_YES_BOOLEAN_RESPONSE
+					negativeResponseIfBoolean = DEFAULT_QUESTION_NO_BOOLEAN_RESPONSE
+					if type == "ordinal" or type == "nominal":
+						choices = [x.strip() for x in row[5].split("|")]
+					elif type == "value":
+						minAndMax = [x.strip() for x in row[5].split("|")]
+						try:
+							minValue = int(minAndMax[0])
+						except:
+							pass
+						try:
+							maxValue = int(minAndMax[1])
+						except:
+							pass
+					elif type == "boolean":
+						posNeg =  [x.strip() for x in row[5].split("|")]
+						positiveResponseIfBoolean = posNeg[0]
+						if len(posNeg) > 1:
+							negativeResponseIfBoolean = posNeg[1]
+					multiple = row[6] == "yes"
+					help = row[7]
+					useHelp=row[8]
+					if rakontu:
+						keyName = GenerateSequentialKeyName("question", rakontu)
+					else:
+						keyName = GenerateSequentialKeyName("question") # no rakontu - system level
+					question = Question(
+									key_name=keyName,
+									parent=rakontu,
+									id=keyName,
+									rakontu=rakontu,
+									refersTo=reference, 
+									order=referenceCounts[reference],
+									name=name, 
+									text=text, 
+									type=type, 
+									choices=choices, 
+									multiple=multiple,
+									positiveResponseIfBoolean=positiveResponseIfBoolean, 
+									negativeResponseIfBoolean=negativeResponseIfBoolean,
+									minIfValue=minValue, 
+									maxIfValue=maxValue, 
+									help=help, 
+									useHelp=useHelp,
+									)
+					question.rakontuTypes = []
+					question.rakontuTypes.extend(typesOfRakontu)
+					questionsToPut.append(question)
 	return questionsToPut
 
 def GenerateSampleQuestions():
@@ -848,38 +841,34 @@ def GenerateDefaultQuestionsForRakontu(rakontu):
 	
 def GenerateDefaultCharactersForRakontu(rakontu):
 	if os.path.exists(DEFAULT_CHARACTERS_FILE_NAME):
-		file = codecs.open(DEFAULT_CHARACTERS_FILE_NAME, "r", "utf-8")
-		try:
-			questionStrings = csv.reader(file)
-			characters = []
-			for row in questionStrings:
-				if len(row) >= 4 and row[0][0] != ";":
-					name = row[0]
-					description = row[1] 
-					etiquetteStatement = row[2] 
-					imageFileName = row[3]  
-					fullImageFileName = "config/images/%s" % imageFileName	
-					imageData = open(fullImageFileName).read()  
-					image = db.Blob(imageData) 
-					keyName = GenerateSequentialKeyName("character", rakontu)
-					character = Character( 
-									   key_name=keyName,  
-									   parent=rakontu,
-									   id=keyName, 
-									   rakontu=rakontu,
-									   name=row[0])
-					format = "plain text" 
-					character.description = db.Text(description)
-					character.description_formatted = db.Text(InterpretEnteredText(description, format))
-					character.description_format = format
-					character.etiquetteStatement = db.Text(etiquetteStatement)
-					character.etiquetteStatement_formatted = db.Text(InterpretEnteredText(etiquetteStatement, format))
-					character.etiquetteStatement_format = format
-					character.image = image 
-					characters.append(character)
-			db.put(characters)
-		finally:
-			file.close()
+		questionStrings = unicode_csv_reader(open(DEFAULT_CHARACTERS_FILE_NAME))
+		characters = []
+		for row in questionStrings:
+			if len(row) >= 4 and row[0][0] != ";":
+				name = row[0]
+				description = row[1] 
+				etiquetteStatement = row[2] 
+				imageFileName = row[3]  
+				fullImageFileName = "config/images/%s" % imageFileName	
+				imageData = open(fullImageFileName).read()  
+				image = db.Blob(imageData) 
+				keyName = GenerateSequentialKeyName("character", rakontu)
+				character = Character( 
+								   key_name=keyName,  
+								   parent=rakontu,
+								   id=keyName, 
+								   rakontu=rakontu,
+								   name=row[0])
+				format = "plain text" 
+				character.description = db.Text(description)
+				character.description_formatted = db.Text(InterpretEnteredText(description, format))
+				character.description_format = format
+				character.etiquetteStatement = db.Text(etiquetteStatement)
+				character.etiquetteStatement_formatted = db.Text(InterpretEnteredText(etiquetteStatement, format))
+				character.etiquetteStatement_format = format
+				character.image = image 
+				characters.append(character)
+		db.put(characters)
 	 
 def GenerateSystemResources(): 
 	db.delete(SystemEntriesOfType("resource"))
@@ -928,7 +917,10 @@ def GenerateSystemResources():
 				pass
 		else:
 			currentText += line 
-	resources.append(currentResource)	 
+	if currentResource:   
+		currentResource.text = currentText
+		currentResource.text_formatted = db.Text(InterpretEnteredText(currentText, currentResource.text_format))
+		resources.append(currentResource)
 	db.put(resources)
 	  
 def CopyDefaultResourcesForNewRakontu(rakontu, member):
@@ -975,6 +967,35 @@ def CopySystemResourceOverThisOneWithSameName(resource):
 		resource.text = db.Text(foundResource.text)
 		resource.text_formatted = db.Text(InterpretEnteredText(foundResource.text, foundResource.text_format))
 		resource.put()
+		
+# ============================================================================================
+# ============================================================================================
+# EMAIL NOTIFICATIONS
+# ============================================================================================
+# ============================================================================================
+
+class MailWorker(webapp.RequestHandler):
+	def post(self):
+		mail.send_mail(
+			'from_me@example.com',
+			self.request.get('to'),
+			self.request.get('subject'),
+			self.request.get('body'))
+
+# WORKING ON THIS - DOESN"T WORK YET
+"""
+def SendEmailNotificationsForEvent(notifyIndex, referent):
+	allMembers = referent.rakontu.getActiveOnlineMembers()
+	if allMembers:
+		membersToSendMessageTo = []
+		for member in allMembers:
+			if member.notifications[notifyIndex] and MemberCanReceiveEmailNotification(member, notifyIndex):
+				membersToSendMessageTo.append(member)
+		if membersToSendMessageTo:
+			if notifyIndex == NOTIFY_EVENT_CREATED:
+				subject = TERMS["term_new_entry"] + " " + entry.title
+				body = BLURBS["new_entry_notification"] % entry.linkString()
+"""		
 
 # ============================================================================================
 # ============================================================================================
@@ -1112,8 +1133,8 @@ def InterpretEnteredText(text, mode="text"):
 		result = "\n".join(changedLines)
 		for bold in re.compile(r'\*(.+?)\*').findall(result):
 			result = result.replace('*%s*' % bold, '<b>%s</b>' % bold)
-		for italic in re.compile(r'\_(.+?)\_').findall(result):
-			result = result.replace('_%s_' % italic, '<i>%s</i>' % italic)
+		for italic in re.compile(r'\ _(.+?)\_ ').findall(result):
+			result = result.replace('_%s_' % italic, ' <i>%s</i> ' % italic)
 		for code in re.compile(r'\^(.+?)\^').findall(result):
 			result = result.replace('^%s^' % code, '<code>%s</code>' % code)
 		for strike in re.compile(r'\~(.+?)\~').findall(result):
@@ -1290,6 +1311,7 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 			annotation.created = annotation.published
 			annotation.put()
 			entry.lastAnnotatedOrAnsweredOrLinked = annotation.published
+			entry.lastAnnotationAnswerOrLinkString = DisplayStringForLastAnnotationAnswerOrLink(annotation)
 			entry.put()
 	elif createWhat == "answers":
 		entryKeyNames = [] 
@@ -1350,6 +1372,7 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 				answer.created = answer.published
 				answer.put()
 				entry.lastAnnotatedOrAnsweredOrLinked = answer.published
+				entry.lastAnnotationAnswerOrLinkString = DisplayStringForLastAnnotationAnswerOrLink(answer)
 				entry.put()
 	elif createWhat == "nudges":
 		entryKeyNames = []
@@ -1381,5 +1404,6 @@ def AddFakeDataToRakontu(rakontu, numItems, createWhat):
 			annotation.created = annotation.published
 			annotation.put()
 			entry.lastAnnotatedOrAnsweredOrLinked = annotation.published
+			entry.lastAnnotationAnswerOrLinkString = DisplayStringForLastAnnotationAnswerOrLink(annotation)
 			entry.put()
 		DebugPrint("%s nudges generated" % numItems)

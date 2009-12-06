@@ -560,6 +560,52 @@ class Rakontu(db.Model):
 				result[displayForKey].append(resultText)
 		return result
 	
+	def fixFormattedTexts(self):
+		from utils import InterpretEnteredText
+		# this was temporarily needed to fix existing formatted texts when I found a bug in the formatting code 
+		# it might be needed again for some reason - but use it carefully! 
+		self.description_formatted = db.Text(InterpretEnteredText(self.description, self.description_format))
+		self.etiquetteStatement_formatted = db.Text(InterpretEnteredText(self.etiquetteStatement, self.etiquetteStatement_format))
+		self.welcomeMessage_formatted = db.Text(InterpretEnteredText(self.welcomeMessage, self.welcomeMessage_format))
+		self.roleReadmes_formatted[0] = db.Text(InterpretEnteredText(self.roleReadmes[0], self.roleReadmes_formats[0]))
+		self.roleReadmes_formatted[1] = db.Text(InterpretEnteredText(self.roleReadmes[1], self.roleReadmes_formats[1]))
+		self.roleReadmes_formatted[2] = db.Text(InterpretEnteredText(self.roleReadmes[2], self.roleReadmes_formats[2]))
+		self.put()
+		
+		members = self.getMembers()
+		for aMember in members:
+			if aMember.profileText:
+				aMember.profileText_formatted = db.Text(InterpretEnteredText(aMember.profileText, aMember.profileText_format))
+			if aMember.guideIntro:
+				aMember.guideIntro_formatted = db.Text(InterpretEnteredText(aMember.guideIntro, aMember.guideIntro_format))
+		db.put(members)
+		
+		characters = self.getCharacters()
+		for character in characters:
+			character.description_formatted = db.Text(InterpretEnteredText(character.description, character.description_format))
+			character.etiquetteStatement_formatted = db.Text(InterpretEnteredText(character.etiquetteStatement, character.etiquetteStatement_format))
+		db.put(characters)
+		
+		
+		filters = SavedFilter.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
+		for filter in filters:
+			if filter.comment:
+				filter.comment_formatted = db.Text(InterpretEnteredText(filter.comment, filter.comment_format))
+		db.put(filters)
+		
+		
+		entries = Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).fetch(FETCH_NUMBER)
+		for entry in entries:
+			if entry.text:
+				entry.text_formatted = db.Text(InterpretEnteredText(entry.text, entry.text_format))
+		db.put(entries)
+		
+		annotations = Annotation.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
+		for annotation in annotations:
+			if annotation.longString:
+				annotation.longString_formatted = db.Text(InterpretEnteredText(annotation.longString, annotation.longString_format))
+		db.put(annotations)
+	
 	def getNonDraftEntriesOfType(self, type):
 		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(FETCH_NUMBER)
 	
@@ -2395,6 +2441,7 @@ class Entry(db.Model):
 	numAnnotations = db.ListProperty(int, default=[0] * len(ANNOTATION_TYPES), indexed=False)
 	numAnswers = db.IntegerProperty(default=0, indexed=False)
 	numLinks = db.IntegerProperty(default=0, indexed=False)
+	lastAnnotationAnswerOrLinkString = db.StringProperty(indexed=False)
 	
 	def getNameForExport(self):
 		return "%s %s: %s" % (self.__class__.__name__, self.key().name(), HtmlUnEscape(self.title))
@@ -2524,6 +2571,7 @@ class Entry(db.Model):
 			else:
 				eventType = "adding %s" % referent.type
 			self.lastAnnotatedOrAnsweredOrLinked = now
+			self.lastAnnotationAnswerOrLinkString = DisplayStringForLastAnnotationAnswerOrLink(referent)
 			typeIndex = -1
 			i = 0
 			for type in ANNOTATION_TYPES:
@@ -2538,10 +2586,12 @@ class Entry(db.Model):
 		elif className == "Answer":
 			eventType = "answering question"
 			self.lastAnnotatedOrAnsweredOrLinked = now
+			self.lastAnnotationAnswerOrLinkString = DisplayStringForLastAnnotationAnswerOrLink(referent)
 			self.numAnswers += 1
 		elif className == "Link":
 			eventType = "adding %s link" % referent.type 
 			self.lastAnnotatedOrAnsweredOrLinked = now
+			self.lastAnnotationAnswerOrLinkString = DisplayStringForLastAnnotationAnswerOrLink(referent)
 			self.numLinks += 1
 		self.activityPoints += self.rakontu.getEntryActivityPointsForEvent(eventType)
 		# caller must do puts
@@ -3150,19 +3200,19 @@ class Entry(db.Model):
 		text = self.getTooltipText()
 		if self.type == "story":
 			name = TEMPLATE_TERMS["template_story"]
-			imageText = '<img src="/images/story.png" alt="%s" title="%s" border="0" %s\>' % (name, name, text)
+			imageText = '<img src="/images/story.png" alt="%s" border="0" %s\>' % (name, text)
 		elif self.type == "pattern":
 			name = TEMPLATE_TERMS["template_pattern"]
-			imageText = '<img src="/images/pattern.png" alt="%s" title="%s" border="0" %s\>' % (name, name, text)
+			imageText = '<img src="/images/pattern.png" alt="%s" border="0" %s\>' % (name, text)
 		elif self.type == "collage":
 			name = TEMPLATE_TERMS["template_collage"]
-			imageText = '<img src="/images/collage.png" alt="%s" title="%s" border="0" %s\>' % (name, name, text)
+			imageText = '<img src="/images/collage.png" alt="%s" border="0" %s\>' % (name, text)
 		elif self.type == "topic":
 			name = TEMPLATE_TERMS["template_topic"]
-			imageText = '<img src="/images/topic.png" alt="%s" title="%s" border="0" %s\>' % (name, name, text)
+			imageText = '<img src="/images/topic.png" alt="%s" border="0" %s\>' % (name, text)
 		elif self.type == "resource":
 			name = TEMPLATE_TERMS["template_resource"]
-			imageText = '<img src="/images/resource.png" alt="%s" title="%s" border="0" %s\>' % (name, name, text)
+			imageText = '<img src="/images/resource.png" alt="%s" border="0" %s\>' % (name, text)
 		return imageText
 	
 	def displayTextWithInlineAttachmentLinks(self):
@@ -3416,6 +3466,26 @@ class Link(db.Model):
 	
 	def linkStringWithFromItem(self):
 		result = self.itemFrom.linkString()
+		if self.comment:
+			result += ", (%s)" % self.comment
+		return result
+	
+	def displayStringForTooltip(self):
+		if self.itemFrom:
+			try:
+				itemFromString = self.itemFrom.title.strip()
+			except:
+				itemFromString = TERMS["term_linked_item_removed"]
+		else:
+			itemFromString = TERMS["term_linked_item_removed"]
+		if self.itemTo:
+			try:
+				itemToString = self.itemTo.title.strip()
+			except:
+				itemToString = TERMS["term_linked_item_removed"]
+		else:
+			itemToString = TERMS["term_linked_item_removed"]
+		result = '%s &gt; %s &gt; %s' % (itemFromString, DisplayTypeForLinkType(self.type), itemToString)
 		if self.comment:
 			result += ", (%s)" % self.comment
 		return result
@@ -4214,7 +4284,7 @@ def stripZeroOffStart(text):
 	else:
 		return text
 	
-def ImageLinkForAnnotationType(type, number):
+def ImageLinkForAnnotationType(type, number, nameToUse=None):
 	i = 0
 	for aType in ANNOTATION_TYPES:
 		if aType == type:
@@ -4226,7 +4296,10 @@ def ImageLinkForAnnotationType(type, number):
 				tooltip = 'title="%s %s"' % (number, typeToDisplay)
 			else:
 				typeToDisplay = ANNOTATION_TYPES_DISPLAY[i]
-				tooltip = 'title="%s"' % (typeToDisplay)
+				if nameToUse:
+					tooltip = 'title="%s - %s"' % (typeToDisplay, nameToUse)
+				else:
+					tooltip = 'title="%s"' % (typeToDisplay)
 			break
 		i += 1
 	if type == "comment":
@@ -4239,28 +4312,43 @@ def ImageLinkForAnnotationType(type, number):
 		imageText = '<img src="/images/nudges.png" alt="%s" %s border="0">' % (typeToDisplay, tooltip)
 	return imageText
 
-def ImageLinkForAnswer(number):
+def ImageLinkForAnswer(number, nameToUse=None):
 	if number > 1:
 		tooltip = 'title="%s %s"' % (number, TERMS["term_answers"])
 	elif number == 1:
 		tooltip = 'title="%s %s"' % (number, TERMS["term_answer"])
 	else:
-		tooltip = 'title="%s"' % (TERMS["term_answer"])
+		if nameToUse:
+			tooltip = 'title="%s - %s"' % (TERMS["term_answer"], nameToUse)
+		else:
+			tooltip = 'title="%s"' % (TERMS["term_answer"])
 	return'<img src="/images/answers.png" alt="%s" %s border="0">' % (TERMS["term_answer"], tooltip)
 
-def ImageLinkForLink(number):
+def ImageLinkForLink(number, nameToUse=None):
 	if number > 1:
 		tooltip = 'title="%s %s"' % (number, TERMS["term_links"])
 	elif number == 1:
 		tooltip = 'title="%s %s"' % (number, TERMS["term_link"])
 	else:
-		tooltip = 'title="%s"' % (TERMS["term_link"])
+		if nameToUse:
+			tooltip = 'title="%s - %s"' % (TERMS["term_link"], nameToUse)
+		else:
+			tooltip = 'title="%s"' % (TERMS["term_link"])
 	return'<img src="/images/link.png" alt="%s" %s border="0">' % (TERMS["term_link"], tooltip)
+
+def DisplayStringForLastAnnotationAnswerOrLink(lastItem):
+	if lastItem.__class__.__name__ == "Annotation":
+		imageString = ImageLinkForAnnotationType(lastItem.type, 0, lastItem.displayString())
+	if lastItem.__class__.__name__ == "Answer":
+		imageString = ImageLinkForAnswer(0, lastItem.displayString())
+	if lastItem.__class__.__name__ == "Link":
+		imageString = ImageLinkForLink(0, lastItem.displayString())
+	return imageString #+ items[0].linkString() + " "
 
 HTML_ESCAPES = {
  	"&": "&amp;",
  	'"': "&quot;",
- 	"'": "&apos;",
+ 	"'": "&#39;", # was "&apos;" but that doesn't work in IE7
  	">": "&gt;", 
  	"<": "&lt;",  
  	 } 

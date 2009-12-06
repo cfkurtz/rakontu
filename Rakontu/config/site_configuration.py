@@ -29,9 +29,12 @@
 
 # Which language files to load. This must match the directory name (under config) under which the language dependent files are stored.
 from os import environ
-app_id = environ["APPLICATION_ID"]
+try:
+	app_id = environ["APPLICATION_ID"]
+except: # this happens if you are accessing this file from the backup or restore scripts
+	app_id = "rakontu"
 if app_id == "rakontu" or app_id == "rakontu-sandbox":
-	SITE_LANGUAGE = "english" 
+	SITE_LANGUAGE = "english"  
 elif app_id == "rakontu-francais":
 	SITE_LANGUAGE = "francais" 
 
@@ -43,6 +46,7 @@ SITE_LANGUAGE_FALLBACK_FOR_MISSING_CONFIG_FILES = "english"
 # You MUST replace this with an email address connected to a site administrator (as defined by Google).
 # This MUST be the email address you are using for the Google account you use to administer the Rakontu site.
 # If it is not a valid email, you will not be able to get error messages.
+# If you don't want to use your personal email for this, create another gmail account and use that.
 SITE_SUPPORT_EMAIL = "cynthia.f.kurtz@gmail.com"
 
 # Don't touch this

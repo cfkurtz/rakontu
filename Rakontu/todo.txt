@@ -6,9 +6,14 @@ finish developer notes
 
 bug - sent to rename answers screen when no answers to question - fixed ??
 
-consider promote button - comment to topic or story
+consider promote button - comment to topic or story - how to DO this?
 
-problem - when tell story with remind/retell, story shows character but link shows person - how fix??? links don't have characters!
+how to put a SET of answers in the timeline instead of answers singly? too cluttery
 
-bug - if _text_ in links replaces with italics. needs to do that AFTER link search.
+digest vs notifications?
 
+WHAT to do about the 8 email recipients problem?
+
+BUG _italics_. not changed. look for punctuation after last _
+
+month names are not being translated ?? i think they are not.
