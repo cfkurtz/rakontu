@@ -22,11 +22,14 @@ from google.appengine.api import images
 from google.appengine.api import mail
 from google.appengine.api import memcache
 import traceback
-   
+from google.appengine.runtime import DeadlineExceededError
+from google.appengine.runtime.apiproxy_errors import CapabilityDisabledError
+from google.appengine.ext.db import Timeout, TransactionFailedError
+  
 webapp.template.register_template_library('djangoTemplateExtras')
 import csv 
 import pytz
-    
+
 # ============================================================================================
 # ============================================================================================
 # PREPARING INFO FOR TEMPLATES

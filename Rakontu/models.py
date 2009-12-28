@@ -605,6 +605,56 @@ class Rakontu(db.Model):
 			if annotation.longString:
 				annotation.longString_formatted = db.Text(InterpretEnteredText(annotation.longString, annotation.longString_format))
 		db.put(annotations)
+		
+	def fixHtmlEscapeShortTexts(self):
+		# this was temporarily needed to fix existing formatted texts when I found a bug in the formatting code 
+		# it might be needed again for some reason - but use it carefully! 
+		apos = "&apos;"
+		a39 = "&#39;"
+		
+		for i in range(len(self.nudgeCategoryQuestions)):
+			if self.nudgeCategoryQuestions[i]:
+				self.nudgeCategoryQuestions[i] = self.nudgeCategoryQuestions[i].replace(apos, a39)
+		self.put()
+		
+		entries = Entry.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
+		for entry in entries:
+			if entry.title:
+				entry.title = entry.title.replace(apos, a39)
+		db.put(entries)
+		
+		links = Link.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
+		for link in links:
+			if link.comment:
+				link.comment = link.comment.replace(apos, a39)
+		db.put(links)
+		
+		annotations = Annotation.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
+		for annotation in annotations:
+			if annotation.shortString:
+				annotation.shortString = annotation.shortString.replace(apos, a39)
+		db.put(annotations)
+		
+		questions = Question.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
+		for question in questions:
+			if question.name:
+				question.name = question.name.replace(apos, a39)
+			if question.text:
+				question.text = question.text.replace(apos, a39)
+			if question.help:
+				question.help = question.help.replace(apos, a39)
+			if question.isOrdinalOrNominal():
+				for i in range(len(question.choices)):
+					if question.choices[i]:
+						question.choices[i] = question.choices[i].replace(apos, a39)
+		db.put(questions)
+		
+		answers = Answer.all().filter("rakontu = ", self.key()).fetch(FETCH_NUMBER)
+		for answer in answers:
+			if answer.answerIfText:
+				answer.answerIfText = answer.answerIfText.replace(apos, a39)
+		db.put(answers)
+		
 	
 	def getNonDraftEntriesOfType(self, type):
 		return Entry.all().filter("rakontu = ", self.key()).filter("draft = ", False).filter("type = ", type).fetch(FETCH_NUMBER)
@@ -4338,12 +4388,13 @@ def ImageLinkForLink(number, nameToUse=None):
 
 def DisplayStringForLastAnnotationAnswerOrLink(lastItem):
 	if lastItem.__class__.__name__ == "Annotation":
-		imageString = ImageLinkForAnnotationType(lastItem.type, 0, lastItem.displayString())
+		imageString = ImageLinkForAnnotationType(lastItem.type, 0, lastItem.displayString().replace("\n", " ")[:400])
 	if lastItem.__class__.__name__ == "Answer":
-		imageString = ImageLinkForAnswer(0, lastItem.displayString())
+		imageString = ImageLinkForAnswer(0, lastItem.displayString().replace("\n", " ")[:400])
 	if lastItem.__class__.__name__ == "Link":
-		imageString = ImageLinkForLink(0, lastItem.displayString())
-	return imageString #+ items[0].linkString() + " "
+		imageString = ImageLinkForLink(0, lastItem.displayStringForTooltip().replace("\n", " ")[:400])
+	# cannot have multi-line or >500 byte entry in string field
+	return imageString
 
 HTML_ESCAPES = {
  	"&": "&amp;",

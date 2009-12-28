@@ -37,7 +37,7 @@ if app_id == "rakontu" or app_id == "rakontu-sandbox":
 	SITE_LANGUAGE = "english"  
 elif app_id == "rakontu-francais":
 	SITE_LANGUAGE = "francais" 
-
+	
 # This is the language to use for files that are missing.
 # Having this fallback allows the system to work with partial (usually in-progress) translations
 # where only some of the files are available.

@@ -17,3 +17,8 @@ WHAT to do about the 8 email recipients problem?
 BUG _italics_. not changed. look for punctuation after last _
 
 month names are not being translated ?? i think they are not.
+
+in manage-members, sort members by alphabetical, last read, last added, nudge points, roles, manager/not
+
+searched for all answers on mistake bank - got deadline error but it was NOT caught by exception handling!!
+need new error page for that. CANNOT CATCH WITH GLOBAL HANDLER !! 
