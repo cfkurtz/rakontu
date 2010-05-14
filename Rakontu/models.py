@@ -1019,7 +1019,7 @@ class Rakontu(db.Model):
 		return countsForThisType
 	
 	def GenerateCopyOfQuestion(self, question):
-		keyName = GenerateSequentialKeyName("question", self.id)
+		keyName = GenerateSequentialKeyName("question", self)
 		newQuestion = Question(
 							   key_name=keyName,
 							   parent=self,
@@ -1110,7 +1110,7 @@ class Rakontu(db.Model):
 													text = row[4].strip()
 												else:
 													text = "No text imported."
-												keyName = GenerateSequentialKeyName("entry", self.id)
+												keyName = GenerateSequentialKeyName("entry", self)
 												entry = Entry(key_name=keyName, parent=member, id=keyName, rakontu=self, type=type, title=title) 
 												entry.text = text
 												entry.rakontu = self
@@ -1131,7 +1131,7 @@ class Rakontu(db.Model):
 		exportAlreadyThereForType = self.getExportOfType(type)
 		if exportAlreadyThereForType:
 			db.delete(exportAlreadyThereForType)
-		keyName = GenerateSequentialKeyName("export", self.id)
+		keyName = GenerateSequentialKeyName("export", self)
 		export = Export(
 					key_name=keyName, 
 					id=keyName,
@@ -1509,9 +1509,31 @@ class Member(db.Model):
 		# caller does put
 		
 	def createViewOptions(self):
-		viewOptionsNow = ViewOptions.all().ancestor(self)
-		if viewOptionsNow:
-			db.delete(viewOptionsNow)
+		# this code was raising an error, thus:
+		# -------------------------------------------------
+  		# Traceback (most recent call last):
+  		# File "/base/python_runtime/python_lib/versions/1/google/appengine/ext/webapp/__init__.py", line 511, in __call__
+  		#   handler.get(*groups)
+  		# File "/base/data/home/apps/rakontu-sandbox/1-0-0-beta-1-6.338777851352660677/utils.py", line 48, in check_login
+  		#   func(request)
+  		# File "/base/data/home/apps/rakontu-sandbox/1-0-0-beta-1-6.338777851352660677/visit.py", line 791, in get
+  		#   viewOptions = member.getViewOptionsForLocation("member")
+  		# File "/base/data/home/apps/rakontu-sandbox/1-0-0-beta-1-6.338777851352660677/models.py", line 1625, in getViewOptionsForLocation
+  		#   self.createViewOptions()
+  		# File "/base/data/home/apps/rakontu-sandbox/1-0-0-beta-1-6.338777851352660677/models.py", line 1514, in createViewOptions
+  		#   db.delete(viewOptionsNow)
+  		# File "/base/python_runtime/python_lib/versions/1/google/appengine/ext/db/__init__.py", line 1300, in delete
+  		#   keys = [_coerce_to_key(v) for v in models]
+  		# File "/base/python_runtime/python_lib/versions/1/google/appengine/ext/db/__init__.py", line 362, in _coerce_to_key
+  		#   value = value[0]
+  		# IndexError: list index out of range
+		# -------------------------------------------------
+		# and I can't figure out why, so I'm commenting it out - that isn't a solution but it avoids the error, for now!
+		# -------------------------------------------------
+		#viewOptionsNow = ViewOptions.all().ancestor(self)
+		#if viewOptionsNow:
+		#	db.delete(viewOptionsNow)
+		# -------------------------------------------------
 		newObjects = []
 		for location in VIEW_OPTION_LOCATIONS:
 			keyName = GenerateSequentialKeyName("viewOptions", self.rakontu)
@@ -1841,7 +1863,7 @@ class ViewOptions(db.Model):
 	location = db.StringProperty(choices=VIEW_OPTION_LOCATIONS, default="home") 
 	
 	endTime = TzDateTimeProperty(auto_now_add=True, indexed=False)
-	timeFrameInSeconds = db.IntegerProperty(default=WEEK_SECONDS, indexed=False)
+	timeFrameInSeconds = db.IntegerProperty(default=MONTH_SECONDS, indexed=False)
 
 	entryTypes = db.ListProperty(bool, default=[True, True, True, True, False], indexed=False)
 	annotationAnswerLinkTypes = db.ListProperty(bool, default=[True, True, True, True, False, False], indexed=False) 
