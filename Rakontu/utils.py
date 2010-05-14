@@ -643,10 +643,13 @@ class AttachmentHandler(ErrorHandlingRequestHander):
 				
 class ExportHandler(ErrorHandlingRequestHander):
 	def get(self): 
-		csvKeyName = self.request.get(URL_IDS["url_query_export_csv"])
-		txtKeyName = self.request.get(URL_IDS["url_query_export_txt"])
-		xmlKeyName = self.request.get(URL_IDS["url_query_export_xml"])
-		if csvKeyName:
+		rakontu, member, access, isFirstVisit = GetCurrentRakontuAndMemberFromRequest(self.request)
+		rakontuKeyName = rakontu.key().name()
+		csvIndex = self.request.get(URL_IDS["url_query_export_csv"])
+		txtIndex = self.request.get(URL_IDS["url_query_export_txt"])
+		xmlIndex = self.request.get(URL_IDS["url_query_export_xml"])
+		if csvIndex:
+			csvKeyName = rakontuKeyName + "_export_" + csvIndex
 			export = Export.get_by_key_name(csvKeyName)
 			if export and export.data:
 				self.response.headers['Content-Disposition'] ='export; filename="%s_%s.%s"' % (export.type, export.subtype, "csv")
@@ -654,14 +657,16 @@ class ExportHandler(ErrorHandlingRequestHander):
 				self.response.out.write(export.data)
 			else:
 				self.error(404)
-		elif txtKeyName:
+		elif txtIndex:
+			txtKeyName = rakontuKeyName + "_export_" + txtIndex
 			export = Export.get_by_key_name(txtKeyName)
 			if export and export.data:
 				self.response.headers['Content-Type'] ="text/html"
 				self.response.out.write(export.data)
 			else:
 				self.error(404)
-		elif xmlKeyName:
+		elif xmlIndex:
+			xmlKeyName = rakontuKeyName + "_export_" + xmlIndex
 			export = Export.get_by_key_name(xmlKeyName)
 			if export and export.data:
 				self.response.headers['Content-Disposition'] ='export; filename="%s_%s.%s"' % (export.type, export.subtype, "xml")
