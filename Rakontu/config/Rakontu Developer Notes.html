@@ -9,12 +9,16 @@
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Rakontu Developer Notes</H1>
-<P>Last revised by Cynthia Kurtz, October 2009.</P>
+<P>Last revised by Cynthia Kurtz, May 2010.</P>
 <P>These notes are to help any developer of Rakontu get started. They
 are also for me myself, for later on. To write this, I've just sat
 here and noted here everything I think I <I>might</I> forget (which
-is a lot) and which I think may be important to remember later.Basic
-information</P>
+is a lot) and which I think may be important to remember later.</P>
+
+<p><font color="blue">NOTE: As it turned out I had to stop working on Rakontu <i>before</i> I got everything
+written down (paying work intervened), and I <i>did</i> forget most of what I had meant
+to write down. So these notes are incomplete. :(</font></p>
+
 <H4>Platform</H4>
 <P>For Rakontu I chose the Google App Engine (GAE), Python and
 webapp. I chose the GAE mainly because I thought it would &quot;lower
@@ -256,44 +260,53 @@ Rakontu - most of the Python files are here
 
 
 <H3>How to do things</H3>
-<P>- to upload app to multiple app instances 1 - start a terminal
-window 2 - cd to the directory ABOVE where your Rakontu source code
-is 3 - on the mac type /usr/local/bin/appcfg.py update Rakontu
---no_cookies --email=cynthia.f.kurtz@gmail.com
---application=rakontu-sandbox then I had to do this:
-/usr/local/bin/appcfg.py update_indexes Rakontu --no_cookies
---email=cynthia.f.kurtz@gmail.com --application=rakontu-sandbox you
-may need to find appcfg.py on your system. look at the GAE launcher
-to see. - to map the new app domain to a google apps domain 1 - get
-google apps account 2 - in dashboard for your app, click application
-settings, then add domain (note the instructions say versions but it
-is not there) 3 - put in your google apps domain 4 - do the CNAME
-instructions that follow on your IP provider 5 - wait a few hours for
-the DNS changes to propagate 6 - your url should work
-http://code.google.com/appengine/articles/domains.html
-http://www.google.com/support/a/bin/answer.py?answer=91080
-http://www.google.com/support/a/bin/answer.py?hl=en&amp;answer=47283 
-</P>
-<H3>Things that need doing</H3>
-<P>SMALL THINGS add cancel LINKS on all pages that save things?
-(links should say where they go to) BIG THINGS testing code review
-better graphics more documentation - tutorials, etc 
-</P>
-<H3>Rules for changing the Rakontu code</H3>
-<P>- don't add any raw text to the templates 
-</P>
-<H3>Things you just need to know</H3>
-<H4>Things that surprised me (and may surprise you, if you don't read
-this)</H4>
-<P>- the django ifequal bug 
-</P>
-<H4>Things I am not happy about</H4>
-<P>transactions should be using keys_only queries always use match
+
+<p><font color="blue">NOTE: I left this part in a bit of a mess, and since I can't remember what any of it means
+at this point, it will have to stay that way :(</font></p>
+
+<h5>To upload app to multiple app instances</h5>
+<ol>
+<li>start a terminal window</li>
+<li>cd to the directory ABOVE where your Rakontu source code is</li>
+<li>on the mac type /usr/local/bin/appcfg.py update Rakontu --no_cookies --email=cynthia.f.kurtz@gmail.com --application=rakontu-sandbox
+(with, obviously, your email address, not mine)</li>
+<li>then type /usr/local/bin/appcfg.py update_indexes Rakontu --no_cookies
+--email=cynthia.f.kurtz@gmail.com --application=rakontu-sandbox</li>
+<li>you may need to find appcfg.py on your system. look at the GAE launcher
+to see.</li>
+</ol>
+
+<h5>To map the new app domain to a google apps domain</h5>
+<ol>
+<li>get a google apps account</li>
+<li>in the dashboard for your app, click application settings, then add domain (note the instructions say versions but it
+is not there)</li>
+<li>put in your google apps domain</li>
+<li>do the CNAME instructions that follow on your IP provider</li>
+<li>wait a few hours for the DNS changes to propagate</li>
+<li>your url should work</li>
+</ol>
+<p>Resources:</p>
+<ul>
+<li><a href="http://code.google.com/appengine/articles/domains.html">http://code.google.com/appengine/articles/domains.html</a>
+</li>
+<li><a href="http://www.google.com/support/a/bin/answer.py?answer=91080">http://www.google.com/support/a/bin/answer.py?answer=91080</a>
+</li>
+<li><a href="http://www.google.com/support/a/bin/answer.py?hl=en&amp;answer=47283">http://www.google.com/support/a/bin/answer.py?hl=en&amp;answer=47283</a>
+</li>
+</ul>
+
+<h3>Watch out for</h3>
+<p><font color="blue">... Wish I had written more of these while I still remembered :(</font></p>
+
+<p>One BIG thing was that the "ifequal" command in django DOES NOT WORK if you include any filters.</p>
+<P>Transactions SHOULD be using keys_only queries always use match
 fetch number (1000) even when that is not likely (slows it down?)
-needs better error handling. no try excepts around puts or
-transactions. have global exception handler unit testing, testing
-suites 
+needs better error handling.</p>
+<p>No try except repeat retries around puts or gets or
+transactions. I found out too late that you need this in GAE. Bummer.
 </P>
+
 <H4>Changing template files</H4>
 <P>You can change the files in the &quot;templates&quot; directory to
 customize how your Rakontu looks and works. However, follow a few
@@ -309,9 +322,10 @@ guidelines:
 	<CODE>showTranslationStringsInTemplates.py</CODE> script. It will
 	generate a file called &quot;Template texts.txt&quot; which shows
 	you where all the raw strings (texts) are in the templates. 
+	</li>
+	<LI><P>Well, I guess that was the only guideline I wrote before I stopped. Sorry!! 
 	</P>
-	<LI><P>xxxx 
-	</P>
+	</li>
 </UL>
 </BODY>
 </HTML>
